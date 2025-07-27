@@ -56,6 +56,7 @@ export default function CreatePage({ onBackClick }) {
 
   return (
     <Box
+      className="main-container"
       sx={{
         height: '100vh',
         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
@@ -154,6 +155,7 @@ export default function CreatePage({ onBackClick }) {
 
       {/* 右側メインエリア */}
       <Box
+        className="right-main-area"
         sx={{
           flex: 1,
           display: 'flex',
@@ -253,6 +255,7 @@ export default function CreatePage({ onBackClick }) {
 
         {/* メインコンテンツエリア */}
         <Box
+          className="main-content-area"
           sx={{
             flex: 1,
             overflow: 'hidden',
@@ -299,6 +302,7 @@ export default function CreatePage({ onBackClick }) {
 
               {/* 中央プレビューエリア */}
               <Box
+                className="center-preview-area"
                 sx={{
                   position: 'absolute',
                   top: '50%',
@@ -637,7 +641,7 @@ export default function CreatePage({ onBackClick }) {
             </motion.div>
 
             {/* 中央の透明な間隔 */}
-            <Box sx={{ flex: 1 }} />
+            <Box className="center-spacer" sx={{ flex: 1 }} />
 
             {/* 右側Container */}
             <motion.div
