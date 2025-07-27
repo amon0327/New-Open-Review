@@ -167,14 +167,14 @@ export default function CreatePage({ onBackClick }) {
         <Paper
           elevation={0}
           sx={{
-            height: 80,
+            height: 50,
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
             borderRadius: 0,
             display: 'flex',
             alignItems: 'center',
-            px: 3,
+            px: 2,
             justifyContent: 'space-between'
           }}
         >
@@ -321,9 +321,10 @@ export default function CreatePage({ onBackClick }) {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1,
-                      p: 1,
-                      borderRadius: 3,
+                      gap: 0.5,
+                      px: 1,
+                      py: 0.5,
+                      borderRadius: 2,
                       background: 'rgba(255, 255, 255, 0.95)',
                       backdropFilter: 'blur(20px)',
                       border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -362,7 +363,7 @@ export default function CreatePage({ onBackClick }) {
                     </Tooltip>
 
                     {/* 区切り線 */}
-                    <Box sx={{ width: 1, height: 24, backgroundColor: 'rgba(0, 0, 0, 0.1)', mx: 1 }} />
+                    <Box sx={{ width: 1, height: 16, backgroundColor: 'rgba(0, 0, 0, 0.1)', mx: 0.5 }} />
 
                     {/* ズーム制御 */}
                     <Tooltip title="縮小">
@@ -380,7 +381,7 @@ export default function CreatePage({ onBackClick }) {
                       </IconButton>
                     </Tooltip>
 
-                    <Typography variant="body2" sx={{ minWidth: 50, textAlign: 'center', color: '#64748b' }}>
+                    <Typography variant="caption" sx={{ minWidth: 40, textAlign: 'center', color: '#64748b', fontSize: '0.7rem' }}>
                       {Math.round(zoom * 100)}%
                     </Typography>
 
