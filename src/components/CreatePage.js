@@ -21,7 +21,12 @@ import {
   Image,
   Description,
   Settings,
-  Palette
+  Palette,
+  PhoneAndroid,
+  Computer,
+  ZoomIn,
+  ZoomOut,
+  FitScreen
 } from '@mui/icons-material';
 
 // ナビゲーションアイテムの定義
@@ -40,6 +45,13 @@ const navigationItems = [
 
 export default function CreatePage({ onBackClick }) {
   const [selectedTool, setSelectedTool] = useState(null);
+  const [previewMode, setPreviewMode] = useState('mobile'); // 'mobile' or 'desktop'
+  const [zoom, setZoom] = useState(1); // ズーム倍率
+
+  // ズーム制御関数
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.2, 2));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.2, 0.5));
+  const handleFitScreen = () => setZoom(1);
 
   return (
     <Box
@@ -283,6 +295,263 @@ export default function CreatePage({ onBackClick }) {
                   zIndex: 0
                 }}
               />
+
+              {/* 中央プレビューエリア */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 2
+                }}
+              >
+                {/* プレビュー制御パネル */}
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Paper
+                    elevation={8}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      p: 1,
+                      borderRadius: 3,
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    {/* デバイス切り替え */}
+                    <Tooltip title="モバイル表示">
+                      <IconButton
+                        onClick={() => setPreviewMode('mobile')}
+                        sx={{
+                          color: previewMode === 'mobile' ? '#5e17eb' : '#64748b',
+                          backgroundColor: previewMode === 'mobile' ? 'rgba(94, 23, 235, 0.1)' : 'transparent',
+                          '&:hover': {
+                            backgroundColor: 'rgba(94, 23, 235, 0.1)'
+                          }
+                        }}
+                      >
+                        <PhoneAndroid />
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="PC表示">
+                      <IconButton
+                        onClick={() => setPreviewMode('desktop')}
+                        sx={{
+                          color: previewMode === 'desktop' ? '#5e17eb' : '#64748b',
+                          backgroundColor: previewMode === 'desktop' ? 'rgba(94, 23, 235, 0.1)' : 'transparent',
+                          '&:hover': {
+                            backgroundColor: 'rgba(94, 23, 235, 0.1)'
+                          }
+                        }}
+                      >
+                        <Computer />
+                      </IconButton>
+                    </Tooltip>
+
+                    {/* 区切り線 */}
+                    <Box sx={{ width: 1, height: 24, backgroundColor: 'rgba(0, 0, 0, 0.1)', mx: 1 }} />
+
+                    {/* ズーム制御 */}
+                    <Tooltip title="縮小">
+                      <IconButton
+                        onClick={handleZoomOut}
+                        disabled={zoom <= 0.5}
+                        sx={{
+                          color: '#64748b',
+                          '&:hover': {
+                            backgroundColor: 'rgba(100, 116, 139, 0.1)'
+                          }
+                        }}
+                      >
+                        <ZoomOut />
+                      </IconButton>
+                    </Tooltip>
+
+                    <Typography variant="body2" sx={{ minWidth: 50, textAlign: 'center', color: '#64748b' }}>
+                      {Math.round(zoom * 100)}%
+                    </Typography>
+
+                    <Tooltip title="拡大">
+                      <IconButton
+                        onClick={handleZoomIn}
+                        disabled={zoom >= 2}
+                        sx={{
+                          color: '#64748b',
+                          '&:hover': {
+                            backgroundColor: 'rgba(100, 116, 139, 0.1)'
+                          }
+                        }}
+                      >
+                        <ZoomIn />
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="フィット">
+                      <IconButton
+                        onClick={handleFitScreen}
+                        sx={{
+                          color: '#64748b',
+                          '&:hover': {
+                            backgroundColor: 'rgba(100, 116, 139, 0.1)'
+                          }
+                        }}
+                      >
+                        <FitScreen />
+                      </IconButton>
+                    </Tooltip>
+                  </Paper>
+                </motion.div>
+
+                {/* プレビュー画面 */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: zoom }}
+                  transition={{ duration: 0.3 }}
+                  style={{
+                    transform: `scale(${zoom})`,
+                    transformOrigin: 'center'
+                  }}
+                >
+                  <Paper
+                    elevation={12}
+                    sx={{
+                      width: previewMode === 'mobile' ? 375 : 1024,
+                      height: previewMode === 'mobile' ? 667 : 576,
+                      borderRadius: previewMode === 'mobile' ? 6 : 2,
+                      background: 'white',
+                      border: previewMode === 'mobile' ? '8px solid #1a1a1a' : '2px solid #e2e8f0',
+                      boxShadow: previewMode === 'mobile' 
+                        ? '0 25px 80px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)' 
+                        : '0 20px 60px rgba(0, 0, 0, 0.15)',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {/* モバイルの場合のノッチ */}
+                    {previewMode === 'mobile' && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          width: 150,
+                          height: 30,
+                          background: '#1a1a1a',
+                          borderBottomLeftRadius: 15,
+                          borderBottomRightRadius: 15,
+                          zIndex: 10
+                        }}
+                      />
+                    )}
+
+                    {/* プレビューコンテンツ */}
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        p: previewMode === 'mobile' ? 2 : 4,
+                        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          textAlign: 'center',
+                          mb: 3
+                        }}
+                      >
+                        <Typography
+                          variant={previewMode === 'mobile' ? 'h6' : 'h4'}
+                          sx={{
+                            fontWeight: 700,
+                            background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                            backgroundClip: 'text',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            mb: 1
+                          }}
+                        >
+                          {previewMode === 'mobile' ? 'モバイル' : 'デスクトップ'}プレビュー
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          フォームの{previewMode === 'mobile' ? 'スマートフォン' : 'PC'}での表示
+                        </Typography>
+                      </Box>
+
+                      {/* サンプルフォーム */}
+                      <Paper
+                        sx={{
+                          p: previewMode === 'mobile' ? 2 : 3,
+                          borderRadius: 2,
+                          width: '100%',
+                          maxWidth: previewMode === 'mobile' ? 300 : 600,
+                          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+                        }}
+                      >
+                        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                          サンプルアンケート
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <Box>
+                            <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+                              お名前をお聞かせください
+                            </Typography>
+                            <Box
+                              sx={{
+                                width: '100%',
+                                height: 40,
+                                border: '1px solid #e2e8f0',
+                                borderRadius: 1,
+                                backgroundColor: '#f8fafc'
+                              }}
+                            />
+                          </Box>
+                          <Box>
+                            <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+                              満足度を教えてください
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                              {['とても満足', '満足', '普通', '不満'].map((option, index) => (
+                                <Box
+                                  key={index}
+                                  sx={{
+                                    px: 2,
+                                    py: 1,
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: 1,
+                                    fontSize: previewMode === 'mobile' ? '0.8rem' : '0.9rem',
+                                    backgroundColor: index === 1 ? 'rgba(94, 23, 235, 0.1)' : '#f8fafc',
+                                    color: index === 1 ? '#5e17eb' : '#64748b'
+                                  }}
+                                >
+                                  {option}
+                                </Box>
+                              ))}
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Paper>
+                    </Box>
+                  </Paper>
+                </motion.div>
+              </Box>
             </Paper>
           </motion.div>
 
