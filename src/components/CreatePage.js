@@ -242,30 +242,33 @@ export default function CreatePage({ onBackClick }) {
         <Box
           sx={{
             flex: 1,
-            p: 3,
-            overflow: 'hidden'
+            overflow: 'hidden',
+            position: 'relative'
           }}
         >
+          {/* 最大まで広げた背景Container */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.6 }}
-            style={{ height: '100%' }}
+            style={{ 
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0
+            }}
           >
             <Paper
-              elevation={8}
+              elevation={2}
               sx={{
                 height: '100%',
-                borderRadius: 3,
+                width: '100%',
+                borderRadius: 0,
                 background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
-                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                overflow: 'hidden'
+                position: 'relative'
               }}
             >
               {/* 背景パターン */}
@@ -280,113 +283,196 @@ export default function CreatePage({ onBackClick }) {
                   zIndex: 0
                 }}
               />
-
-              {/* コンテンツ */}
-              <Box
-                sx={{
-                  textAlign: 'center',
-                  zIndex: 1,
-                  maxWidth: '600px',
-                  px: 4
-                }}
-              >
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 0.5 }}
-                >
-                  <Box
-                    sx={{
-                      width: 120,
-                      height: 120,
-                      borderRadius: 3,
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto',
-                      mb: 3,
-                      boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)'
-                    }}
-                  >
-                    <Typography
-                      variant="h2"
-                      sx={{ color: 'white', fontWeight: 'bold' }}
-                    >
-                      +
-                    </Typography>
-                  </Box>
-                </motion.div>
-
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.4, duration: 0.5 }}
-                >
-                  <Typography
-                    variant="h3"
-                    sx={{
-                      fontWeight: 700,
-                      background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      mb: 2
-                    }}
-                  >
-                    フォーム作成エリア
-                  </Typography>
-                </motion.div>
-
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.6, duration: 0.5 }}
-                >
-                  <Typography
-                    variant="h6"
-                    color="text.secondary"
-                    sx={{
-                      mb: 4,
-                      lineHeight: 1.6
-                    }}
-                  >
-                    左のナビゲーションから質問タイプを選択して
-                    ドラッグ&ドロップでフォームを作成できます
-                  </Typography>
-                </motion.div>
-
-                {selectedTool && (
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Box
-                      sx={{
-                        p: 4,
-                        borderRadius: 3,
-                        background: 'rgba(94, 23, 235, 0.1)',
-                        border: '2px dashed rgba(94, 23, 235, 0.3)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 2
-                      }}
-                    >
-                      {selectedTool.icon}
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {selectedTool.label}が選択されています
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        ここに{selectedTool.label}の設定UIが表示されます
-                      </Typography>
-                    </Box>
-                  </motion.div>
-                )}
-              </Box>
             </Paper>
           </motion.div>
+
+          {/* 上のレイヤー：左右のContainer2つ */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'stretch',
+              p: 3,
+              gap: 3,
+              zIndex: 1
+            }}
+          >
+            {/* 左側Container */}
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              style={{ flex: '0 0 300px' }}
+            >
+              <Paper
+                elevation={8}
+                sx={{
+                  height: '100%',
+                  borderRadius: 3,
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 2,
+                    boxShadow: '0 10px 30px rgba(94, 23, 235, 0.3)'
+                  }}
+                >
+                  <Typography
+                    variant="h4"
+                    sx={{ color: 'white', fontWeight: 'bold' }}
+                  >
+                    L
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 600,
+                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    mb: 1
+                  }}
+                >
+                  左側Container
+                </Typography>
+                <Typography variant="body2" color="text.secondary" textAlign="center">
+                  フォーム設定や
+                  質問リストが
+                  ここに表示されます
+                </Typography>
+              </Paper>
+            </motion.div>
+
+            {/* 右側Container */}
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              style={{ flex: '0 0 300px' }}
+            >
+              <Paper
+                elevation={8}
+                sx={{
+                  height: '100%',
+                  borderRadius: 3,
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 2,
+                    boxShadow: '0 10px 30px rgba(252, 182, 159, 0.3)'
+                  }}
+                >
+                  <Typography
+                    variant="h4"
+                    sx={{ color: 'white', fontWeight: 'bold' }}
+                  >
+                    R
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 600,
+                    background: 'linear-gradient(45deg, #fcb69f 30%, #ffecd2 90%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    mb: 1
+                  }}
+                >
+                  右側Container
+                </Typography>
+                <Typography variant="body2" color="text.secondary" textAlign="center">
+                  プレビューや
+                  詳細設定が
+                  ここに表示されます
+                </Typography>
+              </Paper>
+            </motion.div>
+          </Box>
+
+          {/* 選択ツールの表示（中央部分） */}
+          {selectedTool && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 2
+              }}
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Box
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    background: 'rgba(94, 23, 235, 0.1)',
+                    border: '2px dashed rgba(94, 23, 235, 0.3)',
+                    backdropFilter: 'blur(10px)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 1,
+                    minWidth: 200
+                  }}
+                >
+                  {selectedTool.icon}
+                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    {selectedTool.label}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    選択中
+                  </Typography>
+                </Box>
+              </motion.div>
+            </Box>
+          )}
         </Box>
       </Box>
     </Box>
