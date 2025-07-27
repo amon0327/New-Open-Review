@@ -42,7 +42,6 @@ export default function CreatePage({ onBackClick }) {
   const [selectedTool, setSelectedTool] = useState(null);
 
   return (
-    {/* 背景全体Container */}
     <Box
       sx={{
         height: '100vh',
@@ -51,6 +50,7 @@ export default function CreatePage({ onBackClick }) {
         overflow: 'hidden'
       }}
     >
+      {/* 背景全体Container */}
       {/* 左端ナビゲーションバー */}
       <Paper
         elevation={4}
