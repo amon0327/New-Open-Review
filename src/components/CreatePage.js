@@ -167,7 +167,7 @@ export default function CreatePage({ onBackClick }) {
         <Paper
           elevation={0}
           sx={{
-            height: 50,
+            height: 65,
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
@@ -304,7 +304,7 @@ export default function CreatePage({ onBackClick }) {
               <Box
                 sx={{
                   position: 'absolute',
-                  top: 20,
+                  top: 8,
                   left: '50%',
                   transform: 'translateX(-50%)',
                   zIndex: 20,
