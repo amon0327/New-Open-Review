@@ -5,7 +5,8 @@ import {
   Paper,
   Typography,
   IconButton,
-  Tooltip
+  Tooltip,
+  Stack
 } from '@mui/material';
 import {
   ArrowBack,
@@ -556,17 +557,16 @@ export default function CreatePage({ onBackClick }) {
           </motion.div>
 
           {/* 上のレイヤー：左右のContainer2つ */}
-          <Box
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="stretch"
             sx={{
               position: 'absolute',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'stretch',
               p: 3,
               gap: 3,
               zIndex: 1
@@ -636,6 +636,9 @@ export default function CreatePage({ onBackClick }) {
               </Paper>
             </motion.div>
 
+            {/* 中央の透明な間隔 */}
+            <Box sx={{ flex: 1 }} />
+
             {/* 右側Container */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
@@ -699,7 +702,7 @@ export default function CreatePage({ onBackClick }) {
                 </Typography>
               </Paper>
             </motion.div>
-          </Box>
+          </Stack>
 
           {/* 選択ツールの表示（中央部分） */}
           {selectedTool && (
