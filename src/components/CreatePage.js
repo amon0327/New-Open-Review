@@ -300,23 +300,17 @@ export default function CreatePage({ onBackClick }) {
                 }}
               />
 
-              {/* 中央プレビューエリア */}
+              {/* プレビュー制御パネル - ヘッダー下固定 */}
               <Box
-                className="center-preview-area"
                 sx={{
                   position: 'absolute',
-                  top: '50%',
+                  top: 20,
                   left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: 10,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 2,
+                  transform: 'translateX(-50%)',
+                  zIndex: 20,
                   pointerEvents: 'auto'
                 }}
               >
-                {/* プレビュー制御パネル */}
                 <motion.div
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -333,9 +327,7 @@ export default function CreatePage({ onBackClick }) {
                       background: 'rgba(255, 255, 255, 0.95)',
                       backdropFilter: 'blur(20px)',
                       border: '1px solid rgba(255, 255, 255, 0.3)',
-                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
-                      position: 'relative',
-                      zIndex: 20
+                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)'
                     }}
                   >
                     {/* デバイス切り替え */}
@@ -422,7 +414,24 @@ export default function CreatePage({ onBackClick }) {
                     </Tooltip>
                   </Paper>
                 </motion.div>
+              </Box>
 
+              {/* 中央プレビューエリア */}
+              <Box
+                className="center-preview-area"
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 10,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 2,
+                  pointerEvents: 'auto'
+                }}
+              >
                 {/* プレビュー画面 */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
