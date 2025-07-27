@@ -640,8 +640,6 @@ export default function CreatePage({ onBackClick }) {
               </Paper>
             </motion.div>
 
-            {/* 中央の透明な間隔 */}
-            <Box className="center-spacer" sx={{ flex: 1 }} />
 
             {/* 右側Container */}
             <motion.div
