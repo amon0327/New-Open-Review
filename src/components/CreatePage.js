@@ -308,11 +308,12 @@ export default function CreatePage({ onBackClick }) {
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  zIndex: 1,
+                  zIndex: 10,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 2
+                  gap: 2,
+                  pointerEvents: 'auto'
                 }}
               >
                 {/* プレビュー制御パネル */}
@@ -573,7 +574,8 @@ export default function CreatePage({ onBackClick }) {
               bottom: 0,
               p: 3,
               gap: 3,
-              zIndex: 1
+              zIndex: 1,
+              pointerEvents: 'none'
             }}
           >
             {/* 左側Container */}
@@ -581,7 +583,7 @@ export default function CreatePage({ onBackClick }) {
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              style={{ flex: '0 0 300px' }}
+              style={{ flex: '0 0 300px', pointerEvents: 'auto' }}
             >
               <Paper
                 elevation={8}
@@ -646,7 +648,7 @@ export default function CreatePage({ onBackClick }) {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              style={{ flex: '0 0 300px' }}
+              style={{ flex: '0 0 300px', pointerEvents: 'auto' }}
             >
               <Paper
                 elevation={8}
