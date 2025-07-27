@@ -49,9 +49,9 @@ export default function CreatePage({ onBackClick }) {
   const [previewMode, setPreviewMode] = useState('mobile'); // 'mobile' or 'desktop'
   const [zoom, setZoom] = useState(1); // ズーム倍率
 
-  // ズーム制御関数
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.2, 2));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.2, 0.5));
+  // ズーム制御関数（5%刻み）
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.05, 2));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.05, 0.5));
   const handleFitScreen = () => setZoom(1);
 
   return (
