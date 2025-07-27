@@ -333,7 +333,9 @@ export default function CreatePage({ onBackClick }) {
                       background: 'rgba(255, 255, 255, 0.95)',
                       backdropFilter: 'blur(20px)',
                       border: '1px solid rgba(255, 255, 255, 0.3)',
-                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)'
+                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)',
+                      position: 'relative',
+                      zIndex: 20
                     }}
                   >
                     {/* デバイス切り替え */}
