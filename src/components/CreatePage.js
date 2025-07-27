@@ -424,7 +424,7 @@ export default function CreatePage({ onBackClick }) {
                   position: 'absolute',
                   top: '50%',
                   left: '50%',
-                  transform: 'translate(-50%, -50%)',
+                  transform: 'translate(-50%, -40%)',
                   zIndex: 10,
                   display: 'flex',
                   flexDirection: 'column',
