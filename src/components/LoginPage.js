@@ -70,6 +70,8 @@ export default function LoginPage({ onLogin }) {
       if (error) throw error;
 
       if (data.user) {
+        // business_usersテーブルにエントリが存在するかチェック
+        await ensureBusinessUserExists(data.user);
         onLogin(data.user);
       }
     } catch (error) {

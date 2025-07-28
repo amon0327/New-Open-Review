@@ -683,7 +683,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   },
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  borderRadius: 0
                 }}
               >
                 <ListItemIcon
@@ -721,7 +722,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               gap: 2,
               p: 2,
               background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)'
+              backdropFilter: 'blur(10px)',
+              borderRadius: 0
             }}
           >
             <Avatar sx={{ width: 40, height: 40 }}>
