@@ -54,7 +54,9 @@ import {
   Pages,
   ContentCopy,
   KeyboardArrowUp,
-  KeyboardArrowDown
+  KeyboardArrowDown,
+  CheckCircleOutline,
+  RadioButtonUnchecked
 } from '@mui/icons-material';
 
 // 左ナビゲーションアイテムの定義
@@ -1070,6 +1072,17 @@ export default function CreatePage({ onBackClick }) {
                                 </Typography>
                               )}
                             </Box>
+
+                            {/* 削除モード時の選択アイコン */}
+                            {deleteMode && page.canDelete && (
+                              <Box sx={{ mr: 2 }}>
+                                {selectedForDeletion.includes(page.id) ? (
+                                  <CheckCircle sx={{ color: '#ef4444', fontSize: '1.5rem' }} />
+                                ) : (
+                                  <RadioButtonUnchecked sx={{ color: '#cbd5e1', fontSize: '1.5rem' }} />
+                                )}
+                              </Box>
+                            )}
 
                           </Box>
                         </motion.div>
