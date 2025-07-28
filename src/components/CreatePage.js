@@ -2046,47 +2046,6 @@ export default function CreatePage({ onBackClick }) {
             )}
           </Stack>
 
-          {/* 選択ツールの表示（中央部分） */}
-          {selectedTool && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 2
-              }}
-            >
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Box
-                  sx={{
-                    p: 3,
-                    borderRadius: 3,
-                    background: 'rgba(94, 23, 235, 0.1)',
-                    border: '2px dashed rgba(94, 23, 235, 0.3)',
-                    backdropFilter: 'blur(10px)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 1,
-                    minWidth: 200
-                  }}
-                >
-                  {selectedTool.icon}
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    {selectedTool.label}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    選択中
-                  </Typography>
-                </Box>
-              </motion.div>
-            </Box>
-          )}
         </Box>
 
         {/* 削除確認ダイアログ */}
