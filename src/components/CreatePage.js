@@ -27,21 +27,29 @@ import {
   Computer,
   ZoomIn,
   ZoomOut,
-  FitScreen
+  FitScreen,
+  Folder,
+  Edit,
+  RateReview
 } from '@mui/icons-material';
 
-// ナビゲーションアイテムの定義
-const navigationItems = [
-  { icon: <Add />, label: '質問追加', category: 'actions' },
-  { icon: <TextFields />, label: '短文回答', category: 'question-types' },
-  { icon: <Description />, label: '長文回答', category: 'question-types' },
-  { icon: <RadioButtonChecked />, label: '単一選択', category: 'question-types' },
-  { icon: <CheckBox />, label: '複数選択', category: 'question-types' },
-  { icon: <ExpandMore />, label: 'プルダウン', category: 'question-types' },
-  { icon: <LinearScale />, label: '線形スケール', category: 'question-types' },
-  { icon: <Image />, label: '画像アップロード', category: 'question-types' },
-  { icon: <Palette />, label: 'デザイン', category: 'settings' },
-  { icon: <Settings />, label: '設定', category: 'settings' }
+// 左ナビゲーションアイテムの定義
+const leftNavigationItems = [
+  { icon: <RateReview />, label: 'OpenReview', category: 'main' },
+  { icon: <Folder />, label: 'フォルダー', category: 'main' },
+  { icon: <Edit />, label: '編集', category: 'main' },
+  { icon: <Settings />, label: '設定', category: 'main' }
+];
+
+// 右側質問タイプの定義
+const questionTypes = [
+  { icon: <TextFields />, label: '短文回答', type: 'text' },
+  { icon: <Description />, label: '長文回答', type: 'textarea' },
+  { icon: <RadioButtonChecked />, label: '単一選択', type: 'radio' },
+  { icon: <CheckBox />, label: '複数選択', type: 'checkbox' },
+  { icon: <ExpandMore />, label: 'プルダウン', type: 'select' },
+  { icon: <LinearScale />, label: '線形スケール', type: 'scale' },
+  { icon: <Image />, label: '画像アップロード', type: 'image' }
 ];
 
 export default function CreatePage({ onBackClick }) {
@@ -129,7 +137,7 @@ export default function CreatePage({ onBackClick }) {
             px: 1
           }}
         >
-          {navigationItems.map((item, index) => (
+          {leftNavigationItems.map((item, index) => (
             <Tooltip key={index} title={item.label} placement="right">
               <IconButton
                 onClick={() => setSelectedTool(item)}
@@ -590,7 +598,7 @@ export default function CreatePage({ onBackClick }) {
               pointerEvents: 'none'
             }}
           >
-            {/* 左側Container */}
+            {/* 左側Container - フォーム構成 */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -606,33 +614,11 @@ export default function CreatePage({ onBackClick }) {
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-                  p: 3,
+                  p: 2,
                   display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  flexDirection: 'column'
                 }}
               >
-                <Box
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 2,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 2,
-                    boxShadow: '0 10px 30px rgba(94, 23, 235, 0.3)'
-                  }}
-                >
-                  <Typography
-                    variant="h4"
-                    sx={{ color: 'white', fontWeight: 'bold' }}
-                  >
-                    L
-                  </Typography>
-                </Box>
                 <Typography
                   variant="h6"
                   sx={{
@@ -641,21 +627,45 @@ export default function CreatePage({ onBackClick }) {
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    mb: 1
+                    mb: 2,
+                    textAlign: 'center'
                   }}
                 >
-                  左側Container
+                  フォーム構成
                 </Typography>
-                <Typography variant="body2" color="text.secondary" textAlign="center">
-                  フォーム設定や
-                  質問リストが
-                  ここに表示されます
-                </Typography>
+                
+                <Box sx={{ 
+                  flex: 1, 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 2 
+                }}>
+                  <Box
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 8px 24px rgba(94, 23, 235, 0.3)'
+                    }}
+                  >
+                    <Folder sx={{ color: 'white', fontSize: '1.5rem' }} />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" textAlign="center">
+                    作成した質問が
+                    ここに表示されます
+                  </Typography>
+                </Box>
               </Paper>
             </motion.div>
 
 
-            {/* 右側Container */}
+            {/* 右側Container - 質問タイプ */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -671,33 +681,11 @@ export default function CreatePage({ onBackClick }) {
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-                  p: 3,
+                  p: 2,
                   display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  flexDirection: 'column'
                 }}
               >
-                <Box
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 2,
-                    background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 2,
-                    boxShadow: '0 10px 30px rgba(252, 182, 159, 0.3)'
-                  }}
-                >
-                  <Typography
-                    variant="h4"
-                    sx={{ color: 'white', fontWeight: 'bold' }}
-                  >
-                    R
-                  </Typography>
-                </Box>
                 <Typography
                   variant="h6"
                   sx={{
@@ -706,16 +694,83 @@ export default function CreatePage({ onBackClick }) {
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    mb: 1
+                    mb: 2,
+                    textAlign: 'center'
                   }}
                 >
-                  右側Container
+                  質問タイプ
                 </Typography>
-                <Typography variant="body2" color="text.secondary" textAlign="center">
-                  プレビューや
-                  詳細設定が
-                  ここに表示されます
-                </Typography>
+                
+                <Box sx={{ 
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1.5,
+                  overflowY: 'auto'
+                }}>
+                  {questionTypes.map((item, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                    >
+                      <Paper
+                        elevation={2}
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 2,
+                          background: 'rgba(255, 255, 255, 0.8)',
+                          border: '1px solid rgba(0, 0, 0, 0.05)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5,
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+                            background: 'rgba(94, 23, 235, 0.05)'
+                          }
+                        }}
+                        onClick={() => setSelectedTool(item)}
+                      >
+                        <Box
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 1.5,
+                            background: `linear-gradient(135deg, ${
+                              ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7]
+                            } 0%, ${
+                              ['#764ba2', '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][index % 7]
+                            } 100%)`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                          }}
+                        >
+                          {React.cloneElement(item.icon, { 
+                            sx: { color: 'white', fontSize: '1.1rem' } 
+                          })}
+                        </Box>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: 600,
+                              color: '#2d3748',
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            {item.label}
+                          </Typography>
+                        </Box>
+                      </Paper>
+                    </motion.div>
+                  ))}
+                </Box>
               </Paper>
             </motion.div>
           </Stack>
