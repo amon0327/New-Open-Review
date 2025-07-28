@@ -40,7 +40,17 @@ import {
   Business,
   Person,
   School,
-  LocalHospital
+  LocalHospital,
+  Close,
+  Delete,
+  DragHandle,
+  Add,
+  Login,
+  CheckCircle,
+  Pages,
+  ContentCopy,
+  KeyboardArrowUp,
+  KeyboardArrowDown
 } from '@mui/icons-material';
 
 // 左ナビゲーションアイテムの定義
@@ -186,6 +196,16 @@ export default function CreatePage({ onBackClick }) {
   const [previewMode, setPreviewMode] = useState('mobile'); // 'mobile' or 'desktop'
   const [zoom, setZoom] = useState(1); // ズーム倍率
   const [expandedTemplates, setExpandedTemplates] = useState({}); // テンプレートの展開状態
+  const [showPageManager, setShowPageManager] = useState(false); // ページ管理UI表示状態
+  
+  // サンプルページデータ
+  const [pages, setPages] = useState([
+    { id: 'login', title: 'ログイン画面', type: 'system', icon: <Login />, canDelete: false },
+    { id: 'page1', title: '基本情報', type: 'question', icon: <Pages />, canDelete: true, questions: 5 },
+    { id: 'page2', title: '満足度調査', type: 'question', icon: <Pages />, canDelete: true, questions: 3 },
+    { id: 'page3', title: '追加質問', type: 'question', icon: <Pages />, canDelete: true, questions: 2 },
+    { id: 'completion', title: '完了画面', type: 'system', icon: <CheckCircle />, canDelete: false }
+  ]);
 
   // ズーム制御関数（5%刻み）
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.05, 2));
@@ -198,6 +218,45 @@ export default function CreatePage({ onBackClick }) {
       ...prev,
       [key]: !prev[key]
     }));
+  };
+
+  // ページ管理ハンドラ
+  const handleDeletePage = (pageId) => {
+    setPages(prev => prev.filter(page => page.id !== pageId));
+  };
+
+  const handleAddPage = () => {
+    const newPage = {
+      id: `page${pages.filter(p => p.type === 'question').length + 1}`,
+      title: `新しいページ${pages.filter(p => p.type === 'question').length + 1}`,
+      type: 'question',
+      icon: <Pages />,
+      canDelete: true,
+      questions: 0
+    };
+    // 完了画面の前に挿入
+    const completionIndex = pages.findIndex(p => p.id === 'completion');
+    const newPages = [...pages];
+    newPages.splice(completionIndex, 0, newPage);
+    setPages(newPages);
+  };
+
+  const handleMovePageUp = (pageId) => {
+    const pageIndex = pages.findIndex(p => p.id === pageId);
+    if (pageIndex > 1) { // ログイン画面より後ろの場合のみ
+      const newPages = [...pages];
+      [newPages[pageIndex], newPages[pageIndex - 1]] = [newPages[pageIndex - 1], newPages[pageIndex]];
+      setPages(newPages);
+    }
+  };
+
+  const handleMovePageDown = (pageId) => {
+    const pageIndex = pages.findIndex(p => p.id === pageId);
+    if (pageIndex < pages.length - 2) { // 完了画面より前の場合のみ
+      const newPages = [...pages];
+      [newPages[pageIndex], newPages[pageIndex + 1]] = [newPages[pageIndex + 1], newPages[pageIndex]];
+      setPages(newPages);
+    }
   };
 
   return (
@@ -240,7 +299,15 @@ export default function CreatePage({ onBackClick }) {
           {leftNavigationItems.map((item, index) => (
             <Tooltip key={index} title={item.label} placement="right">
               <IconButton
-                onClick={() => item.isLogo ? onBackClick() : setSelectedTool(item)}
+                onClick={() => {
+                  if (item.isLogo) {
+                    onBackClick();
+                  } else if (item.label === 'フォルダー') {
+                    setShowPageManager(true);
+                  } else {
+                    setSelectedTool(item);
+                  }
+                }}
                 sx={{
                   color: selectedTool?.label === item.label ? 'white' : 'rgba(255, 255, 255, 0.7)',
                   backgroundColor: selectedTool?.label === item.label ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
@@ -706,7 +773,7 @@ export default function CreatePage({ onBackClick }) {
               pointerEvents: 'none'
             }}
           >
-            {/* 左側Container - 質問作成ツール */}
+            {/* 左側Container - 質問作成ツール / ページ管理 */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -733,10 +800,202 @@ export default function CreatePage({ onBackClick }) {
                   msOverflowStyle: 'none' // IE and Edge
                 }}
               >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 600,
+                {showPageManager ? (
+                  // ページ管理UI
+                  <>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 600,
+                          background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                          backgroundClip: 'text',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent'
+                        }}
+                      >
+                        ページ管理
+                      </Typography>
+                      <IconButton
+                        onClick={() => setShowPageManager(false)}
+                        sx={{
+                          color: '#64748b',
+                          '&:hover': { backgroundColor: 'rgba(100, 116, 139, 0.1)' }
+                        }}
+                      >
+                        <Close />
+                      </IconButton>
+                    </Box>
+
+                    {/* ページ追加ボタン */}
+                    <Box sx={{ mb: 2 }}>
+                      <Box
+                        onClick={handleAddPage}
+                        sx={{
+                          p: 1.5,
+                          borderRadius: 1,
+                          border: '2px dashed rgba(94, 23, 235, 0.3)',
+                          backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 1,
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            borderColor: 'rgba(94, 23, 235, 0.5)',
+                            backgroundColor: 'rgba(94, 23, 235, 0.1)'
+                          }
+                        }}
+                      >
+                        <Add sx={{ color: '#5e17eb', fontSize: '1.2rem' }} />
+                        <Typography variant="body2" sx={{ color: '#5e17eb', fontWeight: 600 }}>
+                          新しいページを追加
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* ページリスト */}
+                    <Box sx={{ flex: 1 }}>
+                      {pages.map((page, index) => (
+                        <motion.div
+                          key={page.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.2, delay: index * 0.05 }}
+                        >
+                          <Box
+                            sx={{
+                              p: 1.5,
+                              mb: 1,
+                              borderRadius: 1,
+                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              border: '1px solid rgba(0, 0, 0, 0.06)',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                backgroundColor: 'rgba(94, 23, 235, 0.04)',
+                                borderColor: 'rgba(94, 23, 235, 0.15)',
+                                transform: 'translateY(-1px)',
+                                boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
+                              }
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              {/* ページアイコン */}
+                              <Box
+                                sx={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 1,
+                                  background: page.type === 'system' 
+                                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                                    : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0,
+                                  boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
+                                }}
+                              >
+                                {React.cloneElement(page.icon, { 
+                                  sx: { color: 'white', fontSize: '1rem' } 
+                                })}
+                              </Box>
+
+                              {/* ページ情報 */}
+                              <Box sx={{ flex: 1, minWidth: 0 }}>
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    fontWeight: 600,
+                                    color: '#2d3748',
+                                    fontSize: '0.8rem',
+                                    mb: 0.3
+                                  }}
+                                >
+                                  {page.title}
+                                </Typography>
+                                {page.type === 'question' && (
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      color: '#64748b',
+                                      fontSize: '0.7rem'
+                                    }}
+                                  >
+                                    {page.questions}個の質問
+                                  </Typography>
+                                )}
+                              </Box>
+
+                              {/* アクションボタン */}
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                {page.type === 'question' && (
+                                  <>
+                                    {index > 1 && (
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleMovePageUp(page.id)}
+                                        sx={{
+                                          width: 20,
+                                          height: 20,
+                                          color: '#64748b',
+                                          '&:hover': { backgroundColor: 'rgba(100, 116, 139, 0.1)' }
+                                        }}
+                                      >
+                                        <KeyboardArrowUp sx={{ fontSize: '0.9rem' }} />
+                                      </IconButton>
+                                    )}
+                                    {index < pages.length - 2 && (
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleMovePageDown(page.id)}
+                                        sx={{
+                                          width: 20,
+                                          height: 20,
+                                          color: '#64748b',
+                                          '&:hover': { backgroundColor: 'rgba(100, 116, 139, 0.1)' }
+                                        }}
+                                      >
+                                        <KeyboardArrowDown sx={{ fontSize: '0.9rem' }} />
+                                      </IconButton>
+                                    )}
+                                  </>
+                                )}
+                              </Box>
+
+                              {/* 削除ボタン */}
+                              {page.canDelete && (
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDeletePage(page.id)}
+                                  sx={{
+                                    width: 24,
+                                    height: 24,
+                                    color: '#ef4444',
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                      transform: 'scale(1.1)'
+                                    }
+                                  }}
+                                >
+                                  <Delete sx={{ fontSize: '0.9rem' }} />
+                                </IconButton>
+                              )}
+                            </Box>
+                          </Box>
+                        </motion.div>
+                      ))}
+                    </Box>
+                  </>
+                ) : (
+                  // 通常の質問作成ツール
+                  <>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 600,
                     background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
@@ -995,6 +1254,8 @@ export default function CreatePage({ onBackClick }) {
                     </Box>
                   ))}
                 </Box>
+                  </>
+                )}
               </Paper>
             </motion.div>
 
