@@ -4,6 +4,8 @@ import LeftNavigationBar from './LeftNavigationBar';
 import HeaderBar from './HeaderBar';
 import PreviewArea from './PreviewArea';
 import QuestionToolsSidebar from './QuestionToolsSidebar';
+import { useCreatePageState } from '../hooks/useCreatePageState';
+import { leftNavigationItems, questionTypes, questionTemplates, settingsCategories } from '../constants/createPageData';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChromePicker } from 'react-color';
 import QRCode from 'react-qr-code';
@@ -55,13 +57,6 @@ import {
   Preview,
   MoreVert,
   Add,
-  TextFields,
-  RadioButtonChecked,
-  CheckBox,
-  LinearScale,
-  ExpandMore,
-  Image,
-  Description,
   Settings,
   Palette,
   PhoneAndroid,
@@ -69,8 +64,6 @@ import {
   ZoomIn,
   ZoomOut,
   FitScreen,
-  Folder,
-  Edit,
   RateReview,
   ExpandMore as ExpandMoreIcon,
   Business,
@@ -86,12 +79,6 @@ import {
   ContentCopy,
   KeyboardArrowUp,
   KeyboardArrowDown,
-  AccountCircle,
-  Security,
-  Storage,
-  Language,
-  Notifications,
-  CloudSync,
   Backup,
   Key,
   Schedule,
@@ -101,244 +88,34 @@ import {
   Quiz
 } from '@mui/icons-material';
 
-// 左ナビゲーションアイテムの定義
-const leftNavigationItems = [
-  { icon: null, label: 'OpenReview', category: 'main', isLogo: true },
-  { icon: <Folder />, label: 'フォルダー', category: 'main' },
-  { icon: <Edit />, label: '編集', category: 'main' },
-  { icon: <Settings />, label: '設定', category: 'main' }
-];
-
-// 質問タイプの定義
-const questionTypes = [
-  { icon: <TextFields />, label: '短文回答', type: 'text' },
-  { icon: <Description />, label: '長文回答', type: 'textarea' },
-  { icon: <RadioButtonChecked />, label: '単一選択', type: 'radio' },
-  { icon: <CheckBox />, label: '複数選択', type: 'checkbox' },
-  { icon: <ExpandMore />, label: 'プルダウン', type: 'select' },
-  { icon: <LinearScale />, label: '線形スケール', type: 'scale' },
-  { icon: <Image />, label: '画像アップロード', type: 'image' }
-];
-
-// テンプレート質問の定義
-const questionTemplates = [
-  {
-    id: 'business',
-    title: 'ビジネス',
-    expanded: false,
-    categories: [
-      {
-        id: 'customer-satisfaction',
-        title: '顧客満足度',
-        expanded: false,
-        templates: [
-          { id: 'cs1', question: 'サービスの満足度を教えてください', type: 'scale' },
-          { id: 'cs2', question: '改善点があれば教えてください', type: 'textarea' },
-          { id: 'cs3', question: 'おすすめ度はいかがですか？', type: 'scale' },
-          { id: 'cs4', question: '今後も利用したいですか？', type: 'radio' },
-          { id: 'cs5', question: '他の人におすすめしますか？', type: 'scale' }
-        ]
-      },
-      {
-        id: 'employee-evaluation',
-        title: '従業員評価',
-        expanded: false,
-        templates: [
-          { id: 'emp1', question: '職場環境の満足度', type: 'scale' },
-          { id: 'emp2', question: '上司とのコミュニケーション', type: 'radio' },
-          { id: 'emp3', question: '改善してほしい点', type: 'textarea' },
-          { id: 'emp4', question: '研修の有効性はいかがですか？', type: 'scale' },
-          { id: 'emp5', question: '働きがいを感じますか？', type: 'radio' }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'personal',
-    title: '個人情報',
-    expanded: false,
-    categories: [
-      {
-        id: 'basic-info',
-        title: '基本情報',
-        expanded: false,
-        templates: [
-          { id: 'p1', question: 'お名前を教えてください', type: 'text' },
-          { id: 'p2', question: '年齢を選択してください', type: 'select' },
-          { id: 'p3', question: '性別を選択してください', type: 'radio' }
-        ]
-      },
-      {
-        id: 'contact-info',
-        title: '連絡先情報',
-        expanded: false,
-        templates: [
-          { id: 'p4', question: 'メールアドレス', type: 'text' },
-          { id: 'p5', question: '電話番号', type: 'text' },
-          { id: 'p6', question: '住所', type: 'textarea' }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'education',
-    title: '教育・研修',
-    expanded: false,
-    categories: [
-      {
-        id: 'course-evaluation',
-        title: '講座評価',
-        expanded: false,
-        templates: [
-          { id: 'edu1', question: '講座の理解度はいかがでしたか？', type: 'scale' },
-          { id: 'edu2', question: '講師の説明は分かりやすかったですか？', type: 'radio' },
-          { id: 'edu3', question: '今後学びたい内容', type: 'checkbox' },
-          { id: 'edu4', question: '講座の難易度はいかがでしたか？', type: 'scale' },
-          { id: 'edu5', question: '資料の分かりやすさ', type: 'scale' }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'events',
-    title: 'イベント',
-    expanded: false,
-    categories: [
-      {
-        id: 'event-feedback',
-        title: 'イベントフィードバック',
-        expanded: false,
-        templates: [
-          { id: 'evt1', question: 'イベントの満足度', type: 'scale' },
-          { id: 'evt2', question: '最も良かったセッション', type: 'checkbox' },
-          { id: 'evt3', question: '改善提案があれば教えてください', type: 'textarea' },
-          { id: 'evt4', question: '来年も参加したいですか？', type: 'radio' },
-          { id: 'evt5', question: '会場の環境はいかがでしたか？', type: 'scale' }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'products',
-    title: '製品・サービス',
-    expanded: false,
-    categories: [
-      {
-        id: 'product-feedback',
-        title: '製品フィードバック',
-        expanded: false,
-        templates: [
-          { id: 'prd1', question: '製品の使いやすさ', type: 'scale' },
-          { id: 'prd2', question: '機能で最も重要なもの', type: 'checkbox' },
-          { id: 'prd3', question: 'バグや問題を経験しましたか？', type: 'radio' },
-          { id: 'prd4', question: '追加してほしい機能', type: 'textarea' },
-          { id: 'prd5', question: '価格に対する満足度', type: 'scale' }
-        ]
-      }
-    ]
-  }
-];
 
 export default function CreatePage({ onBackClick }) {
-  const [selectedTool, setSelectedTool] = useState(null);
-  const [previewMode, setPreviewMode] = useState('mobile'); // 'mobile' or 'desktop'
-  const [zoom, setZoom] = useState(1); // ズーム倍率
-  const [expandedTemplates, setExpandedTemplates] = useState({}); // テンプレートの展開状態
-  const [showPageManager, setShowPageManager] = useState(false); // ページ管理UI表示状態
-  const [draggedPage, setDraggedPage] = useState(null); // ドラッグ中のページ
-  const [deleteMode, setDeleteMode] = useState(false); // 削除モード
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // 削除確認ダイアログ
-  const [pageToDelete, setPageToDelete] = useState(null); // 削除対象ページ
-  const [sortingAnimation, setSortingAnimation] = useState(null); // 並び替えアニメーション
-  const [dropIndicator, setDropIndicator] = useState(null); // ドロップ位置インジケーター
-  const [selectedPage, setSelectedPage] = useState(null); // 選択中のページ
-  const [editingPageId, setEditingPageId] = useState(null); // 編集中のページID
-  const [editingTitle, setEditingTitle] = useState(''); // 編集中のタイトル
-  const [showSettings, setShowSettings] = useState(false); // 設定画面表示状態
-  const [projectTitle, setProjectTitle] = useState('OpenReview フォーム'); // プロジェクトタイトル
-  const [isEditingTitle, setIsEditingTitle] = useState(false); // タイトル編集状態
-  const [showColorPicker, setShowColorPicker] = useState(false); // カラーピッカー表示状態
-  const [selectedColor, setSelectedColor] = useState('#5e17eb'); // 選択されたテーマカラー
-  const [isPublished, setIsPublished] = useState(true); // 公開状態
-  const [projectDescription, setProjectDescription] = useState(''); // プロジェクト説明
-  const [selectedFont, setSelectedFont] = useState('Inter'); // 選択されたフォント
-  const [logoPreview, setLogoPreview] = useState(null); // ロゴプレビュー
-  
-  // 設定カテゴリデータ
-  const settingsCategories = [
-    {
-      id: 'account',
-      title: 'アカウント',
-      description: 'プロフィールとアカウント設定',
-      icon: <AccountCircle />,
-      settings: [
-        { id: 'profile', label: 'プロフィール編集', value: 'Claude User', type: 'text' },
-        { id: 'email', label: 'メールアドレス', value: 'user@example.com', type: 'email' },
-        { id: 'password', label: 'パスワード変更', value: '••••••••', type: 'password' },
-        { id: 'avatar', label: 'アバター画像', value: 'アップロード', type: 'upload' }
-      ]
-    },
-    {
-      id: 'database',
-      title: 'データベース',
-      description: 'Supabase接続とデータ管理',
-      icon: <Storage />,
-      settings: [
-        { id: 'connection', label: 'データベース接続', value: '接続済み', type: 'status', status: 'connected' },
-        { id: 'tables', label: 'テーブル管理', value: '12テーブル', type: 'info' },
-        { id: 'backup', label: '自動バックアップ', value: true, type: 'toggle' },
-        { id: 'retention', label: 'データ保持期間', value: '90日', type: 'select' }
-      ]
-    },
-    {
-      id: 'forms',
-      title: 'フォーム設定',
-      description: 'フォームのデフォルト設定',
-      icon: <Description />,
-      settings: [
-        { id: 'theme', label: 'デフォルトテーマ', value: 'モダン', type: 'select' },
-        { id: 'language', label: '言語設定', value: '日本語', type: 'select' },
-        { id: 'notifications', label: '回答通知', value: true, type: 'toggle' },
-        { id: 'analytics', label: '統計情報収集', value: false, type: 'toggle' }
-      ]
-    },
-    {
-      id: 'security',
-      title: 'セキュリティ',
-      description: 'セキュリティとアクセス制御',
-      icon: <Security />,
-      settings: [
-        { id: '2fa', label: '二要素認証', value: false, type: 'toggle' },
-        { id: 'apikeys', label: 'APIキー管理', value: '3個のキー', type: 'info' },
-        { id: 'sessions', label: 'アクティブセッション', value: '2台のデバイス', type: 'info' },
-        { id: 'permissions', label: 'アクセス権限', value: '管理者', type: 'info' }
-      ]
-    },
-    {
-      id: 'integrations',
-      title: '連携設定',
-      description: '外部サービスとの連携',
-      icon: <CloudSync />,
-      settings: [
-        { id: 'webhooks', label: 'Webhook URL', value: '3個設定済み', type: 'info' },
-        { id: 'slack', label: 'Slack連携', value: false, type: 'toggle' },
-        { id: 'email', label: 'メール通知', value: true, type: 'toggle' },
-        { id: 'export', label: 'データエクスポート', value: 'CSV, JSON', type: 'info' }
-      ]
-    },
-    {
-      id: 'general',
-      title: '一般設定',
-      description: 'アプリケーションの一般設定',
-      icon: <Public />,
-      settings: [
-        { id: 'timezone', label: 'タイムゾーン', value: 'Asia/Tokyo', type: 'select' },
-        { id: 'dateformat', label: '日付形式', value: 'YYYY/MM/DD', type: 'select' },
-        { id: 'autosave', label: '自動保存', value: true, type: 'toggle' },
-        { id: 'updates', label: '自動アップデート', value: true, type: 'toggle' }
-      ]
-    }
-  ];
+  // カスタムフックから状態を取得
+  const {
+    selectedTool, setSelectedTool,
+    previewMode, setPreviewMode,
+    zoom, setZoom,
+    expandedTemplates, setExpandedTemplates,
+    showPageManager, setShowPageManager,
+    draggedPage, setDraggedPage,
+    deleteMode, setDeleteMode,
+    showDeleteConfirm, setShowDeleteConfirm,
+    pageToDelete, setPageToDelete,
+    sortingAnimation, setSortingAnimation,
+    dropIndicator, setDropIndicator,
+    selectedPage, setSelectedPage,
+    editingPageId, setEditingPageId,
+    editingTitle, setEditingTitle,
+    showSettings, setShowSettings,
+    projectTitle, setProjectTitle,
+    isEditingTitle, setIsEditingTitle,
+    showColorPicker, setShowColorPicker,
+    selectedColor, setSelectedColor,
+    isPublished, setIsPublished,
+    projectDescription, setProjectDescription,
+    selectedFont, setSelectedFont,
+    logoPreview, setLogoPreview
+  } = useCreatePageState();
 
   // サンプルページデータ
   const [pages, setPages] = useState([
