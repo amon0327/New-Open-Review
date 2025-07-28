@@ -4,7 +4,7 @@ import { ChromePicker } from 'react-color';
 import QRCode from 'react-qr-code';
 import toast, { Toaster } from 'react-hot-toast';
 import { 
-  PaletteIcon, 
+  PaintBrushIcon, 
   FolderIcon, 
   GlobeAltIcon,
   PhotoIcon,
@@ -1068,7 +1068,7 @@ export default function CreatePage({ onBackClick }) {
                               }
                             }}
                           >
-                            <PaletteIcon className="h-8 w-8 text-white" />
+                            <PaintBrushIcon className="h-8 w-8 text-white" />
                           </Box>
                           <Box>
                             <Typography variant="h5" sx={{ fontWeight: 800, color: '#1a202c', mb: 1, fontSize: '1.5rem' }}>
