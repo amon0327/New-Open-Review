@@ -53,25 +53,6 @@ const SettingsPanel = ({
       }}
     >
       <Box sx={{ px: 4, py: 4, width: '100%' }}>
-        {/* ヘッダー */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <Box sx={{ mb: 4, textAlign: 'center' }}>
-            <Typography 
-              variant="h4" 
-              sx={{ 
-                fontWeight: 700, 
-                color: '#1e293b', 
-                fontSize: { xs: '1.75rem', md: '2.25rem' }
-              }}
-            >
-              フォーム設定
-            </Typography>
-          </Box>
-        </motion.div>
 
         {/* 設定カード */}
         <Stack spacing={3} sx={{ width: '100%' }}>
