@@ -402,12 +402,13 @@ function SettingsPage({ user, onLogout }) {
           <Grid item xs={12} lg={8}>
             <Card
               sx={{
-                borderRadius: 4,
+                borderRadius: 2,
                 border: 'none',
                 boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
                 background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(20px)',
-                overflow: 'visible'
+                overflow: 'visible',
+                height: '100%'
               }}
             >
               <CardContent sx={{ p: 5 }}>
@@ -677,21 +678,23 @@ function SettingsPage({ user, onLogout }) {
 
           {/* サイドカラム */}
           <Grid item xs={12} lg={4}>
-            <Box sx={{ position: 'sticky', top: 20 }}>
-              <Grid container spacing={3}>
+            <Box sx={{ position: 'sticky', top: 20, height: 'fit-content' }}>
+              <Grid container spacing={3} sx={{ alignItems: 'stretch' }}>
                 {/* 料金プラン */}
                 <Grid item xs={12} sm={6} lg={12}>
                   <Card
                     sx={{
-                      borderRadius: 4,
+                      borderRadius: 2,
                       border: 'none',
                       boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
                       background: 'rgba(255, 255, 255, 0.95)',
                       backdropFilter: 'blur(20px)',
-                      height: 'fit-content'
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column'
                     }}
                   >
-                    <CardContent sx={{ p: 3 }}>
+                    <CardContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                         <Box
                           sx={{
@@ -736,28 +739,30 @@ function SettingsPage({ user, onLogout }) {
                         </Typography>
                       </Box>
                       
-                      <Button
-                        variant="outlined"
-                        fullWidth
-                        onClick={() => {
-                          console.log('料金プラン確認');
-                        }}
-                        sx={{
-                          borderRadius: 3,
-                          borderColor: '#f5576c',
-                          color: '#f5576c',
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          py: 1.2,
-                          height: '44px',
-                          '&:hover': {
-                            borderColor: '#e53e3e',
-                            backgroundColor: 'rgba(245, 87, 108, 0.04)'
-                          }
-                        }}
-                      >
-                        プランを確認・変更
-                      </Button>
+                      <Box sx={{ mt: 'auto' }}>
+                        <Button
+                          variant="outlined"
+                          fullWidth
+                          onClick={() => {
+                            console.log('料金プラン確認');
+                          }}
+                          sx={{
+                            borderRadius: 3,
+                            borderColor: '#f5576c',
+                            color: '#f5576c',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            py: 1.2,
+                            height: '44px',
+                            '&:hover': {
+                              borderColor: '#e53e3e',
+                              backgroundColor: 'rgba(245, 87, 108, 0.04)'
+                            }
+                          }}
+                        >
+                          プランを確認・変更
+                        </Button>
+                      </Box>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -766,15 +771,17 @@ function SettingsPage({ user, onLogout }) {
                 <Grid item xs={12} sm={6} lg={12}>
                   <Card
                     sx={{
-                      borderRadius: 4,
+                      borderRadius: 2,
                       border: 'none',
                       boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
                       background: 'rgba(255, 255, 255, 0.95)',
                       backdropFilter: 'blur(20px)',
-                      height: 'fit-content'
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column'
                     }}
                   >
-                    <CardContent sx={{ p: 3 }}>
+                    <CardContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                         <Box
                           sx={{
@@ -806,29 +813,31 @@ function SettingsPage({ user, onLogout }) {
                         セッションを終了してログアウトします
                       </Typography>
                       
-                      <Button
-                        variant="contained"
-                        color="error"
-                        fullWidth
-                        startIcon={<ExitToApp />}
-                        onClick={handleLogout}
-                        sx={{
-                          borderRadius: 3,
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          py: 1.2,
-                          height: '44px',
-                          background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
-                          boxShadow: '0 4px 20px rgba(255, 107, 107, 0.3)',
-                          '&:hover': {
-                            boxShadow: '0 8px 25px rgba(255, 107, 107, 0.4)',
-                            transform: 'translateY(-2px)'
-                          },
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                        ログアウト
-                      </Button>
+                      <Box sx={{ mt: 'auto' }}>
+                        <Button
+                          variant="contained"
+                          color="error"
+                          fullWidth
+                          startIcon={<ExitToApp />}
+                          onClick={handleLogout}
+                          sx={{
+                            borderRadius: 3,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            py: 1.2,
+                            height: '44px',
+                            background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
+                            boxShadow: '0 4px 20px rgba(255, 107, 107, 0.3)',
+                            '&:hover': {
+                              boxShadow: '0 8px 25px rgba(255, 107, 107, 0.4)',
+                              transform: 'translateY(-2px)'
+                            },
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          ログアウト
+                        </Button>
+                      </Box>
                     </CardContent>
                   </Card>
                 </Grid>

@@ -121,9 +121,9 @@ function App() {
 
   const ensureBusinessUserExists = async (user) => {
     try {
-      // タイムアウト設定付きでbusiness_usersテーブルにエントリが存在するかチェック
+      // 短縮されたタイムアウト設定（3秒）
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database timeout')), 10000); // 10秒タイムアウト
+        setTimeout(() => reject(new Error('Database timeout')), 3000);
       });
 
       const selectPromise = supabase
@@ -138,18 +138,18 @@ function App() {
       ]);
 
       if (selectError && selectError.code === 'PGRST116') {
-        // エントリが存在しない場合は作成（タイムアウト付き）
+        // エントリが存在しない場合は作成（短縮タイムアウト）
         const insertPromise = supabase
           .from('business_users')
-          .insert({
+          .insert([{
             id: user.id,
             email: user.email,
             name: user.user_metadata?.name || '',
             company_name: user.user_metadata?.company || ''
-          });
+          }]);
 
         const insertTimeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Insert timeout')), 10000);
+          setTimeout(() => reject(new Error('Insert timeout')), 3000);
         });
 
         const { error: insertError } = await Promise.race([
@@ -165,69 +165,39 @@ function App() {
       }
     } catch (error) {
       console.error('ensureBusinessUserExists エラー:', error);
-      // エラーが発生してもアプリケーションは継続する
     }
   };
 
   useEffect(() => {
-    let isMounted = true; // コンポーネントがマウントされているかチェック
+    let isMounted = true;
+    let isInitialLoad = true;
 
-    // 現在のセッションを取得
-    const initializeAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (!isMounted) return; // コンポーネントがアンマウントされていたら処理を中止
-        
-        if (error) {
-          console.error('セッション取得エラー:', error);
-          setLoading(false);
-          return;
-        }
-
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          try {
-            await ensureBusinessUserExists(session.user);
-            if (isMounted) {
-              setCurrentView('dashboard');
-            }
-          } catch (error) {
-            console.error('business_users処理エラー:', error);
-            if (isMounted) {
-              setCurrentView('dashboard'); // エラーでもダッシュボードに進む
-            }
-          }
-        }
-      } catch (error) {
-        console.error('認証初期化エラー:', error);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    initializeAuth();
-
-    // 認証状態の変更を監視
+    // 認証状態の変更を監視（初回セッション取得も含む）
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
-      
+
       try {
         setUser(session?.user ?? null);
+        
         if (session?.user) {
-          try {
-            await ensureBusinessUserExists(session.user);
-            if (isMounted) {
-              setCurrentView('dashboard');
-            }
-          } catch (error) {
-            console.error('business_users処理エラー:', error);
-            if (isMounted) {
-              setCurrentView('dashboard'); // エラーでもダッシュボードに進む
+          if (isMounted) {
+            setCurrentView('dashboard');
+          }
+          
+          // business_usersチェックを非同期で実行（UIブロッキングを避ける）
+          if (isInitialLoad) {
+            // 初回ロード時は高速化のため非同期実行
+            ensureBusinessUserExists(session.user).catch(error => {
+              console.error('初回business_users処理エラー:', error);
+            });
+          } else {
+            // 初回以外は同期実行
+            try {
+              await ensureBusinessUserExists(session.user);
+            } catch (error) {
+              console.error('business_users処理エラー:', error);
             }
           }
         } else {
@@ -240,12 +210,13 @@ function App() {
       } finally {
         if (isMounted) {
           setLoading(false);
+          isInitialLoad = false;
         }
       }
     });
 
     return () => {
-      isMounted = false; // クリーンアップ時にフラグを設定
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
