@@ -949,7 +949,7 @@ export default function CreatePage({ onBackClick }) {
                       フォーム設定
                     </Typography>
                     <Typography variant="body1" sx={{ color: '#6b7280' }}>
-                      フォームの外観と設定を管理します
+                      フォームの外観、プロジェクト、公開設定を管理します
                     </Typography>
                   </Box>
 
@@ -957,517 +957,494 @@ export default function CreatePage({ onBackClick }) {
                   <Box 
                     sx={{ 
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
-                      gap: 3,
-                      maxWidth: 1400,
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+                      gap: 4,
+                      maxWidth: 1600,
                       margin: '0 auto'
                     }}
                   >
-                    {/* フォームデザイン */}
+                    {/* 1. テーマ設定 */}
                     <motion.div
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 0 * 0.1 }}
+                      transition={{ duration: 0.4, delay: 0 * 0.15 }}
                     >
                       <Paper
-                        elevation={3}
+                        elevation={4}
                         sx={{
-                          p: 4,
-                          borderRadius: 3,
+                          p: 5,
+                          borderRadius: 4,
                           background: 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
                           '&:hover': {
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)'
+                            transform: 'translateY(-4px)',
+                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12)'
                           },
-                          transition: 'all 0.3s ease'
+                          transition: 'all 0.4s ease'
                         }}
                       >
                         {/* カテゴリヘッダー */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                           <Box
                             sx={{
-                              width: 48,
-                              height: 48,
-                              borderRadius: 3,
+                              width: 56,
+                              height: 56,
+                              borderRadius: 4,
                               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              mr: 3
+                              mr: 3,
+                              boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)'
                             }}
                           >
-                            <Palette sx={{ color: 'white', fontSize: '1.5rem' }} />
+                            <Palette sx={{ color: 'white', fontSize: '1.8rem' }} />
                           </Box>
                           <Box>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a202c', mb: 0.5 }}>
-                              フォームデザイン
+                            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a202c', mb: 1 }}>
+                              テーマ設定
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#6b7280' }}>
-                              ロゴ、テーマ、カラー設定
+                            <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '1rem' }}>
+                              ロゴ、カラー、フォントの外観設定
                             </Typography>
                           </Box>
                         </Box>
 
                         {/* 設定項目 */}
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          {/* ロゴ設定 */}
                           <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151', mb: 1 }}>
-                              ロゴ画像
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 2 }}>
+                              ロゴ設定
                             </Typography>
                             <Button
                               variant="outlined"
                               component="label"
                               sx={{
-                                borderRadius: 2,
+                                borderRadius: 3,
                                 textTransform: 'none',
                                 borderStyle: 'dashed',
-                                height: 80,
+                                height: 120,
                                 width: '100%',
                                 color: '#6b7280',
                                 borderColor: '#d1d5db',
+                                fontSize: '1rem',
                                 '&:hover': {
-                                  borderColor: '#5e17eb',
-                                  backgroundColor: 'rgba(94, 23, 235, 0.04)'
-                                }
+                                  borderColor: '#667eea',
+                                  backgroundColor: 'rgba(102, 126, 234, 0.05)',
+                                  transform: 'scale(1.02)'
+                                },
+                                transition: 'all 0.3s ease'
                               }}
                             >
-                              <Image sx={{ mr: 1 }} />
-                              画像をアップロード
+                              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                <Image sx={{ fontSize: '2rem' }} />
+                                <Typography sx={{ fontWeight: 600 }}>ロゴ画像をドラッグ & ドロップ</Typography>
+                                <Typography variant="caption" sx={{ color: '#9ca3af' }}>
+                                  または、クリックしてファイルを選択
+                                </Typography>
+                              </Box>
                               <input type="file" accept="image/*" hidden />
                             </Button>
                           </Box>
 
+                          {/* テーマカラー設定 */}
                           <Box>
-                            <FormControlLabel
-                              control={
-                                <Switch
-                                  defaultChecked={false}
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 2 }}>
+                              テーマカラー設定
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                              {[
+                                { color: '#5e17eb', name: 'パープル' },
+                                { color: '#667eea', name: 'ブルー' },
+                                { color: '#22c55e', name: 'グリーン' },
+                                { color: '#ef4444', name: 'レッド' },
+                                { color: '#f59e0b', name: 'オレンジ' },
+                                { color: '#8b5cf6', name: 'バイオレット' }
+                              ].map((item, index) => (
+                                <Box
+                                  key={index}
                                   sx={{
-                                    '& .MuiSwitch-switchBase.Mui-checked': {
-                                      color: '#5e17eb'
-                                    },
-                                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                      backgroundColor: '#5e17eb'
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    cursor: 'pointer',
+                                    p: 1,
+                                    borderRadius: 2,
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(0,0,0,0.05)'
                                     }
                                   }}
-                                />
-                              }
-                              label={
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151' }}>
-                                    ダークモード
-                                  </Typography>
-                                  <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                                    フォームをダークテーマで表示
+                                >
+                                  <Box
+                                    sx={{
+                                      width: 50,
+                                      height: 50,
+                                      borderRadius: 3,
+                                      backgroundColor: item.color,
+                                      cursor: 'pointer',
+                                      border: item.color === '#5e17eb' ? '3px solid #1a202c' : '2px solid rgba(0,0,0,0.1)',
+                                      '&:hover': {
+                                        transform: 'scale(1.1)',
+                                        boxShadow: `0 8px 25px ${item.color}40`
+                                      },
+                                      transition: 'all 0.3s ease',
+                                      mb: 1
+                                    }}
+                                  />
+                                  <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 500 }}>
+                                    {item.name}
                                   </Typography>
                                 </Box>
-                              }
-                              sx={{ alignItems: 'flex-start', m: 0 }}
-                            />
-                          </Box>
-
-                          <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151', mb: 1 }}>
-                              テーマカラー
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              {['#5e17eb', '#667eea', '#22c55e', '#ef4444', '#f59e0b'].map((color) => (
-                                <Box
-                                  key={color}
-                                  sx={{
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: 2,
-                                    backgroundColor: color,
-                                    cursor: 'pointer',
-                                    border: color === '#5e17eb' ? '3px solid #1a202c' : '1px solid rgba(0,0,0,0.1)',
-                                    '&:hover': {
-                                      transform: 'scale(1.1)'
-                                    },
-                                    transition: 'all 0.2s ease'
-                                  }}
-                                />
                               ))}
                             </Box>
+                          </Box>
+
+                          {/* フォント設定 */}
+                          <Box>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 2 }}>
+                              フォント設定
+                            </Typography>
+                            <FormControl fullWidth>
+                              <InputLabel>フォントファミリー</InputLabel>
+                              <Select
+                                defaultValue="Noto Sans JP"
+                                label="フォントファミリー"
+                                sx={{
+                                  borderRadius: 3,
+                                  backgroundColor: '#f8fafc',
+                                  '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#e2e8f0'
+                                  },
+                                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#667eea'
+                                  },
+                                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#667eea'
+                                  }
+                                }}
+                              >
+                                <MenuItem value="Noto Sans JP">Noto Sans JP</MenuItem>
+                                <MenuItem value="Roboto">Roboto</MenuItem>
+                                <MenuItem value="Inter">Inter</MenuItem>
+                                <MenuItem value="Poppins">Poppins</MenuItem>
+                                <MenuItem value="Lato">Lato</MenuItem>
+                              </Select>
+                            </FormControl>
                           </Box>
                         </Box>
                       </Paper>
                     </motion.div>
 
-                    {/* ログイン画面設定 */}
+                    {/* 2. プロジェクト設定 */}
                     <motion.div
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 1 * 0.1 }}
+                      transition={{ duration: 0.4, delay: 1 * 0.15 }}
                     >
                       <Paper
-                        elevation={3}
+                        elevation={4}
                         sx={{
-                          p: 4,
-                          borderRadius: 3,
+                          p: 5,
+                          borderRadius: 4,
                           background: 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
                           '&:hover': {
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)'
+                            transform: 'translateY(-4px)',
+                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12)'
                           },
-                          transition: 'all 0.3s ease'
+                          transition: 'all 0.4s ease'
                         }}
                       >
                         {/* カテゴリヘッダー */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                           <Box
                             sx={{
-                              width: 48,
-                              height: 48,
-                              borderRadius: 3,
+                              width: 56,
+                              height: 56,
+                              borderRadius: 4,
                               background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              mr: 3
+                              mr: 3,
+                              boxShadow: '0 8px 32px rgba(34, 197, 94, 0.3)'
                             }}
                           >
-                            <PersonAdd sx={{ color: 'white', fontSize: '1.5rem' }} />
+                            <Folder sx={{ color: 'white', fontSize: '1.8rem' }} />
                           </Box>
                           <Box>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a202c', mb: 0.5 }}>
-                              ログイン画面設定
+                            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a202c', mb: 1 }}>
+                              プロジェクト設定
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#6b7280' }}>
-                              ログイン画面の外観設定
+                            <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '1rem' }}>
+                              プロジェクトの基本情報設定
                             </Typography>
                           </Box>
                         </Box>
 
                         {/* 設定項目 */}
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151', mb: 1 }}>
-                              背景画像
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 2 }}>
+                              プロジェクト名
                             </Typography>
-                            <Button
+                            <TextField
+                              defaultValue="OpenReview フォーム"
                               variant="outlined"
-                              component="label"
+                              fullWidth
+                              placeholder="プロジェクト名を入力してください"
                               sx={{
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                borderStyle: 'dashed',
-                                height: 80,
-                                width: '100%',
-                                color: '#6b7280',
-                                borderColor: '#d1d5db',
-                                '&:hover': {
-                                  borderColor: '#16a34a',
-                                  backgroundColor: 'rgba(34, 197, 94, 0.04)'
+                                '& .MuiOutlinedInput-root': {
+                                  borderRadius: 3,
+                                  backgroundColor: '#f8fafc',
+                                  fontSize: '1.1rem',
+                                  fontWeight: 500,
+                                  '& input': {
+                                    py: 2
+                                  },
+                                  '&:hover': {
+                                    backgroundColor: '#f1f5f9'
+                                  },
+                                  '&.Mui-focused': {
+                                    backgroundColor: 'white',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: '#22c55e',
+                                      borderWidth: 2
+                                    }
+                                  }
                                 }
                               }}
-                            >
-                              <Image sx={{ mr: 1 }} />
-                              背景画像をアップロード
-                              <input type="file" accept="image/*" hidden />
-                            </Button>
+                            />
+                            <Typography variant="caption" sx={{ color: '#6b7280', mt: 1, display: 'block' }}>
+                              このプロジェクト名は管理画面とフォームのタイトルに表示されます
+                            </Typography>
                           </Box>
 
-                          <TextField
-                            label="タイトルテキスト"
-                            defaultValue="アンケートにご協力ください"
-                            variant="outlined"
-                            fullWidth
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 2,
-                                backgroundColor: '#f8fafc',
-                                '&:hover': {
-                                  backgroundColor: '#f1f5f9'
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: 'white'
+                          <Box>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 2 }}>
+                              説明（オプション）
+                            </Typography>
+                            <TextField
+                              placeholder="プロジェクトの説明を入力してください"
+                              variant="outlined"
+                              fullWidth
+                              multiline
+                              rows={4}
+                              sx={{
+                                '& .MuiOutlinedInput-root': {
+                                  borderRadius: 3,
+                                  backgroundColor: '#f8fafc',
+                                  '&:hover': {
+                                    backgroundColor: '#f1f5f9'
+                                  },
+                                  '&.Mui-focused': {
+                                    backgroundColor: 'white',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: '#22c55e',
+                                      borderWidth: 2
+                                    }
+                                  }
                                 }
-                              }
-                            }}
-                          />
-
-                          <TextField
-                            label="詳細テキスト"
-                            defaultValue="ログインして回答を開始してください"
-                            variant="outlined"
-                            fullWidth
-                            multiline
-                            rows={3}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 2,
-                                backgroundColor: '#f8fafc',
-                                '&:hover': {
-                                  backgroundColor: '#f1f5f9'
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: 'white'
-                                }
-                              }
-                            }}
-                          />
+                              }}
+                            />
+                          </Box>
                         </Box>
                       </Paper>
                     </motion.div>
 
-                    {/* 完了画面設定 */}
+                    {/* 3. 公開設定 */}
                     <motion.div
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 2 * 0.1 }}
+                      transition={{ duration: 0.4, delay: 2 * 0.15 }}
                     >
                       <Paper
-                        elevation={3}
+                        elevation={4}
                         sx={{
-                          p: 4,
-                          borderRadius: 3,
+                          p: 5,
+                          borderRadius: 4,
                           background: 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          backdropFilter: 'blur(20px)',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
                           '&:hover': {
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)'
+                            transform: 'translateY(-4px)',
+                            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12)'
                           },
-                          transition: 'all 0.3s ease'
+                          transition: 'all 0.4s ease'
                         }}
                       >
                         {/* カテゴリヘッダー */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                           <Box
                             sx={{
-                              width: 48,
-                              height: 48,
-                              borderRadius: 3,
+                              width: 56,
+                              height: 56,
+                              borderRadius: 4,
                               background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              mr: 3
+                              mr: 3,
+                              boxShadow: '0 8px 32px rgba(59, 130, 246, 0.3)'
                             }}
                           >
-                            <CheckCircle sx={{ color: 'white', fontSize: '1.5rem' }} />
+                            <Public sx={{ color: 'white', fontSize: '1.8rem' }} />
                           </Box>
                           <Box>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a202c', mb: 0.5 }}>
-                              完了画面設定
+                            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a202c', mb: 1 }}>
+                              公開設定
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#6b7280' }}>
-                              完了時の画面とボタン設定
+                            <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '1rem' }}>
+                              フォームの公開状態とアクセス方法
                             </Typography>
                           </Box>
                         </Box>
 
                         {/* 設定項目 */}
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                          <TextField
-                            label="タイトルテキスト"
-                            defaultValue="ご回答ありがとうございました"
-                            variant="outlined"
-                            fullWidth
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 2,
-                                backgroundColor: '#f8fafc',
-                                '&:hover': {
-                                  backgroundColor: '#f1f5f9'
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: 'white'
-                                }
-                              }
-                            }}
-                          />
-
-                          <TextField
-                            label="詳細テキスト"
-                            defaultValue="アンケートの回答が完了しました"
-                            variant="outlined"
-                            fullWidth
-                            multiline
-                            rows={3}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 2,
-                                backgroundColor: '#f8fafc',
-                                '&:hover': {
-                                  backgroundColor: '#f1f5f9'
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: 'white'
-                                }
-                              }
-                            }}
-                          />
-
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          {/* 公開ステータス */}
                           <Box>
-                            <FormControlLabel
-                              control={
-                                <Switch
-                                  defaultChecked={false}
-                                  sx={{
-                                    '& .MuiSwitch-switchBase.Mui-checked': {
-                                      color: '#3b82f6'
-                                    },
-                                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                      backgroundColor: '#3b82f6'
-                                    }
-                                  }}
-                                />
-                              }
-                              label={
-                                <Box>
-                                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151' }}>
-                                    ボタン1を有効化
-                                  </Typography>
-                                  <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                                    完了画面にアクションボタンを表示
-                                  </Typography>
-                                </Box>
-                              }
-                              sx={{ alignItems: 'flex-start', m: 0 }}
-                            />
-                          </Box>
-
-                          <TextField
-                            label="ボタン1テキスト"
-                            defaultValue="ホームページへ"
-                            variant="outlined"
-                            fullWidth
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 2,
-                                backgroundColor: '#f8fafc',
-                                '&:hover': {
-                                  backgroundColor: '#f1f5f9'
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: 'white'
-                                }
-                              }
-                            }}
-                          />
-
-                          <TextField
-                            label="ボタン1 URL"
-                            placeholder="https://example.com"
-                            variant="outlined"
-                            fullWidth
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: 2,
-                                backgroundColor: '#f8fafc',
-                                '&:hover': {
-                                  backgroundColor: '#f1f5f9'
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: 'white'
-                                }
-                              }
-                            }}
-                          />
-                        </Box>
-                      </Paper>
-                    </motion.div>
-
-                    {/* 質問タイプ設定 */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: 3 * 0.1 }}
-                    >
-                      <Paper
-                        elevation={3}
-                        sx={{
-                          p: 4,
-                          borderRadius: 3,
-                          background: 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
-                          '&:hover': {
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)'
-                          },
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                        {/* カテゴリヘッダー */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                          <Box
-                            sx={{
-                              width: 48,
-                              height: 48,
-                              borderRadius: 3,
-                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              mr: 3
-                            }}
-                          >
-                            <Quiz sx={{ color: 'white', fontSize: '1.5rem' }} />
-                          </Box>
-                          <Box>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a202c', mb: 0.5 }}>
-                              質問タイプ設定
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 2 }}>
+                              公開ステータス
                             </Typography>
-                            <Typography variant="body2" sx={{ color: '#6b7280' }}>
-                              利用可能な質問タイプの設定
-                            </Typography>
-                          </Box>
-                        </Box>
-
-                        {/* 設定項目 */}
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          {[
-                            { label: '短文テキスト', icon: <TextFields /> },
-                            { label: '長文テキスト', icon: <Description /> },
-                            { label: '単一選択', icon: <RadioButtonChecked /> },
-                            { label: '複数選択', icon: <CheckBox /> },
-                            { label: 'リニアスケール', icon: <LinearScale /> },
-                            { label: 'プルダウン', icon: <ExpandMoreIcon /> }
-                          ].map((item, index) => (
                             <Box
-                              key={index}
                               sx={{
+                                p: 3,
+                                borderRadius: 3,
+                                backgroundColor: '#f0f9ff',
+                                border: '2px solid #bae6fd',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'space-between',
-                                p: 2.5,
-                                borderRadius: 2,
-                                backgroundColor: 'rgba(248, 250, 252, 0.8)',
-                                border: '1px solid rgba(226, 232, 240, 0.6)',
-                                '&:hover': {
-                                  backgroundColor: 'rgba(245, 158, 11, 0.04)',
-                                  borderColor: 'rgba(245, 158, 11, 0.2)'
-                                },
-                                transition: 'all 0.2s ease'
+                                justifyContent: 'space-between'
                               }}
                             >
                               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                {React.cloneElement(item.icon, { sx: { mr: 2, color: '#f59e0b' } })}
-                                <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151' }}>
-                                  {item.label}
-                                </Typography>
+                                <CheckCircle sx={{ color: '#22c55e', mr: 2, fontSize: '1.5rem' }} />
+                                <Box>
+                                  <Typography variant="body1" sx={{ fontWeight: 600, color: '#1a202c' }}>
+                                    フォームを公開する
+                                  </Typography>
+                                  <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                                    リンクを知っている人がアクセス可能
+                                  </Typography>
+                                </Box>
                               </Box>
                               <Switch
                                 defaultChecked={true}
-                                size="small"
                                 sx={{
                                   '& .MuiSwitch-switchBase.Mui-checked': {
-                                    color: '#f59e0b'
+                                    color: '#3b82f6'
                                   },
                                   '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                    backgroundColor: '#f59e0b'
+                                    backgroundColor: '#3b82f6'
                                   }
                                 }}
                               />
                             </Box>
-                          ))}
+                          </Box>
+
+                          {/* 発行されたURL */}
+                          <Box>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 2 }}>
+                              発行されたURL
+                            </Typography>
+                            <Box
+                              sx={{
+                                p: 3,
+                                borderRadius: 3,
+                                backgroundColor: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 2
+                              }}
+                            >
+                              <TextField
+                                value="https://openreview.app/form/abc123xyz"
+                                variant="outlined"
+                                fullWidth
+                                InputProps={{
+                                  readOnly: true,
+                                  sx: {
+                                    backgroundColor: 'white',
+                                    borderRadius: 2,
+                                    fontFamily: 'monospace',
+                                    fontSize: '0.9rem'
+                                  }
+                                }}
+                              />
+                              <Button
+                                variant="contained"
+                                sx={{
+                                  minWidth: 100,
+                                  borderRadius: 2,
+                                  textTransform: 'none',
+                                  background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                  '&:hover': {
+                                    transform: 'scale(1.05)'
+                                  },
+                                  transition: 'all 0.2s ease'
+                                }}
+                              >
+                                コピー
+                              </Button>
+                            </Box>
+                          </Box>
+
+                          {/* QRコード */}
+                          <Box>
+                            <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151', mb: 2 }}>
+                              QRコード
+                            </Typography>
+                            <Box
+                              sx={{
+                                p: 4,
+                                borderRadius: 3,
+                                backgroundColor: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: 3
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  width: 200,
+                                  height: 200,
+                                  backgroundColor: 'white',
+                                  border: '2px solid #e2e8f0',
+                                  borderRadius: 3,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+                                }}
+                              >
+                                <Typography variant="body2" sx={{ color: '#9ca3af', textAlign: 'center' }}>
+                                  QRコード<br />プレビュー
+                                </Typography>
+                              </Box>
+                              <Button
+                                variant="outlined"
+                                sx={{
+                                  borderRadius: 2,
+                                  textTransform: 'none',
+                                  borderColor: '#3b82f6',
+                                  color: '#3b82f6',
+                                  '&:hover': {
+                                    borderColor: '#1d4ed8',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.05)'
+                                  }
+                                }}
+                              >
+                                QRコードをダウンロード
+                              </Button>
+                            </Box>
+                          </Box>
                         </Box>
                       </Paper>
                     </motion.div>
