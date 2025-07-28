@@ -205,6 +205,8 @@ export default function CreatePage({ onBackClick }) {
   const [deleteMode, setDeleteMode] = useState(false); // 削除モード
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // 削除確認ダイアログ
   const [pageToDelete, setPageToDelete] = useState(null); // 削除対象ページ
+  const [sortingAnimation, setSortingAnimation] = useState(null); // 並び替えアニメーション
+  const [dropIndicator, setDropIndicator] = useState(null); // ドロップ位置インジケーター
   
   // サンプルページデータ
   const [pages, setPages] = useState([
@@ -249,21 +251,43 @@ export default function CreatePage({ onBackClick }) {
     setPages(newPages);
   };
 
-  const handleMovePageUp = (pageId) => {
+  const handleMovePageUp = async (pageId) => {
     const pageIndex = pages.findIndex(p => p.id === pageId);
     if (pageIndex > 1) { // ログイン画面より後ろの場合のみ
-      const newPages = [...pages];
-      [newPages[pageIndex], newPages[pageIndex - 1]] = [newPages[pageIndex - 1], newPages[pageIndex]];
-      setPages(newPages);
+      // アニメーション開始
+      setSortingAnimation({ id: pageId, direction: 'up' });
+      
+      // 少し待ってから実際の移動を実行
+      setTimeout(() => {
+        const newPages = [...pages];
+        [newPages[pageIndex], newPages[pageIndex - 1]] = [newPages[pageIndex - 1], newPages[pageIndex]];
+        setPages(newPages);
+        
+        // アニメーション終了
+        setTimeout(() => {
+          setSortingAnimation(null);
+        }, 200);
+      }, 100);
     }
   };
 
-  const handleMovePageDown = (pageId) => {
+  const handleMovePageDown = async (pageId) => {
     const pageIndex = pages.findIndex(p => p.id === pageId);
     if (pageIndex < pages.length - 2) { // 完了画面より前の場合のみ
-      const newPages = [...pages];
-      [newPages[pageIndex], newPages[pageIndex + 1]] = [newPages[pageIndex + 1], newPages[pageIndex]];
-      setPages(newPages);
+      // アニメーション開始
+      setSortingAnimation({ id: pageId, direction: 'down' });
+      
+      // 少し待ってから実際の移動を実行
+      setTimeout(() => {
+        const newPages = [...pages];
+        [newPages[pageIndex], newPages[pageIndex + 1]] = [newPages[pageIndex + 1], newPages[pageIndex]];
+        setPages(newPages);
+        
+        // アニメーション終了
+        setTimeout(() => {
+          setSortingAnimation(null);
+        }, 200);
+      }, 100);
     }
   };
 
@@ -273,11 +297,22 @@ export default function CreatePage({ onBackClick }) {
     setDraggedPage(page);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', '');
+    
+    // ドラッグ開始アニメーション
+    setSortingAnimation({ id: page.id, direction: 'dragging' });
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e, targetPageId) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+    
+    // ドロップ位置のインジケーターを表示
+    if (draggedPage && targetPageId) {
+      const targetPage = pages.find(p => p.id === targetPageId);
+      if (targetPage && targetPage.type !== 'system' && targetPageId !== draggedPage.id) {
+        setDropIndicator(targetPageId);
+      }
+    }
   };
 
   const handleDrop = (e, targetPage) => {
@@ -286,6 +321,9 @@ export default function CreatePage({ onBackClick }) {
 
     const draggedIndex = pages.findIndex(p => p.id === draggedPage.id);
     const targetIndex = pages.findIndex(p => p.id === targetPage.id);
+    
+    // ドロップ成功アニメーション
+    setSortingAnimation({ id: draggedPage.id, direction: 'success' });
     
     // システムページ間の移動は禁止
     if (draggedIndex <= 0 || draggedIndex >= pages.length - 1 || 
@@ -301,6 +339,12 @@ export default function CreatePage({ onBackClick }) {
 
   const handleDragEnd = () => {
     setDraggedPage(null);
+    setDropIndicator(null);
+    
+    // ドラッグ終了後の処理
+    setTimeout(() => {
+      setSortingAnimation(null);
+    }, 300);
   };
 
   // 削除モード関連ハンドラ
@@ -926,13 +970,22 @@ export default function CreatePage({ onBackClick }) {
                         <motion.div
                           key={page.id}
                           initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.2, delay: index * 0.05 }}
+                          animate={{ 
+                            opacity: 1, 
+                            y: 0,
+                            scale: sortingAnimation?.id === page.id && sortingAnimation.direction === 'dragging' ? 1.05 : 1,
+                            x: sortingAnimation?.id === page.id && sortingAnimation.direction === 'up' ? -5 : 
+                               sortingAnimation?.id === page.id && sortingAnimation.direction === 'down' ? 5 : 0
+                          }}
+                          transition={{ 
+                            duration: sortingAnimation?.id === page.id ? 0.2 : 0.2, 
+                            delay: sortingAnimation?.id === page.id ? 0 : index * 0.05 
+                          }}
                         >
                           <Box
                             draggable={page.type === 'question' && !deleteMode}
                             onDragStart={(e) => handleDragStart(e, page)}
-                            onDragOver={handleDragOver}
+                            onDragOver={(e) => handleDragOver(e, page.id)}
                             onDrop={(e) => handleDrop(e, page)}
                             onDragEnd={handleDragEnd}
                             onClick={() => deleteMode && page.canDelete && handlePageDeletionRequest(page)}
@@ -940,10 +993,18 @@ export default function CreatePage({ onBackClick }) {
                               p: 1.5,
                               mb: 1,
                               borderRadius: 1,
-                              backgroundColor: draggedPage?.id === page.id 
+                              backgroundColor: sortingAnimation?.id === page.id && sortingAnimation.direction === 'success'
+                                ? 'rgba(34, 197, 94, 0.1)'
+                                : draggedPage?.id === page.id 
                                 ? 'rgba(94, 23, 235, 0.1)' 
+                                : dropIndicator === page.id
+                                ? 'rgba(94, 23, 235, 0.08)'
                                 : 'rgba(255, 255, 255, 0.8)',
-                              border: '1px solid rgba(0, 0, 0, 0.06)',
+                              border: dropIndicator === page.id 
+                                ? '2px dashed #5e17eb'
+                                : sortingAnimation?.id === page.id && sortingAnimation.direction === 'success'
+                                ? '1px solid rgba(34, 197, 94, 0.3)'
+                                : '1px solid rgba(0, 0, 0, 0.06)',
                               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                               minHeight: 72,
                               display: 'flex',
@@ -1043,46 +1104,70 @@ export default function CreatePage({ onBackClick }) {
 
                             {/* 並び替えアイコン */}
                             {!deleteMode && page.type === 'question' && (
-                              <Box sx={{ mr: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              <Box sx={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                                 {index > 1 && (
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleMovePageUp(page.id);
-                                    }}
-                                    sx={{
-                                      width: 20,
-                                      height: 20,
-                                      color: '#64748b',
-                                      '&:hover': { 
-                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
-                                        color: '#5e17eb'
-                                      }
-                                    }}
+                                  <motion.div
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
                                   >
-                                    <KeyboardArrowUp sx={{ fontSize: '0.9rem' }} />
-                                  </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleMovePageUp(page.id);
+                                      }}
+                                      sx={{
+                                        width: 24,
+                                        height: 24,
+                                        color: '#64748b',
+                                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                        backdropFilter: 'blur(4px)',
+                                        border: '1px solid rgba(100, 116, 139, 0.2)',
+                                        '&:hover': { 
+                                          backgroundColor: 'rgba(94, 23, 235, 0.1)',
+                                          borderColor: '#5e17eb',
+                                          color: '#5e17eb',
+                                          transform: 'translateY(-1px)',
+                                          boxShadow: '0 4px 12px rgba(94, 23, 235, 0.2)'
+                                        },
+                                        transition: 'all 0.2s ease'
+                                      }}
+                                    >
+                                      <KeyboardArrowUp sx={{ fontSize: '1rem' }} />
+                                    </IconButton>
+                                  </motion.div>
                                 )}
                                 {index < pages.length - 2 && (
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleMovePageDown(page.id);
-                                    }}
-                                    sx={{
-                                      width: 20,
-                                      height: 20,
-                                      color: '#64748b',
-                                      '&:hover': { 
-                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
-                                        color: '#5e17eb'
-                                      }
-                                    }}
+                                  <motion.div
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
                                   >
-                                    <KeyboardArrowDown sx={{ fontSize: '0.9rem' }} />
-                                  </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleMovePageDown(page.id);
+                                      }}
+                                      sx={{
+                                        width: 24,
+                                        height: 24,
+                                        color: '#64748b',
+                                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                        backdropFilter: 'blur(4px)',
+                                        border: '1px solid rgba(100, 116, 139, 0.2)',
+                                        '&:hover': { 
+                                          backgroundColor: 'rgba(94, 23, 235, 0.1)',
+                                          borderColor: '#5e17eb',
+                                          color: '#5e17eb',
+                                          transform: 'translateY(-1px)',
+                                          boxShadow: '0 4px 12px rgba(94, 23, 235, 0.2)'
+                                        },
+                                        transition: 'all 0.2s ease'
+                                      }}
+                                    >
+                                      <KeyboardArrowDown sx={{ fontSize: '1rem' }} />
+                                    </IconButton>
+                                  </motion.div>
                                 )}
                               </Box>
                             )}
