@@ -929,66 +929,61 @@ export default function CreatePage({ onBackClick }) {
                                         backgroundColor: 'rgba(255, 255, 255, 0.9)',
                                         border: '1px solid rgba(0, 0, 0, 0.06)',
                                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                                        position: 'relative',
-                                        overflow: 'hidden',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 1.5,
                                         '&:hover': {
                                           backgroundColor: 'rgba(94, 23, 235, 0.04)',
                                           borderColor: 'rgba(94, 23, 235, 0.15)',
                                           transform: 'translateX(3px)',
                                           boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
                                         },
-                                        '&:before': {
-                                          content: '""',
-                                          position: 'absolute',
-                                          left: 0,
-                                          top: 0,
-                                          bottom: 0,
-                                          width: 3,
-                                          background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
-                                          opacity: 0,
-                                          transition: 'opacity 0.2s ease'
-                                        },
-                                        '&:hover:before': {
-                                          opacity: 1
-                                        },
                                         transition: 'all 0.3s ease'
                                       }}
                                     >
-                                      <Typography
-                                        variant="caption"
+                                      {/* 左側: アイコン */}
+                                      <Box
                                         sx={{
-                                          display: 'block',
-                                          fontSize: '0.75rem',
-                                          lineHeight: 1.4,
+                                          width: 32,
+                                          height: 32,
+                                          borderRadius: 2,
+                                          background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          flexShrink: 0,
+                                          boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
+                                        }}
+                                      >
+                                        {React.cloneElement(
+                                          questionTypes.find(qt => qt.type === temp.type)?.icon || <TextFields />,
+                                          { 
+                                            sx: { 
+                                              color: 'white', 
+                                              fontSize: '1rem' 
+                                            } 
+                                          }
+                                        )}
+                                      </Box>
+
+                                      {/* 右側: テキスト（最大2行） */}
+                                      <Typography
+                                        variant="body2"
+                                        sx={{
+                                          fontSize: '0.8rem',
+                                          lineHeight: 1.3,
                                           color: '#2d3748',
-                                          mb: 0.5,
-                                          fontWeight: 500
+                                          fontWeight: 500,
+                                          flex: 1,
+                                          display: '-webkit-box',
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: 'vertical',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis'
                                         }}
                                       >
                                         {temp.question}
                                       </Typography>
-                                      <Box
-                                        sx={{
-                                          display: 'inline-flex',
-                                          alignItems: 'center',
-                                          px: 1,
-                                          py: 0.3,
-                                          borderRadius: 1,
-                                          backgroundColor: 'rgba(94, 23, 235, 0.08)',
-                                          border: '1px solid rgba(94, 23, 235, 0.15)'
-                                        }}
-                                      >
-                                        <Typography
-                                          variant="caption"
-                                          sx={{
-                                            fontSize: '0.65rem',
-                                            color: '#5e17eb',
-                                            fontWeight: 600
-                                          }}
-                                        >
-                                          {questionTypes.find(qt => qt.type === temp.type)?.label}
-                                        </Typography>
-                                      </Box>
                                     </Box>
                                   </motion.div>
                                 ))}
