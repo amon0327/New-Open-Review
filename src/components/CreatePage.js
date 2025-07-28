@@ -1048,7 +1048,7 @@ export default function CreatePage({ onBackClick }) {
                                 <DragHandle sx={{ fontSize: '1.2rem' }} />
                               </Box>
                             ) : (
-                              <Box sx={{ width: 40, mr: 1 }} />
+                              <Box sx={{ width: 28, mr: 1 }} />
                             )}
 
                             {/* ページアイコン */}
