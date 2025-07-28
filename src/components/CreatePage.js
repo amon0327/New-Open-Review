@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import PreviewControlPanel from './PreviewControlPanel';
 import LeftNavigationBar from './LeftNavigationBar';
+import HeaderBar from './HeaderBar';
+import PreviewArea from './PreviewArea';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChromePicker } from 'react-color';
 import QRCode from 'react-qr-code';
@@ -568,111 +570,12 @@ export default function CreatePage({ onBackClick }) {
         }}
       >
         {/* ヘッダー */}
-        <Paper
-          elevation={0}
-          sx={{
-            height: 65,
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
-            borderRadius: 0,
-            display: 'flex',
-            alignItems: 'center',
-            px: 2,
-            justifyContent: 'space-between'
-          }}
-        >
-          {/* ヘッダー左側 */}
-          {isEditingTitle ? (
-            <Input
-              value={projectTitle}
-              onChange={(e) => setProjectTitle(e.target.value)}
-              onBlur={() => setIsEditingTitle(false)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  setIsEditingTitle(false);
-                } else if (e.key === 'Escape') {
-                  setProjectTitle('OpenReview フォーム');
-                  setIsEditingTitle(false);
-                }
-              }}
-              autoFocus
-              sx={{
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                color: '#1a202c',
-                minWidth: 200,
-                '&:before': {
-                  borderBottom: '2px solid #5e17eb'
-                },
-                '&:after': {
-                  borderBottom: '2px solid #5e17eb'
-                }
-              }}
-            />
-          ) : (
-            <Typography
-              variant="h5"
-              onClick={() => setIsEditingTitle(true)}
-              sx={{
-                color: '#1a202c',
-                fontWeight: 700,
-                cursor: 'pointer',
-                padding: '4px 8px',
-                borderRadius: 1,
-                '&:hover': {
-                  backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                  color: '#5e17eb'
-                },
-                transition: 'all 0.2s ease'
-              }}
-            >
-              {projectTitle}
-            </Typography>
-          )}
-
-          {/* ヘッダー右側のアクションボタン */}
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Tooltip title="プレビュー">
-              <IconButton
-                sx={{
-                  color: '#64748b',
-                  '&:hover': {
-                    backgroundColor: 'rgba(100, 116, 139, 0.1)'
-                  }
-                }}
-              >
-                <Preview />
-              </IconButton>
-            </Tooltip>
-            
-            <Tooltip title="保存">
-              <IconButton
-                sx={{
-                  color: '#64748b',
-                  '&:hover': {
-                    backgroundColor: 'rgba(100, 116, 139, 0.1)'
-                  }
-                }}
-              >
-                <Save />
-              </IconButton>
-            </Tooltip>
-            
-            <Tooltip title="その他">
-              <IconButton
-                sx={{
-                  color: '#64748b',
-                  '&:hover': {
-                    backgroundColor: 'rgba(100, 116, 139, 0.1)'
-                  }
-                }}
-              >
-                <MoreVert />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Paper>
+        <HeaderBar
+          isEditingTitle={isEditingTitle}
+          projectTitle={projectTitle}
+          setProjectTitle={setProjectTitle}
+          setIsEditingTitle={setIsEditingTitle}
+        />
 
         {/* メインコンテンツエリア */}
         <Box
@@ -798,85 +701,10 @@ export default function CreatePage({ onBackClick }) {
                   />
 
                   {/* メインプレビューエリア */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -45%)',
-                      zIndex: 10,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 2,
-                      pointerEvents: 'auto'
-                    }}
-                  >
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: zoom }}
-                      transition={{ duration: 0.3 }}
-                      style={{
-                        transform: `scale(${zoom})`,
-                        transformOrigin: 'center'
-                      }}
-                    >
-                      <Paper
-                        elevation={12}
-                        sx={{
-                          width: previewMode === 'mobile' ? 390 : 1024,
-                          height: previewMode === 'mobile' ? 820 : 576,
-                          borderRadius: previewMode === 'mobile' ? 6 : 0,
-                          background: 'white',
-                          border: previewMode === 'mobile' ? '8px solid #1a1a1a' : '2px solid #e2e8f0',
-                          boxShadow: previewMode === 'mobile' 
-                            ? '0 25px 80px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05)' 
-                            : '0 20px 60px rgba(0, 0, 0, 0.15)',
-                          position: 'relative',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {/* モバイルの場合のノッチ */}
-                        {previewMode === 'mobile' && (
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              top: 0,
-                              left: '50%',
-                              transform: 'translateX(-50%)',
-                              width: 150,
-                              height: 30,
-                              background: '#1a1a1a',
-                              borderBottomLeftRadius: 15,
-                              borderBottomRightRadius: 15,
-                              zIndex: 10
-                            }}
-                          />
-                        )}
-
-                        {/* プレビューコンテンツ */}
-                        <Box
-                          sx={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            p: previewMode === 'mobile' ? 2 : 4,
-                            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
-                          }}
-                        >
-                          <Typography variant="h6" sx={{ color: '#64748b', mb: 2 }}>
-                            プレビュー
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: '#9ca3af' }}>
-                            フォームのプレビューがここに表示されます
-                          </Typography>
-                        </Box>
-                      </Paper>
-                    </motion.div>
-                  </Box>
+                  <PreviewArea
+                    previewMode={previewMode}
+                    zoom={zoom}
+                  />
                 </>
               )}
             </Paper>
