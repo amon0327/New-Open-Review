@@ -16,7 +16,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button
+  Button,
+  Input
 } from '@mui/material';
 import {
   ArrowBack,
@@ -208,6 +209,8 @@ export default function CreatePage({ onBackClick }) {
   const [sortingAnimation, setSortingAnimation] = useState(null); // 並び替えアニメーション
   const [dropIndicator, setDropIndicator] = useState(null); // ドロップ位置インジケーター
   const [selectedPage, setSelectedPage] = useState(null); // 選択中のページ
+  const [editingPageId, setEditingPageId] = useState(null); // 編集中のページID
+  const [editingTitle, setEditingTitle] = useState(''); // 編集中のタイトル
   
   // サンプルページデータ
   const [pages, setPages] = useState([
@@ -372,6 +375,38 @@ export default function CreatePage({ onBackClick }) {
   const handleCancelDelete = () => {
     setShowDeleteConfirm(false);
     setPageToDelete(null);
+  };
+
+  // ページ名編集関連ハンドラ
+  const handleStartEditing = (page) => {
+    if (page.type === 'system') return; // システムページは編集不可
+    setEditingPageId(page.id);
+    setEditingTitle(page.title);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingPageId && editingTitle.trim()) {
+      setPages(prev => prev.map(page => 
+        page.id === editingPageId 
+          ? { ...page, title: editingTitle.trim() }
+          : page
+      ));
+    }
+    setEditingPageId(null);
+    setEditingTitle('');
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPageId(null);
+    setEditingTitle('');
+  };
+
+  const handleTitleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
   };
 
   return (
@@ -1022,19 +1057,6 @@ export default function CreatePage({ onBackClick }) {
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 1 }}>
                         <IconButton
-                          onClick={handleDeleteModeToggle}
-                          sx={{
-                            color: deleteMode ? '#ef4444' : '#64748b',
-                            backgroundColor: deleteMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(100, 116, 139, 0.1)',
-                            '&:hover': { 
-                              backgroundColor: deleteMode ? 'rgba(239, 68, 68, 0.2)' : 'rgba(100, 116, 139, 0.2)',
-                              transform: 'scale(1.05)'
-                            }
-                          }}
-                        >
-                          <Delete />
-                        </IconButton>
-                        <IconButton
                           onClick={handleAddPage}
                           sx={{
                             color: '#5e17eb',
@@ -1046,6 +1068,19 @@ export default function CreatePage({ onBackClick }) {
                           }}
                         >
                           <Add />
+                        </IconButton>
+                        <IconButton
+                          onClick={handleDeleteModeToggle}
+                          sx={{
+                            color: deleteMode ? '#ef4444' : '#64748b',
+                            backgroundColor: deleteMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(100, 116, 139, 0.1)',
+                            '&:hover': { 
+                              backgroundColor: deleteMode ? 'rgba(239, 68, 68, 0.2)' : 'rgba(100, 116, 139, 0.2)',
+                              transform: 'scale(1.05)'
+                            }
+                          }}
+                        >
+                          <Delete />
                         </IconButton>
                       </Box>
                     </Box>
@@ -1075,7 +1110,13 @@ export default function CreatePage({ onBackClick }) {
                             onDragOver={(e) => handleDragOver(e, page.id)}
                             onDrop={(e) => handleDrop(e, page)}
                             onDragEnd={handleDragEnd}
-                            onClick={() => {
+                            onClick={(e) => {
+                              // 編集中の入力フィールドをクリックした場合は何もしない
+                              if (editingPageId === page.id) {
+                                e.stopPropagation();
+                                return;
+                              }
+                              
                               if (deleteMode && page.canDelete) {
                                 handlePageDeletionRequest(page);
                               } else if (!deleteMode) {
@@ -1167,17 +1208,49 @@ export default function CreatePage({ onBackClick }) {
 
                             {/* ページ情報 */}
                             <Box sx={{ flex: 1, minWidth: 0, ml: 2 }}>
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  fontWeight: 600,
-                                  color: '#2d3748',
-                                  fontSize: '0.8rem',
-                                  mb: 0.3
-                                }}
-                              >
-                                {page.title}
-                              </Typography>
+                              {editingPageId === page.id ? (
+                                <Input
+                                  value={editingTitle}
+                                  onChange={(e) => setEditingTitle(e.target.value)}
+                                  onKeyPress={handleTitleKeyPress}
+                                  onBlur={handleSaveEdit}
+                                  autoFocus
+                                  sx={{
+                                    fontWeight: 600,
+                                    color: '#2d3748',
+                                    fontSize: '0.8rem',
+                                    width: '100%',
+                                    '&:before': {
+                                      borderBottom: '2px solid #5e17eb'
+                                    },
+                                    '&:after': {
+                                      borderBottom: '2px solid #5e17eb'
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <Typography
+                                  variant="body2"
+                                  onClick={() => {
+                                    if (!deleteMode) {
+                                      handleStartEditing(page);
+                                    }
+                                  }}
+                                  sx={{
+                                    fontWeight: 600,
+                                    color: '#2d3748',
+                                    fontSize: '0.8rem',
+                                    mb: 0.3,
+                                    cursor: page.type === 'question' && !deleteMode ? 'text' : 'default',
+                                    '&:hover': page.type === 'question' && !deleteMode ? {
+                                      textDecoration: 'underline',
+                                      color: '#5e17eb'
+                                    } : {}
+                                  }}
+                                >
+                                  {page.title}
+                                </Typography>
+                              )}
                               {page.type === 'question' && (
                                 <Typography
                                   variant="caption"
