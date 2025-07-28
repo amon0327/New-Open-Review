@@ -528,8 +528,8 @@ export default function CreatePage({ onBackClick }) {
                   <Paper
                     elevation={12}
                     sx={{
-                      width: previewMode === 'mobile' ? 390 : 1024,
-                      height: previewMode === 'mobile' ? 820 : 576,
+                      width: previewMode === 'mobile' ? 273 : 717,
+                      height: previewMode === 'mobile' ? 574 : 403,
                       borderRadius: previewMode === 'mobile' ? 6 : 0,
                       background: 'white',
                       border: previewMode === 'mobile' ? '8px solid #1a1a1a' : '2px solid #e2e8f0',
