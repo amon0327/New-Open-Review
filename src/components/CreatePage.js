@@ -5,6 +5,7 @@ import HeaderBar from './HeaderBar';
 import PreviewArea from './PreviewArea';
 import QuestionToolsSidebar from './QuestionToolsSidebar';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import SettingsPanel from './settings/SettingsPanel';
 import { useCreatePageState } from '../hooks/useCreatePageState';
 import { leftNavigationItems, questionTypes, questionTemplates, settingsCategories } from '../constants/createPageData';
 import { motion, AnimatePresence } from 'framer-motion';
