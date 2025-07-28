@@ -11,7 +11,12 @@ import {
   Collapse,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button
 } from '@mui/material';
 import {
   ArrowBack,
@@ -197,6 +202,9 @@ export default function CreatePage({ onBackClick }) {
   const [expandedTemplates, setExpandedTemplates] = useState({}); // テンプレートの展開状態
   const [showPageManager, setShowPageManager] = useState(false); // ページ管理UI表示状態
   const [draggedPage, setDraggedPage] = useState(null); // ドラッグ中のページ
+  const [deleteMode, setDeleteMode] = useState(false); // 削除モード
+  const [selectedForDeletion, setSelectedForDeletion] = useState([]); // 削除対象選択
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // 削除確認ダイアログ
   
   // サンプルページデータ
   const [pages, setPages] = useState([
@@ -293,6 +301,41 @@ export default function CreatePage({ onBackClick }) {
 
   const handleDragEnd = () => {
     setDraggedPage(null);
+  };
+
+  // 削除モード関連ハンドラ
+  const handleDeleteModeToggle = () => {
+    setDeleteMode(!deleteMode);
+    setSelectedForDeletion([]);
+  };
+
+  const handlePageSelection = (pageId) => {
+    if (!deleteMode) return;
+    
+    setSelectedForDeletion(prev => {
+      if (prev.includes(pageId)) {
+        return prev.filter(id => id !== pageId);
+      } else {
+        return [...prev, pageId];
+      }
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedForDeletion.length > 0) {
+      setShowDeleteConfirm(true);
+    }
+  };
+
+  const handleExecuteDelete = () => {
+    setPages(prev => prev.filter(page => !selectedForDeletion.includes(page.id)));
+    setSelectedForDeletion([]);
+    setDeleteMode(false);
+    setShowDeleteConfirm(false);
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
   };
 
   return (
@@ -855,19 +898,49 @@ export default function CreatePage({ onBackClick }) {
                       >
                         ページ管理
                       </Typography>
-                      <IconButton
-                        onClick={handleAddPage}
-                        sx={{
-                          color: '#5e17eb',
-                          backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                          '&:hover': { 
-                            backgroundColor: 'rgba(94, 23, 235, 0.2)',
-                            transform: 'scale(1.05)'
-                          }
-                        }}
-                      >
-                        <Add />
-                      </IconButton>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        {deleteMode && selectedForDeletion.length > 0 && (
+                          <IconButton
+                            onClick={handleConfirmDelete}
+                            sx={{
+                              color: '#ef4444',
+                              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                              '&:hover': { 
+                                backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                                transform: 'scale(1.05)'
+                              }
+                            }}
+                          >
+                            <Delete />
+                          </IconButton>
+                        )}
+                        <IconButton
+                          onClick={deleteMode ? handleDeleteModeToggle : handleDeleteModeToggle}
+                          sx={{
+                            color: deleteMode ? '#ef4444' : '#64748b',
+                            backgroundColor: deleteMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(100, 116, 139, 0.1)',
+                            '&:hover': { 
+                              backgroundColor: deleteMode ? 'rgba(239, 68, 68, 0.2)' : 'rgba(100, 116, 139, 0.2)',
+                              transform: 'scale(1.05)'
+                            }
+                          }}
+                        >
+                          <Delete />
+                        </IconButton>
+                        <IconButton
+                          onClick={handleAddPage}
+                          sx={{
+                            color: '#5e17eb',
+                            backgroundColor: 'rgba(94, 23, 235, 0.1)',
+                            '&:hover': { 
+                              backgroundColor: 'rgba(94, 23, 235, 0.2)',
+                              transform: 'scale(1.05)'
+                            }
+                          }}
+                        >
+                          <Add />
+                        </IconButton>
+                      </Box>
                     </Box>
 
 
@@ -881,50 +954,75 @@ export default function CreatePage({ onBackClick }) {
                           transition={{ duration: 0.2, delay: index * 0.05 }}
                         >
                           <Box
-                            draggable={page.type === 'question'}
+                            draggable={page.type === 'question' && !deleteMode}
                             onDragStart={(e) => handleDragStart(e, page)}
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, page)}
                             onDragEnd={handleDragEnd}
+                            onClick={() => deleteMode && page.canDelete && handlePageSelection(page.id)}
                             sx={{
                               p: 1.5,
                               mb: 1,
                               borderRadius: 1,
-                              backgroundColor: draggedPage?.id === page.id 
+                              backgroundColor: selectedForDeletion.includes(page.id)
+                                ? 'rgba(239, 68, 68, 0.1)'
+                                : draggedPage?.id === page.id 
                                 ? 'rgba(94, 23, 235, 0.1)' 
                                 : 'rgba(255, 255, 255, 0.8)',
-                              border: '1px solid rgba(0, 0, 0, 0.06)',
+                              border: selectedForDeletion.includes(page.id)
+                                ? '2px solid rgba(239, 68, 68, 0.3)'
+                                : '1px solid rgba(0, 0, 0, 0.06)',
                               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                               minHeight: 72,
                               display: 'flex',
                               alignItems: 'center',
-                              cursor: page.type === 'question' ? 'move' : 'default',
-                              opacity: draggedPage?.id === page.id ? 0.5 : 1,
+                              cursor: deleteMode && page.canDelete 
+                                ? 'pointer' 
+                                : page.type === 'question' && !deleteMode 
+                                ? 'move' 
+                                : 'default',
+                              opacity: draggedPage?.id === page.id ? 0.5 : deleteMode && !page.canDelete ? 0.5 : 1,
                               transition: 'all 0.3s ease',
                               '&:hover': {
-                                backgroundColor: draggedPage?.id === page.id 
+                                backgroundColor: selectedForDeletion.includes(page.id)
+                                  ? 'rgba(239, 68, 68, 0.15)'
+                                  : deleteMode && page.canDelete
+                                  ? 'rgba(239, 68, 68, 0.05)'
+                                  : draggedPage?.id === page.id 
                                   ? 'rgba(94, 23, 235, 0.1)' 
                                   : 'rgba(94, 23, 235, 0.04)',
-                                borderColor: 'rgba(94, 23, 235, 0.15)',
+                                borderColor: selectedForDeletion.includes(page.id)
+                                  ? 'rgba(239, 68, 68, 0.5)'
+                                  : 'rgba(94, 23, 235, 0.15)',
                                 transform: draggedPage?.id === page.id ? 'none' : 'translateY(-1px)',
                                 boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
                               }
                             }}
                           >
-                            {/* ドラッグハンドル */}
-                            {page.type === 'question' && (
-                              <Box
-                                sx={{
-                                  color: '#94a3b8',
-                                  mr: 1,
-                                  cursor: 'grab',
-                                  '&:active': { cursor: 'grabbing' },
-                                  '&:hover': { color: '#5e17eb' }
-                                }}
-                              >
-                                <DragHandle sx={{ fontSize: '1.2rem' }} />
-                              </Box>
-                            )}
+                            {/* ドラッグハンドル領域 (統一幅) */}
+                            <Box
+                              sx={{
+                                width: 32,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mr: 1,
+                                flexShrink: 0
+                              }}
+                            >
+                              {page.type === 'question' && (
+                                <Box
+                                  sx={{
+                                    color: '#94a3b8',
+                                    cursor: 'grab',
+                                    '&:active': { cursor: 'grabbing' },
+                                    '&:hover': { color: '#5e17eb' }
+                                  }}
+                                >
+                                  <DragHandle sx={{ fontSize: '1.2rem' }} />
+                                </Box>
+                              )}
+                            </Box>
 
                             {/* ページアイコン */}
                             <Box
@@ -973,61 +1071,6 @@ export default function CreatePage({ onBackClick }) {
                               )}
                             </Box>
 
-                            {/* 削除ボタン */}
-                            {page.canDelete && (
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDeletePage(page.id)}
-                                sx={{
-                                  width: 28,
-                                  height: 28,
-                                  color: '#ef4444',
-                                  mr: 1,
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                    transform: 'scale(1.1)'
-                                  }
-                                }}
-                              >
-                                <Delete sx={{ fontSize: '1rem' }} />
-                              </IconButton>
-                            )}
-
-                            {/* アクションボタン */}
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                              {page.type === 'question' && (
-                                <>
-                                  {index > 1 && (
-                                    <IconButton
-                                      size="small"
-                                      onClick={() => handleMovePageUp(page.id)}
-                                      sx={{
-                                        width: 20,
-                                        height: 20,
-                                        color: '#64748b',
-                                        '&:hover': { backgroundColor: 'rgba(100, 116, 139, 0.1)' }
-                                      }}
-                                    >
-                                      <KeyboardArrowUp sx={{ fontSize: '0.9rem' }} />
-                                    </IconButton>
-                                  )}
-                                  {index < pages.length - 2 && (
-                                    <IconButton
-                                      size="small"
-                                      onClick={() => handleMovePageDown(page.id)}
-                                      sx={{
-                                        width: 20,
-                                        height: 20,
-                                        color: '#64748b',
-                                        '&:hover': { backgroundColor: 'rgba(100, 116, 139, 0.1)' }
-                                      }}
-                                    >
-                                      <KeyboardArrowDown sx={{ fontSize: '0.9rem' }} />
-                                    </IconButton>
-                                  )}
-                                </>
-                              )}
-                            </Box>
                           </Box>
                         </motion.div>
                       ))}
@@ -1414,6 +1457,70 @@ export default function CreatePage({ onBackClick }) {
             </Box>
           )}
         </Box>
+
+        {/* 削除確認ダイアログ */}
+        <Dialog
+          open={showDeleteConfirm}
+          onClose={handleCancelDelete}
+          PaperProps={{
+            sx: {
+              borderRadius: 2,
+              minWidth: 400
+            }
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 600, color: '#ef4444' }}>
+            ページを削除しますか？
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              以下のページを削除します。この操作は元に戻せません。
+            </Typography>
+            <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 1 }}>
+              {selectedForDeletion.map(pageId => {
+                const page = pages.find(p => p.id === pageId);
+                return page ? (
+                  <Box key={pageId} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    {React.cloneElement(page.icon, { 
+                      sx: { color: '#64748b', fontSize: '1rem' } 
+                    })}
+                    <Typography variant="body2" sx={{ color: '#2d3748' }}>
+                      {page.title}
+                    </Typography>
+                  </Box>
+                ) : null;
+              })}
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button
+              onClick={handleCancelDelete}
+              variant="outlined"
+              sx={{
+                borderColor: '#e2e8f0',
+                color: '#64748b',
+                '&:hover': {
+                  borderColor: '#cbd5e1',
+                  backgroundColor: '#f8fafc'
+                }
+              }}
+            >
+              キャンセル
+            </Button>
+            <Button
+              onClick={handleExecuteDelete}
+              variant="contained"
+              sx={{
+                backgroundColor: '#ef4444',
+                '&:hover': {
+                  backgroundColor: '#dc2626'
+                }
+              }}
+            >
+              削除する
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </Box>
   );
