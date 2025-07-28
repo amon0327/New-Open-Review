@@ -899,7 +899,7 @@ export default function CreatePage({ onBackClick }) {
               {/* 設定画面または中央プレビューエリア */}
               {showSettings ? (
                 /* 設定画面全体表示 */
-                <Box
+                <Container
                   sx={{
                     position: 'absolute',
                     top: 0,
@@ -907,181 +907,18 @@ export default function CreatePage({ onBackClick }) {
                     right: 0,
                     bottom: 0,
                     zIndex: 10,
-                    p: 4,
-                    overflowY: 'auto',
-                    '&::-webkit-scrollbar': {
-                      width: 8
-                    },
-                    '&::-webkit-scrollbar-track': {
-                      background: 'rgba(0,0,0,0.1)',
-                      borderRadius: 4
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                      background: 'rgba(94, 23, 235, 0.3)',
-                      borderRadius: 4,
-                      '&:hover': {
-                        background: 'rgba(94, 23, 235, 0.5)'
-                      }
-                    }
+                    backgroundColor: 'white',
+                    borderRadius: 3,
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                 >
-                  {/* 設定ヘッダー */}
-                  <Box sx={{ mb: 4, textAlign: 'center' }}>
-                    <Typography
-                      variant="h4"
-                      sx={{
-                        fontWeight: 700,
-                        background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        mb: 1
-                      }}
-                    >
-                      設定
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: '#6b7280' }}>
-                      アプリケーションの設定を管理します
-                    </Typography>
-                  </Box>
-
-                  {/* 設定カテゴリグリッド */}
-                  <Box 
-                    sx={{ 
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-                      gap: 3,
-                      maxWidth: 1200,
-                      margin: '0 auto'
-                    }}
-                  >
-                    {settingsCategories.map((category, index) => (
-                      <motion.div
-                        key={category.id}
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: index * 0.1 }}
-                      >
-                        <Paper
-                          elevation={3}
-                          sx={{
-                            p: 3,
-                            borderRadius: 3,
-                            background: 'rgba(255, 255, 255, 0.9)',
-                            backdropFilter: 'blur(10px)',
-                            border: '1px solid rgba(255, 255, 255, 0.2)',
-                            '&:hover': {
-                              transform: 'translateY(-4px)',
-                              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)'
-                            },
-                            transition: 'all 0.3s ease'
-                          }}
-                        >
-                          {/* カテゴリヘッダー */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                            <Box
-                              sx={{
-                                width: 56,
-                                height: 56,
-                                borderRadius: 3,
-                                background: `linear-gradient(135deg, ${
-                                  category.id === 'account' ? '#667eea, #764ba2' :
-                                  category.id === 'database' ? '#5e17eb, #764ba2' :
-                                  category.id === 'forms' ? '#22c55e, #16a34a' :
-                                  category.id === 'security' ? '#ef4444, #dc2626' :
-                                  category.id === 'integrations' ? '#3b82f6, #1d4ed8' :
-                                  '#6b7280, #4b5563'
-                                })`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                mr: 3,
-                                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)'
-                              }}
-                            >
-                              {React.cloneElement(category.icon, { sx: { color: 'white', fontSize: '1.8rem' } })}
-                            </Box>
-                            <Box>
-                              <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a202c', mb: 0.5 }}>
-                                {category.title}
-                              </Typography>
-                              <Typography variant="body2" sx={{ color: '#6b7280' }}>
-                                {category.description}
-                              </Typography>
-                            </Box>
-                          </Box>
-
-                          {/* 設定項目 */}
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            {category.settings.map((setting) => (
-                              <Box
-                                key={setting.id}
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  p: 2.5,
-                                  borderRadius: 2,
-                                  backgroundColor: 'rgba(248, 250, 252, 0.8)',
-                                  border: '1px solid rgba(226, 232, 240, 0.6)',
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(94, 23, 235, 0.04)',
-                                    borderColor: 'rgba(94, 23, 235, 0.2)'
-                                  },
-                                  transition: 'all 0.2s ease'
-                                }}
-                              >
-                                <Box>
-                                  <Typography variant="body1" sx={{ fontWeight: 600, color: '#374151' }}>
-                                    {setting.label}
-                                  </Typography>
-                                </Box>
-                                
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  {setting.type === 'toggle' ? (
-                                    <Switch
-                                      checked={setting.value}
-                                      size="medium"
-                                      sx={{
-                                        '& .MuiSwitch-switchBase.Mui-checked': {
-                                          color: '#5e17eb'
-                                        },
-                                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                          backgroundColor: '#5e17eb'
-                                        }
-                                      }}
-                                    />
-                                  ) : setting.type === 'status' ? (
-                                    <Chip
-                                      label={setting.value}
-                                      sx={{
-                                        backgroundColor: setting.status === 'connected' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                                        color: setting.status === 'connected' ? '#16a34a' : '#dc2626',
-                                        fontWeight: 600,
-                                        fontSize: '0.875rem'
-                                      }}
-                                    />
-                                  ) : setting.type === 'info' ? (
-                                    <Typography variant="body1" sx={{ color: '#6b7280', fontWeight: 500 }}>
-                                      {setting.value}
-                                    </Typography>
-                                  ) : (
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                      <Typography variant="body1" sx={{ color: '#6b7280', minWidth: 100, textAlign: 'right' }}>
-                                        {setting.value}
-                                      </Typography>
-                                      <ChevronRight sx={{ color: '#9ca3af', fontSize: '1.2rem' }} />
-                                    </Box>
-                                  )}
-                                </Box>
-                              </Box>
-                            ))}
-                          </Box>
-                        </Paper>
-                      </motion.div>
-                    ))}
-                  </Box>
-                </Box>
+                  <Typography variant="h4" color="text.secondary">
+                    設定画面
+                  </Typography>
+                </Container>
               ) : (
                 <Box
                   className="center-preview-area"
