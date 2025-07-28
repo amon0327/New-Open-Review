@@ -465,8 +465,6 @@ export default function CreatePage({ onBackClick }) {
                       </IconButton>
                     </Tooltip>
 
-                    {/* 区切り線 */}
-                    <Box sx={{ width: 1, height: 16, backgroundColor: 'rgba(0, 0, 0, 0.1)', mx: 0.5 }} />
 
                     {/* ズーム制御 */}
                     <Tooltip title="縮小">
