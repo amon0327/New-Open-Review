@@ -513,21 +513,22 @@ export default function CreatePage({ onBackClick }) {
       }}
     >
       {/* 背景全体Container */}
-      {/* 左端ナビゲーションバー */}
-      <Paper
-        elevation={4}
-        sx={{
-          width: 80,
-          height: '100vh',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          py: 2,
-          boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)'
-        }}
-      >
+      {/* 左端ナビゲーションバー - 設定ページでは非表示 */}
+      {!showSettings && (
+        <Paper
+          elevation={4}
+          sx={{
+            width: 80,
+            height: '100vh',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            py: 2,
+            boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)'
+          }}
+        >
 
         {/* ナビゲーションアイテム */}
         <Box
@@ -612,6 +613,7 @@ export default function CreatePage({ onBackClick }) {
           ))}
         </Box>
       </Paper>
+      )}
 
       {/* 右側メインエリア */}
       <Box
