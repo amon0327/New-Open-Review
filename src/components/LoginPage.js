@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { supabase } from '../supabaseClient';
 import {
   Container,
   Paper,
@@ -12,7 +13,8 @@ import {
   InputAdornment,
   IconButton,
   Divider,
-  Chip
+  Chip,
+  Alert
 } from '@mui/material';
 import {
   Email,
@@ -20,7 +22,6 @@ import {
   Visibility,
   VisibilityOff,
   Google,
-  Apple,
   Person
 } from '@mui/icons-material';
 
@@ -35,6 +36,8 @@ function TabPanel({ children, value, index }) {
 export default function LoginPage({ onLogin }) {
   const [tabValue, setTabValue] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -53,9 +56,75 @@ export default function LoginPage({ onLogin }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    onLogin();
+    setLoading(true);
+    setError('');
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        onLogin(data.user);
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            name: formData.name,
+            company: formData.company,
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        setError('確認メールを送信しました。メールをご確認ください。');
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
+    }
   };
 
   return (
@@ -168,9 +237,19 @@ export default function LoginPage({ onLogin }) {
               </Tabs>
             </Box>
 
+            {/* Error Message */}
+            {error && (
+              <Alert 
+                severity={error.includes('確認メール') ? 'info' : 'error'} 
+                sx={{ mb: 2 }}
+              >
+                {error}
+              </Alert>
+            )}
+
             {/* Login Form */}
             <TabPanel value={tabValue} index={0}>
-              <Box component="form" onSubmit={handleSubmit}>
+              <Box component="form" onSubmit={handleLogin}>
                 <TextField
                   fullWidth
                   label="メールアドレス"
@@ -218,6 +297,7 @@ export default function LoginPage({ onLogin }) {
                   fullWidth
                   variant="contained"
                   size="large"
+                  disabled={loading}
                   sx={{
                     mb: 3,
                     py: 1.5,
@@ -232,14 +312,14 @@ export default function LoginPage({ onLogin }) {
                     }
                   }}
                 >
-                  ログイン
+                  {loading ? 'ログイン中...' : 'ログイン'}
                 </Button>
               </Box>
             </TabPanel>
 
             {/* Sign Up Form */}
             <TabPanel value={tabValue} index={1}>
-              <Box component="form" onSubmit={handleSubmit}>
+              <Box component="form" onSubmit={handleSignUp}>
                 <TextField
                   fullWidth
                   label="お名前"
@@ -310,6 +390,7 @@ export default function LoginPage({ onLogin }) {
                   fullWidth
                   variant="contained"
                   size="large"
+                  disabled={loading}
                   sx={{
                     mb: 3,
                     py: 1.5,
@@ -324,7 +405,7 @@ export default function LoginPage({ onLogin }) {
                     }
                   }}
                 >
-                  アカウント作成
+                  {loading ? 'アカウント作成中...' : 'アカウント作成'}
                 </Button>
               </Box>
             </TabPanel>
@@ -335,45 +416,26 @@ export default function LoginPage({ onLogin }) {
                 <Chip label="または" size="small" />
               </Divider>
               
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<Google />}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    borderColor: '#ddd',
-                    color: '#666',
-                    '&:hover': {
-                      borderColor: '#5e17eb',
-                      color: '#5e17eb'
-                    }
-                  }}
-                >
-                  Google
-                </Button>
-                
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<Apple />}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    borderColor: '#ddd',
-                    color: '#666',
-                    '&:hover': {
-                      borderColor: '#5e17eb',
-                      color: '#5e17eb'
-                    }
-                  }}
-                >
-                  Apple
-                </Button>
-              </Box>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<Google />}
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                sx={{
+                  py: 1.5,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  borderColor: '#ddd',
+                  color: '#666',
+                  '&:hover': {
+                    borderColor: '#5e17eb',
+                    color: '#5e17eb'
+                  }
+                }}
+              >
+                {loading ? 'Googleログイン中...' : 'Googleでログイン'}
+              </Button>
             </Box>
           </Paper>
         </motion.div>

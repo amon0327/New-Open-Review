@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AnimatePresence } from 'framer-motion';
+import { Box, CircularProgress } from '@mui/material';
 
+import { supabase } from './supabaseClient';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import CreatePage from './components/CreatePage';
@@ -114,11 +116,44 @@ const theme = createTheme({
 
 function App() {
   const [currentView, setCurrentView] = useState('login'); // 'login', 'dashboard', 'create'
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
+  useEffect(() => {
+    // 現在のセッションを取得
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        setCurrentView('dashboard');
+      }
+      setLoading(false);
+    });
+
+    // 認証状態の変更を監視
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        setCurrentView('dashboard');
+      } else {
+        setCurrentView('login');
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogin = (user) => {
+    setUser(user);
     setCurrentView('dashboard');
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setCurrentView('login');
   };
 
   const handleCreateClick = () => {
@@ -130,13 +165,29 @@ function App() {
   };
 
   const renderCurrentView = () => {
+    if (loading) {
+      return (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+          }}
+        >
+          <CircularProgress sx={{ color: 'white' }} />
+        </Box>
+      );
+    }
+
     switch (currentView) {
       case 'login':
         return <LoginPage onLogin={handleLogin} />;
       case 'dashboard':
-        return <Dashboard onCreateClick={handleCreateClick} />;
+        return <Dashboard onCreateClick={handleCreateClick} onLogout={handleLogout} user={user} />;
       case 'create':
-        return <CreatePage onBackClick={handleBackToDashboard} />;
+        return <CreatePage onBackClick={handleBackToDashboard} user={user} />;
       default:
         return <LoginPage onLogin={handleLogin} />;
     }
