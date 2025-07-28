@@ -124,6 +124,32 @@ const SLIDE_IN_RIGHT_ANIMATION = {
   transition: { duration: 0.6, delay: 0.4 }
 };
 
+// カテゴリグラデーション関数
+const getCategoryGradient = (categoryId) => {
+  const gradients = {
+    account: '#667eea, #764ba2',
+    database: '#5e17eb, #764ba2',
+    forms: '#22c55e, #16a34a',
+    security: '#ef4444, #dc2626',
+    integrations: '#3b82f6, #1d4ed8',
+    advanced: '#6b7280, #4b5563'
+  };
+  return `linear-gradient(135deg, ${gradients[categoryId] || '#6b7280, #4b5563'})`;
+};
+
+// アイコンコンテナユーティリティ関数
+const createIconContainerStyle = (size, gradient, shadowColor = 'rgba(94, 23, 235, 0.3)', borderRadius = null) => ({
+  width: size,
+  height: size,
+  borderRadius: borderRadius || (size > 40 ? 2 : 1),
+  background: gradient,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+  boxShadow: `0 ${Math.ceil(size/16)}px ${Math.ceil(size/4)}px ${shadowColor}`
+});
+
 // アニメーションユーティリティ関数
 const executeWithAnimation = (setSortingAnimation, operation, delay = 100, animationClearDelay = 200) => {
   setTimeout(() => {
@@ -438,17 +464,6 @@ export default function CreatePage({ onBackClick }) {
                 }}
               />
 
-              {/* 設定画面でない場合のみプレビュー制御パネルを表示 */}
-              {!showSettings && (
-                <PreviewControlPanel
-                  previewMode={previewMode}
-                  setPreviewMode={setPreviewMode}
-                  zoom={zoom}
-                  handleZoomIn={handleZoomIn}
-                  handleZoomOut={handleZoomOut}
-                  handleFitScreen={handleFitScreen}
-                />
-              )}
 
               {/* 設定画面または中央プレビューエリア */}
               {showSettings ? (
@@ -504,15 +519,6 @@ export default function CreatePage({ onBackClick }) {
               ) : (
                 /* 中央プレビューエリア - 設定画面でない場合 */
                 <>
-                  {/* プレビュー制御パネル */}
-                  <PreviewControlPanel
-                    previewMode={previewMode}
-                    setPreviewMode={setPreviewMode}
-                    zoom={zoom}
-                    handleZoomIn={handleZoomIn}
-                    handleZoomOut={handleZoomOut}
-                    handleFitScreen={handleFitScreen}
-                  />
 
                   {/* メインプレビューエリア */}
                   <PreviewArea
@@ -699,19 +705,12 @@ export default function CreatePage({ onBackClick }) {
 
                             {/* ページアイコン */}
                             <Box
-                              sx={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 1,
-                                background: page.type === 'system' 
+                              sx={createIconContainerStyle(
+                                32,
+                                page.type === 'system' 
                                   ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                                  : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                                boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
-                              }}
+                                  : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)'
+                              )}
                             >
                               {React.cloneElement(page.icon, { 
                                 sx: { color: 'white', fontSize: '1rem' } 
@@ -819,22 +818,8 @@ export default function CreatePage({ onBackClick }) {
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                               <Box
                                 sx={{
-                                  width: 48,
-                                  height: 48,
-                                  borderRadius: 2,
-                                  background: `linear-gradient(135deg, ${
-                                    category.id === 'account' ? '#667eea, #764ba2' :
-                                    category.id === 'database' ? '#5e17eb, #764ba2' :
-                                    category.id === 'forms' ? '#22c55e, #16a34a' :
-                                    category.id === 'security' ? '#ef4444, #dc2626' :
-                                    category.id === 'integrations' ? '#3b82f6, #1d4ed8' :
-                                    '#6b7280, #4b5563'
-                                  })`,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  mr: 2,
-                                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                                  ...createIconContainerStyle(48, getCategoryGradient(category.id), 'rgba(0, 0, 0, 0.15)', 2),
+                                  mr: 2
                                 }}
                               >
                                 {React.cloneElement(category.icon, { sx: { color: 'white', fontSize: '1.5rem' } })}
@@ -967,16 +952,12 @@ export default function CreatePage({ onBackClick }) {
                   gap: 2 
                 }}>
                   <Box
-                    sx={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: 2,
-                      background: 'linear-gradient(135deg, #fcb69f 0%, #ffecd2 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 8px 24px rgba(252, 182, 159, 0.3)'
-                    }}
+                    sx={createIconContainerStyle(
+                      60,
+                      'linear-gradient(135deg, #fcb69f 0%, #ffecd2 100%)',
+                      'rgba(252, 182, 159, 0.3)',
+                      2
+                    )}
                   >
                     <Settings sx={{ color: 'white', fontSize: '1.5rem' }} />
                   </Box>
