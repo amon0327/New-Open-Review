@@ -666,8 +666,6 @@ export default function CreatePage({ onBackClick }) {
               left: 0,
               right: 0,
               bottom: 0,
-              p: 3,
-              gap: 3,
               zIndex: 1,
               pointerEvents: 'none'
             }}
@@ -683,7 +681,7 @@ export default function CreatePage({ onBackClick }) {
                 elevation={8}
                 sx={{
                   height: '100%',
-                  borderRadius: 3,
+                  borderRadius: 0,
                   background: 'rgba(255, 255, 255, 0.9)',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -905,7 +903,7 @@ export default function CreatePage({ onBackClick }) {
                 elevation={8}
                 sx={{
                   height: '100%',
-                  borderRadius: 3,
+                  borderRadius: 0,
                   background: 'rgba(255, 255, 255, 0.9)',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
