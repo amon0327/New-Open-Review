@@ -196,6 +196,7 @@ export default function CreatePage({ onBackClick }) {
   const [zoom, setZoom] = useState(1); // ズーム倍率
   const [expandedTemplates, setExpandedTemplates] = useState({}); // テンプレートの展開状態
   const [showPageManager, setShowPageManager] = useState(false); // ページ管理UI表示状態
+  const [draggedPage, setDraggedPage] = useState(null); // ドラッグ中のページ
   
   // サンプルページデータ
   const [pages, setPages] = useState([
@@ -258,6 +259,42 @@ export default function CreatePage({ onBackClick }) {
     }
   };
 
+  // ドラッグ&ドロップハンドラ
+  const handleDragStart = (e, page) => {
+    if (page.type === 'system') return; // システムページはドラッグ不可
+    setDraggedPage(page);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', '');
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetPage) => {
+    e.preventDefault();
+    if (!draggedPage || draggedPage.id === targetPage.id || targetPage.type === 'system') return;
+
+    const draggedIndex = pages.findIndex(p => p.id === draggedPage.id);
+    const targetIndex = pages.findIndex(p => p.id === targetPage.id);
+    
+    // システムページ間の移動は禁止
+    if (draggedIndex <= 0 || draggedIndex >= pages.length - 1 || 
+        targetIndex <= 0 || targetIndex >= pages.length - 1) return;
+
+    const newPages = [...pages];
+    newPages.splice(draggedIndex, 1);
+    newPages.splice(targetIndex, 0, draggedPage);
+    
+    setPages(newPages);
+    setDraggedPage(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedPage(null);
+  };
+
   return (
     <Box
       className="main-container"
@@ -311,8 +348,8 @@ export default function CreatePage({ onBackClick }) {
                   }
                 }}
                 sx={{
-                  color: (selectedTool?.label === item.label || (item.label === 'フォルダー' && showPageManager)) ? 'white' : 'rgba(255, 255, 255, 0.7)',
-                  backgroundColor: (selectedTool?.label === item.label || (item.label === 'フォルダー' && showPageManager)) ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                  color: ((selectedTool?.label === item.label && !showPageManager) || (item.label === 'フォルダー' && showPageManager)) ? 'white' : 'rgba(255, 255, 255, 0.7)',
+                  backgroundColor: ((selectedTool?.label === item.label && !showPageManager) || (item.label === 'フォルダー' && showPageManager)) ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                   borderRadius: 2,
                   width: 48,
                   height: 48,
@@ -844,25 +881,51 @@ export default function CreatePage({ onBackClick }) {
                           transition={{ duration: 0.2, delay: index * 0.05 }}
                         >
                           <Box
+                            draggable={page.type === 'question'}
+                            onDragStart={(e) => handleDragStart(e, page)}
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, page)}
+                            onDragEnd={handleDragEnd}
                             sx={{
                               p: 1.5,
                               mb: 1,
                               borderRadius: 1,
-                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              backgroundColor: draggedPage?.id === page.id 
+                                ? 'rgba(94, 23, 235, 0.1)' 
+                                : 'rgba(255, 255, 255, 0.8)',
                               border: '1px solid rgba(0, 0, 0, 0.06)',
                               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                              minHeight: 72, // 統一された高さ
+                              minHeight: 72,
                               display: 'flex',
                               alignItems: 'center',
+                              cursor: page.type === 'question' ? 'move' : 'default',
+                              opacity: draggedPage?.id === page.id ? 0.5 : 1,
                               transition: 'all 0.3s ease',
                               '&:hover': {
-                                backgroundColor: 'rgba(94, 23, 235, 0.04)',
+                                backgroundColor: draggedPage?.id === page.id 
+                                  ? 'rgba(94, 23, 235, 0.1)' 
+                                  : 'rgba(94, 23, 235, 0.04)',
                                 borderColor: 'rgba(94, 23, 235, 0.15)',
-                                transform: 'translateY(-1px)',
+                                transform: draggedPage?.id === page.id ? 'none' : 'translateY(-1px)',
                                 boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
                               }
                             }}
                           >
+                            {/* ドラッグハンドル */}
+                            {page.type === 'question' && (
+                              <Box
+                                sx={{
+                                  color: '#94a3b8',
+                                  mr: 1,
+                                  cursor: 'grab',
+                                  '&:active': { cursor: 'grabbing' },
+                                  '&:hover': { color: '#5e17eb' }
+                                }}
+                              >
+                                <DragHandle sx={{ fontSize: '1.2rem' }} />
+                              </Box>
+                            )}
+
                             {/* ページアイコン */}
                             <Box
                               sx={{
@@ -885,7 +948,7 @@ export default function CreatePage({ onBackClick }) {
                             </Box>
 
                             {/* ページ情報 */}
-                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Box sx={{ flex: 1, minWidth: 0, ml: 2 }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -909,6 +972,26 @@ export default function CreatePage({ onBackClick }) {
                                 </Typography>
                               )}
                             </Box>
+
+                            {/* 削除ボタン */}
+                            {page.canDelete && (
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDeletePage(page.id)}
+                                sx={{
+                                  width: 28,
+                                  height: 28,
+                                  color: '#ef4444',
+                                  mr: 1,
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    transform: 'scale(1.1)'
+                                  }
+                                }}
+                              >
+                                <Delete sx={{ fontSize: '1rem' }} />
+                              </IconButton>
+                            )}
 
                             {/* アクションボタン */}
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
@@ -945,25 +1028,6 @@ export default function CreatePage({ onBackClick }) {
                                 </>
                               )}
                             </Box>
-
-                            {/* 削除ボタン */}
-                            {page.canDelete && (
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDeletePage(page.id)}
-                                sx={{
-                                  width: 24,
-                                  height: 24,
-                                  color: '#ef4444',
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                    transform: 'scale(1.1)'
-                                  }
-                                }}
-                              >
-                                <Delete sx={{ fontSize: '0.9rem' }} />
-                              </IconButton>
-                            )}
                           </Box>
                         </motion.div>
                       ))}
