@@ -1028,8 +1028,8 @@ export default function CreatePage({ onBackClick }) {
                               }
                             }}
                           >
-                            {/* ドラッグハンドル領域 */}
-                            {page.type === 'question' && !deleteMode && (
+                            {/* ドラッグハンドル領域またはシステムページパディング */}
+                            {page.type === 'question' && !deleteMode ? (
                               <Box
                                 sx={{
                                   color: '#94a3b8',
@@ -1047,7 +1047,9 @@ export default function CreatePage({ onBackClick }) {
                               >
                                 <DragHandle sx={{ fontSize: '1.2rem' }} />
                               </Box>
-                            )}
+                            ) : page.type === 'system' ? (
+                              <Box sx={{ width: 16, flexShrink: 0 }} />
+                            ) : null}
 
                             {/* ページアイコン */}
                             <Box
