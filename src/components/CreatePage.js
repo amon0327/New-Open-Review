@@ -6,7 +6,8 @@ import {
   Typography,
   IconButton,
   Tooltip,
-  Stack
+  Stack,
+  TextField
 } from '@mui/material';
 import {
   ArrowBack,
@@ -48,11 +49,40 @@ export default function CreatePage({ onBackClick }) {
   const [selectedTool, setSelectedTool] = useState(null);
   const [previewMode, setPreviewMode] = useState('mobile'); // 'mobile' or 'desktop'
   const [zoom, setZoom] = useState(1); // ズーム倍率
+  const [scrollPosition, setScrollPosition] = useState({ x: 0, y: 0 }); // スクロール位置
 
   // ズーム制御関数（5%刻み）
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.05, 2));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.05, 0.5));
-  const handleFitScreen = () => setZoom(1);
+  const handleFitScreen = () => {
+    setZoom(1);
+    setScrollPosition({ x: 0, y: 0 });
+  };
+
+  // パーセンテージ入力処理
+  const handleZoomInput = (event) => {
+    const value = parseInt(event.target.value);
+    if (!isNaN(value) && value >= 50 && value <= 200) {
+      setZoom(value / 100);
+      if (value === 100) {
+        setScrollPosition({ x: 0, y: 0 });
+      }
+    }
+  };
+
+  // スクロール処理（拡大時のみ）
+  const handleScroll = (event) => {
+    if (zoom <= 1) return;
+    
+    event.preventDefault();
+    const deltaX = event.deltaX;
+    const deltaY = event.deltaY;
+    
+    setScrollPosition(prev => ({
+      x: Math.max(-200, Math.min(200, prev.x - deltaX * 0.5)),
+      y: Math.max(-200, Math.min(200, prev.y - deltaY * 0.5))
+    }));
+  };
 
   return (
     <Box
@@ -381,9 +411,38 @@ export default function CreatePage({ onBackClick }) {
                       </IconButton>
                     </Tooltip>
 
-                    <Typography variant="caption" sx={{ minWidth: 40, textAlign: 'center', color: '#64748b', fontSize: '0.7rem' }}>
-                      {Math.round(zoom * 100)}%
-                    </Typography>
+                    <TextField
+                      variant="outlined"
+                      size="small"
+                      value={Math.round(zoom * 100)}
+                      onChange={handleZoomInput}
+                      sx={{
+                        width: 60,
+                        '& .MuiOutlinedInput-root': {
+                          height: 28,
+                          fontSize: '0.75rem',
+                          '& fieldset': {
+                            borderColor: 'rgba(0, 0, 0, 0.1)'
+                          },
+                          '&:hover fieldset': {
+                            borderColor: 'rgba(0, 0, 0, 0.2)'
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: '#5e17eb'
+                          }
+                        },
+                        '& .MuiOutlinedInput-input': {
+                          textAlign: 'center',
+                          padding: '4px 8px',
+                          color: '#64748b'
+                        }
+                      }}
+                      inputProps={{
+                        min: 50,
+                        max: 200,
+                        type: 'number'
+                      }}
+                    />
 
                     <Tooltip title="拡大">
                       <IconButton
@@ -436,12 +495,17 @@ export default function CreatePage({ onBackClick }) {
                 {/* プレビュー画面 */}
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: zoom }}
+                  animate={{ 
+                    opacity: 1, 
+                    scale: zoom,
+                    x: scrollPosition.x,
+                    y: scrollPosition.y
+                  }}
                   transition={{ duration: 0.3 }}
                   style={{
-                    transform: `scale(${zoom})`,
                     transformOrigin: 'center'
                   }}
+                  onWheel={handleScroll}
                 >
                   <Paper
                     elevation={12}
