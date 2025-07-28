@@ -926,7 +926,6 @@ export default function CreatePage({ onBackClick }) {
                               </>
                             )}
                           </Grid>
-                        </Grid>
                         </Paper>
                       </motion.div>
                     </Stack>
