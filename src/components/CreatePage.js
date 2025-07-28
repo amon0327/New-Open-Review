@@ -293,25 +293,6 @@ export default function CreatePage({ onBackClick }) {
           >
             フォーム作成
           </Typography>
-          {selectedTool && (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                px: 2,
-                py: 0.5,
-                borderRadius: 2,
-                background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                color: 'white'
-              }}
-            >
-              {selectedTool.icon}
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {selectedTool.label}
-              </Typography>
-            </Box>
-          )}
 
           {/* ヘッダー右側のアクションボタン */}
           <Box sx={{ display: 'flex', gap: 1 }}>
