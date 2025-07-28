@@ -229,6 +229,82 @@ export default function CreatePage({ onBackClick }) {
   const [editingTitle, setEditingTitle] = useState(''); // 編集中のタイトル
   const [showSettings, setShowSettings] = useState(false); // 設定画面表示状態
   
+  // 設定カテゴリデータ
+  const settingsCategories = [
+    {
+      id: 'account',
+      title: 'アカウント',
+      description: 'プロフィールとアカウント設定',
+      icon: <AccountCircle />,
+      settings: [
+        { id: 'profile', label: 'プロフィール編集', value: 'Claude User', type: 'text' },
+        { id: 'email', label: 'メールアドレス', value: 'user@example.com', type: 'email' },
+        { id: 'password', label: 'パスワード変更', value: '••••••••', type: 'password' },
+        { id: 'avatar', label: 'アバター画像', value: 'アップロード', type: 'upload' }
+      ]
+    },
+    {
+      id: 'database',
+      title: 'データベース',
+      description: 'Supabase接続とデータ管理',
+      icon: <Storage />,
+      settings: [
+        { id: 'connection', label: 'データベース接続', value: '接続済み', type: 'status', status: 'connected' },
+        { id: 'tables', label: 'テーブル管理', value: '12テーブル', type: 'info' },
+        { id: 'backup', label: '自動バックアップ', value: true, type: 'toggle' },
+        { id: 'retention', label: 'データ保持期間', value: '90日', type: 'select' }
+      ]
+    },
+    {
+      id: 'forms',
+      title: 'フォーム設定',
+      description: 'フォームのデフォルト設定',
+      icon: <Description />,
+      settings: [
+        { id: 'theme', label: 'デフォルトテーマ', value: 'モダン', type: 'select' },
+        { id: 'language', label: '言語設定', value: '日本語', type: 'select' },
+        { id: 'notifications', label: '回答通知', value: true, type: 'toggle' },
+        { id: 'analytics', label: '統計情報収集', value: false, type: 'toggle' }
+      ]
+    },
+    {
+      id: 'security',
+      title: 'セキュリティ',
+      description: 'セキュリティとアクセス制御',
+      icon: <Security />,
+      settings: [
+        { id: '2fa', label: '二要素認証', value: false, type: 'toggle' },
+        { id: 'apikeys', label: 'APIキー管理', value: '3個のキー', type: 'info' },
+        { id: 'sessions', label: 'アクティブセッション', value: '2台のデバイス', type: 'info' },
+        { id: 'permissions', label: 'アクセス権限', value: '管理者', type: 'info' }
+      ]
+    },
+    {
+      id: 'integrations',
+      title: '連携設定',
+      description: '外部サービスとの連携',
+      icon: <CloudSync />,
+      settings: [
+        { id: 'webhooks', label: 'Webhook URL', value: '3個設定済み', type: 'info' },
+        { id: 'slack', label: 'Slack連携', value: false, type: 'toggle' },
+        { id: 'email', label: 'メール通知', value: true, type: 'toggle' },
+        { id: 'export', label: 'データエクスポート', value: 'CSV, JSON', type: 'info' }
+      ]
+    },
+    {
+      id: 'general',
+      title: '一般設定',
+      description: 'アプリケーションの一般設定',
+      icon: <Public />,
+      settings: [
+        { id: 'timezone', label: 'タイムゾーン', value: 'Asia/Tokyo', type: 'select' },
+        { id: 'dateformat', label: '日付形式', value: 'YYYY/MM/DD', type: 'select' },
+        { id: 'autosave', label: '自動保存', value: true, type: 'toggle' },
+        { id: 'updates', label: '自動アップデート', value: true, type: 'toggle' }
+      ]
+    }
+  ];
+
   // サンプルページデータ
   const [pages, setPages] = useState([
     { id: 'login', title: 'ログイン画面', type: 'system', icon: <Login />, canDelete: false },
