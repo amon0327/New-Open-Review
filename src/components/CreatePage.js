@@ -303,13 +303,16 @@ export default function CreatePage({ onBackClick }) {
                     onBackClick();
                   } else if (item.label === 'フォルダー') {
                     setShowPageManager(true);
+                  } else if (item.label === '編集') {
+                    setShowPageManager(false);
+                    setSelectedTool(item);
                   } else {
                     setSelectedTool(item);
                   }
                 }}
                 sx={{
-                  color: selectedTool?.label === item.label ? 'white' : 'rgba(255, 255, 255, 0.7)',
-                  backgroundColor: selectedTool?.label === item.label ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                  color: (selectedTool?.label === item.label || (item.label === 'フォルダー' && showPageManager)) ? 'white' : 'rgba(255, 255, 255, 0.7)',
+                  backgroundColor: (selectedTool?.label === item.label || (item.label === 'フォルダー' && showPageManager)) ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                   borderRadius: 2,
                   width: 48,
                   height: 48,
@@ -816,43 +819,20 @@ export default function CreatePage({ onBackClick }) {
                         ページ管理
                       </Typography>
                       <IconButton
-                        onClick={() => setShowPageManager(false)}
-                        sx={{
-                          color: '#64748b',
-                          '&:hover': { backgroundColor: 'rgba(100, 116, 139, 0.1)' }
-                        }}
-                      >
-                        <Close />
-                      </IconButton>
-                    </Box>
-
-                    {/* ページ追加ボタン */}
-                    <Box sx={{ mb: 2 }}>
-                      <Box
                         onClick={handleAddPage}
                         sx={{
-                          p: 1.5,
-                          borderRadius: 1,
-                          border: '2px dashed rgba(94, 23, 235, 0.3)',
-                          backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 1,
-                          transition: 'all 0.3s ease',
-                          '&:hover': {
-                            borderColor: 'rgba(94, 23, 235, 0.5)',
-                            backgroundColor: 'rgba(94, 23, 235, 0.1)'
+                          color: '#5e17eb',
+                          backgroundColor: 'rgba(94, 23, 235, 0.1)',
+                          '&:hover': { 
+                            backgroundColor: 'rgba(94, 23, 235, 0.2)',
+                            transform: 'scale(1.05)'
                           }
                         }}
                       >
-                        <Add sx={{ color: '#5e17eb', fontSize: '1.2rem' }} />
-                        <Typography variant="body2" sx={{ color: '#5e17eb', fontWeight: 600 }}>
-                          新しいページを追加
-                        </Typography>
-                      </Box>
+                        <Add />
+                      </IconButton>
                     </Box>
+
 
                     {/* ページリスト */}
                     <Box sx={{ flex: 1 }}>
@@ -871,6 +851,9 @@ export default function CreatePage({ onBackClick }) {
                               backgroundColor: 'rgba(255, 255, 255, 0.8)',
                               border: '1px solid rgba(0, 0, 0, 0.06)',
                               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                              minHeight: 72, // 統一された高さ
+                              display: 'flex',
+                              alignItems: 'center',
                               transition: 'all 0.3s ease',
                               '&:hover': {
                                 backgroundColor: 'rgba(94, 23, 235, 0.04)',
@@ -880,109 +863,107 @@ export default function CreatePage({ onBackClick }) {
                               }
                             }}
                           >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                              {/* ページアイコン */}
-                              <Box
+                            {/* ページアイコン */}
+                            <Box
+                              sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 1,
+                                background: page.type === 'system' 
+                                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                                  : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
+                              }}
+                            >
+                              {React.cloneElement(page.icon, { 
+                                sx: { color: 'white', fontSize: '1rem' } 
+                              })}
+                            </Box>
+
+                            {/* ページ情報 */}
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography
+                                variant="body2"
                                 sx={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 1,
-                                  background: page.type === 'system' 
-                                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                                    : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  flexShrink: 0,
-                                  boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
+                                  fontWeight: 600,
+                                  color: '#2d3748',
+                                  fontSize: '0.8rem',
+                                  mb: 0.3
                                 }}
                               >
-                                {React.cloneElement(page.icon, { 
-                                  sx: { color: 'white', fontSize: '1rem' } 
-                                })}
-                              </Box>
-
-                              {/* ページ情報 */}
-                              <Box sx={{ flex: 1, minWidth: 0 }}>
+                                {page.title}
+                              </Typography>
+                              {page.type === 'question' && (
                                 <Typography
-                                  variant="body2"
+                                  variant="caption"
                                   sx={{
-                                    fontWeight: 600,
-                                    color: '#2d3748',
-                                    fontSize: '0.8rem',
-                                    mb: 0.3
+                                    color: '#64748b',
+                                    fontSize: '0.7rem'
                                   }}
                                 >
-                                  {page.title}
+                                  {page.questions}個の質問
                                 </Typography>
-                                {page.type === 'question' && (
-                                  <Typography
-                                    variant="caption"
-                                    sx={{
-                                      color: '#64748b',
-                                      fontSize: '0.7rem'
-                                    }}
-                                  >
-                                    {page.questions}個の質問
-                                  </Typography>
-                                )}
-                              </Box>
-
-                              {/* アクションボタン */}
-                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                {page.type === 'question' && (
-                                  <>
-                                    {index > 1 && (
-                                      <IconButton
-                                        size="small"
-                                        onClick={() => handleMovePageUp(page.id)}
-                                        sx={{
-                                          width: 20,
-                                          height: 20,
-                                          color: '#64748b',
-                                          '&:hover': { backgroundColor: 'rgba(100, 116, 139, 0.1)' }
-                                        }}
-                                      >
-                                        <KeyboardArrowUp sx={{ fontSize: '0.9rem' }} />
-                                      </IconButton>
-                                    )}
-                                    {index < pages.length - 2 && (
-                                      <IconButton
-                                        size="small"
-                                        onClick={() => handleMovePageDown(page.id)}
-                                        sx={{
-                                          width: 20,
-                                          height: 20,
-                                          color: '#64748b',
-                                          '&:hover': { backgroundColor: 'rgba(100, 116, 139, 0.1)' }
-                                        }}
-                                      >
-                                        <KeyboardArrowDown sx={{ fontSize: '0.9rem' }} />
-                                      </IconButton>
-                                    )}
-                                  </>
-                                )}
-                              </Box>
-
-                              {/* 削除ボタン */}
-                              {page.canDelete && (
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleDeletePage(page.id)}
-                                  sx={{
-                                    width: 24,
-                                    height: 24,
-                                    color: '#ef4444',
-                                    '&:hover': {
-                                      backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                      transform: 'scale(1.1)'
-                                    }
-                                  }}
-                                >
-                                  <Delete sx={{ fontSize: '0.9rem' }} />
-                                </IconButton>
                               )}
                             </Box>
+
+                            {/* アクションボタン */}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              {page.type === 'question' && (
+                                <>
+                                  {index > 1 && (
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleMovePageUp(page.id)}
+                                      sx={{
+                                        width: 20,
+                                        height: 20,
+                                        color: '#64748b',
+                                        '&:hover': { backgroundColor: 'rgba(100, 116, 139, 0.1)' }
+                                      }}
+                                    >
+                                      <KeyboardArrowUp sx={{ fontSize: '0.9rem' }} />
+                                    </IconButton>
+                                  )}
+                                  {index < pages.length - 2 && (
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleMovePageDown(page.id)}
+                                      sx={{
+                                        width: 20,
+                                        height: 20,
+                                        color: '#64748b',
+                                        '&:hover': { backgroundColor: 'rgba(100, 116, 139, 0.1)' }
+                                      }}
+                                    >
+                                      <KeyboardArrowDown sx={{ fontSize: '0.9rem' }} />
+                                    </IconButton>
+                                  )}
+                                </>
+                              )}
+                            </Box>
+
+                            {/* 削除ボタン */}
+                            {page.canDelete && (
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDeletePage(page.id)}
+                                sx={{
+                                  width: 24,
+                                  height: 24,
+                                  color: '#ef4444',
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    transform: 'scale(1.1)'
+                                  }
+                                }}
+                              >
+                                <Delete sx={{ fontSize: '0.9rem' }} />
+                              </IconButton>
+                            )}
                           </Box>
                         </motion.div>
                       ))}
