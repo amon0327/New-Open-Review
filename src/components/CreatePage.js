@@ -3,7 +3,6 @@ import PreviewControlPanel from './PreviewControlPanel';
 import LeftNavigationBar from './LeftNavigationBar';
 import HeaderBar from './HeaderBar';
 import PreviewArea from './PreviewArea';
-import PageManagerSidebar from './PageManagerSidebar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChromePicker } from 'react-color';
 import QRCode from 'react-qr-code';
@@ -758,28 +757,232 @@ export default function CreatePage({ onBackClick }) {
                 >
                 {showPageManager ? (
                   // ページ管理UI
-                  <PageManagerSidebar
-                    pages={pages}
-                    editingPageId={editingPageId}
-                    editingTitle={editingTitle}
-                    deleteMode={deleteMode}
-                    draggedPage={draggedPage}
-                    dropIndicator={dropIndicator}
-                    sortingAnimation={sortingAnimation}
-                    handleAddPage={handleAddPage}
-                    handleDeleteModeToggle={handleDeleteModeToggle}
-                    handleDragStart={handleDragStart}
-                    handleDragOver={handleDragOver}
-                    handleDrop={handleDrop}
-                    handleDragEnd={handleDragEnd}
-                    handlePageDeletionRequest={handlePageDeletionRequest}
-                    setSelectedPage={setSelectedPage}
-                    setEditingPageId={setEditingPageId}
-                    setEditingTitle={setEditingTitle}
-                    handleStartEditing={handleStartEditing}
-                    handleCancelEdit={handleCancelEdit}
-                    handleSaveEdit={handleSaveEdit}
-                  />
+                  <>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 600,
+                          background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                          backgroundClip: 'text',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent'
+                        }}
+                      >
+                        ページ管理
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton
+                          onClick={handleAddPage}
+                          sx={{
+                            color: '#5e17eb',
+                            backgroundColor: 'rgba(94, 23, 235, 0.1)',
+                            '&:hover': { 
+                              backgroundColor: 'rgba(94, 23, 235, 0.2)',
+                              transform: 'scale(1.05)'
+                            }
+                          }}
+                        >
+                          <Add />
+                        </IconButton>
+                        <IconButton
+                          onClick={handleDeleteModeToggle}
+                          sx={{
+                            color: deleteMode ? '#ef4444' : '#64748b',
+                            backgroundColor: deleteMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(100, 116, 139, 0.1)',
+                            '&:hover': { 
+                              backgroundColor: deleteMode ? 'rgba(239, 68, 68, 0.2)' : 'rgba(100, 116, 139, 0.2)',
+                              transform: 'scale(1.05)'
+                            }
+                          }}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </Box>
+                    </Box>
+
+                    {/* ページリスト */}
+                    <Box sx={{ flex: 1 }}>
+                      {pages.map((page, index) => (
+                        <motion.div
+                          key={page.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ 
+                            opacity: 1, 
+                            y: 0,
+                            scale: sortingAnimation?.id === page.id && sortingAnimation.direction === 'dragging' ? 1.05 : 1,
+                            x: sortingAnimation?.id === page.id && sortingAnimation.direction === 'up' ? -5 : 
+                               sortingAnimation?.id === page.id && sortingAnimation.direction === 'down' ? 5 : 0
+                          }}
+                          transition={{ 
+                            duration: sortingAnimation?.id === page.id ? 0.2 : 0.2, 
+                            delay: sortingAnimation?.id === page.id ? 0 : index * 0.05 
+                          }}
+                        >
+                          <Box
+                            draggable={page.type === 'question' && !deleteMode}
+                            onDragStart={(e) => handleDragStart(e, page)}
+                            onDragOver={(e) => handleDragOver(e, page.id)}
+                            onDrop={(e) => handleDrop(e, page)}
+                            onDragEnd={handleDragEnd}
+                            onClick={(e) => {
+                              // 編集中の入力フィールドをクリックした場合は何もしない
+                              if (editingPageId === page.id) {
+                                e.stopPropagation();
+                                return;
+                              }
+                              
+                              if (deleteMode && page.canDelete) {
+                                handlePageDeletionRequest(page);
+                              } else if (!deleteMode) {
+                                setSelectedPage(page);
+                              }
+                            }}
+                            sx={{
+                              p: 1.5,
+                              mb: 1,
+                              borderRadius: 1,
+                              backgroundColor: sortingAnimation?.id === page.id && sortingAnimation.direction === 'success'
+                                ? 'rgba(34, 197, 94, 0.1)'
+                                : draggedPage?.id === page.id 
+                                ? 'rgba(94, 23, 235, 0.1)' 
+                                : dropIndicator === page.id
+                                ? 'rgba(94, 23, 235, 0.08)'
+                                : 'rgba(255, 255, 255, 0.8)',
+                              border: dropIndicator === page.id 
+                                ? '2px dashed #5e17eb'
+                                : sortingAnimation?.id === page.id && sortingAnimation.direction === 'success'
+                                ? '1px solid rgba(34, 197, 94, 0.3)'
+                                : '1px solid rgba(0, 0, 0, 0.06)',
+                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                              minHeight: 72,
+                              display: 'flex',
+                              alignItems: 'center',
+                              cursor: deleteMode && page.canDelete 
+                                ? 'pointer' 
+                                : 'default',
+                              opacity: draggedPage?.id === page.id ? 0.5 : deleteMode && !page.canDelete ? 0.5 : 1,
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                backgroundColor: deleteMode && page.canDelete
+                                  ? 'rgba(239, 68, 68, 0.05)'
+                                  : draggedPage?.id === page.id 
+                                  ? 'rgba(94, 23, 235, 0.1)' 
+                                  : 'rgba(94, 23, 235, 0.04)',
+                                borderColor: deleteMode && page.canDelete
+                                  ? 'rgba(239, 68, 68, 0.3)'
+                                  : 'rgba(94, 23, 235, 0.15)',
+                                transform: draggedPage?.id === page.id ? 'none' : 'translateY(-1px)',
+                                boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
+                              }
+                            }}
+                          >
+                            {/* ドラッグハンドル領域またはシステムページパディング */}
+                            {page.type === 'question' && !deleteMode ? (
+                              <Box
+                                sx={{
+                                  color: '#94a3b8',
+                                  cursor: 'grab',
+                                  '&:active': { cursor: 'grabbing' },
+                                  '&:hover': { color: '#5e17eb' },
+                                  padding: '4px',
+                                  borderRadius: '4px',
+                                  mr: 1,
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(94, 23, 235, 0.1)',
+                                    color: '#5e17eb'
+                                  }
+                                }}
+                              >
+                                <DragHandle sx={{ fontSize: '1.2rem' }} />
+                              </Box>
+                            ) : (
+                              <Box sx={{ width: 16, flexShrink: 0 }} />
+                            )}
+
+                            {/* ページアイコン */}
+                            <Box
+                              sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 1,
+                                background: page.type === 'system' 
+                                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                                  : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0,
+                                boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
+                              }}
+                            >
+                              {React.cloneElement(page.icon, { 
+                                sx: { color: 'white', fontSize: '1rem' } 
+                              })}
+                            </Box>
+
+                            {/* ページ情報 */}
+                            <Box sx={{ flex: 1, minWidth: 0, ml: 2 }}>
+                              {editingPageId === page.id ? (
+                                <Input
+                                  value={editingTitle}
+                                  onChange={(e) => setEditingTitle(e.target.value)}
+                                  onKeyPress={handleTitleKeyPress}
+                                  onBlur={handleSaveEdit}
+                                  autoFocus
+                                  sx={{
+                                    fontWeight: 600,
+                                    color: '#2d3748',
+                                    fontSize: '0.8rem',
+                                    width: '100%',
+                                    '&:before': {
+                                      borderBottom: '2px solid #5e17eb'
+                                    },
+                                    '&:after': {
+                                      borderBottom: '2px solid #5e17eb'
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <Typography
+                                  variant="body2"
+                                  onClick={() => {
+                                    if (!deleteMode) {
+                                      handleStartEditing(page);
+                                    }
+                                  }}
+                                  sx={{
+                                    fontWeight: 600,
+                                    color: '#2d3748',
+                                    fontSize: '0.8rem',
+                                    mb: 0.3,
+                                    cursor: page.type === 'question' && !deleteMode ? 'text' : 'default',
+                                    '&:hover': page.type === 'question' && !deleteMode ? {
+                                      textDecoration: 'underline',
+                                      color: '#5e17eb'
+                                    } : {}
+                                  }}
+                                >
+                                  {page.title}
+                                </Typography>
+                              )}
+                              {page.type === 'question' && (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: '#64748b',
+                                    fontSize: '0.7rem'
+                                  }}
+                                >
+                                  {page.questions}個の質問
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                        </motion.div>
+                      ))}
+                    </Box>
+                  </>
                 ) : showSettings ? (
                   // 設定画面
                   <>
