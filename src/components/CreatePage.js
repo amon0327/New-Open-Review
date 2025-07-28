@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import PreviewControlPanel from './PreviewControlPanel';
+import LeftNavigationBar from './LeftNavigationBar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChromePicker } from 'react-color';
 import QRCode from 'react-qr-code';
@@ -544,104 +546,16 @@ export default function CreatePage({ onBackClick }) {
     >
       {/* 背景全体Container */}
       {/* 左端ナビゲーションバー */}
-      <Paper
-        elevation={4}
-        sx={{
-          width: 80,
-          height: '100vh',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          py: 2,
-          boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)'
-        }}
-      >
-
-        {/* ナビゲーションアイテム */}
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1,
-            width: '100%',
-            px: 1
-          }}
-        >
-          {leftNavigationItems.map((item, index) => (
-            <Tooltip key={index} title={item.label} placement="right">
-              <IconButton
-                onClick={() => {
-                  if (item.isLogo) {
-                    onBackClick();
-                  } else if (item.label === 'フォルダー') {
-                    setShowPageManager(true);
-                    setShowSettings(false);
-                  } else if (item.label === '編集') {
-                    setShowPageManager(false);
-                    setShowSettings(false);
-                    setSelectedTool(item);
-                  } else if (item.label === '設定') {
-                    setShowSettings(true);
-                    setShowPageManager(false);
-                    setSelectedTool(item);
-                  } else {
-                    setSelectedTool(item);
-                  }
-                }}
-                sx={{
-                  color: ((selectedTool?.label === item.label && !showPageManager && !showSettings) || (item.label === 'フォルダー' && showPageManager) || (item.label === '設定' && showSettings)) ? 'white' : 'rgba(255, 255, 255, 0.7)',
-                  backgroundColor: ((selectedTool?.label === item.label && !showPageManager && !showSettings) || (item.label === 'フォルダー' && showPageManager) || (item.label === '設定' && showSettings)) ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                  borderRadius: 2,
-                  width: 48,
-                  height: 48,
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    color: 'white'
-                  },
-                  transition: 'all 0.3s ease',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-              >
-                {item.isLogo ? (
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 1,
-                      background: 'rgba(255, 255, 255, 0.2)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backdropFilter: 'blur(10px)',
-                      // 画像を追加する場合のスタイル
-                      backgroundImage: 'none', // ここに 'url("/path/to/logo.png")' を指定
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center'
-                    }}
-                  >
-                    {/* 画像がない場合のフォールバック */}
-                    <Typography
-                      variant="caption"
-                      sx={{ 
-                        color: 'white', 
-                        fontWeight: 'bold',
-                        fontSize: '0.7rem'
-                      }}
-                    >
-                      OR
-                    </Typography>
-                  </Box>
-                ) : (
-                  item.icon
-                )}
-              </IconButton>
-            </Tooltip>
-          ))}
-        </Box>
-      </Paper>
+      <LeftNavigationBar
+        leftNavigationItems={leftNavigationItems}
+        selectedTool={selectedTool}
+        showPageManager={showPageManager}
+        showSettings={showSettings}
+        onBackClick={onBackClick}
+        setShowPageManager={setShowPageManager}
+        setShowSettings={setShowSettings}
+        setSelectedTool={setSelectedTool}
+      />
 
       {/* 右側メインエリア */}
       <Box
@@ -809,119 +723,14 @@ export default function CreatePage({ onBackClick }) {
 
               {/* 設定画面でない場合のみプレビュー制御パネルを表示 */}
               {!showSettings && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 8,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 20,
-                    pointerEvents: 'auto'
-                  }}
-                >
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <Paper
-                    elevation={8}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      px: 1,
-                      py: 0.5,
-                      borderRadius: 2,
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      backdropFilter: 'blur(20px)',
-                      border: '1px solid rgba(255, 255, 255, 0.3)',
-                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)'
-                    }}
-                  >
-                    {/* デバイス切り替え */}
-                    <Tooltip title="モバイル表示">
-                      <IconButton
-                        onClick={() => setPreviewMode('mobile')}
-                        sx={{
-                          color: previewMode === 'mobile' ? '#5e17eb' : '#64748b',
-                          backgroundColor: previewMode === 'mobile' ? 'rgba(94, 23, 235, 0.1)' : 'transparent',
-                          '&:hover': {
-                            backgroundColor: 'rgba(94, 23, 235, 0.1)'
-                          }
-                        }}
-                      >
-                        <PhoneAndroid />
-                      </IconButton>
-                    </Tooltip>
-
-                    <Tooltip title="PC表示">
-                      <IconButton
-                        onClick={() => setPreviewMode('desktop')}
-                        sx={{
-                          color: previewMode === 'desktop' ? '#5e17eb' : '#64748b',
-                          backgroundColor: previewMode === 'desktop' ? 'rgba(94, 23, 235, 0.1)' : 'transparent',
-                          '&:hover': {
-                            backgroundColor: 'rgba(94, 23, 235, 0.1)'
-                          }
-                        }}
-                      >
-                        <Computer />
-                      </IconButton>
-                    </Tooltip>
-
-
-                    {/* ズーム制御 */}
-                    <Tooltip title="縮小">
-                      <IconButton
-                        onClick={handleZoomOut}
-                        disabled={zoom <= 0.5}
-                        sx={{
-                          color: '#64748b',
-                          '&:hover': {
-                            backgroundColor: 'rgba(100, 116, 139, 0.1)'
-                          }
-                        }}
-                      >
-                        <ZoomOut />
-                      </IconButton>
-                    </Tooltip>
-
-                    <Typography variant="caption" sx={{ minWidth: 40, textAlign: 'center', color: '#64748b', fontSize: '0.7rem' }}>
-                      {Math.round(zoom * 100)}%
-                    </Typography>
-
-                    <Tooltip title="拡大">
-                      <IconButton
-                        onClick={handleZoomIn}
-                        disabled={zoom >= 2}
-                        sx={{
-                          color: '#64748b',
-                          '&:hover': {
-                            backgroundColor: 'rgba(100, 116, 139, 0.1)'
-                          }
-                        }}
-                      >
-                        <ZoomIn />
-                      </IconButton>
-                    </Tooltip>
-
-                    <Tooltip title="フィット">
-                      <IconButton
-                        onClick={handleFitScreen}
-                        sx={{
-                          color: '#64748b',
-                          '&:hover': {
-                            backgroundColor: 'rgba(100, 116, 139, 0.1)'
-                          }
-                        }}
-                      >
-                        <FitScreen />
-                      </IconButton>
-                    </Tooltip>
-                  </Paper>
-                </motion.div>
-                </Box>
+                <PreviewControlPanel
+                  previewMode={previewMode}
+                  setPreviewMode={setPreviewMode}
+                  zoom={zoom}
+                  handleZoomIn={handleZoomIn}
+                  handleZoomOut={handleZoomOut}
+                  handleFitScreen={handleFitScreen}
+                />
               )}
 
               {/* 設定画面または中央プレビューエリア */}
@@ -979,118 +788,14 @@ export default function CreatePage({ onBackClick }) {
                 /* 中央プレビューエリア - 設定画面でない場合 */
                 <>
                   {/* プレビュー制御パネル */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 8,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      zIndex: 20,
-                      pointerEvents: 'auto'
-                    }}
-                  >
-                    <motion.div
-                      initial={{ opacity: 0, y: -20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <Paper
-                        elevation={8}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          px: 1,
-                          py: 0.5,
-                          borderRadius: 2,
-                          background: 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(20px)',
-                          border: '1px solid rgba(255, 255, 255, 0.3)',
-                          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)'
-                        }}
-                      >
-                        {/* デバイス切り替え */}
-                        <Tooltip title="モバイル表示">
-                          <IconButton
-                            onClick={() => setPreviewMode('mobile')}
-                            sx={{
-                              color: previewMode === 'mobile' ? '#5e17eb' : '#64748b',
-                              backgroundColor: previewMode === 'mobile' ? 'rgba(94, 23, 235, 0.1)' : 'transparent',
-                              '&:hover': {
-                                backgroundColor: 'rgba(94, 23, 235, 0.1)'
-                              }
-                            }}
-                          >
-                            <PhoneAndroid />
-                          </IconButton>
-                        </Tooltip>
-
-                        <Tooltip title="PC表示">
-                          <IconButton
-                            onClick={() => setPreviewMode('desktop')}
-                            sx={{
-                              color: previewMode === 'desktop' ? '#5e17eb' : '#64748b',
-                              backgroundColor: previewMode === 'desktop' ? 'rgba(94, 23, 235, 0.1)' : 'transparent',
-                              '&:hover': {
-                                backgroundColor: 'rgba(94, 23, 235, 0.1)'
-                              }
-                            }}
-                          >
-                            <Computer />
-                          </IconButton>
-                        </Tooltip>
-
-                        {/* ズーム制御 */}
-                        <Tooltip title="縮小">
-                          <IconButton
-                            onClick={handleZoomOut}
-                            disabled={zoom <= 0.5}
-                            sx={{
-                              color: '#64748b',
-                              '&:hover': {
-                                backgroundColor: 'rgba(100, 116, 139, 0.1)'
-                              }
-                            }}
-                          >
-                            <ZoomOut />
-                          </IconButton>
-                        </Tooltip>
-
-                        <Typography variant="caption" sx={{ minWidth: 40, textAlign: 'center', color: '#64748b', fontSize: '0.7rem' }}>
-                          {Math.round(zoom * 100)}%
-                        </Typography>
-
-                        <Tooltip title="拡大">
-                          <IconButton
-                            onClick={handleZoomIn}
-                            disabled={zoom >= 2}
-                            sx={{
-                              color: '#64748b',
-                              '&:hover': {
-                                backgroundColor: 'rgba(100, 116, 139, 0.1)'
-                              }
-                            }}
-                          >
-                            <ZoomIn />
-                          </IconButton>
-                        </Tooltip>
-
-                        <Tooltip title="フィット">
-                          <IconButton
-                            onClick={handleFitScreen}
-                            sx={{
-                              color: '#64748b',
-                              '&:hover': {
-                                backgroundColor: 'rgba(100, 116, 139, 0.1)'
-                              }
-                            }}
-                          >
-                            <FitScreen />
-                          </IconButton>
-                        </Tooltip>
-                      </Paper>
-                    </motion.div>
-                  </Box>
+                  <PreviewControlPanel
+                    previewMode={previewMode}
+                    setPreviewMode={setPreviewMode}
+                    zoom={zoom}
+                    handleZoomIn={handleZoomIn}
+                    handleZoomOut={handleZoomOut}
+                    handleFitScreen={handleFitScreen}
+                  />
 
                   {/* メインプレビューエリア */}
                   <Box
