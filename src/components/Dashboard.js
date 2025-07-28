@@ -882,7 +882,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             boxSizing: 'border-box',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             border: 'none',
-            boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)'
+            boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)',
+            borderRadius: 0
           },
         }}
       >
