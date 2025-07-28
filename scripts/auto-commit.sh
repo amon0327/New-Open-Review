@@ -54,33 +54,62 @@ else
     file_summary="ファイル変更"
 fi
 
-# 主要な変更ファイルを特定
-main_changes=""
-if git diff --cached --name-only | grep -q "src/components/"; then
-    main_changes="${main_changes}UIコンポーネント、"
-fi
-if git diff --cached --name-only | grep -q "src/App.js"; then
-    main_changes="${main_changes}アプリ設定、"
-fi
-if git diff --cached --name-only | grep -q "package.json"; then
-    main_changes="${main_changes}依存関係、"
-fi
-if git diff --cached --name-only | grep -q "README.md"; then
-    main_changes="${main_changes}ドキュメント、"
-fi
-if git diff --cached --name-only | grep -q ".js$\|.jsx$\|.ts$\|.tsx$"; then
-    main_changes="${main_changes}ソースコード、"
+# 変更の詳細を分析してコミットタイプとメッセージを決定
+commit_prefix=""
+commit_description=""
+changed_files=$(git diff --cached --name-only)
+
+# 具体的な変更内容を分析
+if echo "$changed_files" | grep -q "src/components/CreatePage.js"; then
+    if git diff --cached src/components/CreatePage.js | grep -q "設定"; then
+        commit_prefix="feat"
+        commit_description="設定画面の機能改善"
+    elif git diff --cached src/components/CreatePage.js | grep -q "プレビュー"; then
+        commit_prefix="fix"
+        commit_description="プレビュー機能の修正"
+    elif git diff --cached src/components/CreatePage.js | grep -q "refactor\|分割\|リファクタリング"; then
+        commit_prefix="refactor"
+        commit_description="CreatePageコンポーネントのリファクタリング"
+    else
+        commit_prefix="update"
+        commit_description="CreatePageコンポーネントの改善"
+    fi
+elif echo "$changed_files" | grep -q "src/components/"; then
+    commit_prefix="update"
+    commit_description="UIコンポーネントの改善"
+elif echo "$changed_files" | grep -q "package.json"; then
+    commit_prefix="deps"
+    commit_description="依存関係の更新"
+elif echo "$changed_files" | grep -q "README.md\|CLAUDE.md"; then
+    commit_prefix="docs"
+    commit_description="ドキュメントの更新"
+else
+    commit_prefix="update"
+    commit_description="プロジェクトファイルの更新"
 fi
 
-# 末尾のカンマを削除
-main_changes=$(echo "$main_changes" | sed 's/、$//')
+# より詳細な変更内容を追加
+details=""
+if echo "$changed_files" | grep -q "constants/"; then
+    details="${details}\n- 定数ファイルの整理"
+fi
+if git diff --cached --name-only | head -5 | while read file; do
+    if [ -n "$file" ]; then
+        echo "- $(basename "$file")の変更"
+    fi
+done | head -3 > /tmp/file_changes; then
+    file_details=$(cat /tmp/file_changes)
+    if [ -n "$file_details" ]; then
+        details="${details}\n${file_details}"
+    fi
+fi
 
 # コミットメッセージを作成
 commit_message="$(cat <<EOF
-${commit_type}: ${main_changes}を${commit_type}
+${commit_prefix}: ${commit_description}
 
 📅 実行日時: ${timestamp}
-📁 対象: ${file_summary}
+📁 対象: ${file_summary}${details}
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
