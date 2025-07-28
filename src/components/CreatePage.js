@@ -858,7 +858,7 @@ export default function CreatePage({ onBackClick }) {
 
               {/* 設定画面または中央プレビューエリア */}
               {showSettings ? (
-                {/* 設定画面全体表示 */}
+                /* 設定画面全体表示 */
                 <Box
                   sx={{
                     position: 'absolute',
