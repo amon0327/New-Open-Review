@@ -22,7 +22,8 @@ import {
   FormControlLabel,
   Divider,
   Avatar,
-  Chip
+  Chip,
+  Container
 } from '@mui/material';
 import {
   ArrowBack,
