@@ -158,7 +158,6 @@ export default function CreatePage({ onBackClick }) {
   } = useCreatePageState();
 
   // 設定関連の追加状態
-  const [selectedColor, setSelectedColor] = useState('#5e17eb');
   const [logoImage, setLogoImage] = useState(null);
 
   // サンプルページデータ
