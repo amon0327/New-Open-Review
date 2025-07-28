@@ -444,7 +444,7 @@ export default function CreatePage({ onBackClick }) {
                       gap: 0.5,
                       px: 1,
                       py: 0.5,
-                      borderRadius: 2,
+                      borderRadius: 1,
                       background: 'rgba(255, 255, 255, 0.95)',
                       backdropFilter: 'blur(20px)',
                       border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -717,7 +717,7 @@ export default function CreatePage({ onBackClick }) {
                 elevation={8}
                 sx={{
                   height: '100%',
-                  borderRadius: 0,
+                  borderRadius: 0.5,
                   background: 'rgba(255, 255, 255, 0.9)',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -1010,7 +1010,7 @@ export default function CreatePage({ onBackClick }) {
                 elevation={8}
                 sx={{
                   height: '100%',
-                  borderRadius: 0,
+                  borderRadius: 0.5,
                   background: 'rgba(255, 255, 255, 0.9)',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
