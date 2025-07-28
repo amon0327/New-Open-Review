@@ -63,79 +63,77 @@ const questionTypes = [
 ];
 
 // テンプレート質問の定義
-const questionTemplates = [
+const questionTemplateCategories = [
   {
-    id: 'business',
-    icon: <Business />,
-    title: 'ビジネス',
+    id: 'customer-satisfaction',
+    title: '顧客満足度',
     expanded: false,
-    categories: [
-      {
-        id: 'customer',
-        title: '顧客満足度',
-        expanded: false,
-        templates: [
-          { id: 'cs1', question: 'サービスの満足度を教えてください', type: 'scale' },
-          { id: 'cs2', question: '改善点があれば教えてください', type: 'textarea' },
-          { id: 'cs3', question: 'おすすめ度はいかがですか？', type: 'scale' }
-        ]
-      },
-      {
-        id: 'employee',
-        title: '従業員評価',
-        expanded: false,
-        templates: [
-          { id: 'emp1', question: '職場環境の満足度', type: 'scale' },
-          { id: 'emp2', question: '上司とのコミュニケーション', type: 'radio' },
-          { id: 'emp3', question: '改善してほしい点', type: 'textarea' }
-        ]
-      }
+    templates: [
+      { id: 'cs1', question: 'サービスの満足度を教えてください', type: 'scale' },
+      { id: 'cs2', question: '改善点があれば教えてください', type: 'textarea' },
+      { id: 'cs3', question: 'おすすめ度はいかがですか？', type: 'scale' },
+      { id: 'cs4', question: '今後も利用したいですか？', type: 'radio' },
+      { id: 'cs5', question: '他の人におすすめしますか？', type: 'scale' }
     ]
   },
   {
-    id: 'personal',
-    icon: <Person />,
+    id: 'employee-evaluation',
+    title: '従業員評価',
+    expanded: false,
+    templates: [
+      { id: 'emp1', question: '職場環境の満足度', type: 'scale' },
+      { id: 'emp2', question: '上司とのコミュニケーション', type: 'radio' },
+      { id: 'emp3', question: '改善してほしい点', type: 'textarea' },
+      { id: 'emp4', question: '研修の有効性はいかがですか？', type: 'scale' },
+      { id: 'emp5', question: '働きがいを感じますか？', type: 'radio' }
+    ]
+  },
+  {
+    id: 'personal-info',
     title: '個人情報',
     expanded: false,
-    categories: [
-      {
-        id: 'basic',
-        title: '基本情報',
-        expanded: false,
-        templates: [
-          { id: 'p1', question: 'お名前を教えてください', type: 'text' },
-          { id: 'p2', question: '年齢を選択してください', type: 'select' },
-          { id: 'p3', question: '性別を選択してください', type: 'radio' }
-        ]
-      },
-      {
-        id: 'contact',
-        title: '連絡先',
-        expanded: false,
-        templates: [
-          { id: 'c1', question: 'メールアドレス', type: 'text' },
-          { id: 'c2', question: '電話番号', type: 'text' },
-          { id: 'c3', question: '住所', type: 'textarea' }
-        ]
-      }
+    templates: [
+      { id: 'p1', question: 'お名前を教えてください', type: 'text' },
+      { id: 'p2', question: '年齢を選択してください', type: 'select' },
+      { id: 'p3', question: '性別を選択してください', type: 'radio' },
+      { id: 'p4', question: 'メールアドレス', type: 'text' },
+      { id: 'p5', question: '電話番号', type: 'text' }
     ]
   },
   {
-    id: 'education',
-    icon: <School />,
-    title: '教育',
+    id: 'course-evaluation',
+    title: '講座評価',
     expanded: false,
-    categories: [
-      {
-        id: 'course',
-        title: '講座評価',
-        expanded: false,
-        templates: [
-          { id: 'edu1', question: '講座の理解度はいかがでしたか？', type: 'scale' },
-          { id: 'edu2', question: '講師の説明は分かりやすかったですか？', type: 'radio' },
-          { id: 'edu3', question: '今後学びたい内容', type: 'checkbox' }
-        ]
-      }
+    templates: [
+      { id: 'edu1', question: '講座の理解度はいかがでしたか？', type: 'scale' },
+      { id: 'edu2', question: '講師の説明は分かりやすかったですか？', type: 'radio' },
+      { id: 'edu3', question: '今後学びたい内容', type: 'checkbox' },
+      { id: 'edu4', question: '講座の難易度はいかがでしたか？', type: 'scale' },
+      { id: 'edu5', question: '資料の分かりやすさ', type: 'scale' }
+    ]
+  },
+  {
+    id: 'event-feedback',
+    title: 'イベントフィードバック',
+    expanded: false,
+    templates: [
+      { id: 'evt1', question: 'イベントの満足度', type: 'scale' },
+      { id: 'evt2', question: '最も良かったセッション', type: 'checkbox' },
+      { id: 'evt3', question: '改善提案があれば教えてください', type: 'textarea' },
+      { id: 'evt4', question: '来年も参加したいですか？', type: 'radio' },
+      { id: 'evt5', question: '会場の環境はいかがでしたか？', type: 'scale' }
+    ]
+  },
+  {
+    id: 'product-feedback',
+    title: '製品フィードバック',
+    expanded: false,
+    templates: [
+      { id: 'prd1', question: '製品の使いやすさ', type: 'scale' },
+      { id: 'prd2', question: '機能で最も重要なもの', type: 'checkbox' },
+      { id: 'prd3', question: 'バグや問題を経験しましたか？', type: 'radio' },
+      { id: 'prd4', question: '追加してほしい機能', type: 'textarea' },
+      { id: 'prd5', question: '価格に対する満足度', type: 'scale' }
     ]
   }
 ];
@@ -779,108 +777,84 @@ export default function CreatePage({ onBackClick }) {
                   テンプレート質問
                 </Typography>
                 <Box sx={{ flex: 1 }}>
-                  {questionTemplates.map((template, index) => (
-                    <Accordion
-                      key={template.id}
-                      expanded={expandedTemplates[template.id] || false}
-                      onChange={() => toggleExpanded(template.id)}
-                      sx={{
-                        mb: 1,
-                        borderRadius: 2,
-                        '&:before': { display: 'none' },
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
-                      }}
-                    >
-                      <AccordionSummary
-                        expandIcon={<ExpandMoreIcon />}
+                  {questionTemplateCategories.map((category, index) => (
+                    <Box key={category.id} sx={{ mb: 1 }}>
+                      {/* カテゴリヘッダー */}
+                      <Box
+                        onClick={() => toggleExpanded(category.id)}
                         sx={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                          borderRadius: 2,
-                          minHeight: 40,
-                          '& .MuiAccordionSummary-content': {
-                            margin: '8px 0',
-                            alignItems: 'center'
+                          p: 1,
+                          backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                          borderRadius: 1,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          '&:hover': {
+                            backgroundColor: 'rgba(94, 23, 235, 0.1)'
                           }
                         }}
                       >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {template.icon}
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {template.title}
-                          </Typography>
-                        </Box>
-                      </AccordionSummary>
-                      <AccordionDetails sx={{ p: 1 }}>
-                        {template.categories.map((category, catIndex) => (
-                          <Accordion
-                            key={category.id}
-                            expanded={expandedTemplates[`${template.id}-${category.id}`] || false}
-                            onChange={() => toggleExpanded(`${template.id}-${category.id}`)}
-                            sx={{
-                              mb: 0.5,
-                              boxShadow: 'none',
-                              '&:before': { display: 'none' }
-                            }}
-                          >
-                            <AccordionSummary
-                              expandIcon={<ExpandMoreIcon sx={{ fontSize: '1rem' }} />}
+                        <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>
+                          {category.title}
+                        </Typography>
+                        <ExpandMoreIcon 
+                          sx={{ 
+                            fontSize: '1rem',
+                            transform: expandedTemplates[category.id] ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.2s ease'
+                          }} 
+                        />
+                      </Box>
+                      
+                      {/* テンプレート質問リスト */}
+                      <Collapse in={expandedTemplates[category.id] || false}>
+                        <Box sx={{ pt: 0.5 }}>
+                          {category.templates.map((temp, tempIndex) => (
+                            <Box
+                              key={temp.id}
+                              onClick={() => setSelectedTool({ ...temp, isTemplate: true })}
                               sx={{
-                                backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                                p: 1,
+                                mb: 0.5,
+                                cursor: 'pointer',
                                 borderRadius: 1,
-                                minHeight: 32,
-                                '& .MuiAccordionSummary-content': {
-                                  margin: '4px 0'
-                                }
+                                backgroundColor: 'rgba(255, 255, 255, 0.5)',
+                                border: '1px solid rgba(0, 0, 0, 0.05)',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                                  transform: 'translateX(2px)'
+                                },
+                                transition: 'all 0.2s ease'
                               }}
                             >
-                              <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                                {category.title}
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  display: 'block',
+                                  fontSize: '0.7rem',
+                                  lineHeight: 1.3,
+                                  color: '#2d3748',
+                                  mb: 0.3
+                                }}
+                              >
+                                {temp.question}
                               </Typography>
-                            </AccordionSummary>
-                            <AccordionDetails sx={{ p: 1 }}>
-                              {category.templates.map((temp, tempIndex) => (
-                                <Paper
-                                  key={temp.id}
-                                  elevation={1}
-                                  sx={{
-                                    p: 1,
-                                    mb: 0.5,
-                                    cursor: 'pointer',
-                                    borderRadius: 1,
-                                    '&:hover': {
-                                      backgroundColor: 'rgba(94, 23, 235, 0.05)'
-                                    }
-                                  }}
-                                  onClick={() => setSelectedTool({ ...temp, isTemplate: true })}
-                                >
-                                  <Typography
-                                    variant="caption"
-                                    sx={{
-                                      display: 'block',
-                                      fontSize: '0.7rem',
-                                      lineHeight: 1.3,
-                                      color: '#2d3748'
-                                    }}
-                                  >
-                                    {temp.question}
-                                  </Typography>
-                                  <Typography
-                                    variant="caption"
-                                    sx={{
-                                      fontSize: '0.6rem',
-                                      color: '#64748b',
-                                      fontStyle: 'italic'
-                                    }}
-                                  >
-                                    ({questionTypes.find(qt => qt.type === temp.type)?.label})
-                                  </Typography>
-                                </Paper>
-                              ))}
-                            </AccordionDetails>
-                          </Accordion>
-                        ))}
-                      </AccordionDetails>
-                    </Accordion>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontSize: '0.6rem',
+                                  color: '#64748b',
+                                  fontStyle: 'italic'
+                                }}
+                              >
+                                ({questionTypes.find(qt => qt.type === temp.type)?.label})
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Collapse>
+                    </Box>
                   ))}
                 </Box>
               </Paper>
