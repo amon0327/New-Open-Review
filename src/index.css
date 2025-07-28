@@ -23,3 +23,8 @@ html, body, #root {
   height: 100%;
   overflow: hidden;
 }
+
+/* MuiSvgIcon を非表示にする */
+.MuiSvgIcon-root.MuiSvgIcon-fontSizeMedium[class*="css-1n2fl28"] {
+  display: none !important;
+}
