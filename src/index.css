@@ -29,3 +29,8 @@ html, body, #root {
   display: none !important;
 }
 
+/* 設定画面でmain-containerを非表示にする */
+.settings-active .main-container.MuiBox-root.css-136nqr8 {
+  display: none !important;
+}
+

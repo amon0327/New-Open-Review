@@ -504,7 +504,7 @@ export default function CreatePage({ onBackClick }) {
 
   return (
     <Box
-      className="main-container"
+      className={`main-container ${showSettings ? 'settings-active' : ''}`}
       sx={{
         height: '100vh',
         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
