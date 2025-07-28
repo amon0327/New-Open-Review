@@ -649,7 +649,7 @@ export default function CreatePage({ onBackClick }) {
 
             </Stack>
 
-          </Box>
+          </Stack>
 
         {/* 削除確認ダイアログ */}
         <DeleteConfirmationDialog
