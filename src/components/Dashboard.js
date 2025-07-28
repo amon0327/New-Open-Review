@@ -855,7 +855,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             boxSizing: 'border-box',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             border: 'none',
-            boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)'
+            boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)',
+            borderRadius: '0 20px 20px 0'
           },
         }}
       >
@@ -877,8 +878,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backdropFilter: 'blur(10px)',
-              borderRadius: 0
+              backdropFilter: 'blur(10px)'
             }}
           >
             <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
@@ -911,8 +911,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   },
-                  transition: 'all 0.3s ease',
-                  borderRadius: 0
+                  transition: 'all 0.3s ease'
                 }}
               >
                 <ListItemIcon
@@ -950,8 +949,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               gap: 2,
               p: 2,
               background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: 0
+              backdropFilter: 'blur(10px)'
             }}
           >
             <Avatar sx={{ width: 40, height: 40 }}>
