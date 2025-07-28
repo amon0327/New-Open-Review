@@ -1976,13 +1976,14 @@ export default function CreatePage({ onBackClick }) {
               </motion.div>
             )}
 
-            {/* 右側Container - フォーム設定 */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              style={{ flex: '0 0 300px', pointerEvents: 'auto' }}
-            >
+            {/* 右側Container - フォーム設定 - 設定画面では非表示 */}
+            {!showSettings && (
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                style={{ flex: '0 0 300px', pointerEvents: 'auto' }}
+              >
               <Paper
                 elevation={8}
                 sx={{
@@ -2042,6 +2043,7 @@ export default function CreatePage({ onBackClick }) {
                 </Box>
               </Paper>
             </motion.div>
+            )}
           </Stack>
 
           {/* 選択ツールの表示（中央部分） */}
