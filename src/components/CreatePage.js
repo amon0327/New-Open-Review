@@ -78,6 +78,37 @@ export default function CreatePage() {
   const [selectedFont, setSelectedFont] = useState('Inter');
   const [logoPreview, setLogoPreview] = useState(null);
 
+  // ページ管理関連の状態
+  const [pages, setPages] = useState([
+    { id: 'login', title: 'ログイン画面', type: 'system', questions: 0, canDelete: false, icon: <TextFields /> },
+    { id: 'page1', title: '基本情報', type: 'question', questions: 3, canDelete: true, icon: <Description /> },
+    { id: 'page2', title: '満足度調査', type: 'question', questions: 5, canDelete: true, icon: <RadioButtonChecked /> },
+    { id: 'completion', title: '完了画面', type: 'system', questions: 0, canDelete: false, icon: <CheckBox /> }
+  ]);
+  const [selectedPage, setSelectedPage] = useState(null);
+
+  // 質問タイプの定義
+  const questionTypes = [
+    { icon: <TextFields />, label: '短文回答', type: 'text' },
+    { icon: <Description />, label: '長文回答', type: 'textarea' },
+    { icon: <RadioButtonChecked />, label: '単一選択', type: 'radio' },
+    { icon: <CheckBox />, label: '複数選択', type: 'checkbox' },
+    { icon: <LinearScale />, label: '線形スケール', type: 'scale' },
+    { icon: <Image />, label: '画像アップロード', type: 'image' }
+  ];
+
+  const handleAddPage = () => {
+    const newPage = {
+      id: `page${pages.length + 1}`,
+      title: `新しいページ ${pages.length - 1}`,
+      type: 'question',
+      questions: 0,
+      canDelete: true,
+      icon: <Description />
+    };
+    setPages([...pages.slice(0, -1), newPage, pages[pages.length - 1]]);
+  };
+
   return (
     <Box
       sx={{
@@ -610,19 +641,213 @@ export default function CreatePage() {
               </Grid>
             </Box>
           ) : (
-            // 通常の編集画面
+            // 編集画面とページ管理
             <Box
               sx={{
                 height: '100%',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
+                background: '#f8fafc'
               }}
             >
-              <Typography variant="h6" sx={{ color: '#64748b' }}>
-                {showPageManager ? 'ページ管理' : '編集エリア'}
-              </Typography>
+              {/* 左側パネル - 質問作成ツール / ページ管理 */}
+              <Paper
+                elevation={2}
+                sx={{
+                  width: 300,
+                  height: '100%',
+                  borderRadius: 0,
+                  background: 'white',
+                  borderRight: '1px solid #e2e8f0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflowY: 'auto'
+                }}
+              >
+                {showPageManager ? (
+                  // ページ管理UI
+                  <Box sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b' }}>
+                        ページ管理
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<Add />}
+                        onClick={handleAddPage}
+                        sx={{
+                          backgroundColor: '#667eea',
+                          '&:hover': { backgroundColor: '#5a67d8' }
+                        }}
+                      >
+                        追加
+                      </Button>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {pages.map((page, index) => (
+                        <Paper
+                          key={page.id}
+                          elevation={1}
+                          sx={{
+                            p: 2,
+                            border: selectedPage?.id === page.id ? '2px solid #667eea' : '1px solid #e2e8f0',
+                            borderRadius: 2,
+                            cursor: 'pointer',
+                            '&:hover': {
+                              borderColor: '#667eea',
+                              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.1)'
+                            }
+                          }}
+                          onClick={() => setSelectedPage(page)}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Box
+                              sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 1,
+                                background: page.type === 'system' ? '#f1f5f9' : '#667eea',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              {React.cloneElement(page.icon, { 
+                                sx: { color: page.type === 'system' ? '#64748b' : 'white', fontSize: '1rem' } 
+                              })}
+                            </Box>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#1e293b' }}>
+                                {page.title}
+                              </Typography>
+                              {page.type === 'question' && (
+                                <Typography variant="caption" sx={{ color: '#64748b' }}>
+                                  {page.questions}個の質問
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                        </Paper>
+                      ))}
+                    </Box>
+                  </Box>
+                ) : (
+                  // 質問作成ツール
+                  <Box sx={{ p: 3 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b', mb: 3 }}>
+                      質問作成
+                    </Typography>
+                    
+                    <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#64748b' }}>
+                      質問タイプ
+                    </Typography>
+                    <Grid container spacing={1} sx={{ mb: 3 }}>
+                      {questionTypes.map((item, index) => (
+                        <Grid item xs={4} key={index}>
+                          <Paper
+                            elevation={1}
+                            sx={{
+                              p: 1.5,
+                              borderRadius: 2,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: 1,
+                              minHeight: 80,
+                              '&:hover': {
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                transform: 'translateY(-2px)'
+                              },
+                              transition: 'all 0.2s ease'
+                            }}
+                            onClick={() => setSelectedTool(item)}
+                          >
+                            <Box
+                              sx={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 1,
+                                background: '#667eea',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              {React.cloneElement(item.icon, { 
+                                sx: { color: 'white', fontSize: '1rem' } 
+                              })}
+                            </Box>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontWeight: 500,
+                                color: '#1e293b',
+                                fontSize: '0.7rem',
+                                textAlign: 'center',
+                                lineHeight: 1.2
+                              }}
+                            >
+                              {item.label}
+                            </Typography>
+                          </Paper>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                )}
+              </Paper>
+
+              {/* 右側メインエリア - プレビュー / 編集エリア */}
+              <Box
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
+                }}
+              >
+                {selectedPage ? (
+                  <Paper
+                    elevation={4}
+                    sx={{
+                      width: 400,
+                      height: 600,
+                      borderRadius: 2,
+                      background: 'white',
+                      p: 3,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                      {selectedPage.title}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#64748b', textAlign: 'center' }}>
+                      {selectedPage.type === 'system' 
+                        ? 'システムページのプレビュー' 
+                        : `${selectedPage.questions}個の質問が含まれています`
+                      }
+                    </Typography>
+                  </Paper>
+                ) : (
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" sx={{ color: '#64748b', mb: 2 }}>
+                      {showPageManager ? 'ページを選択してください' : '質問タイプを選択してください'}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                      {showPageManager 
+                        ? 'ページ一覧からページを選択してプレビューを表示' 
+                        : '左側のツールから質問タイプを選択して質問を作成'
+                      }
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
             </Box>
           )}
         </Box>
