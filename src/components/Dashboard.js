@@ -152,7 +152,7 @@ const navigationItems = [
   { text: 'Settings', icon: <Settings />, component: SettingsPage },
 ];
 
-export default function Dashboard({ onCreateClick }) {
+export default function Dashboard({ onCreateClick, onSettingsClick }) {
   const [activeTab, setActiveTab] = useState(0);
 
   const renderContent = () => {
@@ -163,6 +163,8 @@ export default function Dashboard({ onCreateClick }) {
   const handleNavClick = (index) => {
     if (navigationItems[index].text === 'Create') {
       onCreateClick();
+    } else if (navigationItems[index].text === 'Settings') {
+      onSettingsClick();
     } else {
       setActiveTab(index);
     }
