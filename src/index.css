@@ -28,3 +28,8 @@ html, body, #root {
 .MuiSvgIcon-root.MuiSvgIcon-fontSizeMedium[class*="css-1n2fl28"] {
   display: none !important;
 }
+
+/* MuiBox-root css-199phh9 を非表示にする（ソート機能は維持） */
+.MuiBox-root[class*="css-199phh9"] {
+  display: none !important;
+}
