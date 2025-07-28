@@ -929,7 +929,7 @@ export default function CreatePage({ onBackClick }) {
                         </Paper>
                       </motion.div>
                     </Stack>
-                  </Box>
+                  </Grid>
                 </Box>
               ) : (
                 /* 中央プレビューエリア - 設定画面でない場合 */
