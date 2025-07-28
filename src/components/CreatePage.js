@@ -6,7 +6,12 @@ import {
   Typography,
   IconButton,
   Tooltip,
-  Stack
+  Stack,
+  Grid,
+  Collapse,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
 import {
   ArrowBack,
@@ -30,7 +35,12 @@ import {
   FitScreen,
   Folder,
   Edit,
-  RateReview
+  RateReview,
+  ExpandMore as ExpandMoreIcon,
+  Business,
+  Person,
+  School,
+  LocalHospital
 } from '@mui/icons-material';
 
 // 左ナビゲーションアイテムの定義
@@ -41,7 +51,7 @@ const leftNavigationItems = [
   { icon: <Settings />, label: '設定', category: 'main' }
 ];
 
-// 右側質問タイプの定義
+// 質問タイプの定義
 const questionTypes = [
   { icon: <TextFields />, label: '短文回答', type: 'text' },
   { icon: <Description />, label: '長文回答', type: 'textarea' },
@@ -52,15 +62,102 @@ const questionTypes = [
   { icon: <Image />, label: '画像アップロード', type: 'image' }
 ];
 
+// テンプレート質問の定義
+const questionTemplates = [
+  {
+    id: 'business',
+    icon: <Business />,
+    title: 'ビジネス',
+    expanded: false,
+    categories: [
+      {
+        id: 'customer',
+        title: '顧客満足度',
+        expanded: false,
+        templates: [
+          { id: 'cs1', question: 'サービスの満足度を教えてください', type: 'scale' },
+          { id: 'cs2', question: '改善点があれば教えてください', type: 'textarea' },
+          { id: 'cs3', question: 'おすすめ度はいかがですか？', type: 'scale' }
+        ]
+      },
+      {
+        id: 'employee',
+        title: '従業員評価',
+        expanded: false,
+        templates: [
+          { id: 'emp1', question: '職場環境の満足度', type: 'scale' },
+          { id: 'emp2', question: '上司とのコミュニケーション', type: 'radio' },
+          { id: 'emp3', question: '改善してほしい点', type: 'textarea' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'personal',
+    icon: <Person />,
+    title: '個人情報',
+    expanded: false,
+    categories: [
+      {
+        id: 'basic',
+        title: '基本情報',
+        expanded: false,
+        templates: [
+          { id: 'p1', question: 'お名前を教えてください', type: 'text' },
+          { id: 'p2', question: '年齢を選択してください', type: 'select' },
+          { id: 'p3', question: '性別を選択してください', type: 'radio' }
+        ]
+      },
+      {
+        id: 'contact',
+        title: '連絡先',
+        expanded: false,
+        templates: [
+          { id: 'c1', question: 'メールアドレス', type: 'text' },
+          { id: 'c2', question: '電話番号', type: 'text' },
+          { id: 'c3', question: '住所', type: 'textarea' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'education',
+    icon: <School />,
+    title: '教育',
+    expanded: false,
+    categories: [
+      {
+        id: 'course',
+        title: '講座評価',
+        expanded: false,
+        templates: [
+          { id: 'edu1', question: '講座の理解度はいかがでしたか？', type: 'scale' },
+          { id: 'edu2', question: '講師の説明は分かりやすかったですか？', type: 'radio' },
+          { id: 'edu3', question: '今後学びたい内容', type: 'checkbox' }
+        ]
+      }
+    ]
+  }
+];
+
 export default function CreatePage({ onBackClick }) {
   const [selectedTool, setSelectedTool] = useState(null);
   const [previewMode, setPreviewMode] = useState('mobile'); // 'mobile' or 'desktop'
   const [zoom, setZoom] = useState(1); // ズーム倍率
+  const [expandedTemplates, setExpandedTemplates] = useState({}); // テンプレートの展開状態
 
   // ズーム制御関数（5%刻み）
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.05, 2));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.05, 0.5));
   const handleFitScreen = () => setZoom(1);
+
+  // テンプレート展開制御
+  const toggleExpanded = (key) => {
+    setExpandedTemplates(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
 
   return (
     <Box
@@ -598,7 +695,7 @@ export default function CreatePage({ onBackClick }) {
               pointerEvents: 'none'
             }}
           >
-            {/* 左側Container - フォーム構成 */}
+            {/* 左側Container - 質問作成ツール */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -616,7 +713,8 @@ export default function CreatePage({ onBackClick }) {
                   boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
                   p: 2,
                   display: 'flex',
-                  flexDirection: 'column'
+                  flexDirection: 'column',
+                  overflowY: 'auto'
                 }}
               >
                 <Typography
@@ -631,41 +729,195 @@ export default function CreatePage({ onBackClick }) {
                     textAlign: 'center'
                   }}
                 >
-                  フォーム構成
+                  質問作成
                 </Typography>
                 
-                <Box sx={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 2 
-                }}>
-                  <Box
-                    sx={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: 2,
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 8px 24px rgba(94, 23, 235, 0.3)'
-                    }}
-                  >
-                    <Folder sx={{ color: 'white', fontSize: '1.5rem' }} />
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" textAlign="center">
-                    作成した質問が
-                    ここに表示されます
-                  </Typography>
+                {/* 質問タイプグリッド */}
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#64748b' }}>
+                  質問タイプ
+                </Typography>
+                <Grid container spacing={1} sx={{ mb: 3 }}>
+                  {questionTypes.map((item, index) => (
+                    <Grid item xs={4} key={index}>
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                      >
+                        <Paper
+                          elevation={2}
+                          sx={{
+                            p: 1,
+                            borderRadius: 2,
+                            background: 'rgba(255, 255, 255, 0.8)',
+                            border: '1px solid rgba(0, 0, 0, 0.05)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            minHeight: 70,
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+                              background: 'rgba(94, 23, 235, 0.05)'
+                            }
+                          }}
+                          onClick={() => setSelectedTool(item)}
+                        >
+                          <Box
+                            sx={{
+                              width: 28,
+                              height: 28,
+                              borderRadius: 1.5,
+                              background: `linear-gradient(135deg, ${
+                                ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7]
+                              } 0%, ${
+                                ['#764ba2', '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][index % 7]
+                              } 100%)`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                            }}
+                          >
+                            {React.cloneElement(item.icon, { 
+                              sx: { color: 'white', fontSize: '0.9rem' } 
+                            })}
+                          </Box>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 500,
+                              color: '#2d3748',
+                              fontSize: '0.65rem',
+                              textAlign: 'center',
+                              lineHeight: 1.2
+                            }}
+                          >
+                            {item.label}
+                          </Typography>
+                        </Paper>
+                      </motion.div>
+                    </Grid>
+                  ))}
+                </Grid>
+
+                {/* テンプレート質問 */}
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#64748b' }}>
+                  テンプレート質問
+                </Typography>
+                <Box sx={{ flex: 1 }}>
+                  {questionTemplates.map((template, index) => (
+                    <Accordion
+                      key={template.id}
+                      expanded={expandedTemplates[template.id] || false}
+                      onChange={() => toggleExpanded(template.id)}
+                      sx={{
+                        mb: 1,
+                        borderRadius: 2,
+                        '&:before': { display: 'none' },
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+                      }}
+                    >
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        sx={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                          borderRadius: 2,
+                          minHeight: 40,
+                          '& .MuiAccordionSummary-content': {
+                            margin: '8px 0',
+                            alignItems: 'center'
+                          }
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {template.icon}
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {template.title}
+                          </Typography>
+                        </Box>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ p: 1 }}>
+                        {template.categories.map((category, catIndex) => (
+                          <Accordion
+                            key={category.id}
+                            expanded={expandedTemplates[`${template.id}-${category.id}`] || false}
+                            onChange={() => toggleExpanded(`${template.id}-${category.id}`)}
+                            sx={{
+                              mb: 0.5,
+                              boxShadow: 'none',
+                              '&:before': { display: 'none' }
+                            }}
+                          >
+                            <AccordionSummary
+                              expandIcon={<ExpandMoreIcon sx={{ fontSize: '1rem' }} />}
+                              sx={{
+                                backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                                borderRadius: 1,
+                                minHeight: 32,
+                                '& .MuiAccordionSummary-content': {
+                                  margin: '4px 0'
+                                }
+                              }}
+                            >
+                              <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                                {category.title}
+                              </Typography>
+                            </AccordionSummary>
+                            <AccordionDetails sx={{ p: 1 }}>
+                              {category.templates.map((temp, tempIndex) => (
+                                <Paper
+                                  key={temp.id}
+                                  elevation={1}
+                                  sx={{
+                                    p: 1,
+                                    mb: 0.5,
+                                    cursor: 'pointer',
+                                    borderRadius: 1,
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                                    }
+                                  }}
+                                  onClick={() => setSelectedTool({ ...temp, isTemplate: true })}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      display: 'block',
+                                      fontSize: '0.7rem',
+                                      lineHeight: 1.3,
+                                      color: '#2d3748'
+                                    }}
+                                  >
+                                    {temp.question}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      fontSize: '0.6rem',
+                                      color: '#64748b',
+                                      fontStyle: 'italic'
+                                    }}
+                                  >
+                                    ({questionTypes.find(qt => qt.type === temp.type)?.label})
+                                  </Typography>
+                                </Paper>
+                              ))}
+                            </AccordionDetails>
+                          </Accordion>
+                        ))}
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
                 </Box>
               </Paper>
             </motion.div>
 
 
-            {/* 右側Container - 質問タイプ */}
+            {/* 右側Container - フォーム設定 */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -698,78 +950,36 @@ export default function CreatePage({ onBackClick }) {
                     textAlign: 'center'
                   }}
                 >
-                  質問タイプ
+                  フォーム設定
                 </Typography>
                 
                 <Box sx={{ 
-                  flex: 1,
-                  display: 'flex',
+                  flex: 1, 
+                  display: 'flex', 
                   flexDirection: 'column',
-                  gap: 1.5,
-                  overflowY: 'auto'
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 2 
                 }}>
-                  {questionTypes.map((item, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                    >
-                      <Paper
-                        elevation={2}
-                        sx={{
-                          p: 1.5,
-                          borderRadius: 2,
-                          background: 'rgba(255, 255, 255, 0.8)',
-                          border: '1px solid rgba(0, 0, 0, 0.05)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1.5,
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
-                            background: 'rgba(94, 23, 235, 0.05)'
-                          }
-                        }}
-                        onClick={() => setSelectedTool(item)}
-                      >
-                        <Box
-                          sx={{
-                            width: 36,
-                            height: 36,
-                            borderRadius: 1.5,
-                            background: `linear-gradient(135deg, ${
-                              ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7]
-                            } 0%, ${
-                              ['#764ba2', '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][index % 7]
-                            } 100%)`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-                          }}
-                        >
-                          {React.cloneElement(item.icon, { 
-                            sx: { color: 'white', fontSize: '1.1rem' } 
-                          })}
-                        </Box>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: 600,
-                              color: '#2d3748',
-                              fontSize: '0.85rem'
-                            }}
-                          >
-                            {item.label}
-                          </Typography>
-                        </Box>
-                      </Paper>
-                    </motion.div>
-                  ))}
+                  <Box
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, #fcb69f 0%, #ffecd2 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 8px 24px rgba(252, 182, 159, 0.3)'
+                    }}
+                  >
+                    <Settings sx={{ color: 'white', fontSize: '1.5rem' }} />
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" textAlign="center">
+                    フォームの設定や
+                    プレビューが
+                    ここに表示されます
+                  </Typography>
                 </Box>
               </Paper>
             </motion.div>
