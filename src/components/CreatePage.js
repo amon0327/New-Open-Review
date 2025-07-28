@@ -1028,28 +1028,36 @@ export default function CreatePage({ onBackClick }) {
                               }
                             }}
                           >
-                            {/* ドラッグハンドル領域 */}
-                            {page.type === 'question' && !deleteMode ? (
-                              <Box
-                                sx={{
-                                  color: '#94a3b8',
-                                  cursor: 'grab',
-                                  '&:active': { cursor: 'grabbing' },
-                                  '&:hover': { color: '#5e17eb' },
-                                  padding: '4px',
-                                  borderRadius: '4px',
-                                  mr: 1,
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                                    color: '#5e17eb'
-                                  }
-                                }}
-                              >
-                                <DragHandle sx={{ fontSize: '1.2rem' }} />
-                              </Box>
-                            ) : (
-                              <Box sx={{ width: 28, mr: 1 }} />
-                            )}
+                            {/* ドラッグハンドル領域 (統一幅) */}
+                            <Box
+                              sx={{
+                                width: 40,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                mr: 1,
+                                flexShrink: 0
+                              }}
+                            >
+                              {page.type === 'question' && !deleteMode && (
+                                <Box
+                                  sx={{
+                                    color: '#94a3b8',
+                                    cursor: 'grab',
+                                    '&:active': { cursor: 'grabbing' },
+                                    '&:hover': { color: '#5e17eb' },
+                                    padding: '4px',
+                                    borderRadius: '4px',
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(94, 23, 235, 0.1)',
+                                      color: '#5e17eb'
+                                    }
+                                  }}
+                                >
+                                  <DragHandle sx={{ fontSize: '1.2rem' }} />
+                                </Box>
+                              )}
+                            </Box>
 
                             {/* ページアイコン */}
                             <Box
