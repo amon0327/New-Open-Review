@@ -54,9 +54,7 @@ import {
   Pages,
   ContentCopy,
   KeyboardArrowUp,
-  KeyboardArrowDown,
-  CheckCircleOutline,
-  RadioButtonUnchecked
+  KeyboardArrowDown
 } from '@mui/icons-material';
 
 // 左ナビゲーションアイテムの定義
@@ -205,8 +203,8 @@ export default function CreatePage({ onBackClick }) {
   const [showPageManager, setShowPageManager] = useState(false); // ページ管理UI表示状態
   const [draggedPage, setDraggedPage] = useState(null); // ドラッグ中のページ
   const [deleteMode, setDeleteMode] = useState(false); // 削除モード
-  const [selectedForDeletion, setSelectedForDeletion] = useState([]); // 削除対象選択
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // 削除確認ダイアログ
+  const [pageToDelete, setPageToDelete] = useState(null); // 削除対象ページ
   
   // サンプルページデータ
   const [pages, setPages] = useState([
@@ -308,36 +306,27 @@ export default function CreatePage({ onBackClick }) {
   // 削除モード関連ハンドラ
   const handleDeleteModeToggle = () => {
     setDeleteMode(!deleteMode);
-    setSelectedForDeletion([]);
+    setPageToDelete(null);
   };
 
-  const handlePageSelection = (pageId) => {
-    if (!deleteMode) return;
-    
-    setSelectedForDeletion(prev => {
-      if (prev.includes(pageId)) {
-        return prev.filter(id => id !== pageId);
-      } else {
-        return [...prev, pageId];
-      }
-    });
-  };
-
-  const handleConfirmDelete = () => {
-    if (selectedForDeletion.length > 0) {
-      setShowDeleteConfirm(true);
-    }
+  const handlePageDeletionRequest = (page) => {
+    if (!deleteMode || !page.canDelete) return;
+    setPageToDelete(page);
+    setShowDeleteConfirm(true);
   };
 
   const handleExecuteDelete = () => {
-    setPages(prev => prev.filter(page => !selectedForDeletion.includes(page.id)));
-    setSelectedForDeletion([]);
-    setDeleteMode(false);
-    setShowDeleteConfirm(false);
+    if (pageToDelete) {
+      setPages(prev => prev.filter(p => p.id !== pageToDelete.id));
+      setPageToDelete(null);
+      setDeleteMode(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   const handleCancelDelete = () => {
     setShowDeleteConfirm(false);
+    setPageToDelete(null);
   };
 
   return (
@@ -901,23 +890,8 @@ export default function CreatePage({ onBackClick }) {
                         ページ管理
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 1 }}>
-                        {deleteMode && selectedForDeletion.length > 0 && (
-                          <IconButton
-                            onClick={handleConfirmDelete}
-                            sx={{
-                              color: '#ef4444',
-                              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                              '&:hover': { 
-                                backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                                transform: 'scale(1.05)'
-                              }
-                            }}
-                          >
-                            <Delete />
-                          </IconButton>
-                        )}
                         <IconButton
-                          onClick={deleteMode ? handleDeleteModeToggle : handleDeleteModeToggle}
+                          onClick={handleDeleteModeToggle}
                           sx={{
                             color: deleteMode ? '#ef4444' : '#64748b',
                             backgroundColor: deleteMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(100, 116, 139, 0.1)',
@@ -961,19 +935,15 @@ export default function CreatePage({ onBackClick }) {
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, page)}
                             onDragEnd={handleDragEnd}
-                            onClick={() => deleteMode && page.canDelete && handlePageSelection(page.id)}
+                            onClick={() => deleteMode && page.canDelete && handlePageDeletionRequest(page)}
                             sx={{
                               p: 1.5,
                               mb: 1,
                               borderRadius: 1,
-                              backgroundColor: selectedForDeletion.includes(page.id)
-                                ? 'rgba(239, 68, 68, 0.1)'
-                                : draggedPage?.id === page.id 
+                              backgroundColor: draggedPage?.id === page.id 
                                 ? 'rgba(94, 23, 235, 0.1)' 
                                 : 'rgba(255, 255, 255, 0.8)',
-                              border: selectedForDeletion.includes(page.id)
-                                ? '2px solid rgba(239, 68, 68, 0.3)'
-                                : '1px solid rgba(0, 0, 0, 0.06)',
+                              border: '1px solid rgba(0, 0, 0, 0.06)',
                               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                               minHeight: 72,
                               display: 'flex',
@@ -986,15 +956,13 @@ export default function CreatePage({ onBackClick }) {
                               opacity: draggedPage?.id === page.id ? 0.5 : deleteMode && !page.canDelete ? 0.5 : 1,
                               transition: 'all 0.3s ease',
                               '&:hover': {
-                                backgroundColor: selectedForDeletion.includes(page.id)
-                                  ? 'rgba(239, 68, 68, 0.15)'
-                                  : deleteMode && page.canDelete
+                                backgroundColor: deleteMode && page.canDelete
                                   ? 'rgba(239, 68, 68, 0.05)'
                                   : draggedPage?.id === page.id 
                                   ? 'rgba(94, 23, 235, 0.1)' 
                                   : 'rgba(94, 23, 235, 0.04)',
-                                borderColor: selectedForDeletion.includes(page.id)
-                                  ? 'rgba(239, 68, 68, 0.5)'
+                                borderColor: deleteMode && page.canDelete
+                                  ? 'rgba(239, 68, 68, 0.3)'
                                   : 'rgba(94, 23, 235, 0.15)',
                                 transform: draggedPage?.id === page.id ? 'none' : 'translateY(-1px)',
                                 boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
@@ -1073,13 +1041,48 @@ export default function CreatePage({ onBackClick }) {
                               )}
                             </Box>
 
-                            {/* 削除モード時の選択アイコン */}
-                            {deleteMode && page.canDelete && (
-                              <Box sx={{ mr: 2 }}>
-                                {selectedForDeletion.includes(page.id) ? (
-                                  <CheckCircle sx={{ color: '#ef4444', fontSize: '1.5rem' }} />
-                                ) : (
-                                  <RadioButtonUnchecked sx={{ color: '#cbd5e1', fontSize: '1.5rem' }} />
+                            {/* 並び替えアイコン */}
+                            {!deleteMode && page.type === 'question' && (
+                              <Box sx={{ mr: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                {index > 1 && (
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMovePageUp(page.id);
+                                    }}
+                                    sx={{
+                                      width: 20,
+                                      height: 20,
+                                      color: '#64748b',
+                                      '&:hover': { 
+                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                                        color: '#5e17eb'
+                                      }
+                                    }}
+                                  >
+                                    <KeyboardArrowUp sx={{ fontSize: '0.9rem' }} />
+                                  </IconButton>
+                                )}
+                                {index < pages.length - 2 && (
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleMovePageDown(page.id);
+                                    }}
+                                    sx={{
+                                      width: 20,
+                                      height: 20,
+                                      color: '#64748b',
+                                      '&:hover': { 
+                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                                        color: '#5e17eb'
+                                      }
+                                    }}
+                                  >
+                                    <KeyboardArrowDown sx={{ fontSize: '0.9rem' }} />
+                                  </IconButton>
                                 )}
                               </Box>
                             )}
@@ -1489,21 +1492,16 @@ export default function CreatePage({ onBackClick }) {
             <Typography variant="body2" sx={{ mb: 2 }}>
               以下のページを削除します。この操作は元に戻せません。
             </Typography>
-            <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 1 }}>
-              {selectedForDeletion.map(pageId => {
-                const page = pages.find(p => p.id === pageId);
-                return page ? (
-                  <Box key={pageId} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    {React.cloneElement(page.icon, { 
-                      sx: { color: '#64748b', fontSize: '1rem' } 
-                    })}
-                    <Typography variant="body2" sx={{ color: '#2d3748' }}>
-                      {page.title}
-                    </Typography>
-                  </Box>
-                ) : null;
-              })}
-            </Box>
+            {pageToDelete && (
+              <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                {React.cloneElement(pageToDelete.icon, { 
+                  sx: { color: '#64748b', fontSize: '1rem' } 
+                })}
+                <Typography variant="body2" sx={{ color: '#2d3748' }}>
+                  {pageToDelete.title}
+                </Typography>
+              </Box>
+            )}
           </DialogContent>
           <DialogActions sx={{ p: 2, gap: 1 }}>
             <Button
