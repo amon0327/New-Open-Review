@@ -990,18 +990,22 @@ export default function CreatePage({ onBackClick }) {
             </motion.div>
             )}
 
-            {/* プレビューエリア */}
-            <PreviewArea previewMode={previewMode} zoom={zoom} />
+            {/* プレビューエリア - 設定画面では非表示 */}
+            {!showSettings && (
+              <PreviewArea previewMode={previewMode} zoom={zoom} />
+            )}
 
-            {/* プレビューコントロール */}
-            <PreviewControlPanel
-              previewMode={previewMode}
-              setPreviewMode={setPreviewMode}
-              zoom={zoom}
-              handleZoomIn={handleZoomIn}
-              handleZoomOut={handleZoomOut}
-              handleFitScreen={handleFitScreen}
-            />
+            {/* プレビューコントロール - 設定画面では非表示 */}
+            {!showSettings && (
+              <PreviewControlPanel
+                previewMode={previewMode}
+                setPreviewMode={setPreviewMode}
+                zoom={zoom}
+                handleZoomIn={handleZoomIn}
+                handleZoomOut={handleZoomOut}
+                handleFitScreen={handleFitScreen}
+              />
+            )}
 
             {/* トースト通知とその他のコントロール */}
             <Stack
