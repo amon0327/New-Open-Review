@@ -1015,7 +1015,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           sx={{
             background: 'rgba(255, 255, 255, 0.9)',
             backdropFilter: 'blur(20px)',
-            borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
+            borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+            borderRadius: 0
           }}
         >
           <Toolbar>
