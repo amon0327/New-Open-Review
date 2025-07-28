@@ -380,14 +380,7 @@ export default function CreatePage({ onBackClick }) {
         height: '100vh',
         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
         display: 'flex',
-        overflow: 'hidden',
-        '& .MuiBox-root': {
-          all: 'unset',
-          display: 'block'
-        },
-        '& [class*="css-"]': {
-          all: 'unset !important'
-        }
+        overflow: 'hidden'
       }}
     >
       {/* 背景全体Container */}
