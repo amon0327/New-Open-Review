@@ -44,7 +44,6 @@ import {
   Close,
   Delete,
   DragHandle,
-  Add,
   Login,
   CheckCircle,
   Pages,
