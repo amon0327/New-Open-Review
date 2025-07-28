@@ -1009,6 +1009,7 @@ export default function CreatePage({ onBackClick }) {
                               minHeight: 72,
                               display: 'flex',
                               alignItems: 'center',
+                              justifyContent: 'flex-start',
                               cursor: deleteMode && page.canDelete 
                                 ? 'pointer' 
                                 : page.type === 'question' && !deleteMode 
@@ -1077,7 +1078,7 @@ export default function CreatePage({ onBackClick }) {
                             </Box>
 
                             {/* ページ情報 */}
-                            <Box sx={{ flex: 1, minWidth: 0, ml: 2 }}>
+                            <Box sx={{ flex: 1, minWidth: 0, ml: 2, textAlign: 'left' }}>
                               <Typography
                                 variant="body2"
                                 sx={{
