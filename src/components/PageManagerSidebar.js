@@ -242,16 +242,15 @@ const PageManagerSidebar = ({
                     {page.title}
                   </Typography>
                 )}
-                {page.subtitle && (
+                {page.type === 'question' && (
                   <Typography
                     variant="caption"
                     sx={{
                       color: colors.textSecondary,
-                      display: 'block',
-                      fontSize: '0.75rem'
+                      fontSize: '0.7rem'
                     }}
                   >
-                    {page.subtitle}
+                    {page.questions}個の質問
                   </Typography>
                 )}
               </Box>

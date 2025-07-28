@@ -342,11 +342,11 @@ export default function CreatePage({ onBackClick }) {
 
   // サンプルページデータ
   const [pages, setPages] = useState([
-    { id: 'login', title: 'ログイン画面', type: 'system', icon: <Login />, canDelete: false },
-    { id: 'page1', title: '基本情報', type: 'question', icon: <Pages />, canDelete: true, questions: 5 },
-    { id: 'page2', title: '満足度調査', type: 'question', icon: <Pages />, canDelete: true, questions: 3 },
-    { id: 'page3', title: '追加質問', type: 'question', icon: <Pages />, canDelete: true, questions: 2 },
-    { id: 'completion', title: '完了画面', type: 'system', icon: <CheckCircle />, canDelete: false }
+    { id: 'login', title: 'ログイン画面', type: 'system', icon: <Login />, canDelete: false, canEdit: false },
+    { id: 'page1', title: '基本情報', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 5 },
+    { id: 'page2', title: '満足度調査', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 3 },
+    { id: 'page3', title: '追加質問', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 2 },
+    { id: 'completion', title: '完了画面', type: 'system', icon: <CheckCircle />, canDelete: false, canEdit: false }
   ]);
 
   // ズーム制御関数（5%刻み）
@@ -374,6 +374,7 @@ export default function CreatePage({ onBackClick }) {
       type: 'question',
       icon: <Pages />,
       canDelete: true,
+      canEdit: true,
       questions: 0
     };
     // 完了画面の前に挿入
