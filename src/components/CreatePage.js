@@ -207,6 +207,7 @@ export default function CreatePage({ onBackClick }) {
   const [pageToDelete, setPageToDelete] = useState(null); // 削除対象ページ
   const [sortingAnimation, setSortingAnimation] = useState(null); // 並び替えアニメーション
   const [dropIndicator, setDropIndicator] = useState(null); // ドロップ位置インジケーター
+  const [selectedPage, setSelectedPage] = useState(null); // 選択中のページ
   
   // サンプルページデータ
   const [pages, setPages] = useState([
@@ -788,86 +789,172 @@ export default function CreatePage({ onBackClick }) {
                         alignItems: 'center',
                         justifyContent: 'center',
                         p: previewMode === 'mobile' ? 2 : 4,
-                        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
+                        background: selectedPage?.id === 'login' 
+                          ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                          : selectedPage?.id === 'completion'
+                          ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                          : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
                       }}
                     >
-                      <Box
-                        sx={{
-                          textAlign: 'center',
-                          mb: 3
-                        }}
-                      >
-                        <Typography
-                          variant={previewMode === 'mobile' ? 'h6' : 'h4'}
+                      {selectedPage ? (
+                        <Box
                           sx={{
-                            fontWeight: 700,
-                            background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                            backgroundClip: 'text',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            mb: 1
+                            textAlign: 'center',
+                            width: '100%',
+                            maxWidth: previewMode === 'mobile' ? 300 : 600
                           }}
                         >
-                          {previewMode === 'mobile' ? 'モバイル' : 'デスクトップ'}プレビュー
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          フォームの{previewMode === 'mobile' ? 'スマートフォン' : 'PC'}での表示
-                        </Typography>
-                      </Box>
-
-                      {/* サンプルフォーム */}
-                      <Paper
-                        sx={{
-                          p: previewMode === 'mobile' ? 2 : 3,
-                          borderRadius: 2,
-                          width: '100%',
-                          maxWidth: previewMode === 'mobile' ? 300 : 600,
-                          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
-                        }}
-                      >
-                        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                          サンプルアンケート
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <Box>
-                            <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                              お名前をお聞かせください
-                            </Typography>
-                            <Box
-                              sx={{
-                                width: '100%',
-                                height: 40,
-                                border: '1px solid #e2e8f0',
-                                borderRadius: 1,
-                                backgroundColor: '#f8fafc'
-                              }}
-                            />
-                          </Box>
-                          <Box>
-                            <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
-                              満足度を教えてください
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                              {['とても満足', '満足', '普通', '不満'].map((option, index) => (
-                                <Box
-                                  key={index}
-                                  sx={{
-                                    px: 2,
-                                    py: 1,
-                                    border: '1px solid #e2e8f0',
-                                    borderRadius: 1,
-                                    fontSize: previewMode === 'mobile' ? '0.8rem' : '0.9rem',
-                                    backgroundColor: index === 1 ? 'rgba(94, 23, 235, 0.1)' : '#f8fafc',
-                                    color: index === 1 ? '#5e17eb' : '#64748b'
-                                  }}
-                                >
-                                  {option}
-                                </Box>
-                              ))}
+                          <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                            <Box sx={{
+                              width: 48,
+                              height: 48,
+                              borderRadius: 2,
+                              background: selectedPage.type === 'system' 
+                                ? 'rgba(255, 255, 255, 0.2)'
+                                : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+                            }}>
+                              {React.cloneElement(selectedPage.icon, { 
+                                sx: { color: 'white', fontSize: '1.5rem' } 
+                              })}
                             </Box>
+                            <Typography
+                              variant={previewMode === 'mobile' ? 'h5' : 'h4'}
+                              sx={{
+                                fontWeight: 700,
+                                color: selectedPage.type === 'system' ? 'white' : '#1a202c'
+                              }}
+                            >
+                              {selectedPage.title}
+                            </Typography>
                           </Box>
+
+                          {/* ページ固有のコンテンツ */}
+                          {selectedPage.id === 'login' && (
+                            <Paper
+                              sx={{
+                                p: previewMode === 'mobile' ? 3 : 4,
+                                borderRadius: 3,
+                                width: '100%',
+                                background: 'rgba(255, 255, 255, 0.95)',
+                                backdropFilter: 'blur(10px)',
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                              }}
+                            >
+                              <Typography variant="h5" sx={{ mb: 3, fontWeight: 700, textAlign: 'center', color: '#1a202c' }}>
+                                ログイン
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                                <Box>
+                                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: '#374151' }}>
+                                    メールアドレス
+                                  </Typography>
+                                  <Box sx={{ width: '100%', height: 44, background: '#f3f4f6', borderRadius: 1, border: '1px solid #d1d5db' }} />
+                                </Box>
+                                <Box>
+                                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, color: '#374151' }}>
+                                    パスワード
+                                  </Typography>
+                                  <Box sx={{ width: '100%', height: 44, background: '#f3f4f6', borderRadius: 1, border: '1px solid #d1d5db' }} />
+                                </Box>
+                                <Box sx={{ width: '100%', height: 48, background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)', borderRadius: 1.5, mt: 1 }} />
+                              </Box>
+                            </Paper>
+                          )}
+                          
+                          {selectedPage.id === 'completion' && (
+                            <Paper
+                              sx={{
+                                p: previewMode === 'mobile' ? 3 : 4,
+                                borderRadius: 3,
+                                width: '100%',
+                                background: 'rgba(255, 255, 255, 0.95)',
+                                backdropFilter: 'blur(10px)',
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                                textAlign: 'center'
+                              }}
+                            >
+                              <Box sx={{ mb: 3 }}>
+                                <CheckCircle sx={{ fontSize: '4rem', color: '#22c55e', mb: 2 }} />
+                                <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a202c', mb: 1 }}>
+                                  回答ありがとうございました！
+                                </Typography>
+                                <Typography variant="body1" sx={{ color: '#6b7280' }}>
+                                  お答えいただいた内容を確認し、後日回答いたします。
+                                </Typography>
+                              </Box>
+                              <Box sx={{ width: '100%', height: 48, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', borderRadius: 1.5 }} />
+                            </Paper>
+                          )}
+                          
+                          {selectedPage.type === 'question' && (
+                            <Paper
+                              sx={{
+                                p: previewMode === 'mobile' ? 3 : 4,
+                                borderRadius: 3,
+                                width: '100%',
+                                background: 'rgba(255, 255, 255, 0.95)',
+                                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                              }}
+                            >
+                              <Typography variant="body2" sx={{ mb: 2, color: '#6b7280', textAlign: 'center' }}>
+                                {selectedPage.questions}個の質問が含まれています
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                <Box>
+                                  <Typography variant="body1" sx={{ mb: 1.5, fontWeight: 600, color: '#1a202c' }}>
+                                    お名前をお聞かせください
+                                  </Typography>
+                                  <Box sx={{ width: '100%', height: 44, background: '#f3f4f6', borderRadius: 1, border: '1px solid #d1d5db' }} />
+                                </Box>
+                                <Box>
+                                  <Typography variant="body1" sx={{ mb: 1.5, fontWeight: 600, color: '#1a202c' }}>
+                                    満足度を教えてください
+                                  </Typography>
+                                  <Box sx={{ display: 'flex', gap: 1 }}>
+                                    {[1,2,3,4,5].map(i => (
+                                      <Box key={i} sx={{ width: 40, height: 40, background: i <= 3 ? '#5e17eb' : '#e5e7eb', borderRadius: 1 }} />
+                                    ))}
+                                  </Box>
+                                </Box>
+                                <Box>
+                                  <Typography variant="body1" sx={{ mb: 1.5, fontWeight: 600, color: '#1a202c' }}>
+                                    ご意見・ご要望
+                                  </Typography>
+                                  <Box sx={{ width: '100%', height: 80, background: '#f3f4f6', borderRadius: 1, border: '1px solid #d1d5db' }} />
+                                </Box>
+                              </Box>
+                            </Paper>
+                          )}
                         </Box>
-                      </Paper>
+                      ) : (
+                        <Box
+                          sx={{
+                            textAlign: 'center',
+                            mb: 3
+                          }}
+                        >
+                          <Typography
+                            variant={previewMode === 'mobile' ? 'h6' : 'h4'}
+                            sx={{
+                              fontWeight: 700,
+                              background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                              backgroundClip: 'text',
+                              WebkitBackgroundClip: 'text',
+                              WebkitTextFillColor: 'transparent',
+                              mb: 1
+                            }}
+                          >
+                            {previewMode === 'mobile' ? 'モバイル' : 'デスクトップ'}プレビュー
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            ページを選択してプレビューを表示
+                          </Typography>
+                        </Box>
+                      )}
                     </Box>
                   </Paper>
                 </motion.div>
@@ -988,7 +1075,13 @@ export default function CreatePage({ onBackClick }) {
                             onDragOver={(e) => handleDragOver(e, page.id)}
                             onDrop={(e) => handleDrop(e, page)}
                             onDragEnd={handleDragEnd}
-                            onClick={() => deleteMode && page.canDelete && handlePageDeletionRequest(page)}
+                            onClick={() => {
+                              if (deleteMode && page.canDelete) {
+                                handlePageDeletionRequest(page);
+                              } else if (!deleteMode) {
+                                setSelectedPage(page);
+                              }
+                            }}
                             sx={{
                               p: 1.5,
                               mb: 1,
