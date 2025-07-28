@@ -725,7 +725,12 @@ export default function CreatePage({ onBackClick }) {
                   p: 2,
                   display: 'flex',
                   flexDirection: 'column',
-                  overflowY: 'auto'
+                  overflowY: 'auto',
+                  '&::-webkit-scrollbar': {
+                    display: 'none'
+                  },
+                  scrollbarWidth: 'none', // Firefox
+                  msOverflowStyle: 'none' // IE and Edge
                 }}
               >
                 <Typography
