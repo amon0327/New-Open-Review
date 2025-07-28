@@ -636,20 +636,20 @@ export default function CreatePage({ onBackClick }) {
               handleFitScreen={handleFitScreen}
             />
 
-          {/* トースト通知とその他のコントロール */}
-          <Stack
-            spacing={2}
-            sx={{ 
-              position: 'absolute',
-              bottom: 20,
-              right: 20,
-              zIndex: 15
-            }}
-          >
+            {/* トースト通知とその他のコントロール */}
+            <Stack
+              spacing={2}
+              sx={{ 
+                position: 'absolute',
+                bottom: 20,
+                right: 20,
+                zIndex: 15
+              }}
+            >
 
-          </Stack>
+            </Stack>
 
-        </Box>
+          </Box>
 
         {/* 削除確認ダイアログ */}
         <DeleteConfirmationDialog
