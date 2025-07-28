@@ -5,6 +5,7 @@ import HeaderBar from './HeaderBar';
 import PreviewArea from './PreviewArea';
 import QuestionToolsSidebar from './QuestionToolsSidebar';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import PageManagerSidebar from './PageManagerSidebar';
 import { useCreatePageState } from '../hooks/useCreatePageState';
 import { leftNavigationItems, questionTypes, questionTemplates, settingsCategories } from '../constants/createPageData';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -565,8 +566,29 @@ export default function CreatePage({ onBackClick }) {
                   }}
                 >
                 {showPageManager ? (
-                  // ページ管理UI
-                  <>
+                  <PageManagerSidebar
+                    pages={pages}
+                    handleAddPage={handleAddPage}
+                    deleteMode={deleteMode}
+                    handleDeleteModeToggle={handleDeleteModeToggle}
+                    sortingAnimation={sortingAnimation}
+                    draggedPage={draggedPage}
+                    dropIndicator={dropIndicator}
+                    handleDragStart={handleDragStart}
+                    handleDragOver={handleDragOver}
+                    handleDrop={handleDrop}
+                    handleDragEnd={handleDragEnd}
+                    editingPageId={editingPageId}
+                    editingTitle={editingTitle}
+                    setEditingTitle={setEditingTitle}
+                    handleStartEdit={handleStartEdit}
+                    handleSaveEdit={handleSaveEdit}
+                    handleCancelEdit={handleCancelEdit}
+                    handleMovePageUp={handleMovePageUp}
+                    handleMovePageDown={handleMovePageDown}
+                    handleDeletePage={handleDeletePage}
+                    createIconContainerStyle={createIconContainerStyle}
+                  />
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                       <Typography
                         variant="h6"
