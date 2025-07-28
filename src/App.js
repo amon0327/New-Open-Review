@@ -121,16 +121,25 @@ function App() {
 
   const ensureBusinessUserExists = async (user) => {
     try {
-      // business_usersテーブルにエントリが存在するかチェック
-      const { data: existingUser, error: selectError } = await supabase
+      // タイムアウト設定付きでbusiness_usersテーブルにエントリが存在するかチェック
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database timeout')), 10000); // 10秒タイムアウト
+      });
+
+      const selectPromise = supabase
         .from('business_users')
         .select('id')
         .eq('id', user.id)
         .single();
 
+      const { data: existingUser, error: selectError } = await Promise.race([
+        selectPromise,
+        timeoutPromise
+      ]);
+
       if (selectError && selectError.code === 'PGRST116') {
-        // エントリが存在しない場合は作成
-        const { error: insertError } = await supabase
+        // エントリが存在しない場合は作成（タイムアウト付き）
+        const insertPromise = supabase
           .from('business_users')
           .insert({
             id: user.id,
@@ -139,43 +148,106 @@ function App() {
             company_name: user.user_metadata?.company || ''
           });
 
+        const insertTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Insert timeout')), 10000);
+        });
+
+        const { error: insertError } = await Promise.race([
+          insertPromise,
+          insertTimeoutPromise
+        ]);
+
         if (insertError) {
           console.error('business_users自動作成エラー:', insertError);
         }
-      } else if (selectError) {
+      } else if (selectError && selectError.message !== 'Database timeout') {
         console.error('business_usersチェックエラー:', selectError);
       }
     } catch (error) {
       console.error('ensureBusinessUserExists エラー:', error);
+      // エラーが発生してもアプリケーションは継続する
     }
   };
 
   useEffect(() => {
+    let isMounted = true; // コンポーネントがマウントされているかチェック
+
     // 現在のセッションを取得
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await ensureBusinessUserExists(session.user);
-        setCurrentView('dashboard');
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!isMounted) return; // コンポーネントがアンマウントされていたら処理を中止
+        
+        if (error) {
+          console.error('セッション取得エラー:', error);
+          setLoading(false);
+          return;
+        }
+
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          try {
+            await ensureBusinessUserExists(session.user);
+            if (isMounted) {
+              setCurrentView('dashboard');
+            }
+          } catch (error) {
+            console.error('business_users処理エラー:', error);
+            if (isMounted) {
+              setCurrentView('dashboard'); // エラーでもダッシュボードに進む
+            }
+          }
+        }
+      } catch (error) {
+        console.error('認証初期化エラー:', error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     // 認証状態の変更を監視
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await ensureBusinessUserExists(session.user);
-        setCurrentView('dashboard');
-      } else {
-        setCurrentView('login');
+      if (!isMounted) return;
+      
+      try {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          try {
+            await ensureBusinessUserExists(session.user);
+            if (isMounted) {
+              setCurrentView('dashboard');
+            }
+          } catch (error) {
+            console.error('business_users処理エラー:', error);
+            if (isMounted) {
+              setCurrentView('dashboard'); // エラーでもダッシュボードに進む
+            }
+          }
+        } else {
+          if (isMounted) {
+            setCurrentView('login');
+          }
+        }
+      } catch (error) {
+        console.error('認証状態変更エラー:', error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false; // クリーンアップ時にフラグを設定
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogin = (user) => {

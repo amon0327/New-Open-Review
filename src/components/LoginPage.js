@@ -58,16 +58,25 @@ export default function LoginPage({ onLogin }) {
 
   const ensureBusinessUserExists = async (user) => {
     try {
-      // business_usersテーブルにエントリが存在するかチェック
-      const { data: existingUser, error: selectError } = await supabase
+      // タイムアウト設定付きでbusiness_usersテーブルにエントリが存在するかチェック
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database timeout')), 5000); // 5秒タイムアウト
+      });
+
+      const selectPromise = supabase
         .from('business_users')
         .select('id')
         .eq('id', user.id)
         .single();
 
+      const { data: existingUser, error: selectError } = await Promise.race([
+        selectPromise,
+        timeoutPromise
+      ]);
+
       if (selectError && selectError.code === 'PGRST116') {
-        // エントリが存在しない場合は作成
-        const { error: insertError } = await supabase
+        // エントリが存在しない場合は作成（タイムアウト付き）
+        const insertPromise = supabase
           .from('business_users')
           .insert({
             id: user.id,
@@ -76,14 +85,24 @@ export default function LoginPage({ onLogin }) {
             company_name: user.user_metadata?.company || ''
           });
 
+        const insertTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Insert timeout')), 5000);
+        });
+
+        const { error: insertError } = await Promise.race([
+          insertPromise,
+          insertTimeoutPromise
+        ]);
+
         if (insertError) {
           console.error('business_users自動作成エラー:', insertError);
         }
-      } else if (selectError) {
+      } else if (selectError && selectError.message !== 'Database timeout') {
         console.error('business_usersチェックエラー:', selectError);
       }
     } catch (error) {
       console.error('ensureBusinessUserExists エラー:', error);
+      // エラーが発生してもログイン処理は継続する
     }
   };
 
@@ -101,8 +120,12 @@ export default function LoginPage({ onLogin }) {
       if (error) throw error;
 
       if (data.user) {
-        // business_usersテーブルにエントリが存在するかチェック
-        await ensureBusinessUserExists(data.user);
+        // business_usersテーブルにエントリが存在するかチェック（エラーでも継続）
+        try {
+          await ensureBusinessUserExists(data.user);
+        } catch (businessUserError) {
+          console.error('business_users処理でエラーが発生しましたが、ログインを継続します:', businessUserError);
+        }
         onLogin(data.user);
       }
     } catch (error) {
