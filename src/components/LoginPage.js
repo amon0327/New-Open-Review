@@ -99,6 +99,20 @@ export default function LoginPage({ onLogin }) {
       if (error) throw error;
 
       if (data.user) {
+        // business_usersテーブルに新規ユーザー情報を挿入
+        const { error: insertError } = await supabase
+          .from('business_users')
+          .insert({
+            id: data.user.id,
+            email: formData.email,
+            name: formData.name,
+            company_name: formData.company
+          });
+
+        if (insertError) {
+          console.error('business_users挿入エラー:', insertError);
+        }
+
         setError('確認メールを送信しました。メールをご確認ください。');
       }
     } catch (error) {
