@@ -261,7 +261,7 @@ export default function CreatePage() {
           }}
         >
           {showSettings ? (
-            /* シンプルでモダンな設定画面 */
+            // シンプルでモダンな設定画面
             <Box
               sx={{
                 p: 3,
@@ -610,7 +610,7 @@ export default function CreatePage() {
               </Grid>
             </Box>
           ) : (
-            /* 通常の編集画面 */}
+            // 通常の編集画面
             <Box
               sx={{
                 height: '100%',
