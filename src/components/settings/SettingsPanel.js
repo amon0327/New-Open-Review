@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import {
   Box,
   Typography,
-  Container,
   Stack
 } from '@mui/material';
 import ThemeSettings from './ThemeSettings';
@@ -53,7 +52,7 @@ const SettingsPanel = ({
         }
       }}
     >
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ px: 4, py: 4, width: '100%' }}>
         {/* ヘッダー */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -66,28 +65,16 @@ const SettingsPanel = ({
               sx={{ 
                 fontWeight: 700, 
                 color: '#1e293b', 
-                mb: 1,
                 fontSize: { xs: '1.75rem', md: '2.25rem' }
               }}
             >
               フォーム設定
             </Typography>
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                color: '#64748b', 
-                fontSize: '1.1rem',
-                maxWidth: 600,
-                mx: 'auto'
-              }}
-            >
-              フォームの外観、プロジェクト情報、公開設定をカスタマイズできます
-            </Typography>
           </Box>
         </motion.div>
 
         {/* 設定カード */}
-        <Stack spacing={3} sx={{ maxWidth: 800, mx: 'auto' }}>
+        <Stack spacing={3} sx={{ width: '100%' }}>
           {/* テーマ設定 */}
           <ThemeSettings
             selectedColor={selectedColor}
@@ -114,7 +101,7 @@ const SettingsPanel = ({
 
         {/* フッター余白 */}
         <Box sx={{ height: 60 }} />
-      </Container>
+      </Box>
     </Box>
   );
 };
