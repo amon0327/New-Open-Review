@@ -1,195 +1,259 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChromePicker } from 'react-color';
 import {
   Box,
-  Paper,
+  Card,
   Typography,
-  Grid,
-  Collapse,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
+  Button,
+  Stack,
+  IconButton,
   Avatar,
-  Chip
+  Divider
 } from '@mui/material';
-import { PaintBrushIcon, SwatchIcon } from '@heroicons/react/24/outline';
-import { ExpandMore } from '@mui/icons-material';
+import { Palette, Upload, Photo } from '@mui/icons-material';
 
 const ThemeSettings = ({
-  selectedTheme,
-  setSelectedTheme,
-  customColor,
-  setCustomColor,
-  showColorPicker,
-  setShowColorPicker,
-  themes
+  selectedColor,
+  setSelectedColor,
+  selectedFont,
+  setSelectedFont,
+  logoImage,
+  setLogoImage
 }) => {
+  // カラーパレット
+  const colorOptions = [
+    { name: '紫', value: '#5e17eb' },
+    { name: '青', value: '#3b82f6' },
+    { name: '緑', value: '#10b981' },
+    { name: '赤', value: '#ef4444' },
+    { name: 'オレンジ', value: '#f59e0b' },
+    { name: 'ピンク', value: '#ec4899' }
+  ];
+
+  // フォントオプション
+  const fontOptions = [
+    { name: 'デフォルト', value: 'system-ui' },
+    { name: 'ゴシック', value: 'Hiragino Kaku Gothic Pro' },
+    { name: '明朝', value: 'Hiragino Mincho Pro' },
+    { name: 'Noto Sans', value: 'Noto Sans JP' }
+  ];
+
+  const handleLogoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoImage(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.4, delay: 0.1 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
     >
-      <Paper
-        elevation={0}
+      <Card
         sx={{
-          p: 4,
-          borderRadius: 2,
-          backgroundColor: 'white',
-          border: '1px solid #e2e8f0',
+          p: 3,
+          borderRadius: 3,
+          border: '1px solid #f1f5f9',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
           '&:hover': {
-            borderColor: '#cbd5e1',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
           },
-          transition: 'all 0.2s ease'
+          transition: 'box-shadow 0.2s ease'
         }}
       >
+        {/* ヘッダー */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
           <Box
             sx={{
-              width: 48,
-              height: 48,
+              width: 40,
+              height: 40,
               borderRadius: 2,
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              mr: 2,
-              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+              mr: 2
             }}
           >
-            <PaintBrushIcon className="w-6 h-6 text-white" />
+            <Palette sx={{ color: 'white', fontSize: '1.2rem' }} />
           </Box>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a202c' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b' }}>
               テーマ設定
             </Typography>
-            <Typography variant="body2" sx={{ color: '#6b7280' }}>
+            <Typography variant="body2" sx={{ color: '#64748b' }}>
               フォームの外観をカスタマイズ
             </Typography>
           </Box>
         </Box>
 
-        <Grid container spacing={4}>
-          {themes.map((theme) => (
-            <Grid item xs={12} md={4} key={theme.id}>
-              <Box
-                onClick={() => setSelectedTheme(theme.id)}
-                sx={{
-                  p: 3,
-                  borderRadius: 2,
-                  cursor: 'pointer',
-                  border: selectedTheme === theme.id ? '2px solid #5e17eb' : '1px solid #e2e8f0',
-                  backgroundColor: selectedTheme === theme.id ? 'rgba(94, 23, 235, 0.05)' : 'white',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    borderColor: selectedTheme === theme.id ? '#5e17eb' : '#cbd5e1',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-                  }
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Box>
-                    <Typography variant="body1" sx={{ fontWeight: 500, color: '#374151' }}>
-                      {theme.name}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                      {theme.description}
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                  {theme.colors.map((color, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: '50%',
-                        backgroundColor: color,
-                        border: '2px solid white',
-                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                      }}
-                    />
-                  ))}
-                </Box>
-                {selectedTheme === theme.id && (
-                  <Chip
-                    label="選択中"
-                    size="small"
+        <Stack spacing={3}>
+          {/* テーマカラー */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#374151' }}>
+              テーマカラー
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+              {colorOptions.map((color) => (
+                <motion.div
+                  key={color.value}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Box
+                    onClick={() => setSelectedColor(color.value)}
                     sx={{
-                      backgroundColor: '#5e17eb',
-                      color: 'white',
-                      fontWeight: 500
+                      width: 40,
+                      height: 40,
+                      borderRadius: 2,
+                      backgroundColor: color.value,
+                      cursor: 'pointer',
+                      border: selectedColor === color.value 
+                        ? '3px solid #1e293b' 
+                        : '2px solid transparent',
+                      boxShadow: selectedColor === color.value 
+                        ? '0 0 0 2px white, 0 0 0 4px ' + color.value
+                        : '0 2px 4px rgba(0, 0, 0, 0.1)',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+                      }
                     }}
                   />
+                </motion.div>
+              ))}
+            </Box>
+          </Box>
+
+          <Divider />
+
+          {/* フォント */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#374151' }}>
+              フォント
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {fontOptions.map((font) => (
+                <Button
+                  key={font.value}
+                  variant={selectedFont === font.value ? 'contained' : 'outlined'}
+                  onClick={() => setSelectedFont(font.value)}
+                  size="small"
+                  sx={{
+                    fontFamily: font.value,
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    px: 2,
+                    ...(selectedFont === font.value ? {
+                      backgroundColor: selectedColor,
+                      '&:hover': {
+                        backgroundColor: selectedColor
+                      }
+                    } : {
+                      borderColor: '#e2e8f0',
+                      color: '#64748b',
+                      '&:hover': {
+                        borderColor: selectedColor,
+                        backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                      }
+                    })
+                  }}
+                >
+                  {font.name}
+                </Button>
+              ))}
+            </Box>
+          </Box>
+
+          <Divider />
+
+          {/* ロゴ画像 */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#374151' }}>
+              ロゴ画像
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {logoImage ? (
+                <Avatar
+                  src={logoImage}
+                  sx={{ width: 60, height: 60, borderRadius: 2 }}
+                  variant="rounded"
+                />
+              ) : (
+                <Box
+                  sx={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 2,
+                    border: '2px dashed #cbd5e1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: '#f8fafc'
+                  }}
+                >
+                  <Photo sx={{ color: '#94a3b8', fontSize: '1.5rem' }} />
+                </Box>
+              )}
+              
+              <Box>
+                <input
+                  accept="image/*"
+                  type="file"
+                  id="logo-upload"
+                  style={{ display: 'none' }}
+                  onChange={handleLogoUpload}
+                />
+                <label htmlFor="logo-upload">
+                  <Button
+                    component="span"
+                    variant="outlined"
+                    startIcon={<Upload />}
+                    size="small"
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      borderColor: '#e2e8f0',
+                      color: '#64748b',
+                      '&:hover': {
+                        borderColor: selectedColor,
+                        backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                      }
+                    }}
+                  >
+                    {logoImage ? '変更' : 'アップロード'}
+                  </Button>
+                </label>
+                {logoImage && (
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => setLogoImage(null)}
+                    sx={{
+                      ml: 1,
+                      color: '#64748b',
+                      textTransform: 'none',
+                      '&:hover': { color: '#ef4444' }
+                    }}
+                  >
+                    削除
+                  </Button>
                 )}
               </Box>
-            </Grid>
-          ))}
-        </Grid>
-
-        <Accordion 
-          sx={{ 
-            mt: 3, 
-            border: '1px solid #e2e8f0',
-            '&:before': { display: 'none' },
-            boxShadow: 'none'
-          }}
-        >
-          <AccordionSummary
-            expandIcon={<ExpandMore />}
-            sx={{
-              '&:hover': { backgroundColor: '#f8fafc' }
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <SwatchIcon className="w-5 h-5 text-gray-600 mr-2" />
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                カスタムカラー
-              </Typography>
             </Box>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <Box
-                onClick={() => setShowColorPicker(!showColorPicker)}
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 2,
-                  backgroundColor: customColor,
-                  border: '2px solid #e2e8f0',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    borderColor: '#cbd5e1',
-                    transform: 'scale(1.05)'
-                  }
-                }}
-              />
-              <Box>
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  メインカラー
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#6b7280' }}>
-                  クリックしてカラーピッカーを開く
-                </Typography>
-              </Box>
-            </Box>
-            <Collapse in={showColorPicker}>
-              <Box sx={{ mt: 2 }}>
-                <ChromePicker
-                  color={customColor}
-                  onChange={(color) => setCustomColor(color.hex)}
-                  width="100%"
-                />
-              </Box>
-            </Collapse>
-          </AccordionDetails>
-        </Accordion>
-      </Paper>
+            <Typography variant="caption" sx={{ color: '#94a3b8', mt: 1, display: 'block' }}>
+              推奨サイズ: 200×200px以下、PNG/JPG形式
+            </Typography>
+          </Box>
+        </Stack>
+      </Card>
     </motion.div>
   );
 };

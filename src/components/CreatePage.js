@@ -158,31 +158,8 @@ export default function CreatePage({ onBackClick }) {
   } = useCreatePageState();
 
   // 設定関連の追加状態
-  const [selectedTheme, setSelectedTheme] = useState('modern');
-  const [customColor, setCustomColor] = useState('#5e17eb');
-  const [projectImage, setProjectImage] = useState(null);
-
-  // テーマデータ
-  const themes = [
-    {
-      id: 'modern',
-      name: 'モダン',
-      description: 'すっきりとしたデザイン',
-      colors: ['#5e17eb', '#667eea', '#764ba2']
-    },
-    {
-      id: 'classic',
-      name: 'クラシック',
-      description: '落ち着いたデザイン',
-      colors: ['#374151', '#6b7280', '#9ca3af']
-    },
-    {
-      id: 'vibrant',
-      name: 'ビビッド',
-      description: '鮮やかなデザイン',
-      colors: ['#f59e0b', '#ef4444', '#8b5cf6']
-    }
-  ];
+  const [selectedColor, setSelectedColor] = useState('#5e17eb');
+  const [logoImage, setLogoImage] = useState(null);
 
   // サンプルページデータ
   const [pages, setPages] = useState([
@@ -466,21 +443,16 @@ export default function CreatePage({ onBackClick }) {
                 /* 設定画面 */
                 <SettingsPanel
                   // テーマ設定のprops
-                  selectedTheme={selectedTheme}
-                  setSelectedTheme={setSelectedTheme}
-                  customColor={customColor}
-                  setCustomColor={setCustomColor}
-                  showColorPicker={showColorPicker}
-                  setShowColorPicker={setShowColorPicker}
-                  themes={themes}
+                  selectedColor={selectedColor}
+                  setSelectedColor={setSelectedColor}
+                  selectedFont={selectedFont}
+                  setSelectedFont={setSelectedFont}
+                  logoImage={logoImage}
+                  setLogoImage={setLogoImage}
                   
                   // プロジェクト設定のprops
                   projectTitle={projectTitle}
                   setProjectTitle={setProjectTitle}
-                  projectDescription={projectDescription}
-                  setProjectDescription={setProjectDescription}
-                  projectImage={projectImage}
-                  setProjectImage={setProjectImage}
                   
                   // 公開設定のprops
                   isPublished={isPublished}

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import {
   Box,
   Typography,
-  Grid,
+  Container,
   Stack
 } from '@mui/material';
 import ThemeSettings from './ThemeSettings';
@@ -12,21 +12,16 @@ import PublishSettings from './PublishSettings';
 
 const SettingsPanel = ({
   // テーマ設定のprops
-  selectedTheme,
-  setSelectedTheme,
-  customColor,
-  setCustomColor,
-  showColorPicker,
-  setShowColorPicker,
-  themes,
+  selectedColor,
+  setSelectedColor,
+  selectedFont,
+  setSelectedFont,
+  logoImage,
+  setLogoImage,
   
   // プロジェクト設定のprops
   projectTitle,
   setProjectTitle,
-  projectDescription,
-  setProjectDescription,
-  projectImage,
-  setProjectImage,
   
   // 公開設定のprops
   isPublished,
@@ -42,76 +37,84 @@ const SettingsPanel = ({
         bottom: 0,
         zIndex: 10,
         overflowY: 'auto',
-        p: 3,
-        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        '&::-webkit-scrollbar': {
+          width: '6px'
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'transparent'
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#cbd5e1',
+          borderRadius: '3px'
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: '#94a3b8'
+        }
       }}
     >
-      <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
         {/* ヘッダー */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 4, textAlign: 'center' }}>
             <Typography 
               variant="h4" 
               sx={{ 
                 fontWeight: 700, 
-                color: '#1a202c', 
+                color: '#1e293b', 
                 mb: 1,
                 fontSize: { xs: '1.75rem', md: '2.25rem' }
               }}
             >
               フォーム設定
             </Typography>
-            <Typography variant="body1" sx={{ 
-              color: '#64748b', 
-              fontSize: '1.1rem'
-            }}>
-              フォームのテーマ、プロジェクト情報、公開設定
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: '#64748b', 
+                fontSize: '1.1rem',
+                maxWidth: 600,
+                mx: 'auto'
+              }}
+            >
+              フォームの外観、プロジェクト情報、公開設定をカスタマイズできます
             </Typography>
           </Box>
         </motion.div>
 
-        {/* 設定セクション - PC専用2カラムレイアウト */}
-        <Grid container spacing={4}>
-          {/* 左列: テーマ設定とプロジェクト設定 */}
-          <Grid item xs={12} lg={8}>
-            <Stack spacing={4}>
-              {/* テーマ設定 */}
-              <ThemeSettings
-                selectedTheme={selectedTheme}
-                setSelectedTheme={setSelectedTheme}
-                customColor={customColor}
-                setCustomColor={setCustomColor}
-                showColorPicker={showColorPicker}
-                setShowColorPicker={setShowColorPicker}
-                themes={themes}
-              />
+        {/* 設定カード */}
+        <Stack spacing={3} sx={{ maxWidth: 800, mx: 'auto' }}>
+          {/* テーマ設定 */}
+          <ThemeSettings
+            selectedColor={selectedColor}
+            setSelectedColor={setSelectedColor}
+            selectedFont={selectedFont}
+            setSelectedFont={setSelectedFont}
+            logoImage={logoImage}
+            setLogoImage={setLogoImage}
+          />
 
-              {/* プロジェクト設定 */}
-              <ProjectSettings
-                projectTitle={projectTitle}
-                setProjectTitle={setProjectTitle}
-                projectDescription={projectDescription}
-                setProjectDescription={setProjectDescription}
-                projectImage={projectImage}
-                setProjectImage={setProjectImage}
-              />
-            </Stack>
-          </Grid>
+          {/* プロジェクト設定 */}
+          <ProjectSettings
+            projectTitle={projectTitle}
+            setProjectTitle={setProjectTitle}
+          />
 
           {/* 公開設定 */}
-          <Grid item xs={12} lg={4}>
-            <PublishSettings
-              isPublished={isPublished}
-              setIsPublished={setIsPublished}
-              projectTitle={projectTitle}
-            />
-          </Grid>
-        </Grid>
-      </Box>
+          <PublishSettings
+            isPublished={isPublished}
+            setIsPublished={setIsPublished}
+            projectTitle={projectTitle}
+          />
+        </Stack>
+
+        {/* フッター余白 */}
+        <Box sx={{ height: 60 }} />
+      </Container>
     </Box>
   );
 };
