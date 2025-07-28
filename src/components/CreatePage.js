@@ -89,6 +89,50 @@ import {
   Quiz
 } from '@mui/icons-material';
 
+// スタイル定数
+const PURPLE_GRADIENT_TEXT_STYLE = {
+  fontWeight: 600,
+  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+  backgroundClip: 'text',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent'
+};
+
+// サイドバーPaperの基本スタイル
+const SIDEBAR_PAPER_BASE_STYLE = {
+  height: '100%',
+  borderRadius: 0,
+  background: 'rgba(255, 255, 255, 0.9)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.3)',
+  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+  p: 2,
+  display: 'flex',
+  flexDirection: 'column'
+};
+
+// Motionアニメーション定数
+const SLIDE_IN_LEFT_ANIMATION = {
+  initial: { opacity: 0, x: -50 },
+  animate: { opacity: 1, x: 0 },
+  transition: { duration: 0.6, delay: 0.2 }
+};
+
+const SLIDE_IN_RIGHT_ANIMATION = {
+  initial: { opacity: 0, x: 50 },
+  animate: { opacity: 1, x: 0 },
+  transition: { duration: 0.6, delay: 0.4 }
+};
+
+// アニメーションユーティリティ関数
+const executeWithAnimation = (setSortingAnimation, operation, delay = 100, animationClearDelay = 200) => {
+  setTimeout(() => {
+    operation();
+    setTimeout(() => {
+      setSortingAnimation(null);
+    }, animationClearDelay);
+  }, delay);
+};
 
 export default function CreatePage({ onBackClick }) {
   // カスタムフックから状態を取得
@@ -168,17 +212,12 @@ export default function CreatePage({ onBackClick }) {
       // アニメーション開始
       setSortingAnimation({ id: pageId, direction: 'up' });
       
-      // 少し待ってから実際の移動を実行
-      setTimeout(() => {
+      // アニメーション付きで移動を実行
+      executeWithAnimation(setSortingAnimation, () => {
         const newPages = [...pages];
         [newPages[pageIndex], newPages[pageIndex - 1]] = [newPages[pageIndex - 1], newPages[pageIndex]];
         setPages(newPages);
-        
-        // アニメーション終了
-        setTimeout(() => {
-          setSortingAnimation(null);
-        }, 200);
-      }, 100);
+      });
     }
   };
 
@@ -188,17 +227,12 @@ export default function CreatePage({ onBackClick }) {
       // アニメーション開始
       setSortingAnimation({ id: pageId, direction: 'down' });
       
-      // 少し待ってから実際の移動を実行
-      setTimeout(() => {
+      // アニメーション付きで移動を実行
+      executeWithAnimation(setSortingAnimation, () => {
         const newPages = [...pages];
         [newPages[pageIndex], newPages[pageIndex + 1]] = [newPages[pageIndex + 1], newPages[pageIndex]];
         setPages(newPages);
-        
-        // アニメーション終了
-        setTimeout(() => {
-          setSortingAnimation(null);
-        }, 200);
-      }, 100);
+      });
     }
   };
 
@@ -509,23 +543,13 @@ export default function CreatePage({ onBackClick }) {
             {/* 右コンテナ - 設定画面では非表示 */}
             {!showSettings && (
               <motion.div
-                initial={{ opacity: 0, x: -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+                {...SLIDE_IN_LEFT_ANIMATION}
                 style={{ flex: '0 0 300px', pointerEvents: 'auto' }}
               >
                 <Paper
                   elevation={8}
                   sx={{
-                    height: '100%',
-                    borderRadius: 0,
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
+                    ...SIDEBAR_PAPER_BASE_STYLE,
                     overflowY: 'auto',
                     '&::-webkit-scrollbar': {
                       display: 'none'
@@ -540,13 +564,7 @@ export default function CreatePage({ onBackClick }) {
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                       <Typography
                         variant="h6"
-                        sx={{
-                          fontWeight: 600,
-                          background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                          backgroundClip: 'text',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent'
-                        }}
+                        sx={PURPLE_GRADIENT_TEXT_STYLE}
                       >
                         ページ管理
                       </Typography>
@@ -768,13 +786,7 @@ export default function CreatePage({ onBackClick }) {
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
                       <Typography
                         variant="h6"
-                        sx={{
-                          fontWeight: 600,
-                          background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                          backgroundClip: 'text',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent'
-                        }}
+                        sx={PURPLE_GRADIENT_TEXT_STYLE}
                       >
                         設定
                       </Typography>
@@ -924,24 +936,12 @@ export default function CreatePage({ onBackClick }) {
             {/* 右側Container - フォーム設定 - 設定画面では非表示 */}
             {!showSettings && (
               <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
+                {...SLIDE_IN_RIGHT_ANIMATION}
                 style={{ flex: '0 0 300px', pointerEvents: 'auto' }}
               >
               <Paper
                 elevation={8}
-                sx={{
-                  height: '100%',
-                  borderRadius: 0,
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-                  p: 2,
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
+                sx={SIDEBAR_PAPER_BASE_STYLE}
               >
                 <Typography
                   variant="h6"
