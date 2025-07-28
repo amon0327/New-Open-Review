@@ -45,7 +45,7 @@ import {
 
 // 左ナビゲーションアイテムの定義
 const leftNavigationItems = [
-  { icon: <RateReview />, label: 'OpenReview', category: 'main' },
+  { icon: null, label: 'OpenReview', category: 'main', isLogo: true },
   { icon: <Folder />, label: 'フォルダー', category: 'main' },
   { icon: <Edit />, label: '編集', category: 'main' },
   { icon: <Settings />, label: '設定', category: 'main' }
@@ -185,44 +185,6 @@ export default function CreatePage({ onBackClick }) {
           boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)'
         }}
       >
-        {/* ロゴ */}
-        <Box
-          sx={{
-            width: 48,
-            height: 48,
-            borderRadius: 2,
-            background: 'rgba(255, 255, 255, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 3,
-            backdropFilter: 'blur(10px)'
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{ color: 'white', fontWeight: 'bold' }}
-          >
-            O
-          </Typography>
-        </Box>
-
-        {/* 戻るボタン */}
-        <Tooltip title="ダッシュボードに戻る" placement="right">
-          <IconButton
-            onClick={onBackClick}
-            sx={{
-              color: 'rgba(255, 255, 255, 0.8)',
-              mb: 2,
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                color: 'white'
-              }
-            }}
-          >
-            <ArrowBack />
-          </IconButton>
-        </Tooltip>
 
         {/* ナビゲーションアイテム */}
         <Box
@@ -237,7 +199,7 @@ export default function CreatePage({ onBackClick }) {
           {leftNavigationItems.map((item, index) => (
             <Tooltip key={index} title={item.label} placement="right">
               <IconButton
-                onClick={() => setSelectedTool(item)}
+                onClick={() => item.isLogo ? onBackClick() : setSelectedTool(item)}
                 sx={{
                   color: selectedTool?.label === item.label ? 'white' : 'rgba(255, 255, 255, 0.7)',
                   backgroundColor: selectedTool?.label === item.label ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
@@ -248,10 +210,43 @@ export default function CreatePage({ onBackClick }) {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     color: 'white'
                   },
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}
               >
-                {item.icon}
+                {item.isLogo ? (
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 1,
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backdropFilter: 'blur(10px)',
+                      // 画像を追加する場合のスタイル
+                      backgroundImage: 'none', // ここに 'url("/path/to/logo.png")' を指定
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}
+                  >
+                    {/* 画像がない場合のフォールバック */}
+                    <Typography
+                      variant="caption"
+                      sx={{ 
+                        color: 'white', 
+                        fontWeight: 'bold',
+                        fontSize: '0.7rem'
+                      }}
+                    >
+                      OR
+                    </Typography>
+                  </Box>
+                ) : (
+                  item.icon
+                )}
               </IconButton>
             </Tooltip>
           ))}
