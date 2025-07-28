@@ -1011,8 +1011,6 @@ export default function CreatePage({ onBackClick }) {
                               alignItems: 'center',
                               cursor: deleteMode && page.canDelete 
                                 ? 'pointer' 
-                                : page.type === 'question' && !deleteMode 
-                                ? 'move' 
                                 : 'default',
                               opacity: draggedPage?.id === page.id ? 0.5 : deleteMode && !page.canDelete ? 0.5 : 1,
                               transition: 'all 0.3s ease',
@@ -1041,13 +1039,19 @@ export default function CreatePage({ onBackClick }) {
                                 flexShrink: 0
                               }}
                             >
-                              {page.type === 'question' && (
+                              {page.type === 'question' && !deleteMode && (
                                 <Box
                                   sx={{
                                     color: '#94a3b8',
                                     cursor: 'grab',
                                     '&:active': { cursor: 'grabbing' },
-                                    '&:hover': { color: '#5e17eb' }
+                                    '&:hover': { color: '#5e17eb' },
+                                    padding: '4px',
+                                    borderRadius: '4px',
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(94, 23, 235, 0.1)',
+                                      color: '#5e17eb'
+                                    }
                                   }}
                                 >
                                   <DragHandle sx={{ fontSize: '1.2rem' }} />
