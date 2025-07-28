@@ -669,7 +669,7 @@ export default function CreatePage({ onBackClick }) {
                             }}
                           >
                             {/* ドラッグハンドル */}
-                            {!editingPageId && page.type !== 'system' && (
+                            {!editingPageId && page.type !== 'system' ? (
                               <Box
                                 sx={{
                                   display: 'flex',
