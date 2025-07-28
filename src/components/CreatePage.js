@@ -4,6 +4,9 @@ import LeftNavigationBar from './LeftNavigationBar';
 import HeaderBar from './HeaderBar';
 import PreviewArea from './PreviewArea';
 import QuestionToolsSidebar from './QuestionToolsSidebar';
+import DeleteConfirmationDialog from './DeleteConfirmationDialog';
+import SettingsPanel from './SettingsPanel';
+import PageManager from './PageManager';
 import { useCreatePageState } from '../hooks/useCreatePageState';
 import { leftNavigationItems, questionTypes, questionTemplates, settingsCategories } from '../constants/createPageData';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -535,377 +538,31 @@ export default function CreatePage({ onBackClick }) {
                 >
                 {showPageManager ? (
                   // ページ管理UI
-                  <>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: 600,
-                          background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                          backgroundClip: 'text',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent'
-                        }}
-                      >
-                        ページ管理
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton
-                          onClick={handleAddPage}
-                          sx={{
-                            color: '#5e17eb',
-                            backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                            '&:hover': { 
-                              backgroundColor: 'rgba(94, 23, 235, 0.2)',
-                              transform: 'scale(1.05)'
-                            }
-                          }}
-                        >
-                          <Add />
-                        </IconButton>
-                        <IconButton
-                          onClick={handleDeleteModeToggle}
-                          sx={{
-                            color: deleteMode ? '#ef4444' : '#64748b',
-                            backgroundColor: deleteMode ? 'rgba(239, 68, 68, 0.1)' : 'rgba(100, 116, 139, 0.1)',
-                            '&:hover': { 
-                              backgroundColor: deleteMode ? 'rgba(239, 68, 68, 0.2)' : 'rgba(100, 116, 139, 0.2)',
-                              transform: 'scale(1.05)'
-                            }
-                          }}
-                        >
-                          <Delete />
-                        </IconButton>
-                      </Box>
-                    </Box>
-
-                    {/* ページリスト */}
-                    <Box sx={{ flex: 1 }}>
-                      {pages.map((page, index) => (
-                        <motion.div
-                          key={page.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ 
-                            opacity: 1, 
-                            y: 0,
-                            scale: sortingAnimation?.id === page.id && sortingAnimation.direction === 'dragging' ? 1.05 : 1,
-                            x: sortingAnimation?.id === page.id && sortingAnimation.direction === 'up' ? -5 : 
-                               sortingAnimation?.id === page.id && sortingAnimation.direction === 'down' ? 5 : 0
-                          }}
-                          transition={{ 
-                            duration: sortingAnimation?.id === page.id ? 0.2 : 0.2, 
-                            delay: sortingAnimation?.id === page.id ? 0 : index * 0.05 
-                          }}
-                        >
-                          <Box
-                            draggable={page.type === 'question' && !deleteMode}
-                            onDragStart={(e) => handleDragStart(e, page)}
-                            onDragOver={(e) => handleDragOver(e, page.id)}
-                            onDrop={(e) => handleDrop(e, page)}
-                            onDragEnd={handleDragEnd}
-                            onClick={(e) => {
-                              // 編集中の入力フィールドをクリックした場合は何もしない
-                              if (editingPageId === page.id) {
-                                e.stopPropagation();
-                                return;
-                              }
-                              
-                              if (deleteMode && page.canDelete) {
-                                handlePageDeletionRequest(page);
-                              } else if (!deleteMode) {
-                                setSelectedPage(page);
-                              }
-                            }}
-                            sx={{
-                              p: 1.5,
-                              mb: 1,
-                              borderRadius: 1,
-                              backgroundColor: sortingAnimation?.id === page.id && sortingAnimation.direction === 'success'
-                                ? 'rgba(34, 197, 94, 0.1)'
-                                : draggedPage?.id === page.id 
-                                ? 'rgba(94, 23, 235, 0.1)' 
-                                : dropIndicator === page.id
-                                ? 'rgba(94, 23, 235, 0.08)'
-                                : 'rgba(255, 255, 255, 0.8)',
-                              border: dropIndicator === page.id 
-                                ? '2px dashed #5e17eb'
-                                : sortingAnimation?.id === page.id && sortingAnimation.direction === 'success'
-                                ? '1px solid rgba(34, 197, 94, 0.3)'
-                                : '1px solid rgba(0, 0, 0, 0.06)',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                              minHeight: 72,
-                              display: 'flex',
-                              alignItems: 'center',
-                              cursor: deleteMode && page.canDelete 
-                                ? 'pointer' 
-                                : 'default',
-                              opacity: draggedPage?.id === page.id ? 0.5 : deleteMode && !page.canDelete ? 0.5 : 1,
-                              transition: 'all 0.3s ease',
-                              '&:hover': {
-                                backgroundColor: deleteMode && page.canDelete
-                                  ? 'rgba(239, 68, 68, 0.05)'
-                                  : draggedPage?.id === page.id 
-                                  ? 'rgba(94, 23, 235, 0.1)' 
-                                  : 'rgba(94, 23, 235, 0.04)',
-                                borderColor: deleteMode && page.canDelete
-                                  ? 'rgba(239, 68, 68, 0.3)'
-                                  : 'rgba(94, 23, 235, 0.15)',
-                                transform: draggedPage?.id === page.id ? 'none' : 'translateY(-1px)',
-                                boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
-                              }
-                            }}
-                          >
-                            {/* ドラッグハンドル領域またはシステムページパディング */}
-                            {page.type === 'question' && !deleteMode ? (
-                              <Box
-                                sx={{
-                                  color: '#94a3b8',
-                                  cursor: 'grab',
-                                  '&:active': { cursor: 'grabbing' },
-                                  '&:hover': { color: '#5e17eb' },
-                                  padding: '4px',
-                                  borderRadius: '4px',
-                                  mr: 1,
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                                    color: '#5e17eb'
-                                  }
-                                }}
-                              >
-                                <DragHandle sx={{ fontSize: '1.2rem' }} />
-                              </Box>
-                            ) : (
-                              <Box sx={{ width: 16, flexShrink: 0 }} />
-                            )}
-
-                            {/* ページアイコン */}
-                            <Box
-                              sx={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 1,
-                                background: page.type === 'system' 
-                                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                                  : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                                boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
-                              }}
-                            >
-                              {React.cloneElement(page.icon, { 
-                                sx: { color: 'white', fontSize: '1rem' } 
-                              })}
-                            </Box>
-
-                            {/* ページ情報 */}
-                            <Box sx={{ flex: 1, minWidth: 0, ml: 2 }}>
-                              {editingPageId === page.id ? (
-                                <Input
-                                  value={editingTitle}
-                                  onChange={(e) => setEditingTitle(e.target.value)}
-                                  onKeyPress={handleTitleKeyPress}
-                                  onBlur={handleSaveEdit}
-                                  autoFocus
-                                  sx={{
-                                    fontWeight: 600,
-                                    color: '#2d3748',
-                                    fontSize: '0.8rem',
-                                    width: '100%',
-                                    '&:before': {
-                                      borderBottom: '2px solid #5e17eb'
-                                    },
-                                    '&:after': {
-                                      borderBottom: '2px solid #5e17eb'
-                                    }
-                                  }}
-                                />
-                              ) : (
-                                <Typography
-                                  variant="body2"
-                                  onClick={() => {
-                                    if (!deleteMode) {
-                                      handleStartEditing(page);
-                                    }
-                                  }}
-                                  sx={{
-                                    fontWeight: 600,
-                                    color: '#2d3748',
-                                    fontSize: '0.8rem',
-                                    mb: 0.3,
-                                    cursor: page.type === 'question' && !deleteMode ? 'text' : 'default',
-                                    '&:hover': page.type === 'question' && !deleteMode ? {
-                                      textDecoration: 'underline',
-                                      color: '#5e17eb'
-                                    } : {}
-                                  }}
-                                >
-                                  {page.title}
-                                </Typography>
-                              )}
-                              {page.type === 'question' && (
-                                <Typography
-                                  variant="caption"
-                                  sx={{
-                                    color: '#64748b',
-                                    fontSize: '0.7rem'
-                                  }}
-                                >
-                                  {page.questions}個の質問
-                                </Typography>
-                              )}
-                            </Box>
-                          </Box>
-                        </motion.div>
-                      ))}
-                    </Box>
-                  </>
+                  <PageManager
+                    pages={pages}
+                    editingPageId={editingPageId}
+                    editingTitle={editingTitle}
+                    deleteMode={deleteMode}
+                    draggedPage={draggedPage}
+                    dropIndicator={dropIndicator}
+                    sortingAnimation={sortingAnimation}
+                    handleAddPage={handleAddPage}
+                    handleDeleteModeToggle={handleDeleteModeToggle}
+                    handleDragStart={handleDragStart}
+                    handleDragOver={handleDragOver}
+                    handleDrop={handleDrop}
+                    handleDragEnd={handleDragEnd}
+                    handlePageDeletionRequest={handlePageDeletionRequest}
+                    setSelectedPage={setSelectedPage}
+                    setEditingPageId={setEditingPageId}
+                    setEditingTitle={setEditingTitle}
+                    handleStartEditing={handleStartEditing}
+                    handleCancelEdit={handleCancelEdit}
+                    handleSaveEdit={handleSaveEdit}
+                  />
                 ) : showSettings ? (
                   // 設定画面
-                  <>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: 600,
-                          background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                          backgroundClip: 'text',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent'
-                        }}
-                      >
-                        設定
-                      </Typography>
-                    </Box>
-
-                    {/* 設定カテゴリ */}
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      {settingsCategories.map((category) => (
-                        <motion.div
-                          key={category.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3, delay: settingsCategories.indexOf(category) * 0.1 }}
-                        >
-                          <Paper
-                            elevation={2}
-                            sx={{
-                              p: 3,
-                              borderRadius: 2,
-                              background: 'rgba(255, 255, 255, 0.8)',
-                              border: '1px solid rgba(0, 0, 0, 0.05)',
-                              '&:hover': {
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)'
-                              },
-                              transition: 'all 0.2s ease'
-                            }}
-                          >
-                            {/* カテゴリヘッダー */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                              <Box
-                                sx={{
-                                  width: 48,
-                                  height: 48,
-                                  borderRadius: 2,
-                                  background: `linear-gradient(135deg, ${
-                                    category.id === 'account' ? '#667eea, #764ba2' :
-                                    category.id === 'database' ? '#5e17eb, #764ba2' :
-                                    category.id === 'forms' ? '#22c55e, #16a34a' :
-                                    category.id === 'security' ? '#ef4444, #dc2626' :
-                                    category.id === 'integrations' ? '#3b82f6, #1d4ed8' :
-                                    '#6b7280, #4b5563'
-                                  })`,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  mr: 2,
-                                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-                                }}
-                              >
-                                {React.cloneElement(category.icon, { sx: { color: 'white', fontSize: '1.5rem' } })}
-                              </Box>
-                              <Box>
-                                <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a202c' }}>
-                                  {category.title}
-                                </Typography>
-                                <Typography variant="body2" sx={{ color: '#6b7280' }}>
-                                  {category.description}
-                                </Typography>
-                              </Box>
-                            </Box>
-
-                            {/* 設定項目 */}
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                              {category.settings.map((setting, index) => (
-                                <Box
-                                  key={setting.id}
-                                  sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    p: 2,
-                                    borderRadius: 1,
-                                    backgroundColor: 'rgba(248, 250, 252, 0.6)',
-                                    border: '1px solid rgba(226, 232, 240, 0.5)',
-                                    '&:hover': {
-                                      backgroundColor: 'rgba(94, 23, 235, 0.03)'
-                                    },
-                                    transition: 'all 0.2s ease'
-                                  }}
-                                >
-                                  <Box>
-                                    <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151' }}>
-                                      {setting.label}
-                                    </Typography>
-                                  </Box>
-                                  
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    {setting.type === 'toggle' ? (
-                                      <Switch
-                                        checked={setting.value}
-                                        size="small"
-                                        sx={{
-                                          '& .MuiSwitch-switchBase.Mui-checked': {
-                                            color: '#5e17eb'
-                                          },
-                                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                            backgroundColor: '#5e17eb'
-                                          }
-                                        }}
-                                      />
-                                    ) : setting.type === 'status' ? (
-                                      <Chip
-                                        label={setting.value}
-                                        size="small"
-                                        sx={{
-                                          backgroundColor: setting.status === 'connected' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                          color: setting.status === 'connected' ? '#16a34a' : '#dc2626',
-                                          fontWeight: 500
-                                        }}
-                                      />
-                                    ) : setting.type === 'info' ? (
-                                      <Typography variant="body2" sx={{ color: '#6b7280', fontWeight: 500 }}>
-                                        {setting.value}
-                                      </Typography>
-                                    ) : (
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Typography variant="body2" sx={{ color: '#6b7280', minWidth: 80, textAlign: 'right' }}>
-                                          {setting.value}
-                                        </Typography>
-                                        <ChevronRight sx={{ color: '#9ca3af', fontSize: '1rem' }} />
-                                      </Box>
-                                    )}
-                                  </Box>
-                                </Box>
-                              ))}
-                            </Box>
-                          </Paper>
-                        </motion.div>
-                      ))}
-                    </Box>
-                  </>
+                  <SettingsPanel settingsCategories={settingsCategories} />
                 ) : (
                   // 通常の質問作成ツール
                   <QuestionToolsSidebar 
@@ -920,136 +577,87 @@ export default function CreatePage({ onBackClick }) {
               </motion.div>
             )}
 
-            {/* 右側Container - フォーム設定 - 設定画面では非表示 */}
-            {!showSettings && (
-              <motion.div
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                style={{ flex: '0 0 300px', pointerEvents: 'auto' }}
-              >
-              <Paper
-                elevation={8}
-                sx={{
-                  height: '100%',
-                  borderRadius: 0,
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-                  p: 2,
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 600,
-                    background: 'linear-gradient(45deg, #fcb69f 30%, #ffecd2 90%)',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    mb: 2,
-                    textAlign: 'center'
+            {/* 右サイドバー（フォーム設定や質問詳細） */}
+            <AnimatePresence>
+              {selectedTool && (
+                <motion.div
+                  initial={{ x: 300, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: 300, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ 
+                    position: 'absolute',
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 320,
+                    zIndex: 20
                   }}
                 >
-                  フォーム設定
-                </Typography>
-                
-                <Box sx={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 2 
-                }}>
-                  <Box
+                  <Paper
+                    elevation={8}
                     sx={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: 2,
-                      background: 'linear-gradient(135deg, #fcb69f 0%, #ffecd2 100%)',
+                      height: '100%',
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(10px)',
+                      borderRadius: 0,
+                      borderLeft: '1px solid rgba(0, 0, 0, 0.05)',
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 8px 24px rgba(252, 182, 159, 0.3)'
+                      flexDirection: 'column'
                     }}
                   >
-                    <Settings sx={{ color: 'white', fontSize: '1.5rem' }} />
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" textAlign="center">
-                    フォームの設定や
-                    プレビューが
-                    ここに表示されます
-                  </Typography>
-                </Box>
-              </Paper>
-            </motion.div>
-            )}
+                    {/* プレースホルダーコンテンツ */}
+                    <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600, color: '#2d3748' }}>
+                        フォーム設定
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ flex: 1, p: 3 }}>
+                      <Typography variant="body2" sx={{ color: '#64748b' }}>
+                        選択されたツール: {selectedTool.label}
+                      </Typography>
+                    </Box>
+                  </Paper>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* プレビューエリア */}
+            <PreviewArea previewMode={previewMode} zoom={zoom} />
+
+            {/* プレビューコントロール */}
+            <PreviewControlPanel
+              previewMode={previewMode}
+              setPreviewMode={setPreviewMode}
+              zoom={zoom}
+              handleZoomIn={handleZoomIn}
+              handleZoomOut={handleZoomOut}
+              handleFitScreen={handleFitScreen}
+            />
+
+          {/* トースト通知とその他のコントロール */}
+          <Stack
+            spacing={2}
+            sx={{ 
+              position: 'absolute',
+              bottom: 20,
+              right: 20,
+              zIndex: 15
+            }}
+          >
+
           </Stack>
 
         </Box>
 
         {/* 削除確認ダイアログ */}
-        <Dialog
+        <DeleteConfirmationDialog
           open={showDeleteConfirm}
           onClose={handleCancelDelete}
-          PaperProps={{
-            sx: {
-              borderRadius: 2,
-              minWidth: 400
-            }
-          }}
-        >
-          <DialogTitle sx={{ fontWeight: 600, color: '#ef4444' }}>
-            ページを削除しますか？
-          </DialogTitle>
-          <DialogContent>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              以下のページを削除します。この操作は元に戻せません。
-            </Typography>
-            {pageToDelete && (
-              <Box sx={{ bgcolor: '#f8fafc', p: 2, borderRadius: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                {React.cloneElement(pageToDelete.icon, { 
-                  sx: { color: '#64748b', fontSize: '1rem' } 
-                })}
-                <Typography variant="body2" sx={{ color: '#2d3748' }}>
-                  {pageToDelete.title}
-                </Typography>
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions sx={{ p: 2, gap: 1 }}>
-            <Button
-              onClick={handleCancelDelete}
-              variant="outlined"
-              sx={{
-                borderColor: '#e2e8f0',
-                color: '#64748b',
-                '&:hover': {
-                  borderColor: '#cbd5e1',
-                  backgroundColor: '#f8fafc'
-                }
-              }}
-            >
-              キャンセル
-            </Button>
-            <Button
-              onClick={handleExecuteDelete}
-              variant="contained"
-              sx={{
-                backgroundColor: '#ef4444',
-                '&:hover': {
-                  backgroundColor: '#dc2626'
-                }
-              }}
-            >
-              削除する
-            </Button>
-          </DialogActions>
-        </Dialog>
+          onConfirm={handleExecuteDelete}
+          pageToDelete={pageToDelete}
+        />
       </Box>
     </Box>
   );
