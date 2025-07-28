@@ -228,6 +228,8 @@ export default function CreatePage({ onBackClick }) {
   const [editingPageId, setEditingPageId] = useState(null); // 編集中のページID
   const [editingTitle, setEditingTitle] = useState(''); // 編集中のタイトル
   const [showSettings, setShowSettings] = useState(false); // 設定画面表示状態
+  const [projectTitle, setProjectTitle] = useState('OpenReview フォーム'); // プロジェクトタイトル
+  const [isEditingTitle, setIsEditingTitle] = useState(false); // タイトル編集状態
   
   // 設定カテゴリデータ
   const settingsCategories = [
@@ -639,15 +641,53 @@ export default function CreatePage({ onBackClick }) {
           }}
         >
           {/* ヘッダー左側 */}
-          <Typography
-            variant="h5"
-            sx={{
-              color: '#1a202c',
-              fontWeight: 700
-            }}
-          >
-            フォーム作成
-          </Typography>
+          {isEditingTitle ? (
+            <Input
+              value={projectTitle}
+              onChange={(e) => setProjectTitle(e.target.value)}
+              onBlur={() => setIsEditingTitle(false)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  setIsEditingTitle(false);
+                } else if (e.key === 'Escape') {
+                  setProjectTitle('OpenReview フォーム');
+                  setIsEditingTitle(false);
+                }
+              }}
+              autoFocus
+              sx={{
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                color: '#1a202c',
+                minWidth: 200,
+                '&:before': {
+                  borderBottom: '2px solid #5e17eb'
+                },
+                '&:after': {
+                  borderBottom: '2px solid #5e17eb'
+                }
+              }}
+            />
+          ) : (
+            <Typography
+              variant="h5"
+              onClick={() => setIsEditingTitle(true)}
+              sx={{
+                color: '#1a202c',
+                fontWeight: 700,
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: 1,
+                '&:hover': {
+                  backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                  color: '#5e17eb'
+                },
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {projectTitle}
+            </Typography>
+          )}
 
           {/* ヘッダー右側のアクションボタン */}
           <Box sx={{ display: 'flex', gap: 1 }}>
