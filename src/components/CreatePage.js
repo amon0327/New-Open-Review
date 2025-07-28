@@ -63,77 +63,120 @@ const questionTypes = [
 ];
 
 // テンプレート質問の定義
-const questionTemplateCategories = [
+const questionTemplates = [
   {
-    id: 'customer-satisfaction',
-    title: '顧客満足度',
+    id: 'business',
+    title: 'ビジネス',
     expanded: false,
-    templates: [
-      { id: 'cs1', question: 'サービスの満足度を教えてください', type: 'scale' },
-      { id: 'cs2', question: '改善点があれば教えてください', type: 'textarea' },
-      { id: 'cs3', question: 'おすすめ度はいかがですか？', type: 'scale' },
-      { id: 'cs4', question: '今後も利用したいですか？', type: 'radio' },
-      { id: 'cs5', question: '他の人におすすめしますか？', type: 'scale' }
+    categories: [
+      {
+        id: 'customer-satisfaction',
+        title: '顧客満足度',
+        expanded: false,
+        templates: [
+          { id: 'cs1', question: 'サービスの満足度を教えてください', type: 'scale' },
+          { id: 'cs2', question: '改善点があれば教えてください', type: 'textarea' },
+          { id: 'cs3', question: 'おすすめ度はいかがですか？', type: 'scale' },
+          { id: 'cs4', question: '今後も利用したいですか？', type: 'radio' },
+          { id: 'cs5', question: '他の人におすすめしますか？', type: 'scale' }
+        ]
+      },
+      {
+        id: 'employee-evaluation',
+        title: '従業員評価',
+        expanded: false,
+        templates: [
+          { id: 'emp1', question: '職場環境の満足度', type: 'scale' },
+          { id: 'emp2', question: '上司とのコミュニケーション', type: 'radio' },
+          { id: 'emp3', question: '改善してほしい点', type: 'textarea' },
+          { id: 'emp4', question: '研修の有効性はいかがですか？', type: 'scale' },
+          { id: 'emp5', question: '働きがいを感じますか？', type: 'radio' }
+        ]
+      }
     ]
   },
   {
-    id: 'employee-evaluation',
-    title: '従業員評価',
-    expanded: false,
-    templates: [
-      { id: 'emp1', question: '職場環境の満足度', type: 'scale' },
-      { id: 'emp2', question: '上司とのコミュニケーション', type: 'radio' },
-      { id: 'emp3', question: '改善してほしい点', type: 'textarea' },
-      { id: 'emp4', question: '研修の有効性はいかがですか？', type: 'scale' },
-      { id: 'emp5', question: '働きがいを感じますか？', type: 'radio' }
-    ]
-  },
-  {
-    id: 'personal-info',
+    id: 'personal',
     title: '個人情報',
     expanded: false,
-    templates: [
-      { id: 'p1', question: 'お名前を教えてください', type: 'text' },
-      { id: 'p2', question: '年齢を選択してください', type: 'select' },
-      { id: 'p3', question: '性別を選択してください', type: 'radio' },
-      { id: 'p4', question: 'メールアドレス', type: 'text' },
-      { id: 'p5', question: '電話番号', type: 'text' }
+    categories: [
+      {
+        id: 'basic-info',
+        title: '基本情報',
+        expanded: false,
+        templates: [
+          { id: 'p1', question: 'お名前を教えてください', type: 'text' },
+          { id: 'p2', question: '年齢を選択してください', type: 'select' },
+          { id: 'p3', question: '性別を選択してください', type: 'radio' }
+        ]
+      },
+      {
+        id: 'contact-info',
+        title: '連絡先情報',
+        expanded: false,
+        templates: [
+          { id: 'p4', question: 'メールアドレス', type: 'text' },
+          { id: 'p5', question: '電話番号', type: 'text' },
+          { id: 'p6', question: '住所', type: 'textarea' }
+        ]
+      }
     ]
   },
   {
-    id: 'course-evaluation',
-    title: '講座評価',
+    id: 'education',
+    title: '教育・研修',
     expanded: false,
-    templates: [
-      { id: 'edu1', question: '講座の理解度はいかがでしたか？', type: 'scale' },
-      { id: 'edu2', question: '講師の説明は分かりやすかったですか？', type: 'radio' },
-      { id: 'edu3', question: '今後学びたい内容', type: 'checkbox' },
-      { id: 'edu4', question: '講座の難易度はいかがでしたか？', type: 'scale' },
-      { id: 'edu5', question: '資料の分かりやすさ', type: 'scale' }
+    categories: [
+      {
+        id: 'course-evaluation',
+        title: '講座評価',
+        expanded: false,
+        templates: [
+          { id: 'edu1', question: '講座の理解度はいかがでしたか？', type: 'scale' },
+          { id: 'edu2', question: '講師の説明は分かりやすかったですか？', type: 'radio' },
+          { id: 'edu3', question: '今後学びたい内容', type: 'checkbox' },
+          { id: 'edu4', question: '講座の難易度はいかがでしたか？', type: 'scale' },
+          { id: 'edu5', question: '資料の分かりやすさ', type: 'scale' }
+        ]
+      }
     ]
   },
   {
-    id: 'event-feedback',
-    title: 'イベントフィードバック',
+    id: 'events',
+    title: 'イベント',
     expanded: false,
-    templates: [
-      { id: 'evt1', question: 'イベントの満足度', type: 'scale' },
-      { id: 'evt2', question: '最も良かったセッション', type: 'checkbox' },
-      { id: 'evt3', question: '改善提案があれば教えてください', type: 'textarea' },
-      { id: 'evt4', question: '来年も参加したいですか？', type: 'radio' },
-      { id: 'evt5', question: '会場の環境はいかがでしたか？', type: 'scale' }
+    categories: [
+      {
+        id: 'event-feedback',
+        title: 'イベントフィードバック',
+        expanded: false,
+        templates: [
+          { id: 'evt1', question: 'イベントの満足度', type: 'scale' },
+          { id: 'evt2', question: '最も良かったセッション', type: 'checkbox' },
+          { id: 'evt3', question: '改善提案があれば教えてください', type: 'textarea' },
+          { id: 'evt4', question: '来年も参加したいですか？', type: 'radio' },
+          { id: 'evt5', question: '会場の環境はいかがでしたか？', type: 'scale' }
+        ]
+      }
     ]
   },
   {
-    id: 'product-feedback',
-    title: '製品フィードバック',
+    id: 'products',
+    title: '製品・サービス',
     expanded: false,
-    templates: [
-      { id: 'prd1', question: '製品の使いやすさ', type: 'scale' },
-      { id: 'prd2', question: '機能で最も重要なもの', type: 'checkbox' },
-      { id: 'prd3', question: 'バグや問題を経験しましたか？', type: 'radio' },
-      { id: 'prd4', question: '追加してほしい機能', type: 'textarea' },
-      { id: 'prd5', question: '価格に対する満足度', type: 'scale' }
+    categories: [
+      {
+        id: 'product-feedback',
+        title: '製品フィードバック',
+        expanded: false,
+        templates: [
+          { id: 'prd1', question: '製品の使いやすさ', type: 'scale' },
+          { id: 'prd2', question: '機能で最も重要なもの', type: 'checkbox' },
+          { id: 'prd3', question: 'バグや問題を経験しましたか？', type: 'radio' },
+          { id: 'prd4', question: '追加してほしい機能', type: 'textarea' },
+          { id: 'prd5', question: '価格に対する満足度', type: 'scale' }
+        ]
+      }
     ]
   }
 ];
@@ -773,87 +816,182 @@ export default function CreatePage({ onBackClick }) {
                 </Grid>
 
                 {/* テンプレート質問 */}
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#64748b' }}>
+                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#64748b' }}>
                   テンプレート質問
                 </Typography>
                 <Box sx={{ flex: 1 }}>
-                  {questionTemplateCategories.map((category, index) => (
-                    <Box key={category.id} sx={{ mb: 1 }}>
-                      {/* カテゴリヘッダー */}
-                      <Box
-                        onClick={() => toggleExpanded(category.id)}
-                        sx={{
-                          p: 1,
-                          backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                          borderRadius: 1,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          '&:hover': {
-                            backgroundColor: 'rgba(94, 23, 235, 0.1)'
-                          }
-                        }}
-                      >
-                        <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>
-                          {category.title}
-                        </Typography>
-                        <ExpandMoreIcon 
+                  {questionTemplates.map((majorCategory, index) => (
+                    <Box key={majorCategory.id} sx={{ mb: 3 }}>
+                      {/* 大区分ヘッダー（テキスト表示のみ） */}
+                      <Box sx={{ mb: 2 }}>
+                        <Typography 
+                          variant="h6" 
                           sx={{ 
-                            fontSize: '1rem',
-                            transform: expandedTemplates[category.id] ? 'rotate(180deg)' : 'rotate(0deg)',
-                            transition: 'transform 0.2s ease'
-                          }} 
+                            fontWeight: 700, 
+                            fontSize: '0.9rem', 
+                            color: '#1a202c',
+                            letterSpacing: '0.02em',
+                            mb: 0.5
+                          }}
+                        >
+                          {majorCategory.title}
+                        </Typography>
+                        <Box
+                          sx={{
+                            width: '100%',
+                            height: 2,
+                            background: 'linear-gradient(90deg, #5e17eb 0%, #764ba2 100%)',
+                            borderRadius: 1,
+                            opacity: 0.3
+                          }}
                         />
                       </Box>
                       
-                      {/* テンプレート質問リスト */}
-                      <Collapse in={expandedTemplates[category.id] || false}>
-                        <Box sx={{ pt: 0.5 }}>
-                          {category.templates.map((temp, tempIndex) => (
+                      {/* 中区分とテンプレート質問 */}
+                      <Box sx={{ pl: 0 }}>
+                        {majorCategory.categories.map((category, catIndex) => (
+                          <Box key={category.id} sx={{ mb: 2 }}>
+                            {/* 中区分ヘッダー（トグル機能付き） */}
                             <Box
-                              key={temp.id}
-                              onClick={() => setSelectedTool({ ...temp, isTemplate: true })}
+                              onClick={() => toggleExpanded(`${majorCategory.id}-${category.id}`)}
                               sx={{
-                                p: 1,
-                                mb: 0.5,
+                                p: 1.5,
+                                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                borderRadius: 2,
                                 cursor: 'pointer',
-                                borderRadius: 1,
-                                backgroundColor: 'rgba(255, 255, 255, 0.5)',
-                                border: '1px solid rgba(0, 0, 0, 0.05)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                border: '1px solid rgba(94, 23, 235, 0.1)',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                                transition: 'all 0.3s ease',
                                 '&:hover': {
                                   backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                                  transform: 'translateX(2px)'
-                                },
-                                transition: 'all 0.2s ease'
+                                  borderColor: 'rgba(94, 23, 235, 0.2)',
+                                  transform: 'translateY(-1px)',
+                                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
+                                }
                               }}
                             >
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  display: 'block',
-                                  fontSize: '0.7rem',
-                                  lineHeight: 1.3,
-                                  color: '#2d3748',
-                                  mb: 0.3
-                                }}
-                              >
-                                {temp.question}
-                              </Typography>
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  fontSize: '0.6rem',
-                                  color: '#64748b',
-                                  fontStyle: 'italic'
-                                }}
-                              >
-                                ({questionTypes.find(qt => qt.type === temp.type)?.label})
-                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Box
+                                  sx={{
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: '50%',
+                                    background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                                    boxShadow: '0 2px 4px rgba(94, 23, 235, 0.3)'
+                                  }}
+                                />
+                                <Typography 
+                                  variant="body2" 
+                                  sx={{ 
+                                    fontWeight: 600, 
+                                    fontSize: '0.8rem',
+                                    color: '#2d3748'
+                                  }}
+                                >
+                                  {category.title}
+                                </Typography>
+                              </Box>
+                              <ExpandMoreIcon 
+                                sx={{ 
+                                  fontSize: '1rem',
+                                  color: '#5e17eb',
+                                  transform: expandedTemplates[`${majorCategory.id}-${category.id}`] ? 'rotate(180deg)' : 'rotate(0deg)',
+                                  transition: 'transform 0.3s ease'
+                                }} 
+                              />
                             </Box>
-                          ))}
-                        </Box>
-                      </Collapse>
+                            
+                            {/* テンプレート質問リスト */}
+                            <Collapse in={expandedTemplates[`${majorCategory.id}-${category.id}`] || false}>
+                              <Box sx={{ pt: 1, pl: 2 }}>
+                                {category.templates.map((temp, tempIndex) => (
+                                  <motion.div
+                                    key={temp.id}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.2, delay: tempIndex * 0.05 }}
+                                  >
+                                    <Box
+                                      onClick={() => setSelectedTool({ ...temp, isTemplate: true })}
+                                      sx={{
+                                        p: 1.5,
+                                        mb: 1,
+                                        cursor: 'pointer',
+                                        borderRadius: 2,
+                                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                        border: '1px solid rgba(0, 0, 0, 0.06)',
+                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        '&:hover': {
+                                          backgroundColor: 'rgba(94, 23, 235, 0.04)',
+                                          borderColor: 'rgba(94, 23, 235, 0.15)',
+                                          transform: 'translateX(3px)',
+                                          boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
+                                        },
+                                        '&:before': {
+                                          content: '""',
+                                          position: 'absolute',
+                                          left: 0,
+                                          top: 0,
+                                          bottom: 0,
+                                          width: 3,
+                                          background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                                          opacity: 0,
+                                          transition: 'opacity 0.2s ease'
+                                        },
+                                        '&:hover:before': {
+                                          opacity: 1
+                                        },
+                                        transition: 'all 0.3s ease'
+                                      }}
+                                    >
+                                      <Typography
+                                        variant="caption"
+                                        sx={{
+                                          display: 'block',
+                                          fontSize: '0.75rem',
+                                          lineHeight: 1.4,
+                                          color: '#2d3748',
+                                          mb: 0.5,
+                                          fontWeight: 500
+                                        }}
+                                      >
+                                        {temp.question}
+                                      </Typography>
+                                      <Box
+                                        sx={{
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          px: 1,
+                                          py: 0.3,
+                                          borderRadius: 1,
+                                          backgroundColor: 'rgba(94, 23, 235, 0.08)',
+                                          border: '1px solid rgba(94, 23, 235, 0.15)'
+                                        }}
+                                      >
+                                        <Typography
+                                          variant="caption"
+                                          sx={{
+                                            fontSize: '0.65rem',
+                                            color: '#5e17eb',
+                                            fontWeight: 600
+                                          }}
+                                        >
+                                          {questionTypes.find(qt => qt.type === temp.type)?.label}
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  </motion.div>
+                                ))}
+                              </Box>
+                            </Collapse>
+                          </Box>
+                        ))}
+                      </Box>
                     </Box>
                   ))}
                 </Box>
