@@ -119,11 +119,43 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const ensureBusinessUserExists = async (user) => {
+    try {
+      // business_usersテーブルにエントリが存在するかチェック
+      const { data: existingUser, error: selectError } = await supabase
+        .from('business_users')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (selectError && selectError.code === 'PGRST116') {
+        // エントリが存在しない場合は作成
+        const { error: insertError } = await supabase
+          .from('business_users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            name: user.user_metadata?.name || '',
+            company_name: user.user_metadata?.company || ''
+          });
+
+        if (insertError) {
+          console.error('business_users自動作成エラー:', insertError);
+        }
+      } else if (selectError) {
+        console.error('business_usersチェックエラー:', selectError);
+      }
+    } catch (error) {
+      console.error('ensureBusinessUserExists エラー:', error);
+    }
+  };
+
   useEffect(() => {
     // 現在のセッションを取得
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
+        await ensureBusinessUserExists(session.user);
         setCurrentView('dashboard');
       }
       setLoading(false);
@@ -132,9 +164,10 @@ function App() {
     // 認証状態の変更を監視
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
+        await ensureBusinessUserExists(session.user);
         setCurrentView('dashboard');
       } else {
         setCurrentView('login');
