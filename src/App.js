@@ -8,7 +8,6 @@ import { supabase } from './supabaseClient';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import CreatePage from './components/CreatePage';
-import SettingsPage from './components/SettingsPage';
 
 // カスタムテーマ設定
 const theme = createTheme({
@@ -116,7 +115,7 @@ const theme = createTheme({
 });
 
 function App() {
-  const [currentView, setCurrentView] = useState('login'); // 'login', 'dashboard', 'create', 'settings'
+  const [currentView, setCurrentView] = useState('login'); // 'login', 'dashboard', 'create'
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -161,10 +160,6 @@ function App() {
     setCurrentView('create');
   };
 
-  const handleSettingsClick = () => {
-    setCurrentView('settings');
-  };
-
   const handleBackToDashboard = () => {
     setCurrentView('dashboard');
   };
@@ -190,11 +185,9 @@ function App() {
       case 'login':
         return <LoginPage onLogin={handleLogin} />;
       case 'dashboard':
-        return <Dashboard onCreateClick={handleCreateClick} onSettingsClick={handleSettingsClick} onLogout={handleLogout} user={user} />;
+        return <Dashboard onCreateClick={handleCreateClick} onLogout={handleLogout} user={user} />;
       case 'create':
         return <CreatePage onBackClick={handleBackToDashboard} user={user} />;
-      case 'settings':
-        return <SettingsPage onLogout={handleLogout} onBackClick={handleBackToDashboard} user={user} />;
       default:
         return <LoginPage onLogin={handleLogin} />;
     }
