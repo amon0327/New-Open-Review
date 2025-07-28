@@ -444,7 +444,7 @@ export default function CreatePage({ onBackClick }) {
                       gap: 0.5,
                       px: 1,
                       py: 0.5,
-                      borderRadius: 1,
+                      borderRadius: 2,
                       background: 'rgba(255, 255, 255, 0.95)',
                       backdropFilter: 'blur(20px)',
                       border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -717,7 +717,7 @@ export default function CreatePage({ onBackClick }) {
                 elevation={8}
                 sx={{
                   height: '100%',
-                  borderRadius: 0.5,
+                  borderRadius: 0,
                   background: 'rgba(255, 255, 255, 0.9)',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
@@ -764,7 +764,7 @@ export default function CreatePage({ onBackClick }) {
                           elevation={2}
                           sx={{
                             p: 1,
-                            borderRadius: 2,
+                            borderRadius: 1,
                             background: 'rgba(255, 255, 255, 0.8)',
                             border: '1px solid rgba(0, 0, 0, 0.05)',
                             cursor: 'pointer',
@@ -786,7 +786,7 @@ export default function CreatePage({ onBackClick }) {
                             sx={{
                               width: 28,
                               height: 28,
-                              borderRadius: 1.5,
+                              borderRadius: 1,
                               background: `linear-gradient(135deg, ${
                                 ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7]
                               } 0%, ${
@@ -846,7 +846,7 @@ export default function CreatePage({ onBackClick }) {
                             width: '100%',
                             height: 2,
                             background: 'linear-gradient(90deg, #5e17eb 0%, #764ba2 100%)',
-                            borderRadius: 1,
+                            borderRadius: 0.5,
                             opacity: 0.3
                           }}
                         />
@@ -862,7 +862,7 @@ export default function CreatePage({ onBackClick }) {
                               sx={{
                                 p: 1.5,
                                 backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                borderRadius: 2,
+                                borderRadius: 1,
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -883,7 +883,7 @@ export default function CreatePage({ onBackClick }) {
                                   sx={{
                                     width: 8,
                                     height: 8,
-                                    borderRadius: '50%',
+                                    borderRadius: 1,
                                     background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
                                     boxShadow: '0 2px 4px rgba(94, 23, 235, 0.3)'
                                   }}
@@ -925,7 +925,7 @@ export default function CreatePage({ onBackClick }) {
                                         p: 1.5,
                                         mb: 1,
                                         cursor: 'pointer',
-                                        borderRadius: 2,
+                                        borderRadius: 1,
                                         backgroundColor: 'rgba(255, 255, 255, 0.9)',
                                         border: '1px solid rgba(0, 0, 0, 0.06)',
                                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
@@ -946,7 +946,7 @@ export default function CreatePage({ onBackClick }) {
                                         sx={{
                                           width: 32,
                                           height: 32,
-                                          borderRadius: 2,
+                                          borderRadius: 1,
                                           background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
                                           display: 'flex',
                                           alignItems: 'center',
@@ -1010,7 +1010,7 @@ export default function CreatePage({ onBackClick }) {
                 elevation={8}
                 sx={{
                   height: '100%',
-                  borderRadius: 0.5,
+                  borderRadius: 0,
                   background: 'rgba(255, 255, 255, 0.9)',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
