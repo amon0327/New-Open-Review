@@ -38,7 +38,19 @@ const ShortTextQuestion = ({ question, themeColor, currentQuestion, totalQuestio
 
   return (
     <>
-      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+      <Container 
+        maxWidth={false} 
+        disableGutters 
+        sx={{ 
+          width: '100%', 
+          px: '0 !important', 
+          mx: '0 !important',
+          paddingLeft: '0 !important',
+          paddingRight: '0 !important',
+          marginLeft: '0 !important',
+          marginRight: '0 !important'
+        }}
+      >
         <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           {/* Question Header */}
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
@@ -167,7 +179,19 @@ const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestion
 
   return (
     <>
-      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+      <Container 
+        maxWidth={false} 
+        disableGutters 
+        sx={{ 
+          width: '100%', 
+          px: '0 !important', 
+          mx: '0 !important',
+          paddingLeft: '0 !important',
+          paddingRight: '0 !important',
+          marginLeft: '0 !important',
+          marginRight: '0 !important'
+        }}
+      >
         <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
@@ -295,7 +319,19 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
 
   return (
     <>
-      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+      <Container 
+        maxWidth={false} 
+        disableGutters 
+        sx={{ 
+          width: '100%', 
+          px: '0 !important', 
+          mx: '0 !important',
+          paddingLeft: '0 !important',
+          paddingRight: '0 !important',
+          marginLeft: '0 !important',
+          marginRight: '0 !important'
+        }}
+      >
         <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
@@ -427,7 +463,19 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
 
   return (
     <>
-      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+      <Container 
+        maxWidth={false} 
+        disableGutters 
+        sx={{ 
+          width: '100%', 
+          px: '0 !important', 
+          mx: '0 !important',
+          paddingLeft: '0 !important',
+          paddingRight: '0 !important',
+          marginLeft: '0 !important',
+          marginRight: '0 !important'
+        }}
+      >
         <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
@@ -555,7 +603,19 @@ const SingleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, tot
 
   return (
     <>
-      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+      <Container 
+        maxWidth={false} 
+        disableGutters 
+        sx={{ 
+          width: '100%', 
+          px: '0 !important', 
+          mx: '0 !important',
+          paddingLeft: '0 !important',
+          paddingRight: '0 !important',
+          marginLeft: '0 !important',
+          marginRight: '0 !important'
+        }}
+      >
         <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
@@ -697,7 +757,19 @@ const MultipleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, t
 
   return (
     <>
-      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+      <Container 
+        maxWidth={false} 
+        disableGutters 
+        sx={{ 
+          width: '100%', 
+          px: '0 !important', 
+          mx: '0 !important',
+          paddingLeft: '0 !important',
+          paddingRight: '0 !important',
+          marginLeft: '0 !important',
+          marginRight: '0 !important'
+        }}
+      >
         <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
@@ -837,7 +909,19 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
 
   return (
     <>
-      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+      <Container 
+        maxWidth={false} 
+        disableGutters 
+        sx={{ 
+          width: '100%', 
+          px: '0 !important', 
+          mx: '0 !important',
+          paddingLeft: '0 !important',
+          paddingRight: '0 !important',
+          marginLeft: '0 !important',
+          marginRight: '0 !important'
+        }}
+      >
         <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
@@ -989,7 +1073,19 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
 
   return (
     <>
-      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+      <Container 
+        maxWidth={false} 
+        disableGutters 
+        sx={{ 
+          width: '100%', 
+          px: '0 !important', 
+          mx: '0 !important',
+          paddingLeft: '0 !important',
+          paddingRight: '0 !important',
+          marginLeft: '0 !important',
+          marginRight: '0 !important'
+        }}
+      >
         <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
@@ -1327,6 +1423,12 @@ const PreviewQuestions = ({ previewMode }) => {
         width: '100%',
         backgroundColor: isMobile ? '#F1F4F8' : '#FFFFFF',
         overflow: 'auto',
+        padding: '0 !important',
+        margin: '0 !important',
+        paddingLeft: '0 !important',
+        paddingRight: '0 !important',
+        marginLeft: '0 !important',
+        marginRight: '0 !important',
         '&::-webkit-scrollbar': {
           display: 'none'
         },
