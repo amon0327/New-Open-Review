@@ -277,6 +277,7 @@ const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   backgroundColor: '#F1F4F8',
                   borderRadius: '4px',
                   fontFamily: '"Noto Sans JP", sans-serif',
+                  padding: 0,
                   '& fieldset': {
                     borderColor: '#E5E7EB',
                     borderWidth: 1
@@ -292,7 +293,17 @@ const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 '& .MuiOutlinedInput-input': {
                   padding: '12px 16px',
                   fontSize: '1rem',
-                  fontFamily: '"Noto Sans JP", sans-serif'
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  lineHeight: 1.6
+                },
+                '& .MuiInputBase-inputMultiline': {
+                  padding: '12px 16px !important',
+                  fontSize: '1rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  lineHeight: 1.6,
+                  height: 'auto !important',
+                  minHeight: 'calc(5 * 1.6em) !important',
+                  maxHeight: 'calc(5 * 1.6em) !important'
                 }
               }}
             />
@@ -1162,6 +1173,34 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 value={selectedValue}
                 onChange={(e) => handleValueChange(e.target.value)}
                 displayEmpty
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      mt: 1, // Add space above the dropdown menu
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                      maxHeight: '280px', // Limit height to show ~7 items (40px per item)
+                      // Modern scrollbar styling
+                      '&::-webkit-scrollbar': {
+                        width: '6px'
+                      },
+                      '&::-webkit-scrollbar-track': {
+                        background: 'rgba(0, 0, 0, 0.02)',
+                        borderRadius: '3px'
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        background: 'rgba(0, 0, 0, 0.1)',
+                        borderRadius: '3px',
+                        '&:hover': {
+                          background: 'rgba(0, 0, 0, 0.15)'
+                        }
+                      },
+                      // Firefox scrollbar styling
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: 'rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.02)'
+                    }
+                  }
+                }}
                 sx={{
                   backgroundColor: '#F1F4F8',
                   borderRadius: '4px',
@@ -1176,51 +1215,36 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                     borderColor: stringToColor(themeColor),
                     borderWidth: 1
-                  }
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      maxHeight: 280,
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                      '&::-webkit-scrollbar': {
-                        width: '8px'
-                      },
-                      '&::-webkit-scrollbar-track': {
-                        backgroundColor: '#f1f3f4',
-                        borderRadius: '10px'
-                      },
-                      '&::-webkit-scrollbar-thumb': {
-                        backgroundColor: '#dadce0',
-                        borderRadius: '10px',
-                        '&:hover': {
-                          backgroundColor: '#bdc1c6'
-                        }
-                      }
-                    }
+                  },
+                  '& .MuiSelect-select': {
+                    padding: '12px 16px',
+                    fontSize: '1rem',
+                    fontFamily: '"Noto Sans JP", sans-serif'
                   }
                 }}
               >
                 <MenuItem value="" disabled>
-                  <Typography 
-                    sx={{ 
-                      color: 'rgba(0, 0, 0, 0.6)',
-                      fontFamily: '"Noto Sans JP", sans-serif'
+                  <Typography
+                    sx={{
+                      fontSize: '1rem',
+                      fontFamily: '"Noto Sans JP", sans-serif',
+                      color: '#9CA3AF'
                     }}
                   >
                     選択してください
                   </Typography>
                 </MenuItem>
                 {choices.map((choice, index) => (
-                  <MenuItem 
-                    key={index} 
-                    value={choice}
-                    sx={{
-                      fontFamily: '"Noto Sans JP", sans-serif'
-                    }}
-                  >
-                    {choice}
+                  <MenuItem key={index} value={choice}>
+                    <Typography
+                      sx={{
+                        fontSize: '1rem',
+                        fontFamily: '"Noto Sans JP", sans-serif',
+                        color: '#14181B'
+                      }}
+                    >
+                      {choice}
+                    </Typography>
                   </MenuItem>
                 ))}
               </Select>
