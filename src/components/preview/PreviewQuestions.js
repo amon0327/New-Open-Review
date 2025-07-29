@@ -1684,28 +1684,6 @@ const PreviewQuestions = ({
               </Box>
             )}
 
-            {/* Drag Active Overlay - シンプルなデザイン */}
-            <AnimatePresence>
-              {isDragActive && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    zIndex: 10,
-                    borderRadius: 12,
-                    background: 'rgba(94, 23, 235, 0.05)',
-                    pointerEvents: 'none'
-                  }}
-                />
-              )}
-            </AnimatePresence>
 
             {/* Questions List */}
             {displayQuestions.map((question, index) => (
