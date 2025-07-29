@@ -594,12 +594,11 @@ const QuestionSettingsMenu = ({
               minRows={1}
               maxRows={3}
               placeholder="質問を入力してください..."
-              required
             />
 
             {/* 詳細テキスト */}
             <StylishTextField
-              label="詳細テキスト"
+              label="詳細テキスト (オプション)"
               value={selectedQuestion.detail_text || ''}
               onChange={(e) => handleQuestionUpdate('detail_text', e.target.value)}
               multiline
