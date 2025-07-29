@@ -1082,9 +1082,6 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
 // Pull Down Question Component - AnswerAppの完全コピー
 const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange, zoom = 1 }) => {
   const [selectedValue, setSelectedValue] = useState('');
-  
-  // デバッグ用: zoom値をコンソールに出力
-  console.log('PullDownQuestion zoom value:', zoom);
 
   const handleValueChange = (value) => {
     setSelectedValue(value);
