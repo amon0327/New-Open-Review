@@ -1,16 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Typography,
-  Button,
-  Modal,
-  Card,
-  CardContent,
-  TextField,
-  Tab,
-  Tabs,
-  Alert,
-  CircularProgress
+  Button
 } from '@mui/material';
 
 const PreviewLogin = ({ 
@@ -25,13 +17,6 @@ const PreviewLogin = ({
   loginDetailText,
   themeColor: propThemeColor
 }) => {
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [loginTab, setLoginTab] = useState(0);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
 
   const isMobile = previewMode === 'mobile';
 
@@ -42,62 +27,6 @@ const PreviewLogin = ({
   const titleText = loginTitleText || 'OpenReviewへようこそ！';
   const detailText = loginDetailText || 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。';
 
-  const handleProceedToAnswer = () => {
-    setLoginModalOpen(true);
-  };
-
-  const handleLogin = async () => {
-    setAuthLoading(true);
-    setAuthError('');
-    
-    // プレビュー用のダミー処理
-    setTimeout(() => {
-      if (!email || !password) {
-        setAuthError('メールアドレスとパスワードを入力してください');
-        setAuthLoading(false);
-        return;
-      }
-      
-      // 成功した場合はモーダルを閉じる
-      setLoginModalOpen(false);
-      setAuthLoading(false);
-    }, 1000);
-  };
-
-  const handleRegister = async () => {
-    setAuthLoading(true);
-    setAuthError('');
-    
-    // プレビュー用のダミー処理
-    setTimeout(() => {
-      if (!name || !email || !password) {
-        setAuthError('すべての項目を入力してください');
-        setAuthLoading(false);
-        return;
-      }
-      
-      if (password.length < 6) {
-        setAuthError('パスワードは6文字以上で入力してください');
-        setAuthLoading(false);
-        return;
-      }
-      
-      // 成功した場合はモーダルを閉じる
-      setLoginModalOpen(false);
-      setAuthLoading(false);
-    }, 1000);
-  };
-
-  const handleGoogleLogin = async () => {
-    setAuthLoading(true);
-    setAuthError('');
-    
-    // プレビュー用のダミー処理
-    setTimeout(() => {
-      setLoginModalOpen(false);
-      setAuthLoading(false);
-    }, 1000);
-  };
 
   return (
     <>
@@ -285,7 +214,6 @@ const PreviewLogin = ({
           >
             <Button
               variant="contained"
-              onClick={handleProceedToAnswer}
               sx={{
                 backgroundColor: themeColor,
                 color: 'white',
@@ -386,211 +314,6 @@ const PreviewLogin = ({
         />
       </Box>
 
-      {/* Login Modal */}
-      <Modal
-        open={loginModalOpen}
-        onClose={() => setLoginModalOpen(false)}
-        sx={{
-          display: 'flex',
-          alignItems: isMobile ? 'flex-end' : 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <Card
-          sx={{
-            width: isMobile ? '100%' : 480,
-            maxHeight: isMobile ? '80vh' : '90vh',
-            borderTopLeftRadius: 16,
-            borderTopRightRadius: 16,
-            borderBottomLeftRadius: isMobile ? 0 : 16,
-            borderBottomRightRadius: isMobile ? 0 : 16,
-            boxShadow: isMobile 
-              ? '0 -4px 20px rgba(0, 0, 0, 0.1)'
-              : '0 8px 40px rgba(0, 0, 0, 0.15)'
-          }}
-        >
-          <CardContent sx={{ p: isMobile ? 3 : 4 }}>
-            <Typography
-              variant="h6"
-              sx={{ 
-                textAlign: 'center', 
-                mb: 3, 
-                fontWeight: 600,
-                fontSize: isMobile ? '1.25rem' : '1.4rem'
-              }}
-            >
-              アカウント
-            </Typography>
-
-            <Tabs
-              value={loginTab}
-              onChange={(e, newValue) => setLoginTab(newValue)}
-              centered
-              sx={{ 
-                mb: 3,
-                '& .MuiTab-root': {
-                  fontSize: isMobile ? '0.9rem' : '1rem',
-                  fontWeight: 600
-                }
-              }}
-            >
-              <Tab label="ログイン" />
-              <Tab label="新規登録" />
-            </Tabs>
-
-            {authError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {authError}
-              </Alert>
-            )}
-
-            <Box component="form" onSubmit={(e) => e.preventDefault()}>
-              {loginTab === 1 && (
-                <TextField
-                  fullWidth
-                  label="お名前"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  margin="normal"
-                  variant="outlined"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px'
-                    }
-                  }}
-                />
-              )}
-              
-              <TextField
-                fullWidth
-                label="メールアドレス"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                margin="normal"
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px'
-                  }
-                }}
-              />
-              
-              <TextField
-                fullWidth
-                label="パスワード"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                margin="normal"
-                variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px'
-                  }
-                }}
-              />
-
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={loginTab === 0 ? handleLogin : handleRegister}
-                disabled={authLoading}
-                sx={{
-                  mt: 3,
-                  backgroundColor: themeColor,
-                  height: isMobile ? 50 : 56,
-                  borderRadius: '24px',
-                  fontSize: isMobile ? '1rem' : '1.1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                  '&:hover': {
-                    backgroundColor: themeColor,
-                    opacity: 0.9,
-                    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.2)'
-                  }
-                }}
-              >
-                {authLoading ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  loginTab === 0 ? 'ログイン' : '新規登録'
-                )}
-              </Button>
-
-              {/* Divider */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  my: 3,
-                  '&::before, &::after': {
-                    content: '""',
-                    flex: 1,
-                    height: '1px',
-                    backgroundColor: '#E5E7EB'
-                  }
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    px: 2,
-                    color: '#9CA3AF',
-                    fontSize: '0.875rem',
-                    fontWeight: 500
-                  }}
-                >
-                  または
-                </Typography>
-              </Box>
-
-              {/* Google Login Button */}
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={handleGoogleLogin}
-                disabled={authLoading}
-                sx={{
-                  height: isMobile ? 50 : 56,
-                  borderRadius: '24px',
-                  fontSize: isMobile ? '1rem' : '1.1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  borderColor: '#E5E7EB',
-                  color: '#374151',
-                  backgroundColor: '#FFFFFF',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 2,
-                  '&:hover': {
-                    backgroundColor: '#F9FAFB',
-                    borderColor: '#D1D5DB',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-                  },
-                  '&:disabled': {
-                    backgroundColor: '#F3F4F6',
-                    borderColor: '#E5E7EB',
-                    color: '#9CA3AF'
-                  }
-                }}
-              >
-                <Box
-                  component="img"
-                  src="https://developers.google.com/identity/images/g-logo.png"
-                  alt="Google"
-                  sx={{
-                    width: 20,
-                    height: 20
-                  }}
-                />
-                Googleでログイン
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-      </Modal>
     </>
   );
 };
