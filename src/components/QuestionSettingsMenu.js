@@ -187,20 +187,17 @@ const QuestionSettingsMenu = ({
   onQuestionSelect,
   onQuestionReorder
 }) => {
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'settings'
   const [editingChoices, setEditingChoices] = useState({});
-  const [selectedTab, setSelectedTab] = useState(0); // タブ状態
+  const [selectedTab, setSelectedTab] = useState(1); // デフォルトで質問一覧タブ
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
-  // 質問が選択されたら設定モードに切り替え
+  // 質問が選択されたら質問設定タブに切り替え
   useEffect(() => {
     if (selectedQuestionId && selectedQuestion) {
-      setViewMode('settings');
-    } else {
-      setViewMode('list');
+      setSelectedTab(0); // 質問設定タブに切り替え
     }
   }, [selectedQuestionId, selectedQuestion]);
 
@@ -290,211 +287,44 @@ const QuestionSettingsMenu = ({
     setDragOverIndex(null);
   };
 
-  // 質問リスト表示
-  const renderQuestionList = () => (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* ヘッダー */}
-      <Box sx={{ p: 3, pb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #5E17EB 0%, #764BA2 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(94, 23, 235, 0.3)'
-            }}
-          >
-            <SettingsIcon sx={{ color: 'white', fontSize: '1.1rem' }} />
-          </Box>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 700,
-              fontSize: '1.1rem',
-              color: '#1F2937',
-              letterSpacing: '-0.025em'
-            }}
-          >
-            質問設定
-          </Typography>
-        </Box>
-        <Typography
-          variant="body2"
-          sx={{
-            color: '#6B7280',
-            fontSize: '0.8rem',
-            fontWeight: 400
-          }}
-        >
-          質問を選択して設定を編集
-        </Typography>
-      </Box>
 
-      {/* 質問リスト */}
-      <Box sx={{ flex: 1, overflow: 'auto', px: 2 }}>
-        {questions.length === 0 ? (
-          <Box
-            sx={{
-              p: 4,
-              textAlign: 'center',
-              color: '#9CA3AF'
-            }}
-          >
-            <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-              質問を追加すると、ここに表示されます
-            </Typography>
-          </Box>
-        ) : (
-          <List sx={{ p: 0 }}>
-            {questions.map((question, index) => {
-              const config = getQuestionTypeConfig(question.question_types_id);
-              const isSelected = selectedQuestionId === question.id;
-              
-              return (
-                <motion.div
-                  key={question.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <ListItem
-                    disablePadding
-                    sx={{ mb: 1 }}
-                  >
-                    <ListItemButton
-                      onClick={() => onQuestionSelect && onQuestionSelect(question.id)}
-                      sx={{
-                        borderRadius: '8px',
-                        border: isSelected ? '2px solid #5E17EB' : '1px solid #E5E7EB',
-                        backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
-                        boxShadow: isSelected 
-                          ? '0 4px 20px rgba(94, 23, 235, 0.15)' 
-                          : '0 1px 3px rgba(0, 0, 0, 0.05)',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.05)' : '#F9FAFB',
-                          borderColor: isSelected ? '#5E17EB' : '#D1D5DB',
-                          transform: 'translateY(-1px)',
-                          boxShadow: isSelected 
-                            ? '0 6px 25px rgba(94, 23, 235, 0.2)' 
-                            : '0 4px 12px rgba(0, 0, 0, 0.1)'
-                        }
-                      }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 40 }}>
-                        <Box
-                          sx={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: '6px',
-                            background: config.gradient,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
-                          }}
-                        >
-                          {React.cloneElement(config.icon, {
-                            sx: { color: 'white', fontSize: '0.9rem' }
-                          })}
-                        </Box>
-                      </ListItemIcon>
-                      
-                      <ListItemText
-                        primary={
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: 600,
-                              color: isSelected ? '#5E17EB' : '#1F2937',
-                              fontSize: '0.85rem',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              mb: 0.3
-                            }}
-                          >
-                            {question.question_text || '無題の質問'}
-                          </Typography>
-                        }
-                        secondary={
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                color: '#6B7280',
-                                fontSize: '0.7rem',
-                                fontWeight: 500
-                              }}
-                            >
-                              {config.name}
-                            </Typography>
-                            {question.is_required && (
-                              <Chip
-                                label="必須"
-                                size="small"
-                                sx={{
-                                  height: 14,
-                                  fontSize: '0.6rem',
-                                  fontWeight: 600,
-                                  backgroundColor: '#FEF3C7',
-                                  color: '#D97706',
-                                  '& .MuiChip-label': {
-                                    px: 0.8
-                                  }
-                                }}
-                              />
-                            )}
-                          </Box>
-                        }
-                      />
-                      
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onQuestionDelete) {
-                            onQuestionDelete(question.id);
-                          }
-                        }}
-                        sx={{
-                          color: '#9CA3AF',
-                          opacity: 0,
-                          transition: 'all 0.2s ease',
-                          '.MuiListItemButton-root:hover &': {
-                            opacity: 1
-                          },
-                          '&:hover': {
-                            color: '#EF4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
-                          }
-                        }}
-                      >
-                        <DeleteIcon sx={{ fontSize: '0.9rem' }} />
-                      </IconButton>
-                    </ListItemButton>
-                  </ListItem>
-                </motion.div>
-              );
-            })}
-          </List>
-        )}
-      </Box>
-    </Box>
-  );
-
-  // 質問設定表示
-  const renderQuestionSettings = () => {
-    if (!selectedQuestion) return null;
-
+  // メインレンダリング関数
+  const renderMainContent = () => {
     return (
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {/* ヘッダー */}
+        <Box sx={{ p: 3, pb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #5E17EB 0%, #764BA2 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(94, 23, 235, 0.3)'
+              }}
+            >
+              <SettingsIcon sx={{ color: 'white', fontSize: '1.1rem' }} />
+            </Box>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+                fontSize: '1.1rem',
+                color: '#1F2937',
+                letterSpacing: '-0.025em'
+              }}
+            >
+              質問設定
+            </Typography>
+          </Box>
+        </Box>
+
         {/* タブバー */}
-        <Box sx={{ borderBottom: '1px solid #E5E7EB' }}>
+        <Box sx={{ borderBottom: '1px solid #E5E7EB', px: 2 }}>
           <Tabs
             value={selectedTab}
             onChange={handleTabChange}
@@ -523,6 +353,7 @@ const QuestionSettingsMenu = ({
               icon={<TuneIcon sx={{ fontSize: '1rem' }} />} 
               iconPosition="start" 
               label="質問設定" 
+              disabled={!selectedQuestion}
             />
             <Tab 
               icon={<EditIcon sx={{ fontSize: '1rem' }} />} 
@@ -532,7 +363,7 @@ const QuestionSettingsMenu = ({
           </Tabs>
         </Box>
 
-        {/* 設定内容 */}
+        {/* タブ内容 */}
         <Box sx={{ flex: 1, overflow: 'auto', p: 0 }}>
           <Box sx={{ p: 2 }}>
             {renderTabContent()}
@@ -544,10 +375,26 @@ const QuestionSettingsMenu = ({
 
   // タブコンテンツのレンダリング
   const renderTabContent = () => {
-    const { question_types_id: typeId } = selectedQuestion;
-
     switch (selectedTab) {
       case 0: // 質問設定
+        if (!selectedQuestion) {
+          return (
+            <Box
+              sx={{
+                p: 4,
+                textAlign: 'center',
+                color: '#9CA3AF'
+              }}
+            >
+              <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+                質問を選択してください
+              </Typography>
+            </Box>
+          );
+        }
+
+        const { question_types_id: typeId } = selectedQuestion;
+
         return (
           <Stack spacing={3}>
             {/* 質問テキスト */}
@@ -714,32 +561,6 @@ const QuestionSettingsMenu = ({
       case 1: // 質問一覧
         return (
           <Box sx={{ height: '100%' }}>
-            {/* ヘッダー */}
-            <Box sx={{ mb: 3 }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '1.1rem',
-                  color: '#1F2937',
-                  letterSpacing: '-0.025em',
-                  mb: 1
-                }}
-              >
-                質問一覧
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: '#6B7280',
-                  fontSize: '0.8rem',
-                  fontWeight: 400
-                }}
-              >
-                ドラッグ&ドロップで質問の順序を変更できます
-              </Typography>
-            </Box>
-
             {/* 質問リスト */}
             {questions.length === 0 ? (
               <Box
@@ -936,31 +757,7 @@ const QuestionSettingsMenu = ({
 
   return (
     <Box sx={{ height: '100%', overflow: 'hidden' }}>
-      <AnimatePresence mode="wait">
-        {viewMode === 'list' ? (
-          <motion.div
-            key="list"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            style={{ height: '100%' }}
-          >
-            {renderQuestionList()}
-          </motion.div>
-        ) : (
-          <motion.div
-            key="settings"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            style={{ height: '100%' }}
-          >
-            {renderQuestionSettings()}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {renderMainContent()}
     </Box>
   );
 };

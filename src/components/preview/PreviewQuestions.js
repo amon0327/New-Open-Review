@@ -1178,19 +1178,13 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
             </Box>
           </Box>
 
-          <Box sx={{ 
-            width: '100%', 
-            maxWidth: 400,
-            transform: `scale(${zoom})`,
-            transformOrigin: 'top left'
-          }}>
+          <Box sx={{ width: '100%', maxWidth: 400 }}>
             <FormControl fullWidth>
               <Select
                 value={selectedValue}
                 onChange={(e) => handleValueChange(e.target.value)}
                 displayEmpty
                 MenuProps={{
-                  disablePortal: true,
                   PaperProps: {
                     sx: {
                       mt: 0.5,
@@ -1200,6 +1194,8 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                       minWidth: '200px',
                       maxWidth: '400px',
                       fontSize: '1rem',
+                      transform: `scale(${zoom})`,
+                      transformOrigin: 'top center',
                       '& .MuiMenuItem-root': {
                         fontSize: '1rem',
                         fontFamily: '"Noto Sans JP", sans-serif',
@@ -1238,22 +1234,23 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 }}
                 sx={{
                   backgroundColor: '#FFFFFF',
-                  borderRadius: '4px',
+                  borderRadius: `${4 * zoom}px`,
                   fontFamily: '"Noto Sans JP", sans-serif',
+                  fontSize: `${1 * zoom}rem`,
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#E5E7EB',
-                    borderWidth: 1
+                    borderWidth: `${1 * zoom}px`
                   },
                   '&:hover .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#E5E7EB'
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                     borderColor: stringToColor(themeColor),
-                    borderWidth: 1
+                    borderWidth: `${1 * zoom}px`
                   },
                   '& .MuiSelect-select': {
-                    padding: '12px 16px',
-                    fontSize: '1rem',
+                    padding: `${12 * zoom}px ${16 * zoom}px`,
+                    fontSize: `${1 * zoom}rem`,
                     fontFamily: '"Noto Sans JP", sans-serif'
                   }
                 }}
