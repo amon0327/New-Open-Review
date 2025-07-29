@@ -79,26 +79,34 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
       rows={rows}
       placeholder={placeholder}
       fullWidth
-      variant="standard"
+      variant="outlined"
       sx={{
-        '& .MuiInput-root': {
+        '& .MuiOutlinedInput-root': {
+          backgroundColor: '#F8FAFC',
+          borderRadius: '6px',
           fontSize: '0.875rem',
           fontWeight: 400,
-          '&:before': {
-            borderBottomColor: '#E2E8F0'
+          border: 'none',
+          '& fieldset': {
+            border: '1px solid #E2E8F0',
+            borderRadius: '6px'
           },
-          '&:hover:not(.Mui-disabled):before': {
-            borderBottomColor: '#CBD5E1'
+          '&:hover fieldset': {
+            borderColor: '#CBD5E1'
           },
-          '&:after': {
-            borderBottomColor: '#5E17EB'
+          '&.Mui-focused': {
+            backgroundColor: '#FFFFFF',
+            '& fieldset': {
+              borderColor: '#5E17EB',
+              borderWidth: '1px'
+            }
           },
           '& input': {
-            padding: '4px 0px',
+            padding: '0px',
             fontSize: '0.875rem'
           },
           '& textarea': {
-            padding: '4px 0px',
+            padding: '0px',
             fontSize: '0.875rem'
           }
         }
