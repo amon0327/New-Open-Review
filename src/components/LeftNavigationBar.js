@@ -97,22 +97,17 @@ const LeftNavigationBar = ({
                   src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"
                   alt="OpenReview Logo"
                   sx={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 1,
-                    objectFit: 'contain',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    padding: '4px',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                    width: 44,
+                    height: 44,
+                    objectFit: 'contain'
                   }}
                   onError={(e) => {
                     // 画像読み込みエラー時のフォールバック
                     e.target.style.display = 'none';
                     e.target.parentNode.innerHTML = `
                       <div style="
-                        width: 32px; 
-                        height: 32px; 
+                        width: 44px; 
+                        height: 44px; 
                         border-radius: 4px; 
                         background: rgba(255, 255, 255, 0.2); 
                         display: flex; 
@@ -121,7 +116,7 @@ const LeftNavigationBar = ({
                         backdrop-filter: blur(10px);
                         color: white;
                         font-weight: bold;
-                        font-size: 0.7rem;
+                        font-size: 0.8rem;
                       ">OR</div>
                     `;
                   }}
