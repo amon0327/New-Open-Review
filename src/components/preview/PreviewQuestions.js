@@ -1193,9 +1193,6 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                       maxHeight: '240px',
                       minWidth: '200px',
                       maxWidth: '400px',
-                      fontSize: '1rem',
-                      transform: `scale(${zoom})`,
-                      transformOrigin: 'top center',
                       '& .MuiMenuItem-root': {
                         fontSize: '1rem',
                         fontFamily: '"Noto Sans JP", sans-serif',
@@ -1222,35 +1219,27 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                       scrollbarWidth: 'thin',
                       scrollbarColor: 'rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.02)'
                     }
-                  },
-                  anchorOrigin: {
-                    vertical: 'bottom',
-                    horizontal: 'center'
-                  },
-                  transformOrigin: {
-                    vertical: 'top',
-                    horizontal: 'center'
                   }
                 }}
                 sx={{
                   backgroundColor: '#FFFFFF',
-                  borderRadius: `${4 * zoom}px`,
+                  borderRadius: '4px',
                   fontFamily: '"Noto Sans JP", sans-serif',
-                  fontSize: `${1 * zoom}rem`,
+                  fontSize: '1rem',
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#E5E7EB',
-                    borderWidth: `${1 * zoom}px`
+                    borderWidth: '1px'
                   },
                   '&:hover .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#E5E7EB'
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                     borderColor: stringToColor(themeColor),
-                    borderWidth: `${1 * zoom}px`
+                    borderWidth: '1px'
                   },
                   '& .MuiSelect-select': {
-                    padding: `${12 * zoom}px ${16 * zoom}px`,
-                    fontSize: `${1 * zoom}rem`,
+                    padding: '12px 16px',
+                    fontSize: '1rem',
                     fontFamily: '"Noto Sans JP", sans-serif'
                   }
                 }}
