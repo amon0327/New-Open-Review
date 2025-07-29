@@ -80,6 +80,8 @@ const LeftNavigationBar = ({
                 borderRadius: 2,
                 width: 48,
                 height: 48,
+                // ロゴの後に大きなマージンを追加
+                marginBottom: item.isLogo ? 3 : 0,
                 '&:hover': {
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   color: 'white'
@@ -91,33 +93,39 @@ const LeftNavigationBar = ({
             >
               {item.isLogo ? (
                 <Box
+                  component="img"
+                  src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"
+                  alt="OpenReview Logo"
                   sx={{
-                    width: 32,
-                    height: 32,
+                    width: 36,
+                    height: 36,
                     borderRadius: 1,
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    objectFit: 'contain',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    padding: '4px',
                     backdropFilter: 'blur(10px)',
-                    // 画像を追加する場合のスタイル
-                    backgroundImage: 'none', // ここに 'url("/path/to/logo.png")' を指定
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
                   }}
-                >
-                  {/* 画像がない場合のフォールバック */}
-                  <Typography
-                    variant="caption"
-                    sx={{ 
-                      color: 'white', 
-                      fontWeight: 'bold',
-                      fontSize: '0.7rem'
-                    }}
-                  >
-                    OR
-                  </Typography>
-                </Box>
+                  onError={(e) => {
+                    // 画像読み込みエラー時のフォールバック
+                    e.target.style.display = 'none';
+                    e.target.parentNode.innerHTML = `
+                      <div style="
+                        width: 32px; 
+                        height: 32px; 
+                        border-radius: 4px; 
+                        background: rgba(255, 255, 255, 0.2); 
+                        display: flex; 
+                        align-items: center; 
+                        justify-content: center;
+                        backdrop-filter: blur(10px);
+                        color: white;
+                        font-weight: bold;
+                        font-size: 0.7rem;
+                      ">OR</div>
+                    `;
+                  }}
+                />
               ) : (
                 item.icon
               )}
