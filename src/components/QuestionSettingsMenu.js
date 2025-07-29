@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ChromePicker, TwitterPicker, CompactPicker } from 'react-color';
 import {
   Box,
   Typography,
@@ -209,6 +210,11 @@ const QuestionSettingsMenu = ({
   
   // アコーディオンの展開状態
   const [expandedAccordion, setExpandedAccordion] = useState(null);
+  
+  // カラーピッカーの状態
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [selectedColor, setSelectedColor] = useState('#5e17eb');
+  const [colorPickerType, setColorPickerType] = useState('chrome'); // 'chrome', 'compact', 'twitter'
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
@@ -277,6 +283,13 @@ const QuestionSettingsMenu = ({
     const currentSettings = selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings) : {};
     const newSettings = { ...currentSettings, [field]: value };
     handleQuestionUpdate('scale_settings', JSON.stringify(newSettings));
+  };
+
+  // カラー変更ハンドラー
+  const handleColorChange = (color) => {
+    setSelectedColor(color.hex);
+    // ここで実際のテーマカラー変更処理を行う
+    console.log('Theme color changed to:', color.hex);
   };
 
   // タブ変更ハンドラー
@@ -1016,7 +1029,7 @@ const QuestionSettingsMenu = ({
                     </AccordionSummary>
                     <AccordionDetails sx={{ pt: 0 }}>
                       <Stack spacing={3}>
-                        {/* カラーピッカー */}
+                        {/* カラーピッカータイプ選択 */}
                         <Box>
                           <Typography 
                             variant="body2" 
@@ -1029,76 +1042,128 @@ const QuestionSettingsMenu = ({
                               letterSpacing: '0.5px'
                             }}
                           >
-                            カラー選択
+                            カラーピッカータイプ
+                          </Typography>
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            {[
+                              { type: 'chrome', label: '詳細' },
+                              { type: 'compact', label: 'コンパクト' },
+                              { type: 'twitter', label: 'プリセット' }
+                            ].map(({ type, label }) => (
+                              <Button
+                                key={type}
+                                variant={colorPickerType === type ? 'contained' : 'outlined'}
+                                size="small"
+                                onClick={() => setColorPickerType(type)}
+                                sx={{
+                                  textTransform: 'none',
+                                  fontSize: '0.75rem',
+                                  minWidth: 'auto',
+                                  px: 1.5,
+                                  py: 0.5,
+                                  backgroundColor: colorPickerType === type ? '#5e17eb' : 'transparent',
+                                  color: colorPickerType === type ? 'white' : '#5e17eb',
+                                  borderColor: '#5e17eb',
+                                  '&:hover': {
+                                    backgroundColor: colorPickerType === type ? '#5e17eb' : 'rgba(94, 23, 235, 0.1)',
+                                    borderColor: '#5e17eb'
+                                  }
+                                }}
+                              >
+                                {label}
+                              </Button>
+                            ))}
+                          </Box>
+                        </Box>
+
+                        {/* 現在の色表示 */}
+                        <Box>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              mb: 2,
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: '#374151',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}
+                          >
+                            現在の色
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <input
-                              type="color"
-                              defaultValue="#5e17eb"
-                              style={{
-                                width: '50px',
-                                height: '40px',
-                                border: 'none',
+                            <Box
+                              onClick={() => setShowColorPicker(!showColorPicker)}
+                              sx={{
+                                width: 60,
+                                height: 40,
+                                backgroundColor: selectedColor,
                                 borderRadius: '8px',
-                                cursor: 'pointer'
-                              }}
-                              onChange={(e) => {
-                                // テーマカラー変更の処理
-                                console.log('Theme color changed:', e.target.value);
+                                cursor: 'pointer',
+                                border: '2px solid #E5E7EB',
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                  transform: 'scale(1.05)',
+                                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                                }
                               }}
                             />
                             <StylishTextField
                               label="カラーコード"
-                              value="#5e17eb"
-                              onChange={() => {}}
+                              value={selectedColor}
+                              onChange={(e) => {
+                                setSelectedColor(e.target.value);
+                                handleColorChange({ hex: e.target.value });
+                              }}
                               placeholder="#5e17eb"
                               sx={{ flex: 1 }}
                             />
                           </Box>
                         </Box>
                         
-                        {/* プリセットカラー */}
-                        <Box>
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              mb: 2,
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              color: '#374151',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px'
-                            }}
-                          >
-                            プリセットカラー
-                          </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                            {[
-                              '#5e17eb', '#3B82F6', '#10B981', '#F59E0B', 
-                              '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'
-                            ].map((color, index) => (
-                              <Box
-                                key={index}
-                                onClick={() => {
-                                  console.log('Preset color selected:', color);
-                                }}
-                                sx={{
-                                  width: 32,
-                                  height: 32,
-                                  backgroundColor: color,
-                                  borderRadius: '6px',
-                                  cursor: 'pointer',
-                                  border: '2px solid transparent',
-                                  transition: 'all 0.2s ease',
-                                  '&:hover': {
-                                    border: '2px solid rgba(0, 0, 0, 0.2)',
-                                    transform: 'scale(1.1)'
-                                  }
-                                }}
-                              />
-                            ))}
+                        {/* カラーピッカー */}
+                        {showColorPicker && (
+                          <Box sx={{ position: 'relative', zIndex: 1000 }}>
+                            <Box
+                              sx={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                zIndex: 999
+                              }}
+                              onClick={() => setShowColorPicker(false)}
+                            />
+                            <Box sx={{ position: 'relative', zIndex: 1001 }}>
+                              {colorPickerType === 'chrome' && (
+                                <ChromePicker
+                                  color={selectedColor}
+                                  onChange={handleColorChange}
+                                  disableAlpha={true}
+                                />
+                              )}
+                              {colorPickerType === 'compact' && (
+                                <CompactPicker
+                                  color={selectedColor}
+                                  onChange={handleColorChange}
+                                />
+                              )}
+                              {colorPickerType === 'twitter' && (
+                                <TwitterPicker
+                                  color={selectedColor}
+                                  onChange={handleColorChange}
+                                  colors={[
+                                    '#5e17eb', '#3B82F6', '#10B981', '#F59E0B', 
+                                    '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4',
+                                    '#6366F1', '#F97316', '#84CC16', '#14B8A6',
+                                    '#F43F5E', '#A855F7', '#22D3EE', '#64748B'
+                                  ]}
+                                />
+                              )}
+                            </Box>
                           </Box>
-                        </Box>
+                        )}
                       </Stack>
                     </AccordionDetails>
                   </Accordion>
