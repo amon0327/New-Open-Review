@@ -566,20 +566,10 @@ const QuestionSettingsMenu = ({
                     sx={{ 
                       fontWeight: 500,
                       color: '#1F2937',
-                      fontSize: '0.875rem',
-                      mb: 0.5
+                      fontSize: '0.875rem'
                     }}
                   >
-                    必須回答にする
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      color: '#6B7280',
-                      fontSize: '0.75rem'
-                    }}
-                  >
-                    回答者に必須で答えてもらう質問にする
+                    回答を必須にする
                   </Typography>
                 </Box>
                 <Switch
