@@ -1911,11 +1911,6 @@ const QuestionSettingsMenu = ({
           );
   };
 
-      default:
-        return null;
-    }
-  };
-
   return (
     <Box sx={{ height: '100%', overflow: 'hidden' }}>
       {renderMainContent()}
