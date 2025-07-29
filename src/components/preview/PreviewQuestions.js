@@ -1605,44 +1605,8 @@ const PreviewQuestions = ({
             sx={{ 
               flex: 1,
               position: 'relative',
-              border: isDragActive 
-                ? '3px solid transparent'
-                : '2px dashed transparent',
-              borderRadius: 3,
-              background: isDragActive 
-                ? 'linear-gradient(145deg, rgba(94, 23, 235, 0.08), rgba(118, 75, 162, 0.08))'
-                : 'transparent',
-              boxShadow: isDragActive 
-                ? `
-                  0 0 0 3px rgba(94, 23, 235, 0.2),
-                  0 8px 32px rgba(94, 23, 235, 0.15),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.1)
-                `
-                : 'none',
-              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-              transform: isDragActive ? 'scale(1.01)' : 'scale(1)',
               minHeight: displayQuestions.length === 0 ? '300px' : 'fit-content',
-              overflow: 'visible',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: -3,
-                left: -3,
-                right: -3,
-                bottom: -3,
-                background: isDragActive 
-                  ? 'linear-gradient(45deg, #5e17eb, #764ba2, #667eea, #5e17eb)'
-                  : 'transparent',
-                borderRadius: 3,
-                zIndex: -1,
-                backgroundSize: '300% 300%',
-                animation: isDragActive ? 'gradientShift 2s ease infinite' : 'none',
-                '@keyframes gradientShift': {
-                  '0%': { backgroundPosition: '0% 50%' },
-                  '50%': { backgroundPosition: '100% 50%' },
-                  '100%': { backgroundPosition: '0% 50%' }
-                }
-              }
+              overflow: 'visible'
             }}
           >
             {/* Empty State - 初期状態の説明文 */}
