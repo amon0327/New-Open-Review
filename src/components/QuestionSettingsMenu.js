@@ -104,6 +104,7 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
           fontSize: '0.875rem',
           fontWeight: 400,
           border: 'none',
+          padding: '0 !important',
           '& fieldset': {
             border: '1px solid #E2E8F0',
             borderRadius: '6px'
@@ -127,12 +128,19 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
             fontSize: '0.875rem',
             resize: 'none'
           },
-          '&.MuiInputBase-multiline .MuiOutlinedInput-input': {
-            padding: '6px 8px !important',
-            fontSize: '0.875rem'
+          '&.MuiInputBase-multiline': {
+            padding: '0 !important',
+            '& .MuiOutlinedInput-input': {
+              padding: '6px 8px !important',
+              fontSize: '0.875rem'
+            }
           }
         },
+        '& .MuiInputBase-root': {
+          padding: '0 !important'
+        },
         '& .MuiInputBase-root.MuiInputBase-multiline': {
+          padding: '0 !important',
           '& .MuiOutlinedInput-input': {
             padding: '6px 8px !important',
             fontSize: '0.875rem'
