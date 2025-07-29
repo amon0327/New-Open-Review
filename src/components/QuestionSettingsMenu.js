@@ -118,11 +118,11 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
             }
           },
           '& input': {
-            padding: '0px',
+            padding: '10px 12px',
             fontSize: '0.875rem'
           },
           '& textarea': {
-            padding: '0px',
+            padding: '10px 12px',
             fontSize: '0.875rem',
             resize: 'none'
           }
@@ -569,28 +569,30 @@ const QuestionSettingsMenu = ({
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <StylishTextField
                       label="最小値"
-                      value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).min || 1 : 1}
-                      onChange={(e) => handleScaleUpdate('min', parseInt(e.target.value) || 1)}
+                      value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).minValue || 1 : 1}
+                      onChange={(e) => handleScaleUpdate('minValue', parseInt(e.target.value) || 1)}
                       type="number"
+                      placeholder="1"
                     />
                     <StylishTextField
                       label="最大値"
-                      value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).max || 5 : 5}
-                      onChange={(e) => handleScaleUpdate('max', parseInt(e.target.value) || 5)}
+                      value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).maxValue || 5 : 5}
+                      onChange={(e) => handleScaleUpdate('maxValue', parseInt(e.target.value) || 5)}
                       type="number"
+                      placeholder="5"
                     />
                   </Box>
                   <StylishTextField
                     label="最小値ラベル"
                     value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).minLabel || '' : ''}
                     onChange={(e) => handleScaleUpdate('minLabel', e.target.value)}
-                    placeholder="例: 全く満足していない"
+                    placeholder="例: そう思わない"
                   />
                   <StylishTextField
                     label="最大値ラベル"
                     value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).maxLabel || '' : ''}
                     onChange={(e) => handleScaleUpdate('maxLabel', e.target.value)}
-                    placeholder="例: 非常に満足している"
+                    placeholder="例: そう思う"
                   />
                 </Stack>
               </Box>
