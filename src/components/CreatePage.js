@@ -202,7 +202,9 @@ export default function CreatePage({ onBackClick }) {
       'matrix-single': 5, // 単一選択マトリックス
       'matrix-multiple': 6, // 複数選択マトリックス
       'scale': 7,       // リニアスケール
-      'select': 8       // プルダウン
+      'select': 8,      // プルダウン
+      'radio-2col': 9,  // 単一選択(2列)
+      'checkbox-2col': 10 // 複数選択(2列)
     };
     return typeMapping[typeString] || 1; // デフォルトは短文テキスト
   };
@@ -269,9 +271,9 @@ export default function CreatePage({ onBackClick }) {
       };
 
       // 質問タイプに応じてデフォルト設定を追加
-      const needsChoices = [3, 4, 8].includes(questionTypeId);
+      const needsChoices = [3, 4, 8, 9, 10].includes(questionTypeId);
       if (needsChoices) {
-        newQuestion.choices = JSON.stringify(['選択肢 1', '選択肢 2']);
+        newQuestion.choices = JSON.stringify(['選択肢 1', '選択肢 2', '選択肢 3', '選択肢 4']);
       }
 
       if (questionTypeId === 7) {

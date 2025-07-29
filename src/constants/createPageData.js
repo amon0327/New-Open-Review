@@ -15,7 +15,9 @@ import {
   Security,
   Language,
   Notifications,
-  CloudSync
+  CloudSync,
+  ViewColumn,
+  ViewList
 } from '@mui/icons-material';
 
 // 左ナビゲーションアイテムの定義
@@ -32,6 +34,8 @@ export const questionTypes = [
   { icon: <Description />, label: '長文回答', type: 'textarea' },
   { icon: <RadioButtonChecked />, label: '単一選択', type: 'radio' },
   { icon: <CheckBox />, label: '複数選択', type: 'checkbox' },
+  { icon: <ViewColumn />, label: '単一選択(2列)', type: 'radio-2col' },
+  { icon: <ViewList />, label: '複数選択(2列)', type: 'checkbox-2col' },
   { icon: <ExpandMore />, label: 'プルダウン', type: 'select' },
   { icon: <LinearScale />, label: '線形スケール', type: 'scale' },
   { icon: <Image />, label: '画像アップロード', type: 'image' }

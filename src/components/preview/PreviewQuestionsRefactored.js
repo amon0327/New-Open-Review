@@ -6,6 +6,8 @@ import {
   LongTextQuestion,
   SingleChoiceQuestion,
   MultipleChoiceQuestion,
+  SingleChoiceTwoColumnQuestion,
+  MultipleChoiceTwoColumnQuestion,
   SingleChoiceMatrixQuestion,
   MultipleChoiceMatrixQuestion,
   LinearScaleQuestion,
@@ -102,6 +104,10 @@ const PreviewQuestionsRefactored = ({
         return <LinearScaleQuestion {...commonProps} />;
       case 8:
         return <PullDownQuestion {...commonProps} zoom={zoom} />;
+      case 9:
+        return <SingleChoiceTwoColumnQuestion {...commonProps} />;
+      case 10:
+        return <MultipleChoiceTwoColumnQuestion {...commonProps} />;
       default:
         return <ShortTextQuestion {...commonProps} />;
     }
