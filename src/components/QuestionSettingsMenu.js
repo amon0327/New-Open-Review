@@ -198,6 +198,7 @@ const QuestionSettingsMenu = ({
   onQuestionReorder,
   // 基本設定用のprops
   selectedElement = null, // プレビューで選択された要素 ('header', 'logo', null)
+  selectedPage = null, // 選択されたページ
   headerImage = null,
   logoImage = null,
   onHeaderImageChange,
@@ -235,6 +236,22 @@ const QuestionSettingsMenu = ({
           setExpandedAccordion('login-title');
         } else if (selectedElement === 'login-detail') {
           setExpandedAccordion('login-detail');
+        } else if (selectedElement === 'login-button') {
+          setExpandedAccordion('theme-color');
+        }
+      } 
+      // 完了画面の要素の場合
+      else if (selectedElement.startsWith('completion-')) {
+        if (selectedElement === 'completion-background') {
+          setExpandedAccordion('completion-background');
+        } else if (selectedElement === 'completion-logo') {
+          setExpandedAccordion('completion-logo');
+        } else if (selectedElement === 'completion-title') {
+          setExpandedAccordion('completion-title');
+        } else if (selectedElement === 'completion-detail') {
+          setExpandedAccordion('completion-detail');
+        } else if (selectedElement === 'completion-button') {
+          setExpandedAccordion('completion-button');
         }
       } else {
         // 質問画面の要素の場合
@@ -1096,6 +1113,426 @@ const QuestionSettingsMenu = ({
                             </Box>
                           </Box>
                         )}
+                      </Stack>
+                    </AccordionDetails>
+                  </Accordion>
+
+                  <Divider sx={{ my: 2 }} />
+                </>
+              )}
+
+              {/* 完了画面設定 */}
+              {selectedElement?.startsWith('completion-') && (
+                <>
+                  {/* 背景画像設定 */}
+                  <Accordion 
+                    expanded={expandedAccordion === 'completion-background'} 
+                    onChange={() => setExpandedAccordion(expandedAccordion === 'completion-background' ? null : 'completion-background')}
+                    sx={{
+                      borderRadius: '8px !important',
+                      border: '1px solid #E5E7EB',
+                      boxShadow: 'none',
+                      '&:before': { display: 'none' },
+                      backgroundColor: expandedAccordion === 'completion-background' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+                    }}
+                  >
+                    <AccordionSummary
+                      expandIcon={expandedAccordion === 'completion-background' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      sx={{
+                        borderRadius: '8px',
+                        '& .MuiAccordionSummary-content': {
+                          alignItems: 'center'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '6px',
+                            background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)'
+                          }}
+                        >
+                          <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                        </Box>
+                        <Box>
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              fontWeight: 600,
+                              color: '#1F2937',
+                              fontSize: '0.9rem'
+                            }}
+                          >
+                            背景画像
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: '#6B7280',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            完了画面の背景画像
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pt: 0 }}>
+                      <StylishTextField
+                        label="背景画像URL"
+                        value="https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg"
+                        onChange={() => {}}
+                        placeholder="背景画像のURLを入力"
+                      />
+                    </AccordionDetails>
+                  </Accordion>
+
+                  {/* ロゴ設定 */}
+                  <Accordion 
+                    expanded={expandedAccordion === 'completion-logo'} 
+                    onChange={() => setExpandedAccordion(expandedAccordion === 'completion-logo' ? null : 'completion-logo')}
+                    sx={{
+                      borderRadius: '8px !important',
+                      border: '1px solid #E5E7EB',
+                      boxShadow: 'none',
+                      '&:before': { display: 'none' },
+                      backgroundColor: expandedAccordion === 'completion-logo' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+                    }}
+                  >
+                    <AccordionSummary
+                      expandIcon={expandedAccordion === 'completion-logo' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      sx={{
+                        borderRadius: '8px',
+                        '& .MuiAccordionSummary-content': {
+                          alignItems: 'center'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '6px',  
+                            background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
+                          }}
+                        >
+                          <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                        </Box>
+                        <Box>
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              fontWeight: 600,
+                              color: '#1F2937',
+                              fontSize: '0.9rem'
+                            }}
+                          >
+                            ロゴ画像
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: '#6B7280',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            完了画面のロゴ画像
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pt: 0 }}>
+                      <StylishTextField
+                        label="ロゴ画像URL"
+                        value="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png"
+                        onChange={() => {}}
+                        placeholder="ロゴ画像のURLを入力"
+                      />
+                    </AccordionDetails>
+                  </Accordion>
+
+                  {/* タイトルテキスト設定 */}
+                  <Accordion 
+                    expanded={expandedAccordion === 'completion-title'} 
+                    onChange={() => setExpandedAccordion(expandedAccordion === 'completion-title' ? null : 'completion-title')}
+                    sx={{
+                      borderRadius: '8px !important',
+                      border: '1px solid #E5E7EB',
+                      boxShadow: 'none',
+                      '&:before': { display: 'none' },
+                      backgroundColor: expandedAccordion === 'completion-title' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+                    }}
+                  >
+                    <AccordionSummary
+                      expandIcon={expandedAccordion === 'completion-title' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      sx={{
+                        borderRadius: '8px',
+                        '& .MuiAccordionSummary-content': {
+                          alignItems: 'center'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '6px',
+                            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                          }}
+                        >
+                          <TextIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                        </Box>
+                        <Box>
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              fontWeight: 600,
+                              color: '#1F2937', 
+                              fontSize: '0.9rem'
+                            }}
+                          >
+                            タイトルテキスト
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: '#6B7280',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            完了画面のメインタイトル
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pt: 0 }}>
+                      <StylishTextField
+                        label="タイトルテキスト"
+                        value="ありがとうございました！"
+                        onChange={() => {}}
+                        placeholder="完了画面のタイトル"
+                      />
+                    </AccordionDetails>
+                  </Accordion>
+
+                  {/* 詳細テキスト設定 */}
+                  <Accordion 
+                    expanded={expandedAccordion === 'completion-detail'} 
+                    onChange={() => setExpandedAccordion(expandedAccordion === 'completion-detail' ? null : 'completion-detail')}
+                    sx={{
+                      borderRadius: '8px !important',
+                      border: '1px solid #E5E7EB',
+                      boxShadow: 'none',
+                      '&:before': { display: 'none' },
+                      backgroundColor: expandedAccordion === 'completion-detail' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+                    }}
+                  >
+                    <AccordionSummary
+                      expandIcon={expandedAccordion === 'completion-detail' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      sx={{
+                        borderRadius: '8px',
+                        '& .MuiAccordionSummary-content': {
+                          alignItems: 'center'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '6px',
+                            background: 'linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(6, 182, 212, 0.3)'
+                          }}
+                        >
+                          <NotesIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                        </Box>
+                        <Box>
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              fontWeight: 600,
+                              color: '#1F2937',
+                              fontSize: '0.9rem'
+                            }}
+                          >
+                            詳細テキスト
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: '#6B7280',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            完了画面の説明文
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pt: 0 }}>
+                      <StylishTextField
+                        label="詳細テキスト"
+                        value="あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。"
+                        onChange={() => {}}
+                        multiline
+                        rows={3}
+                        placeholder="完了画面の説明文"
+                      />
+                    </AccordionDetails>
+                  </Accordion>
+
+                  {/* ボタン設定 */}
+                  <Accordion 
+                    expanded={expandedAccordion === 'completion-button'} 
+                    onChange={() => setExpandedAccordion(expandedAccordion === 'completion-button' ? null : 'completion-button')}
+                    sx={{
+                      borderRadius: '8px !important',
+                      border: '1px solid #E5E7EB',
+                      boxShadow: 'none',
+                      '&:before': { display: 'none' },
+                      backgroundColor: expandedAccordion === 'completion-button' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+                    }}
+                  >
+                    <AccordionSummary
+                      expandIcon={expandedAccordion === 'completion-button' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      sx={{
+                        borderRadius: '8px',
+                        '& .MuiAccordionSummary-content': {
+                          alignItems: 'center'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '6px',
+                            background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
+                          }}
+                        >
+                          <Box 
+                            sx={{ 
+                              width: 16, 
+                              height: 16, 
+                              borderRadius: '6px', 
+                              backgroundColor: 'white'
+                            }} 
+                          />
+                        </Box>
+                        <Box>
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              fontWeight: 600,
+                              color: '#1F2937',
+                              fontSize: '0.9rem'
+                            }}
+                          >
+                            ボタン設定
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: '#6B7280',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            ボタンのテキストとリンク先
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pt: 0 }}>
+                      <Stack spacing={2}>
+                        <StylishTextField
+                          label="ボタンテキスト"
+                          value="完了"
+                          onChange={() => {}}
+                          placeholder="ボタンに表示するテキスト"
+                        />
+                        <StylishTextField
+                          label="リンク先URL"
+                          value="#"
+                          onChange={() => {}}
+                          placeholder="ボタンクリック時の移動先URL"
+                        />
+                        <StylishTextField
+                          label="ボタンカラー"
+                          value={selectedColor}
+                          onChange={(e) => {
+                            setSelectedColor(e.target.value);
+                            handleColorChange({ hex: e.target.value });
+                          }}
+                          placeholder="#5e17eb"
+                        />
+                        
+                        {/* カラーピッカー */}
+                        <Box>
+                          <Box
+                            onClick={() => setShowColorPicker(!showColorPicker)}
+                            sx={{
+                              width: 60,
+                              height: 40,
+                              backgroundColor: selectedColor,
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              border: '2px solid #E5E7EB',
+                              transition: 'all 0.2s ease',
+                              '&:hover': {
+                                transform: 'scale(1.05)',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                              }
+                            }}
+                          />
+                          {showColorPicker && (
+                            <Box sx={{ position: 'relative', zIndex: 1000, mt: 2 }}>
+                              <Box
+                                sx={{
+                                  position: 'fixed',
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  zIndex: 999
+                                }}
+                                onClick={() => setShowColorPicker(false)}
+                              />
+                              <Box sx={{ position: 'relative', zIndex: 1001 }}>
+                                <ChromePicker
+                                  color={selectedColor}
+                                  onChange={handleColorChange}
+                                  disableAlpha={true}
+                                />
+                              </Box>
+                            </Box>
+                          )}
+                        </Box>
                       </Stack>
                     </AccordionDetails>
                   </Accordion>
