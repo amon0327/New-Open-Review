@@ -943,11 +943,7 @@ export default function CreatePage({ onBackClick }) {
                     msOverflowStyle: 'none' // IE and Edge
                   }}
                 >
-                  <QuestionSettingsPanel
-                    selectedPage={selectedPage}
-                    questions={selectedPage ? getQuestionsForPage(selectedPage.id) : []}
-                    onUpdateQuestions={(questions) => selectedPage && handleQuestionsUpdate(selectedPage.id, questions)}
-                  />
+                  {/* 空の白いContainer - 今後レビュー機能で使用予定 */}
                 </Paper>
               </motion.div>
             )}
