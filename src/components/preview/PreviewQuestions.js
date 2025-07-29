@@ -1363,38 +1363,45 @@ const PreviewQuestions = ({
         sx={{
           position: 'relative',
           cursor: 'pointer',
-          borderRadius: 3,
-          border: isSelected ? '2px solid #5e17eb' : '2px solid transparent',
-          backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : 'transparent',
-          padding: isSelected ? 3 : 1,
-          margin: isSelected ? '16px 0' : '8px 0',
-          transition: 'all 0.3s ease',
-          boxShadow: isSelected ? '0 8px 32px rgba(94, 23, 235, 0.15)' : 'none',
-          '&::before': isSelected ? {
-            content: '"選択中"',
-            position: 'absolute',
-            top: -12,
-            right: 16,
-            backgroundColor: '#5e17eb',
-            color: 'white',
-            fontSize: '0.7rem',
-            fontWeight: 600,
-            padding: '4px 12px',
-            borderRadius: '16px',
-            zIndex: 10,
-            boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
-          } : {},
-          '&:hover': {
-            backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.05)' : 'rgba(94, 23, 235, 0.01)',
-            border: isSelected ? '2px solid #5e17eb' : '2px solid rgba(94, 23, 235, 0.3)',
-            transform: isSelected ? 'none' : 'translateY(-2px)',
-            boxShadow: isSelected 
-              ? '0 12px 40px rgba(94, 23, 235, 0.2)' 
-              : '0 4px 16px rgba(94, 23, 235, 0.1)'
-          }
+          margin: isSelected ? '24px -24px' : '8px 0',
+          transition: 'all 0.3s ease'
         }}
       >
-        {children}
+        <Box
+          sx={{
+            borderRadius: 3,
+            border: isSelected ? '2px solid #5e17eb' : '2px solid transparent',
+            backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : 'transparent',
+            padding: isSelected ? '24px' : '0',
+            boxShadow: isSelected ? '0 8px 32px rgba(94, 23, 235, 0.15)' : 'none',
+            position: 'relative',
+            transition: 'all 0.3s ease',
+            '&::before': isSelected ? {
+              content: '"選択中"',
+              position: 'absolute',
+              top: -12,
+              right: 16,
+              backgroundColor: '#5e17eb',
+              color: 'white',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+              padding: '4px 12px',
+              borderRadius: '16px',
+              zIndex: 10,
+              boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
+            } : {},
+            '&:hover': {
+              backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.05)' : 'rgba(94, 23, 235, 0.01)',
+              border: isSelected ? '2px solid #5e17eb' : '2px solid rgba(94, 23, 235, 0.3)',
+              transform: isSelected ? 'none' : 'translateY(-2px)',
+              boxShadow: isSelected 
+                ? '0 12px 40px rgba(94, 23, 235, 0.2)' 
+                : '0 4px 16px rgba(94, 23, 235, 0.1)'
+            }
+          }}
+        >
+          {children}
+        </Box>
       </Box>
     );
 
