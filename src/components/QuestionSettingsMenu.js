@@ -1072,7 +1072,12 @@ const QuestionSettingsMenu = ({
                         handleColorChange({ hex: e.target.value });
                       }}
                       placeholder="#5e17eb"
-                      sx={{ flex: 1 }}
+                      sx={{ 
+                        flex: 1,
+                        '& .MuiOutlinedInput-input': {
+                          padding: '8px 8px !important'
+                        }
+                      }}
                     />
                   </Box>
                 </Box>
