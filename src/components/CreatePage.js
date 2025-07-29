@@ -1101,23 +1101,34 @@ export default function CreatePage({ onBackClick }) {
 
         {/* トースト通知 */}
         <Toaster
-          position="top-right"
+          position="bottom-center"
           toastOptions={{
-            duration: 3000,
+            duration: 4000,
             style: {
               background: '#363636',
               color: '#fff',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              fontSize: '14px',
+              fontWeight: '500',
+              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+              maxWidth: '400px'
             },
             success: {
               style: {
                 background: '#22c55e',
+                color: '#fff'
               },
             },
             error: {
               style: {
                 background: '#ef4444',
+                color: '#fff'
               },
             },
+          }}
+          containerStyle={{
+            bottom: '80px',
           }}
         />
       </Box>
