@@ -951,19 +951,6 @@ const QuestionSettingsMenu = ({
       <>
         {/* フォーム基本設定 - 常に表示 */}
         <Box sx={{ mb: 3 }}>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              mb: 2,
-              fontSize: '1rem',
-              fontWeight: 700,
-              color: '#1F2937',
-              borderBottom: '2px solid #5E17EB',
-              pb: 1
-            }}
-          >
-            フォーム基本設定
-          </Typography>
           
           {/* テーマカラー設定 */}
           <Accordion 
@@ -1396,180 +1383,154 @@ const QuestionSettingsMenu = ({
           </Accordion>
         </Box>
 
-        {/* ページ個別設定 */}
-        {(isLoginPage || selectedElement?.startsWith('login-')) && (
-          <>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                mb: 2,
-                fontSize: '1rem',
-                fontWeight: 700,
-                color: '#1F2937',
-                borderBottom: '2px solid #06B6D4',
-                pb: 1
-              }}
-            >
-              ログイン画面設定
-            </Typography>
-            
-            <Accordion 
-              expanded={expandedAccordion === 'login-title'} 
-              onChange={() => setExpandedAccordion(expandedAccordion === 'login-title' ? null : 'login-title')}
-              sx={{
-                borderRadius: '8px !important',
-                border: '1px solid #E5E7EB',
-                boxShadow: 'none',
-                '&:before': { display: 'none' },
-                backgroundColor: expandedAccordion === 'login-title' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
-                mb: 2
-              }}
-            >
-              <AccordionSummary
-                expandIcon={expandedAccordion === 'login-title' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          {/* ログイン画面テキスト設定 - フォーム基本設定に統合 */}
+          {(isLoginPage || selectedElement?.startsWith('login-')) && (
+            <>
+              <Accordion 
+                expanded={expandedAccordion === 'login-title'} 
+                onChange={() => setExpandedAccordion(expandedAccordion === 'login-title' ? null : 'login-title')}
                 sx={{
-                  borderRadius: '8px',
-                  '& .MuiAccordionSummary-content': {
-                    alignItems: 'center'
-                  }
+                  borderRadius: '8px !important',
+                  border: '1px solid #E5E7EB',
+                  boxShadow: 'none',
+                  '&:before': { display: 'none' },
+                  backgroundColor: expandedAccordion === 'login-title' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                  mb: 2
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: '6px',
-                      background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)'
-                    }}
-                  >
-                    <TextIcon sx={{ color: 'white', fontSize: '1rem' }} />
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="body1"
+                <AccordionSummary
+                  expandIcon={expandedAccordion === 'login-title' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{
+                    borderRadius: '8px',
+                    '& .MuiAccordionSummary-content': {
+                      alignItems: 'center'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
                       sx={{
-                        fontWeight: 600,
-                        color: '#1F2937',
-                        fontSize: '0.9rem'
+                        width: 32,
+                        height: 32,
+                        borderRadius: '6px',
+                        background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)'
                       }}
                     >
-                      タイトルテキスト
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: '#6B7280',
-                        fontSize: '0.75rem'
-                      }}
-                    >
-                      ログイン画面のメインタイトル
-                    </Typography>
+                      <TextIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          color: '#1F2937',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        タイトルテキスト
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: '#6B7280',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        ログイン画面のメインタイトル
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 0 }}>
-                <StylishTextField
-                  label="タイトルテキスト"
-                  value="OpenReviewへようこそ！"
-                  onChange={() => {}}
-                  placeholder="ログイン画面のタイトル"
-                />
-              </AccordionDetails>
-            </Accordion>
+                </AccordionSummary>
+                <AccordionDetails sx={{ pt: 0 }}>
+                  <StylishTextField
+                    label="タイトルテキスト"
+                    value="OpenReviewへようこそ！"
+                    onChange={() => {}}
+                    placeholder="ログイン画面のタイトル"
+                  />
+                </AccordionDetails>
+              </Accordion>
 
-            <Accordion 
-              expanded={expandedAccordion === 'login-detail'} 
-              onChange={() => setExpandedAccordion(expandedAccordion === 'login-detail' ? null : 'login-detail')}
-              sx={{
-                borderRadius: '8px !important',
-                border: '1px solid #E5E7EB',
-                boxShadow: 'none',
-                '&:before': { display: 'none' },
-                backgroundColor: expandedAccordion === 'login-detail' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
-              }}
-            >
-              <AccordionSummary
-                expandIcon={expandedAccordion === 'login-detail' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              <Accordion 
+                expanded={expandedAccordion === 'login-detail'} 
+                onChange={() => setExpandedAccordion(expandedAccordion === 'login-detail' ? null : 'login-detail')}
                 sx={{
-                  borderRadius: '8px',
-                  '& .MuiAccordionSummary-content': {
-                    alignItems: 'center'
-                  }
+                  borderRadius: '8px !important',
+                  border: '1px solid #E5E7EB',
+                  boxShadow: 'none',
+                  '&:before': { display: 'none' },
+                  backgroundColor: expandedAccordion === 'login-detail' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                  mb: 2
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: '6px',
-                      background: 'linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 8px rgba(6, 182, 212, 0.3)'
-                    }}
-                  >
-                    <NotesIcon sx={{ color: 'white', fontSize: '1rem' }} />
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant="body1"
+                <AccordionSummary
+                  expandIcon={expandedAccordion === 'login-detail' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{
+                    borderRadius: '8px',
+                    '& .MuiAccordionSummary-content': {
+                      alignItems: 'center'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
                       sx={{
-                        fontWeight: 600,
-                        color: '#1F2937',
-                        fontSize: '0.9rem'
+                        width: 32,
+                        height: 32,
+                        borderRadius: '6px',
+                        background: 'linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(6, 182, 212, 0.3)'
                       }}
                     >
-                      詳細テキスト
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: '#6B7280',
-                        fontSize: '0.75rem'
-                      }}
-                    >
-                      ログイン画面の説明文
-                    </Typography>
+                      <NotesIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          color: '#1F2937',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        詳細テキスト
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: '#6B7280',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        ログイン画面の説明文
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 0 }}>
-                <StylishTextField
-                  label="詳細テキスト"
-                  value="あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。"
-                  onChange={() => {}}
-                  multiline
-                  rows={3}
-                  placeholder="ログイン画面の説明文"
-                />
-              </AccordionDetails>
-            </Accordion>
-          </>
-        )}
+                </AccordionSummary>
+                <AccordionDetails sx={{ pt: 0 }}>
+                  <StylishTextField
+                    label="詳細テキスト"
+                    value="あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。"
+                    onChange={() => {}}
+                    multiline
+                    rows={3}
+                    placeholder="ログイン画面の説明文"
+                  />
+                </AccordionDetails>
+              </Accordion>
+            </>
+          )}
 
         {/* 完了画面設定 */}
         {(isCompletionPage || selectedElement?.startsWith('completion-')) && (
           <>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                mb: 2,
-                fontSize: '1rem',
-                fontWeight: 700,
-                color: '#1F2937',
-                borderBottom: '2px solid #10B981',
-                pb: 1
-              }}
-            >
-              完了画面設定
-            </Typography>
             
             {/* 背景画像設定 */}
             <Accordion 
