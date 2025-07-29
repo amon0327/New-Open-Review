@@ -336,8 +336,8 @@ const QuestionSettingsMenu = ({
   const getAvailableTabs = () => {
     const tabs = [];
     
-    // 質問設定タブ (質問が選択されているときのみ)
-    if (selectedQuestion) {
+    // 質問設定タブ (質問ページでのみ)
+    if (selectedPage && selectedPage.type === 'question') {
       tabs.push({ value: 0, label: '質問設定' });
     }
     
@@ -445,13 +445,14 @@ const QuestionSettingsMenu = ({
               }
             }}
           >
-            {/* 質問設定タブ - 質問が選択されているときのみ表示 */}
-            {selectedQuestion && (
+            {/* 質問設定タブ - 質問ページでのみ表示 */}
+            {selectedPage && selectedPage.type === 'question' && (
               <Tab 
                 icon={<TuneIcon sx={{ fontSize: '1rem' }} />} 
                 iconPosition="start" 
                 label="質問設定" 
                 value={0}
+                disabled={!selectedQuestion}
               />
             )}
             {/* 質問一覧タブ - 質問ページでのみ表示 */}
