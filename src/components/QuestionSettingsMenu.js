@@ -413,29 +413,6 @@ const QuestionSettingsMenu = ({
 
         return (
           <Stack spacing={3}>
-            {/* 質問テキスト */}
-            <StylishTextField
-              label="質問テキスト"
-              value={selectedQuestion.question_text || ''}
-              onChange={(e) => handleQuestionUpdate('question_text', e.target.value)}
-              multiline
-              minRows={1}
-              maxRows={3}
-              placeholder="質問を入力してください..."
-              required
-            />
-
-            {/* 詳細テキスト */}
-            <StylishTextField
-              label="詳細テキスト"
-              value={selectedQuestion.detail_text || ''}
-              onChange={(e) => handleQuestionUpdate('detail_text', e.target.value)}
-              multiline
-              minRows={1}
-              maxRows={3}
-              placeholder="詳細説明を入力してください..."
-            />
-
             {/* 必須回答設定 */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Typography 
@@ -463,6 +440,29 @@ const QuestionSettingsMenu = ({
                 }}
               />
             </Box>
+
+            {/* 質問テキスト */}
+            <StylishTextField
+              label="質問テキスト"
+              value={selectedQuestion.question_text || ''}
+              onChange={(e) => handleQuestionUpdate('question_text', e.target.value)}
+              multiline
+              minRows={1}
+              maxRows={3}
+              placeholder="質問を入力してください..."
+              required
+            />
+
+            {/* 詳細テキスト */}
+            <StylishTextField
+              label="詳細テキスト"
+              value={selectedQuestion.detail_text || ''}
+              onChange={(e) => handleQuestionUpdate('detail_text', e.target.value)}
+              multiline
+              minRows={1}
+              maxRows={3}
+              placeholder="詳細説明を入力してください..."
+            />
 
             {/* 質問タイプ別の追加設定 */}
             {(typeId === 3 || typeId === 4) && (
