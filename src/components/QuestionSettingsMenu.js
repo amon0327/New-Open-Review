@@ -1,28 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Paper,
   Typography,
   TextField,
   Switch,
   FormControlLabel,
   Button,
   IconButton,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Chip,
   Stack,
   Divider,
   List,
   ListItem,
+  ListItemButton,
+  ListItemIcon,
   ListItemText,
-  ListItemSecondaryAction,
-  Tooltip,
-  Alert
+  Fade,
+  Slide,
+  Paper,
+  InputBase,
+  Tooltip
 } from '@mui/material';
 import {
-  ExpandMore as ExpandMoreIcon,
   Delete as DeleteIcon,
   Add as AddIcon,
   DragHandle as DragHandleIcon,
@@ -34,39 +33,144 @@ import {
   Notes as NotesIcon,
   ArrowDropDown as DropdownIcon,
   LinearScale as ScaleIcon,
-  GridOn as MatrixIcon
+  GridOn as MatrixIcon,
+  Settings as SettingsIcon,
+  ArrowBack as ArrowBackIcon,
+  Star as StarIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// 質問タイプのアイコンマッピング
-const getQuestionTypeIcon = (typeId) => {
-  const iconMap = {
-    1: <TextIcon />,      // 短文テキスト
-    2: <NotesIcon />,     // 長文テキスト
-    3: <RadioIcon />,     // 単一選択
-    4: <CheckboxIcon />,  // 複数選択
-    5: <MatrixIcon />,    // 単一選択マトリックス
-    6: <MatrixIcon />,    // 複数選択マトリックス
-    7: <ScaleIcon />,     // リニアスケール
-    8: <DropdownIcon />   // プルダウン
+// 質問タイプのアイコンとカラーマッピング
+const getQuestionTypeConfig = (typeId) => {
+  const configs = {
+    1: { icon: <TextIcon />, name: '短文テキスト', color: '#3B82F6', gradient: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)' },
+    2: { icon: <NotesIcon />, name: '長文テキスト', color: '#10B981', gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' },
+    3: { icon: <RadioIcon />, name: '単一選択', color: '#F59E0B', gradient: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' },
+    4: { icon: <CheckboxIcon />, name: '複数選択', color: '#EF4444', gradient: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)' },
+    5: { icon: <MatrixIcon />, name: '単一選択マトリックス', color: '#8B5CF6', gradient: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)' },
+    6: { icon: <MatrixIcon />, name: '複数選択マトリックス', color: '#EC4899', gradient: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)' },
+    7: { icon: <ScaleIcon />, name: 'リニアスケール', color: '#06B6D4', gradient: 'linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)' },
+    8: { icon: <DropdownIcon />, name: 'プルダウン', color: '#84CC16', gradient: 'linear-gradient(135deg, #84CC16 0%, #65A30D 100%)' }
   };
-  return iconMap[typeId] || <TextIcon />;
+  return configs[typeId] || configs[1];
 };
 
-// 質問タイプ名のマッピング
-const getQuestionTypeName = (typeId) => {
-  const nameMap = {
-    1: '短文テキスト',
-    2: '長文テキスト',
-    3: '単一選択',
-    4: '複数選択',
-    5: '単一選択マトリックス',
-    6: '複数選択マトリックス',
-    7: 'リニアスケール',
-    8: 'プルダウン'
-  };
-  return nameMap[typeId] || '不明';
-};
+// スタイリッシュなテキストフィールドコンポーネント
+const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1, placeholder, required = false, ...props }) => (
+  <Box sx={{ mb: 2.5 }}>
+    <Typography 
+      variant="body2" 
+      sx={{ 
+        mb: 1,
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        color: '#374151',
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px'
+      }}
+    >
+      {label} {required && <StarIcon sx={{ fontSize: '0.6rem', color: '#EF4444', ml: 0.3 }} />}
+    </Typography>
+    <TextField
+      value={value}
+      onChange={onChange}
+      multiline={multiline}
+      rows={rows}
+      placeholder={placeholder}
+      fullWidth
+      variant="outlined"
+      sx={{
+        '& .MuiOutlinedInput-root': {
+          backgroundColor: '#F8FAFC',
+          borderRadius: '6px',
+          fontSize: '0.875rem',
+          fontWeight: 400,
+          border: 'none',
+          '& fieldset': {
+            border: '1px solid #E2E8F0',
+            borderRadius: '6px'
+          },
+          '&:hover fieldset': {
+            borderColor: '#CBD5E1'
+          },
+          '&.Mui-focused': {
+            backgroundColor: '#FFFFFF',
+            '& fieldset': {
+              borderColor: '#5E17EB',
+              borderWidth: '1px'
+            }
+          },
+          '& input': {
+            padding: '10px 12px',
+            fontSize: '0.875rem'
+          },
+          '& textarea': {
+            padding: '10px 12px',
+            fontSize: '0.875rem'
+          }
+        }
+      }}
+      {...props}
+    />
+  </Box>
+);
+
+// スタイリッシュなスイッチコンポーネント
+const StylishSwitch = ({ label, checked, onChange, description }) => (
+  <Box 
+    sx={{ 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'space-between',
+      p: 2,
+      backgroundColor: '#F8FAFC',
+      borderRadius: '8px',
+      border: '1px solid #E2E8F0',
+      mb: 2.5,
+      transition: 'all 0.2s ease'
+    }}
+  >
+    <Box>
+      <Typography 
+        variant="body2" 
+        sx={{ 
+          fontWeight: 600,
+          color: '#1F2937',
+          fontSize: '0.875rem',
+          mb: description ? 0.5 : 0
+        }}
+      >
+        {label}
+      </Typography>
+      {description && (
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            color: '#6B7280',
+            fontSize: '0.75rem'
+          }}
+        >
+          {description}
+        </Typography>
+      )}
+    </Box>
+    <Switch
+      checked={checked}
+      onChange={onChange}
+      sx={{
+        '& .MuiSwitch-switchBase': {
+          '&.Mui-checked': {
+            color: '#5E17EB',
+            '& + .MuiSwitch-track': {
+              backgroundColor: '#5E17EB'
+            }
+          }
+        }
+      }}
+    />
+  </Box>
+);
 
 const QuestionSettingsMenu = ({
   questions = [],
@@ -75,481 +179,547 @@ const QuestionSettingsMenu = ({
   onQuestionDelete,
   onQuestionSelect
 }) => {
-  const [expandedQuestions, setExpandedQuestions] = useState({});
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'settings'
   const [editingChoices, setEditingChoices] = useState({});
 
-  // 選択された質問の取得
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
-  // 質問が選択されたときに自動展開
+  // 質問が選択されたら設定モードに切り替え
   useEffect(() => {
-    if (selectedQuestionId) {
-      setExpandedQuestions(prev => ({
-        ...prev,
-        [selectedQuestionId]: true
-      }));
+    if (selectedQuestionId && selectedQuestion) {
+      setViewMode('settings');
+    } else {
+      setViewMode('list');
     }
-  }, [selectedQuestionId]);
-
-  // アコーディオンの展開/折りたたみ
-  const handleAccordionToggle = (questionId) => {
-    setExpandedQuestions(prev => ({
-      ...prev,
-      [questionId]: !prev[questionId]
-    }));
-    
-    // 質問を選択
-    if (onQuestionSelect) {
-      onQuestionSelect(questionId);
-    }
-  };
+  }, [selectedQuestionId, selectedQuestion]);
 
   // 質問の基本設定更新
-  const handleQuestionUpdate = (questionId, field, value) => {
-    if (onQuestionUpdate) {
-      onQuestionUpdate(questionId, { [field]: value });
+  const handleQuestionUpdate = (field, value) => {
+    if (onQuestionUpdate && selectedQuestion) {
+      onQuestionUpdate(selectedQuestion.id, { [field]: value });
     }
   };
 
   // 選択肢の更新
-  const handleChoicesUpdate = (questionId, choices) => {
-    handleQuestionUpdate(questionId, 'choices', JSON.stringify(choices));
+  const handleChoicesUpdate = (choices) => {
+    handleQuestionUpdate('choices', JSON.stringify(choices));
   };
 
   // 選択肢の追加
-  const handleAddChoice = (questionId) => {
-    const question = questions.find(q => q.id === questionId);
-    const currentChoices = question.choices ? JSON.parse(question.choices) : [];
+  const handleAddChoice = () => {
+    const currentChoices = selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : [];
     const newChoices = [...currentChoices, `選択肢 ${currentChoices.length + 1}`];
-    handleChoicesUpdate(questionId, newChoices);
+    handleChoicesUpdate(newChoices);
   };
 
   // 選択肢の削除
-  const handleRemoveChoice = (questionId, index) => {
-    const question = questions.find(q => q.id === questionId);
-    const currentChoices = question.choices ? JSON.parse(question.choices) : [];
+  const handleRemoveChoice = (index) => {
+    const currentChoices = selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : [];
     const newChoices = currentChoices.filter((_, i) => i !== index);
-    handleChoicesUpdate(questionId, newChoices);
+    handleChoicesUpdate(newChoices);
   };
 
   // 選択肢の編集
-  const handleChoiceEdit = (questionId, index, value) => {
-    const question = questions.find(q => q.id === questionId);
-    const currentChoices = question.choices ? JSON.parse(question.choices) : [];
+  const handleChoiceEdit = (index, value) => {
+    const currentChoices = selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : [];
     const newChoices = [...currentChoices];
     newChoices[index] = value;
-    handleChoicesUpdate(questionId, newChoices);
+    handleChoicesUpdate(newChoices);
   };
 
   // スケール設定の更新
-  const handleScaleUpdate = (questionId, field, value) => {
-    const question = questions.find(q => q.id === questionId);
-    const currentSettings = question.scale_settings ? JSON.parse(question.scale_settings) : {};
+  const handleScaleUpdate = (field, value) => {
+    const currentSettings = selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings) : {};
     const newSettings = { ...currentSettings, [field]: value };
-    handleQuestionUpdate(questionId, 'scale_settings', JSON.stringify(newSettings));
+    handleQuestionUpdate('scale_settings', JSON.stringify(newSettings));
   };
 
-  // 質問タイプ別の設定UI
-  const renderQuestionSettings = (question) => {
-    const { question_types_id: typeId } = question;
-
-    return (
-      <Box sx={{ p: 2, pt: 0 }}>
-        {/* 基本設定 */}
-        <Stack spacing={2}>
-          {/* 質問テキスト */}
-          <TextField
-            label="質問テキスト"
-            value={question.question_text || ''}
-            onChange={(e) => handleQuestionUpdate(question.id, 'question_text', e.target.value)}
-            multiline
-            rows={2}
-            fullWidth
-            variant="outlined"
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                },
-                '&.Mui-focused': {
-                  backgroundColor: '#ffffff',
-                }
-              }
-            }}
-          />
-
-          {/* 詳細テキスト */}
-          <TextField
-            label="詳細テキスト（任意）"
-            value={question.detail_text || ''}
-            onChange={(e) => handleQuestionUpdate(question.id, 'detail_text', e.target.value)}
-            multiline
-            rows={1}
-            fullWidth
-            variant="outlined"
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                },
-                '&.Mui-focused': {
-                  backgroundColor: '#ffffff',
-                }
-              }
-            }}
-          />
-
-          {/* 必須設定 */}
-          <FormControlLabel
-            control={
-              <Switch
-                checked={question.is_required || false}
-                onChange={(e) => handleQuestionUpdate(question.id, 'is_required', e.target.checked)}
-                color="primary"
-              />
-            }
-            label="必須回答"
-            sx={{
-              '& .MuiFormControlLabel-label': {
-                fontWeight: 500,
-                color: '#374151'
-              }
-            }}
-          />
-
-          <Divider sx={{ my: 1 }} />
-
-          {/* 質問タイプ別設定 */}
-          {[3, 4, 8].includes(typeId) && (
-            // 選択肢設定（単一選択、複数選択、プルダウン）
-            <Box>
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  fontWeight: 600,
-                  color: '#374151',
-                  mb: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1
-                }}
-              >
-                <CheckboxIcon sx={{ fontSize: '1rem', color: '#5e17eb' }} />
-                選択肢
-              </Typography>
-              
-              <Stack spacing={1}>
-                {(question.choices ? JSON.parse(question.choices) : []).map((choice, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      p: 1,
-                      backgroundColor: 'rgba(248, 250, 252, 0.8)',
-                      borderRadius: 1,
-                      border: '1px solid rgba(0, 0, 0, 0.06)'
-                    }}
-                  >
-                    <DragHandleIcon sx={{ color: '#94a3b8', fontSize: '1rem' }} />
-                    <TextField
-                      value={choice}
-                      onChange={(e) => handleChoiceEdit(question.id, index, e.target.value)}
-                      size="small"
-                      variant="outlined"
-                      sx={{
-                        flex: 1,
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: 'white',
-                          height: '36px'
-                        }
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={() => handleRemoveChoice(question.id, index)}
-                      sx={{
-                        color: '#ef4444',
-                        '&:hover': {
-                          backgroundColor: 'rgba(239, 68, 68, 0.1)'
-                        }
-                      }}
-                    >
-                      <DeleteIcon sx={{ fontSize: '1rem' }} />
-                    </IconButton>
-                  </Box>
-                ))}
-                
-                <Button
-                  startIcon={<AddIcon />}
-                  onClick={() => handleAddChoice(question.id)}
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    mt: 1,
-                    color: '#5e17eb',
-                    borderColor: '#5e17eb',
-                    '&:hover': {
-                      backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                      borderColor: '#5e17eb'
-                    }
-                  }}
-                >
-                  選択肢を追加
-                </Button>
-              </Stack>
-            </Box>
-          )}
-
-          {typeId === 7 && (
-            // リニアスケール設定
-            <Box>
-              <Typography
-                variant="subtitle2"
-                sx={{
-                  fontWeight: 600,
-                  color: '#374151',
-                  mb: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1
-                }}
-              >
-                <ScaleIcon sx={{ fontSize: '1rem', color: '#5e17eb' }} />
-                スケール設定
-              </Typography>
-              
-              <Stack spacing={2}>
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <TextField
-                    label="最小値"
-                    type="number"
-                    value={question.scale_settings ? JSON.parse(question.scale_settings).minValue || 1 : 1}
-                    onChange={(e) => handleScaleUpdate(question.id, 'minValue', parseInt(e.target.value))}
-                    size="small"
-                    sx={{ flex: 1 }}
-                  />
-                  <TextField
-                    label="最大値"
-                    type="number"
-                    value={question.scale_settings ? JSON.parse(question.scale_settings).maxValue || 5 : 5}
-                    onChange={(e) => handleScaleUpdate(question.id, 'maxValue', parseInt(e.target.value))}
-                    size="small"
-                    sx={{ flex: 1 }}
-                  />
-                </Box>
-                
-                <TextField
-                  label="最小値ラベル"
-                  value={question.scale_settings ? JSON.parse(question.scale_settings).minLabel || '' : ''}
-                  onChange={(e) => handleScaleUpdate(question.id, 'minLabel', e.target.value)}
-                  size="small"
-                  fullWidth
-                />
-                
-                <TextField
-                  label="最大値ラベル"
-                  value={question.scale_settings ? JSON.parse(question.scale_settings).maxLabel || '' : ''}
-                  onChange={(e) => handleScaleUpdate(question.id, 'maxLabel', e.target.value)}
-                  size="small"
-                  fullWidth
-                />
-              </Stack>
-            </Box>
-          )}
-        </Stack>
-      </Box>
-    );
-  };
-
-  if (!questions.length) {
-    return (
-      <Box
-        sx={{
-          p: 3,
-          textAlign: 'center',
-          color: '#64748b'
-        }}
-      >
-        <Typography variant="body2">
-          質問を追加すると、ここに設定項目が表示されます
-        </Typography>
-      </Box>
-    );
-  }
-
-  return (
-    <Box sx={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+  // 質問リスト表示
+  const renderQuestionList = () => (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* ヘッダー */}
-      <Box sx={{ p: 2, pb: 1 }}>
-        <Typography
-          variant="h6"
-          sx={{
-            fontWeight: 600,
-            background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            mb: 1
-          }}
-        >
-          質問設定
-        </Typography>
-        
-        {selectedQuestion && (
-          <Alert
-            severity="info"
+      <Box sx={{ p: 3, pb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+          <Box
             sx={{
-              backgroundColor: 'rgba(94, 23, 235, 0.05)',
-              border: '1px solid rgba(94, 23, 235, 0.2)',
-              '& .MuiAlert-icon': {
-                color: '#5e17eb'
-              }
+              width: 32,
+              height: 32,
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, #5E17EB 0%, #764BA2 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(94, 23, 235, 0.3)'
             }}
           >
-            <Typography variant="caption" sx={{ fontWeight: 500 }}>
-              選択中: {selectedQuestion.question_text || '無題の質問'}
-            </Typography>
-          </Alert>
-        )}
+            <SettingsIcon sx={{ color: 'white', fontSize: '1.1rem' }} />
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 700,
+              fontSize: '1.1rem',
+              color: '#1F2937',
+              letterSpacing: '-0.025em'
+            }}
+          >
+            質問設定
+          </Typography>
+        </Box>
+        <Typography
+          variant="body2"
+          sx={{
+            color: '#6B7280',
+            fontSize: '0.8rem',
+            fontWeight: 400
+          }}
+        >
+          質問を選択して設定を編集
+        </Typography>
       </Box>
 
       {/* 質問リスト */}
-      <Box sx={{ flex: 1, overflow: 'auto', px: 1 }}>
-        {questions.map((question, index) => (
-          <motion.div
-            key={question.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
+      <Box sx={{ flex: 1, overflow: 'auto', px: 2 }}>
+        {questions.length === 0 ? (
+          <Box
+            sx={{
+              p: 4,
+              textAlign: 'center',
+              color: '#9CA3AF'
+            }}
           >
-            <Accordion
-              expanded={expandedQuestions[question.id] || false}
-              onChange={() => handleAccordionToggle(question.id)}
+            <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+              質問を追加すると、ここに表示されます
+            </Typography>
+          </Box>
+        ) : (
+          <List sx={{ p: 0 }}>
+            {questions.map((question, index) => {
+              const config = getQuestionTypeConfig(question.question_types_id);
+              const isSelected = selectedQuestionId === question.id;
+              
+              return (
+                <motion.div
+                  key={question.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <ListItem
+                    disablePadding
+                    sx={{ mb: 1 }}
+                  >
+                    <ListItemButton
+                      onClick={() => onQuestionSelect && onQuestionSelect(question.id)}
+                      sx={{
+                        borderRadius: '8px',
+                        border: isSelected ? '2px solid #5E17EB' : '1px solid #E5E7EB',
+                        backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                        boxShadow: isSelected 
+                          ? '0 4px 20px rgba(94, 23, 235, 0.15)' 
+                          : '0 1px 3px rgba(0, 0, 0, 0.05)',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.05)' : '#F9FAFB',
+                          borderColor: isSelected ? '#5E17EB' : '#D1D5DB',
+                          transform: 'translateY(-1px)',
+                          boxShadow: isSelected 
+                            ? '0 6px 25px rgba(94, 23, 235, 0.2)' 
+                            : '0 4px 12px rgba(0, 0, 0, 0.1)'
+                        }
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 40 }}>
+                        <Box
+                          sx={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: '6px',
+                            background: config.gradient,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                          }}
+                        >
+                          {React.cloneElement(config.icon, {
+                            sx: { color: 'white', fontSize: '0.9rem' }
+                          })}
+                        </Box>
+                      </ListItemIcon>
+                      
+                      <ListItemText
+                        primary={
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: 600,
+                              color: isSelected ? '#5E17EB' : '#1F2937',
+                              fontSize: '0.85rem',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              mb: 0.3
+                            }}
+                          >
+                            {question.question_text || '無題の質問'}
+                          </Typography>
+                        }
+                        secondary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: '#6B7280',
+                                fontSize: '0.7rem',
+                                fontWeight: 500
+                              }}
+                            >
+                              {config.name}
+                            </Typography>
+                            {question.is_required && (
+                              <Chip
+                                label="必須"
+                                size="small"
+                                sx={{
+                                  height: 14,
+                                  fontSize: '0.6rem',
+                                  fontWeight: 600,
+                                  backgroundColor: '#FEF3C7',
+                                  color: '#D97706',
+                                  '& .MuiChip-label': {
+                                    px: 0.8
+                                  }
+                                }}
+                              />
+                            )}
+                          </Box>
+                        }
+                      />
+                      
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onQuestionDelete) {
+                            onQuestionDelete(question.id);
+                          }
+                        }}
+                        sx={{
+                          color: '#9CA3AF',
+                          opacity: 0,
+                          transition: 'all 0.2s ease',
+                          '.MuiListItemButton-root:hover &': {
+                            opacity: 1
+                          },
+                          '&:hover': {
+                            color: '#EF4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                          }
+                        }}
+                      >
+                        <DeleteIcon sx={{ fontSize: '0.9rem' }} />
+                      </IconButton>
+                    </ListItemButton>
+                  </ListItem>
+                </motion.div>
+              );
+            })}
+          </List>
+        )}
+      </Box>
+    </Box>
+  );
+
+  // 質問設定表示
+  const renderQuestionSettings = () => {
+    if (!selectedQuestion) return null;
+
+    const config = getQuestionTypeConfig(selectedQuestion.question_types_id);
+    const { question_types_id: typeId } = selectedQuestion;
+
+    return (
+      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        {/* ヘッダー */}
+        <Box 
+          sx={{ 
+            p: 3, 
+            pb: 2,
+            borderBottom: '1px solid #E5E7EB'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <IconButton
+              onClick={() => {
+                setViewMode('list');
+                onQuestionSelect && onQuestionSelect(null);
+              }}
               sx={{
-                mb: 1,
-                borderRadius: '8px !important',
-                border: selectedQuestionId === question.id
-                  ? '2px solid #5e17eb'
-                  : '1px solid rgba(0, 0, 0, 0.06)',
-                backgroundColor: selectedQuestionId === question.id
-                  ? 'rgba(94, 23, 235, 0.02)'
-                  : 'rgba(255, 255, 255, 0.9)',
-                boxShadow: selectedQuestionId === question.id
-                  ? '0 4px 20px rgba(94, 23, 235, 0.15)'
-                  : '0 1px 3px rgba(0, 0, 0, 0.05)',
-                '&:before': {
-                  display: 'none'
-                },
-                '&.Mui-expanded': {
-                  margin: '0 0 8px 0'
+                color: '#6B7280',
+                '&:hover': {
+                  backgroundColor: 'rgba(107, 114, 128, 0.1)',
+                  color: '#374151'
                 }
               }}
             >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
+              <ArrowBackIcon sx={{ fontSize: '1.1rem' }} />
+            </IconButton>
+            
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '8px',
+                background: config.gradient,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+              }}
+            >
+              {React.cloneElement(config.icon, {
+                sx: { color: 'white', fontSize: '1.1rem' }
+              })}
+            </Box>
+            
+            <Box>
+              <Typography
+                variant="h6"
                 sx={{
-                  minHeight: '56px',
-                  '& .MuiAccordionSummary-content': {
-                    alignItems: 'center',
-                    gap: 1.5
-                  }
+                  fontWeight: 700,
+                  fontSize: '1.1rem',
+                  color: '#1F2937',
+                  letterSpacing: '-0.025em'
                 }}
               >
-                {/* 質問タイプアイコン */}
-                <Box
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 1,
-                    background: selectedQuestionId === question.id
-                      ? 'linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%)'
-                      : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
+                質問設定
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#6B7280',
+                  fontSize: '0.75rem',
+                  fontWeight: 500
+                }}
+              >
+                {config.name}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* 設定内容 */}
+        <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+          <Stack spacing={0}>
+            {/* 基本設定 */}
+            <StylishTextField
+              label="質問テキスト"
+              value={selectedQuestion.question_text || ''}
+              onChange={(e) => handleQuestionUpdate('question_text', e.target.value)}
+              placeholder="質問を入力してください"
+              multiline
+              rows={2}
+              required
+            />
+
+            <StylishTextField
+              label="詳細テキスト"
+              value={selectedQuestion.detail_text || ''}
+              onChange={(e) => handleQuestionUpdate('detail_text', e.target.value)}
+              placeholder="補足説明を入力（任意）"
+              multiline
+              rows={1}
+            />
+
+            <StylishSwitch
+              label="必須回答"
+              description="回答者に必須で答えてもらう質問にする"
+              checked={selectedQuestion.is_required || false}
+              onChange={(e) => handleQuestionUpdate('is_required', e.target.checked)}
+            />
+
+            {/* 質問タイプ別設定 */}
+            {[3, 4, 8].includes(typeId) && (
+              <Box sx={{ mt: 1 }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    mb: 2,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: '#374151',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
                   }}
                 >
-                  {React.cloneElement(getQuestionTypeIcon(question.question_types_id), {
-                    sx: { color: 'white', fontSize: '1rem' }
-                  })}
-                </Box>
-
-                {/* 質問情報 */}
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 600,
-                      color: selectedQuestionId === question.id ? '#5e17eb' : '#374151',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {question.question_text || '無題の質問'}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: '#64748b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      mt: 0.2
-                    }}
-                  >
-                    {getQuestionTypeName(question.question_types_id)}
-                    {question.is_required && (
-                      <Chip
-                        label="必須"
+                  選択肢設定
+                </Typography>
+                
+                <Stack spacing={1.5}>
+                  {(selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : []).map((choice, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        p: 1.5,
+                        backgroundColor: '#F8FAFC',
+                        borderRadius: '8px',
+                        border: '1px solid #E2E8F0',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          borderColor: '#CBD5E1'
+                        }
+                      }}
+                    >
+                      <DragHandleIcon sx={{ color: '#9CA3AF', fontSize: '1rem' }} />
+                      <TextField
+                        value={choice}
+                        onChange={(e) => handleChoiceEdit(index, e.target.value)}
                         size="small"
+                        variant="outlined"
                         sx={{
-                          height: 16,
-                          fontSize: '0.65rem',
-                          fontWeight: 500,
-                          backgroundColor: '#ef4444',
-                          color: 'white'
+                          flex: 1,
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: 'white',
+                            borderRadius: '6px',
+                            fontSize: '0.875rem',
+                            '& fieldset': {
+                              borderColor: '#E2E8F0'
+                            },
+                            '&:hover fieldset': {
+                              borderColor: '#CBD5E1'
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5E17EB'
+                            }
+                          }
                         }}
                       />
-                    )}
-                  </Typography>
-                </Box>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleRemoveChoice(index)}
+                        sx={{
+                          color: '#9CA3AF',
+                          '&:hover': {
+                            color: '#EF4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                          }
+                        }}
+                      >
+                        <DeleteIcon sx={{ fontSize: '0.9rem' }} />
+                      </IconButton>
+                    </Box>
+                  ))}
+                  
+                  <Button
+                    startIcon={<AddIcon />}
+                    onClick={handleAddChoice}
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      mt: 1,
+                      color: '#5E17EB',
+                      borderColor: '#E2E8F0',
+                      backgroundColor: '#F8FAFC',
+                      fontWeight: 500,
+                      fontSize: '0.8rem',
+                      textTransform: 'none',
+                      borderRadius: '6px',
+                      '&:hover': {
+                        backgroundColor: 'rgba(94, 23, 235, 0.04)',
+                        borderColor: '#5E17EB'
+                      }
+                    }}
+                  >
+                    選択肢を追加
+                  </Button>
+                </Stack>
+              </Box>
+            )}
 
-                {/* 削除ボタン */}
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (onQuestionDelete) {
-                      onQuestionDelete(question.id);
-                    }
-                  }}
-                  sx={{
-                    color: '#ef4444',
-                    opacity: 0.7,
-                    '&:hover': {
-                      opacity: 1,
-                      backgroundColor: 'rgba(239, 68, 68, 0.1)'
-                    }
+            {typeId === 7 && (
+              <Box sx={{ mt: 1 }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    mb: 2,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: '#374151',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
                   }}
                 >
-                  <DeleteIcon sx={{ fontSize: '1rem' }} />
-                </IconButton>
-              </AccordionSummary>
-
-              <AccordionDetails sx={{ pt: 0 }}>
-                {renderQuestionSettings(question)}
-              </AccordionDetails>
-            </Accordion>
-          </motion.div>
-        ))}
+                  スケール設定
+                </Typography>
+                
+                <Stack spacing={2.5}>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <StylishTextField
+                      label="最小値"
+                      value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).minValue || 1 : 1}
+                      onChange={(e) => handleScaleUpdate('minValue', parseInt(e.target.value))}
+                      type="number"
+                    />
+                    <StylishTextField
+                      label="最大値"
+                      value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).maxValue || 5 : 5}
+                      onChange={(e) => handleScaleUpdate('maxValue', parseInt(e.target.value))}
+                      type="number"
+                    />
+                  </Box>
+                  
+                  <StylishTextField
+                    label="最小値ラベル"
+                    value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).minLabel || '' : ''}
+                    onChange={(e) => handleScaleUpdate('minLabel', e.target.value)}
+                    placeholder="例: そう思わない"
+                  />
+                  
+                  <StylishTextField
+                    label="最大値ラベル"
+                    value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).maxLabel || '' : ''}
+                    onChange={(e) => handleScaleUpdate('maxLabel', e.target.value)}
+                    placeholder="例: そう思う"
+                  />
+                </Stack>
+              </Box>
+            )}
+          </Stack>
+        </Box>
       </Box>
+    );
+  };
+
+  return (
+    <Box sx={{ height: '100%', overflow: 'hidden' }}>
+      <AnimatePresence mode="wait">
+        {viewMode === 'list' ? (
+          <motion.div
+            key="list"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            style={{ height: '100%' }}
+          >
+            {renderQuestionList()}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="settings"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            style={{ height: '100%' }}
+          >
+            {renderQuestionSettings()}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Box>
   );
 };
