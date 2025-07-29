@@ -139,12 +139,45 @@ const PreviewArea = ({
             height: previewMode === 'mobile' ? 820 : 900,
             borderRadius: previewMode === 'mobile' ? 6 : 0,
             background: colors.white,
-            border: previewMode === 'mobile' ? '8px solid #1a1a1a' : '2px solid #e2e8f0',
-            boxShadow: previewMode === 'mobile' 
-              ? shadows.mobile
-              : shadows.card,
+            border: isDragActive 
+              ? previewMode === 'mobile' 
+                ? '8px solid transparent'
+                : '4px solid transparent'
+              : previewMode === 'mobile' 
+                ? '8px solid #1a1a1a' 
+                : '2px solid #e2e8f0',
+            boxShadow: isDragActive
+              ? `
+                0 0 0 4px rgba(94, 23, 235, 0.3),
+                0 0 40px rgba(94, 23, 235, 0.4),
+                0 20px 80px rgba(94, 23, 235, 0.2),
+                ${previewMode === 'mobile' ? shadows.mobile : shadows.card}
+              `
+              : previewMode === 'mobile' 
+                ? shadows.mobile
+                : shadows.card,
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: isDragActive ? 'scale(1.02)' : 'scale(1)',
+            '&::before': isDragActive ? {
+              content: '""',
+              position: 'absolute',
+              top: -8,
+              left: -8,
+              right: -8,
+              bottom: -8,
+              background: 'linear-gradient(45deg, #5e17eb, #764ba2, #667eea, #5e17eb)',
+              borderRadius: previewMode === 'mobile' ? 14 : 8,
+              zIndex: -1,
+              backgroundSize: '300% 300%',
+              animation: 'borderGlow 2s ease infinite',
+              '@keyframes borderGlow': {
+                '0%': { backgroundPosition: '0% 50%' },
+                '50%': { backgroundPosition: '100% 50%' },
+                '100%': { backgroundPosition: '0% 50%' }
+              }
+            } : {}
           }}
         >
           {/* モバイルの場合のノッチ */}

@@ -1580,7 +1580,7 @@ const PreviewQuestions = ({
           maxWidth: isMobile ? '100%' : '900px',
           margin: '0 auto',
           backgroundColor: '#FFFFFF',
-          minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 350px)',
+          minHeight: 'auto',
           overflow: 'auto'
         }}
       >
@@ -1588,7 +1588,7 @@ const PreviewQuestions = ({
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 350px)',
+            minHeight: 'auto',
             px: isMobile ? 3 : 4,
             py: isMobile ? 0 : 2
           }}
@@ -1602,11 +1602,43 @@ const PreviewQuestions = ({
             sx={{ 
               flex: 1,
               position: 'relative',
-              border: isDragActive ? '2px dashed #5e17eb' : '2px dashed transparent',
-              borderRadius: 2,
-              transition: 'all 0.3s ease',
-              backgroundColor: isDragActive ? 'rgba(94, 23, 235, 0.05)' : 'transparent',
-              minHeight: displayQuestions.length === 0 ? '400px' : 'auto'
+              border: isDragActive 
+                ? '3px solid transparent'
+                : '2px dashed transparent',
+              borderRadius: 3,
+              background: isDragActive 
+                ? 'linear-gradient(145deg, rgba(94, 23, 235, 0.08), rgba(118, 75, 162, 0.08))'
+                : 'transparent',
+              boxShadow: isDragActive 
+                ? `
+                  0 0 0 3px rgba(94, 23, 235, 0.2),
+                  0 8px 32px rgba(94, 23, 235, 0.15),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.1)
+                `
+                : 'none',
+              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              transform: isDragActive ? 'scale(1.01)' : 'scale(1)',
+              minHeight: displayQuestions.length === 0 ? '300px' : 'auto',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: -3,
+                left: -3,
+                right: -3,
+                bottom: -3,
+                background: isDragActive 
+                  ? 'linear-gradient(45deg, #5e17eb, #764ba2, #667eea, #5e17eb)'
+                  : 'transparent',
+                borderRadius: 3,
+                zIndex: -1,
+                backgroundSize: '300% 300%',
+                animation: isDragActive ? 'gradientShift 2s ease infinite' : 'none',
+                '@keyframes gradientShift': {
+                  '0%': { backgroundPosition: '0% 50%' },
+                  '50%': { backgroundPosition: '100% 50%' },
+                  '100%': { backgroundPosition: '0% 50%' }
+                }
+              }
             }}
           >
             {/* Empty State - 初期状態の説明文 */}
@@ -1684,10 +1716,14 @@ const PreviewQuestions = ({
               </Box>
             )}
 
-            {/* Drag Active Overlay */}
+            {/* Drag Active Overlay - 洗練されたデザイン */}
             {isDragActive && (
-              <Box
-                sx={{
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                style={{
                   position: 'absolute',
                   top: 0,
                   left: 0,
@@ -1696,20 +1732,72 @@ const PreviewQuestions = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: 'rgba(94, 23, 235, 0.1)',
                   zIndex: 10,
-                  borderRadius: 2
+                  borderRadius: 12
                 }}
               >
-                <Box sx={{ textAlign: 'center', color: '#5e17eb' }}>
-                  <Typography variant="h5" sx={{ mb: 1, fontWeight: 600 }}>
+                <Box
+                  sx={{
+                    textAlign: 'center',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    borderRadius: 4,
+                    p: 6,
+                    boxShadow: '0 20px 60px rgba(94, 23, 235, 0.25)',
+                    border: '1px solid rgba(94, 23, 235, 0.2)',
+                    transform: 'translateY(-8px)'
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      mx: 'auto',
+                      mb: 3,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3)',
+                      animation: 'pulse 2s infinite'
+                    }}
+                  >
+                    <Typography 
+                      variant="h3" 
+                      sx={{ 
+                        color: 'white',
+                        fontWeight: 300
+                      }}
+                    >
+                      ✨
+                    </Typography>
+                  </Box>
+                  <Typography 
+                    variant="h5" 
+                    sx={{ 
+                      mb: 2, 
+                      fontWeight: 700,
+                      background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}
+                  >
                     ここに質問をドロップ
                   </Typography>
-                  <Typography variant="body1">
-                    質問を追加します
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      color: '#6b7280',
+                      fontWeight: 500,
+                      lineHeight: 1.6
+                    }}
+                  >
+                    新しい質問がフォームに追加されます
                   </Typography>
                 </Box>
-              </Box>
+              </motion.div>
             )}
 
             {/* Questions List */}
