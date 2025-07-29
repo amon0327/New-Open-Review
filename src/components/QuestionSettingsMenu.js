@@ -1490,22 +1490,7 @@ const QuestionSettingsMenu = ({
                     }
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box
-                      sx={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: '6px',
-                        background: 'linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 2px 8px rgba(6, 182, 212, 0.3)'
-                      }}
-                    >
-                      <NotesIcon sx={{ color: 'white', fontSize: '1rem' }} />
-                    </Box>
-                    <Box>
+                  <Box>
                       <Typography
                         variant="body1"
                         sx={{
