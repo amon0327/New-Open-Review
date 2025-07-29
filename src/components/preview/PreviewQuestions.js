@@ -1436,7 +1436,7 @@ const PreviewQuestions = ({
         height: '100%',
         width: '100%',
         backgroundColor: isMobile ? '#F1F4F8' : '#FFFFFF',
-        overflow: 'hidden',
+        overflow: 'auto',
         padding: '0 !important',
         margin: '0 !important',
         paddingLeft: '0 !important',
@@ -1448,8 +1448,8 @@ const PreviewQuestions = ({
         },
         msOverflowStyle: 'none',
         scrollbarWidth: 'none',
-        overscrollBehavior: 'none',
-        touchAction: 'pan-x pan-y'
+        overscrollBehavior: 'contain',
+        touchAction: 'pan-y'
       }}
     >
       {/* Glass Header Bar for PC - AnswerAppと同じ */}
@@ -1581,18 +1581,18 @@ const PreviewQuestions = ({
           maxWidth: isMobile ? '100%' : '900px',
           margin: '0 auto',
           backgroundColor: '#FFFFFF',
-          minHeight: 'auto',
-          overflow: 'hidden'
+          minHeight: 'fit-content',
+          overflow: 'visible'
         }}
       >
         <Box
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            minHeight: 'auto',
+            minHeight: 'fit-content',
             px: isMobile ? 3 : 4,
             py: isMobile ? 0 : 2,
-            overflow: 'hidden'
+            overflow: 'visible'
           }}
         >
           {/* Questions Content with Drop Zone */}
@@ -1620,9 +1620,8 @@ const PreviewQuestions = ({
                 : 'none',
               transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               transform: isDragActive ? 'scale(1.01)' : 'scale(1)',
-              minHeight: displayQuestions.length === 0 ? '300px' : 'auto',
-              maxHeight: '100%',
-              overflow: 'hidden',
+              minHeight: displayQuestions.length === 0 ? '300px' : 'fit-content',
+              overflow: 'visible',
               '&::before': {
                 content: '""',
                 position: 'absolute',
