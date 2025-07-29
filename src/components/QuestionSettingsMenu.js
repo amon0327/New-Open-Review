@@ -100,14 +100,14 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
       sx={{
         '& .MuiOutlinedInput-root': {
           backgroundColor: '#F8FAFC',
-          borderRadius: '6px',
+          borderRadius: '2px',
           fontSize: '0.875rem',
           fontWeight: 400,
           border: 'none',
           padding: '0 !important',
           '& fieldset': {
             border: '1px solid #E2E8F0',
-            borderRadius: '6px'
+            borderRadius: '2px'
           },
           '&:hover fieldset': {
             borderColor: '#CBD5E1'
