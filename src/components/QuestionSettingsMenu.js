@@ -1153,7 +1153,7 @@ const QuestionSettingsMenu = ({
                       fontSize: '0.9rem'
                     }}
                   >
-                    ヘッダー画像
+                    背景画像
                   </Typography>
                   <Typography
                     variant="caption"
@@ -1162,7 +1162,7 @@ const QuestionSettingsMenu = ({
                       fontSize: '0.75rem'
                     }}
                   >
-                    フォーム上部に表示される画像
+                    画面の背景に表示される画像
                   </Typography>
                 </Box>
               </Box>
@@ -1235,7 +1235,7 @@ const QuestionSettingsMenu = ({
                     }
                   }}
                 >
-                  {headerImage ? '画像を変更' : '画像をアップロード'}
+                  {headerImage ? '背景画像を変更' : '背景画像をアップロード'}
                 </Button>
                 
                 {headerImage && (
@@ -1245,7 +1245,7 @@ const QuestionSettingsMenu = ({
                     onClick={() => onHeaderImageChange && onHeaderImageChange(null)}
                     sx={{ textTransform: 'none' }}
                   >
-                    画像を削除
+                    背景画像を削除
                   </Button>
                 )}
               </Stack>
@@ -1547,21 +1547,21 @@ const QuestionSettingsMenu = ({
         {(isCompletionPage || selectedElement?.startsWith('completion-')) && (
           <>
             
-            {/* 背景画像設定 */}
+            {/* ボタン設定 */}
             <Accordion 
-              expanded={expandedAccordion === 'completion-background'} 
-              onChange={() => setExpandedAccordion(expandedAccordion === 'completion-background' ? null : 'completion-background')}
+              expanded={expandedAccordion === 'completion-button'} 
+              onChange={() => setExpandedAccordion(expandedAccordion === 'completion-button' ? null : 'completion-button')}
               sx={{
                 borderRadius: '8px !important',
                 border: '1px solid #E5E7EB',
                 boxShadow: 'none',
                 '&:before': { display: 'none' },
-                backgroundColor: expandedAccordion === 'completion-background' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                backgroundColor: expandedAccordion === 'completion-button' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
                 mb: 2
               }}
             >
               <AccordionSummary
-                expandIcon={expandedAccordion === 'completion-background' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                expandIcon={expandedAccordion === 'completion-button' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                 sx={{
                   borderRadius: '8px',
                   '& .MuiAccordionSummary-content': {
@@ -1575,14 +1575,21 @@ const QuestionSettingsMenu = ({
                       width: 32,
                       height: 32,
                       borderRadius: '6px',
-                      background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+                      background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)'
+                      boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
                     }}
                   >
-                    <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                    <Box 
+                      sx={{ 
+                        width: 16, 
+                        height: 16, 
+                        borderRadius: '6px', 
+                        backgroundColor: 'white'
+                      }} 
+                    />
                   </Box>
                   <Box>
                     <Typography
@@ -1593,7 +1600,7 @@ const QuestionSettingsMenu = ({
                         fontSize: '0.9rem'
                       }}
                     >
-                      背景画像
+                      ボタン設定
                     </Typography>
                     <Typography
                       variant="caption"
@@ -1602,18 +1609,26 @@ const QuestionSettingsMenu = ({
                         fontSize: '0.75rem'
                       }}
                     >
-                      完了画面の背景画像
+                      ボタンのテキストとリンク先
                     </Typography>
                   </Box>
                 </Box>
               </AccordionSummary>
               <AccordionDetails sx={{ pt: 0 }}>
-                <StylishTextField
-                  label="背景画像URL"
-                  value={completionBackground || 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg'}
-                  onChange={(e) => setCompletionBackground && setCompletionBackground(e.target.value)}
-                  placeholder="背景画像のURLを入力"
-                />
+                <Stack spacing={2}>
+                  <StylishTextField
+                    label="ボタンテキスト"
+                    value="完了"
+                    onChange={() => {}}
+                    placeholder="ボタンに表示するテキスト"
+                  />
+                  <StylishTextField
+                    label="リンク先URL"
+                    value="#"
+                    onChange={() => {}}
+                    placeholder="ボタンクリック時の移動先URL"
+                  />
+                </Stack>
               </AccordionDetails>
             </Accordion>
 
