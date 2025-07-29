@@ -1082,6 +1082,9 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
 // Pull Down Question Component - AnswerAppの完全コピー
 const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange, zoom = 1 }) => {
   const [selectedValue, setSelectedValue] = useState('');
+  
+  // デバッグ: zoom値を確認
+  console.log('PullDownQuestion zoom:', zoom, typeof zoom);
 
   const handleValueChange = (value) => {
     setSelectedValue(value);
@@ -1180,6 +1183,12 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
 
           <Box sx={{ width: '100%', maxWidth: 400 }}>
             <FormControl fullWidth>
+              <Box sx={{ 
+                '& .MuiPopover-root': {
+                  transform: `scale(${zoom}) !important`,
+                  transformOrigin: 'top center !important'
+                }
+              }}>
               <Select
                 value={selectedValue}
                 onChange={(e) => handleValueChange(e.target.value)}
@@ -1193,8 +1202,10 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                       maxHeight: '240px',
                       minWidth: '200px',
                       maxWidth: '400px',
-                      transform: `scale(${zoom})`,
+                      transform: `scale(${zoom}) !important`,
                       transformOrigin: 'top center',
+                      // デバッグ用の境界線を追加
+                      border: `2px solid red`,
                       '& .MuiMenuItem-root': {
                         fontSize: '1rem',
                         fontFamily: '"Noto Sans JP", sans-serif',
@@ -1293,6 +1304,7 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   </MenuItem>
                 ))}
               </Select>
+              </Box>
             </FormControl>
           </Box>
         </Box>

@@ -58,11 +58,11 @@ const getQuestionTypeConfig = (typeId) => {
 
 // スタイリッシュなテキストフィールドコンポーネント
 const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1, placeholder, required = false, ...props }) => (
-  <Box sx={{ mb: 1 }}>
+  <Box>
     <Typography 
       variant="body2" 
       sx={{ 
-        mb: 0.5,
+        mb: 1,
         fontSize: '0.75rem',
         fontWeight: 600,
         color: '#374151',
@@ -102,11 +102,11 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
             }
           },
           '& input': {
-            padding: '0px',
+            padding: '8px 12px',
             fontSize: '0.875rem'
           },
           '& textarea': {
-            padding: '0px',
+            padding: '8px 12px',
             fontSize: '0.875rem'
           }
         }
@@ -123,11 +123,10 @@ const StylishSwitch = ({ label, checked, onChange, description }) => (
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'space-between',
-      p: 1,
+      p: 2,
       backgroundColor: '#F8FAFC',
       borderRadius: '8px',
       border: '1px solid #E2E8F0',
-      mb: 1,
       transition: 'all 0.2s ease'
     }}
   >
@@ -138,7 +137,7 @@ const StylishSwitch = ({ label, checked, onChange, description }) => (
           fontWeight: 600,
           color: '#1F2937',
           fontSize: '0.875rem',
-          mb: description ? 0.2 : 0
+          mb: description ? 0.5 : 0
         }}
       >
         {label}
@@ -510,7 +509,8 @@ const QuestionSettingsMenu = ({
 
         {/* 設定内容 */}
         <Box sx={{ flex: 1, overflow: 'auto', p: 0 }}>
-          <Stack spacing={0}>
+          <Box sx={{ p: 2 }}>
+            <Stack spacing={2}>
             {/* 基本設定 */}
             <StylishTextField
               label="質問テキスト"
@@ -555,7 +555,7 @@ const QuestionSettingsMenu = ({
                   選択肢設定
                 </Typography>
                 
-                <Stack spacing={0.5}>
+                <Stack spacing={1.5}>
                   {(selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : []).map((choice, index) => (
                     <Box
                       key={index}
@@ -563,7 +563,7 @@ const QuestionSettingsMenu = ({
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1.5,
-                        p: 0.5,
+                        p: 1.5,
                         backgroundColor: '#F8FAFC',
                         borderRadius: '8px',
                         border: '1px solid #E2E8F0',
@@ -655,7 +655,7 @@ const QuestionSettingsMenu = ({
                   スケール設定
                 </Typography>
                 
-                <Stack spacing={1}>
+                <Stack spacing={2}>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <StylishTextField
                       label="最小値"
@@ -687,7 +687,8 @@ const QuestionSettingsMenu = ({
                 </Stack>
               </Box>
             )}
-          </Stack>
+            </Stack>
+          </Box>
         </Box>
       </Box>
     );
