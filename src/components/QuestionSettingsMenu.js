@@ -1491,26 +1491,25 @@ const QuestionSettingsMenu = ({
                   }}
                 >
                   <Box>
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          fontWeight: 600,
-                          color: '#1F2937',
-                          fontSize: '0.9rem'
-                        }}
-                      >
-                        詳細テキスト
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: '#6B7280',
-                          fontSize: '0.75rem'
-                        }}
-                      >
-                        ログイン画面の説明文
-                      </Typography>
-                    </Box>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 600,
+                        color: '#1F2937',
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      詳細テキスト
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#6B7280',
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      ログイン画面の説明文
+                    </Typography>
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails sx={{ pt: 0 }}>
