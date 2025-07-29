@@ -130,8 +130,7 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
             fontSize: '0.875rem',
             resize: 'none',
             lineHeight: '1.4375em',
-            verticalAlign: 'top',
-            minHeight: '1.4375em'
+            verticalAlign: 'top'
           },
           '&.MuiInputBase-multiline': {
             padding: '0 !important',
@@ -139,8 +138,7 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
               padding: '6px 8px !important',
               fontSize: '0.875rem',
               lineHeight: '1.4375em',
-              verticalAlign: 'top',
-              minHeight: '1.4375em'
+              verticalAlign: 'top'
             }
           }
         },
@@ -153,8 +151,7 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
             padding: '6px 8px !important',
             fontSize: '0.875rem',
             lineHeight: '1.4375em',
-            verticalAlign: 'top',
-            minHeight: '1.4375em'
+            verticalAlign: 'top'
           }
         }
       }}
