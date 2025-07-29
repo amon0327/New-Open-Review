@@ -79,34 +79,26 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
       rows={rows}
       placeholder={placeholder}
       fullWidth
-      variant="outlined"
+      variant="standard"
       sx={{
-        '& .MuiOutlinedInput-root': {
-          backgroundColor: '#F8FAFC',
-          borderRadius: '6px',
+        '& .MuiInput-root': {
           fontSize: '0.875rem',
           fontWeight: 400,
-          border: 'none',
-          '& fieldset': {
-            border: '1px solid #E2E8F0',
-            borderRadius: '6px'
+          '&:before': {
+            borderBottomColor: '#E2E8F0'
           },
-          '&:hover fieldset': {
-            borderColor: '#CBD5E1'
+          '&:hover:not(.Mui-disabled):before': {
+            borderBottomColor: '#CBD5E1'
           },
-          '&.Mui-focused': {
-            backgroundColor: '#FFFFFF',
-            '& fieldset': {
-              borderColor: '#5E17EB',
-              borderWidth: '1px'
-            }
+          '&:after': {
+            borderBottomColor: '#5E17EB'
           },
           '& input': {
-            padding: '0px',
+            padding: '4px 0px',
             fontSize: '0.875rem'
           },
           '& textarea': {
-            padding: '0px',
+            padding: '4px 0px',
             fontSize: '0.875rem'
           }
         }
@@ -636,25 +628,21 @@ const QuestionSettingsMenu = ({
                           value={choice}
                           onChange={(e) => handleChoiceEdit(index, e.target.value)}
                           fullWidth
-                          variant="outlined"
+                          variant="standard"
                           sx={{
-                            '& .MuiOutlinedInput-root': {
-                              backgroundColor: '#FFFFFF',
-                              borderRadius: '6px',
+                            '& .MuiInput-root': {
                               fontSize: '0.875rem',
-                              pl: 4,
-                              '& fieldset': {
-                                border: '1px solid #E5E7EB'
+                              '&:before': {
+                                borderBottomColor: '#E5E7EB'
                               },
-                              '&:hover fieldset': {
-                                borderColor: '#D1D5DB'
+                              '&:hover:not(.Mui-disabled):before': {
+                                borderBottomColor: '#D1D5DB'
                               },
-                              '&.Mui-focused fieldset': {
-                                borderColor: '#5E17EB',
-                                borderWidth: '1px'
+                              '&:after': {
+                                borderBottomColor: '#5E17EB'
                               },
                               '& input': {
-                                padding: '8px 12px 8px 20px',
+                                padding: '4px 0px 4px 20px',
                                 fontSize: '0.875rem'
                               }
                             }
