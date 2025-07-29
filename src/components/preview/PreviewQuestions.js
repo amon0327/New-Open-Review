@@ -137,7 +137,7 @@ const ShortTextQuestion = ({ question, themeColor, currentQuestion, totalQuestio
               variant="outlined"
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#F1F4F8',
+                  backgroundColor: '#FFFFFF',
                   borderRadius: '4px',
                   fontFamily: '"Noto Sans JP", sans-serif',
                   '& fieldset': {
@@ -275,7 +275,7 @@ const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestion
               variant="outlined"
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#F1F4F8',
+                  backgroundColor: '#FFFFFF',
                   borderRadius: '4px',
                   fontFamily: '"Noto Sans JP", sans-serif',
                   padding: 0,
@@ -1230,7 +1230,7 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   }
                 }}
                 sx={{
-                  backgroundColor: '#F1F4F8',
+                  backgroundColor: '#FFFFFF',
                   borderRadius: '4px',
                   fontFamily: '"Noto Sans JP", sans-serif',
                   '& .MuiOutlinedInput-notchedOutline': {
