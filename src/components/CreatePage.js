@@ -359,7 +359,7 @@ export default function CreatePage({ onBackClick }) {
     setSortingAnimation({ id: page.id, direction: 'dragging' });
   };
 
-  const handleDragOver = (e, targetPageId) => {
+  const handlePageDragOver = (e, targetPageId) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     
@@ -372,7 +372,7 @@ export default function CreatePage({ onBackClick }) {
     }
   };
 
-  const handleDrop = (e, targetPage) => {
+  const handlePageDrop = (e, targetPage) => {
     e.preventDefault();
     if (!draggedPage || draggedPage.id === targetPage.id || targetPage.type === 'system') return;
 
@@ -696,8 +696,8 @@ export default function CreatePage({ onBackClick }) {
                           <Box
                             draggable={page.type === 'question' && !deleteMode}
                             onDragStart={(e) => handleDragStart(e, page)}
-                            onDragOver={(e) => handleDragOver(e, page.id)}
-                            onDrop={(e) => handleDrop(e, page)}
+                            onDragOver={(e) => handlePageDragOver(e, page.id)}
+                            onDrop={(e) => handlePageDrop(e, page)}
                             onDragEnd={handleDragEnd}
                             onClick={(e) => {
                               // 編集中の入力フィールドをクリックした場合は何もしない
