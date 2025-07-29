@@ -1719,12 +1719,12 @@ const PreviewQuestions = ({
               </Box>
             )}
 
-            {/* Drag Active Overlay - 洗練されたデザイン */}
+            {/* Drag Active Overlay - シンプルなデザイン */}
             {isDragActive && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 style={{
                   position: 'absolute',
@@ -1732,75 +1732,11 @@ const PreviewQuestions = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
                   zIndex: 10,
-                  borderRadius: 12
+                  borderRadius: 12,
+                  background: 'rgba(94, 23, 235, 0.05)'
                 }}
-              >
-                <Box
-                  sx={{
-                    textAlign: 'center',
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(10px)',
-                    borderRadius: 4,
-                    p: 6,
-                    boxShadow: '0 20px 60px rgba(94, 23, 235, 0.25)',
-                    border: '1px solid rgba(94, 23, 235, 0.2)',
-                    transform: 'translateY(-8px)'
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      mx: 'auto',
-                      mb: 3,
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3)',
-                      animation: 'pulse 2s infinite'
-                    }}
-                  >
-                    <Typography 
-                      variant="h3" 
-                      sx={{ 
-                        color: 'white',
-                        fontWeight: 300
-                      }}
-                    >
-                      ✨
-                    </Typography>
-                  </Box>
-                  <Typography 
-                    variant="h5" 
-                    sx={{ 
-                      mb: 2, 
-                      fontWeight: 700,
-                      background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}
-                  >
-                    ここに質問をドロップ
-                  </Typography>
-                  <Typography 
-                    variant="body1" 
-                    sx={{ 
-                      color: '#6b7280',
-                      fontWeight: 500,
-                      lineHeight: 1.6
-                    }}
-                  >
-                    新しい質問がフォームに追加されます
-                  </Typography>
-                </Box>
-              </motion.div>
+              />
             )}
 
             {/* Questions List */}
