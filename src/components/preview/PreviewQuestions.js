@@ -1315,14 +1315,21 @@ const PreviewQuestions = ({
   onDrop,
   dropRef,
   selectedQuestionId,
-  onQuestionSelect
+  onQuestionSelect,
+  // 基本設定関連
+  headerImage,
+  logoImage,
+  onElementSelect
 }) => {
   const [answers, setAnswers] = useState({});
   const isMobile = previewMode === 'mobile';
 
   const themeColor = '#5e17eb';
-  const headerImage = 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
-  const logoUrl = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const defaultHeaderImage = 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
+  const defaultLogoUrl = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  
+  const currentHeaderImage = headerImage || defaultHeaderImage;
+  const currentLogoUrl = logoImage || defaultLogoUrl;
 
   // 実際の質問データを使用
   const displayQuestions = questions || [];
@@ -1544,15 +1551,26 @@ const PreviewQuestions = ({
           }}
         >
           <img
-            src={logoUrl}
+            src={currentLogoUrl}
             alt="Logo"
+            onClick={() => onElementSelect && onElementSelect('logo')}
             style={{
               width: '140px',
               height: '55px',
               objectFit: 'contain',
               position: 'relative',
               zIndex: 1,
-              filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1))'
+              filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1))',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'scale(1.05)';
+              e.target.style.filter = 'drop-shadow(0 4px 12px rgba(94, 23, 235, 0.3))';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'scale(1)';
+              e.target.style.filter = 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1))';
             }}
           />
         </Box>
@@ -1565,8 +1583,10 @@ const PreviewQuestions = ({
           height: isMobile ? 250 : 270,
           overflow: 'hidden',
           width: '100%',
-          marginTop: isMobile ? 0 : '65px'
+          marginTop: isMobile ? 0 : '65px',
+          cursor: 'pointer'
         }}
+        onClick={() => onElementSelect && onElementSelect('header')}
       >
         <Box
           sx={{
@@ -1575,9 +1595,14 @@ const PreviewQuestions = ({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundImage: `url(${headerImage})`,
+            backgroundImage: `url(${currentHeaderImage})`,
             backgroundSize: 'cover',
-            backgroundPosition: 'center'
+            backgroundPosition: 'center',
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              transform: 'scale(1.02)',
+              filter: 'brightness(1.1)'
+            }
           }}
         />
 
@@ -1607,12 +1632,26 @@ const PreviewQuestions = ({
             }}
           >
             <img
-              src={logoUrl}
+              src={currentLogoUrl}
               alt="Logo"
+              onClick={(e) => {
+                e.stopPropagation();
+                onElementSelect && onElementSelect('logo');
+              }}
               style={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'contain'
+                objectFit: 'contain',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = 'scale(1.1)';
+                e.target.style.filter = 'drop-shadow(0 4px 12px rgba(94, 23, 235, 0.3))';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'scale(1)';
+                e.target.style.filter = 'none';
               }}
             />
           </Box>
