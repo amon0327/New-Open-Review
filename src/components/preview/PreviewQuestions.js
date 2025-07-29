@@ -1252,8 +1252,8 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                     borderWidth: 1
                   },
                   '& .MuiSelect-select': {
-                    padding: scaledPadding,
-                    fontSize: scaledFontSize,
+                    padding: '12px 16px',
+                    fontSize: '1rem',
                     fontFamily: '"Noto Sans JP", sans-serif'
                   }
                 }}
@@ -1262,10 +1262,10 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   value="" 
                   disabled
                   sx={{
-                    fontSize: scaledFontSize,
+                    fontSize: '1rem',
                     fontFamily: '"Noto Sans JP", sans-serif',
                     color: '#9CA3AF',
-                    minHeight: scaledMinHeight,
+                    minHeight: '44px',
                     '&.Mui-disabled': {
                       opacity: 0.6
                     }
@@ -1278,11 +1278,11 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                     key={index} 
                     value={choice}
                     sx={{
-                      fontSize: scaledFontSize,
+                      fontSize: '1rem',
                       fontFamily: '"Noto Sans JP", sans-serif',
                       color: '#14181B',
-                      minHeight: scaledMinHeight,
-                      padding: scaledPadding,
+                      minHeight: '44px',
+                      padding: '10px 16px',
                       '&:hover': {
                         backgroundColor: 'rgba(94, 23, 235, 0.08)'
                       },
