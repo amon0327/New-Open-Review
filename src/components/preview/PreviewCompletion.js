@@ -37,7 +37,14 @@ const PreviewCompletion = ({
   return (
     <>
       <Box
-        onClick={() => onElementSelect && onElementSelect('completion-background')}
+        onClick={() => {
+          // 背景クリック時に基本設定トグルを開く処理を追加
+          const settingsButton = document.querySelector('[data-testid="settings-button"]');
+          if (settingsButton) {
+            settingsButton.click();
+          }
+          onElementSelect && onElementSelect('completion-background');
+        }}
         sx={{
           height: '100%',
           width: '100%',
@@ -94,6 +101,11 @@ const PreviewCompletion = ({
           <Box 
             onClick={(e) => {
               e.stopPropagation();
+              // ロゴクリック時に基本設定トグルを開く処理を追加
+              const settingsButton = document.querySelector('[data-testid="settings-button"]');
+              if (settingsButton) {
+                settingsButton.click();
+              }
               onElementSelect && onElementSelect('completion-logo');
             }}
             sx={{ 
