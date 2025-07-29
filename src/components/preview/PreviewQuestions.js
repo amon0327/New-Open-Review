@@ -1581,7 +1581,7 @@ const PreviewQuestions = ({
           maxWidth: isMobile ? '100%' : '900px',
           margin: '0 auto',
           backgroundColor: '#FFFFFF',
-          minHeight: 'fit-content',
+          minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 335px)',
           overflow: 'visible'
         }}
       >
@@ -1589,10 +1589,11 @@ const PreviewQuestions = ({
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            minHeight: 'fit-content',
+            minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 335px)',
             px: isMobile ? 3 : 4,
             py: isMobile ? 0 : 2,
-            overflow: 'visible'
+            overflow: 'visible',
+            backgroundColor: '#FFFFFF'
           }}
         >
           {/* Questions Content with Drop Zone */}
