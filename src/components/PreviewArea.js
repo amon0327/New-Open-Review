@@ -85,7 +85,13 @@ const PreviewArea = ({
 
     switch (defaultPage.id) {
       case 'login':
-        return <PreviewLogin previewMode={previewMode} />;
+        return (
+          <PreviewLogin 
+            previewMode={previewMode} 
+            onElementSelect={onElementSelect}
+            selectedElement={selectedElement}
+          />
+        );
       case 'completion':
         return <PreviewCompletion previewMode={previewMode} />;
       default:

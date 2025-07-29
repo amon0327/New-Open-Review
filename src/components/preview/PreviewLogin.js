@@ -13,7 +13,18 @@ import {
   CircularProgress
 } from '@mui/material';
 
-const PreviewLogin = ({ previewMode }) => {
+const PreviewLogin = ({ 
+  previewMode,
+  // 基本設定関連
+  onElementSelect,
+  selectedElement,
+  // 設定データ（将来的にpropsで受け取る）
+  loginBackgroundImage,
+  loginLogoImage,
+  loginTitleText,
+  loginDetailText,
+  themeColor: propThemeColor
+}) => {
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [loginTab, setLoginTab] = useState(0);
   const [authLoading, setAuthLoading] = useState(false);
@@ -24,12 +35,12 @@ const PreviewLogin = ({ previewMode }) => {
 
   const isMobile = previewMode === 'mobile';
 
-  // サンプルデータ
-  const themeColor = '#5e17eb';
-  const backgroundImage = 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg';
-  const logoUrl = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
-  const titleText = 'OpenReviewへようこそ！';
-  const detailText = 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。';
+  // デフォルト値とpropsから受け取ったデータの統合
+  const themeColor = propThemeColor || '#5e17eb';
+  const backgroundImage = loginBackgroundImage || 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg';
+  const logoUrl = loginLogoImage || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const titleText = loginTitleText || 'OpenReviewへようこそ！';
+  const detailText = loginDetailText || 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。';
 
   const handleProceedToAnswer = () => {
     setLoginModalOpen(true);
@@ -91,6 +102,7 @@ const PreviewLogin = ({ previewMode }) => {
   return (
     <>
       <Box
+        onClick={() => onElementSelect && onElementSelect('login-background')}
         sx={{
           height: '100%',
           width: '100%',
@@ -101,7 +113,20 @@ const PreviewLogin = ({ previewMode }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 2
+          padding: 2,
+          cursor: 'pointer',
+          position: 'relative',
+          '&::after': selectedElement === 'login-background' ? {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(94, 23, 235, 0.3)',
+            zIndex: 1,
+            pointerEvents: 'none'
+          } : {}
         }}
       >
         <Box
@@ -132,10 +157,30 @@ const PreviewLogin = ({ previewMode }) => {
           >
             {/* Logo */}
             <Box 
+              onClick={(e) => {
+                e.stopPropagation();
+                onElementSelect && onElementSelect('login-logo');
+              }}
               sx={{ 
                 mb: isMobile ? 4 : 5,
                 filter: 'drop-shadow(0 8px 20px rgba(0, 0, 0, 0.3))',
-                animation: 'fadeInUp 0.8s ease-out 0.2s both'
+                animation: 'fadeInUp 0.8s ease-out 0.2s both',
+                cursor: 'pointer',
+                position: 'relative',
+                zIndex: 2,
+                display: 'inline-block',
+                '&::after': selectedElement === 'login-logo' ? {
+                  content: '""',
+                  position: 'absolute',
+                  top: -8,
+                  left: -8,
+                  right: -8,
+                  bottom: -8,
+                  backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                  borderRadius: 2,
+                  zIndex: -1,
+                  pointerEvents: 'none'
+                } : {}
               }}
             >
               <img
@@ -145,7 +190,9 @@ const PreviewLogin = ({ previewMode }) => {
                   maxWidth: isMobile ? '180px' : '280px',
                   height: 'auto',
                   display: 'block',
-                  margin: '0 auto'
+                  margin: '0 auto',
+                  position: 'relative',
+                  zIndex: 1
                 }}
               />
             </Box>
@@ -153,6 +200,10 @@ const PreviewLogin = ({ previewMode }) => {
             {/* Title */}
             <Typography
               variant="h2"
+              onClick={(e) => {
+                e.stopPropagation();
+                onElementSelect && onElementSelect('login-title');
+              }}
               sx={{
                 color: 'white',
                 fontWeight: 700,
@@ -163,7 +214,14 @@ const PreviewLogin = ({ previewMode }) => {
                 maxWidth: isMobile ? '95vw' : '800px',
                 mx: 'auto',
                 animation: 'fadeInUp 0.8s ease-out 0.4s both',
-                letterSpacing: '-0.01em'
+                letterSpacing: '-0.01em',
+                cursor: 'pointer',
+                position: 'relative',
+                zIndex: 2,
+                padding: selectedElement === 'login-title' ? '8px 16px' : '0',
+                border: selectedElement === 'login-title' ? '2px solid #5e17eb' : '2px solid transparent',
+                borderRadius: selectedElement === 'login-title' ? '8px' : '0',
+                transition: 'all 0.3s ease'
               }}
             >
               {titleText}
@@ -172,6 +230,10 @@ const PreviewLogin = ({ previewMode }) => {
             {/* Description */}
             <Typography
               variant="body1"
+              onClick={(e) => {
+                e.stopPropagation();
+                onElementSelect && onElementSelect('login-detail');
+              }}
               sx={{
                 color: 'rgba(255, 255, 255, 0.85)',
                 mb: isMobile ? 4 : 5,
@@ -181,7 +243,14 @@ const PreviewLogin = ({ previewMode }) => {
                 maxWidth: isMobile ? '90vw' : '600px',
                 mx: 'auto',
                 animation: 'fadeInUp 0.8s ease-out 0.6s both',
-                fontWeight: 400
+                fontWeight: 400,
+                cursor: 'pointer',
+                position: 'relative',
+                zIndex: 2,
+                padding: selectedElement === 'login-detail' ? '8px 16px' : '0',
+                border: selectedElement === 'login-detail' ? '2px solid #5e17eb' : '2px solid transparent',
+                borderRadius: selectedElement === 'login-detail' ? '8px' : '0',
+                transition: 'all 0.3s ease'
               }}
             >
               {detailText}
