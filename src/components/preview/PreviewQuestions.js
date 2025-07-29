@@ -1185,34 +1185,35 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 onChange={(e) => handleValueChange(e.target.value)}
                 displayEmpty
                 MenuProps={{
-                  disablePortal: true,
                   PaperProps: {
                     sx: {
                       mt: 0.5,
                       borderRadius: '8px',
                       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                      maxHeight: `${240 * zoom}px`,
-                      minWidth: `${200 * zoom}px`,
-                      maxWidth: `${400 * zoom}px`,
+                      maxHeight: '240px',
+                      minWidth: '200px',
+                      maxWidth: '400px',
+                      transform: `scale(${zoom})`,
+                      transformOrigin: 'top center',
                       '& .MuiMenuItem-root': {
-                        fontSize: `${1 * zoom}rem`,
+                        fontSize: '1rem',
                         fontFamily: '"Noto Sans JP", sans-serif',
-                        minHeight: `${44 * zoom}px`,
-                        padding: `${8 * zoom}px ${16 * zoom}px`,
+                        minHeight: '44px',
+                        padding: '8px 16px',
                         '&:hover': {
                           backgroundColor: 'rgba(94, 23, 235, 0.08)'
                         }
                       },
                       '&::-webkit-scrollbar': {
-                        width: `${6 * zoom}px`
+                        width: '6px'
                       },
                       '&::-webkit-scrollbar-track': {
                         background: 'rgba(0, 0, 0, 0.02)',
-                        borderRadius: `${3 * zoom}px`
+                        borderRadius: '3px'
                       },
                       '&::-webkit-scrollbar-thumb': {
                         background: 'rgba(0, 0, 0, 0.1)',
-                        borderRadius: `${3 * zoom}px`,
+                        borderRadius: '3px',
                         '&:hover': {
                           background: 'rgba(0, 0, 0, 0.15)'
                         }
@@ -1223,11 +1224,11 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   },
                   anchorOrigin: {
                     vertical: 'bottom',
-                    horizontal: 'left'
+                    horizontal: 'center'
                   },
                   transformOrigin: {
                     vertical: 'top',
-                    horizontal: 'left'
+                    horizontal: 'center'
                   }
                 }}
                 sx={{
