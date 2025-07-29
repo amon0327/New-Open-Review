@@ -1436,7 +1436,7 @@ const PreviewQuestions = ({
         height: '100%',
         width: '100%',
         backgroundColor: isMobile ? '#F1F4F8' : '#FFFFFF',
-        overflow: 'auto',
+        overflow: 'hidden',
         padding: '0 !important',
         margin: '0 !important',
         paddingLeft: '0 !important',
@@ -1582,7 +1582,7 @@ const PreviewQuestions = ({
           margin: '0 auto',
           backgroundColor: '#FFFFFF',
           minHeight: 'auto',
-          overflow: 'auto'
+          overflow: 'hidden'
         }}
       >
         <Box
@@ -1591,7 +1591,8 @@ const PreviewQuestions = ({
             flexDirection: 'column',
             minHeight: 'auto',
             px: isMobile ? 3 : 4,
-            py: isMobile ? 0 : 2
+            py: isMobile ? 0 : 2,
+            overflow: 'hidden'
           }}
         >
           {/* Questions Content with Drop Zone */}
@@ -1620,6 +1621,8 @@ const PreviewQuestions = ({
               transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               transform: isDragActive ? 'scale(1.01)' : 'scale(1)',
               minHeight: displayQuestions.length === 0 ? '300px' : 'auto',
+              maxHeight: '100%',
+              overflow: 'hidden',
               '&::before': {
                 content: '""',
                 position: 'absolute',
