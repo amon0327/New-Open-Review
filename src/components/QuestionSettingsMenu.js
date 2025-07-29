@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChromePicker, TwitterPicker, CompactPicker } from 'react-color';
+import { ChromePicker } from 'react-color';
 import {
   Box,
   Typography,
@@ -214,7 +214,6 @@ const QuestionSettingsMenu = ({
   // カラーピッカーの状態
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [selectedColor, setSelectedColor] = useState('#5e17eb');
-  const [colorPickerType, setColorPickerType] = useState('chrome'); // 'chrome', 'compact', 'twitter'
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
@@ -1029,53 +1028,6 @@ const QuestionSettingsMenu = ({
                     </AccordionSummary>
                     <AccordionDetails sx={{ pt: 0 }}>
                       <Stack spacing={3}>
-                        {/* カラーピッカータイプ選択 */}
-                        <Box>
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              mb: 2,
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              color: '#374151',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.5px'
-                            }}
-                          >
-                            カラーピッカータイプ
-                          </Typography>
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            {[
-                              { type: 'chrome', label: '詳細' },
-                              { type: 'compact', label: 'コンパクト' },
-                              { type: 'twitter', label: 'プリセット' }
-                            ].map(({ type, label }) => (
-                              <Button
-                                key={type}
-                                variant={colorPickerType === type ? 'contained' : 'outlined'}
-                                size="small"
-                                onClick={() => setColorPickerType(type)}
-                                sx={{
-                                  textTransform: 'none',
-                                  fontSize: '0.75rem',
-                                  minWidth: 'auto',
-                                  px: 1.5,
-                                  py: 0.5,
-                                  backgroundColor: colorPickerType === type ? '#5e17eb' : 'transparent',
-                                  color: colorPickerType === type ? 'white' : '#5e17eb',
-                                  borderColor: '#5e17eb',
-                                  '&:hover': {
-                                    backgroundColor: colorPickerType === type ? '#5e17eb' : 'rgba(94, 23, 235, 0.1)',
-                                    borderColor: '#5e17eb'
-                                  }
-                                }}
-                              >
-                                {label}
-                              </Button>
-                            ))}
-                          </Box>
-                        </Box>
-
                         {/* 現在の色表示 */}
                         <Box>
                           <Typography 
@@ -1136,31 +1088,11 @@ const QuestionSettingsMenu = ({
                               onClick={() => setShowColorPicker(false)}
                             />
                             <Box sx={{ position: 'relative', zIndex: 1001 }}>
-                              {colorPickerType === 'chrome' && (
-                                <ChromePicker
-                                  color={selectedColor}
-                                  onChange={handleColorChange}
-                                  disableAlpha={true}
-                                />
-                              )}
-                              {colorPickerType === 'compact' && (
-                                <CompactPicker
-                                  color={selectedColor}
-                                  onChange={handleColorChange}
-                                />
-                              )}
-                              {colorPickerType === 'twitter' && (
-                                <TwitterPicker
-                                  color={selectedColor}
-                                  onChange={handleColorChange}
-                                  colors={[
-                                    '#5e17eb', '#3B82F6', '#10B981', '#F59E0B', 
-                                    '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4',
-                                    '#6366F1', '#F97316', '#84CC16', '#14B8A6',
-                                    '#F43F5E', '#A855F7', '#22D3EE', '#64748B'
-                                  ]}
-                                />
-                              )}
+                              <ChromePicker
+                                color={selectedColor}
+                                onChange={handleColorChange}
+                                disableAlpha={true}
+                              />
                             </Box>
                           </Box>
                         )}
