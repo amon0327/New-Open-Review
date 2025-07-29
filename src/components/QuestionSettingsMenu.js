@@ -205,7 +205,7 @@ const QuestionSettingsMenu = ({
   onLogoImageChange
 }) => {
   const [editingChoices, setEditingChoices] = useState({});
-  const [selectedTab, setSelectedTab] = useState(1); // デフォルトで質問一覧タブ
+  const [selectedTab, setSelectedTab] = useState(2); // デフォルトで基本設定タブ
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   
@@ -218,17 +218,36 @@ const QuestionSettingsMenu = ({
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
-  // 質問が選択されたら質問設定タブに切り替え
+  // ページタイプと選択状態に応じてタブを制御
   useEffect(() => {
     if (selectedQuestionId && selectedQuestion) {
       setSelectedTab(0); // 質問設定タブに切り替え
+      return;
     }
-  }, [selectedQuestionId, selectedQuestion]);
-
-  // プレビューで要素が選択されたら基本設定タブに切り替え
-  useEffect(() => {
+    
     if (selectedElement) {
       setSelectedTab(2); // 基本設定タブに切り替え
+      return;
+    }
+    
+    // ページタイプに応じてデフォルトタブを設定
+    if (selectedPage) {
+      if (selectedPage.type === 'system') {
+        // システムページ（ログイン画面、完了画面）は基本設定のみ
+        setSelectedTab(2);
+      } else {
+        // 質問ページは質問一覧をデフォルト
+        setSelectedTab(1);
+      }
+    } else {
+      // ページが選択されていない場合は基本設定
+      setSelectedTab(2);
+    }
+  }, [selectedQuestionId, selectedQuestion, selectedElement, selectedPage]);
+
+  // プレビューで要素が選択されたときのアコーディオン制御
+  useEffect(() => {
+    if (selectedElement) {
       
       // ログイン画面の要素の場合
       if (selectedElement.startsWith('login-')) {
@@ -311,6 +330,32 @@ const QuestionSettingsMenu = ({
   // タブ変更ハンドラー
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
+  };
+
+  // 利用可能なタブのインデックスを計算
+  const getAvailableTabs = () => {
+    const tabs = [];
+    
+    // 質問設定タブ (質問が選択されているときのみ)
+    if (selectedQuestion) {
+      tabs.push({ value: 0, label: '質問設定' });
+    }
+    
+    // 質問一覧タブ (質問ページでのみ)
+    if (selectedPage && selectedPage.type === 'question') {
+      tabs.push({ value: 1, label: '質問一覧' });
+    }
+    
+    // 基本設定タブ (常に表示)
+    tabs.push({ value: 2, label: '基本設定' });
+    
+    return tabs;
+  };
+
+  // 現在のタブが利用可能かチェック
+  const isCurrentTabAvailable = () => {
+    const availableTabs = getAvailableTabs();
+    return availableTabs.some(tab => tab.value === selectedTab);
   };
 
   // ドラッグ&ドロップハンドラー
@@ -400,21 +445,30 @@ const QuestionSettingsMenu = ({
               }
             }}
           >
-            <Tab 
-              icon={<TuneIcon sx={{ fontSize: '1rem' }} />} 
-              iconPosition="start" 
-              label="質問設定" 
-              disabled={!selectedQuestion}
-            />
-            <Tab 
-              icon={<EditIcon sx={{ fontSize: '1rem' }} />} 
-              iconPosition="start" 
-              label="質問一覧" 
-            />
+            {/* 質問設定タブ - 質問が選択されているときのみ表示 */}
+            {selectedQuestion && (
+              <Tab 
+                icon={<TuneIcon sx={{ fontSize: '1rem' }} />} 
+                iconPosition="start" 
+                label="質問設定" 
+                value={0}
+              />
+            )}
+            {/* 質問一覧タブ - 質問ページでのみ表示 */}
+            {selectedPage && selectedPage.type === 'question' && (
+              <Tab 
+                icon={<EditIcon sx={{ fontSize: '1rem' }} />} 
+                iconPosition="start" 
+                label="質問一覧" 
+                value={1}
+              />
+            )}
+            {/* 基本設定タブ - 常に表示 */}
             <Tab 
               icon={<SettingsIcon sx={{ fontSize: '1rem' }} />} 
               iconPosition="start" 
               label="基本設定" 
+              value={2}
             />
           </Tabs>
         </Box>
@@ -836,8 +890,28 @@ const QuestionSettingsMenu = ({
         return (
           <Box sx={{ height: '100%' }}>
             <Stack spacing={2}>
-              {/* ログイン画面設定 */}
-              {(selectedElement?.startsWith('login-') || (!selectedElement && !selectedQuestionId)) && (
+              {/* システムページまたは基本設定要素が選択されている場合の表示制御 */}
+              {renderBasicSettings()}
+            </Stack>
+          </Box>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  // 基本設定のレンダリング関数
+  const renderBasicSettings = () => {
+    const isSystemPage = selectedPage && selectedPage.type === 'system';
+    const isLoginPage = selectedPage && selectedPage.id === 'login';
+    const isCompletionPage = selectedPage && selectedPage.id === 'completion';
+    const isQuestionPage = selectedPage && selectedPage.type === 'question';
+    
+    return (
+      <>
+        {/* ログイン画面設定 */}
+        {(isLoginPage || selectedElement?.startsWith('login-') || (!isSystemPage && !selectedElement && !selectedQuestionId)) && (
                 <>
                   <Accordion 
                     expanded={expandedAccordion === 'login-title'} 
@@ -1122,7 +1196,7 @@ const QuestionSettingsMenu = ({
               )}
 
               {/* 完了画面設定 */}
-              {selectedElement?.startsWith('completion-') && (
+              {(isCompletionPage || selectedElement?.startsWith('completion-')) && (
                 <>
                   {/* 背景画像設定 */}
                   <Accordion 
@@ -1541,8 +1615,11 @@ const QuestionSettingsMenu = ({
                 </>
               )}
 
-              {/* ヘッダー画像設定 */}
-              <Accordion 
+              {/* 質問ページ用の共通設定: ヘッダー画像・ロゴ */}
+              {(isQuestionPage || selectedElement === 'header' || selectedElement === 'logo') && (
+                <>
+                  {/* ヘッダー画像設定 */}
+                  <Accordion 
                 expanded={expandedAccordion === 'header'} 
                 onChange={() => setExpandedAccordion(expandedAccordion === 'header' ? null : 'header')}
                 sx={{
@@ -1685,8 +1762,8 @@ const QuestionSettingsMenu = ({
                 </AccordionDetails>
               </Accordion>
 
-              {/* ロゴ画像設定 */}
-              <Accordion 
+                  {/* ロゴ画像設定 */}
+                  <Accordion 
                 expanded={expandedAccordion === 'logo'} 
                 onChange={() => setExpandedAccordion(expandedAccordion === 'logo' ? null : 'logo')}
                 sx={{
@@ -1825,12 +1902,14 @@ const QuestionSettingsMenu = ({
                         ロゴを削除
                       </Button>
                     )}
-                  </Stack>
-                </AccordionDetails>
-              </Accordion>
-            </Stack>
-          </Box>
-        );
+                    </Stack>
+                  </AccordionDetails>
+                  </Accordion>
+                </>
+              )}
+            </>
+          );
+  };
 
       default:
         return null;
