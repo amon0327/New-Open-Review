@@ -1317,16 +1317,8 @@ const PreviewQuestions = ({
   const headerImage = 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
   const logoUrl = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
 
-  // 実際の質問データを使用、または空の場合はサンプルデータ
-  const displayQuestions = questions.length > 0 ? questions : [
-    {
-      id: 'sample-1',
-      question_types_id: 1,
-      question_text: 'お名前を教えてください',
-      detail_text: 'フルネームでご記入ください',
-      is_required: true
-    }
-  ];
+  // 実際の質問データを使用
+  const displayQuestions = questions || [];
 
   const handleAnswerChange = (questionId, answerData) => {
     setAnswers(prev => ({
@@ -1588,7 +1580,8 @@ const PreviewQuestions = ({
           maxWidth: isMobile ? '100%' : '900px',
           margin: '0 auto',
           backgroundColor: '#FFFFFF',
-          minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 350px)'
+          minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 350px)',
+          overflow: 'auto'
         }}
       >
         <Box
@@ -1616,7 +1609,7 @@ const PreviewQuestions = ({
               minHeight: displayQuestions.length === 0 ? '400px' : 'auto'
             }}
           >
-            {/* Empty State */}
+            {/* Empty State - 初期状態の説明文 */}
             {displayQuestions.length === 0 && !isDragActive && (
               <Box
                 sx={{
@@ -1624,29 +1617,69 @@ const PreviewQuestions = ({
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  height: '400px',
+                  height: '100%',
                   color: '#6b7280',
-                  textAlign: 'center'
+                  textAlign: 'center',
+                  p: 4
                 }}
               >
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
-                  質問がありません
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 3, maxWidth: 300 }}>
-                  左側の質問作成ツールからここに質問をドラッグしてください
-                </Typography>
                 <Box
                   sx={{
                     width: 80,
                     height: 80,
-                    borderRadius: 2,
-                    background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)',
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    mb: 3,
+                    border: '2px dashed #d1d5db'
                   }}
                 >
-                  <Typography variant="h4">📝</Typography>
+                  <Typography variant="h3" sx={{ opacity: 0.7 }}>📝</Typography>
+                </Box>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    mb: 2, 
+                    fontWeight: 600,
+                    color: '#374151'
+                  }}
+                >
+                  質問を追加してフォームを作成
+                </Typography>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    mb: 3, 
+                    maxWidth: 300,
+                    lineHeight: 1.6,
+                    color: '#6b7280'
+                  }}
+                >
+                  左側の質問作成ツールから質問をドラッグ&ドロップしてフォームを作成してください
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    px: 3,
+                    py: 1.5,
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                    border: '1px solid rgba(94, 23, 235, 0.1)'
+                  }}
+                >
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: '#5e17eb',
+                      fontWeight: 500
+                    }}
+                  >
+                    💡 ヒント: 質問タイプやテンプレートから選択できます
+                  </Typography>
                 </Box>
               </Box>
             )}
