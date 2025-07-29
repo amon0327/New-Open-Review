@@ -6,8 +6,47 @@ import {
   Typography
 } from '@mui/material';
 import { colors, gradients, shadows } from '../constants/theme';
+import PreviewLogin from './preview/PreviewLogin';
+import PreviewQuestions from './preview/PreviewQuestions';
+import PreviewCompletion from './preview/PreviewCompletion';
 
-const PreviewArea = ({ previewMode, zoom }) => {
+const PreviewArea = ({ previewMode, zoom, selectedPage }) => {
+  const renderPreviewContent = () => {
+    if (!selectedPage) {
+      return (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: previewMode === 'mobile' ? 2 : 4,
+            background: gradients.background
+          }}
+        >
+          <Typography variant="h6" sx={{ color: colors.textSecondary, mb: 2 }}>
+            プレビュー
+          </Typography>
+          <Typography variant="body2" sx={{ color: colors.textMuted }}>
+            左側のページ管理からページを選択してください
+          </Typography>
+        </Box>
+      );
+    }
+
+    switch (selectedPage.id) {
+      case 'login':
+        return <PreviewLogin previewMode={previewMode} />;
+      case 'completion':
+        return <PreviewCompletion previewMode={previewMode} />;
+      default:
+        // 質問ページ
+        return <PreviewQuestions previewMode={previewMode} />;
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -66,25 +105,7 @@ const PreviewArea = ({ previewMode, zoom }) => {
           )}
 
           {/* プレビューコンテンツ */}
-          <Box
-            sx={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              p: previewMode === 'mobile' ? 2 : 4,
-              background: gradients.background
-            }}
-          >
-            <Typography variant="h6" sx={{ color: colors.textSecondary, mb: 2 }}>
-              プレビュー
-            </Typography>
-            <Typography variant="body2" sx={{ color: colors.textMuted }}>
-              フォームのプレビューがここに表示されます
-            </Typography>
-          </Box>
+          {renderPreviewContent()}
         </Paper>
       </motion.div>
     </Box>

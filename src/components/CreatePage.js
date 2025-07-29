@@ -465,6 +465,7 @@ export default function CreatePage({ onBackClick }) {
                   <PreviewArea
                     previewMode={previewMode}
                     zoom={zoom}
+                    selectedPage={selectedPage}
                   />
                 </>
               )}
@@ -796,7 +797,7 @@ export default function CreatePage({ onBackClick }) {
 
             {/* プレビューエリア - 設定画面では非表示 */}
             {!showSettings && (
-              <PreviewArea previewMode={previewMode} zoom={zoom} />
+              <PreviewArea previewMode={previewMode} zoom={zoom} selectedPage={selectedPage} />
             )}
 
             {/* プレビューコントロール - 設定画面では非表示 */}
