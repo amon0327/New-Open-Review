@@ -119,11 +119,11 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
             }
           },
           '& .MuiOutlinedInput-input': {
-            padding: '6px 8px',
+            padding: '6px 8px !important',
             fontSize: '0.875rem'
           },
-          '& .MuiOutlinedInput-input[aria-multiline="true"]': {
-            padding: '6px 8px',
+          '& textarea.MuiOutlinedInput-input': {
+            padding: '6px 8px !important',
             fontSize: '0.875rem',
             resize: 'none'
           }
