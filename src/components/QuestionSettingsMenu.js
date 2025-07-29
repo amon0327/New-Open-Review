@@ -298,7 +298,6 @@ const QuestionSettingsMenu = ({
           <Tabs
             value={selectedTab}
             onChange={handleTabChange}
-            centered
             sx={{
               '& .MuiTabs-root': {
                 minHeight: 48
@@ -330,6 +329,11 @@ const QuestionSettingsMenu = ({
               icon={<EditIcon sx={{ fontSize: '1rem' }} />} 
               iconPosition="start" 
               label="質問一覧" 
+            />
+            <Tab 
+              icon={<SettingsIcon sx={{ fontSize: '1rem' }} />} 
+              iconPosition="start" 
+              label="基本設定" 
             />
           </Tabs>
         </Box>
@@ -718,6 +722,34 @@ const QuestionSettingsMenu = ({
                 })}
               </List>
             )}
+          </Box>
+        );
+
+      case 2: // 基本設定
+        return (
+          <Box sx={{ height: '100%' }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+                fontSize: '1.1rem',
+                color: '#1F2937',
+                letterSpacing: '-0.025em',
+                mb: 3
+              }}
+            >
+              基本設定
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: '#6B7280',
+                fontSize: '0.8rem',
+                fontWeight: 400
+              }}
+            >
+              ページ全体の基本設定を管理します
+            </Typography>
           </Box>
         );
 
