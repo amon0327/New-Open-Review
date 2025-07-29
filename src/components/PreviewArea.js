@@ -93,7 +93,13 @@ const PreviewArea = ({
           />
         );
       case 'completion':
-        return <PreviewCompletion previewMode={previewMode} />;
+        return (
+          <PreviewCompletion 
+            previewMode={previewMode}
+            onElementSelect={onElementSelect}
+            selectedElement={selectedElement}
+          />
+        );
       default:
         // 質問ページ
         return (

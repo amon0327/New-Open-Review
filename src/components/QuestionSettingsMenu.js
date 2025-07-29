@@ -198,6 +198,7 @@ const QuestionSettingsMenu = ({
   onQuestionReorder,
   // 基本設定用のprops
   selectedElement = null, // プレビューで選択された要素 ('header', 'logo', null)
+  selectedPage = null, // 選択されたページ
   headerImage = null,
   logoImage = null,
   onHeaderImageChange,
@@ -217,6 +218,94 @@ const QuestionSettingsMenu = ({
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
+  // 基本設定のレンダリング関数
+  const renderBasicSettings = () => {
+    return (
+      <Box sx={{ height: '100%' }}>
+        <Stack spacing={2}>
+          {/* ログイン画面設定 */}
+          {(selectedElement?.startsWith('login-') || (!selectedElement && !selectedQuestionId && selectedPage?.type === 'system')) && (
+            <>
+              <Accordion 
+                expanded={expandedAccordion === 'login-title'} 
+                onChange={() => setExpandedAccordion(expandedAccordion === 'login-title' ? null : 'login-title')}
+                sx={{
+                  borderRadius: '8px !important',
+                  border: '1px solid #E5E7EB',
+                  boxShadow: 'none',
+                  '&:before': { display: 'none' },
+                  backgroundColor: expandedAccordion === 'login-title' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={expandedAccordion === 'login-title' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{
+                    borderRadius: '8px',
+                    '& .MuiAccordionSummary-content': {
+                      alignItems: 'center'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '6px',
+                        background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)'
+                      }}
+                    >
+                      <TextIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          color: '#1F2937',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        タイトルテキスト
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: '#6B7280',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        ログイン画面のメインタイトル
+                      </Typography>
+                    </Box>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ pt: 0 }}>
+                  <StylishTextField
+                    label="タイトルテキスト"
+                    value="OpenReviewへようこそ！"
+                    onChange={() => {}}
+                    placeholder="ログイン画面のタイトル"
+                  />
+                </AccordionDetails>
+              </Accordion>
+
+              {/* その他のログイン画面設定... */}
+              
+              <Divider sx={{ my: 2 }} />
+            </>
+          )}
+
+          {/* ヘッダー画像設定などの共通設定... */}
+        </Stack>
+      </Box>
+    );
+  };
+
   // 質問が選択されたら質問設定タブに切り替え
   useEffect(() => {
     if (selectedQuestionId && selectedQuestion) {
@@ -224,10 +313,33 @@ const QuestionSettingsMenu = ({
     }
   }, [selectedQuestionId, selectedQuestion]);
 
+  // ページが変更された際のタブ制御
+  useEffect(() => {
+    if (selectedPage) {
+      // ページタイプに応じたデフォルトタブの設定
+      if (selectedPage.type === 'system') {
+        // ログイン画面や完了画面などのシステムページは基本設定タブ
+        // システムページでは基本設定タブのみなのでindex 0
+        setSelectedTab(0);
+        setExpandedAccordion(null);
+      } else if (selectedPage.type === 'question') {
+        // 質問ページは質問一覧タブ
+        // 質問ページでは質問設定(0)、質問一覧(1)、基本設定(2)
+        setSelectedTab(1);
+        setExpandedAccordion(null);
+      }
+    }
+  }, [selectedPage]);
+
   // プレビューで要素が選択されたら基本設定タブに切り替え
   useEffect(() => {
     if (selectedElement) {
-      setSelectedTab(2); // 基本設定タブに切り替え
+      // ページタイプに応じて基本設定タブのindexを調整
+      if (selectedPage?.type === 'system') {
+        setSelectedTab(0); // システムページでは基本設定タブがindex 0
+      } else {
+        setSelectedTab(2); // 質問ページでは基本設定タブがindex 2
+      }
       
       // ログイン画面の要素の場合
       if (selectedElement.startsWith('login-')) {
@@ -241,7 +353,7 @@ const QuestionSettingsMenu = ({
         setExpandedAccordion(selectedElement);
       }
     }
-  }, [selectedElement]);
+  }, [selectedElement, selectedPage]);
 
   // 質問の基本設定更新
   const handleQuestionUpdate = (field, value) => {
@@ -383,17 +495,22 @@ const QuestionSettingsMenu = ({
               }
             }}
           >
-            <Tab 
-              icon={<TuneIcon sx={{ fontSize: '1rem' }} />} 
-              iconPosition="start" 
-              label="質問設定" 
-              disabled={!selectedQuestion}
-            />
-            <Tab 
-              icon={<EditIcon sx={{ fontSize: '1rem' }} />} 
-              iconPosition="start" 
-              label="質問一覧" 
-            />
+            {/* 質問ページでのみ質問関連タブを表示 */}
+            {selectedPage?.type === 'question' && (
+              <>
+                <Tab 
+                  icon={<TuneIcon sx={{ fontSize: '1rem' }} />} 
+                  iconPosition="start" 
+                  label="質問設定" 
+                  disabled={!selectedQuestion}
+                />
+                <Tab 
+                  icon={<EditIcon sx={{ fontSize: '1rem' }} />} 
+                  iconPosition="start" 
+                  label="質問一覧" 
+                />
+              </>
+            )}
             <Tab 
               icon={<SettingsIcon sx={{ fontSize: '1rem' }} />} 
               iconPosition="start" 
@@ -414,6 +531,17 @@ const QuestionSettingsMenu = ({
 
   // タブコンテンツのレンダリング
   const renderTabContent = () => {
+    // システムページの場合
+    if (selectedPage?.type === 'system') {
+      switch (selectedTab) {
+        case 0: // 基本設定（システムページではindex 0）
+          return renderBasicSettings();
+        default:
+          return null;
+      }
+    }
+    
+    // 質問ページの場合
     switch (selectedTab) {
       case 0: // 質問設定
         if (!selectedQuestion) {
@@ -815,7 +943,15 @@ const QuestionSettingsMenu = ({
           </Box>
         );
 
-      case 2: // 基本設定
+      case 2: // 基本設定（質問ページ）
+        return renderBasicSettings();
+
+      default:
+        return null;
+    }
+  };
+
+  // 削除された基本設定の古いcase 2の部分
         return (
           <Box sx={{ height: '100%' }}>
             <Stack spacing={2}>

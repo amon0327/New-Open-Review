@@ -15,7 +15,9 @@ const PreviewLogin = ({
   loginLogoImage,
   loginTitleText,
   loginDetailText,
-  themeColor: propThemeColor
+  themeColor: propThemeColor,
+  buttonText,
+  buttonUrl
 }) => {
 
   const isMobile = previewMode === 'mobile';
@@ -26,6 +28,8 @@ const PreviewLogin = ({
   const logoUrl = loginLogoImage || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   const titleText = loginTitleText || 'OpenReviewへようこそ！';
   const detailText = loginDetailText || 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。';
+  const displayButtonText = buttonText || '回答へ進む';
+  const displayButtonUrl = buttonUrl || '#';
 
 
   return (
@@ -214,6 +218,10 @@ const PreviewLogin = ({
           >
             <Button
               variant="contained"
+              onClick={(e) => {
+                e.stopPropagation();
+                onElementSelect && onElementSelect('login-button');
+              }}
               sx={{
                 backgroundColor: themeColor,
                 color: 'white',
@@ -227,6 +235,10 @@ const PreviewLogin = ({
                 backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 animation: 'fadeInUp 0.8s ease-out 0.8s both',
+                cursor: 'pointer',
+                position: 'relative',
+                zIndex: 2,
+                transition: 'all 0.3s ease',
                 '&:hover': {
                   backgroundColor: themeColor,
                   boxShadow: '0 16px 50px rgba(0, 0, 0, 0.35)',
@@ -236,10 +248,22 @@ const PreviewLogin = ({
                 '&:active': {
                   transform: 'translateY(-1px) scale(0.98)',
                   transition: 'all 0.1s ease'
-                }
+                },
+                '&::after': selectedElement === 'login-button' ? {
+                  content: '""',
+                  position: 'absolute',
+                  top: -8,
+                  left: -8,
+                  right: -8,
+                  bottom: -8,
+                  backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                  borderRadius: isMobile ? '36px' : '40px',
+                  zIndex: -1,
+                  pointerEvents: 'none'
+                } : {}
               }}
             >
-              回答へ進む
+              {displayButtonText}
             </Button>
           </Box>
 

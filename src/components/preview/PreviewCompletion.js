@@ -5,36 +5,65 @@ import {
   Button
 } from '@mui/material';
 
-const PreviewCompletion = ({ previewMode }) => {
+const PreviewCompletion = ({ 
+  previewMode,
+  // 基本設定関連
+  onElementSelect,
+  selectedElement,
+  // 設定データ（将来的にpropsで受け取る）
+  completionBackgroundImage,
+  completionLogoImage,
+  completionTitleText,
+  completionDetailText,
+  themeColor: propThemeColor,
+  buttonText,
+  buttonUrl
+}) => {
   const isMobile = previewMode === 'mobile';
 
-  // サンプルデータ
-  const themeColor = '#5e17eb';
-  const backgroundImage = 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg';
-  const logoUrl = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
-  const titleText = 'ありがとうございました！';
-  const detailText = 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。';
-  const button1Text = '完了';
+  // デフォルト値とpropsから受け取ったデータの統合
+  const themeColor = propThemeColor || '#5e17eb';
+  const backgroundImage = completionBackgroundImage || 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg';
+  const logoUrl = completionLogoImage || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const titleText = completionTitleText || 'ありがとうございました！';
+  const detailText = completionDetailText || 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。';
+  const displayButtonText = buttonText || '完了';
+  const displayButtonUrl = buttonUrl || '#';
 
   const handleButtonClick = () => {
     // プレビュー用なので何もしない
   };
 
   return (
-    <Box
-      sx={{
-        height: '100%',
-        width: '100%',
-        overflow: 'hidden',
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 2
-      }}
-    >
+    <>
+      <Box
+        onClick={() => onElementSelect && onElementSelect('completion-background')}
+        sx={{
+          height: '100%',
+          width: '100%',
+          overflow: 'hidden',
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 2,
+          cursor: 'pointer',
+          position: 'relative',
+          '&::after': selectedElement === 'completion-background' ? {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(94, 23, 235, 0.3)',
+            zIndex: 1,
+            pointerEvents: 'none'
+          } : {}
+        }}
+      >
       <Box
         sx={{
           display: 'flex',
@@ -63,10 +92,30 @@ const PreviewCompletion = ({ previewMode }) => {
         >
           {/* Logo */}
           <Box 
+            onClick={(e) => {
+              e.stopPropagation();
+              onElementSelect && onElementSelect('completion-logo');
+            }}
             sx={{ 
               mb: isMobile ? 4 : 5,
               filter: 'drop-shadow(0 8px 20px rgba(0, 0, 0, 0.3))',
-              animation: 'fadeInUp 0.8s ease-out 0.2s both'
+              animation: 'fadeInUp 0.8s ease-out 0.2s both',
+              cursor: 'pointer',
+              position: 'relative',
+              zIndex: 2,
+              display: 'inline-block',
+              '&::after': selectedElement === 'completion-logo' ? {
+                content: '""',
+                position: 'absolute',
+                top: -8,
+                left: -8,
+                right: -8,
+                bottom: -8,
+                backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                borderRadius: 2,
+                zIndex: -1,
+                pointerEvents: 'none'
+              } : {}
             }}
           >
             <img
@@ -76,7 +125,9 @@ const PreviewCompletion = ({ previewMode }) => {
                 maxWidth: isMobile ? '180px' : '280px',
                 height: 'auto',
                 display: 'block',
-                margin: '0 auto'
+                margin: '0 auto',
+                position: 'relative',
+                zIndex: 1
               }}
             />
           </Box>
@@ -84,6 +135,10 @@ const PreviewCompletion = ({ previewMode }) => {
           {/* Title */}
           <Typography
             variant="h2"
+            onClick={(e) => {
+              e.stopPropagation();
+              onElementSelect && onElementSelect('completion-title');
+            }}
             sx={{
               color: 'white',
               fontWeight: 700,
@@ -94,7 +149,23 @@ const PreviewCompletion = ({ previewMode }) => {
               maxWidth: isMobile ? '95vw' : '800px',
               mx: 'auto',
               animation: 'fadeInUp 0.8s ease-out 0.4s both',
-              letterSpacing: '-0.01em'
+              letterSpacing: '-0.01em',
+              cursor: 'pointer',
+              position: 'relative',
+              zIndex: 2,
+              transition: 'all 0.3s ease',
+              '&::after': selectedElement === 'completion-title' ? {
+                content: '""',
+                position: 'absolute',
+                top: -8,
+                left: -16,
+                right: -16,
+                bottom: -8,
+                backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                borderRadius: 2,
+                zIndex: -1,
+                pointerEvents: 'none'
+              } : {}
             }}
           >
             {titleText}
@@ -103,6 +174,10 @@ const PreviewCompletion = ({ previewMode }) => {
           {/* Description */}
           <Typography
             variant="body1"
+            onClick={(e) => {
+              e.stopPropagation();
+              onElementSelect && onElementSelect('completion-detail');
+            }}
             sx={{
               color: 'rgba(255, 255, 255, 0.85)',
               mb: isMobile ? 4 : 5,
@@ -112,7 +187,23 @@ const PreviewCompletion = ({ previewMode }) => {
               maxWidth: isMobile ? '90vw' : '600px',
               mx: 'auto',
               animation: 'fadeInUp 0.8s ease-out 0.6s both',
-              fontWeight: 400
+              fontWeight: 400,
+              cursor: 'pointer',
+              position: 'relative',
+              zIndex: 2,
+              transition: 'all 0.3s ease',
+              '&::after': selectedElement === 'completion-detail' ? {
+                content: '""',
+                position: 'absolute',
+                top: -8,
+                left: -16,
+                right: -16,
+                bottom: -8,
+                backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                borderRadius: 2,
+                zIndex: -1,
+                pointerEvents: 'none'
+              } : {}
             }}
           >
             {detailText}
@@ -129,7 +220,10 @@ const PreviewCompletion = ({ previewMode }) => {
         >
           <Button
             variant="contained"
-            onClick={handleButtonClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              onElementSelect && onElementSelect('completion-button');
+            }}
             sx={{
               backgroundColor: themeColor,
               color: 'white',
@@ -143,6 +237,10 @@ const PreviewCompletion = ({ previewMode }) => {
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
               animation: 'fadeInUp 0.8s ease-out 0.8s both',
+              cursor: 'pointer',
+              position: 'relative',
+              zIndex: 2,
+              transition: 'all 0.3s ease',
               '&:hover': {
                 backgroundColor: themeColor,
                 boxShadow: '0 16px 50px rgba(0, 0, 0, 0.35)',
@@ -152,10 +250,22 @@ const PreviewCompletion = ({ previewMode }) => {
               '&:active': {
                 transform: 'translateY(-1px) scale(0.98)',
                 transition: 'all 0.1s ease'
-              }
+              },
+              '&::after': selectedElement === 'completion-button' ? {
+                content: '""',
+                position: 'absolute',
+                top: -8,
+                left: -8,
+                right: -8,
+                bottom: -8,
+                backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                borderRadius: isMobile ? '36px' : '40px',
+                zIndex: -1,
+                pointerEvents: 'none'
+              } : {}
             }}
           >
-            {button1Text}
+            {displayButtonText}
           </Button>
         </Box>
 
@@ -200,6 +310,8 @@ const PreviewCompletion = ({ previewMode }) => {
             />
           </>
         )}
+        </Box>
+
       </Box>
 
       {/* Global animations */}
@@ -228,7 +340,8 @@ const PreviewCompletion = ({ previewMode }) => {
           `
         }}
       />
-    </Box>
+
+    </>
   );
 };
 

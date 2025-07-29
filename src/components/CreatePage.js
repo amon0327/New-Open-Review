@@ -825,6 +825,9 @@ export default function CreatePage({ onBackClick }) {
                                 handlePageDeletionRequest(page);
                               } else if (!deleteMode) {
                                 setSelectedPage(page);
+                                // ページ切り替え時に選択状態をリセット
+                                setSelectedQuestionId(null);
+                                setSelectedElement(null);
                               }
                             }}
                             sx={{
@@ -1030,6 +1033,7 @@ export default function CreatePage({ onBackClick }) {
                     onQuestionSelect={handleQuestionSelect}
                     onQuestionReorder={handleQuestionReorder}
                     selectedElement={selectedElement}
+                    selectedPage={selectedPage}
                     headerImage={headerImage}
                     logoImage={logoImageState}
                     onHeaderImageChange={handleHeaderImageChange}
