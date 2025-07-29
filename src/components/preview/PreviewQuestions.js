@@ -1186,11 +1186,21 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      mt: 1, // Add space above the dropdown menu
+                      mt: 0.5,
                       borderRadius: '8px',
                       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                      maxHeight: '280px', // Limit height to show ~7 items (40px per item)
-                      // Modern scrollbar styling
+                      maxHeight: '240px',
+                      minWidth: '200px',
+                      maxWidth: '400px',
+                      '& .MuiMenuItem-root': {
+                        fontSize: '1rem',
+                        fontFamily: '"Noto Sans JP", sans-serif',
+                        minHeight: '44px',
+                        padding: '8px 16px',
+                        '&:hover': {
+                          backgroundColor: 'rgba(94, 23, 235, 0.08)'
+                        }
+                      },
                       '&::-webkit-scrollbar': {
                         width: '6px'
                       },
@@ -1205,10 +1215,17 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                           background: 'rgba(0, 0, 0, 0.15)'
                         }
                       },
-                      // Firefox scrollbar styling
                       scrollbarWidth: 'thin',
                       scrollbarColor: 'rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.02)'
                     }
+                  },
+                  anchorOrigin: {
+                    vertical: 'bottom',
+                    horizontal: 'left'
+                  },
+                  transformOrigin: {
+                    vertical: 'top',
+                    horizontal: 'left'
                   }
                 }}
                 sx={{
@@ -1233,28 +1250,43 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   }
                 }}
               >
-                <MenuItem value="" disabled>
-                  <Typography
+                <MenuItem 
+                  value="" 
+                  disabled
+                  sx={{
+                    fontSize: '1rem',
+                    fontFamily: '"Noto Sans JP", sans-serif',
+                    color: '#9CA3AF',
+                    minHeight: '44px',
+                    '&.Mui-disabled': {
+                      opacity: 0.6
+                    }
+                  }}
+                >
+                  選択してください
+                </MenuItem>
+                {choices.map((choice, index) => (
+                  <MenuItem 
+                    key={index} 
+                    value={choice}
                     sx={{
                       fontSize: '1rem',
                       fontFamily: '"Noto Sans JP", sans-serif',
-                      color: '#9CA3AF'
+                      color: '#14181B',
+                      minHeight: '44px',
+                      padding: '10px 16px',
+                      '&:hover': {
+                        backgroundColor: 'rgba(94, 23, 235, 0.08)'
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: 'rgba(94, 23, 235, 0.12)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(94, 23, 235, 0.16)'
+                        }
+                      }
                     }}
                   >
-                    選択してください
-                  </Typography>
-                </MenuItem>
-                {choices.map((choice, index) => (
-                  <MenuItem key={index} value={choice}>
-                    <Typography
-                      sx={{
-                        fontSize: '1rem',
-                        fontFamily: '"Noto Sans JP", sans-serif',
-                        color: '#14181B'
-                      }}
-                    >
-                      {choice}
-                    </Typography>
+                    {choice}
                   </MenuItem>
                 ))}
               </Select>
