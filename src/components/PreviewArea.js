@@ -150,7 +150,9 @@ const PreviewArea = ({
       >
         <Paper
           elevation={12}
+          onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
           sx={{
             width: previewMode === 'mobile' ? 390 : 1440,
             height: previewMode === 'mobile' ? 820 : 900,

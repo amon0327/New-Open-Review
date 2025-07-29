@@ -236,7 +236,7 @@ export default function CreatePage({ onBackClick }) {
     setIsDragActive(true);
   };
 
-  const handleDrop = (e, insertIndex = 0) => {
+  const handleDrop = (e) => {
     e.preventDefault();
     setIsDragActive(false);
     
@@ -301,10 +301,9 @@ export default function CreatePage({ onBackClick }) {
         }
       }
 
-      // 現在の質問リストに挿入
+      // 現在の質問リストの最後に追加
       const currentQuestions = getQuestionsForPage(selectedPage.id);
-      const updatedQuestions = [...currentQuestions];
-      updatedQuestions.splice(insertIndex, 0, newQuestion);
+      const updatedQuestions = [...currentQuestions, newQuestion];
       
       handleQuestionsUpdate(selectedPage.id, updatedQuestions);
       toast.success('質問を追加しました');

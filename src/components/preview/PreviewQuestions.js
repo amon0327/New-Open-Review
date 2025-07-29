@@ -1564,38 +1564,9 @@ const PreviewQuestions = ({
             sx={{
               position: 'relative',
               display: 'inline-block',
-              borderRadius: 2,
               border: selectedElement === 'logo' ? '2px solid #5e17eb' : '2px solid transparent',
-              padding: selectedElement === 'logo' ? '8px' : '0px',
-              backgroundColor: selectedElement === 'logo' ? 'rgba(94, 23, 235, 0.02)' : 'transparent',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              '&::before': selectedElement === 'logo' ? {
-                content: '"ロゴを編集"',
-                position: 'absolute',
-                top: -12,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                backgroundColor: '#5e17eb',
-                color: 'white',
-                fontSize: '0.7rem',
-                fontWeight: 600,
-                padding: '4px 12px',
-                borderRadius: '16px',
-                zIndex: 10,
-                boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
-                whiteSpace: 'nowrap'
-              } : {},
-              '&:hover': {
-                border: selectedElement === 'logo' ? '2px solid #5e17eb' : '2px solid rgba(94, 23, 235, 0.5)',
-                backgroundColor: selectedElement === 'logo' ? 'rgba(94, 23, 235, 0.05)' : 'rgba(94, 23, 235, 0.02)',
-                transform: 'scale(1.02)',
-                boxShadow: selectedElement === 'logo' 
-                  ? '0 8px 32px rgba(94, 23, 235, 0.25)' 
-                  : '0 4px 16px rgba(94, 23, 235, 0.15)'
-              }
+              cursor: 'pointer'
             }}
-            title="クリックしてロゴを編集"
           >
             <img
               src={currentLogoUrl}
@@ -1606,10 +1577,7 @@ const PreviewQuestions = ({
                 objectFit: 'contain',
                 position: 'relative',
                 zIndex: 1,
-                filter: selectedElement === 'logo' 
-                  ? 'drop-shadow(0 4px 12px rgba(94, 23, 235, 0.3))'
-                  : 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1))',
-                transition: 'all 0.2s ease',
+                filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1))',
                 pointerEvents: 'none'
               }}
             />
@@ -1626,36 +1594,9 @@ const PreviewQuestions = ({
           width: '100%',
           marginTop: isMobile ? 0 : '65px',
           cursor: 'pointer',
-          border: selectedElement === 'header' ? '3px solid #5e17eb' : '3px solid transparent',
-          borderRadius: selectedElement === 'header' ? 2 : 0,
-          backgroundColor: selectedElement === 'header' ? 'rgba(94, 23, 235, 0.02)' : 'transparent',
-          transition: 'all 0.3s ease',
-          '&::after': selectedElement === 'header' ? {
-            content: '"ヘッダー画像を編集"',
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            backgroundColor: '#5e17eb',
-            color: 'white',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            padding: '8px 16px',
-            borderRadius: '20px',
-            zIndex: 15,
-            boxShadow: '0 4px 16px rgba(94, 23, 235, 0.3)',
-            backdropFilter: 'blur(10px)'
-          } : {},
-          '&:hover': {
-            border: selectedElement === 'header' ? '3px solid #5e17eb' : '3px solid rgba(94, 23, 235, 0.5)',
-            backgroundColor: selectedElement === 'header' ? 'rgba(94, 23, 235, 0.05)' : 'rgba(94, 23, 235, 0.02)',
-            transform: 'scale(1.005)',
-            boxShadow: selectedElement === 'header' 
-              ? '0 12px 40px rgba(94, 23, 235, 0.2)' 
-              : '0 6px 24px rgba(94, 23, 235, 0.1)'
-          }
+          border: selectedElement === 'header' ? '2px solid #5e17eb' : '2px solid transparent'
         }}
         onClick={() => onElementSelect && onElementSelect('header')}
-        title="クリックしてヘッダー画像を編集"
       >
         <Box
           sx={{
