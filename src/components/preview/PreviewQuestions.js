@@ -1178,14 +1178,8 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
             </Box>
           </Box>
 
-          <Box sx={{ width: '100%', maxWidth: `${400 * zoom}px` }}>
+          <Box sx={{ width: '100%', maxWidth: 400 }}>
             <FormControl fullWidth>
-              <Box sx={{ 
-                '& .MuiPopover-root': {
-                  transform: `scale(${zoom}) !important`,
-                  transformOrigin: 'top center !important'
-                }
-              }}>
               <Select
                 value={selectedValue}
                 onChange={(e) => handleValueChange(e.target.value)}
@@ -1199,7 +1193,7 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                       maxHeight: '240px',
                       minWidth: '200px',
                       maxWidth: '400px',
-                      transform: `scale(${zoom}) !important`,
+                      transform: `scale(${zoom})`,
                       transformOrigin: 'top center',
                       '& .MuiMenuItem-root': {
                         fontSize: '1rem',
@@ -1239,22 +1233,22 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 }}
                 sx={{
                   backgroundColor: '#FFFFFF',
-                  borderRadius: `${4 * zoom}px`,
+                  borderRadius: '4px',
                   fontFamily: '"Noto Sans JP", sans-serif',
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#E5E7EB',
-                    borderWidth: `${1 * zoom}px`
+                    borderWidth: 1
                   },
                   '&:hover .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#E5E7EB'
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                     borderColor: stringToColor(themeColor),
-                    borderWidth: `${1 * zoom}px`
+                    borderWidth: 1
                   },
                   '& .MuiSelect-select': {
-                    padding: `${12 * zoom}px ${16 * zoom}px`,
-                    fontSize: `${1 * zoom}rem`,
+                    padding: '12px 16px',
+                    fontSize: '1rem',
                     fontFamily: '"Noto Sans JP", sans-serif'
                   }
                 }}
@@ -1263,11 +1257,10 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   value="" 
                   disabled
                   sx={{
-                    fontSize: `${1 * zoom}rem`,
+                    fontSize: '1rem',
                     fontFamily: '"Noto Sans JP", sans-serif',
                     color: '#9CA3AF',
-                    minHeight: `${44 * zoom}px`,
-                    padding: `${10 * zoom}px ${16 * zoom}px`,
+                    minHeight: '44px',
                     '&.Mui-disabled': {
                       opacity: 0.6
                     }
@@ -1280,11 +1273,11 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                     key={index} 
                     value={choice}
                     sx={{
-                      fontSize: `${1 * zoom}rem`,
+                      fontSize: '1rem',
                       fontFamily: '"Noto Sans JP", sans-serif',
                       color: '#14181B',
-                      minHeight: `${44 * zoom}px`,
-                      padding: `${10 * zoom}px ${16 * zoom}px`,
+                      minHeight: '44px',
+                      padding: '10px 16px',
                       '&:hover': {
                         backgroundColor: 'rgba(94, 23, 235, 0.08)'
                       },
@@ -1300,7 +1293,6 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   </MenuItem>
                 ))}
               </Select>
-              </Box>
             </FormControl>
           </Box>
         </Box>
