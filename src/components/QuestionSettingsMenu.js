@@ -509,7 +509,7 @@ const QuestionSettingsMenu = ({
         </Box>
 
         {/* 設定内容 */}
-        <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+        <Box sx={{ flex: 1, overflow: 'auto', p: 1.5 }}>
           <Stack spacing={0}>
             {/* 基本設定 */}
             <StylishTextField
