@@ -1742,7 +1742,7 @@ const PreviewQuestions = ({
           display: 'flex',
           flexDirection: 'column',
           minHeight: 'auto',
-          px: isMobile ? 3 : 4,
+          px: isMobile ? 4.5 : 5.5, // 左右のパディングを12px程度追加（3→4.5、4→5.5）
           py: isMobile ? 0 : 2,
           overflow: 'visible',
           backgroundColor: '#FFFFFF',
