@@ -91,7 +91,7 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
       value={value}
       onChange={onChange}
       multiline={multiline}
-      rows={rows}
+      rows={multiline ? undefined : rows}
       maxRows={maxRows}
       minRows={minRows}
       placeholder={placeholder}
