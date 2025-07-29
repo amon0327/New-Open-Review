@@ -19,7 +19,9 @@ import {
   Slide,
   Paper,
   InputBase,
-  Tooltip
+  Tooltip,
+  Tabs,
+  Tab
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -37,7 +39,10 @@ import {
   Settings as SettingsIcon,
   ArrowBack as ArrowBackIcon,
   Star as StarIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Tune as TuneIcon,
+  Visibility as VisibilityIcon,
+  Code as CodeIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -183,6 +188,7 @@ const QuestionSettingsMenu = ({
 }) => {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'settings'
   const [editingChoices, setEditingChoices] = useState({});
+  const [selectedTab, setSelectedTab] = useState(0); // タブ状態
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
@@ -234,6 +240,11 @@ const QuestionSettingsMenu = ({
     const currentSettings = selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings) : {};
     const newSettings = { ...currentSettings, [field]: value };
     handleQuestionUpdate('scale_settings', JSON.stringify(newSettings));
+  };
+
+  // タブ変更ハンドラー
+  const handleTabChange = (event, newValue) => {
+    setSelectedTab(newValue);
   };
 
   // 質問リスト表示
@@ -445,12 +456,10 @@ const QuestionSettingsMenu = ({
         {/* ヘッダー */}
         <Box 
           sx={{ 
-            p: 3, 
-            pb: 2,
             borderBottom: '1px solid #E5E7EB'
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 3, pb: 2 }}>
             <IconButton
               onClick={() => {
                 setViewMode('list');
@@ -508,236 +517,183 @@ const QuestionSettingsMenu = ({
               </Typography>
             </Box>
           </Box>
+
+          {/* タブバー */}
+          <Tabs
+            value={selectedTab}
+            onChange={handleTabChange}
+            sx={{
+              '& .MuiTabs-root': {
+                minHeight: 40
+              },
+              '& .MuiTab-root': {
+                minHeight: 40,
+                textTransform: 'none',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: '#6B7280',
+                '&.Mui-selected': {
+                  color: '#5E17EB',
+                  fontWeight: 600
+                }
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: '#5E17EB',
+                height: 2
+              }
+            }}
+          >
+            <Tab 
+              icon={<TuneIcon sx={{ fontSize: '1rem' }} />} 
+              iconPosition="start" 
+              label="基本設定" 
+            />
+            <Tab 
+              icon={<VisibilityIcon sx={{ fontSize: '1rem' }} />} 
+              iconPosition="start" 
+              label="表示設定" 
+            />
+            <Tab 
+              icon={<CodeIcon sx={{ fontSize: '1rem' }} />} 
+              iconPosition="start" 
+              label="高度な設定" 
+            />
+          </Tabs>
         </Box>
 
         {/* 設定内容 */}
         <Box sx={{ flex: 1, overflow: 'auto', p: 0 }}>
           <Box sx={{ p: 2 }}>
-            <Stack spacing={2}>
-            {/* 基本設定 */}
+            {renderTabContent()}
+          </Box>
+        </Box>
+      </Box>
+    );
+  };
+
+  // タブコンテンツのレンダリング
+  const renderTabContent = () => {
+    const { question_types_id: typeId } = selectedQuestion;
+
+    switch (selectedTab) {
+      case 0: // 基本設定
+        return (
+          <Stack spacing={3}>
+            {/* 質問テキスト */}
             <StylishTextField
               label="質問テキスト"
               value={selectedQuestion.question_text || ''}
               onChange={(e) => handleQuestionUpdate('question_text', e.target.value)}
-              placeholder="質問を入力してください"
               multiline
               minRows={1}
               maxRows={3}
+              placeholder="質問を入力してください..."
               required
             />
 
+            {/* 詳細テキスト */}
             <StylishTextField
               label="詳細テキスト"
               value={selectedQuestion.detail_text || ''}
               onChange={(e) => handleQuestionUpdate('detail_text', e.target.value)}
-              placeholder="補足説明を入力（任意）"
               multiline
               minRows={1}
               maxRows={3}
+              placeholder="詳細説明を入力してください..."
             />
 
-            <Box>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  mb: 1,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: '#374151',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}
-              >
-                必須回答
-              </Typography>
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between',
-                  p: 2,
-                  backgroundColor: '#F8FAFC',
-                  borderRadius: '6px',
-                  border: '1px solid #E2E8F0',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <Box>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      fontWeight: 500,
-                      color: '#1F2937',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    回答を必須にする
-                  </Typography>
-                </Box>
-                <Switch
-                  checked={selectedQuestion.is_required || false}
-                  onChange={(e) => handleQuestionUpdate('is_required', e.target.checked)}
-                  sx={{
-                    '& .MuiSwitch-switchBase': {
-                      '&.Mui-checked': {
-                        color: '#5E17EB',
-                        '& + .MuiSwitch-track': {
-                          backgroundColor: '#5E17EB'
-                        }
-                      }
-                    }
-                  }}
-                />
-              </Box>
-            </Box>
+            {/* 必須回答設定 */}
+            <StylishSwitch
+              label="回答を必須にする"
+              checked={selectedQuestion.is_required || false}
+              onChange={(e) => handleQuestionUpdate('is_required', e.target.checked)}
+              description="回答者がこの質問に必ず回答する必要があります"
+            />
 
-            {/* 質問タイプ別設定 */}
-            {[3, 4, 8].includes(typeId) && (
+            {/* 質問タイプ別の追加設定 */}
+            {(typeId === 3 || typeId === 4) && (
               <Box>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between',
-                  mb: 2
-                }}>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: '#374151',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}
-                  >
-                    選択肢設定
-                  </Typography>
-                  <Button
-                    startIcon={<AddIcon />}
-                    onClick={handleAddChoice}
-                    size="small"
-                    sx={{
-                      color: '#5E17EB',
-                      backgroundColor: 'rgba(94, 23, 235, 0.08)',
-                      fontWeight: 500,
-                      fontSize: '0.7rem',
-                      textTransform: 'none',
-                      borderRadius: '20px',
-                      px: 2,
-                      py: 0.5,
-                      border: 'none',
-                      '&:hover': {
-                        backgroundColor: 'rgba(94, 23, 235, 0.12)'
-                      }
-                    }}
-                  >
-                    追加
-                  </Button>
-                </Box>
-                
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    mb: 2,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: '#374151',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}
+                >
+                  選択肢設定
+                </Typography>
                 <Stack spacing={1}>
                   {(selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : []).map((choice, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        position: 'relative',
-                        '&:hover .delete-btn': {
-                          opacity: 1
-                        }
-                      }}
-                    >
-                      <Box
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography sx={{ minWidth: 20, fontSize: '0.875rem', color: '#6B7280' }}>
+                        {index + 1}.
+                      </Typography>
+                      <TextField
+                        value={choice}
+                        onChange={(e) => handleChoiceEdit(index, e.target.value)}
+                        variant="standard"
+                        placeholder={`選択肢 ${index + 1}`}
+                        fullWidth
                         sx={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: '4px',
-                          backgroundColor: '#F1F5F9',
-                          border: '1px solid #E2E8F0',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          cursor: 'grab',
-                          '&:active': { cursor: 'grabbing' }
-                        }}
-                      >
-                        <DragHandleIcon sx={{ color: '#94A3B8', fontSize: '0.75rem' }} />
-                      </Box>
-                      
-                      <Box
-                        sx={{
-                          flex: 1,
-                          position: 'relative',
-                          '&::before': {
-                            content: `"${index + 1}."`,
-                            position: 'absolute',
-                            left: 8,
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            fontSize: '0.75rem',
-                            fontWeight: 500,
-                            color: '#6B7280',
-                            zIndex: 1,
-                            pointerEvents: 'none'
+                          '& .MuiInput-underline:before': {
+                            borderBottomColor: '#E5E7EB'
+                          },
+                          '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                            borderBottomColor: '#D1D5DB'
+                          },
+                          '& .MuiInput-underline:after': {
+                            borderBottomColor: '#5E17EB'
+                          },
+                          '& input': {
+                            fontSize: '0.875rem',
+                            padding: '4px 0'
                           }
                         }}
-                      >
-                        <TextField
-                          value={choice}
-                          onChange={(e) => handleChoiceEdit(index, e.target.value)}
-                          fullWidth
-                          variant="standard"
-                          sx={{
-                            '& .MuiInput-root': {
-                              fontSize: '0.875rem',
-                              '&:before': {
-                                borderBottomColor: '#E5E7EB'
-                              },
-                              '&:hover:not(.Mui-disabled):before': {
-                                borderBottomColor: '#D1D5DB'
-                              },
-                              '&:after': {
-                                borderBottomColor: '#5E17EB'
-                              },
-                              '& input': {
-                                padding: '4px 0px 4px 20px',
-                                fontSize: '0.875rem'
-                              }
-                            }
-                          }}
-                        />
-                      </Box>
-                      
+                      />
                       <IconButton
-                        className="delete-btn"
                         size="small"
                         onClick={() => handleRemoveChoice(index)}
-                        sx={{
-                          width: 24,
-                          height: 24,
-                          opacity: 0,
+                        sx={{ 
                           color: '#9CA3AF',
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
+                          '&:hover': { 
                             color: '#EF4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                            transform: 'scale(1.1)'
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
                           }
                         }}
                       >
-                        <DeleteIcon sx={{ fontSize: '0.8rem' }} />
+                        <CloseIcon sx={{ fontSize: '0.9rem' }} />
                       </IconButton>
                     </Box>
                   ))}
+                  <Button
+                    startIcon={<AddIcon />}
+                    onClick={handleAddChoice}
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      borderColor: '#E5E7EB',
+                      color: '#6B7280',
+                      textTransform: 'none',
+                      '&:hover': {
+                        borderColor: '#5E17EB',
+                        color: '#5E17EB',
+                        backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                      }
+                    }}
+                  >
+                    選択肢を追加
+                  </Button>
                 </Stack>
               </Box>
             )}
 
+            {/* リニアスケール設定 */}
             {typeId === 7 && (
-              <Box sx={{ mt: 1 }}>
+              <Box>
                 <Typography 
                   variant="body2" 
                   sx={{ 
@@ -751,44 +707,66 @@ const QuestionSettingsMenu = ({
                 >
                   スケール設定
                 </Typography>
-                
                 <Stack spacing={2}>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <StylishTextField
                       label="最小値"
-                      value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).minValue || 1 : 1}
-                      onChange={(e) => handleScaleUpdate('minValue', parseInt(e.target.value))}
+                      value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).min || 1 : 1}
+                      onChange={(e) => handleScaleUpdate('min', parseInt(e.target.value) || 1)}
                       type="number"
                     />
                     <StylishTextField
                       label="最大値"
-                      value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).maxValue || 5 : 5}
-                      onChange={(e) => handleScaleUpdate('maxValue', parseInt(e.target.value))}
+                      value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).max || 5 : 5}
+                      onChange={(e) => handleScaleUpdate('max', parseInt(e.target.value) || 5)}
                       type="number"
                     />
                   </Box>
-                  
                   <StylishTextField
                     label="最小値ラベル"
                     value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).minLabel || '' : ''}
                     onChange={(e) => handleScaleUpdate('minLabel', e.target.value)}
-                    placeholder="例: そう思わない"
+                    placeholder="例: 全く満足していない"
                   />
-                  
                   <StylishTextField
                     label="最大値ラベル"
                     value={selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings).maxLabel || '' : ''}
                     onChange={(e) => handleScaleUpdate('maxLabel', e.target.value)}
-                    placeholder="例: そう思う"
+                    placeholder="例: 非常に満足している"
                   />
                 </Stack>
               </Box>
             )}
-            </Stack>
-          </Box>
-        </Box>
-      </Box>
-    );
+          </Stack>
+        );
+
+      case 1: // 表示設定
+        return (
+          <Stack spacing={3}>
+            <Typography variant="h6" sx={{ color: '#374151', fontSize: '1rem', fontWeight: 600 }}>
+              表示オプション
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#9CA3AF' }}>
+              質問の表示に関する設定は今後のアップデートで追加予定です。
+            </Typography>
+          </Stack>
+        );
+
+      case 2: // 高度な設定
+        return (
+          <Stack spacing={3}>
+            <Typography variant="h6" sx={{ color: '#374151', fontSize: '1rem', fontWeight: 600 }}>
+              高度な設定
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#9CA3AF' }}>
+              高度な設定オプションは今後のアップデートで追加予定です。
+            </Typography>
+          </Stack>
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
