@@ -695,6 +695,23 @@ export default function CreatePage({ onBackClick }) {
               ) : (
                 /* 中央プレビューエリア - 設定画面でない場合 */
                 <>
+                  {/* プレビューエリア全体の背景（クリック可能エリア） */}
+                  <Box
+                    onClick={() => {
+                      // プレビューエリア全体をクリックした時に要素選択を解除
+                      setSelectedElement(null);
+                      setSelectedQuestionId(null);
+                    }}
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      zIndex: 0
+                    }}
+                  />
+                  
                   {/* メインプレビューエリア */}
                   <PreviewArea
                     previewMode={previewMode}

@@ -118,11 +118,11 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
               borderWidth: '1px'
             }
           },
-          '& input': {
+          '& .MuiOutlinedInput-input': {
             padding: '6px 8px',
             fontSize: '0.875rem'
           },
-          '& textarea': {
+          '& .MuiOutlinedInput-input[aria-multiline="true"]': {
             padding: '6px 8px',
             fontSize: '0.875rem',
             resize: 'none'

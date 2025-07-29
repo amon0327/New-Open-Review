@@ -127,6 +127,13 @@ const PreviewArea = ({
 
   return (
     <Box
+      onClick={(e) => {
+        // プレビュー画面の外側（影の部分）をクリックした時に要素選択を解除
+        if (e.target === e.currentTarget) {
+          onElementSelect && onElementSelect(null);
+          onQuestionSelect && onQuestionSelect(null);
+        }
+      }}
       sx={{
         position: 'absolute',
         top: '50%',
