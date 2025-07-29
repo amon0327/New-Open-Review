@@ -1185,7 +1185,8 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 onChange={(e) => handleValueChange(e.target.value)}
                 displayEmpty
                 MenuProps={{
-                  disablePortal: true,
+                  // Portal使用でzoom時の位置計算問題を解決
+                  disablePortal: false,
                   PaperProps: {
                     sx: {
                       mt: 0.5,

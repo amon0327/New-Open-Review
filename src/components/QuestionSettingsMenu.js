@@ -437,12 +437,32 @@ const QuestionSettingsMenu = ({
             />
 
             {/* 必須回答設定 */}
-            <StylishSwitch
-              label="回答を必須にする"
-              checked={selectedQuestion.is_required || false}
-              onChange={(e) => handleQuestionUpdate('is_required', e.target.checked)}
-              description="回答者がこの質問に必ず回答する必要があります"
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: '#374151'
+                }}
+              >
+                回答を必須にする
+              </Typography>
+              <Switch
+                checked={selectedQuestion.is_required || false}
+                onChange={(e) => handleQuestionUpdate('is_required', e.target.checked)}
+                sx={{
+                  '& .MuiSwitch-switchBase': {
+                    '&.Mui-checked': {
+                      color: '#5E17EB',
+                      '& + .MuiSwitch-track': {
+                        backgroundColor: '#5E17EB'
+                      }
+                    }
+                  }
+                }}
+              />
+            </Box>
 
             {/* 質問タイプ別の追加設定 */}
             {(typeId === 3 || typeId === 4) && (
