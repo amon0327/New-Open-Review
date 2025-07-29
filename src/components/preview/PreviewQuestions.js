@@ -38,8 +38,8 @@ const ShortTextQuestion = ({ question, themeColor, currentQuestion, totalQuestio
 
   return (
     <>
-      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
-        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           {/* Question Header */}
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {/* Required Indicator */}
@@ -167,8 +167,8 @@ const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestion
 
   return (
     <>
-      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
-        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
               <Typography
@@ -295,8 +295,8 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
 
   return (
     <>
-      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
-        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
               <Typography
@@ -427,8 +427,8 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
 
   return (
     <>
-      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
-        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
               <Typography
@@ -555,8 +555,8 @@ const SingleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, tot
 
   return (
     <>
-      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
-        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
               <Typography
@@ -697,8 +697,8 @@ const MultipleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, t
 
   return (
     <>
-      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
-        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
               <Typography
@@ -837,8 +837,8 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
 
   return (
     <>
-      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
-        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
               <Typography
@@ -989,8 +989,8 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
 
   return (
     <>
-      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
-        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Container maxWidth={false} disableGutters sx={{ width: '100%', px: 0, mx: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center', px: 0, mx: 0 }}>
           <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
             {question.is_required && (
               <Typography
