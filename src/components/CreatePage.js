@@ -635,6 +635,11 @@ export default function CreatePage({ onBackClick }) {
           >
             <Paper
               elevation={2}
+              onClick={() => {
+                // プレビュー画面外側をクリックした時に要素選択を解除
+                setSelectedElement(null);
+                setSelectedQuestionId(null);
+              }}
               sx={{
                 height: '100%',
                 width: '100%',
