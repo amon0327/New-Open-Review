@@ -4,9 +4,11 @@ import LeftNavigationBar from './LeftNavigationBar';
 import HeaderBar from './HeaderBar';
 import PreviewArea from './PreviewArea';
 import QuestionToolsSidebar from './QuestionToolsSidebar';
+import QuestionSettingsPanel from './QuestionSettingsPanel';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import SettingsPanel from './settings/SettingsPanel';
 import { useCreatePageState } from '../hooks/useCreatePageState';
+import useQuestionData from '../hooks/useQuestionData';
 import { leftNavigationItems, questionTypes, questionTemplates, settingsCategories } from '../constants/createPageData';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
@@ -157,17 +159,39 @@ export default function CreatePage({ onBackClick }) {
     logoPreview, setLogoPreview
   } = useCreatePageState();
 
+  // 質問データ管理フック
+  const {
+    getQuestionsForPage,
+    setQuestionsForPage,
+    addQuestion,
+    updateQuestion,
+    deleteQuestion,
+    duplicateQuestion,
+    getQuestionCountForPage
+  } = useQuestionData();
+
   // 設定関連の追加状態
   const [logoImage, setLogoImage] = useState(null);
 
   // サンプルページデータ
   const [pages, setPages] = useState([
     { id: 'login', title: 'ログイン画面', type: 'system', icon: <Login />, canDelete: false, canEdit: false },
-    { id: 'page1', title: '基本情報', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 5 },
-    { id: 'page2', title: '満足度調査', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 3 },
-    { id: 'page3', title: '追加質問', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 2 },
+    { id: 'page1', title: '基本情報', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 0 },
+    { id: 'page2', title: '満足度調査', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 0 },
+    { id: 'page3', title: '追加質問', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 0 },
     { id: 'completion', title: '完了画面', type: 'system', icon: <CheckCircle />, canDelete: false, canEdit: false }
   ]);
+
+  // 質問データ関連のハンドラ
+  const handleQuestionsUpdate = (pageId, questions) => {
+    setQuestionsForPage(pageId, questions);
+    // ページの質問数も更新
+    setPages(prev => prev.map(page => 
+      page.id === pageId 
+        ? { ...page, questions: questions.length }
+        : page
+    ));
+  };
 
   // ズーム制御関数（5%刻み、30%〜150%の範囲）
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.05, 1.5));
@@ -775,57 +799,31 @@ export default function CreatePage({ onBackClick }) {
               </motion.div>
             )}
 
-            {/* 右側Container - フォーム設定 - 設定画面では非表示 */}
+            {/* 右側Container - 質問設定 - 設定画面では非表示 */}
             {!showSettings && (
               <motion.div
                 {...SLIDE_IN_RIGHT_ANIMATION}
-                style={{ flex: '0 0 300px', pointerEvents: 'auto' }}
+                style={{ flex: '0 0 320px', pointerEvents: 'auto' }}
               >
-              <Paper
-                elevation={8}
-                sx={SIDEBAR_PAPER_BASE_STYLE}
-              >
-                <Typography
-                  variant="h6"
+                <Paper
+                  elevation={8}
                   sx={{
-                    fontWeight: 600,
-                    background: 'linear-gradient(45deg, #fcb69f 30%, #ffecd2 90%)',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    mb: 2,
-                    textAlign: 'center'
+                    ...SIDEBAR_PAPER_BASE_STYLE,
+                    overflowY: 'auto',
+                    '&::-webkit-scrollbar': {
+                      display: 'none'
+                    },
+                    scrollbarWidth: 'none', // Firefox
+                    msOverflowStyle: 'none' // IE and Edge
                   }}
                 >
-                  フォーム設定
-                </Typography>
-                
-                <Box sx={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 2 
-                }}>
-                  <Box
-                    sx={createIconContainerStyle(
-                      60,
-                      'linear-gradient(135deg, #fcb69f 0%, #ffecd2 100%)',
-                      'rgba(252, 182, 159, 0.3)',
-                      2
-                    )}
-                  >
-                    <Settings sx={{ color: 'white', fontSize: '1.5rem' }} />
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" textAlign="center">
-                    フォームの設定や<br />
-                    プレビューが<br />
-                    ここに表示されます
-                  </Typography>
-                </Box>
-              </Paper>
-            </motion.div>
+                  <QuestionSettingsPanel
+                    selectedPage={selectedPage}
+                    questions={selectedPage ? getQuestionsForPage(selectedPage.id) : []}
+                    onUpdateQuestions={(questions) => selectedPage && handleQuestionsUpdate(selectedPage.id, questions)}
+                  />
+                </Paper>
+              </motion.div>
             )}
 
 
