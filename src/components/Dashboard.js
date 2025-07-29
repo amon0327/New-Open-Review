@@ -906,31 +906,15 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
           }}
         >
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              background: 'rgba(255, 255, 255, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backdropFilter: 'blur(10px)'
+          <img
+            src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png"
+            alt="OpenReview"
+            style={{
+              height: '40px',
+              width: 'auto',
+              objectFit: 'contain'
             }}
-          >
-            <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
-              O
-            </Typography>
-          </Box>
-          <Typography
-            variant="h6"
-            sx={{
-              color: 'white',
-              fontWeight: 700,
-              fontSize: '1.3rem'
-            }}
-          >
-            OpenReview
-          </Typography>
+          />
         </Box>
 
         {/* Navigation Items */}
