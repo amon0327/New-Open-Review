@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Box,
@@ -1326,14 +1326,14 @@ const PreviewQuestions = ({
   // 実際の質問データを使用
   const displayQuestions = questions || [];
 
-  const handleAnswerChange = (questionId, answerData) => {
+  const handleAnswerChange = useCallback((questionId, answerData) => {
     setAnswers(prev => ({
       ...prev,
       [questionId]: answerData
     }));
-  };
+  }, []);
 
-  const renderQuestion = (question, index) => {
+  const renderQuestion = useCallback((question, index) => {
     const questionNumber = index + 1;
     const totalQuestions = displayQuestions.length;
     const isSelected = selectedQuestionId === question.id;
@@ -1495,7 +1495,7 @@ const PreviewQuestions = ({
           </Box>
         );
     }
-  };
+  }, [displayQuestions.length, selectedQuestionId, hoveredQuestionId, onQuestionSelect, setHoveredQuestionId, themeColor, handleAnswerChange, zoom]);
 
   return (
     <Box
