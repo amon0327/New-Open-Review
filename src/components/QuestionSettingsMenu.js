@@ -531,6 +531,7 @@ const QuestionSettingsMenu = ({
               placeholder="補足説明を入力（任意）"
               multiline
               rows={1}
+              maxRows={3}
             />
 
             <Box>
