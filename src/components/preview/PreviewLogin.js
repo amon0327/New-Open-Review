@@ -218,10 +218,19 @@ const PreviewLogin = ({
                 cursor: 'pointer',
                 position: 'relative',
                 zIndex: 2,
-                padding: selectedElement === 'login-title' ? '8px 16px' : '0',
-                border: selectedElement === 'login-title' ? '2px solid #5e17eb' : '2px solid transparent',
-                borderRadius: selectedElement === 'login-title' ? '8px' : '0',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                '&::after': selectedElement === 'login-title' ? {
+                  content: '""',
+                  position: 'absolute',
+                  top: -8,
+                  left: -16,
+                  right: -16,
+                  bottom: -8,
+                  backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                  borderRadius: 2,
+                  zIndex: -1,
+                  pointerEvents: 'none'
+                } : {}
               }}
             >
               {titleText}
@@ -247,10 +256,19 @@ const PreviewLogin = ({
                 cursor: 'pointer',
                 position: 'relative',
                 zIndex: 2,
-                padding: selectedElement === 'login-detail' ? '8px 16px' : '0',
-                border: selectedElement === 'login-detail' ? '2px solid #5e17eb' : '2px solid transparent',
-                borderRadius: selectedElement === 'login-detail' ? '8px' : '0',
-                transition: 'all 0.3s ease'
+                transition: 'all 0.3s ease',
+                '&::after': selectedElement === 'login-detail' ? {
+                  content: '""',
+                  position: 'absolute',
+                  top: -8,
+                  left: -16,
+                  right: -16,
+                  bottom: -8,
+                  backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                  borderRadius: 2,
+                  zIndex: -1,
+                  pointerEvents: 'none'
+                } : {}
               }}
             >
               {detailText}
