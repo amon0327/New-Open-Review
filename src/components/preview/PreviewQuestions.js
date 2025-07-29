@@ -1581,7 +1581,7 @@ const PreviewQuestions = ({
           maxWidth: isMobile ? '100%' : '900px',
           margin: '0 auto',
           backgroundColor: '#FFFFFF',
-          minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 335px)',
+          minHeight: 'auto',
           overflow: 'visible'
         }}
       >
@@ -1589,7 +1589,7 @@ const PreviewQuestions = ({
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 335px)',
+            minHeight: 'auto',
             px: isMobile ? 3 : 4,
             py: isMobile ? 0 : 2,
             overflow: 'visible',
