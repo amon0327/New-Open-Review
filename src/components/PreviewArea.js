@@ -150,7 +150,7 @@ const PreviewArea = ({
             border: previewMode === 'mobile' 
               ? '8px solid #1a1a1a' 
               : isDragActive
-                ? '4px solid transparent'
+                ? '4px solid rgba(94, 23, 235, 0.5)'
                 : '2px solid #e2e8f0',
             boxShadow: isDragActive
               ? `
@@ -183,6 +183,23 @@ const PreviewArea = ({
                 '50%': { backgroundPosition: '100% 50%' },
                 '100%': { backgroundPosition: '0% 50%' }
               }
+            } : {},
+            // ドラッグアクティブ時にドロップ可能であることを示すオーバーレイ
+            '&::after': isDragActive ? {
+              content: '"質問をここにドロップして追加"',
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              backgroundColor: 'rgba(94, 23, 235, 0.9)',
+              color: 'white',
+              padding: '16px 32px',
+              borderRadius: '24px',
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              zIndex: 1000,
+              boxShadow: '0 8px 32px rgba(94, 23, 235, 0.4)',
+              pointerEvents: 'none'
             } : {}
           }}
         >
