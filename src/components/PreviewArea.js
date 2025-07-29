@@ -99,6 +99,7 @@ const PreviewArea = ({
         return (
           <PreviewQuestions 
             previewMode={previewMode} 
+            zoom={zoom}
             questions={questions}
             selectedPage={defaultPage}
             isDragActive={isDragActive}

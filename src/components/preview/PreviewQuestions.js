@@ -1080,7 +1080,7 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
 };
 
 // Pull Down Question Component - AnswerAppの完全コピー
-const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
+const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange, zoom = 1 }) => {
   const [selectedValue, setSelectedValue] = useState('');
 
   const handleValueChange = (value) => {
@@ -1193,6 +1193,8 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                       maxHeight: '240px',
                       minWidth: '200px',
                       maxWidth: '400px',
+                      transform: `scale(${zoom})`,
+                      transformOrigin: 'top left',
                       '& .MuiMenuItem-root': {
                         fontSize: '1rem',
                         fontFamily: '"Noto Sans JP", sans-serif',
@@ -1302,6 +1304,7 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
 // Main PreviewQuestions component - ドロップゾーン対応版
 const PreviewQuestions = ({ 
   previewMode, 
+  zoom = 1,
   questions = [], 
   selectedPage,
   isDragActive = false,
@@ -1465,6 +1468,7 @@ const PreviewQuestions = ({
             currentQuestion={questionNumber}
             totalQuestions={totalQuestions}
             onAnswerChange={handleAnswerChange}
+            zoom={zoom}
           />
         );
       default:
