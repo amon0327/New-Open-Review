@@ -104,20 +104,14 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
             }
           },
           '& input': {
-            padding: '0px',
+            padding: '8px 12px',
             fontSize: '0.875rem'
           },
           '& textarea': {
-            padding: '0px',
+            padding: '8px 12px',
             fontSize: '0.875rem',
             resize: 'none'
           }
-        },
-        '& .MuiInputBase-multiline': {
-          padding: '0px'
-        },
-        '& .MuiOutlinedInput-multiline': {
-          padding: '0px'
         }
       }}
       {...props}
