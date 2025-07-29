@@ -536,6 +536,21 @@ export default function CreatePage({ onBackClick }) {
     }
   };
 
+  // 質問順序変更ハンドラー
+  const handleQuestionReorder = (dragIndex, hoverIndex) => {
+    if (!selectedPage) return;
+    
+    const currentQuestions = getQuestionsForPage(selectedPage.id);
+    const draggedQuestion = currentQuestions[dragIndex];
+    
+    // 配列を複製して順序を変更
+    const updatedQuestions = [...currentQuestions];
+    updatedQuestions.splice(dragIndex, 1);
+    updatedQuestions.splice(hoverIndex, 0, draggedQuestion);
+    
+    handleQuestionsUpdate(selectedPage.id, updatedQuestions);
+  };
+
   return (
     <Box
       className={`main-container ${showSettings ? 'settings-active' : ''}`}
@@ -990,6 +1005,7 @@ export default function CreatePage({ onBackClick }) {
                     onQuestionUpdate={handleQuestionUpdate}
                     onQuestionDelete={handleQuestionDelete}
                     onQuestionSelect={handleQuestionSelect}
+                    onQuestionReorder={handleQuestionReorder}
                   />
                 </Paper>
               </motion.div>

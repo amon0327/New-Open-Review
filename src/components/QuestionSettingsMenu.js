@@ -184,11 +184,14 @@ const QuestionSettingsMenu = ({
   selectedQuestionId = null,
   onQuestionUpdate,
   onQuestionDelete,
-  onQuestionSelect
+  onQuestionSelect,
+  onQuestionReorder
 }) => {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'settings'
   const [editingChoices, setEditingChoices] = useState({});
   const [selectedTab, setSelectedTab] = useState(0); // タブ状態
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
@@ -245,6 +248,46 @@ const QuestionSettingsMenu = ({
   // タブ変更ハンドラー
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
+  };
+
+  // ドラッグ&ドロップハンドラー
+  const handleDragStart = (e, question, index) => {
+    setDraggedItem({ question, index });
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.target.outerHTML);
+    e.target.style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e) => {
+    e.target.style.opacity = '';
+    setDraggedItem(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = (e) => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    
+    if (!draggedItem || draggedItem.index === dropIndex) {
+      return;
+    }
+
+    // 並び替えを実行
+    if (onQuestionReorder) {
+      onQuestionReorder(draggedItem.index, dropIndex);
+    }
+
+    setDraggedItem(null);
+    setDragOverIndex(null);
   };
 
   // 質問リスト表示
@@ -725,9 +768,29 @@ const QuestionSettingsMenu = ({
                     >
                       <ListItem
                         disablePadding
-                        sx={{ mb: 1 }}
+                        sx={{ 
+                          mb: 1,
+                          position: 'relative',
+                          '&::before': dragOverIndex === index ? {
+                            content: '""',
+                            position: 'absolute',
+                            top: -2,
+                            left: 0,
+                            right: 0,
+                            height: 4,
+                            backgroundColor: '#5E17EB',
+                            borderRadius: 2,
+                            zIndex: 10
+                          } : {}
+                        }}
                       >
                         <ListItemButton
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, question, index)}
+                          onDragEnd={handleDragEnd}
+                          onDragOver={(e) => handleDragOver(e, index)}
+                          onDragLeave={handleDragLeave}
+                          onDrop={(e) => handleDrop(e, index)}
                           onClick={() => {
                             onQuestionSelect && onQuestionSelect(question.id);
                             setSelectedTab(0); // 質問設定タブに切り替え
@@ -740,14 +803,16 @@ const QuestionSettingsMenu = ({
                               ? '0 4px 20px rgba(94, 23, 235, 0.15)' 
                               : '0 1px 3px rgba(0, 0, 0, 0.05)',
                             transition: 'all 0.2s ease',
+                            cursor: 'pointer',
                             '&:hover': {
                               backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.05)' : '#F9FAFB',
                               borderColor: isSelected ? '#5E17EB' : '#D1D5DB',
-                              transform: 'translateY(-1px)',
+                              transform: draggedItem?.question.id === question.id ? 'none' : 'translateY(-1px)',
                               boxShadow: isSelected 
                                 ? '0 6px 25px rgba(94, 23, 235, 0.2)' 
                                 : '0 4px 12px rgba(0, 0, 0, 0.1)'
-                            }
+                            },
+                            opacity: draggedItem?.question.id === question.id ? 0.5 : 1
                           }}
                         >
                           <ListItemIcon sx={{ minWidth: 40 }}>
@@ -756,8 +821,10 @@ const QuestionSettingsMenu = ({
                                 color: '#9CA3AF', 
                                 fontSize: '1rem',
                                 cursor: 'grab',
-                                '&:hover': { color: '#6B7280' }
+                                '&:hover': { color: '#6B7280' },
+                                '&:active': { cursor: 'grabbing' }
                               }} 
+                              onMouseDown={(e) => e.stopPropagation()}
                             />
                           </ListItemIcon>
                           
