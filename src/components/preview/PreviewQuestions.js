@@ -1564,7 +1564,6 @@ const PreviewQuestions = ({
             sx={{
               position: 'relative',
               display: 'inline-block',
-              border: selectedElement === 'logo' ? '2px solid #5e17eb' : '2px solid transparent',
               cursor: 'pointer'
             }}
           >
@@ -1581,6 +1580,21 @@ const PreviewQuestions = ({
                 pointerEvents: 'none'
               }}
             />
+            {selectedElement === 'logo' && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(94, 23, 235, 0.2)',
+                  borderRadius: 1,
+                  zIndex: 2,
+                  pointerEvents: 'none'
+                }}
+              />
+            )}
           </Box>
         </Box>
       )}
@@ -1593,8 +1607,7 @@ const PreviewQuestions = ({
           overflow: 'hidden',
           width: '100%',
           marginTop: isMobile ? 0 : '65px',
-          cursor: 'pointer',
-          border: selectedElement === 'header' ? '2px solid #5e17eb' : '2px solid transparent'
+          cursor: 'pointer'
         }}
         onClick={() => onElementSelect && onElementSelect('header')}
       >
@@ -1628,6 +1641,21 @@ const PreviewQuestions = ({
               : 'linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.6) 85%, rgba(255, 255, 255, 1) 100%)'
           }}
         />
+
+        {selectedElement === 'header' && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(94, 23, 235, 0.2)',
+              zIndex: 3,
+              pointerEvents: 'none'
+            }}
+          />
+        )}
 
         {isMobile && (
           <Box
@@ -1664,6 +1692,21 @@ const PreviewQuestions = ({
                 e.target.style.filter = 'none';
               }}
             />
+            {selectedElement === 'logo' && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(94, 23, 235, 0.2)',
+                  borderRadius: 1,
+                  zIndex: 2,
+                  pointerEvents: 'none'
+                }}
+              />
+            )}
           </Box>
         )}
       </Box>
