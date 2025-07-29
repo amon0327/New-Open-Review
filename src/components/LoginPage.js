@@ -199,6 +199,13 @@ export default function LoginPage({ onLogin }) {
 
   return (
     <Box
+      onClick={(e) => {
+        // 背景クリック時に基本設定トグルを開く処理を追加
+        const settingsButton = document.querySelector('[data-testid="settings-button"]');
+        if (settingsButton) {
+          settingsButton.click();
+        }
+      }}
       sx={{
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -206,7 +213,8 @@ export default function LoginPage({ onLogin }) {
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        cursor: 'pointer'
       }}
     >
       {/* Background Animation Elements */}
@@ -249,6 +257,14 @@ export default function LoginPage({ onLogin }) {
                 transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
               >
                 <Box
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // ロゴクリック時に基本設定トグルを開く処理を追加
+                    const settingsButton = document.querySelector('[data-testid="settings-button"]');
+                    if (settingsButton) {
+                      settingsButton.click();
+                    }
+                  }}
                   sx={{
                     width: 64,
                     height: 64,
@@ -259,7 +275,8 @@ export default function LoginPage({ onLogin }) {
                     justifyContent: 'center',
                     margin: '0 auto',
                     mb: 2,
-                    boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3)'
+                    boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3)',
+                    cursor: 'pointer'
                   }}
                 >
                   <Typography

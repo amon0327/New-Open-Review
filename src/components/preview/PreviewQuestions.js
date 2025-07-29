@@ -1801,7 +1801,7 @@ const PreviewQuestions = ({
                     color: '#374151'
                   }}
                 >
-                  質問を追加してフォームを作成
+                  質問を追加しましょう
                 </Typography>
                 <Typography 
                   variant="body1" 
@@ -1812,7 +1812,7 @@ const PreviewQuestions = ({
                     color: '#6b7280'
                   }}
                 >
-                  左側の質問作成ツールから質問をドラッグ&ドロップしてフォームを作成してください
+                  左のツールから質問をドラッグして追加できます
                 </Typography>
                 <Box
                   sx={{
@@ -1833,7 +1833,7 @@ const PreviewQuestions = ({
                       fontWeight: 500
                     }}
                   >
-                    💡 ヒント: 質問タイプやテンプレートから選択できます
+                    質問タイプやテンプレートから選択できます
                   </Typography>
                 </Box>
               </Box>
