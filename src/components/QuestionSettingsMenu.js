@@ -57,7 +57,7 @@ const getQuestionTypeConfig = (typeId) => {
 };
 
 // スタイリッシュなテキストフィールドコンポーネント
-const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1, maxRows, placeholder, required = false, ...props }) => (
+const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1, maxRows, minRows, placeholder, required = false, ...props }) => (
   <Box>
     <Typography 
       variant="body2" 
@@ -78,6 +78,7 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
       multiline={multiline}
       rows={rows}
       maxRows={maxRows}
+      minRows={minRows}
       placeholder={placeholder}
       fullWidth
       variant="outlined"
@@ -108,8 +109,16 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
           },
           '& textarea': {
             padding: '0px',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            resize: 'none'
           }
+        },
+        '& .MuiInputBase-multiline': {
+          padding: '0px'
+        },
+        '& .MuiOutlinedInput-multiline': {
+          padding: '0px'
+        }
         }
       }}
       {...props}
@@ -519,7 +528,7 @@ const QuestionSettingsMenu = ({
               onChange={(e) => handleQuestionUpdate('question_text', e.target.value)}
               placeholder="質問を入力してください"
               multiline
-              rows={1}
+              minRows={1}
               maxRows={3}
               required
             />
@@ -530,7 +539,7 @@ const QuestionSettingsMenu = ({
               onChange={(e) => handleQuestionUpdate('detail_text', e.target.value)}
               placeholder="補足説明を入力（任意）"
               multiline
-              rows={1}
+              minRows={1}
               maxRows={3}
             />
 
