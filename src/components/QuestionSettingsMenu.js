@@ -156,7 +156,7 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
         '& .MuiInputBase-root.MuiInputBase-multiline': {
           padding: '0 !important',
           '& .MuiOutlinedInput-input': {
-            padding: '6px 8px !important',
+            padding: '8px 8px 6px 8px !important',
             fontSize: '0.875rem',
             lineHeight: '1.4375em',
             verticalAlign: 'top'
