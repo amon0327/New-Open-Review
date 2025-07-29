@@ -24,393 +24,390 @@ const colorWithBorderOpacity = (color, opacity = 30) => {
   return `${color}${Math.round(255 * opacity / 100).toString(16).padStart(2, '0')}`;
 };
 
-// Short Text Question Component
+// Short Text Question Component - AnswerAppの完全コピー
 const ShortTextQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [answer, setAnswer] = useState('');
 
   const handleAnswerChange = (value) => {
     setAnswer(value);
-    onAnswerChange(question.id, { answer: value });
+    onAnswerChange(question.id, {
+      questionTypeId: 1,
+      answer: value.trim() !== '' ? value : null
+    });
   };
 
   return (
-    <Box
-      sx={{
-        py: '50px',
-        px: 3,
-        backgroundColor: '#F1F4F8',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        minHeight: '100vh'
-      }}
-    >
-      <Container
-        maxWidth="md"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}
-      >
-        {/* Required Badge */}
-        {question.is_required && (
-          <Box
-            sx={{
-              backgroundColor: stringToColor(themeColor),
-              color: 'white',
-              px: 2,
-              py: 0.5,
-              borderRadius: '12px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              mb: 2,
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            必須
+    <>
+      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {/* Question Header */}
+          <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
+            {/* Required Indicator */}
+            {question.is_required && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  mb: 1
+                }}
+              >
+                必須
+              </Typography>
+            )}
+
+            {/* Question Text */}
+            <Typography
+              variant="h6"
+              sx={{
+                color: '#14181B',
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                fontFamily: '"Noto Sans JP", sans-serif',
+                lineHeight: 1.4,
+                mb: 2
+              }}
+            >
+              {question.question_text}
+            </Typography>
+
+            {/* Detail Text */}
+            {question.detail_text && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  lineHeight: 1.6,
+                  mb: 2
+                }}
+              >
+                {question.detail_text}
+              </Typography>
+            )}
+
+            {/* Progress Badge */}
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: 32,
+                px: 2,
+                backgroundColor: stringToColor(themeColor),
+                borderRadius: '16px',
+                mb: 2
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  fontFamily: '"Noto Sans JP", sans-serif'
+                }}
+              >
+                {currentQuestion}/{totalQuestions}
+              </Typography>
+            </Box>
           </Box>
-        )}
 
-        {/* Question Text */}
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 600,
-            color: '#14181B',
-            textAlign: 'center',
-            mb: 2,
-            fontSize: '1.25rem',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {question.question_text}
-        </Typography>
-
-        {/* Detail Text */}
-        {question.detail_text && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#57636C',
-              textAlign: 'center',
-              mb: 3,
-              fontSize: '0.875rem',
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            {question.detail_text}
-          </Typography>
-        )}
-
-        {/* Progress Badge */}
-        <Box
-          sx={{
-            backgroundColor: 'rgba(0, 0, 0, 0.05)',
-            px: 2,
-            py: 0.5,
-            borderRadius: '12px',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            mb: 4,
-            color: '#57636C',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {currentQuestion} / {totalQuestions}
-        </Box>
-
-        {/* Answer Input */}
-        <Box sx={{ width: '100%', maxWidth: 400 }}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="回答を入力してください"
-            value={answer}
-            onChange={(e) => handleAnswerChange(e.target.value)}
-            sx={{
-              backgroundColor: '#F1F4F8',
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
-                backgroundColor: '#F1F4F8',
-                '&.Mui-focused fieldset': {
-                  borderColor: stringToColor(themeColor)
+          {/* Short Text Input */}
+          <Box sx={{ width: '100%', maxWidth: 400 }}>
+            <TextField
+              fullWidth
+              value={answer}
+              onChange={(e) => handleAnswerChange(e.target.value)}
+              placeholder="回答を入力してください"
+              variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#F1F4F8',
+                  borderRadius: '4px',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  '& fieldset': {
+                    borderColor: '#E5E7EB',
+                    borderWidth: 1
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#E5E7EB'
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: stringToColor(themeColor),
+                    borderWidth: 1
+                  }
                 },
-                '&.Mui-error fieldset': {
-                  borderColor: '#F44336'
+                '& .MuiOutlinedInput-input': {
+                  padding: '12px 16px',
+                  fontSize: '1rem',
+                  fontFamily: '"Noto Sans JP", sans-serif'
                 }
-              }
-            }}
-          />
+              }}
+            />
+          </Box>
         </Box>
       </Container>
-    </Box>
+    </>
   );
 };
 
-// Long Text Question Component
+// Long Text Question Component - AnswerAppの完全コピー
 const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [answer, setAnswer] = useState('');
 
   const handleAnswerChange = (value) => {
     setAnswer(value);
-    onAnswerChange(question.id, { answer: value });
+    onAnswerChange(question.id, {
+      questionTypeId: 2,
+      answer: value.trim() !== '' ? value : null
+    });
   };
 
   return (
-    <Box
-      sx={{
-        py: '50px',
-        px: 3,
-        backgroundColor: '#F1F4F8',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        minHeight: '100vh'
-      }}
-    >
-      <Container
-        maxWidth="md"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}
-      >
-        {/* Required Badge */}
-        {question.is_required && (
-          <Box
-            sx={{
-              backgroundColor: stringToColor(themeColor),
-              color: 'white',
-              px: 2,
-              py: 0.5,
-              borderRadius: '12px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              mb: 2,
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            必須
+    <>
+      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
+            {question.is_required && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  mb: 1
+                }}
+              >
+                必須
+              </Typography>
+            )}
+
+            <Typography
+              variant="h6"
+              sx={{
+                color: '#14181B',
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                fontFamily: '"Noto Sans JP", sans-serif',
+                lineHeight: 1.4,
+                mb: 2
+              }}
+            >
+              {question.question_text}
+            </Typography>
+
+            {question.detail_text && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  lineHeight: 1.6,
+                  mb: 2
+                }}
+              >
+                {question.detail_text}
+              </Typography>
+            )}
+
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: 32,
+                px: 2,
+                backgroundColor: stringToColor(themeColor),
+                borderRadius: '16px',
+                mb: 2
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  fontFamily: '"Noto Sans JP", sans-serif'
+                }}
+              >
+                {currentQuestion}/{totalQuestions}
+              </Typography>
+            </Box>
           </Box>
-        )}
 
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 600,
-            color: '#14181B',
-            textAlign: 'center',
-            mb: 2,
-            fontSize: '1.25rem',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {question.question_text}
-        </Typography>
-
-        {question.detail_text && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#57636C',
-              textAlign: 'center',
-              mb: 3,
-              fontSize: '0.875rem',
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            {question.detail_text}
-          </Typography>
-        )}
-
-        <Box
-          sx={{
-            backgroundColor: 'rgba(0, 0, 0, 0.05)',
-            px: 2,
-            py: 0.5,
-            borderRadius: '12px',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            mb: 4,
-            color: '#57636C',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {currentQuestion} / {totalQuestions}
-        </Box>
-
-        <Box sx={{ width: '100%', maxWidth: 400 }}>
-          <TextField
-            fullWidth
-            multiline
-            minRows={5}
-            maxRows={5}
-            variant="outlined"
-            placeholder="回答を入力してください"
-            value={answer}
-            onChange={(e) => handleAnswerChange(e.target.value)}
-            sx={{
-              backgroundColor: '#F1F4F8',
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '12px',
-                backgroundColor: '#F1F4F8',
-                '&.Mui-focused fieldset': {
-                  borderColor: stringToColor(themeColor)
+          <Box sx={{ width: '100%', maxWidth: 400 }}>
+            <TextField
+              fullWidth
+              multiline
+              minRows={5}
+              maxRows={5}
+              value={answer}
+              onChange={(e) => handleAnswerChange(e.target.value)}
+              placeholder="回答を入力してください"
+              variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#F1F4F8',
+                  borderRadius: '4px',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  '& fieldset': {
+                    borderColor: '#E5E7EB',
+                    borderWidth: 1
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#E5E7EB'
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: stringToColor(themeColor),
+                    borderWidth: 1
+                  }
+                },
+                '& .MuiOutlinedInput-input': {
+                  padding: '12px 16px',
+                  fontSize: '1rem',
+                  fontFamily: '"Noto Sans JP", sans-serif'
                 }
-              }
-            }}
-          />
+              }}
+            />
+          </Box>
         </Box>
       </Container>
-    </Box>
+    </>
   );
 };
 
-// Single Choice Question Component
+// Single Choice Question Component - AnswerAppの完全コピー
 const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedChoice, setSelectedChoice] = useState(null);
 
   const handleChoiceSelect = (choiceValue) => {
     setSelectedChoice(choiceValue);
-    onAnswerChange(question.id, { answer: choiceValue });
+    onAnswerChange(question.id, {
+      questionTypeId: 3,
+      answer: choiceValue
+    });
   };
 
   const choices = question.choices ? JSON.parse(question.choices) : [];
 
   return (
-    <Box
-      sx={{
-        py: '50px',
-        px: 3,
-        backgroundColor: '#F1F4F8',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        minHeight: '100vh'
-      }}
-    >
-      <Container
-        maxWidth="md"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}
-      >
-        {question.is_required && (
-          <Box
-            sx={{
-              backgroundColor: stringToColor(themeColor),
-              color: 'white',
-              px: 2,
-              py: 0.5,
-              borderRadius: '12px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              mb: 2,
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            必須
-          </Box>
-        )}
+    <>
+      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
+            {question.is_required && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  mb: 1
+                }}
+              >
+                必須
+              </Typography>
+            )}
 
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 600,
-            color: '#14181B',
-            textAlign: 'center',
-            mb: 2,
-            fontSize: '1.25rem',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {question.question_text}
-        </Typography>
-
-        {question.detail_text && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#57636C',
-              textAlign: 'center',
-              mb: 3,
-              fontSize: '0.875rem',
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            {question.detail_text}
-          </Typography>
-        )}
-
-        <Box
-          sx={{
-            backgroundColor: 'rgba(0, 0, 0, 0.05)',
-            px: 2,
-            py: 0.5,
-            borderRadius: '12px',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            mb: 4,
-            color: '#57636C',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {currentQuestion} / {totalQuestions}
-        </Box>
-
-        <Box 
-          sx={{ 
-            width: '100%', 
-            maxWidth: 400,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2
-          }}
-        >
-          {choices.map((choice, index) => (
-            <Button
-              key={index}
-              variant="outlined"
-              onClick={() => handleChoiceSelect(choice)}
-              disableRipple
+            <Typography
+              variant="h6"
               sx={{
-                py: 2,
-                px: 3,
-                borderRadius: '12px',
-                fontSize: '1rem',
-                fontWeight: 500,
-                textTransform: 'none',
+                color: '#14181B',
+                fontSize: '1.25rem',
+                fontWeight: 600,
                 fontFamily: '"Noto Sans JP", sans-serif',
-                backgroundColor: selectedChoice === choice 
-                  ? stringToColor(themeColor)
-                  : colorWithLightOpacity(stringToColor(themeColor)),
-                color: selectedChoice === choice ? 'white' : '#14181B',
-                borderColor: colorWithBorderOpacity(stringToColor(themeColor)),
-                '&:hover': {
+                lineHeight: 1.4,
+                mb: 2
+              }}
+            >
+              {question.question_text}
+            </Typography>
+
+            {question.detail_text && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  lineHeight: 1.6,
+                  mb: 2
+                }}
+              >
+                {question.detail_text}
+              </Typography>
+            )}
+
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: 32,
+                px: 2,
+                backgroundColor: stringToColor(themeColor),
+                borderRadius: '16px',
+                mb: 2
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  fontFamily: '"Noto Sans JP", sans-serif'
+                }}
+              >
+                {currentQuestion}/{totalQuestions}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {choices.map((choice, index) => (
+              <Button
+                key={index}
+                variant="outlined"
+                onClick={() => handleChoiceSelect(choice)}
+                disableRipple
+                sx={{
+                  py: 2,
+                  px: 3,
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  fontFamily: '"Noto Sans JP", sans-serif',
                   backgroundColor: selectedChoice === choice 
                     ? stringToColor(themeColor)
                     : colorWithLightOpacity(stringToColor(themeColor)),
-                  borderColor: stringToColor(themeColor),
-                  transform: 'translateY(-1px)',
-                  boxShadow: `0 4px 12px ${colorWithBorderOpacity(stringToColor(themeColor))}`
-                },
-                transition: 'all 0.2s ease-in-out'
-              }}
-            >
-              {choice}
-            </Button>
-          ))}
+                  color: selectedChoice === choice ? 'white' : '#14181B',
+                  borderColor: colorWithBorderOpacity(stringToColor(themeColor)),
+                  '&:hover': {
+                    backgroundColor: selectedChoice === choice 
+                      ? stringToColor(themeColor)
+                      : colorWithLightOpacity(stringToColor(themeColor)),
+                    borderColor: stringToColor(themeColor),
+                    transform: 'translateY(-1px)',
+                    boxShadow: `0 4px 12px ${colorWithBorderOpacity(stringToColor(themeColor))}`
+                  },
+                  transition: 'all 0.2s ease-in-out'
+                }}
+              >
+                {choice}
+              </Button>
+            ))}
+          </Box>
         </Box>
       </Container>
-    </Box>
+    </>
   );
 };
 
-// Multiple Choice Question Component  
+// Multiple Choice Question Component - AnswerAppの完全コピー
 const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedChoices, setSelectedChoices] = useState([]);
 
@@ -420,287 +417,267 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
       : [...selectedChoices, choiceValue];
     
     setSelectedChoices(newSelectedChoices);
-    onAnswerChange(question.id, { answers: newSelectedChoices });
+    onAnswerChange(question.id, {
+      questionTypeId: 4,
+      answers: newSelectedChoices
+    });
   };
 
   const choices = question.choices ? JSON.parse(question.choices) : [];
 
   return (
-    <Box
-      sx={{
-        py: '50px',
-        px: 3,
-        backgroundColor: '#F1F4F8',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        minHeight: '100vh'
-      }}
-    >
-      <Container
-        maxWidth="md"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}
-      >
-        {question.is_required && (
-          <Box
-            sx={{
-              backgroundColor: stringToColor(themeColor),
-              color: 'white',
-              px: 2,
-              py: 0.5,
-              borderRadius: '12px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              mb: 2,
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            必須
-          </Box>
-        )}
+    <>
+      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
+            {question.is_required && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  mb: 1
+                }}
+              >
+                必須
+              </Typography>
+            )}
 
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 600,
-            color: '#14181B',
-            textAlign: 'center',
-            mb: 2,
-            fontSize: '1.25rem',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {question.question_text}
-        </Typography>
-
-        {question.detail_text && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#57636C',
-              textAlign: 'center',
-              mb: 3,
-              fontSize: '0.875rem',
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            {question.detail_text}
-          </Typography>
-        )}
-
-        <Box
-          sx={{
-            backgroundColor: 'rgba(0, 0, 0, 0.05)',
-            px: 2,
-            py: 0.5,
-            borderRadius: '12px',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            mb: 4,
-            color: '#57636C',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {currentQuestion} / {totalQuestions}
-        </Box>
-
-        <Box 
-          sx={{ 
-            width: '100%', 
-            maxWidth: 400,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 2
-          }}
-        >
-          {choices.map((choice, index) => (
-            <Button
-              key={index}
-              variant="outlined"
-              onClick={() => handleChoiceToggle(choice)}
-              disableRipple
+            <Typography
+              variant="h6"
               sx={{
-                py: 2,
-                px: 3,
-                borderRadius: '12px',
-                fontSize: '1rem',
-                fontWeight: 500,
-                textTransform: 'none',
+                color: '#14181B',
+                fontSize: '1.25rem',
+                fontWeight: 600,
                 fontFamily: '"Noto Sans JP", sans-serif',
-                backgroundColor: selectedChoices.includes(choice) 
-                  ? stringToColor(themeColor)
-                  : colorWithLightOpacity(stringToColor(themeColor)),
-                color: selectedChoices.includes(choice) ? 'white' : '#14181B',
-                borderColor: colorWithBorderOpacity(stringToColor(themeColor)),
-                '&:hover': {
+                lineHeight: 1.4,
+                mb: 2
+              }}
+            >
+              {question.question_text}
+            </Typography>
+
+            {question.detail_text && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  lineHeight: 1.6,
+                  mb: 2
+                }}
+              >
+                {question.detail_text}
+              </Typography>
+            )}
+
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: 32,
+                px: 2,
+                backgroundColor: stringToColor(themeColor),
+                borderRadius: '16px',
+                mb: 2
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  fontFamily: '"Noto Sans JP", sans-serif'
+                }}
+              >
+                {currentQuestion}/{totalQuestions}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {choices.map((choice, index) => (
+              <Button
+                key={index}
+                variant="outlined"
+                onClick={() => handleChoiceToggle(choice)}
+                disableRipple
+                sx={{
+                  py: 2,
+                  px: 3,
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  fontFamily: '"Noto Sans JP", sans-serif',
                   backgroundColor: selectedChoices.includes(choice) 
                     ? stringToColor(themeColor)
                     : colorWithLightOpacity(stringToColor(themeColor)),
-                  borderColor: stringToColor(themeColor),
-                  transform: 'translateY(-1px)',
-                  boxShadow: `0 4px 12px ${colorWithBorderOpacity(stringToColor(themeColor))}`
-                },
-                transition: 'all 0.2s ease-in-out'
-              }}
-            >
-              {choice}
-            </Button>
-          ))}
+                  color: selectedChoices.includes(choice) ? 'white' : '#14181B',
+                  borderColor: colorWithBorderOpacity(stringToColor(themeColor)),
+                  '&:hover': {
+                    backgroundColor: selectedChoices.includes(choice) 
+                      ? stringToColor(themeColor)
+                      : colorWithLightOpacity(stringToColor(themeColor)),
+                    borderColor: stringToColor(themeColor),
+                    transform: 'translateY(-1px)',
+                    boxShadow: `0 4px 12px ${colorWithBorderOpacity(stringToColor(themeColor))}`
+                  },
+                  transition: 'all 0.2s ease-in-out'
+                }}
+              >
+                {choice}
+              </Button>
+            ))}
+          </Box>
         </Box>
       </Container>
-    </Box>
+    </>
   );
 };
 
-// Single Choice Matrix Question Component
+// Single Choice Matrix Question Component - AnswerAppの完全コピー
 const SingleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedChoice, setSelectedChoice] = useState(null);
 
   const handleChoiceSelect = (choiceValue) => {
     setSelectedChoice(choiceValue);
-    onAnswerChange(question.id, { answer: choiceValue });
+    onAnswerChange(question.id, {
+      questionTypeId: 5,
+      answer: choiceValue
+    });
   };
 
   const choices = question.choices ? JSON.parse(question.choices) : [];
 
   return (
-    <Box
-      sx={{
-        py: '50px',
-        px: 3,
-        backgroundColor: '#F1F4F8',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        minHeight: '100vh'
-      }}
-    >
-      <Container
-        maxWidth="md"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}
-      >
-        {question.is_required && (
-          <Box
-            sx={{
-              backgroundColor: stringToColor(themeColor),
-              color: 'white',
-              px: 2,
-              py: 0.5,
-              borderRadius: '12px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              mb: 2,
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            必須
-          </Box>
-        )}
+    <>
+      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
+            {question.is_required && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  mb: 1
+                }}
+              >
+                必須
+              </Typography>
+            )}
 
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 600,
-            color: '#14181B',
-            textAlign: 'center',
-            mb: 2,
-            fontSize: '1.25rem',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {question.question_text}
-        </Typography>
-
-        {question.detail_text && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#57636C',
-              textAlign: 'center',
-              mb: 3,
-              fontSize: '0.875rem',
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            {question.detail_text}
-          </Typography>
-        )}
-
-        <Box
-          sx={{
-            backgroundColor: 'rgba(0, 0, 0, 0.05)',
-            px: 2,
-            py: 0.5,
-            borderRadius: '12px',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            mb: 4,
-            color: '#57636C',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {currentQuestion} / {totalQuestions}
-        </Box>
-
-        <Box 
-          sx={{ 
-            width: '100%',
-            maxWidth: { xs: '320px', sm: '400px', md: '500px' },
-            display: 'flex',
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: 1.5,
-            justifyContent: 'center'
-          }}
-        >
-          {choices.map((choice, index) => (
-            <Button
-              key={index}
-              variant="outlined"
-              onClick={() => handleChoiceSelect(choice)}
-              disableRipple
+            <Typography
+              variant="h6"
               sx={{
-                width: { xs: 'calc(50% - 6px)', sm: 'calc(50% - 6px)', md: 'calc(50% - 6px)' },
-                height: { xs: 40, md: 48 },
-                borderRadius: '12px',
-                fontSize: { xs: '0.7rem', md: '0.875rem' },
-                fontWeight: 500,
-                textTransform: 'none',
+                color: '#14181B',
+                fontSize: '1.25rem',
+                fontWeight: 600,
                 fontFamily: '"Noto Sans JP", sans-serif',
-                backgroundColor: selectedChoice === choice 
-                  ? stringToColor(themeColor)
-                  : colorWithLightOpacity(stringToColor(themeColor)),
-                color: selectedChoice === choice ? 'white' : '#14181B',
-                borderColor: colorWithBorderOpacity(stringToColor(themeColor)),
-                '&:hover': {
+                lineHeight: 1.4,
+                mb: 2
+              }}
+            >
+              {question.question_text}
+            </Typography>
+
+            {question.detail_text && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  lineHeight: 1.6,
+                  mb: 2
+                }}
+              >
+                {question.detail_text}
+              </Typography>
+            )}
+
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: 32,
+                px: 2,
+                backgroundColor: stringToColor(themeColor),
+                borderRadius: '16px',
+                mb: 2
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  fontFamily: '"Noto Sans JP", sans-serif'
+                }}
+              >
+                {currentQuestion}/{totalQuestions}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box 
+            sx={{ 
+              width: '100%',
+              maxWidth: { xs: '320px', sm: '400px', md: '500px' },
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 1.5,
+              justifyContent: 'center'
+            }}
+          >
+            {choices.map((choice, index) => (
+              <Button
+                key={index}
+                variant="outlined"
+                onClick={() => handleChoiceSelect(choice)}
+                disableRipple
+                sx={{
+                  width: { xs: 'calc(50% - 6px)', sm: 'calc(50% - 6px)', md: 'calc(50% - 6px)' },
+                  height: { xs: 40, md: 48 },
+                  borderRadius: '12px',
+                  fontSize: { xs: '0.7rem', md: '0.875rem' },
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  fontFamily: '"Noto Sans JP", sans-serif',
                   backgroundColor: selectedChoice === choice 
                     ? stringToColor(themeColor)
                     : colorWithLightOpacity(stringToColor(themeColor)),
-                  borderColor: stringToColor(themeColor),
-                  transform: 'translateY(-1px)',
-                  boxShadow: `0 4px 12px ${colorWithBorderOpacity(stringToColor(themeColor))}`
-                },
-                transition: 'all 0.2s ease-in-out'
-              }}
-            >
-              {choice}
-            </Button>
-          ))}
+                  color: selectedChoice === choice ? 'white' : '#14181B',
+                  borderColor: colorWithBorderOpacity(stringToColor(themeColor)),
+                  '&:hover': {
+                    backgroundColor: selectedChoice === choice 
+                      ? stringToColor(themeColor)
+                      : colorWithLightOpacity(stringToColor(themeColor)),
+                    borderColor: stringToColor(themeColor),
+                    transform: 'translateY(-1px)',
+                    boxShadow: `0 4px 12px ${colorWithBorderOpacity(stringToColor(themeColor))}`
+                  },
+                  transition: 'all 0.2s ease-in-out'
+                }}
+              >
+                {choice}
+              </Button>
+            ))}
+          </Box>
         </Box>
       </Container>
-    </Box>
+    </>
   );
 };
 
-// Multiple Choice Matrix Question Component
+// Multiple Choice Matrix Question Component - AnswerAppの完全コピー
 const MultipleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedChoices, setSelectedChoices] = useState([]);
 
@@ -710,151 +687,148 @@ const MultipleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, t
       : [...selectedChoices, choiceValue];
     
     setSelectedChoices(newSelectedChoices);
-    onAnswerChange(question.id, { answers: newSelectedChoices });
+    onAnswerChange(question.id, {
+      questionTypeId: 6,
+      answers: newSelectedChoices
+    });
   };
 
   const choices = question.choices ? JSON.parse(question.choices) : [];
 
   return (
-    <Box
-      sx={{
-        py: '50px',
-        px: 3,
-        backgroundColor: '#F1F4F8',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        minHeight: '100vh'
-      }}
-    >
-      <Container
-        maxWidth="md"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}
-      >
-        {question.is_required && (
-          <Box
-            sx={{
-              backgroundColor: stringToColor(themeColor),
-              color: 'white',
-              px: 2,
-              py: 0.5,
-              borderRadius: '12px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              mb: 2,
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            必須
-          </Box>
-        )}
+    <>
+      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
+            {question.is_required && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  mb: 1
+                }}
+              >
+                必須
+              </Typography>
+            )}
 
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 600,
-            color: '#14181B',
-            textAlign: 'center',
-            mb: 2,
-            fontSize: '1.25rem',  
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {question.question_text}
-        </Typography>
-
-        {question.detail_text && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#57636C',
-              textAlign: 'center',
-              mb: 3,
-              fontSize: '0.875rem',
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            {question.detail_text}
-          </Typography>
-        )}
-
-        <Box
-          sx={{
-            backgroundColor: 'rgba(0, 0, 0, 0.05)',
-            px: 2,
-            py: 0.5,
-            borderRadius: '12px',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            mb: 4,
-            color: '#57636C',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {currentQuestion} / {totalQuestions}
-        </Box>
-
-        <Box 
-          sx={{ 
-            width: '100%',
-            maxWidth: { xs: '320px', sm: '400px', md: '500px' },
-            display: 'flex',
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            gap: 1.5,
-            justifyContent: 'center'
-          }}
-        >
-          {choices.map((choice, index) => (
-            <Button
-              key={index}
-              variant="outlined"
-              onClick={() => handleChoiceToggle(choice)}
-              disableRipple
+            <Typography
+              variant="h6"
               sx={{
-                width: { xs: 'calc(50% - 6px)', sm: 'calc(50% - 6px)', md: 'calc(50% - 6px)' },
-                height: { xs: 40, md: 48 },
-                borderRadius: '12px',
-                fontSize: { xs: '0.7rem', md: '0.875rem' },
-                fontWeight: 500,
-                textTransform: 'none',
+                color: '#14181B',
+                fontSize: '1.25rem',
+                fontWeight: 600,
                 fontFamily: '"Noto Sans JP", sans-serif',
-                backgroundColor: selectedChoices.includes(choice) 
-                  ? stringToColor(themeColor)
-                  : colorWithLightOpacity(stringToColor(themeColor)),
-                color: selectedChoices.includes(choice) ? 'white' : '#14181B',
-                borderColor: colorWithBorderOpacity(stringToColor(themeColor)),
-                '&:hover': {
+                lineHeight: 1.4,
+                mb: 2
+              }}
+            >
+              {question.question_text}
+            </Typography>
+
+            {question.detail_text && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  lineHeight: 1.6,
+                  mb: 2
+                }}
+              >
+                {question.detail_text}
+              </Typography>
+            )}
+
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: 32,
+                px: 2,
+                backgroundColor: stringToColor(themeColor),
+                borderRadius: '16px',
+                mb: 2
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  fontFamily: '"Noto Sans JP", sans-serif'
+                }}
+              >
+                {currentQuestion}/{totalQuestions}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box 
+            sx={{ 
+              width: '100%',
+              maxWidth: { xs: '320px', sm: '400px', md: '500px' },
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 1.5,
+              justifyContent: 'center'
+            }}
+          >
+            {choices.map((choice, index) => (
+              <Button
+                key={index}
+                variant="outlined"
+                onClick={() => handleChoiceToggle(choice)}
+                disableRipple
+                sx={{
+                  width: { xs: 'calc(50% - 6px)', sm: 'calc(50% - 6px)', md: 'calc(50% - 6px)' },
+                  height: { xs: 40, md: 48 },
+                  borderRadius: '12px',
+                  fontSize: { xs: '0.7rem', md: '0.875rem' },
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  fontFamily: '"Noto Sans JP", sans-serif',
                   backgroundColor: selectedChoices.includes(choice) 
                     ? stringToColor(themeColor)
                     : colorWithLightOpacity(stringToColor(themeColor)),
-                  borderColor: stringToColor(themeColor),
-                  transform: 'translateY(-1px)',
-                  boxShadow: `0 4px 12px ${colorWithBorderOpacity(stringToColor(themeColor))}`
-                },
-                transition: 'all 0.2s ease-in-out'
-              }}
-            >
-              {choice}
-            </Button>
-          ))}
+                  color: selectedChoices.includes(choice) ? 'white' : '#14181B',
+                  borderColor: colorWithBorderOpacity(stringToColor(themeColor)),
+                  '&:hover': {
+                    backgroundColor: selectedChoices.includes(choice) 
+                      ? stringToColor(themeColor)
+                      : colorWithLightOpacity(stringToColor(themeColor)),
+                    borderColor: stringToColor(themeColor),
+                    transform: 'translateY(-1px)',
+                    boxShadow: `0 4px 12px ${colorWithBorderOpacity(stringToColor(themeColor))}`
+                  },
+                  transition: 'all 0.2s ease-in-out'
+                }}
+              >
+                {choice}
+              </Button>
+            ))}
+          </Box>
         </Box>
       </Container>
-    </Box>
+    </>
   );
 };
 
-// Linear Scale Question Component
+// Linear Scale Question Component - AnswerAppの完全コピー
 const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedValue, setSelectedValue] = useState(null);
 
   const handleValueSelect = (value) => {
     setSelectedValue(value);
-    onAnswerChange(question.id, { answer: value.toString() });
+    onAnswerChange(question.id, {
+      questionTypeId: 7,
+      answer: value.toString()
+    });
   };
 
   const scaleLabels = question.scale_labels ? JSON.parse(question.scale_labels) : {};
@@ -862,332 +836,307 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
   const maxLabel = scaleLabels.max_label || 'そう思う';
 
   return (
-    <Box
-      sx={{
-        py: '50px',
-        px: 3,
-        backgroundColor: '#F1F4F8',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        minHeight: '100vh'
-      }}
-    >
-      <Container
-        maxWidth="md"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}
-      >
-        {question.is_required && (
-          <Box
-            sx={{
-              backgroundColor: stringToColor(themeColor),
-              color: 'white',
-              px: 2,
-              py: 0.5,
-              borderRadius: '12px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              mb: 2,
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            必須
-          </Box>
-        )}
+    <>
+      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
+            {question.is_required && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  mb: 1
+                }}
+              >
+                必須
+              </Typography>
+            )}
 
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 600,
-            color: '#14181B',
-            textAlign: 'center',
-            mb: 2,
-            fontSize: '1.25rem',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {question.question_text}
-        </Typography>
-
-        {question.detail_text && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#57636C',
-              textAlign: 'center',
-              mb: 3,
-              fontSize: '0.875rem',
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            {question.detail_text}
-          </Typography>
-        )}
-
-        <Box
-          sx={{
-            backgroundColor: 'rgba(0, 0, 0, 0.05)',
-            px: 2,
-            py: 0.5,
-            borderRadius: '12px',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            mb: 4,
-            color: '#57636C',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {currentQuestion} / {totalQuestions}
-        </Box>
-
-        {/* Scale Labels */}
-        <Box 
-          sx={{ 
-            width: '100%', 
-            maxWidth: 400,
-            display: 'flex',
-            justifyContent: 'space-between',
-            mb: 2
-          }}
-        >
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: '#57636C', 
-              fontSize: '0.875rem',
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            {minLabel}
-          </Typography>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: '#57636C', 
-              fontSize: '0.875rem',
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            {maxLabel}
-          </Typography>
-        </Box>
-
-        {/* Scale Options */}
-        <Box 
-          sx={{ 
-            width: '100%', 
-            maxWidth: 400,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}
-        >
-          {[1, 2, 3, 4, 5].map((value) => (
-            <Box
-              key={value}
-              onClick={() => handleValueSelect(value)}
+            <Typography
+              variant="h6"
               sx={{
-                width: 24,
-                height: 24,
-                borderRadius: '50%',
-                border: `2px solid ${stringToColor(themeColor)}`,
-                backgroundColor: selectedValue === value ? stringToColor(themeColor) : 'transparent',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  transform: 'scale(1.1)'
-                }
+                color: '#14181B',
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                fontFamily: '"Noto Sans JP", sans-serif',
+                lineHeight: 1.4,
+                mb: 2
               }}
             >
-              {selectedValue === value && (
-                <Box
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    backgroundColor: 'white'
-                  }}
-                />
-              )}
+              {question.question_text}
+            </Typography>
+
+            {question.detail_text && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  lineHeight: 1.6,
+                  mb: 2
+                }}
+              >
+                {question.detail_text}
+              </Typography>
+            )}
+
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: 32,
+                px: 2,
+                backgroundColor: stringToColor(themeColor),
+                borderRadius: '16px',
+                mb: 2
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  fontFamily: '"Noto Sans JP", sans-serif'
+                }}
+              >
+                {currentQuestion}/{totalQuestions}
+              </Typography>
             </Box>
-          ))}
+          </Box>
+
+          {/* Scale Labels */}
+          <Box sx={{ width: '100%', maxWidth: 400, display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: '#57636C', 
+                fontSize: '0.875rem',
+                fontFamily: '"Noto Sans JP", sans-serif'
+              }}
+            >
+              {minLabel}
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: '#57636C', 
+                fontSize: '0.875rem',
+                fontFamily: '"Noto Sans JP", sans-serif'
+              }}
+            >
+              {maxLabel}
+            </Typography>
+          </Box>
+
+          {/* Scale Options */}
+          <Box sx={{ width: '100%', maxWidth: 400, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {[1, 2, 3, 4, 5].map((value) => (
+              <Box
+                key={value}
+                onClick={() => handleValueSelect(value)}
+                sx={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  border: `2px solid ${stringToColor(themeColor)}`,
+                  backgroundColor: selectedValue === value ? stringToColor(themeColor) : 'transparent',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    transform: 'scale(1.1)'
+                  }
+                }}
+              >
+                {selectedValue === value && (
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: 'white'
+                    }}
+                  />
+                )}
+              </Box>
+            ))}
+          </Box>
         </Box>
       </Container>
-    </Box>
+    </>
   );
 };
 
-// Pull Down Question Component
+// Pull Down Question Component - AnswerAppの完全コピー
 const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedValue, setSelectedValue] = useState('');
 
   const handleValueChange = (value) => {
     setSelectedValue(value);
-    onAnswerChange(question.id, { answer: value });
+    onAnswerChange(question.id, {
+      questionTypeId: 8,
+      answer: value
+    });
   };
 
   const choices = question.choices ? JSON.parse(question.choices) : [];
 
   return (
-    <Box
-      sx={{
-        py: '50px',
-        px: 3,
-        backgroundColor: '#F1F4F8',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        minHeight: '100vh'
-      }}
-    >
-      <Container
-        maxWidth="md"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}
-      >
-        {question.is_required && (
-          <Box
-            sx={{
-              backgroundColor: stringToColor(themeColor),
-              color: 'white',
-              px: 2,
-              py: 0.5,
-              borderRadius: '12px',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              mb: 2,
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            必須
-          </Box>
-        )}
+    <>
+      <Container maxWidth={false} sx={{ width: '100%', px: 0 }}>
+        <Box sx={{ pt: '50px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ mb: '30px', width: '100%', textAlign: 'center' }}>
+            {question.is_required && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  mb: 1
+                }}
+              >
+                必須
+              </Typography>
+            )}
 
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 600,
-            color: '#14181B',
-            textAlign: 'center',
-            mb: 2,
-            fontSize: '1.25rem',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {question.question_text}
-        </Typography>
-
-        {question.detail_text && (
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#57636C',
-              textAlign: 'center',
-              mb: 3,
-              fontSize: '0.875rem',
-              fontFamily: '"Noto Sans JP", sans-serif'
-            }}
-          >
-            {question.detail_text}
-          </Typography>
-        )}
-
-        <Box
-          sx={{
-            backgroundColor: 'rgba(0, 0, 0, 0.05)',
-            px: 2,
-            py: 0.5,
-            borderRadius: '12px',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-            mb: 4,
-            color: '#57636C',
-            fontFamily: '"Noto Sans JP", sans-serif'
-          }}
-        >
-          {currentQuestion} / {totalQuestions}
-        </Box>
-
-        <Box sx={{ width: '100%', maxWidth: 400 }}>
-          <FormControl fullWidth>
-            <Select
-              value={selectedValue}
-              onChange={(e) => handleValueChange(e.target.value)}
-              displayEmpty
+            <Typography
+              variant="h6"
               sx={{
-                backgroundColor: '#F1F4F8',
-                borderRadius: '12px',
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: stringToColor(themeColor)
-                },
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: '#F1F4F8'
-                }
+                color: '#14181B',
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                fontFamily: '"Noto Sans JP", sans-serif',
+                lineHeight: 1.4,
+                mb: 2
               }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    maxHeight: 280,
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                    '&::-webkit-scrollbar': {
-                      width: '8px'
-                    },
-                    '&::-webkit-scrollbar-track': {
-                      backgroundColor: '#f1f3f4',
-                      borderRadius: '10px'
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                      backgroundColor: '#dadce0',
-                      borderRadius: '10px',
-                      '&:hover': {
-                        backgroundColor: '#bdc1c6'
+            >
+              {question.question_text}
+            </Typography>
+
+            {question.detail_text && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#57636C',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  lineHeight: 1.6,
+                  mb: 2
+                }}
+              >
+                {question.detail_text}
+              </Typography>
+            )}
+
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                height: 32,
+                px: 2,
+                backgroundColor: stringToColor(themeColor),
+                borderRadius: '16px',
+                mb: 2
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  fontFamily: '"Noto Sans JP", sans-serif'
+                }}
+              >
+                {currentQuestion}/{totalQuestions}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ width: '100%', maxWidth: 400 }}>
+            <FormControl fullWidth>
+              <Select
+                value={selectedValue}
+                onChange={(e) => handleValueChange(e.target.value)}
+                displayEmpty
+                sx={{
+                  backgroundColor: '#F1F4F8',
+                  borderRadius: '4px',
+                  fontFamily: '"Noto Sans JP", sans-serif',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#E5E7EB',
+                    borderWidth: 1
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#E5E7EB'
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: stringToColor(themeColor),
+                    borderWidth: 1
+                  }
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      maxHeight: 280,
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                      '&::-webkit-scrollbar': {
+                        width: '8px'
+                      },
+                      '&::-webkit-scrollbar-track': {
+                        backgroundColor: '#f1f3f4',
+                        borderRadius: '10px'
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: '#dadce0',
+                        borderRadius: '10px',
+                        '&:hover': {
+                          backgroundColor: '#bdc1c6'
+                        }
                       }
                     }
                   }
-                }
-              }}
-            >
-              <MenuItem value="" disabled>
-                <Typography 
-                  sx={{ 
-                    color: 'rgba(0, 0, 0, 0.6)',
-                    fontFamily: '"Noto Sans JP", sans-serif'
-                  }}
-                >
-                  選択してください
-                </Typography>
-              </MenuItem>
-              {choices.map((choice, index) => (
-                <MenuItem 
-                  key={index} 
-                  value={choice}
-                  sx={{
-                    fontFamily: '"Noto Sans JP", sans-serif'
-                  }}
-                >
-                  {choice}
+                }}
+              >
+                <MenuItem value="" disabled>
+                  <Typography 
+                    sx={{ 
+                      color: 'rgba(0, 0, 0, 0.6)',
+                      fontFamily: '"Noto Sans JP", sans-serif'
+                    }}
+                  >
+                    選択してください
+                  </Typography>
                 </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+                {choices.map((choice, index) => (
+                  <MenuItem 
+                    key={index} 
+                    value={choice}
+                    sx={{
+                      fontFamily: '"Noto Sans JP", sans-serif'
+                    }}
+                  >
+                    {choice}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
         </Box>
       </Container>
-    </Box>
+    </>
   );
 };
 
-// Main PreviewQuestions component
+// Main PreviewQuestions component - AnswerAppの構造をコピー
 const PreviewQuestions = ({ previewMode }) => {
   const [answers, setAnswers] = useState({});
   const isMobile = previewMode === 'mobile';
@@ -1382,14 +1331,16 @@ const PreviewQuestions = ({ previewMode }) => {
           display: 'none'
         },
         msOverflowStyle: 'none',
-        scrollbarWidth: 'none'
+        scrollbarWidth: 'none',
+        overscrollBehavior: 'none',
+        touchAction: 'pan-x pan-y'
       }}
     >
-      {/* Glass Header Bar for PC */}
+      {/* Glass Header Bar for PC - AnswerAppと同じ */}
       {!isMobile && (
         <Box
           sx={{
-            position: 'sticky',
+            position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
@@ -1402,7 +1353,27 @@ const PreviewQuestions = ({ previewMode }) => {
             justifyContent: 'center',
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
             boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)',
-            zIndex: 10
+            zIndex: 10,
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 100%)',
+              pointerEvents: 'none'
+            },
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '1px',
+              background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+              pointerEvents: 'none'
+            }
           }}
         >
           <img
@@ -1412,19 +1383,22 @@ const PreviewQuestions = ({ previewMode }) => {
               width: '140px',
               height: '55px',
               objectFit: 'contain',
+              position: 'relative',
+              zIndex: 1,
               filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1))'
             }}
           />
         </Box>
       )}
 
-      {/* Header Image Section */}
+      {/* Header Image Section - AnswerAppと同じ */}
       <Box
         sx={{
           position: 'relative',
           height: isMobile ? 250 : 270,
           overflow: 'hidden',
-          width: '100%'
+          width: '100%',
+          marginTop: isMobile ? 0 : '65px'
         }}
       >
         <Box
@@ -1478,36 +1452,69 @@ const PreviewQuestions = ({ previewMode }) => {
         )}
       </Box>
 
-      {/* Questions Content */}
-      <Box sx={{ backgroundColor: '#FFFFFF' }}>
-        {sampleQuestions.map((question, index) => renderQuestion(question, index))}
+      {/* Content Container - AnswerAppと同じ */}
+      <Container
+        maxWidth={false}
+        sx={{
+          width: '100%',
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          },
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
+          maxWidth: isMobile ? '100%' : '900px',
+          margin: '0 auto',
+          backgroundColor: '#FFFFFF',
+          minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 350px)'
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 350px)',
+            px: isMobile ? 3 : 4,
+            py: isMobile ? 0 : 2
+          }}
+        >
+          {/* Questions Content */}
+          <Box sx={{ flex: 1 }}>
+            {sampleQuestions.map((question, index) => (
+              <Box key={question.id} sx={{ mb: '50px' }}>
+                {renderQuestion(question, index)}
+              </Box>
+            ))}
 
-        {/* Navigation Section */}
-        <Box sx={{ py: 4, textAlign: 'center', backgroundColor: '#FFFFFF' }}>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: stringToColor(themeColor),
-              color: 'white',
-              width: 200,
-              height: 50,
-              borderRadius: '24px',
-              fontSize: '1rem',
-              fontWeight: 600,
-              textTransform: 'none',
-              fontFamily: '"Noto Sans JP", sans-serif',
-              boxShadow: 'none',
-              '&:hover': {
-                backgroundColor: stringToColor(themeColor),
-                opacity: 0.9,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
-              }
-            }}
-          >
-            送信
-          </Button>
+            {/* Navigation Section - AnswerAppと同じ */}
+            <Box sx={{ py: 4 }}>
+              <Box sx={{ textAlign: 'center' }}>
+                <Button
+                  variant="contained"
+                  sx={{
+                    backgroundColor: stringToColor(themeColor),
+                    color: 'white',
+                    width: 200,
+                    height: 50,
+                    borderRadius: '24px',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    fontFamily: '"Noto Sans JP", sans-serif',
+                    boxShadow: 'none',
+                    '&:hover': {
+                      backgroundColor: stringToColor(themeColor),
+                      opacity: 0.9,
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+                    }
+                  }}
+                >
+                  送信
+                </Button>
+              </Box>
+            </Box>
+          </Box>
         </Box>
-      </Box>
+      </Container>
     </Box>
   );
 };

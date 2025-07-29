@@ -54,7 +54,7 @@ const PreviewArea = ({ previewMode, zoom, selectedPage }) => {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -45%)',
-        zIndex: 5,
+        zIndex: 1,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
