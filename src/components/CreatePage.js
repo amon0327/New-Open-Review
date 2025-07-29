@@ -180,6 +180,11 @@ export default function CreatePage({ onBackClick }) {
   // 質問選択状態
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
 
+  // 基本設定関連の状態
+  const [selectedElement, setSelectedElement] = useState(null); // 'header', 'logo', null
+  const [headerImage, setHeaderImage] = useState(null);
+  const [logoImageState, setLogoImageState] = useState(null);
+
   // 質問タイプの文字列を数値IDにマッピング
   const getQuestionTypeId = (typeString) => {
     const typeMapping = {
@@ -551,6 +556,20 @@ export default function CreatePage({ onBackClick }) {
     handleQuestionsUpdate(selectedPage.id, updatedQuestions);
   };
 
+  // 基本設定関連のハンドラー
+  const handleElementSelect = (elementType) => {
+    setSelectedElement(elementType);
+    setSelectedQuestionId(null); // 質問選択を解除
+  };
+
+  const handleHeaderImageChange = (imageData) => {
+    setHeaderImage(imageData);
+  };
+
+  const handleLogoImageChange = (imageData) => {
+    setLogoImageState(imageData);
+  };
+
   return (
     <Box
       className={`main-container ${showSettings ? 'settings-active' : ''}`}
@@ -677,6 +696,9 @@ export default function CreatePage({ onBackClick }) {
                     pages={pages}
                     selectedQuestionId={selectedQuestionId}
                     onQuestionSelect={handleQuestionSelect}
+                    headerImage={headerImage}
+                    logoImage={logoImageState}
+                    onElementSelect={handleElementSelect}
                   />
                   
                   {/* プレビューコントロール */}
@@ -1006,6 +1028,11 @@ export default function CreatePage({ onBackClick }) {
                     onQuestionDelete={handleQuestionDelete}
                     onQuestionSelect={handleQuestionSelect}
                     onQuestionReorder={handleQuestionReorder}
+                    selectedElement={selectedElement}
+                    headerImage={headerImage}
+                    logoImage={logoImageState}
+                    onHeaderImageChange={handleHeaderImageChange}
+                    onLogoImageChange={handleLogoImageChange}
                   />
                 </Paper>
               </motion.div>

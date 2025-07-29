@@ -23,7 +23,11 @@ const PreviewArea = ({
   isDragActive,
   pages = [],
   selectedQuestionId,
-  onQuestionSelect
+  onQuestionSelect,
+  // 基本設定関連
+  headerImage,
+  logoImage,
+  onElementSelect
 }) => {
   const dropRef = useRef(null);
   const [dropIndicator, setDropIndicator] = useState(null);
@@ -110,6 +114,9 @@ const PreviewArea = ({
             dropRef={dropRef}
             selectedQuestionId={selectedQuestionId}
             onQuestionSelect={onQuestionSelect}
+            headerImage={headerImage}
+            logoImage={logoImage}
+            onElementSelect={onElementSelect}
           />
         );
     }

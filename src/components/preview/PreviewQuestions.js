@@ -1185,36 +1185,35 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 onChange={(e) => handleValueChange(e.target.value)}
                 displayEmpty
                 MenuProps={{
+                  disablePortal: true,
                   PaperProps: {
                     sx: {
-                      mt: 0.5 * zoom,
-                      borderRadius: `${8 * zoom}px`,
+                      mt: 0.5,
+                      borderRadius: '8px',
                       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                      maxHeight: `${240 * zoom}px`,
-                      minWidth: `${200 * zoom}px`,
-                      maxWidth: `${400 * zoom}px`,
-                      fontSize: `${1 * zoom}rem`,
-                      transform: `scale(${zoom})`,
-                      transformOrigin: 'top center',
+                      maxHeight: '240px',
+                      minWidth: '200px',
+                      maxWidth: '400px',
+                      fontSize: '1rem',
                       '& .MuiMenuItem-root': {
-                        fontSize: `${1 * zoom}rem`,
+                        fontSize: '1rem',
                         fontFamily: '"Noto Sans JP", sans-serif',
-                        minHeight: `${44 * zoom}px`,
-                        padding: `${8 * zoom}px ${16 * zoom}px`,
+                        minHeight: '44px',
+                        padding: '8px 16px',
                         '&:hover': {
                           backgroundColor: 'rgba(94, 23, 235, 0.08)'
                         }
                       },
                       '&::-webkit-scrollbar': {
-                        width: `${6 * zoom}px`
+                        width: '6px'
                       },
                       '&::-webkit-scrollbar-track': {
                         background: 'rgba(0, 0, 0, 0.02)',
-                        borderRadius: `${3 * zoom}px`
+                        borderRadius: '3px'
                       },
                       '&::-webkit-scrollbar-thumb': {
                         background: 'rgba(0, 0, 0, 0.1)',
-                        borderRadius: `${3 * zoom}px`,
+                        borderRadius: '3px',
                         '&:hover': {
                           background: 'rgba(0, 0, 0, 0.15)'
                         }
@@ -1259,11 +1258,10 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   value="" 
                   disabled
                   sx={{
-                    fontSize: `${1 * zoom}rem`,
+                    fontSize: '1rem',
                     fontFamily: '"Noto Sans JP", sans-serif',
                     color: '#9CA3AF',
-                    minHeight: `${44 * zoom}px`,
-                    padding: `${10 * zoom}px ${16 * zoom}px`,
+                    minHeight: '44px',
                     '&.Mui-disabled': {
                       opacity: 0.6
                     }
@@ -1276,11 +1274,11 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                     key={index} 
                     value={choice}
                     sx={{
-                      fontSize: `${1 * zoom}rem`,
+                      fontSize: '1rem',
                       fontFamily: '"Noto Sans JP", sans-serif',
                       color: '#14181B',
-                      minHeight: `${44 * zoom}px`,
-                      padding: `${10 * zoom}px ${16 * zoom}px`,
+                      minHeight: '44px',
+                      padding: '10px 16px',
                       '&:hover': {
                         backgroundColor: 'rgba(94, 23, 235, 0.08)'
                       },

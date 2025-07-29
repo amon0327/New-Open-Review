@@ -21,7 +21,12 @@ import {
   InputBase,
   Tooltip,
   Tabs,
-  Tab
+  Tab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Card,
+  CardContent
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -42,7 +47,11 @@ import {
   Close as CloseIcon,
   Tune as TuneIcon,
   Visibility as VisibilityIcon,
-  Code as CodeIcon
+  Code as CodeIcon,
+  Image as ImageIcon,
+  CloudUpload as CloudUploadIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -185,12 +194,21 @@ const QuestionSettingsMenu = ({
   onQuestionUpdate,
   onQuestionDelete,
   onQuestionSelect,
-  onQuestionReorder
+  onQuestionReorder,
+  // 基本設定用のprops
+  selectedElement = null, // プレビューで選択された要素 ('header', 'logo', null)
+  headerImage = null,
+  logoImage = null,
+  onHeaderImageChange,
+  onLogoImageChange
 }) => {
   const [editingChoices, setEditingChoices] = useState({});
   const [selectedTab, setSelectedTab] = useState(1); // デフォルトで質問一覧タブ
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  
+  // アコーディオンの展開状態
+  const [expandedAccordion, setExpandedAccordion] = useState(null);
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
@@ -200,6 +218,14 @@ const QuestionSettingsMenu = ({
       setSelectedTab(0); // 質問設定タブに切り替え
     }
   }, [selectedQuestionId, selectedQuestion]);
+
+  // プレビューで要素が選択されたら基本設定タブに切り替え
+  useEffect(() => {
+    if (selectedElement) {
+      setSelectedTab(2); // 基本設定タブに切り替え
+      setExpandedAccordion(selectedElement); // 対応するアコーディオンを展開
+    }
+  }, [selectedElement]);
 
   // 質問の基本設定更新
   const handleQuestionUpdate = (field, value) => {
@@ -728,28 +754,295 @@ const QuestionSettingsMenu = ({
       case 2: // 基本設定
         return (
           <Box sx={{ height: '100%' }}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 700,
-                fontSize: '1.1rem',
-                color: '#1F2937',
-                letterSpacing: '-0.025em',
-                mb: 3
-              }}
-            >
-              基本設定
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: '#6B7280',
-                fontSize: '0.8rem',
-                fontWeight: 400
-              }}
-            >
-              ページ全体の基本設定を管理します
-            </Typography>
+            <Stack spacing={2}>
+              {/* ヘッダー画像設定 */}
+              <Accordion 
+                expanded={expandedAccordion === 'header'} 
+                onChange={() => setExpandedAccordion(expandedAccordion === 'header' ? null : 'header')}
+                sx={{
+                  borderRadius: '8px !important',
+                  border: '1px solid #E5E7EB',
+                  boxShadow: 'none',
+                  '&:before': { display: 'none' },
+                  backgroundColor: expandedAccordion === 'header' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={expandedAccordion === 'header' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{
+                    borderRadius: '8px',
+                    '& .MuiAccordionSummary-content': {
+                      alignItems: 'center'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '6px',
+                        background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                      }}
+                    >
+                      <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          color: '#1F2937',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        ヘッダー画像
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: '#6B7280',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        フォーム上部に表示される画像
+                      </Typography>
+                    </Box>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ pt: 0 }}>
+                  <Stack spacing={3}>
+                    {/* 画像プレビュー */}
+                    {headerImage ? (
+                      <Card sx={{ borderRadius: '8px', overflow: 'hidden' }}>
+                        <CardContent sx={{ p: 0 }}>
+                          <Box
+                            component="img"
+                            src={headerImage}
+                            alt="ヘッダー画像"
+                            sx={{
+                              width: '100%',
+                              height: 120,
+                              objectFit: 'cover'
+                            }}
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card 
+                        sx={{ 
+                          borderRadius: '8px',
+                          border: '2px dashed #E5E7EB',
+                          backgroundColor: '#F9FAFB'
+                        }}
+                      >
+                        <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                          <ImageIcon sx={{ fontSize: '2rem', color: '#9CA3AF', mb: 1 }} />
+                          <Typography variant="body2" sx={{ color: '#6B7280', fontSize: '0.8rem' }}>
+                            画像が設定されていません
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    )}
+                    
+                    {/* アップロードボタン */}
+                    <Button
+                      variant="outlined"
+                      startIcon={<CloudUploadIcon />}
+                      onClick={() => {
+                        // ファイル選択のダイアログを開く処理
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = (e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                              if (onHeaderImageChange) {
+                                onHeaderImageChange(e.target.result);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                      sx={{
+                        borderColor: '#E5E7EB',
+                        color: '#5E17EB',
+                        textTransform: 'none',
+                        '&:hover': {
+                          borderColor: '#5E17EB',
+                          backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                        }
+                      }}
+                    >
+                      {headerImage ? '画像を変更' : '画像をアップロード'}
+                    </Button>
+                    
+                    {headerImage && (
+                      <Button
+                        variant="text"
+                        color="error"
+                        onClick={() => onHeaderImageChange && onHeaderImageChange(null)}
+                        sx={{ textTransform: 'none' }}
+                      >
+                        画像を削除
+                      </Button>
+                    )}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
+
+              {/* ロゴ画像設定 */}
+              <Accordion 
+                expanded={expandedAccordion === 'logo'} 
+                onChange={() => setExpandedAccordion(expandedAccordion === 'logo' ? null : 'logo')}
+                sx={{
+                  borderRadius: '8px !important',
+                  border: '1px solid #E5E7EB',
+                  boxShadow: 'none',
+                  '&:before': { display: 'none' },
+                  backgroundColor: expandedAccordion === 'logo' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={expandedAccordion === 'logo' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{
+                    borderRadius: '8px',
+                    '& .MuiAccordionSummary-content': {
+                      alignItems: 'center'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '6px',
+                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                      }}
+                    >
+                      <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          color: '#1F2937',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        ロゴ画像
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: '#6B7280',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        ブランドロゴやアイコン
+                      </Typography>
+                    </Box>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ pt: 0 }}>
+                  <Stack spacing={3}>
+                    {/* 画像プレビュー */}
+                    {logoImage ? (
+                      <Card sx={{ borderRadius: '8px', overflow: 'hidden' }}>
+                        <CardContent sx={{ p: 2, textAlign: 'center' }}>
+                          <Box
+                            component="img"
+                            src={logoImage}
+                            alt="ロゴ画像"
+                            sx={{
+                              maxWidth: '100%',
+                              maxHeight: 80,
+                              objectFit: 'contain'
+                            }}
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card 
+                        sx={{ 
+                          borderRadius: '8px',
+                          border: '2px dashed #E5E7EB',
+                          backgroundColor: '#F9FAFB'
+                        }}
+                      >
+                        <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                          <ImageIcon sx={{ fontSize: '2rem', color: '#9CA3AF', mb: 1 }} />
+                          <Typography variant="body2" sx={{ color: '#6B7280', fontSize: '0.8rem' }}>
+                            ロゴが設定されていません
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    )}
+                    
+                    {/* アップロードボタン */}
+                    <Button
+                      variant="outlined"
+                      startIcon={<CloudUploadIcon />}
+                      onClick={() => {
+                        // ファイル選択のダイアログを開く処理
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = (e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                              if (onLogoImageChange) {
+                                onLogoImageChange(e.target.result);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                      sx={{
+                        borderColor: '#E5E7EB',
+                        color: '#5E17EB',
+                        textTransform: 'none',
+                        '&:hover': {
+                          borderColor: '#5E17EB',
+                          backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                        }
+                      }}
+                    >
+                      {logoImage ? 'ロゴを変更' : 'ロゴをアップロード'}
+                    </Button>
+                    
+                    {logoImage && (
+                      <Button
+                        variant="text"
+                        color="error"
+                        onClick={() => onLogoImageChange && onLogoImageChange(null)}
+                        sx={{ textTransform: 'none' }}
+                      >
+                        ロゴを削除
+                      </Button>
+                    )}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
+            </Stack>
           </Box>
         );
 
