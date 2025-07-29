@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Typography } from '@mui/material';
-import QuestionWrapper from './QuestionWrapper';
-import QuestionHeader from './QuestionHeader';
-import { stringToColor } from '../../../utils/colorUtils';
+import QuestionWrapper from '../common/QuestionWrapper';
+import QuestionHeader from '../common/QuestionHeader';
+import { stringToColor } from '../utils/colorUtils';
 
 const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedValue, setSelectedValue] = useState(null);
@@ -95,6 +95,25 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
               />
             )}
           </Box>
+        ))}
+      </Box>
+
+      {/* Scale Numbers */}
+      <Box sx={{ width: '100%', maxWidth: 400, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+        {scaleOptions.map((value) => (
+          <Typography
+            key={value}
+            variant="body2"
+            sx={{
+              color: '#57636C',
+              fontSize: '0.75rem',
+              fontFamily: '"Noto Sans JP", sans-serif',
+              width: 24,
+              textAlign: 'center'
+            }}
+          >
+            {value}
+          </Typography>
         ))}
       </Box>
     </QuestionWrapper>
