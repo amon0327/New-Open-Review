@@ -308,7 +308,8 @@ export default function CreatePage({ onBackClick }) {
 
   const handleDragLeave = (e) => {
     // プレビューエリア外に出た場合のみドラッグ状態を解除
-    if (!e.currentTarget.contains(e.relatedTarget)) {
+    const relatedTarget = e.relatedTarget;
+    if (!relatedTarget || !e.currentTarget.contains(relatedTarget)) {
       setIsDragActive(false);
     }
   };
@@ -619,6 +620,7 @@ export default function CreatePage({ onBackClick }) {
                     questions={selectedPage ? getQuestionsForPage(selectedPage.id) : []}
                     onQuestionAdd={handleDrop}
                     onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     isDragActive={isDragActive}
                     pages={pages}

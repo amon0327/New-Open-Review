@@ -18,6 +18,7 @@ const PreviewArea = ({
   questions = [], 
   onQuestionAdd,
   onDragOver,
+  onDragLeave,
   onDrop,
   isDragActive,
   pages = []
@@ -44,6 +45,7 @@ const PreviewArea = ({
     e.preventDefault();
     e.stopPropagation();
     setDropIndicator(null);
+    if (onDragLeave) onDragLeave(e);
   };
 
   const handleDrop = (e) => {
@@ -134,17 +136,16 @@ const PreviewArea = ({
       >
         <Paper
           elevation={12}
+          onDragLeave={handleDragLeave}
           sx={{
             width: previewMode === 'mobile' ? 390 : 1440,
             height: previewMode === 'mobile' ? 820 : 900,
             borderRadius: previewMode === 'mobile' ? 6 : 0,
             background: colors.white,
-            border: isDragActive 
-              ? previewMode === 'mobile' 
-                ? '8px solid transparent'
-                : '4px solid transparent'
-              : previewMode === 'mobile' 
-                ? '8px solid #1a1a1a' 
+            border: previewMode === 'mobile' 
+              ? '8px solid #1a1a1a' 
+              : isDragActive
+                ? '4px solid transparent'
                 : '2px solid #e2e8f0',
             boxShadow: isDragActive
               ? `
