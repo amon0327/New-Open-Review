@@ -292,39 +292,9 @@ const QuestionSettingsMenu = ({
   const renderMainContent = () => {
     return (
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-        {/* ヘッダー */}
-        <Box sx={{ p: 3, pb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-            <Box
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: '8px',
-                background: 'linear-gradient(135deg, #5E17EB 0%, #764BA2 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(94, 23, 235, 0.3)'
-              }}
-            >
-              <SettingsIcon sx={{ color: 'white', fontSize: '1.1rem' }} />
-            </Box>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 700,
-                fontSize: '1.1rem',
-                color: '#1F2937',
-                letterSpacing: '-0.025em'
-              }}
-            >
-              質問設定
-            </Typography>
-          </Box>
-        </Box>
 
         {/* タブバー */}
-        <Box sx={{ borderBottom: '1px solid #E5E7EB', px: 2 }}>
+        <Box sx={{ borderBottom: '1px solid #E5E7EB', px: 2, pt: 2 }}>
           <Tabs
             value={selectedTab}
             onChange={handleTabChange}
