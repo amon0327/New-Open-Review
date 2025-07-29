@@ -540,101 +540,149 @@ const QuestionSettingsMenu = ({
 
             {/* 質問タイプ別設定 */}
             {[3, 4, 8].includes(typeId) && (
-              <Box sx={{ mt: 1 }}>
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    mb: 2,
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    color: '#374151',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
-                  }}
-                >
-                  選択肢設定
-                </Typography>
+              <Box>
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  mb: 2
+                }}>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: '#374151',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}
+                  >
+                    選択肢設定
+                  </Typography>
+                  <Button
+                    startIcon={<AddIcon />}
+                    onClick={handleAddChoice}
+                    size="small"
+                    sx={{
+                      color: '#5E17EB',
+                      backgroundColor: 'rgba(94, 23, 235, 0.08)',
+                      fontWeight: 500,
+                      fontSize: '0.7rem',
+                      textTransform: 'none',
+                      borderRadius: '20px',
+                      px: 2,
+                      py: 0.5,
+                      border: 'none',
+                      '&:hover': {
+                        backgroundColor: 'rgba(94, 23, 235, 0.12)'
+                      }
+                    }}
+                  >
+                    追加
+                  </Button>
+                </Box>
                 
-                <Stack spacing={1.5}>
+                <Stack spacing={1}>
                   {(selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : []).map((choice, index) => (
                     <Box
                       key={index}
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 1.5,
-                        p: 1.5,
-                        backgroundColor: '#F8FAFC',
-                        borderRadius: '8px',
-                        border: '1px solid #E2E8F0',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          borderColor: '#CBD5E1'
+                        gap: 1,
+                        position: 'relative',
+                        '&:hover .delete-btn': {
+                          opacity: 1
                         }
                       }}
                     >
-                      <DragHandleIcon sx={{ color: '#9CA3AF', fontSize: '1rem' }} />
-                      <TextField
-                        value={choice}
-                        onChange={(e) => handleChoiceEdit(index, e.target.value)}
-                        size="small"
-                        variant="outlined"
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '4px',
+                          backgroundColor: '#F1F5F9',
+                          border: '1px solid #E2E8F0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          cursor: 'grab',
+                          '&:active': { cursor: 'grabbing' }
+                        }}
+                      >
+                        <DragHandleIcon sx={{ color: '#94A3B8', fontSize: '0.75rem' }} />
+                      </Box>
+                      
+                      <Box
                         sx={{
                           flex: 1,
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'white',
-                            borderRadius: '6px',
-                            fontSize: '0.875rem',
-                            '& fieldset': {
-                              borderColor: '#E2E8F0'
-                            },
-                            '&:hover fieldset': {
-                              borderColor: '#CBD5E1'
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: '#5E17EB'
-                            }
-                          }
-                        }}
-                      />
-                      <IconButton
-                        size="small"
-                        onClick={() => handleRemoveChoice(index)}
-                        sx={{
-                          color: '#9CA3AF',
-                          '&:hover': {
-                            color: '#EF4444',
-                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                          position: 'relative',
+                          '&::before': {
+                            content: `"${index + 1}."`,
+                            position: 'absolute',
+                            left: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
+                            color: '#6B7280',
+                            zIndex: 1,
+                            pointerEvents: 'none'
                           }
                         }}
                       >
-                        <DeleteIcon sx={{ fontSize: '0.9rem' }} />
+                        <TextField
+                          value={choice}
+                          onChange={(e) => handleChoiceEdit(index, e.target.value)}
+                          fullWidth
+                          variant="outlined"
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              backgroundColor: '#FFFFFF',
+                              borderRadius: '6px',
+                              fontSize: '0.875rem',
+                              pl: 4,
+                              '& fieldset': {
+                                border: '1px solid #E5E7EB'
+                              },
+                              '&:hover fieldset': {
+                                borderColor: '#D1D5DB'
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#5E17EB',
+                                borderWidth: '1px'
+                              },
+                              '& input': {
+                                padding: '8px 12px 8px 20px',
+                                fontSize: '0.875rem'
+                              }
+                            }
+                          }}
+                        />
+                      </Box>
+                      
+                      <IconButton
+                        className="delete-btn"
+                        size="small"
+                        onClick={() => handleRemoveChoice(index)}
+                        sx={{
+                          width: 24,
+                          height: 24,
+                          opacity: 0,
+                          color: '#9CA3AF',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            color: '#EF4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            transform: 'scale(1.1)'
+                          }
+                        }}
+                      >
+                        <DeleteIcon sx={{ fontSize: '0.8rem' }} />
                       </IconButton>
                     </Box>
                   ))}
-                  
-                  <Button
-                    startIcon={<AddIcon />}
-                    onClick={handleAddChoice}
-                    variant="outlined"
-                    size="small"
-                    sx={{
-                      mt: 1,
-                      color: '#5E17EB',
-                      borderColor: '#E2E8F0',
-                      backgroundColor: '#F8FAFC',
-                      fontWeight: 500,
-                      fontSize: '0.8rem',
-                      textTransform: 'none',
-                      borderRadius: '6px',
-                      '&:hover': {
-                        backgroundColor: 'rgba(94, 23, 235, 0.04)',
-                        borderColor: '#5E17EB'
-                      }
-                    }}
-                  >
-                    選択肢を追加
-                  </Button>
                 </Stack>
               </Box>
             )}
