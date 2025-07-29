@@ -467,19 +467,41 @@ const QuestionSettingsMenu = ({
             {/* 質問タイプ別の追加設定 */}
             {(typeId === 3 || typeId === 4) && (
               <Box>
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    mb: 2,
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    color: '#374151',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
-                  }}
-                >
-                  選択肢設定
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: '#374151',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}
+                  >
+                    選択肢設定
+                  </Typography>
+                  <Button
+                    startIcon={<AddIcon />}
+                    onClick={handleAddChoice}
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      borderColor: '#E5E7EB',
+                      color: '#5E17EB',
+                      textTransform: 'none',
+                      fontSize: '0.75rem',
+                      px: 1.5,
+                      py: 0.5,
+                      minWidth: 'auto',
+                      '&:hover': {
+                        borderColor: '#5E17EB',
+                        backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                      }
+                    }}
+                  >
+                    追加
+                  </Button>
+                </Box>
                 <Stack spacing={1}>
                   {(selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : []).map((choice, index) => (
                     <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -523,24 +545,6 @@ const QuestionSettingsMenu = ({
                       </IconButton>
                     </Box>
                   ))}
-                  <Button
-                    startIcon={<AddIcon />}
-                    onClick={handleAddChoice}
-                    variant="outlined"
-                    size="small"
-                    sx={{
-                      borderColor: '#E5E7EB',
-                      color: '#6B7280',
-                      textTransform: 'none',
-                      '&:hover': {
-                        borderColor: '#5E17EB',
-                        color: '#5E17EB',
-                        backgroundColor: 'rgba(94, 23, 235, 0.05)'
-                      }
-                    }}
-                  >
-                    選択肢を追加
-                  </Button>
                 </Stack>
               </Box>
             )}
