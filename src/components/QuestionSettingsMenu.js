@@ -1020,6 +1020,161 @@ const QuestionSettingsMenu = ({
                     </AccordionDetails>
                   </Accordion>
 
+                  {/* テーマカラー設定 */}
+                  <Accordion 
+                    expanded={expandedAccordion === 'theme-color'} 
+                    onChange={() => setExpandedAccordion(expandedAccordion === 'theme-color' ? null : 'theme-color')}
+                    sx={{
+                      borderRadius: '8px !important',
+                      border: '1px solid #E5E7EB',
+                      boxShadow: 'none',
+                      '&:before': { display: 'none' },
+                      backgroundColor: expandedAccordion === 'theme-color' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+                    }}
+                  >
+                    <AccordionSummary
+                      expandIcon={expandedAccordion === 'theme-color' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                      sx={{
+                        borderRadius: '8px',
+                        '& .MuiAccordionSummary-content': {
+                          alignItems: 'center'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '6px',
+                            background: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(236, 72, 153, 0.3)'
+                          }}
+                        >
+                          <Box 
+                            sx={{ 
+                              width: 16, 
+                              height: 16, 
+                              borderRadius: '50%', 
+                              backgroundColor: 'white'
+                            }} 
+                          />
+                        </Box>
+                        <Box>
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              fontWeight: 600,
+                              color: '#1F2937',
+                              fontSize: '0.9rem'
+                            }}
+                          >
+                            テーマカラー
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: '#6B7280',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            アプリ全体のメインカラー
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pt: 0 }}>
+                      <Stack spacing={3}>
+                        {/* カラーピッカー */}
+                        <Box>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              mb: 2,
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: '#374151',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}
+                          >
+                            カラー選択
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <input
+                              type="color"
+                              defaultValue="#5e17eb"
+                              style={{
+                                width: '50px',
+                                height: '40px',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer'
+                              }}
+                              onChange={(e) => {
+                                // テーマカラー変更の処理
+                                console.log('Theme color changed:', e.target.value);
+                              }}
+                            />
+                            <StylishTextField
+                              label="カラーコード"
+                              value="#5e17eb"
+                              onChange={() => {}}
+                              placeholder="#5e17eb"
+                              sx={{ flex: 1 }}
+                            />
+                          </Box>
+                        </Box>
+                        
+                        {/* プリセットカラー */}
+                        <Box>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              mb: 2,
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: '#374151',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}
+                          >
+                            プリセットカラー
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+                            {[
+                              '#5e17eb', '#3B82F6', '#10B981', '#F59E0B', 
+                              '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'
+                            ].map((color, index) => (
+                              <Box
+                                key={index}
+                                onClick={() => {
+                                  console.log('Preset color selected:', color);
+                                }}
+                                sx={{
+                                  width: 32,
+                                  height: 32,
+                                  backgroundColor: color,
+                                  borderRadius: '6px',
+                                  cursor: 'pointer',
+                                  border: '2px solid transparent',
+                                  transition: 'all 0.2s ease',
+                                  '&:hover': {
+                                    border: '2px solid rgba(0, 0, 0, 0.2)',
+                                    transform: 'scale(1.1)'
+                                  }
+                                }}
+                              />
+                            ))}
+                          </Box>
+                        </Box>
+                      </Stack>
+                    </AccordionDetails>
+                  </Accordion>
+
                   <Divider sx={{ my: 2 }} />
                 </>
               )}
