@@ -169,10 +169,17 @@ export default function CreatePage({ onBackClick }) {
     { id: 'completion', title: '完了画面', type: 'system', icon: <CheckCircle />, canDelete: false, canEdit: false }
   ]);
 
-  // ズーム制御関数（5%刻み）
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.05, 2));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.05, 0.5));
-  const handleFitScreen = () => setZoom(1);
+  // ズーム制御関数（5%刻み、30%〜150%の範囲）
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.05, 1.5));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.05, 0.3));
+  const handleFitScreen = () => {
+    // プレビューモードに応じたデフォルト値にリセット
+    if (previewMode === 'mobile') {
+      setZoom(0.7); // モバイル: 70%
+    } else {
+      setZoom(0.5); // PC: 50%
+    }
+  };
 
   // テンプレート展開制御
   const toggleExpanded = (key) => {

@@ -1,11 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // CreatePageの状態管理をまとめるカスタムフック
 export const useCreatePageState = () => {
   // ツール・プレビュー関連
   const [selectedTool, setSelectedTool] = useState(null);
   const [previewMode, setPreviewMode] = useState('mobile'); // 'mobile' or 'desktop'
-  const [zoom, setZoom] = useState(1); // ズーム倍率
+  const [zoom, setZoom] = useState(0.7); // ズーム倍率（モバイルデフォルト70%）
+  
+  // プレビューモードが変更されたときにズームを調整
+  useEffect(() => {
+    if (previewMode === 'mobile') {
+      setZoom(0.7); // モバイル: 70%
+    } else {
+      setZoom(0.5); // PC: 50%
+    }
+  }, [previewMode]);
   
   // テンプレート関連
   const [expandedTemplates, setExpandedTemplates] = useState({}); // テンプレートの展開状態
