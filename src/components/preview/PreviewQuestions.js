@@ -1337,7 +1337,7 @@ const PreviewQuestions = ({
     const questionNumber = index + 1;
     const totalQuestions = displayQuestions.length;
     const isSelected = selectedQuestionId === question.id;
-    const [isHovered, setIsHovered] = useState(false);
+    const isHovered = hoveredQuestionId === question.id;
 
     const handleQuestionClick = (e) => {
       // 入力フィールドをクリックした場合は質問選択を発火しない
@@ -1352,8 +1352,8 @@ const PreviewQuestions = ({
     const questionWrapper = (children) => (
       <Box
         onClick={handleQuestionClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={() => setHoveredQuestionId(question.id)}
+        onMouseLeave={() => setHoveredQuestionId(null)}
         sx={{
           position: 'relative',
           cursor: 'pointer',
