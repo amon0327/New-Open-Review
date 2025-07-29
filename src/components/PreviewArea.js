@@ -35,8 +35,8 @@ const PreviewArea = ({ previewMode, zoom }) => {
         <Paper
           elevation={12}
           sx={{
-            width: previewMode === 'mobile' ? 390 : 1024,
-            height: previewMode === 'mobile' ? 820 : 576,
+            width: previewMode === 'mobile' ? 390 : 1440,
+            height: previewMode === 'mobile' ? 820 : 900,
             borderRadius: previewMode === 'mobile' ? 6 : 0,
             background: colors.white,
             border: previewMode === 'mobile' ? '8px solid #1a1a1a' : '2px solid #e2e8f0',
