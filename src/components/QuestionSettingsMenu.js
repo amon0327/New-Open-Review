@@ -58,11 +58,11 @@ const getQuestionTypeConfig = (typeId) => {
 
 // スタイリッシュなテキストフィールドコンポーネント
 const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1, placeholder, required = false, ...props }) => (
-  <Box sx={{ mb: 2.5 }}>
+  <Box sx={{ mb: 1 }}>
     <Typography 
       variant="body2" 
       sx={{ 
-        mb: 1,
+        mb: 0.5,
         fontSize: '0.75rem',
         fontWeight: 600,
         color: '#374151',
@@ -123,11 +123,11 @@ const StylishSwitch = ({ label, checked, onChange, description }) => (
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'space-between',
-      p: 2,
+      p: 1,
       backgroundColor: '#F8FAFC',
       borderRadius: '8px',
       border: '1px solid #E2E8F0',
-      mb: 2.5,
+      mb: 1,
       transition: 'all 0.2s ease'
     }}
   >
@@ -138,7 +138,7 @@ const StylishSwitch = ({ label, checked, onChange, description }) => (
           fontWeight: 600,
           color: '#1F2937',
           fontSize: '0.875rem',
-          mb: description ? 0.5 : 0
+          mb: description ? 0.2 : 0
         }}
       >
         {label}
@@ -555,7 +555,7 @@ const QuestionSettingsMenu = ({
                   選択肢設定
                 </Typography>
                 
-                <Stack spacing={1.5}>
+                <Stack spacing={0.5}>
                   {(selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : []).map((choice, index) => (
                     <Box
                       key={index}
@@ -563,7 +563,7 @@ const QuestionSettingsMenu = ({
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1.5,
-                        p: 1.5,
+                        p: 0.5,
                         backgroundColor: '#F8FAFC',
                         borderRadius: '8px',
                         border: '1px solid #E2E8F0',
@@ -655,7 +655,7 @@ const QuestionSettingsMenu = ({
                   スケール設定
                 </Typography>
                 
-                <Stack spacing={2.5}>
+                <Stack spacing={1}>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <StylishTextField
                       label="最小値"

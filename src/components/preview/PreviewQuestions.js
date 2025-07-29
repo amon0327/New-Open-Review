@@ -1082,6 +1082,9 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
 // Pull Down Question Component - AnswerAppの完全コピー
 const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange, zoom = 1 }) => {
   const [selectedValue, setSelectedValue] = useState('');
+  
+  // デバッグ用: zoom値をコンソールに出力
+  console.log('PullDownQuestion zoom value:', zoom);
 
   const handleValueChange = (value) => {
     setSelectedValue(value);
@@ -1185,35 +1188,34 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 onChange={(e) => handleValueChange(e.target.value)}
                 displayEmpty
                 MenuProps={{
+                  disablePortal: true,
                   PaperProps: {
                     sx: {
                       mt: 0.5,
                       borderRadius: '8px',
                       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                      maxHeight: '240px',
-                      minWidth: '200px',
-                      maxWidth: '400px',
-                      transform: `scale(${zoom})`,
-                      transformOrigin: 'top left',
+                      maxHeight: `${240 * zoom}px`,
+                      minWidth: `${200 * zoom}px`,
+                      maxWidth: `${400 * zoom}px`,
                       '& .MuiMenuItem-root': {
-                        fontSize: '1rem',
+                        fontSize: `${1 * zoom}rem`,
                         fontFamily: '"Noto Sans JP", sans-serif',
-                        minHeight: '44px',
-                        padding: '8px 16px',
+                        minHeight: `${44 * zoom}px`,
+                        padding: `${8 * zoom}px ${16 * zoom}px`,
                         '&:hover': {
                           backgroundColor: 'rgba(94, 23, 235, 0.08)'
                         }
                       },
                       '&::-webkit-scrollbar': {
-                        width: '6px'
+                        width: `${6 * zoom}px`
                       },
                       '&::-webkit-scrollbar-track': {
                         background: 'rgba(0, 0, 0, 0.02)',
-                        borderRadius: '3px'
+                        borderRadius: `${3 * zoom}px`
                       },
                       '&::-webkit-scrollbar-thumb': {
                         background: 'rgba(0, 0, 0, 0.1)',
-                        borderRadius: '3px',
+                        borderRadius: `${3 * zoom}px`,
                         '&:hover': {
                           background: 'rgba(0, 0, 0, 0.15)'
                         }
