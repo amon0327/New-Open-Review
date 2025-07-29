@@ -183,15 +183,15 @@ const ThemeSettings = ({
               {logoImage ? (
                 <Avatar
                   src={logoImage}
-                  sx={{ width: 60, height: 60, borderRadius: 2 }}
-                  variant="rounded"
+                  sx={{ width: 60, height: 60, borderRadius: 0 }}
+                  variant="square"
                 />
               ) : (
                 <Box
                   sx={{
                     width: 60,
                     height: 60,
-                    borderRadius: 2,
+                    borderRadius: 0,
                     border: '2px dashed #cbd5e1',
                     display: 'flex',
                     alignItems: 'center',

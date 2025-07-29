@@ -511,6 +511,7 @@ export default function CreatePage({ onBackClick }) {
   // 質問選択ハンドラー
   const handleQuestionSelect = (questionId) => {
     setSelectedQuestionId(questionId);
+    setSelectedElement(null); // 基本設定要素の選択を解除
   };
 
   // 質問更新ハンドラー

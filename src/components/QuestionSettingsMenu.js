@@ -657,7 +657,7 @@ const QuestionSettingsMenu = ({
                             setSelectedTab(0); // 質問設定タブに切り替え
                           }}
                           sx={{
-                            borderRadius: '8px',
+                            borderRadius: 0,
                             border: isSelected ? '2px solid #5E17EB' : '1px solid #E5E7EB',
                             backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
                             boxShadow: isSelected 
@@ -874,7 +874,7 @@ const QuestionSettingsMenu = ({
                     ) : (
                       <Card 
                         sx={{ 
-                          borderRadius: '8px',
+                          borderRadius: 0,
                           border: '2px dashed #E5E7EB',
                           backgroundColor: '#F9FAFB'
                         }}
@@ -1001,7 +1001,7 @@ const QuestionSettingsMenu = ({
                   <Stack spacing={3}>
                     {/* 画像プレビュー */}
                     {logoImage ? (
-                      <Card sx={{ borderRadius: '8px', overflow: 'hidden' }}>
+                      <Card sx={{ borderRadius: 0, overflow: 'hidden' }}>
                         <CardContent sx={{ p: 2, textAlign: 'center' }}>
                           <Box
                             component="img"
@@ -1018,7 +1018,7 @@ const QuestionSettingsMenu = ({
                     ) : (
                       <Card 
                         sx={{ 
-                          borderRadius: '8px',
+                          borderRadius: 0,
                           border: '2px dashed #E5E7EB',
                           backgroundColor: '#F9FAFB'
                         }}

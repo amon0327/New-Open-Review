@@ -1314,6 +1314,8 @@ const PreviewQuestions = ({
 }) => {
   const [answers, setAnswers] = useState({});
   const [hoveredQuestionId, setHoveredQuestionId] = useState(null);
+  const [prevQuestionsCount, setPrevQuestionsCount] = useState(0);
+  const scrollContainerRef = useRef(null);
   const isMobile = previewMode === 'mobile';
 
   const themeColor = '#5e17eb';
@@ -1325,6 +1327,28 @@ const PreviewQuestions = ({
 
   // 実際の質問データを使用
   const displayQuestions = questions || [];
+
+  // 質問が追加された際の自動スクロール機能
+  useEffect(() => {
+    if (displayQuestions.length > prevQuestionsCount && scrollContainerRef.current) {
+      // 新しい質問が追加された場合のみスクロール
+      if (prevQuestionsCount > 0) {
+        // 少し遅延を入れてスムーズにスクロール
+        setTimeout(() => {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+              top: scrollContainerRef.current.scrollHeight,
+              behavior: 'smooth'
+            });
+          }
+        }, 100);
+      }
+      setPrevQuestionsCount(displayQuestions.length);
+    } else if (displayQuestions.length < prevQuestionsCount) {
+      // 質問が削除された場合は単純に数を更新
+      setPrevQuestionsCount(displayQuestions.length);
+    }
+  }, [displayQuestions.length, prevQuestionsCount]);
 
   const handleAnswerChange = useCallback((questionId, answerData) => {
     setAnswers(prev => ({
@@ -1499,6 +1523,7 @@ const PreviewQuestions = ({
 
   return (
     <Box
+      ref={scrollContainerRef}
       sx={{
         height: '100%',
         width: '100%',
