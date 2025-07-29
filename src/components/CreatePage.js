@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PreviewControlPanel from './PreviewControlPanel';
 import LeftNavigationBar from './LeftNavigationBar';
 import HeaderBar from './HeaderBar';
@@ -173,6 +173,9 @@ export default function CreatePage({ onBackClick }) {
   // 設定関連の追加状態
   const [logoImage, setLogoImage] = useState(null);
 
+  // ドラッグ&ドロップ関連の状態
+  const [isDragActive, setIsDragActive] = useState(false);
+
   // サンプルページデータ
   const [pages, setPages] = useState([
     { id: 'login', title: 'ログイン画面', type: 'system', icon: <Login />, canDelete: false, canEdit: false },
@@ -181,6 +184,16 @@ export default function CreatePage({ onBackClick }) {
     { id: 'page3', title: '追加質問', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 0 },
     { id: 'completion', title: '完了画面', type: 'system', icon: <CheckCircle />, canDelete: false, canEdit: false }
   ]);
+
+  // 初期化時に最初の質問ページを選択
+  useEffect(() => {
+    if (!selectedPage) {
+      const firstQuestionPage = pages.find(page => page.type === 'question');
+      if (firstQuestionPage) {
+        setSelectedPage(firstQuestionPage);
+      }
+    }
+  }, [pages, selectedPage, setSelectedPage]);
 
   // 質問データ関連のハンドラ
   const handleQuestionsUpdate = (pageId, questions) => {
@@ -191,6 +204,76 @@ export default function CreatePage({ onBackClick }) {
         ? { ...page, questions: questions.length }
         : page
     ));
+  };
+
+  // ドラッグ&ドロップハンドラ
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragActive(true);
+  };
+
+  const handleDrop = (e, insertIndex = 0) => {
+    e.preventDefault();
+    setIsDragActive(false);
+    
+    if (!selectedPage || selectedPage.type === 'system') {
+      toast.error('質問を追加できるページを選択してください');
+      return;
+    }
+
+    try {
+      const draggedData = JSON.parse(e.dataTransfer.getData('application/json'));
+      
+      // 質問タイプからデフォルトデータを作成
+      let newQuestion = {
+        id: Date.now() + Math.random(),
+        question_types_id: draggedData.type || draggedData.question_types_id || 1,
+        question_text: draggedData.question || draggedData.question_text || '',
+        detail_text: draggedData.detail || draggedData.detail_text || '',
+        is_required: draggedData.required || false,
+        choices: null,
+        scale_settings: null
+      };
+
+      // 質問タイプに応じてデフォルト設定を追加
+      const needsChoices = [3, 4, 8].includes(newQuestion.question_types_id);
+      if (needsChoices) {
+        newQuestion.choices = JSON.stringify(['選択肢 1', '選択肢 2']);
+      }
+
+      if (newQuestion.question_types_id === 7) {
+        newQuestion.scale_settings = JSON.stringify({
+          minValue: 1,
+          maxValue: 5,
+          minLabel: '',
+          maxLabel: ''
+        });
+      }
+
+      // テンプレート質問の場合は選択肢もコピー
+      if (draggedData.isTemplate && draggedData.choices) {
+        newQuestion.choices = JSON.stringify(draggedData.choices);
+      }
+
+      // 現在の質問リストに挿入
+      const currentQuestions = getQuestionsForPage(selectedPage.id);
+      const updatedQuestions = [...currentQuestions];
+      updatedQuestions.splice(insertIndex, 0, newQuestion);
+      
+      handleQuestionsUpdate(selectedPage.id, updatedQuestions);
+      toast.success('質問を追加しました');
+      
+    } catch (error) {
+      console.error('ドロップエラー:', error);
+      toast.error('質問の追加に失敗しました');
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    // プレビューエリア外に出た場合のみドラッグ状態を解除
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setIsDragActive(false);
+    }
   };
 
   // ズーム制御関数（5%刻み、30%〜150%の範囲）
@@ -496,6 +579,12 @@ export default function CreatePage({ onBackClick }) {
                     previewMode={previewMode}
                     zoom={zoom}
                     selectedPage={selectedPage}
+                    questions={selectedPage ? getQuestionsForPage(selectedPage.id) : []}
+                    onQuestionAdd={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    isDragActive={isDragActive}
+                    pages={pages}
                   />
                   
                   {/* プレビューコントロール */}
@@ -850,6 +939,28 @@ export default function CreatePage({ onBackClick }) {
           onClose={handleCancelDelete}
           onConfirm={handleExecuteDelete}
           pageToDelete={pageToDelete}
+        />
+
+        {/* トースト通知 */}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+            success: {
+              style: {
+                background: '#22c55e',
+              },
+            },
+            error: {
+              style: {
+                background: '#ef4444',
+              },
+            },
+          }}
         />
       </Box>
     </Box>

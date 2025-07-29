@@ -1256,8 +1256,18 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
   );
 };
 
-// Main PreviewQuestions component - AnswerAppの構造をコピー
-const PreviewQuestions = ({ previewMode }) => {
+// Main PreviewQuestions component - ドロップゾーン対応版
+const PreviewQuestions = ({ 
+  previewMode, 
+  questions = [], 
+  selectedPage,
+  isDragActive = false,
+  dropIndicator = null,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  dropRef
+}) => {
   const [answers, setAnswers] = useState({});
   const isMobile = previewMode === 'mobile';
 
@@ -1265,8 +1275,8 @@ const PreviewQuestions = ({ previewMode }) => {
   const headerImage = 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
   const logoUrl = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
 
-  // 全質問タイプのサンプルデータ
-  const sampleQuestions = [
+  // 質問がない場合のサンプルデータ
+  const sampleQuestions = questions.length > 0 ? questions : [
     {
       id: 1,
       question_types_id: 1,
@@ -1603,41 +1613,168 @@ const PreviewQuestions = ({ previewMode }) => {
             py: isMobile ? 0 : 2
           }}
         >
-          {/* Questions Content */}
-          <Box sx={{ flex: 1 }}>
+          {/* Questions Content with Drop Zone */}
+          <Box 
+            ref={dropRef}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            sx={{ 
+              flex: 1,
+              position: 'relative',
+              border: isDragActive ? '2px dashed #5e17eb' : '2px dashed transparent',
+              borderRadius: 2,
+              transition: 'all 0.3s ease',
+              backgroundColor: isDragActive ? 'rgba(94, 23, 235, 0.05)' : 'transparent',
+              minHeight: questions.length === 0 ? '400px' : 'auto'
+            }}
+          >
+            {/* Empty State */}
+            {questions.length === 0 && !isDragActive && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '400px',
+                  color: '#6b7280',
+                  textAlign: 'center'
+                }}
+              >
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                  質問がありません
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 3, maxWidth: 300 }}>
+                  左側の質問作成ツールからここに質問をドラッグしてください
+                </Typography>
+                <Box
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Typography variant="h4">📝</Typography>
+                </Box>
+              </Box>
+            )}
+
+            {/* Drag Active Overlay */}
+            {isDragActive && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(94, 23, 235, 0.1)',
+                  zIndex: 10,
+                  borderRadius: 2
+                }}
+              >
+                <Box sx={{ textAlign: 'center', color: '#5e17eb' }}>
+                  <Typography variant="h5" sx={{ mb: 1, fontWeight: 600 }}>
+                    ここに質問をドロップ
+                  </Typography>
+                  <Typography variant="body1">
+                    質問を追加します
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+
+            {/* Questions List */}
             {sampleQuestions.map((question, index) => (
-              <Box key={question.id} sx={{ mb: '50px' }}>
+              <Box key={question.id} sx={{ mb: '50px', position: 'relative' }}>
+                {/* Drop Indicator */}
+                {dropIndicator === index && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: -25,
+                      left: 0,
+                      right: 0,
+                      height: 4,
+                      backgroundColor: '#5e17eb',
+                      borderRadius: 2,
+                      zIndex: 5,
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: -4,
+                        left: -4,
+                        width: 12,
+                        height: 12,
+                        backgroundColor: '#5e17eb',
+                        borderRadius: '50%'
+                      }
+                    }}
+                  />
+                )}
                 {renderQuestion(question, index)}
               </Box>
             ))}
 
-            {/* Navigation Section - AnswerAppと同じ */}
-            <Box sx={{ py: 4 }}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Button
-                  variant="contained"
-                  sx={{
-                    backgroundColor: stringToColor(themeColor),
-                    color: 'white',
-                    width: 200,
-                    height: 50,
-                    borderRadius: '24px',
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    fontFamily: '"Noto Sans JP", sans-serif',
-                    boxShadow: 'none',
-                    '&:hover': {
+            {/* Final Drop Indicator */}
+            {dropIndicator === sampleQuestions.length && (
+              <Box
+                sx={{
+                  height: 4,
+                  backgroundColor: '#5e17eb',
+                  borderRadius: 2,
+                  mb: 2,
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: -4,
+                    left: -4,
+                    width: 12,
+                    height: 12,
+                    backgroundColor: '#5e17eb',
+                    borderRadius: '50%'
+                  }
+                }}
+              />
+            )}
+
+            {/* Navigation Section */}
+            {questions.length > 0 && (
+              <Box sx={{ py: 4 }}>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Button
+                    variant="contained"
+                    sx={{
                       backgroundColor: stringToColor(themeColor),
-                      opacity: 0.9,
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
-                    }
-                  }}
-                >
-                  送信
-                </Button>
+                      color: 'white',
+                      width: 200,
+                      height: 50,
+                      borderRadius: '24px',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      fontFamily: '"Noto Sans JP", sans-serif',
+                      boxShadow: 'none',
+                      '&:hover': {
+                        backgroundColor: stringToColor(themeColor),
+                        opacity: 0.9,
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+                      }
+                    }}
+                  >
+                    送信
+                  </Button>
+                </Box>
               </Box>
-            </Box>
+            )}
           </Box>
         </Box>
       </Container>

@@ -1,18 +1,67 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Box,
   Paper,
-  Typography
+  Typography,
+  Alert
 } from '@mui/material';
 import { colors, gradients, shadows } from '../constants/theme';
 import PreviewLogin from './preview/PreviewLogin';
 import PreviewQuestions from './preview/PreviewQuestions';
 import PreviewCompletion from './preview/PreviewCompletion';
 
-const PreviewArea = ({ previewMode, zoom, selectedPage }) => {
+const PreviewArea = ({ 
+  previewMode, 
+  zoom, 
+  selectedPage, 
+  questions = [], 
+  onQuestionAdd,
+  onDragOver,
+  onDrop,
+  isDragActive,
+  pages = []
+}) => {
+  const dropRef = useRef(null);
+  const [dropIndicator, setDropIndicator] = useState(null);
+  // ドラッグ&ドロップイベントハンドラ
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDragOver) onDragOver(e);
+    
+    // ドロップ位置のインジケーターを設定
+    const rect = dropRef.current?.getBoundingClientRect();
+    if (rect) {
+      const y = e.clientY - rect.top;
+      const questionHeight = 100; // 質問1つあたりの大体の高さ
+      const insertIndex = Math.floor(y / questionHeight);
+      setDropIndicator(insertIndex);
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDropIndicator(null);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDropIndicator(null);
+    
+    if (onDrop) {
+      const insertIndex = dropIndicator || questions.length;
+      onDrop(e, insertIndex);
+    }
+  };
+
   const renderPreviewContent = () => {
-    if (!selectedPage) {
+    // デフォルトでは最初の質問ページを表示
+    const defaultPage = selectedPage || pages.find(p => p.type === 'question');
+    
+    if (!defaultPage) {
       return (
         <Box
           sx={{
@@ -30,20 +79,32 @@ const PreviewArea = ({ previewMode, zoom, selectedPage }) => {
             プレビュー
           </Typography>
           <Typography variant="body2" sx={{ color: colors.textMuted }}>
-            左側のページ管理からページを選択してください
+            ページを作成してください
           </Typography>
         </Box>
       );
     }
 
-    switch (selectedPage.id) {
+    switch (defaultPage.id) {
       case 'login':
         return <PreviewLogin previewMode={previewMode} />;
       case 'completion':
         return <PreviewCompletion previewMode={previewMode} />;
       default:
         // 質問ページ
-        return <PreviewQuestions previewMode={previewMode} />;
+        return (
+          <PreviewQuestions 
+            previewMode={previewMode} 
+            questions={questions}
+            selectedPage={defaultPage}
+            isDragActive={isDragActive}
+            dropIndicator={dropIndicator}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            dropRef={dropRef}
+          />
+        );
     }
   };
 

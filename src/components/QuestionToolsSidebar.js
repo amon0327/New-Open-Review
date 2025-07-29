@@ -19,6 +19,20 @@ const QuestionToolsSidebar = ({
   toggleExpanded,
   setSelectedTool
 }) => {
+  
+  // ドラッグ開始時の処理
+  const handleDragStart = (e, item) => {
+    e.dataTransfer.setData('application/json', JSON.stringify(item));
+    e.dataTransfer.effectAllowed = 'copy';
+    
+    // ドラッグ中の要素を半透明にする
+    e.target.style.opacity = '0.6';
+  };
+
+  // ドラッグ終了時の処理
+  const handleDragEnd = (e) => {
+    e.target.style.opacity = '1';
+  };
   return (
     <>
       <Typography
@@ -50,12 +64,15 @@ const QuestionToolsSidebar = ({
             >
               <Paper
                 elevation={2}
+                draggable
+                onDragStart={(e) => handleDragStart(e, item)}
+                onDragEnd={handleDragEnd}
                 sx={{
                   p: 1,
                   borderRadius: 1,
                   background: 'rgba(255, 255, 255, 0.8)',
                   border: '1px solid rgba(0, 0, 0, 0.05)',
-                  cursor: 'pointer',
+                  cursor: 'grab',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
@@ -66,6 +83,9 @@ const QuestionToolsSidebar = ({
                     transform: 'translateY(-2px)',
                     boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
                     background: 'rgba(94, 23, 235, 0.05)'
+                  },
+                  '&:active': {
+                    cursor: 'grabbing'
                   }
                 }}
                 onClick={() => setSelectedTool(item)}
@@ -208,11 +228,14 @@ const QuestionToolsSidebar = ({
                           transition={{ duration: 0.2, delay: tempIndex * 0.05 }}
                         >
                           <Box
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, { ...temp, isTemplate: true })}
+                            onDragEnd={handleDragEnd}
                             onClick={() => setSelectedTool({ ...temp, isTemplate: true })}
                             sx={{
                               p: 1.5,
                               mb: 1,
-                              cursor: 'pointer',
+                              cursor: 'grab',
                               borderRadius: 1,
                               backgroundColor: 'rgba(255, 255, 255, 0.9)',
                               border: '1px solid rgba(0, 0, 0, 0.06)',
@@ -225,6 +248,9 @@ const QuestionToolsSidebar = ({
                                 borderColor: 'rgba(94, 23, 235, 0.15)',
                                 transform: 'translateX(3px)',
                                 boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
+                              },
+                              '&:active': {
+                                cursor: 'grabbing'
                               },
                               transition: 'all 0.3s ease'
                             }}
