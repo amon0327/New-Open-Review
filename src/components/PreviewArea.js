@@ -32,37 +32,26 @@ const PreviewArea = ({
 }) => {
   const dropRef = useRef(null);
   const [dropIndicator, setDropIndicator] = useState(null);
-  // ドラッグ&ドロップイベントハンドラ
+  // ドラッグ&ドロップイベントハンドラ - プレビュー画面全体でドロップ可能にする
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (onDragOver) onDragOver(e);
-    
-    // ドロップ位置のインジケーターを設定
-    const rect = dropRef.current?.getBoundingClientRect();
-    if (rect) {
-      const y = e.clientY - rect.top;
-      const questionHeight = 100; // 質問1つあたりの大体の高さ
-      const insertIndex = Math.floor(y / questionHeight);
-      setDropIndicator(insertIndex);
-    }
   };
 
   const handleDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setDropIndicator(null);
     if (onDragLeave) onDragLeave(e);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setDropIndicator(null);
     
+    // プレビュー画面の任意の場所でドロップした場合、質問を最後に追加
     if (onDrop) {
-      const insertIndex = dropIndicator || questions.length;
-      onDrop(e, insertIndex);
+      onDrop(e);
     }
   };
 

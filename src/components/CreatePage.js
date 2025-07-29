@@ -301,7 +301,7 @@ export default function CreatePage({ onBackClick }) {
         }
       }
 
-      // 現在の質問リストの最後に追加
+      // 常に質問リストの最後に追加（挿入位置は指定しない）
       const currentQuestions = getQuestionsForPage(selectedPage.id);
       const updatedQuestions = [...currentQuestions, newQuestion];
       

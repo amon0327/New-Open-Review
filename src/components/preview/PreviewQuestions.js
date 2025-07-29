@@ -1696,7 +1696,7 @@ const PreviewQuestions = ({
             backgroundColor: '#FFFFFF'
           }}
         >
-          {/* Questions Content with Drop Zone */}
+          {/* Questions Content with Drop Zone - プレビュー画面全体でドロップ可能 */}
           <Box 
             ref={dropRef}
             onDragOver={onDragOver}
@@ -1785,59 +1785,12 @@ const PreviewQuestions = ({
             )}
 
 
-            {/* Questions List */}
+            {/* Questions List - ドロップインジケーター不要、常に最後に追加 */}
             {displayQuestions.map((question, index) => (
               <Box key={question.id} sx={{ mb: '50px', position: 'relative' }}>
-                {/* Drop Indicator */}
-                {dropIndicator === index && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: -25,
-                      left: 0,
-                      right: 0,
-                      height: 4,
-                      backgroundColor: '#5e17eb',
-                      borderRadius: 2,
-                      zIndex: 5,
-                      '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        top: -4,
-                        left: -4,
-                        width: 12,
-                        height: 12,
-                        backgroundColor: '#5e17eb',
-                        borderRadius: '50%'
-                      }
-                    }}
-                  />
-                )}
                 {renderQuestion(question, index)}
               </Box>
             ))}
-
-            {/* Final Drop Indicator */}
-            {dropIndicator === displayQuestions.length && (
-              <Box
-                sx={{
-                  height: 4,
-                  backgroundColor: '#5e17eb',
-                  borderRadius: 2,
-                  mb: 2,
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: -4,
-                    left: -4,
-                    width: 12,
-                    height: 12,
-                    backgroundColor: '#5e17eb',
-                    borderRadius: '50%'
-                  }
-                }}
-              />
-            )}
 
             {/* Navigation Section */}
             {displayQuestions.length > 0 && (

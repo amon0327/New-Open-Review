@@ -35,21 +35,6 @@ const QuestionToolsSidebar = ({
   };
   return (
     <>
-      <Typography
-        variant="h6"
-        sx={{
-          fontWeight: 600,
-          background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-          backgroundClip: 'text',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          mb: 2,
-          textAlign: 'center'
-        }}
-      >
-        質問作成
-      </Typography>
-      
       {/* 質問タイプグリッド */}
       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#64748b' }}>
         質問タイプ
