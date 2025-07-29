@@ -121,18 +121,26 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
           },
           '& .MuiOutlinedInput-input': {
             padding: '6px 8px !important',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            lineHeight: '1.4375em',
+            verticalAlign: 'middle'
           },
           '& textarea.MuiOutlinedInput-input': {
             padding: '6px 8px !important',
             fontSize: '0.875rem',
-            resize: 'none'
+            resize: 'none',
+            lineHeight: '1.4375em',
+            verticalAlign: 'top',
+            minHeight: '1.4375em'
           },
           '&.MuiInputBase-multiline': {
             padding: '0 !important',
             '& .MuiOutlinedInput-input': {
               padding: '6px 8px !important',
-              fontSize: '0.875rem'
+              fontSize: '0.875rem',
+              lineHeight: '1.4375em',
+              verticalAlign: 'top',
+              minHeight: '1.4375em'
             }
           }
         },
@@ -143,7 +151,10 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
           padding: '0 !important',
           '& .MuiOutlinedInput-input': {
             padding: '6px 8px !important',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            lineHeight: '1.4375em',
+            verticalAlign: 'top',
+            minHeight: '1.4375em'
           }
         }
       }}
