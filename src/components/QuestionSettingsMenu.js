@@ -1065,7 +1065,6 @@ const QuestionSettingsMenu = ({
                       }}
                     />
                     <StylishTextField
-                      label="カラーコード"
                       value={selectedColor}
                       onChange={(e) => {
                         setSelectedColor(e.target.value);
