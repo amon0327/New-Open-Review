@@ -1711,34 +1711,21 @@ const PreviewQuestions = ({
         )}
       </Box>
 
-      {/* Content Container - AnswerAppと同じ */}
-      <Container
-        maxWidth={false}
+      {/* Content Area - Containerを削除してシンプルに */}
+      <Box
         sx={{
-          width: '100%',
-          '&::-webkit-scrollbar': {
-            display: 'none'
-          },
-          msOverflowStyle: 'none',
-          scrollbarWidth: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 'auto',
+          px: isMobile ? 3 : 4,
+          py: isMobile ? 0 : 2,
+          overflow: 'visible',
+          backgroundColor: '#FFFFFF',
           maxWidth: isMobile ? '100%' : '900px',
           margin: '0 auto',
-          backgroundColor: '#FFFFFF',
-          minHeight: 'auto',
-          overflow: 'visible'
+          width: '100%'
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: 'auto',
-            px: isMobile ? 3 : 4,
-            py: isMobile ? 0 : 2,
-            overflow: 'visible',
-            backgroundColor: '#FFFFFF'
-          }}
-        >
           {/* Questions Content with Drop Zone - プレビュー画面全体でドロップ可能 */}
           <Box 
             ref={dropRef}
@@ -1866,7 +1853,6 @@ const PreviewQuestions = ({
             )}
           </Box>
         </Box>
-      </Container>
     </Box>
   );
 };
