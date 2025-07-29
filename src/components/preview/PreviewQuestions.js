@@ -1261,10 +1261,10 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   value="" 
                   disabled
                   sx={{
-                    fontSize: '1rem',
+                    fontSize: scaledFontSize,
                     fontFamily: '"Noto Sans JP", sans-serif',
                     color: '#9CA3AF',
-                    minHeight: '44px',
+                    minHeight: scaledMinHeight,
                     '&.Mui-disabled': {
                       opacity: 0.6
                     }
@@ -1277,11 +1277,11 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                     key={index} 
                     value={choice}
                     sx={{
-                      fontSize: '1rem',
+                      fontSize: scaledFontSize,
                       fontFamily: '"Noto Sans JP", sans-serif',
                       color: '#14181B',
-                      minHeight: '44px',
-                      padding: '10px 16px',
+                      minHeight: scaledMinHeight,
+                      padding: scaledPadding,
                       '&:hover': {
                         backgroundColor: 'rgba(94, 23, 235, 0.08)'
                       },
