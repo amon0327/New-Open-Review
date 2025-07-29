@@ -914,9 +914,19 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
     });
   };
 
-  const scaleLabels = question.scale_labels ? JSON.parse(question.scale_labels) : {};
-  const minLabel = scaleLabels.min_label || 'そう思わない';
-  const maxLabel = scaleLabels.max_label || 'そう思う';
+  // scale_settingsまたはscale_labelsから読み取り
+  const scaleData = question.scale_settings ? JSON.parse(question.scale_settings) : 
+                    question.scale_labels ? JSON.parse(question.scale_labels) : {};
+  const minLabel = scaleData.minLabel || scaleData.min_label || 'そう思わない';
+  const maxLabel = scaleData.maxLabel || scaleData.max_label || 'そう思う';
+  const minValue = scaleData.minValue || 1;
+  const maxValue = scaleData.maxValue || 5;
+  
+  // 動的にスケール配列を生成
+  const scaleOptions = [];
+  for (let i = minValue; i <= maxValue; i++) {
+    scaleOptions.push(i);
+  }
 
   return (
     <>
@@ -1029,7 +1039,7 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
 
           {/* Scale Options */}
           <Box sx={{ width: '100%', maxWidth: 400, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            {[1, 2, 3, 4, 5].map((value) => (
+            {scaleOptions.map((value) => (
               <Box
                 key={value}
                 onClick={() => handleValueSelect(value)}
@@ -1275,69 +1285,14 @@ const PreviewQuestions = ({
   const headerImage = 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
   const logoUrl = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
 
-  // 質問がない場合のサンプルデータ
-  const sampleQuestions = questions.length > 0 ? questions : [
+  // 実際の質問データを使用、または空の場合はサンプルデータ
+  const displayQuestions = questions.length > 0 ? questions : [
     {
-      id: 1,
+      id: 'sample-1',
       question_types_id: 1,
       question_text: 'お名前を教えてください',
       detail_text: 'フルネームでご記入ください',
       is_required: true
-    },
-    {
-      id: 2,
-      question_types_id: 2,
-      question_text: 'ご意見・ご感想をお聞かせください',
-      detail_text: '詳しくお聞かせください',
-      is_required: false
-    },
-    {
-      id: 3,
-      question_types_id: 3,
-      question_text: '満足度を選択してください',
-      detail_text: 'サービスに対する満足度を選んでください',
-      choices: '["大変満足", "満足", "普通", "不満", "大変不満"]',
-      is_required: true
-    },
-    {
-      id: 4,
-      question_types_id: 4,
-      question_text: '利用したサービスを選択してください（複数選択可）',
-      detail_text: '該当するものをすべて選んでください',
-      choices: '["レストラン", "カフェ", "バー", "テイクアウト", "デリバリー"]',
-      is_required: false
-    },
-    {
-      id: 5,
-      question_types_id: 5,
-      question_text: '各項目について評価してください',
-      detail_text: '当てはまるものを一つ選んでください',
-      choices: '["とても良い", "良い", "普通", "悪い"]',
-      is_required: true
-    },
-    {
-      id: 6,
-      question_types_id: 6,
-      question_text: '改善してほしい項目を選択してください（複数選択可）',
-      detail_text: '該当するものをすべて選んでください',
-      choices: '["接客", "料理の質", "価格", "雰囲気"]',
-      is_required: false
-    },
-    {
-      id: 7,
-      question_types_id: 7,
-      question_text: 'サービスの総合評価をお聞かせください',
-      detail_text: '1から5までの段階で評価してください',
-      scale_labels: '{"min_label": "悪い", "max_label": "良い"}',
-      is_required: true
-    },
-    {
-      id: 8,
-      question_types_id: 8,
-      question_text: '年齢層を選択してください',
-      detail_text: 'あなたの年齢層を選んでください',
-      choices: '["10代", "20代", "30代", "40代", "50代", "60代以上"]',
-      is_required: false
     }
   ];
 
@@ -1350,7 +1305,7 @@ const PreviewQuestions = ({
 
   const renderQuestion = (question, index) => {
     const questionNumber = index + 1;
-    const totalQuestions = sampleQuestions.length;
+    const totalQuestions = displayQuestions.length;
 
     switch (question.question_types_id) {
       case 1:
@@ -1626,11 +1581,11 @@ const PreviewQuestions = ({
               borderRadius: 2,
               transition: 'all 0.3s ease',
               backgroundColor: isDragActive ? 'rgba(94, 23, 235, 0.05)' : 'transparent',
-              minHeight: questions.length === 0 ? '400px' : 'auto'
+              minHeight: displayQuestions.length === 0 ? '400px' : 'auto'
             }}
           >
             {/* Empty State */}
-            {questions.length === 0 && !isDragActive && (
+            {displayQuestions.length === 0 && !isDragActive && (
               <Box
                 sx={{
                   display: 'flex',
@@ -1693,7 +1648,7 @@ const PreviewQuestions = ({
             )}
 
             {/* Questions List */}
-            {sampleQuestions.map((question, index) => (
+            {displayQuestions.map((question, index) => (
               <Box key={question.id} sx={{ mb: '50px', position: 'relative' }}>
                 {/* Drop Indicator */}
                 {dropIndicator === index && (
@@ -1725,7 +1680,7 @@ const PreviewQuestions = ({
             ))}
 
             {/* Final Drop Indicator */}
-            {dropIndicator === sampleQuestions.length && (
+            {dropIndicator === displayQuestions.length && (
               <Box
                 sx={{
                   height: 4,
@@ -1747,7 +1702,7 @@ const PreviewQuestions = ({
             )}
 
             {/* Navigation Section */}
-            {questions.length > 0 && (
+            {displayQuestions.length > 0 && (
               <Box sx={{ py: 4 }}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Button

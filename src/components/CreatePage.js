@@ -228,7 +228,7 @@ export default function CreatePage({ onBackClick }) {
       let newQuestion = {
         id: Date.now() + Math.random(),
         question_types_id: draggedData.type || draggedData.question_types_id || 1,
-        question_text: draggedData.question || draggedData.question_text || '',
+        question_text: draggedData.question || draggedData.question_text || draggedData.label || '新しい質問',
         detail_text: draggedData.detail || draggedData.detail_text || '',
         is_required: draggedData.required || false,
         choices: null,
@@ -245,14 +245,20 @@ export default function CreatePage({ onBackClick }) {
         newQuestion.scale_settings = JSON.stringify({
           minValue: 1,
           maxValue: 5,
-          minLabel: '',
-          maxLabel: ''
+          minLabel: 'そう思わない',
+          maxLabel: 'そう思う'
         });
       }
 
-      // テンプレート質問の場合は選択肢もコピー
-      if (draggedData.isTemplate && draggedData.choices) {
-        newQuestion.choices = JSON.stringify(draggedData.choices);
+      // テンプレート質問の場合は内容をコピー
+      if (draggedData.isTemplate) {
+        if (draggedData.choices) {
+          newQuestion.choices = JSON.stringify(draggedData.choices);
+        }
+        // テンプレート質問の詳細設定があれば適用
+        if (draggedData.detail) {
+          newQuestion.detail_text = draggedData.detail;
+        }
       }
 
       // 現在の質問リストに挿入
