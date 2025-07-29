@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import { stringToColor } from '../utils/colorUtils';
+import { stringToColor } from '../../../utils/colorUtils';
 
 const QuestionHeader = ({ question, themeColor, currentQuestion, totalQuestions }) => {
   return (

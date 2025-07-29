@@ -4,7 +4,6 @@ import QuestionWrapper from '../common/QuestionWrapper';
 import QuestionHeader from '../common/QuestionHeader';
 import { stringToColor, colorWithLightOpacity, colorWithBorderOpacity } from '../utils/colorUtils';
 
-// Single Choice Question Component
 const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedChoice, setSelectedChoice] = useState(null);
 

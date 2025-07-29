@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Box, Button } from '@mui/material';
-import QuestionWrapper from '../common/QuestionWrapper';
-import QuestionHeader from '../common/QuestionHeader';
-import { stringToColor, colorWithLightOpacity, colorWithBorderOpacity } from '../utils/colorUtils';
+import QuestionWrapper from './QuestionWrapper';
+import QuestionHeader from './QuestionHeader';
+import { stringToColor, colorWithLightOpacity, colorWithBorderOpacity } from '../../../utils/colorUtils';
 
-// Single Choice Matrix Question Component
 const SingleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedChoice, setSelectedChoice] = useState(null);
 

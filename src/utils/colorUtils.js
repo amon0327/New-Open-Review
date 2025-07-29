@@ -1,4 +1,4 @@
-// Color utility functions for preview questions
+// Color utility functions used across preview question components
 
 export const stringToColor = (colorString) => {
   if (!colorString) return '#8C52FF';

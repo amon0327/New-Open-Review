@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Box, Typography } from '@mui/material';
-import QuestionWrapper from '../common/QuestionWrapper';
-import QuestionHeader from '../common/QuestionHeader';
-import { stringToColor } from '../utils/colorUtils';
+import QuestionWrapper from './QuestionWrapper';
+import QuestionHeader from './QuestionHeader';
+import { stringToColor } from '../../../utils/colorUtils';
 
-// Linear Scale Question Component
 const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedValue, setSelectedValue] = useState(null);
 

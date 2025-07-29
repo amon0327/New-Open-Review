@@ -4,7 +4,6 @@ import QuestionWrapper from '../common/QuestionWrapper';
 import QuestionHeader from '../common/QuestionHeader';
 import { stringToColor } from '../utils/colorUtils';
 
-// Long Text Question Component
 const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [answer, setAnswer] = useState('');
 

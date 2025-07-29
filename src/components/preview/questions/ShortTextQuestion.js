@@ -4,7 +4,6 @@ import QuestionWrapper from '../common/QuestionWrapper';
 import QuestionHeader from '../common/QuestionHeader';
 import { stringToColor } from '../utils/colorUtils';
 
-// Short Text Question Component
 const ShortTextQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [answer, setAnswer] = useState('');
 

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Box, FormControl, Select, MenuItem } from '@mui/material';
-import QuestionWrapper from '../common/QuestionWrapper';
-import QuestionHeader from '../common/QuestionHeader';
-import { stringToColor } from '../utils/colorUtils';
+import QuestionWrapper from './QuestionWrapper';
+import QuestionHeader from './QuestionHeader';
+import { stringToColor } from '../../../utils/colorUtils';
 
-// Pull Down Question Component
 const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange, zoom = 1 }) => {
   const [selectedValue, setSelectedValue] = useState('');
 
