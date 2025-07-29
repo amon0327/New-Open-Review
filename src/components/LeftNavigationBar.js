@@ -65,7 +65,7 @@ const LeftNavigationBar = ({
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 1,
+          gap: 1.5,
           width: '100%',
           px: 1
         }}
