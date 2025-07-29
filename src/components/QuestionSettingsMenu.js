@@ -133,9 +133,8 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
             verticalAlign: 'top'
           },
           '& textarea.MuiOutlinedInput-input::placeholder': {
-            textAlign: 'left',
-            verticalAlign: 'middle',
-            lineHeight: '1.4375em'
+            lineHeight: '1.4375em',
+            opacity: 0.6
           },
           '&.MuiInputBase-multiline': {
             padding: '0 !important',
@@ -146,9 +145,8 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
               verticalAlign: 'top'
             },
             '& .MuiOutlinedInput-input::placeholder': {
-              textAlign: 'left',
-              verticalAlign: 'middle',
-              lineHeight: '1.4375em'
+              lineHeight: '1.4375em',
+              opacity: 0.6
             }
           }
         },
@@ -164,9 +162,8 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
             verticalAlign: 'top'
           },
           '& .MuiOutlinedInput-input::placeholder': {
-            textAlign: 'left',
-            verticalAlign: 'middle',
-            lineHeight: '1.4375em'
+            lineHeight: '1.4375em',
+            opacity: 0.6
           }
         }
       }}
