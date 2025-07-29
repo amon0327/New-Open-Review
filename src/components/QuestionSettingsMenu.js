@@ -298,6 +298,7 @@ const QuestionSettingsMenu = ({
           <Tabs
             value={selectedTab}
             onChange={handleTabChange}
+            centered
             sx={{
               '& .MuiTabs-root': {
                 minHeight: 48
