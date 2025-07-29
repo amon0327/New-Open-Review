@@ -119,11 +119,11 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
             }
           },
           '& input': {
-            padding: '10px 12px',
+            padding: '6px 8px',
             fontSize: '0.875rem'
           },
           '& textarea': {
-            padding: '10px 12px',
+            padding: '6px 8px',
             fontSize: '0.875rem',
             resize: 'none'
           }
