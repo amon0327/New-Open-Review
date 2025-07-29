@@ -1082,9 +1082,6 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
 // Pull Down Question Component - AnswerAppの完全コピー
 const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange, zoom = 1 }) => {
   const [selectedValue, setSelectedValue] = useState('');
-  
-  // デバッグ: zoom値を確認
-  console.log('PullDownQuestion zoom:', zoom, typeof zoom);
 
   const handleValueChange = (value) => {
     setSelectedValue(value);
@@ -1204,8 +1201,6 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                       maxWidth: '400px',
                       transform: `scale(${zoom}) !important`,
                       transformOrigin: 'top center',
-                      // デバッグ用の境界線を追加
-                      border: `2px solid red`,
                       '& .MuiMenuItem-root': {
                         fontSize: '1rem',
                         fontFamily: '"Noto Sans JP", sans-serif',
@@ -1268,10 +1263,11 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   value="" 
                   disabled
                   sx={{
-                    fontSize: '1rem',
+                    fontSize: `${1 * zoom}rem`,
                     fontFamily: '"Noto Sans JP", sans-serif',
                     color: '#9CA3AF',
-                    minHeight: '44px',
+                    minHeight: `${44 * zoom}px`,
+                    padding: `${10 * zoom}px ${16 * zoom}px`,
                     '&.Mui-disabled': {
                       opacity: 0.6
                     }
@@ -1284,11 +1280,11 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                     key={index} 
                     value={choice}
                     sx={{
-                      fontSize: '1rem',
+                      fontSize: `${1 * zoom}rem`,
                       fontFamily: '"Noto Sans JP", sans-serif',
                       color: '#14181B',
-                      minHeight: '44px',
-                      padding: '10px 16px',
+                      minHeight: `${44 * zoom}px`,
+                      padding: `${10 * zoom}px ${16 * zoom}px`,
                       '&:hover': {
                         backgroundColor: 'rgba(94, 23, 235, 0.08)'
                       },
