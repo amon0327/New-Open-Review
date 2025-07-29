@@ -465,7 +465,7 @@ const QuestionSettingsMenu = ({
             />
 
             {/* 質問タイプ別の追加設定 */}
-            {(typeId === 3 || typeId === 4) && (
+            {(typeId === 3 || typeId === 4 || typeId === 8) && (
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                   <Typography 
