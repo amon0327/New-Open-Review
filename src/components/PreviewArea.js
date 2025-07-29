@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import { colors, gradients, shadows } from '../constants/theme';
 import PreviewLogin from './preview/PreviewLogin';
-import PreviewQuestions from './preview/PreviewQuestions';
+import PreviewQuestions from './preview/PreviewQuestionsRefactored';
 import PreviewCompletion from './preview/PreviewCompletion';
 
 const PreviewArea = ({ 

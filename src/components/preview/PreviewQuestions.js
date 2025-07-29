@@ -10,6 +10,7 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
+import { SingleChoiceTwoColumnQuestion, MultipleChoiceTwoColumnQuestion } from './questions';
 
 // Color utility function (AnswerAppと同じ)
 const stringToColor = (colorString) => {
@@ -1510,6 +1511,28 @@ const PreviewQuestions = ({
             totalQuestions={totalQuestions}
             onAnswerChange={handleAnswerChange}
             zoom={zoom}
+          />
+        );
+      case 9:
+        return questionWrapper(
+          <SingleChoiceTwoColumnQuestion
+            key={question.id}
+            question={question}
+            themeColor={themeColor}
+            currentQuestion={questionNumber}
+            totalQuestions={totalQuestions}
+            onAnswerChange={handleAnswerChange}
+          />
+        );
+      case 10:
+        return questionWrapper(
+          <MultipleChoiceTwoColumnQuestion
+            key={question.id}
+            question={question}
+            themeColor={themeColor}
+            currentQuestion={questionNumber}
+            totalQuestions={totalQuestions}
+            onAnswerChange={handleAnswerChange}
           />
         );
       default:
