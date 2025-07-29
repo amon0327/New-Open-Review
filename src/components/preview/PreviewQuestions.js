@@ -1079,7 +1079,7 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
   );
 };
 
-// Pull Down Question Component - AnswerAppの完全コピー
+// Pull Down Question Component - ズーム対応版
 const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange, zoom = 1 }) => {
   const [selectedValue, setSelectedValue] = useState('');
 
@@ -1092,6 +1092,11 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
   };
 
   const choices = question.choices ? JSON.parse(question.choices) : [];
+  
+  // ズーム値に応じたフォントサイズ調整
+  const scaledFontSize = `${zoom}rem`;
+  const scaledPadding = `${12 * zoom}px ${16 * zoom}px`;
+  const scaledMinHeight = `${44 * zoom}px`;
 
   return (
     <>
@@ -1187,33 +1192,32 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      mt: 0.5,
-                      borderRadius: '8px',
+                      mt: 0.5 * zoom,
+                      borderRadius: `${8 * zoom}px`,
                       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                      maxHeight: '240px',
-                      minWidth: '200px',
-                      maxWidth: '400px',
-                      transform: `scale(${zoom})`,
-                      transformOrigin: 'top center',
+                      maxHeight: `${240 * zoom}px`,
+                      minWidth: `${200 * zoom}px`,
+                      maxWidth: `${400 * zoom}px`,
+                      fontSize: scaledFontSize,
                       '& .MuiMenuItem-root': {
-                        fontSize: '1rem',
+                        fontSize: scaledFontSize,
                         fontFamily: '"Noto Sans JP", sans-serif',
-                        minHeight: '44px',
-                        padding: '8px 16px',
+                        minHeight: scaledMinHeight,
+                        padding: scaledPadding,
                         '&:hover': {
                           backgroundColor: 'rgba(94, 23, 235, 0.08)'
                         }
                       },
                       '&::-webkit-scrollbar': {
-                        width: '6px'
+                        width: `${6 * zoom}px`
                       },
                       '&::-webkit-scrollbar-track': {
                         background: 'rgba(0, 0, 0, 0.02)',
-                        borderRadius: '3px'
+                        borderRadius: `${3 * zoom}px`
                       },
                       '&::-webkit-scrollbar-thumb': {
                         background: 'rgba(0, 0, 0, 0.1)',
-                        borderRadius: '3px',
+                        borderRadius: `${3 * zoom}px`,
                         '&:hover': {
                           background: 'rgba(0, 0, 0, 0.15)'
                         }
@@ -1247,8 +1251,8 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                     borderWidth: 1
                   },
                   '& .MuiSelect-select': {
-                    padding: '12px 16px',
-                    fontSize: '1rem',
+                    padding: scaledPadding,
+                    fontSize: scaledFontSize,
                     fontFamily: '"Noto Sans JP", sans-serif'
                   }
                 }}

@@ -57,7 +57,7 @@ const getQuestionTypeConfig = (typeId) => {
 };
 
 // スタイリッシュなテキストフィールドコンポーネント
-const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1, placeholder, required = false, ...props }) => (
+const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1, maxRows, placeholder, required = false, ...props }) => (
   <Box>
     <Typography 
       variant="body2" 
@@ -77,6 +77,7 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
       onChange={onChange}
       multiline={multiline}
       rows={rows}
+      maxRows={maxRows}
       placeholder={placeholder}
       fullWidth
       variant="outlined"
@@ -518,7 +519,8 @@ const QuestionSettingsMenu = ({
               onChange={(e) => handleQuestionUpdate('question_text', e.target.value)}
               placeholder="質問を入力してください"
               multiline
-              rows={2}
+              rows={1}
+              maxRows={3}
               required
             />
 
