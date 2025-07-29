@@ -119,7 +119,6 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
         '& .MuiOutlinedInput-multiline': {
           padding: '0px'
         }
-        }
       }}
       {...props}
     />
