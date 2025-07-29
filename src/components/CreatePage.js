@@ -602,11 +602,15 @@ export default function CreatePage({ onBackClick }) {
                                 ? 'rgba(94, 23, 235, 0.1)' 
                                 : dropIndicator === page.id
                                 ? 'rgba(94, 23, 235, 0.08)'
+                                : selectedPage?.id === page.id
+                                ? 'rgba(94, 23, 235, 0.12)'
                                 : 'rgba(255, 255, 255, 0.8)',
                               border: dropIndicator === page.id 
                                 ? '2px dashed #5e17eb'
                                 : sortingAnimation?.id === page.id && sortingAnimation.direction === 'success'
                                 ? '1px solid rgba(34, 197, 94, 0.3)'
+                                : selectedPage?.id === page.id
+                                ? '2px solid #5e17eb'
                                 : '1px solid rgba(0, 0, 0, 0.06)',
                               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                               minHeight: 72,
@@ -622,12 +626,18 @@ export default function CreatePage({ onBackClick }) {
                                   ? 'rgba(239, 68, 68, 0.05)'
                                   : draggedPage?.id === page.id 
                                   ? 'rgba(94, 23, 235, 0.1)' 
+                                  : selectedPage?.id === page.id
+                                  ? 'rgba(94, 23, 235, 0.15)'
                                   : 'rgba(94, 23, 235, 0.04)',
                                 borderColor: deleteMode && page.canDelete
                                   ? 'rgba(239, 68, 68, 0.3)'
+                                  : selectedPage?.id === page.id
+                                  ? '#5e17eb'
                                   : 'rgba(94, 23, 235, 0.15)',
                                 transform: draggedPage?.id === page.id ? 'none' : 'translateY(-1px)',
-                                boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
+                                boxShadow: selectedPage?.id === page.id 
+                                  ? '0 4px 16px rgba(94, 23, 235, 0.2)'
+                                  : '0 3px 12px rgba(0, 0, 0, 0.1)'
                               }
                             }}
                           >
@@ -660,14 +670,20 @@ export default function CreatePage({ onBackClick }) {
                                 width: 32,
                                 height: 32,
                                 borderRadius: 1,
-                                background: page.type === 'system' 
+                                background: selectedPage?.id === page.id
+                                  ? 'linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%)'
+                                  : page.type === 'system' 
                                   ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
                                   : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 flexShrink: 0,
-                                boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
+                                boxShadow: selectedPage?.id === page.id
+                                  ? '0 4px 12px rgba(76, 29, 149, 0.4)'
+                                  : '0 2px 8px rgba(94, 23, 235, 0.3)',
+                                transform: selectedPage?.id === page.id ? 'scale(1.05)' : 'scale(1)',
+                                transition: 'all 0.2s ease'
                               }}
                             >
                               {React.cloneElement(page.icon, { 
@@ -707,10 +723,11 @@ export default function CreatePage({ onBackClick }) {
                                   }}
                                   sx={{
                                     fontWeight: 600,
-                                    color: '#2d3748',
+                                    color: selectedPage?.id === page.id ? '#5e17eb' : '#2d3748',
                                     fontSize: '0.8rem',
                                     mb: 0.3,
                                     cursor: page.type === 'question' && !deleteMode ? 'text' : 'default',
+                                    transition: 'color 0.2s ease',
                                     '&:hover': page.type === 'question' && !deleteMode ? {
                                       textDecoration: 'underline',
                                       color: '#5e17eb'
