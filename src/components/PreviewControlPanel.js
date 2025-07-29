@@ -75,7 +75,7 @@ const PreviewControlPanel = ({
           <Tooltip title="縮小">
             <IconButton
               onClick={handleZoomOut}
-              disabled={zoom <= 0.5}
+              disabled={zoom <= 0.3}
               sx={iconButtonStyles.secondary}
             >
               <ZoomOut />
@@ -89,7 +89,7 @@ const PreviewControlPanel = ({
           <Tooltip title="拡大">
             <IconButton
               onClick={handleZoomIn}
-              disabled={zoom >= 2}
+              disabled={zoom >= 1.5}
               sx={iconButtonStyles.secondary}
             >
               <ZoomIn />
