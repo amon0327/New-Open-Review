@@ -699,6 +699,7 @@ export default function CreatePage({ onBackClick }) {
                     headerImage={headerImage}
                     logoImage={logoImageState}
                     onElementSelect={handleElementSelect}
+                    selectedElement={selectedElement}
                   />
                   
                   {/* プレビューコントロール */}

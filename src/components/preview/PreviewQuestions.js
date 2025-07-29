@@ -1335,6 +1335,7 @@ const PreviewQuestions = ({
     const questionNumber = index + 1;
     const totalQuestions = displayQuestions.length;
     const isSelected = selectedQuestionId === question.id;
+    const [isHovered, setIsHovered] = useState(false);
 
     const handleQuestionClick = (e) => {
       // 入力フィールドをクリックした場合は質問選択を発火しない
@@ -1349,22 +1350,31 @@ const PreviewQuestions = ({
     const questionWrapper = (children) => (
       <Box
         onClick={handleQuestionClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         sx={{
           position: 'relative',
           cursor: 'pointer',
-          margin: isSelected ? '24px -24px' : '8px 0',
+          margin: (isSelected || isHovered) ? '24px -24px' : '8px 0',
           transition: 'all 0.3s ease'
         }}
       >
         <Box
           sx={{
             borderRadius: 3,
-            border: isSelected ? '2px solid #5e17eb' : '2px solid transparent',
-            backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : 'transparent',
-            padding: isSelected ? '24px' : '0',
-            boxShadow: isSelected ? '0 8px 32px rgba(94, 23, 235, 0.15)' : 'none',
+            border: isSelected ? '2px solid #5e17eb' : 
+                   isHovered ? '2px solid rgba(94, 23, 235, 0.3)' : 
+                   '2px solid transparent',
+            backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : 
+                           isHovered ? 'rgba(94, 23, 235, 0.01)' : 
+                           'transparent',
+            padding: (isSelected || isHovered) ? '24px' : '0',
+            boxShadow: isSelected ? '0 8px 32px rgba(94, 23, 235, 0.15)' : 
+                      isHovered ? '0 4px 16px rgba(94, 23, 235, 0.1)' : 
+                      'none',
             position: 'relative',
             transition: 'all 0.3s ease',
+            transform: isSelected ? 'none' : isHovered ? 'translateY(-2px)' : 'none',
             '&::before': isSelected ? {
               content: '"選択中"',
               position: 'absolute',
@@ -1378,15 +1388,7 @@ const PreviewQuestions = ({
               borderRadius: '16px',
               zIndex: 10,
               boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
-            } : {},
-            '&:hover': {
-              backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.05)' : 'rgba(94, 23, 235, 0.01)',
-              border: isSelected ? '2px solid #5e17eb' : '2px solid rgba(94, 23, 235, 0.3)',
-              transform: isSelected ? 'none' : 'translateY(-2px)',
-              boxShadow: isSelected 
-                ? '0 12px 40px rgba(94, 23, 235, 0.2)' 
-                : '0 4px 16px rgba(94, 23, 235, 0.1)'
-            }
+            } : {}
           }}
         >
           {children}

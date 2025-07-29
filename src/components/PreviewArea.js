@@ -27,7 +27,8 @@ const PreviewArea = ({
   // 基本設定関連
   headerImage,
   logoImage,
-  onElementSelect
+  onElementSelect,
+  selectedElement
 }) => {
   const dropRef = useRef(null);
   const [dropIndicator, setDropIndicator] = useState(null);
@@ -117,6 +118,7 @@ const PreviewArea = ({
             headerImage={headerImage}
             logoImage={logoImage}
             onElementSelect={onElementSelect}
+            selectedElement={selectedElement}
           />
         );
     }
