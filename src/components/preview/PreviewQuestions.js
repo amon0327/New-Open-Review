@@ -7,11 +7,10 @@ import {
   TextField,
   FormControl,
   Select,
-  MenuItem,
-  Checkbox
+  MenuItem
 } from '@mui/material';
 
-// Color utility function
+// Color utility function (AnswerAppと同じ)
 const stringToColor = (colorString) => {
   if (!colorString) return '#8C52FF';
   return colorString;
@@ -25,7 +24,7 @@ const colorWithBorderOpacity = (color, opacity = 30) => {
   return `${color}${Math.round(255 * opacity / 100).toString(16).padStart(2, '0')}`;
 };
 
-// Question components
+// Short Text Question Component
 const ShortTextQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [answer, setAnswer] = useState('');
 
@@ -133,8 +132,12 @@ const ShortTextQuestion = ({ question, themeColor, currentQuestion, totalQuestio
               backgroundColor: '#F1F4F8',
               '& .MuiOutlinedInput-root': {
                 borderRadius: '12px',
+                backgroundColor: '#F1F4F8',
                 '&.Mui-focused fieldset': {
                   borderColor: stringToColor(themeColor)
+                },
+                '&.Mui-error fieldset': {
+                  borderColor: '#F44336'
                 }
               }
             }}
@@ -145,6 +148,7 @@ const ShortTextQuestion = ({ question, themeColor, currentQuestion, totalQuestio
   );
 };
 
+// Long Text Question Component
 const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [answer, setAnswer] = useState('');
 
@@ -192,7 +196,6 @@ const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestion
           </Box>
         )}
 
-        {/* Question Text */}
         <Typography
           variant="h5"
           sx={{
@@ -207,7 +210,6 @@ const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestion
           {question.question_text}
         </Typography>
 
-        {/* Detail Text */}
         {question.detail_text && (
           <Typography
             variant="body2"
@@ -223,7 +225,6 @@ const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestion
           </Typography>
         )}
 
-        {/* Progress Badge */}
         <Box
           sx={{
             backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -240,7 +241,6 @@ const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestion
           {currentQuestion} / {totalQuestions}
         </Box>
 
-        {/* Answer Input */}
         <Box sx={{ width: '100%', maxWidth: 400 }}>
           <TextField
             fullWidth
@@ -255,6 +255,7 @@ const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestion
               backgroundColor: '#F1F4F8',
               '& .MuiOutlinedInput-root': {
                 borderRadius: '12px',
+                backgroundColor: '#F1F4F8',
                 '&.Mui-focused fieldset': {
                   borderColor: stringToColor(themeColor)
                 }
@@ -267,6 +268,7 @@ const LongTextQuestion = ({ question, themeColor, currentQuestion, totalQuestion
   );
 };
 
+// Single Choice Question Component
 const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedChoice, setSelectedChoice] = useState(null);
 
@@ -275,7 +277,6 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
     onAnswerChange(question.id, { answer: choiceValue });
   };
 
-  // Parse choices from JSON
   const choices = question.choices ? JSON.parse(question.choices) : [];
 
   return (
@@ -298,7 +299,6 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
           alignItems: 'center'
         }}
       >
-        {/* Required Badge */}
         {question.is_required && (
           <Box
             sx={{
@@ -317,7 +317,6 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
           </Box>
         )}
 
-        {/* Question Text */}
         <Typography
           variant="h5"
           sx={{
@@ -332,7 +331,6 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
           {question.question_text}
         </Typography>
 
-        {/* Detail Text */}
         {question.detail_text && (
           <Typography
             variant="body2"
@@ -348,7 +346,6 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
           </Typography>
         )}
 
-        {/* Progress Badge */}
         <Box
           sx={{
             backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -365,7 +362,6 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
           {currentQuestion} / {totalQuestions}
         </Box>
 
-        {/* Answer Choices */}
         <Box 
           sx={{ 
             width: '100%', 
@@ -380,6 +376,7 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
               key={index}
               variant="outlined"
               onClick={() => handleChoiceSelect(choice)}
+              disableRipple
               sx={{
                 py: 2,
                 px: 3,
@@ -413,6 +410,7 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
   );
 };
 
+// Multiple Choice Question Component  
 const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedChoices, setSelectedChoices] = useState([]);
 
@@ -425,7 +423,6 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
     onAnswerChange(question.id, { answers: newSelectedChoices });
   };
 
-  // Parse choices from JSON
   const choices = question.choices ? JSON.parse(question.choices) : [];
 
   return (
@@ -448,7 +445,6 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
           alignItems: 'center'
         }}
       >
-        {/* Required Badge */}
         {question.is_required && (
           <Box
             sx={{
@@ -467,7 +463,6 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
           </Box>
         )}
 
-        {/* Question Text */}
         <Typography
           variant="h5"
           sx={{
@@ -482,7 +477,6 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
           {question.question_text}
         </Typography>
 
-        {/* Detail Text */}
         {question.detail_text && (
           <Typography
             variant="body2"
@@ -498,7 +492,6 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
           </Typography>
         )}
 
-        {/* Progress Badge */}
         <Box
           sx={{
             backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -515,7 +508,6 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
           {currentQuestion} / {totalQuestions}
         </Box>
 
-        {/* Answer Choices */}
         <Box 
           sx={{ 
             width: '100%', 
@@ -530,6 +522,7 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
               key={index}
               variant="outlined"
               onClick={() => handleChoiceToggle(choice)}
+              disableRipple
               sx={{
                 py: 2,
                 px: 3,
@@ -563,6 +556,299 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
   );
 };
 
+// Single Choice Matrix Question Component
+const SingleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
+  const [selectedChoice, setSelectedChoice] = useState(null);
+
+  const handleChoiceSelect = (choiceValue) => {
+    setSelectedChoice(choiceValue);
+    onAnswerChange(question.id, { answer: choiceValue });
+  };
+
+  const choices = question.choices ? JSON.parse(question.choices) : [];
+
+  return (
+    <Box
+      sx={{
+        py: '50px',
+        px: 3,
+        backgroundColor: '#F1F4F8',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        minHeight: '100vh'
+      }}
+    >
+      <Container
+        maxWidth="md"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}
+      >
+        {question.is_required && (
+          <Box
+            sx={{
+              backgroundColor: stringToColor(themeColor),
+              color: 'white',
+              px: 2,
+              py: 0.5,
+              borderRadius: '12px',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              mb: 2,
+              fontFamily: '"Noto Sans JP", sans-serif'
+            }}
+          >
+            必須
+          </Box>
+        )}
+
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 600,
+            color: '#14181B',
+            textAlign: 'center',
+            mb: 2,
+            fontSize: '1.25rem',
+            fontFamily: '"Noto Sans JP", sans-serif'
+          }}
+        >
+          {question.question_text}
+        </Typography>
+
+        {question.detail_text && (
+          <Typography
+            variant="body2"
+            sx={{
+              color: '#57636C',
+              textAlign: 'center',
+              mb: 3,
+              fontSize: '0.875rem',
+              fontFamily: '"Noto Sans JP", sans-serif'
+            }}
+          >
+            {question.detail_text}
+          </Typography>
+        )}
+
+        <Box
+          sx={{
+            backgroundColor: 'rgba(0, 0, 0, 0.05)',
+            px: 2,
+            py: 0.5,
+            borderRadius: '12px',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            mb: 4,
+            color: '#57636C',
+            fontFamily: '"Noto Sans JP", sans-serif'
+          }}
+        >
+          {currentQuestion} / {totalQuestions}
+        </Box>
+
+        <Box 
+          sx={{ 
+            width: '100%',
+            maxWidth: { xs: '320px', sm: '400px', md: '500px' },
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 1.5,
+            justifyContent: 'center'
+          }}
+        >
+          {choices.map((choice, index) => (
+            <Button
+              key={index}
+              variant="outlined"
+              onClick={() => handleChoiceSelect(choice)}
+              disableRipple
+              sx={{
+                width: { xs: 'calc(50% - 6px)', sm: 'calc(50% - 6px)', md: 'calc(50% - 6px)' },
+                height: { xs: 40, md: 48 },
+                borderRadius: '12px',
+                fontSize: { xs: '0.7rem', md: '0.875rem' },
+                fontWeight: 500,
+                textTransform: 'none',
+                fontFamily: '"Noto Sans JP", sans-serif',
+                backgroundColor: selectedChoice === choice 
+                  ? stringToColor(themeColor)
+                  : colorWithLightOpacity(stringToColor(themeColor)),
+                color: selectedChoice === choice ? 'white' : '#14181B',
+                borderColor: colorWithBorderOpacity(stringToColor(themeColor)),
+                '&:hover': {
+                  backgroundColor: selectedChoice === choice 
+                    ? stringToColor(themeColor)
+                    : colorWithLightOpacity(stringToColor(themeColor)),
+                  borderColor: stringToColor(themeColor),
+                  transform: 'translateY(-1px)',
+                  boxShadow: `0 4px 12px ${colorWithBorderOpacity(stringToColor(themeColor))}`
+                },
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              {choice}
+            </Button>
+          ))}
+        </Box>
+      </Container>
+    </Box>
+  );
+};
+
+// Multiple Choice Matrix Question Component
+const MultipleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
+  const [selectedChoices, setSelectedChoices] = useState([]);
+
+  const handleChoiceToggle = (choiceValue) => {
+    const newSelectedChoices = selectedChoices.includes(choiceValue)
+      ? selectedChoices.filter(choice => choice !== choiceValue)
+      : [...selectedChoices, choiceValue];
+    
+    setSelectedChoices(newSelectedChoices);
+    onAnswerChange(question.id, { answers: newSelectedChoices });
+  };
+
+  const choices = question.choices ? JSON.parse(question.choices) : [];
+
+  return (
+    <Box
+      sx={{
+        py: '50px',
+        px: 3,
+        backgroundColor: '#F1F4F8',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        minHeight: '100vh'
+      }}
+    >
+      <Container
+        maxWidth="md"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}
+      >
+        {question.is_required && (
+          <Box
+            sx={{
+              backgroundColor: stringToColor(themeColor),
+              color: 'white',
+              px: 2,
+              py: 0.5,
+              borderRadius: '12px',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              mb: 2,
+              fontFamily: '"Noto Sans JP", sans-serif'
+            }}
+          >
+            必須
+          </Box>
+        )}
+
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 600,
+            color: '#14181B',
+            textAlign: 'center',
+            mb: 2,
+            fontSize: '1.25rem',  
+            fontFamily: '"Noto Sans JP", sans-serif'
+          }}
+        >
+          {question.question_text}
+        </Typography>
+
+        {question.detail_text && (
+          <Typography
+            variant="body2"
+            sx={{
+              color: '#57636C',
+              textAlign: 'center',
+              mb: 3,
+              fontSize: '0.875rem',
+              fontFamily: '"Noto Sans JP", sans-serif'
+            }}
+          >
+            {question.detail_text}
+          </Typography>
+        )}
+
+        <Box
+          sx={{
+            backgroundColor: 'rgba(0, 0, 0, 0.05)',
+            px: 2,
+            py: 0.5,
+            borderRadius: '12px',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            mb: 4,
+            color: '#57636C',
+            fontFamily: '"Noto Sans JP", sans-serif'
+          }}
+        >
+          {currentQuestion} / {totalQuestions}
+        </Box>
+
+        <Box 
+          sx={{ 
+            width: '100%',
+            maxWidth: { xs: '320px', sm: '400px', md: '500px' },
+            display: 'flex',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 1.5,
+            justifyContent: 'center'
+          }}
+        >
+          {choices.map((choice, index) => (
+            <Button
+              key={index}
+              variant="outlined"
+              onClick={() => handleChoiceToggle(choice)}
+              disableRipple
+              sx={{
+                width: { xs: 'calc(50% - 6px)', sm: 'calc(50% - 6px)', md: 'calc(50% - 6px)' },
+                height: { xs: 40, md: 48 },
+                borderRadius: '12px',
+                fontSize: { xs: '0.7rem', md: '0.875rem' },
+                fontWeight: 500,
+                textTransform: 'none',
+                fontFamily: '"Noto Sans JP", sans-serif',
+                backgroundColor: selectedChoices.includes(choice) 
+                  ? stringToColor(themeColor)
+                  : colorWithLightOpacity(stringToColor(themeColor)),
+                color: selectedChoices.includes(choice) ? 'white' : '#14181B',
+                borderColor: colorWithBorderOpacity(stringToColor(themeColor)),
+                '&:hover': {
+                  backgroundColor: selectedChoices.includes(choice) 
+                    ? stringToColor(themeColor)
+                    : colorWithLightOpacity(stringToColor(themeColor)),
+                  borderColor: stringToColor(themeColor),
+                  transform: 'translateY(-1px)',
+                  boxShadow: `0 4px 12px ${colorWithBorderOpacity(stringToColor(themeColor))}`
+                },
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              {choice}
+            </Button>
+          ))}
+        </Box>
+      </Container>
+    </Box>
+  );
+};
+
+// Linear Scale Question Component
 const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedValue, setSelectedValue] = useState(null);
 
@@ -571,7 +857,6 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
     onAnswerChange(question.id, { answer: value.toString() });
   };
 
-  // Parse scale labels or use defaults
   const scaleLabels = question.scale_labels ? JSON.parse(question.scale_labels) : {};
   const minLabel = scaleLabels.min_label || 'そう思わない';
   const maxLabel = scaleLabels.max_label || 'そう思う';
@@ -596,7 +881,6 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
           alignItems: 'center'
         }}
       >
-        {/* Required Badge */}
         {question.is_required && (
           <Box
             sx={{
@@ -615,7 +899,6 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
           </Box>
         )}
 
-        {/* Question Text */}
         <Typography
           variant="h5"
           sx={{
@@ -630,7 +913,6 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
           {question.question_text}
         </Typography>
 
-        {/* Detail Text */}
         {question.detail_text && (
           <Typography
             variant="body2"
@@ -646,7 +928,6 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
           </Typography>
         )}
 
-        {/* Progress Badge */}
         <Box
           sx={{
             backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -673,10 +954,24 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
             mb: 2
           }}
         >
-          <Typography variant="body2" sx={{ color: '#57636C', fontSize: '0.875rem' }}>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: '#57636C', 
+              fontSize: '0.875rem',
+              fontFamily: '"Noto Sans JP", sans-serif'
+            }}
+          >
             {minLabel}
           </Typography>
-          <Typography variant="body2" sx={{ color: '#57636C', fontSize: '0.875rem' }}>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: '#57636C', 
+              fontSize: '0.875rem',
+              fontFamily: '"Noto Sans JP", sans-serif'
+            }}
+          >
             {maxLabel}
           </Typography>
         </Box>
@@ -729,6 +1024,7 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
   );
 };
 
+// Pull Down Question Component
 const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedValue, setSelectedValue] = useState('');
 
@@ -737,7 +1033,6 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
     onAnswerChange(question.id, { answer: value });
   };
 
-  // Parse choices from JSON
   const choices = question.choices ? JSON.parse(question.choices) : [];
 
   return (
@@ -760,7 +1055,6 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
           alignItems: 'center'
         }}
       >
-        {/* Required Badge */}
         {question.is_required && (
           <Box
             sx={{
@@ -779,7 +1073,6 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
           </Box>
         )}
 
-        {/* Question Text */}
         <Typography
           variant="h5"
           sx={{
@@ -794,7 +1087,6 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
           {question.question_text}
         </Typography>
 
-        {/* Detail Text */}
         {question.detail_text && (
           <Typography
             variant="body2"
@@ -810,7 +1102,6 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
           </Typography>
         )}
 
-        {/* Progress Badge */}
         <Box
           sx={{
             backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -827,7 +1118,6 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
           {currentQuestion} / {totalQuestions}
         </Box>
 
-        {/* Answer Select */}
         <Box sx={{ width: '100%', maxWidth: 400 }}>
           <FormControl fullWidth>
             <Select
@@ -839,6 +1129,9 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 borderRadius: '12px',
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                   borderColor: stringToColor(themeColor)
+                },
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: '#F1F4F8'
                 }
               }}
               MenuProps={{
@@ -846,18 +1139,43 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                   sx: {
                     maxHeight: 280,
                     borderRadius: '8px',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                    '&::-webkit-scrollbar': {
+                      width: '8px'
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      backgroundColor: '#f1f3f4',
+                      borderRadius: '10px'
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      backgroundColor: '#dadce0',
+                      borderRadius: '10px',
+                      '&:hover': {
+                        backgroundColor: '#bdc1c6'
+                      }
+                    }
                   }
                 }
               }}
             >
               <MenuItem value="" disabled>
-                <Typography sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
+                <Typography 
+                  sx={{ 
+                    color: 'rgba(0, 0, 0, 0.6)',
+                    fontFamily: '"Noto Sans JP", sans-serif'
+                  }}
+                >
                   選択してください
                 </Typography>
               </MenuItem>
               {choices.map((choice, index) => (
-                <MenuItem key={index} value={choice}>
+                <MenuItem 
+                  key={index} 
+                  value={choice}
+                  sx={{
+                    fontFamily: '"Noto Sans JP", sans-serif'
+                  }}
+                >
                   {choice}
                 </MenuItem>
               ))}
@@ -874,22 +1192,28 @@ const PreviewQuestions = ({ previewMode }) => {
   const [answers, setAnswers] = useState({});
   const isMobile = previewMode === 'mobile';
 
-  // サンプルデータ
   const themeColor = '#5e17eb';
   const headerImage = 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
   const logoUrl = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
 
-  // サンプル質問データ
+  // 全質問タイプのサンプルデータ
   const sampleQuestions = [
     {
       id: 1,
       question_types_id: 1,
-      question_text: '基本情報をお聞かせください',
-      detail_text: 'あなたの基本的な情報について教えてください',
+      question_text: 'お名前を教えてください',
+      detail_text: 'フルネームでご記入ください',
       is_required: true
     },
     {
       id: 2,
+      question_types_id: 2,
+      question_text: 'ご意見・ご感想をお聞かせください',
+      detail_text: '詳しくお聞かせください',
+      is_required: false
+    },
+    {
+      id: 3,
       question_types_id: 3,
       question_text: '満足度を選択してください',
       detail_text: 'サービスに対する満足度を選んでください',
@@ -897,12 +1221,44 @@ const PreviewQuestions = ({ previewMode }) => {
       is_required: true
     },
     {
-      id: 3,
+      id: 4,
+      question_types_id: 4,
+      question_text: '利用したサービスを選択してください（複数選択可）',
+      detail_text: '該当するものをすべて選んでください',
+      choices: '["レストラン", "カフェ", "バー", "テイクアウト", "デリバリー"]',
+      is_required: false
+    },
+    {
+      id: 5,
+      question_types_id: 5,
+      question_text: '各項目について評価してください',
+      detail_text: '当てはまるものを一つ選んでください',
+      choices: '["とても良い", "良い", "普通", "悪い"]',
+      is_required: true
+    },
+    {
+      id: 6,
+      question_types_id: 6,
+      question_text: '改善してほしい項目を選択してください（複数選択可）',
+      detail_text: '該当するものをすべて選んでください',
+      choices: '["接客", "料理の質", "価格", "雰囲気"]',
+      is_required: false
+    },
+    {
+      id: 7,
       question_types_id: 7,
-      question_text: 'サービスの評価をお聞かせください',
+      question_text: 'サービスの総合評価をお聞かせください',
       detail_text: '1から5までの段階で評価してください',
       scale_labels: '{"min_label": "悪い", "max_label": "良い"}',
       is_required: true
+    },
+    {
+      id: 8,
+      question_types_id: 8,
+      question_text: '年齢層を選択してください',
+      detail_text: 'あなたの年齢層を選んでください',
+      choices: '["10代", "20代", "30代", "40代", "50代", "60代以上"]',
+      is_required: false
     }
   ];
 
@@ -954,6 +1310,28 @@ const PreviewQuestions = ({ previewMode }) => {
       case 4:
         return (
           <MultipleChoiceQuestion
+            key={question.id}
+            question={question}
+            themeColor={themeColor}
+            currentQuestion={questionNumber}
+            totalQuestions={totalQuestions}
+            onAnswerChange={handleAnswerChange}
+          />
+        );
+      case 5:
+        return (
+          <SingleChoiceMatrixQuestion
+            key={question.id}
+            question={question}
+            themeColor={themeColor}
+            currentQuestion={questionNumber}
+            totalQuestions={totalQuestions}
+            onAnswerChange={handleAnswerChange}
+          />
+        );
+      case 6:
+        return (
+          <MultipleChoiceMatrixQuestion
             key={question.id}
             question={question}
             themeColor={themeColor}
@@ -1049,7 +1427,6 @@ const PreviewQuestions = ({ previewMode }) => {
           width: '100%'
         }}
       >
-        {/* Background Image */}
         <Box
           sx={{
             position: 'absolute',
@@ -1063,7 +1440,6 @@ const PreviewQuestions = ({ previewMode }) => {
           }}
         />
 
-        {/* Gradient Overlay */}
         <Box
           sx={{
             position: 'absolute',
@@ -1077,7 +1453,6 @@ const PreviewQuestions = ({ previewMode }) => {
           }}
         />
 
-        {/* Logo for Mobile only */}
         {isMobile && (
           <Box
             sx={{
@@ -1103,62 +1478,36 @@ const PreviewQuestions = ({ previewMode }) => {
         )}
       </Box>
 
-      {/* Content Container */}
-      <Container
-        maxWidth={false}
-        sx={{
-          width: '100%',
-          maxWidth: isMobile ? '100%' : '900px',
-          margin: '0 auto',
-          backgroundColor: '#FFFFFF',
-          minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 350px)'
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: isMobile ? 'calc(100vh - 250px)' : 'calc(100vh - 350px)',
-            px: isMobile ? 3 : 4,
-            py: isMobile ? 0 : 2
-          }}
-        >
-          {/* Questions Content */}
-          <Box sx={{ flex: 1 }}>
-            {sampleQuestions.map((question, index) => (
-              <Box key={question.id} sx={{ mb: '50px' }}>
-                {renderQuestion(question, index)}
-              </Box>
-            ))}
+      {/* Questions Content */}
+      <Box sx={{ backgroundColor: '#FFFFFF' }}>
+        {sampleQuestions.map((question, index) => renderQuestion(question, index))}
 
-            {/* Navigation Section */}
-            <Box sx={{ py: 4, textAlign: 'center' }}>
-              <Button
-                variant="contained"
-                sx={{
-                  backgroundColor: stringToColor(themeColor),
-                  color: 'white',
-                  width: 200,
-                  height: 50,
-                  borderRadius: '24px',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  fontFamily: '"Noto Sans JP", sans-serif',
-                  boxShadow: 'none',
-                  '&:hover': {
-                    backgroundColor: stringToColor(themeColor),
-                    opacity: 0.9,
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
-                  }
-                }}
-              >
-                次へ進む
-              </Button>
-            </Box>
-          </Box>
+        {/* Navigation Section */}
+        <Box sx={{ py: 4, textAlign: 'center', backgroundColor: '#FFFFFF' }}>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: stringToColor(themeColor),
+              color: 'white',
+              width: 200,
+              height: 50,
+              borderRadius: '24px',
+              fontSize: '1rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              fontFamily: '"Noto Sans JP", sans-serif',
+              boxShadow: 'none',
+              '&:hover': {
+                backgroundColor: stringToColor(themeColor),
+                opacity: 0.9,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+              }
+            }}
+          >
+            送信
+          </Button>
         </Box>
-      </Container>
+      </Box>
     </Box>
   );
 };
