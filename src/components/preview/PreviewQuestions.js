@@ -1097,6 +1097,9 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
   const scaledFontSize = `${zoom}rem`;
   const scaledPadding = `${12 * zoom}px ${16 * zoom}px`;
   const scaledMinHeight = `${44 * zoom}px`;
+  
+  // デバッグ: zoom値を確認
+  console.log('PullDownQuestion - zoom:', zoom, 'scaledFontSize:', scaledFontSize);
 
   return (
     <>
@@ -1192,32 +1195,32 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      mt: 0.5 * zoom,
-                      borderRadius: `${8 * zoom}px`,
+                      mt: `${0.5 * zoom}rem !important`,
+                      borderRadius: `${8 * zoom}px !important`,
                       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                      maxHeight: `${240 * zoom}px`,
-                      minWidth: `${200 * zoom}px`,
-                      maxWidth: `${400 * zoom}px`,
-                      fontSize: scaledFontSize,
+                      maxHeight: `${240 * zoom}px !important`,
+                      minWidth: `${200 * zoom}px !important`,
+                      maxWidth: `${400 * zoom}px !important`,
+                      fontSize: `${scaledFontSize} !important`,
                       '& .MuiMenuItem-root': {
-                        fontSize: scaledFontSize,
+                        fontSize: `${scaledFontSize} !important`,
                         fontFamily: '"Noto Sans JP", sans-serif',
-                        minHeight: scaledMinHeight,
-                        padding: scaledPadding,
+                        minHeight: `${scaledMinHeight} !important`,
+                        padding: `${scaledPadding} !important`,
                         '&:hover': {
                           backgroundColor: 'rgba(94, 23, 235, 0.08)'
                         }
                       },
                       '&::-webkit-scrollbar': {
-                        width: `${6 * zoom}px`
+                        width: `${6 * zoom}px !important`
                       },
                       '&::-webkit-scrollbar-track': {
                         background: 'rgba(0, 0, 0, 0.02)',
-                        borderRadius: `${3 * zoom}px`
+                        borderRadius: `${3 * zoom}px !important`
                       },
                       '&::-webkit-scrollbar-thumb': {
                         background: 'rgba(0, 0, 0, 0.1)',
-                        borderRadius: `${3 * zoom}px`,
+                        borderRadius: `${3 * zoom}px !important`,
                         '&:hover': {
                           background: 'rgba(0, 0, 0, 0.15)'
                         }
