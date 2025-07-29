@@ -5,6 +5,7 @@ import HeaderBar from './HeaderBar';
 import PreviewArea from './PreviewArea';
 import QuestionToolsSidebar from './QuestionToolsSidebar';
 import QuestionSettingsPanel from './QuestionSettingsPanel';
+import QuestionSettingsMenu from './QuestionSettingsMenu';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import SettingsPanel from './settings/SettingsPanel';
 import { useCreatePageState } from '../hooks/useCreatePageState';
@@ -175,6 +176,9 @@ export default function CreatePage({ onBackClick }) {
 
   // ドラッグ&ドロップ関連の状態
   const [isDragActive, setIsDragActive] = useState(false);
+
+  // 質問選択状態
+  const [selectedQuestionId, setSelectedQuestionId] = useState(null);
 
   // 質問タイプの文字列を数値IDにマッピング
   const getQuestionTypeId = (typeString) => {
@@ -500,6 +504,38 @@ export default function CreatePage({ onBackClick }) {
     }
   };
 
+  // 質問選択ハンドラー
+  const handleQuestionSelect = (questionId) => {
+    setSelectedQuestionId(questionId);
+  };
+
+  // 質問更新ハンドラー
+  const handleQuestionUpdate = (questionId, updates) => {
+    if (!selectedPage) return;
+    
+    const currentQuestions = getQuestionsForPage(selectedPage.id);
+    const updatedQuestions = currentQuestions.map(q => 
+      q.id === questionId ? { ...q, ...updates } : q
+    );
+    
+    handleQuestionsUpdate(selectedPage.id, updatedQuestions);
+  };
+
+  // 質問削除ハンドラー
+  const handleQuestionDelete = (questionId) => {
+    if (!selectedPage) return;
+    
+    const currentQuestions = getQuestionsForPage(selectedPage.id);
+    const updatedQuestions = currentQuestions.filter(q => q.id !== questionId);
+    
+    handleQuestionsUpdate(selectedPage.id, updatedQuestions);
+    
+    // 削除された質問が選択されていた場合、選択を解除
+    if (selectedQuestionId === questionId) {
+      setSelectedQuestionId(null);
+    }
+  };
+
   return (
     <Box
       className={`main-container ${showSettings ? 'settings-active' : ''}`}
@@ -624,6 +660,8 @@ export default function CreatePage({ onBackClick }) {
                     onDrop={handleDrop}
                     isDragActive={isDragActive}
                     pages={pages}
+                    selectedQuestionId={selectedQuestionId}
+                    onQuestionSelect={handleQuestionSelect}
                   />
                   
                   {/* プレビューコントロール */}
@@ -945,7 +983,14 @@ export default function CreatePage({ onBackClick }) {
                     msOverflowStyle: 'none' // IE and Edge
                   }}
                 >
-                  {/* 空の白いContainer - 今後レビュー機能で使用予定 */}
+                  {/* 質問設定メニュー */}
+                  <QuestionSettingsMenu
+                    questions={selectedPage ? getQuestionsForPage(selectedPage.id) : []}
+                    selectedQuestionId={selectedQuestionId}
+                    onQuestionUpdate={handleQuestionUpdate}
+                    onQuestionDelete={handleQuestionDelete}
+                    onQuestionSelect={handleQuestionSelect}
+                  />
                 </Paper>
               </motion.div>
             )}

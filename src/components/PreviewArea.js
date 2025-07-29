@@ -21,7 +21,9 @@ const PreviewArea = ({
   onDragLeave,
   onDrop,
   isDragActive,
-  pages = []
+  pages = [],
+  selectedQuestionId,
+  onQuestionSelect
 }) => {
   const dropRef = useRef(null);
   const [dropIndicator, setDropIndicator] = useState(null);
@@ -105,6 +107,8 @@ const PreviewArea = ({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             dropRef={dropRef}
+            selectedQuestionId={selectedQuestionId}
+            onQuestionSelect={onQuestionSelect}
           />
         );
     }

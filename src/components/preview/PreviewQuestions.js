@@ -1309,7 +1309,9 @@ const PreviewQuestions = ({
   onDragOver,
   onDragLeave,
   onDrop,
-  dropRef
+  dropRef,
+  selectedQuestionId,
+  onQuestionSelect
 }) => {
   const [answers, setAnswers] = useState({});
   const isMobile = previewMode === 'mobile';
@@ -1331,10 +1333,54 @@ const PreviewQuestions = ({
   const renderQuestion = (question, index) => {
     const questionNumber = index + 1;
     const totalQuestions = displayQuestions.length;
+    const isSelected = selectedQuestionId === question.id;
+
+    const handleQuestionClick = (e) => {
+      // 入力フィールドをクリックした場合は質問選択を発火しない
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+      if (onQuestionSelect) {
+        onQuestionSelect(question.id);
+      }
+    };
+
+    const questionWrapper = (children) => (
+      <Box
+        onClick={handleQuestionClick}
+        sx={{
+          position: 'relative',
+          cursor: 'pointer',
+          borderRadius: 2,
+          border: isSelected ? '3px solid #5e17eb' : '3px solid transparent',
+          backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : 'transparent',
+          transition: 'all 0.3s ease',
+          '&::before': isSelected ? {
+            content: '"選択中"',
+            position: 'absolute',
+            top: -10,
+            right: 10,
+            backgroundColor: '#5e17eb',
+            color: 'white',
+            fontSize: '0.7rem',
+            fontWeight: 600,
+            padding: '2px 8px',
+            borderRadius: '12px',
+            zIndex: 10
+          } : {},
+          '&:hover': {
+            backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.05)' : 'rgba(94, 23, 235, 0.01)',
+            border: isSelected ? '3px solid #5e17eb' : '3px solid rgba(94, 23, 235, 0.2)'
+          }
+        }}
+      >
+        {children}
+      </Box>
+    );
 
     switch (question.question_types_id) {
       case 1:
-        return (
+        return questionWrapper(
           <ShortTextQuestion
             key={question.id}
             question={question}
@@ -1345,7 +1391,7 @@ const PreviewQuestions = ({
           />
         );
       case 2:
-        return (
+        return questionWrapper(
           <LongTextQuestion
             key={question.id}
             question={question}
@@ -1356,7 +1402,7 @@ const PreviewQuestions = ({
           />
         );
       case 3:
-        return (
+        return questionWrapper(
           <SingleChoiceQuestion
             key={question.id}
             question={question}
@@ -1367,7 +1413,7 @@ const PreviewQuestions = ({
           />
         );
       case 4:
-        return (
+        return questionWrapper(
           <MultipleChoiceQuestion
             key={question.id}
             question={question}
@@ -1378,7 +1424,7 @@ const PreviewQuestions = ({
           />
         );
       case 5:
-        return (
+        return questionWrapper(
           <SingleChoiceMatrixQuestion
             key={question.id}
             question={question}
@@ -1389,7 +1435,7 @@ const PreviewQuestions = ({
           />
         );
       case 6:
-        return (
+        return questionWrapper(
           <MultipleChoiceMatrixQuestion
             key={question.id}
             question={question}
@@ -1400,7 +1446,7 @@ const PreviewQuestions = ({
           />
         );
       case 7:
-        return (
+        return questionWrapper(
           <LinearScaleQuestion
             key={question.id}
             question={question}
@@ -1411,7 +1457,7 @@ const PreviewQuestions = ({
           />
         );
       case 8:
-        return (
+        return questionWrapper(
           <PullDownQuestion
             key={question.id}
             question={question}
