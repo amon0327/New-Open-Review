@@ -533,12 +533,70 @@ const QuestionSettingsMenu = ({
               rows={1}
             />
 
-            <StylishSwitch
-              label="必須回答"
-              description="回答者に必須で答えてもらう質問にする"
-              checked={selectedQuestion.is_required || false}
-              onChange={(e) => handleQuestionUpdate('is_required', e.target.checked)}
-            />
+            <Box>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  mb: 1,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: '#374151',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                必須回答
+              </Typography>
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  p: 2,
+                  backgroundColor: '#F8FAFC',
+                  borderRadius: '6px',
+                  border: '1px solid #E2E8F0',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <Box>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      fontWeight: 500,
+                      color: '#1F2937',
+                      fontSize: '0.875rem',
+                      mb: 0.5
+                    }}
+                  >
+                    必須回答にする
+                  </Typography>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      color: '#6B7280',
+                      fontSize: '0.75rem'
+                    }}
+                  >
+                    回答者に必須で答えてもらう質問にする
+                  </Typography>
+                </Box>
+                <Switch
+                  checked={selectedQuestion.is_required || false}
+                  onChange={(e) => handleQuestionUpdate('is_required', e.target.checked)}
+                  sx={{
+                    '& .MuiSwitch-switchBase': {
+                      '&.Mui-checked': {
+                        color: '#5E17EB',
+                        '& + .MuiSwitch-track': {
+                          backgroundColor: '#5E17EB'
+                        }
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Box>
 
             {/* 質問タイプ別設定 */}
             {[3, 4, 8].includes(typeId) && (
