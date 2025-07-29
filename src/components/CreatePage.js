@@ -176,6 +176,21 @@ export default function CreatePage({ onBackClick }) {
   // ドラッグ&ドロップ関連の状態
   const [isDragActive, setIsDragActive] = useState(false);
 
+  // 質問タイプの文字列を数値IDにマッピング
+  const getQuestionTypeId = (typeString) => {
+    const typeMapping = {
+      'text': 1,        // 短文テキスト
+      'textarea': 2,    // 長文テキスト
+      'radio': 3,       // 単一選択
+      'checkbox': 4,    // 複数選択
+      'matrix-single': 5, // 単一選択マトリックス
+      'matrix-multiple': 6, // 複数選択マトリックス
+      'scale': 7,       // リニアスケール
+      'select': 8       // プルダウン
+    };
+    return typeMapping[typeString] || 1; // デフォルトは短文テキスト
+  };
+
   // サンプルページデータ
   const [pages, setPages] = useState([
     { id: 'login', title: 'ログイン画面', type: 'system', icon: <Login />, canDelete: false, canEdit: false },
@@ -225,9 +240,11 @@ export default function CreatePage({ onBackClick }) {
       const draggedData = JSON.parse(e.dataTransfer.getData('application/json'));
       
       // 質問タイプからデフォルトデータを作成
+      const questionTypeId = draggedData.question_types_id || getQuestionTypeId(draggedData.type);
+      
       let newQuestion = {
         id: Date.now() + Math.random(),
-        question_types_id: draggedData.type || draggedData.question_types_id || 1,
+        question_types_id: questionTypeId,
         question_text: draggedData.question || draggedData.question_text || draggedData.label || '新しい質問',
         detail_text: draggedData.detail || draggedData.detail_text || '',
         is_required: draggedData.required || false,
@@ -236,12 +253,12 @@ export default function CreatePage({ onBackClick }) {
       };
 
       // 質問タイプに応じてデフォルト設定を追加
-      const needsChoices = [3, 4, 8].includes(newQuestion.question_types_id);
+      const needsChoices = [3, 4, 8].includes(questionTypeId);
       if (needsChoices) {
         newQuestion.choices = JSON.stringify(['選択肢 1', '選択肢 2']);
       }
 
-      if (newQuestion.question_types_id === 7) {
+      if (questionTypeId === 7) {
         newQuestion.scale_settings = JSON.stringify({
           minValue: 1,
           maxValue: 5,
@@ -252,12 +269,26 @@ export default function CreatePage({ onBackClick }) {
 
       // テンプレート質問の場合は内容をコピー
       if (draggedData.isTemplate) {
+        // テンプレートの質問タイプを適用
+        newQuestion.question_types_id = getQuestionTypeId(draggedData.type);
+        
         if (draggedData.choices) {
           newQuestion.choices = JSON.stringify(draggedData.choices);
         }
         // テンプレート質問の詳細設定があれば適用
         if (draggedData.detail) {
           newQuestion.detail_text = draggedData.detail;
+        }
+        
+        // テンプレート質問タイプに応じた設定を再適用
+        const templateTypeId = getQuestionTypeId(draggedData.type);
+        if (templateTypeId === 7 && !newQuestion.scale_settings) {
+          newQuestion.scale_settings = JSON.stringify({
+            minValue: 1,
+            maxValue: 5,
+            minLabel: 'そう思わない',
+            maxLabel: 'そう思う'
+          });
         }
       }
 
