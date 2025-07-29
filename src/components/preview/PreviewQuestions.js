@@ -1092,14 +1092,6 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
   };
 
   const choices = question.choices ? JSON.parse(question.choices) : [];
-  
-  // ズーム値に応じたフォントサイズ調整
-  const scaledFontSize = `${zoom}rem`;
-  const scaledPadding = `${12 * zoom}px ${16 * zoom}px`;
-  const scaledMinHeight = `${44 * zoom}px`;
-  
-  // デバッグ: zoom値を確認
-  console.log('PullDownQuestion - zoom:', zoom, 'scaledFontSize:', scaledFontSize);
 
   return (
     <>
@@ -1186,41 +1178,47 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
             </Box>
           </Box>
 
-          <Box sx={{ width: '100%', maxWidth: 400 }}>
+          <Box sx={{ 
+            width: '100%', 
+            maxWidth: 400,
+            transform: `scale(${zoom})`,
+            transformOrigin: 'top left'
+          }}>
             <FormControl fullWidth>
               <Select
                 value={selectedValue}
                 onChange={(e) => handleValueChange(e.target.value)}
                 displayEmpty
                 MenuProps={{
+                  disablePortal: true,
                   PaperProps: {
                     sx: {
-                      mt: `${0.5 * zoom}rem !important`,
-                      borderRadius: `${8 * zoom}px !important`,
+                      mt: 0.5,
+                      borderRadius: '8px',
                       boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                      maxHeight: `${240 * zoom}px !important`,
-                      minWidth: `${200 * zoom}px !important`,
-                      maxWidth: `${400 * zoom}px !important`,
-                      fontSize: `${scaledFontSize} !important`,
+                      maxHeight: '240px',
+                      minWidth: '200px',
+                      maxWidth: '400px',
+                      fontSize: '1rem',
                       '& .MuiMenuItem-root': {
-                        fontSize: `${scaledFontSize} !important`,
+                        fontSize: '1rem',
                         fontFamily: '"Noto Sans JP", sans-serif',
-                        minHeight: `${scaledMinHeight} !important`,
-                        padding: `${scaledPadding} !important`,
+                        minHeight: '44px',
+                        padding: '8px 16px',
                         '&:hover': {
                           backgroundColor: 'rgba(94, 23, 235, 0.08)'
                         }
                       },
                       '&::-webkit-scrollbar': {
-                        width: `${6 * zoom}px !important`
+                        width: '6px'
                       },
                       '&::-webkit-scrollbar-track': {
                         background: 'rgba(0, 0, 0, 0.02)',
-                        borderRadius: `${3 * zoom}px !important`
+                        borderRadius: '3px'
                       },
                       '&::-webkit-scrollbar-thumb': {
                         background: 'rgba(0, 0, 0, 0.1)',
-                        borderRadius: `${3 * zoom}px !important`,
+                        borderRadius: '3px',
                         '&:hover': {
                           background: 'rgba(0, 0, 0, 0.15)'
                         }
