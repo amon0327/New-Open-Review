@@ -325,8 +325,7 @@ const QuestionSettingsMenu = ({
             value={selectedTab}
             onChange={handleTabChange}
             variant="scrollable"
-            scrollButtons="auto"
-            allowScrollButtonsMobile
+            scrollButtons={false}
             sx={{
               '& .MuiTabs-root': {
                 minHeight: 48
@@ -337,8 +336,8 @@ const QuestionSettingsMenu = ({
                 fontSize: '0.875rem',
                 fontWeight: 500,
                 color: '#6B7280',
-                minWidth: 'auto',
-                px: 2,
+                minWidth: 80,
+                px: 1.5,
                 '&.Mui-selected': {
                   color: '#5E17EB',
                   fontWeight: 600
@@ -347,12 +346,6 @@ const QuestionSettingsMenu = ({
               '& .MuiTabs-indicator': {
                 backgroundColor: '#5E17EB',
                 height: 2
-              },
-              '& .MuiTabs-scrollButtons': {
-                color: '#6B7280',
-                '&.Mui-disabled': {
-                  opacity: 0.3
-                }
               },
               '& .MuiTabs-scroller': {
                 overflow: 'auto !important',
@@ -363,7 +356,7 @@ const QuestionSettingsMenu = ({
                 msOverflowStyle: 'none'
               },
               '& .MuiTabs-flexContainer': {
-                gap: 1
+                gap: 0.5
               }
             }}
           >
