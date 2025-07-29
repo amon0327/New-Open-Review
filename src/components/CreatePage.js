@@ -185,6 +185,13 @@ export default function CreatePage({ onBackClick }) {
   const [headerImage, setHeaderImage] = useState(null);
   const [logoImageState, setLogoImageState] = useState(null);
 
+  // テキスト設定の状態
+  const [loginTitle, setLoginTitle] = useState('OpenReviewへようこそ！');
+  const [loginDetail, setLoginDetail] = useState('あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。');
+  const [completionTitle, setCompletionTitle] = useState('ありがとうございました！');
+  const [completionDetail, setCompletionDetail] = useState('あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。');
+  const [completionBackground, setCompletionBackground] = useState('https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg');
+
   // 質問タイプの文字列を数値IDにマッピング
   const getQuestionTypeId = (typeString) => {
     const typeMapping = {
@@ -730,6 +737,12 @@ export default function CreatePage({ onBackClick }) {
                     logoImage={logoImageState}
                     onElementSelect={handleElementSelect}
                     selectedElement={selectedElement}
+                    // テキスト設定
+                    loginTitle={loginTitle}
+                    loginDetail={loginDetail}
+                    completionTitle={completionTitle}
+                    completionDetail={completionDetail}
+                    completionBackground={completionBackground}
                   />
                   
                   {/* プレビューコントロール */}
@@ -1068,6 +1081,17 @@ export default function CreatePage({ onBackClick }) {
                     logoImage={logoImageState}
                     onHeaderImageChange={handleHeaderImageChange}
                     onLogoImageChange={handleLogoImageChange}
+                    // テキスト設定
+                    loginTitle={loginTitle}
+                    setLoginTitle={setLoginTitle}
+                    loginDetail={loginDetail}
+                    setLoginDetail={setLoginDetail}
+                    completionTitle={completionTitle}
+                    setCompletionTitle={setCompletionTitle}
+                    completionDetail={completionDetail}
+                    setCompletionDetail={setCompletionDetail}
+                    completionBackground={completionBackground}
+                    setCompletionBackground={setCompletionBackground}
                   />
                 </Paper>
               </motion.div>

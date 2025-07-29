@@ -240,7 +240,18 @@ const QuestionSettingsMenu = ({
   headerImage = null,
   logoImage = null,
   onHeaderImageChange,
-  onLogoImageChange
+  onLogoImageChange,
+  // テキスト設定のprops
+  loginTitle,
+  setLoginTitle,
+  loginDetail,
+  setLoginDetail,
+  completionTitle,
+  setCompletionTitle,
+  completionDetail,
+  setCompletionDetail,
+  completionBackground,
+  setCompletionBackground
 }) => {
   const [editingChoices, setEditingChoices] = useState({});
   const [selectedTab, setSelectedTab] = useState(2); // デフォルトで基本設定タブ
@@ -253,13 +264,6 @@ const QuestionSettingsMenu = ({
   // カラーピッカーの状態
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [selectedColor, setSelectedColor] = useState('#5e17eb');
-
-  // テキスト設定の状態
-  const [loginTitle, setLoginTitle] = useState('OpenReviewへようこそ！');
-  const [loginDetail, setLoginDetail] = useState('あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。');
-  const [completionTitle, setCompletionTitle] = useState('ありがとうございました！');
-  const [completionDetail, setCompletionDetail] = useState('あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。');
-  const [completionBackground, setCompletionBackground] = useState('https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg');
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
@@ -1455,8 +1459,8 @@ const QuestionSettingsMenu = ({
                 <AccordionDetails sx={{ pt: 0 }}>
                   <StylishTextField
                     label="タイトルテキスト"
-                    value={loginTitle}
-                    onChange={(e) => setLoginTitle(e.target.value)}
+                    value={loginTitle || 'OpenReviewへようこそ！'}
+                    onChange={(e) => setLoginTitle && setLoginTitle(e.target.value)}
                     placeholder="ログイン画面のタイトル"
                   />
                 </AccordionDetails>
@@ -1524,8 +1528,8 @@ const QuestionSettingsMenu = ({
                 <AccordionDetails sx={{ pt: 0 }}>
                   <StylishTextField
                     label="詳細テキスト"
-                    value={loginDetail}
-                    onChange={(e) => setLoginDetail(e.target.value)}
+                    value={loginDetail || 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。'}
+                    onChange={(e) => setLoginDetail && setLoginDetail(e.target.value)}
                     multiline
                     minRows={1}
                     maxRows={3}
@@ -1603,8 +1607,8 @@ const QuestionSettingsMenu = ({
               <AccordionDetails sx={{ pt: 0 }}>
                 <StylishTextField
                   label="背景画像URL"
-                  value={completionBackground}
-                  onChange={(e) => setCompletionBackground(e.target.value)}
+                  value={completionBackground || 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg'}
+                  onChange={(e) => setCompletionBackground && setCompletionBackground(e.target.value)}
                   placeholder="背景画像のURLを入力"
                 />
               </AccordionDetails>
@@ -1673,8 +1677,8 @@ const QuestionSettingsMenu = ({
               <AccordionDetails sx={{ pt: 0 }}>
                 <StylishTextField
                   label="タイトルテキスト"
-                  value={completionTitle}
-                  onChange={(e) => setCompletionTitle(e.target.value)}
+                  value={completionTitle || 'ありがとうございました！'}
+                  onChange={(e) => setCompletionTitle && setCompletionTitle(e.target.value)}
                   placeholder="完了画面のタイトル"
                 />
               </AccordionDetails>
@@ -1742,8 +1746,8 @@ const QuestionSettingsMenu = ({
               <AccordionDetails sx={{ pt: 0 }}>
                 <StylishTextField
                   label="詳細テキスト"
-                  value={completionDetail}
-                  onChange={(e) => setCompletionDetail(e.target.value)}
+                  value={completionDetail || 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。'}
+                  onChange={(e) => setCompletionDetail && setCompletionDetail(e.target.value)}
                   multiline
                   minRows={1}
                   maxRows={3}
