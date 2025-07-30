@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Button,
-  Stack
+  Button
 } from '@mui/material';
 import { getCompletionPageData } from '../../services/LoginScreenService';
 
@@ -56,14 +55,10 @@ const PreviewCompletion = ({
   const titleText = completionTitleText || (completionData?.completionSettings?.title_text) || 'ありがとうございました！';
   const detailText = completionDetailText || (completionData?.completionSettings?.detail_text) || 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。';
 
-  // ボタン設定
-  const button1Enabled = completionData?.completionSettings?.is_button_1_enabled || false;
-  const button1Text = completionData?.completionSettings?.button_text_1 || 'ボタンテキスト';
-  const button1Url = completionData?.completionSettings?.button_url_1 || '#';
-  
-  const button2Enabled = completionData?.completionSettings?.is_button_2_enabled || false;
-  const button2Text = completionData?.completionSettings?.button_text_2 || 'ボタンテキスト';
-  const button2Url = completionData?.completionSettings?.button_url_2 || '#';
+  // ボタン設定（1つのボタンのみ使用）
+  const buttonEnabled = completionData?.completionSettings?.is_button_1_enabled || false;
+  const buttonText = completionData?.completionSettings?.button_text_1 || '完了';
+  const buttonUrl = completionData?.completionSettings?.button_url_1 || '#';
 
   const handleButtonClick = () => {
     // プレビュー用なので何もしない
@@ -265,170 +260,55 @@ const PreviewCompletion = ({
             pb: isMobile ? 4 : 12
           }}
         >
-          <Stack
-            direction={isMobile ? 'column' : 'row'}
-            spacing={2}
-            alignItems="center"
+          <Button
+            variant="contained"
+            onClick={(e) => {
+              e.stopPropagation();
+              onElementSelect && onElementSelect('completion-button');
+            }}
+            sx={{
+              backgroundColor: themeColor,
+              color: 'white',
+              width: '280px',
+              height: isMobile ? 56 : 64,
+              borderRadius: isMobile ? '28px' : '32px',
+              fontSize: isMobile ? '1rem' : '1.1rem',
+              fontWeight: 700,
+              textTransform: 'none',
+              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              animation: 'fadeInUp 0.8s ease-out 0.8s both',
+              cursor: 'pointer',
+              position: 'relative',
+              zIndex: 2,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: themeColor,
+                boxShadow: '0 16px 50px rgba(0, 0, 0, 0.35)',
+                transform: 'translateY(-3px) scale(1.02)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+              },
+              '&:active': {
+                transform: 'translateY(-1px) scale(0.98)',
+                transition: 'all 0.1s ease'
+              },
+              '&::after': selectedElement === 'completion-button' ? {
+                content: '""',
+                position: 'absolute',
+                top: -8,
+                left: -8,
+                right: -8,
+                bottom: -8,
+                backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                borderRadius: isMobile ? '36px' : '40px',
+                zIndex: -1,
+                pointerEvents: 'none'
+              } : {}
+            }}
           >
-            {/* Button 1 */}
-            {button1Enabled && (
-              <Button
-                variant="contained"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onElementSelect && onElementSelect('completion-button-1');
-                }}
-                sx={{
-                  backgroundColor: themeColor,
-                  color: 'white',
-                  width: '280px',
-                  height: isMobile ? 56 : 64,
-                  borderRadius: isMobile ? '28px' : '32px',
-                  fontSize: isMobile ? '1rem' : '1.1rem',
-                  fontWeight: 700,
-                  textTransform: 'none',
-                  boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  animation: 'fadeInUp 0.8s ease-out 0.8s both',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  zIndex: 2,
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: themeColor,
-                    boxShadow: '0 16px 50px rgba(0, 0, 0, 0.35)',
-                    transform: 'translateY(-3px) scale(1.02)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                  },
-                  '&:active': {
-                    transform: 'translateY(-1px) scale(0.98)',
-                    transition: 'all 0.1s ease'
-                  },
-                  '&::after': selectedElement === 'completion-button-1' ? {
-                    content: '""',
-                    position: 'absolute',
-                    top: -8,
-                    left: -8,
-                    right: -8,
-                    bottom: -8,
-                    backgroundColor: 'rgba(94, 23, 235, 0.3)',
-                    borderRadius: isMobile ? '36px' : '40px',
-                    zIndex: -1,
-                    pointerEvents: 'none'
-                  } : {}
-                }}
-              >
-                {button1Text}
-              </Button>
-            )}
-            
-            {/* Button 2 */}
-            {button2Enabled && (
-              <Button
-                variant="outlined"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onElementSelect && onElementSelect('completion-button-2');
-                }}
-                sx={{
-                  borderColor: 'rgba(255, 255, 255, 0.5)',
-                  color: 'white',
-                  width: '280px',
-                  height: isMobile ? 56 : 64,
-                  borderRadius: isMobile ? '28px' : '32px',
-                  fontSize: isMobile ? '1rem' : '1.1rem',
-                  fontWeight: 700,
-                  textTransform: 'none',
-                  boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25)',
-                  backdropFilter: 'blur(10px)',
-                  animation: 'fadeInUp 0.8s ease-out 0.9s both',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  zIndex: 2,
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: 'rgba(255, 255, 255, 0.8)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 16px 50px rgba(0, 0, 0, 0.35)',
-                    transform: 'translateY(-3px) scale(1.02)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                  },
-                  '&:active': {
-                    transform: 'translateY(-1px) scale(0.98)',
-                    transition: 'all 0.1s ease'
-                  },
-                  '&::after': selectedElement === 'completion-button-2' ? {
-                    content: '""',
-                    position: 'absolute',
-                    top: -8,
-                    left: -8,
-                    right: -8,
-                    bottom: -8,
-                    backgroundColor: 'rgba(94, 23, 235, 0.3)',
-                    borderRadius: isMobile ? '36px' : '40px',
-                    zIndex: -1,
-                    pointerEvents: 'none'
-                  } : {}
-                }}
-              >
-                {button2Text}
-              </Button>
-            )}
-
-            {/* デフォルトボタン（両方のボタンが無効の場合） */}
-            {!button1Enabled && !button2Enabled && (
-              <Button
-                variant="contained"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onElementSelect && onElementSelect('completion-button');
-                }}
-                sx={{
-                  backgroundColor: themeColor,
-                  color: 'white',
-                  width: '280px',
-                  height: isMobile ? 56 : 64,
-                  borderRadius: isMobile ? '28px' : '32px',
-                  fontSize: isMobile ? '1rem' : '1.1rem',
-                  fontWeight: 700,
-                  textTransform: 'none',
-                  boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  animation: 'fadeInUp 0.8s ease-out 0.8s both',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  zIndex: 2,
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    backgroundColor: themeColor,
-                    boxShadow: '0 16px 50px rgba(0, 0, 0, 0.35)',
-                    transform: 'translateY(-3px) scale(1.02)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                  },
-                  '&:active': {
-                    transform: 'translateY(-1px) scale(0.98)',
-                    transition: 'all 0.1s ease'
-                  },
-                  '&::after': selectedElement === 'completion-button' ? {
-                    content: '""',
-                    position: 'absolute',
-                    top: -8,
-                    left: -8,
-                    right: -8,
-                    bottom: -8,
-                    backgroundColor: 'rgba(94, 23, 235, 0.3)',
-                    borderRadius: isMobile ? '36px' : '40px',
-                    zIndex: -1,
-                    pointerEvents: 'none'
-                  } : {}
-                }}
-              >
-                完了
-              </Button>
-            )}
-          </Stack>
+            {buttonText}
+          </Button>
         </Box>
 
         {/* Decorative elements for mobile */}
