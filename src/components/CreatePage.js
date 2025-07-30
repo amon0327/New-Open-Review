@@ -190,6 +190,15 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const [selectedElement, setSelectedElement] = useState(null); // 'header', 'logo', null
   const [headerImage, setHeaderImage] = useState(null);
   const [logoImageState, setLogoImageState] = useState(null);
+  
+  // フォーム設定の状態（Supabaseから取得・更新）
+  const [formSettings, setFormSettings] = useState({
+    theme_color: '#5e17eb',
+    logo_image_url: 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png',
+    header_image_url: null,
+    is_dark_mode: false
+  });
+  const [isLoadingFormSettings, setIsLoadingFormSettings] = useState(false);
 
   // 質問タイプデータ（Supabaseから取得）
   const [questionTypesData, setQuestionTypesData] = useState([]);
@@ -287,6 +296,33 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
     loadTemplateQuestions();
   }, []);
+
+  // フォーム設定を読み込み
+  useEffect(() => {
+    const loadFormSettings = async () => {
+      if (formId) {
+        setIsLoadingFormSettings(true);
+        try {
+          const result = await FormDataService.getFormSettings(formId);
+          if (result.success) {
+            setFormSettings(result.data);
+            // ローカル状態も更新
+            setHeaderImage(result.data.header_image_url);
+            setLogoImageState(result.data.logo_image_url);
+          } else {
+            toast.error('フォーム設定の読み込みに失敗しました');
+          }
+        } catch (error) {
+          console.error('Form settings loading error:', error);
+          toast.error('フォーム設定の読み込み中にエラーが発生しました');
+        } finally {
+          setIsLoadingFormSettings(false);
+        }
+      }
+    };
+
+    loadFormSettings();
+  }, [formId]);
 
   // フォームIDが存在する場合にページを読み込み
   useEffect(() => {
@@ -1000,11 +1036,86 @@ export default function CreatePage({ onBackClick, user, formId }) {
   };
 
   const handleHeaderImageChange = (imageData) => {
-    setHeaderImage(imageData);
+    if (imageData) {
+      // Base64データの場合はそのまま使用（一時的）
+      // 実際の実装では、ここでSupabase Storageにアップロードしてから
+      // URLを取得してhandleHeaderImageUpdateを呼び出す
+      handleHeaderImageUpdate(imageData);
+    } else {
+      // 画像削除の場合
+      handleHeaderImageUpdate(null);
+    }
   };
 
   const handleLogoImageChange = (imageData) => {
-    setLogoImageState(imageData);
+    if (imageData) {
+      // Base64データの場合はそのまま使用（一時的）
+      // 実際の実装では、ここでSupabase Storageにアップロードしてから
+      // URLを取得してhandleLogoImageUpdateを呼び出す
+      handleLogoImageUpdate(imageData);
+    } else {
+      // 画像削除の場合
+      handleLogoImageUpdate(null);
+    }
+  };
+
+  // 基本設定更新ハンドラー（楽観的UI更新 + Supabase保存）
+  const handleThemeColorUpdate = async (themeColor) => {
+    // 即座にローカル状態を更新
+    setFormSettings(prev => ({ ...prev, theme_color: themeColor }));
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await FormDataService.updateThemeColor(formId, themeColor);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Theme color update error:', error);
+      // エラー時は元の状態に戻す
+      setFormSettings(prev => ({ ...prev, theme_color: formSettings.theme_color }));
+      toast.error('テーマカラーの更新に失敗しました');
+    }
+  };
+
+  const handleLogoImageUpdate = async (logoImageUrl) => {
+    // 即座にローカル状態を更新
+    setFormSettings(prev => ({ ...prev, logo_image_url: logoImageUrl }));
+    setLogoImageState(logoImageUrl);
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await FormDataService.updateLogoImage(formId, logoImageUrl);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Logo image update error:', error);
+      // エラー時は元の状態に戻す
+      setFormSettings(prev => ({ ...prev, logo_image_url: formSettings.logo_image_url }));
+      setLogoImageState(formSettings.logo_image_url);
+      toast.error('ロゴ画像の更新に失敗しました');
+    }
+  };
+
+  const handleHeaderImageUpdate = async (headerImageUrl) => {
+    // 即座にローカル状態を更新
+    setFormSettings(prev => ({ ...prev, header_image_url: headerImageUrl }));
+    setHeaderImage(headerImageUrl);
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await FormDataService.updateHeaderImage(formId, headerImageUrl);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Header image update error:', error);
+      // エラー時は元の状態に戻す
+      setFormSettings(prev => ({ ...prev, header_image_url: formSettings.header_image_url }));
+      setHeaderImage(formSettings.header_image_url);
+      toast.error('ヘッダー画像の更新に失敗しました');
+    }
   };
 
   return (
@@ -1167,6 +1278,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     logoImage={logoImageState}
                     onElementSelect={handleElementSelect}
                     selectedElement={selectedElement}
+                    // フォーム設定
+                    formSettings={formSettings}
                     // テキスト設定
                     loginTitle={loginTitle}
                     loginDetail={loginDetail}
@@ -1533,6 +1646,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     logoImage={logoImageState}
                     onHeaderImageChange={handleHeaderImageChange}
                     onLogoImageChange={handleLogoImageChange}
+                    // 基本設定のハンドラーを追加
+                    selectedColor={formSettings.theme_color}
+                    onThemeColorChange={handleThemeColorUpdate}
                     // 専用テーブル更新ハンドラー
                     onChoiceOptionsUpdate={handleChoiceOptionsUpdate}
                     onLinearScaleOptionsUpdate={handleLinearScaleOptionsUpdate}

@@ -29,6 +29,7 @@ const PreviewArea = ({
   logoImage,
   onElementSelect,
   selectedElement,
+  formSettings = {}, // フォーム設定（テーマカラー、ダークモードなど）
   // フォームID
   formId,
   // テキスト設定関連（プレビュー即座更新用）
@@ -101,6 +102,9 @@ const PreviewArea = ({
             formId={formId}
             loginTitleText={loginTitle}
             loginDetailText={loginDetail}
+            formSettings={formSettings}
+            headerImage={headerImage}
+            logoImage={logoImage}
           />
         );
       case 'completion':
@@ -113,6 +117,9 @@ const PreviewArea = ({
             completionTitleText={completionTitle}
             completionDetailText={completionDetail}
             completionBackgroundImage={completionBackground}
+            formSettings={formSettings}
+            headerImage={headerImage}
+            logoImage={logoImage}
           />
         );
       default:
@@ -136,6 +143,7 @@ const PreviewArea = ({
             onElementSelect={onElementSelect}
             selectedElement={selectedElement}
             formId={formId}
+            formSettings={formSettings}
           />
         );
     }

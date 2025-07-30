@@ -522,6 +522,146 @@ export class FormDataService {
       };
     }
   }
+
+  /**
+   * フォーム設定を取得（テーマカラー、ロゴ、ヘッダー画像など）
+   * @param {string} formId - フォームID
+   * @returns {Promise<Object>} フォーム設定データ
+   */
+  static async getFormSettings(formId) {
+    try {
+      const { data, error } = await supabase
+        .from('review_form_settings')
+        .select('*')
+        .eq('review_form_id', formId)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // データが存在しない場合はデフォルト設定を返す
+          return {
+            success: true,
+            data: {
+              id: null,
+              review_form_id: formId,
+              logo_image_url: 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png',
+              is_dark_mode: false,
+              theme_color: '#5e17eb',
+              header_image_url: null
+            }
+          };
+        }
+        throw error;
+      }
+
+      return {
+        success: true,
+        data: data || {}
+      };
+    } catch (error) {
+      console.error('Error fetching form settings:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * フォーム設定を更新または作成
+   * @param {string} formId - フォームID
+   * @param {Object} settings - 設定データ
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateFormSettings(formId, settings) {
+    try {
+      // 既存の設定があるかチェック
+      const { data: existingSettings } = await supabase
+        .from('review_form_settings')
+        .select('id')
+        .eq('review_form_id', formId)
+        .single();
+
+      let result;
+      if (existingSettings) {
+        // 更新
+        result = await supabase
+          .from('review_form_settings')
+          .update({
+            ...settings,
+            updated_at: new Date().toISOString()
+          })
+          .eq('review_form_id', formId)
+          .select()
+          .single();
+      } else {
+        // 新規作成
+        result = await supabase
+          .from('review_form_settings')
+          .insert([{
+            review_form_id: formId,
+            ...settings
+          }])
+          .select()
+          .single();
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return {
+        success: true,
+        data: result.data
+      };
+    } catch (error) {
+      console.error('Error updating form settings:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * テーマカラーを更新
+   * @param {string} formId - フォームID
+   * @param {string} themeColor - テーマカラー（#5e17eb形式）
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateThemeColor(formId, themeColor) {
+    return await this.updateFormSettings(formId, { theme_color: themeColor });
+  }
+
+  /**
+   * ロゴ画像URLを更新
+   * @param {string} formId - フォームID
+   * @param {string} logoImageUrl - ロゴ画像URL
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateLogoImage(formId, logoImageUrl) {
+    return await this.updateFormSettings(formId, { logo_image_url: logoImageUrl });
+  }
+
+  /**
+   * ヘッダー画像URLを更新
+   * @param {string} formId - フォームID
+   * @param {string} headerImageUrl - ヘッダー画像URL
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateHeaderImage(formId, headerImageUrl) {
+    return await this.updateFormSettings(formId, { header_image_url: headerImageUrl });
+  }
+
+  /**
+   * ダークモード設定を更新
+   * @param {string} formId - フォームID
+   * @param {boolean} isDarkMode - ダークモード有効フラグ
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateDarkMode(formId, isDarkMode) {
+    return await this.updateFormSettings(formId, { is_dark_mode: isDarkMode });
+  }
 }
 
 export default FormDataService;

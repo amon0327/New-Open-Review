@@ -248,6 +248,8 @@ const QuestionSettingsMenu = ({
   logoImage = null,
   onHeaderImageChange,
   onLogoImageChange,
+  selectedColor = '#5e17eb',
+  onThemeColorChange,
   // テキスト設定のprops
   loginTitle,
   setLoginTitle,
@@ -270,7 +272,7 @@ const QuestionSettingsMenu = ({
   
   // カラーピッカーの状態
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const [selectedColor, setSelectedColor] = useState('#5e17eb');
+  const [localSelectedColor, setLocalSelectedColor] = useState(selectedColor);
   
   // テキストフィールドのローカル状態管理（onBlur時に更新）
   const [localTextValues, setLocalTextValues] = useState({
@@ -353,6 +355,11 @@ const QuestionSettingsMenu = ({
   useEffect(() => {
     setLocalCompletionDetail(completionDetail || '');
   }, [completionDetail]);
+
+  // selectedColorの変更時にlocalSelectedColorを更新
+  useEffect(() => {
+    setLocalSelectedColor(selectedColor);
+  }, [selectedColor]);
 
   // ページタイプと選択状態に応じてタブを制御
   useEffect(() => {
@@ -561,9 +568,11 @@ const QuestionSettingsMenu = ({
 
   // カラー変更ハンドラー
   const handleColorChange = (color) => {
-    setSelectedColor(color.hex);
-    // ここで実際のテーマカラー変更処理を行う
-    console.log('Theme color changed to:', color.hex);
+    setLocalSelectedColor(color.hex);
+    // Supabaseでテーマカラーを更新
+    if (onThemeColorChange) {
+      onThemeColorChange(color.hex);
+    }
   };
 
   // タブ変更ハンドラー
@@ -1285,7 +1294,7 @@ const QuestionSettingsMenu = ({
                       sx={{
                         width: 60,
                         height: 40,
-                        backgroundColor: selectedColor,
+                        backgroundColor: localSelectedColor,
                         borderRadius: '8px',
                         cursor: 'pointer',
                         border: '2px solid #E5E7EB',
@@ -1297,10 +1306,14 @@ const QuestionSettingsMenu = ({
                       }}
                     />
                     <StylishTextField
-                      value={selectedColor}
+                      value={localSelectedColor}
                       onChange={(e) => {
-                        setSelectedColor(e.target.value);
-                        handleColorChange({ hex: e.target.value });
+                        setLocalSelectedColor(e.target.value);
+                      }}
+                      onBlur={(e) => {
+                        if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                          handleColorChange({ hex: e.target.value });
+                        }
                       }}
                       placeholder="#5e17eb"
                       sx={{ 
@@ -1329,7 +1342,7 @@ const QuestionSettingsMenu = ({
                     />
                     <Box sx={{ position: 'relative', zIndex: 1001 }}>
                       <ChromePicker
-                        color={selectedColor}
+                        color={localSelectedColor}
                         onChange={handleColorChange}
                         disableAlpha={true}
                       />
