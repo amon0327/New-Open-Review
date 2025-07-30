@@ -510,33 +510,45 @@ const QuestionSettingsMenu = ({
     }
   };
 
-  // ログイン画面テキスト設定のハンドラー（リアルタイム更新対応）
+  // ログイン画面テキスト設定のハンドラー（楽観的UI更新）
   const handleLoginTitleChange = (value) => {
+    // 即座にローカル状態を更新（楽観的更新）
     setLocalLoginTitle(value);
-    // リアルタイムでプレビューに反映（即座更新）
+    
+    // プレビューにも即座に反映
     if (setLoginTitle) {
       setLoginTitle(value);
+    }
+    
+    // バックグラウンドでSupabaseに同期
+    if (onLoginTitleUpdate) {
+      onLoginTitleUpdate(value);
     }
   };
 
   const handleLoginTitleBlur = () => {
-    if (onLoginTitleUpdate && localLoginTitle !== (loginScreenSettings.title_text || '')) {
-      onLoginTitleUpdate(localLoginTitle);
-    }
+    // onChangeで既に更新されているため、blurでは何もしない
+    // 必要に応じて最終確認処理を追加可能
   };
 
   const handleLoginDetailChange = (value) => {
+    // 即座にローカル状態を更新（楽観的更新）
     setLocalLoginDetail(value);
-    // リアルタイムでプレビューに反映（即座更新）
+    
+    // プレビューにも即座に反映
     if (setLoginDetail) {
       setLoginDetail(value);
+    }
+    
+    // バックグラウンドでSupabaseに同期
+    if (onLoginDetailUpdate) {
+      onLoginDetailUpdate(value);
     }
   };
 
   const handleLoginDetailBlur = () => {
-    if (onLoginDetailUpdate && localLoginDetail !== (loginScreenSettings.detail_text || '')) {
-      onLoginDetailUpdate(localLoginDetail);
-    }
+    // onChangeで既に更新されているため、blurでは何もしない
+    // 必要に応じて最終確認処理を追加可能
   };
 
   // 選択肢の更新（専用テーブルに直接保存）
