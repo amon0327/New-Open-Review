@@ -344,6 +344,14 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // 質問タイプからデフォルトデータを作成
       const questionTypeId = draggedData.question_types_id || getQuestionTypeId(draggedData.type);
       
+      // デバッグ用ログ（一時的）
+      console.log('Drop debug:', {
+        draggedData,
+        questionTypeId,
+        typeFromData: draggedData.type,
+        typeIdFromData: draggedData.question_types_id
+      });
+      
       let newQuestion = {
         id: Date.now() + Math.random(),
         question_types_id: questionTypeId,

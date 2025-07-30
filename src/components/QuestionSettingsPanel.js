@@ -347,6 +347,15 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
   const needsScale = localQuestion.question_types_id === 7;
   const scaleSettings = localQuestion.scale_settings ? JSON.parse(localQuestion.scale_settings) : {};
 
+  // デバッグ用ログ（一時的）
+  console.log('Question debug:', {
+    questionId: localQuestion.id,
+    typeId: localQuestion.question_types_id,
+    needsChoices,
+    choices,
+    questionText: localQuestion.question_text
+  });
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
