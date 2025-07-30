@@ -420,6 +420,17 @@ const QuestionSettingsMenu = ({
     }
   };
 
+  // テキスト変更時の即座更新（プレビュー用）
+  const handleTextChange = (field, value) => {
+    // ローカル状態を即座に更新
+    setLocalTextValues(prev => ({ ...prev, [field]: value }));
+    
+    // プレビューにも即座に反映（楽観的更新）
+    if (onQuestionUpdate && selectedQuestion) {
+      onQuestionUpdate(selectedQuestion.id, { [field]: value });
+    }
+  };
+
   // 必須設定の楽観的更新ハンドラ
   const handleRequiredChange = (checked) => {
     // 即座にローカル状態を更新（楽観的更新）
@@ -492,11 +503,14 @@ const QuestionSettingsMenu = ({
     handleChoicesUpdate(newChoices);
   };
 
-  // 選択肢のローカル変更ハンドラ
+  // 選択肢のローカル変更ハンドラ（即座にプレビューに反映）
   const handleLocalChoiceChange = (index, value) => {
     const newLocalChoices = [...localChoices];
     newLocalChoices[index] = value;
     setLocalChoices(newLocalChoices);
+    
+    // プレビューにも即座に反映
+    handleChoicesUpdate(newLocalChoices);
   };
 
   // 選択肢のonBlur時更新ハンドラ
@@ -507,13 +521,13 @@ const QuestionSettingsMenu = ({
     }
   };
 
-  // スケール設定の楽観的更新
+  // スケール設定の楽観的更新（即座にプレビューに反映）
   const handleScaleUpdate = (field, value) => {
     // 即座にローカル状態を更新
-    setLocalScaleSettings(prev => ({ ...prev, [field]: value }));
-    
-    // バックグラウンドでSupabaseに同期
     const newSettings = { ...localScaleSettings, [field]: value };
+    setLocalScaleSettings(newSettings);
+    
+    // プレビューにも即座に反映
     handleQuestionUpdate('scale_settings', JSON.stringify(newSettings));
   };
 
@@ -743,7 +757,7 @@ const QuestionSettingsMenu = ({
             <StylishTextField
               label="質問テキスト"
               value={localTextValues.question_text}
-              onChange={(e) => setLocalTextValues(prev => ({ ...prev, question_text: e.target.value }))}
+              onChange={(e) => handleTextChange('question_text', e.target.value)}
               onBlur={(e) => handleTextBlur('question_text', e.target.value)}
               multiline
               minRows={1}
@@ -755,7 +769,7 @@ const QuestionSettingsMenu = ({
             <StylishTextField
               label="詳細テキスト (オプション)"
               value={localTextValues.question_detail_text}
-              onChange={(e) => setLocalTextValues(prev => ({ ...prev, question_detail_text: e.target.value }))}
+              onChange={(e) => handleTextChange('question_detail_text', e.target.value)}
               onBlur={(e) => handleTextBlur('question_detail_text', e.target.value)}
               multiline
               minRows={1}

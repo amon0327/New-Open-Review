@@ -30,7 +30,13 @@ const PreviewArea = ({
   onElementSelect,
   selectedElement,
   // フォームID
-  formId
+  formId,
+  // テキスト設定関連（プレビュー即座更新用）
+  loginTitle,
+  loginDetail,
+  completionTitle,
+  completionDetail,
+  completionBackground
 }) => {
   const dropRef = useRef(null);
   const [dropIndicator, setDropIndicator] = useState(null);
@@ -93,6 +99,8 @@ const PreviewArea = ({
             onElementSelect={onElementSelect}
             selectedElement={selectedElement}
             formId={formId}
+            loginTitleText={loginTitle}
+            loginDetailText={loginDetail}
           />
         );
       case 'completion':
@@ -102,6 +110,9 @@ const PreviewArea = ({
             onElementSelect={onElementSelect}
             selectedElement={selectedElement}
             formId={formId}
+            completionTitleText={completionTitle}
+            completionDetailText={completionDetail}
+            completionBackgroundImage={completionBackground}
           />
         );
       default:
