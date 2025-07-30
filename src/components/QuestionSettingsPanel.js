@@ -342,15 +342,17 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
   };
 
   const choices = localQuestion.choices ? JSON.parse(localQuestion.choices) : [];
-  const needsChoices = [3, 4, 8, 9, 10].includes(localQuestion.question_types_id);
-  const needsMatrix = [5, 6].includes(localQuestion.question_types_id);
-  const needsScale = localQuestion.question_types_id === 7;
+  const typeId = parseInt(localQuestion.question_types_id); // 文字列の場合も考慮
+  const needsChoices = [3, 4, 8, 9, 10].includes(typeId);
+  const needsMatrix = [5, 6].includes(typeId);
+  const needsScale = typeId === 7;
   const scaleSettings = localQuestion.scale_settings ? JSON.parse(localQuestion.scale_settings) : {};
 
   // デバッグ用ログ（一時的）
   console.log('Question debug:', {
     questionId: localQuestion.id,
-    typeId: localQuestion.question_types_id,
+    originalTypeId: localQuestion.question_types_id,
+    parsedTypeId: typeId,
     needsChoices,
     choices,
     questionText: localQuestion.question_text
@@ -411,7 +413,7 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                 flexShrink: 0
               }}
             >
-              {getQuestionTypeIcon(localQuestion.question_types_id)}
+              {getQuestionTypeIcon(typeId)}
             </Box>
             
             <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -430,7 +432,7 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
               </Typography>
               <Stack direction="row" spacing={1} alignItems="center">
                 <Chip
-                  label={getQuestionTypeName(localQuestion.question_types_id)}
+                  label={getQuestionTypeName(typeId)}
                   size="small"
                   sx={{
                     backgroundColor: isExpanded ? 'rgba(255, 255, 255, 0.2)' : 'rgba(94, 23, 235, 0.1)',
