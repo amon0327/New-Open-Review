@@ -50,11 +50,16 @@ class CompletionScreenService {
   static async upsertCompletionScreenSettings(formId, settings) {
     try {
       // 既存のレコードを確認
-      const { data: existing } = await supabase
+      const { data: existing, error: selectError } = await supabase
         .from('completion_screen_settings')
         .select('id')
         .eq('review_forms_id', formId)
-        .single();
+        .maybeSingle(); // singleではなくmaybeSingleを使用
+
+      // selectError が存在し、それが "not found" 以外のエラーの場合のみエラーとして扱う
+      if (selectError && selectError.code !== 'PGRST116') {
+        throw selectError;
+      }
 
       let result;
       if (existing) {
