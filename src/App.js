@@ -3,8 +3,9 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AnimatePresence } from 'framer-motion';
 import { Box, CircularProgress } from '@mui/material';
+import { Toaster } from 'react-hot-toast';
 
-import { supabase } from './supabaseClient';
+import { supabase } from './lib/supabase';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import CreatePage from './components/CreatePage';
@@ -118,6 +119,7 @@ function App() {
   const [currentView, setCurrentView] = useState('login'); // 'login', 'dashboard', 'create'
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentFormId, setCurrentFormId] = useState(null);
 
   const ensureBusinessUserExists = async (user) => {
     try {
@@ -232,11 +234,13 @@ function App() {
     setCurrentView('login');
   };
 
-  const handleCreateClick = () => {
+  const handleCreateClick = (formId) => {
+    setCurrentFormId(formId);
     setCurrentView('create');
   };
 
   const handleBackToDashboard = () => {
+    setCurrentFormId(null);
     setCurrentView('dashboard');
   };
 
@@ -263,7 +267,7 @@ function App() {
       case 'dashboard':
         return <Dashboard onCreateClick={handleCreateClick} onLogout={handleLogout} user={user} />;
       case 'create':
-        return <CreatePage onBackClick={handleBackToDashboard} user={user} />;
+        return <CreatePage onBackClick={handleBackToDashboard} user={user} formId={currentFormId} />;
       default:
         return <LoginPage onLogin={handleLogin} />;
     }
@@ -272,6 +276,26 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            style: {
+              background: '#4ade80',
+            },
+          },
+          error: {
+            style: {
+              background: '#f87171',
+            },
+          },
+        }}
+      />
       <AnimatePresence mode="wait">
         {renderCurrentView()}
       </AnimatePresence>

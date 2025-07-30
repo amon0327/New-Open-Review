@@ -132,7 +132,7 @@ const executeWithAnimation = (setSortingAnimation, operation, delay = 100, anima
   }, delay);
 };
 
-export default function CreatePage({ onBackClick }) {
+export default function CreatePage({ onBackClick, user, formId }) {
   // カスタムフックから状態を取得
   const {
     selectedTool, setSelectedTool,

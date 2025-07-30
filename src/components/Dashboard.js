@@ -43,7 +43,9 @@ import {
   ExitToApp,
   CreditCard
 } from '@mui/icons-material';
-import { supabase } from '../supabaseClient';
+import { supabase, getCurrentUser } from '../lib/supabase';
+import FormDataService from '../services/FormDataService';
+import { toast } from 'react-hot-toast';
 
 // 各ページコンポーネント
 function HomePage() {
@@ -861,6 +863,7 @@ const navigationItems = [
 
 export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [activeTab, setActiveTab] = useState(0);
+  const [isCreatingForm, setIsCreatingForm] = useState(false);
 
   const renderContent = () => {
     const ActiveComponent = navigationItems[activeTab].component;
@@ -870,9 +873,34 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     return <ActiveComponent />;
   };
 
+  const handleCreateForm = async () => {
+    if (!user) {
+      toast.error('ユーザー情報が取得できません');
+      return;
+    }
+
+    setIsCreatingForm(true);
+    try {
+      const result = await FormDataService.createNewForm(user.id);
+      
+      if (result.success) {
+        toast.success('新しいフォームを作成しました');
+        // フォーム作成画面に遷移（formIdを渡す）
+        onCreateClick(result.data.reviewFormId);
+      } else {
+        toast.error(result.error || 'フォームの作成に失敗しました');
+      }
+    } catch (error) {
+      console.error('Form creation error:', error);
+      toast.error('フォームの作成中にエラーが発生しました');
+    } finally {
+      setIsCreatingForm(false);
+    }
+  };
+
   const handleNavClick = (index) => {
     if (navigationItems[index].text === 'Create') {
-      onCreateClick();
+      handleCreateForm();
     } else {
       setActiveTab(index);
     }
@@ -923,6 +951,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
               <ListItemButton
                 onClick={() => handleNavClick(index)}
+                disabled={item.text === 'Create' && isCreatingForm}
                 sx={{
                   py: 1.5,
                   px: 2,
@@ -930,6 +959,9 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   backgroundColor: activeTab === index ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                  '&.Mui-disabled': {
+                    opacity: 0.6
                   },
                   transition: 'all 0.3s ease'
                 }}
@@ -940,7 +972,11 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                     minWidth: 40
                   }}
                 >
-                  {item.icon}
+                  {item.text === 'Create' && isCreatingForm ? (
+                    <CircularProgress size={20} sx={{ color: 'rgba(255, 255, 255, 0.8)' }} />
+                  ) : (
+                    item.icon
+                  )}
                 </ListItemIcon>
                 <ListItemText
                   primary={item.text}
