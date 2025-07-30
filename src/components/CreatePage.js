@@ -15,6 +15,7 @@ import { leftNavigationItems, questionTypes, questionTemplates, settingsCategori
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import FormDataService from '../services/FormDataService';
+import { createQuestionWithOptions } from '../services/QuestionService';
 import {
   Box,
   Paper,
@@ -414,7 +415,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     setIsDragActive(true);
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     setIsDragActive(false);
     
@@ -429,12 +430,24 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // 質問タイプからデフォルトデータを作成
       const questionTypeId = draggedData.question_types_id || getQuestionTypeId(draggedData.type);
       
+      // 現在のページの質問数を取得して質問番号を決定
+      const currentQuestions = getQuestionsForPage(selectedPage.id);
+      const questionNumber = currentQuestions.length + 1;
+
+      // Supabaseに質問を登録
+      const supabaseQuestion = await createQuestionWithOptions({
+        reviewFormId: formId,
+        questionTypesId: questionTypeId,
+        reviewFormPagesId: selectedPage.id,
+        questionNumber: questionNumber
+      });
+
       let newQuestion = {
-        id: Date.now() + Math.random(),
+        id: supabaseQuestion.id, // SupabaseのIDを使用
         question_types_id: questionTypeId,
-        question_text: draggedData.question || draggedData.question_text || draggedData.label || '新しい質問',
+        question_text: draggedData.question || draggedData.question_text || draggedData.label || '質問を入力',
         detail_text: draggedData.detail || draggedData.detail_text || '',
-        is_required: draggedData.required || false,
+        is_required: draggedData.required !== undefined ? draggedData.required : true,
         choices: null,
         scale_settings: null
       };
@@ -462,7 +475,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
       if (draggedData.isTemplate) {
         // テンプレートの質問タイプを適用
         newQuestion.question_types_id = draggedData.question_types_id || getQuestionTypeId(draggedData.type);
-        newQuestion.is_required = draggedData.required || false;
+        newQuestion.is_required = draggedData.required !== undefined ? draggedData.required : true;
         
         // テンプレート質問の詳細設定があれば適用
         if (draggedData.detail) {
@@ -480,11 +493,12 @@ export default function CreatePage({ onBackClick, user, formId }) {
         }
       }
 
-      // 常に質問リストの最後に追加（挿入位置は指定しない）
-      const currentQuestions = getQuestionsForPage(selectedPage.id);
+      // 質問リストの最後に追加
       const updatedQuestions = [...currentQuestions, newQuestion];
       
       handleQuestionsUpdate(selectedPage.id, updatedQuestions);
+      
+      toast.success('質問を追加しました');
       
     } catch (error) {
       console.error('ドロップエラー:', error);
