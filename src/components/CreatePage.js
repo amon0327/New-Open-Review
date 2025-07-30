@@ -103,7 +103,7 @@ const getCategoryGradient = (categoryId) => {
   const gradients = {
     account: '#667eea, #764ba2',
     database: '#5e17eb, #764ba2',
-    forms: '#22c55e, #16a34a',
+    forms: '#5e17eb, #764ba2',
     security: '#ef4444, #dc2626',
     integrations: '#3b82f6, #1d4ed8',
     advanced: '#6b7280, #4b5563'
@@ -1396,7 +1396,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
             },
             success: {
               style: {
-                background: '#22c55e',
+                background: '#5e17eb',
                 color: '#fff'
               },
             },
