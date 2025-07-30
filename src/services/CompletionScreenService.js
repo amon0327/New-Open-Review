@@ -49,6 +49,8 @@ class CompletionScreenService {
    */
   static async upsertCompletionScreenSettings(formId, settings) {
     try {
+      console.log('📝 CompletionScreenService.upsertCompletionScreenSettings called:', { formId, settings });
+      
       // 既存のレコードを確認
       const { data: existing, error: selectError } = await supabase
         .from('completion_screen_settings')
@@ -61,9 +63,12 @@ class CompletionScreenService {
         throw selectError;
       }
 
+      console.log('🔍 Existing record check:', { existing, selectError });
+
       let result;
       if (existing) {
         // 既存レコードを更新
+        console.log('📝 Updating existing record for formId:', formId);
         result = await supabase
           .from('completion_screen_settings')
           .update(settings)
@@ -72,6 +77,7 @@ class CompletionScreenService {
           .single();
       } else {
         // 新規レコードを作成
+        console.log('➕ Creating new record for formId:', formId);
         result = await supabase
           .from('completion_screen_settings')
           .insert({
@@ -84,15 +90,17 @@ class CompletionScreenService {
 
       const { data, error } = result;
       if (error) {
+        console.error('❌ Database operation error:', error);
         throw error;
       }
 
+      console.log('✅ CompletionScreenService operation successful:', data);
       return {
         success: true,
         data
       };
     } catch (error) {
-      console.error('Error upserting completion screen settings:', error);
+      console.error('❌ Error upserting completion screen settings:', error);
       return {
         success: false,
         error: error.message || '完了画面設定の保存に失敗しました'
