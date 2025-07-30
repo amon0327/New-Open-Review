@@ -480,16 +480,7 @@ const QuestionSettingsMenu = ({
     }
   };
 
-  // ログイン・完了画面のテキスト即座更新ハンドラ
-  const handleLoginTitleChange = (value) => {
-    setLocalLoginTitle(value);
-    setLoginTitle(value); // 即座にプレビューに反映
-  };
-
-  const handleLoginDetailChange = (value) => {
-    setLocalLoginDetail(value);
-    setLoginDetail(value); // 即座にプレビューに反映
-  };
+  // 完了画面のテキスト即座更新ハンドラ
 
   const handleCompletionTitleChange = (value) => {
     setLocalCompletionTitle(value);
