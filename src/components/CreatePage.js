@@ -1606,29 +1606,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     }}
                   />
                   
-                  {/* 現在のページ名表示 - 設定画面でない時のみ */}
-                  {!showSettings && selectedPage && (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: -40,
-                        left: 0,
-                        zIndex: 20,
-                        pointerEvents: 'none'
-                      }}
-                    >
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          color: '#2d3748',
-                          fontWeight: 600,
-                          fontSize: '1rem'
-                        }}
-                      >
-                        {selectedPage.title}
-                      </Typography>
-                    </Box>
-                  )}
                   
                   {/* メインプレビューエリア */}
                   <PreviewArea
