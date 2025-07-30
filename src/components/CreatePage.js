@@ -13,7 +13,7 @@ import { useCreatePageState } from '../hooks/useCreatePageState';
 import useQuestionData from '../hooks/useQuestionData';
 import { leftNavigationItems, questionTypes, questionTemplates, settingsCategories } from '../constants/createPageData';
 import { motion, AnimatePresence } from 'framer-motion';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import FormDataService from '../services/FormDataService';
 import {
   Box,
@@ -983,6 +983,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     completionTitle={completionTitle}
                     completionDetail={completionDetail}
                     completionBackground={completionBackground}
+                    // フォームID
+                    formId={formId}
                   />
                   
                   {/* プレビューコントロール */}
@@ -1378,38 +1380,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
           pageToDelete={pageToDelete}
         />
 
-        {/* トースト通知 */}
-        <Toaster
-          position="bottom-center"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-              borderRadius: '12px',
-              padding: '12px 16px',
-              fontSize: '14px',
-              fontWeight: '500',
-              boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
-              maxWidth: '400px'
-            },
-            success: {
-              style: {
-                background: '#5e17eb',
-                color: '#fff'
-              },
-            },
-            error: {
-              style: {
-                background: '#ef4444',
-                color: '#fff'
-              },
-            },
-          }}
-          containerStyle={{
-            bottom: '80px',
-          }}
-        />
       </Box>
     </Box>
   );

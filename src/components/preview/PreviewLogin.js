@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
   Button
 } from '@mui/material';
+import { getLoginPageData } from '../../services/LoginScreenService';
 
 const PreviewLogin = ({ 
   previewMode,
   // 基本設定関連
   onElementSelect,
   selectedElement,
+  // フォームID
+  formId,
   // 設定データ（将来的にpropsで受け取る）
   loginBackgroundImage,
   loginLogoImage,
@@ -19,15 +22,38 @@ const PreviewLogin = ({
   buttonText,
   buttonUrl
 }) => {
+  const [loginData, setLoginData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const isMobile = previewMode === 'mobile';
 
-  // デフォルト値とpropsから受け取ったデータの統合
-  const themeColor = propThemeColor || '#5e17eb';
-  const backgroundImage = loginBackgroundImage || 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg';
-  const logoUrl = loginLogoImage || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
-  const titleText = loginTitleText || 'OpenReviewへようこそ！';
-  const detailText = loginDetailText || 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。';
+  // Supabaseからログイン画面データを取得
+  useEffect(() => {
+    const fetchLoginData = async () => {
+      if (!formId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const data = await getLoginPageData(formId);
+        setLoginData(data);
+      } catch (error) {
+        console.error('Error fetching login data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLoginData();
+  }, [formId]);
+
+  // デフォルト値とSupabaseデータ、propsから受け取ったデータの統合
+  const themeColor = propThemeColor || (loginData?.formSettings?.theme_color) || '#5e17eb';
+  const backgroundImage = loginBackgroundImage || (loginData?.loginSettings?.background_image_url) || 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg';
+  const logoUrl = loginLogoImage || (loginData?.formSettings?.logo_image_url) || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const titleText = loginTitleText || (loginData?.loginSettings?.title_text) || 'OpenReviewへようこそ！';
+  const detailText = loginDetailText || (loginData?.loginSettings?.detail_text) || 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。';
   const displayButtonText = buttonText || '回答へ進む';
   const displayButtonUrl = buttonUrl || '#';
 

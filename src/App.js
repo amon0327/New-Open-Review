@@ -284,23 +284,34 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Toaster
-        position="top-right"
+        position="bottom-center"
         toastOptions={{
           duration: 4000,
           style: {
             background: '#363636',
             color: '#fff',
+            borderRadius: '12px',
+            padding: '12px 16px',
+            fontSize: '14px',
+            fontWeight: '500',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
+            maxWidth: '400px'
           },
           success: {
             style: {
-              background: '#4ade80',
+              background: '#5e17eb',
+              color: '#fff'
             },
           },
           error: {
             style: {
-              background: '#f87171',
+              background: '#ef4444',
+              color: '#fff'
             },
           },
+        }}
+        containerStyle={{
+          bottom: '80px',
         }}
       />
       <AnimatePresence mode="wait">

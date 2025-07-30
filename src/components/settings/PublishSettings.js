@@ -30,13 +30,7 @@ const PublishSettings = ({
 
   const copyUrl = () => {
     navigator.clipboard.writeText(formUrl);
-    toast.success('URLをコピーしました！', {
-      style: {
-        borderRadius: '8px',
-        background: '#10b981',
-        color: '#fff',
-      }
-    });
+    toast.success('URLをコピーしました！');
   };
 
   const downloadQR = () => {
@@ -60,13 +54,7 @@ const PublishSettings = ({
       };
       
       img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
-      toast.success('QRコードをダウンロードしました！', {
-        style: {
-          borderRadius: '8px',
-          background: '#10b981',
-          color: '#fff',
-        }
-      });
+      toast.success('QRコードをダウンロードしました！');
     }
   };
 
