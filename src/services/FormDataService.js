@@ -15,10 +15,7 @@ export class FormDataService {
       const { data: reviewForm, error: reviewFormError } = await supabase
         .from('review_forms')
         .insert([{
-          business_users: userId,
-          title: 'OpenReview フォーム',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          business_users: userId
         }])
         .select()
         .single();
@@ -34,9 +31,7 @@ export class FormDataService {
         .from('review_form_pages')
         .insert([{
           review_forms_id: reviewFormId,
-          page_number: 1,
-          name: 'ページ 1',
-          created_at: new Date().toISOString()
+          page_number: 1
         }])
         .select()
         .single();
@@ -49,10 +44,7 @@ export class FormDataService {
       const { error: settingsError } = await supabase
         .from('review_form_settings')
         .insert([{
-          review_form_id: reviewFormId,
-          theme_color: '#5e17eb',
-          is_dark_mode: false,
-          created_at: new Date().toISOString()
+          review_form_id: reviewFormId
         }]);
 
       if (settingsError) {
@@ -63,10 +55,7 @@ export class FormDataService {
       const { error: loginSettingsError } = await supabase
         .from('login_screen_settings')
         .insert([{
-          review_forms_id: reviewFormId,
-          title_text: 'OpenReviewへようこそ！',
-          detail_text: 'あなたの目的に合わせたレビュー項目を設定できます 質問項目を追加して、最適なレビューを作成しましょう',
-          created_at: new Date().toISOString()
+          review_forms_id: reviewFormId
         }]);
 
       if (loginSettingsError) {
@@ -77,8 +66,7 @@ export class FormDataService {
       const { error: questionSettingsError } = await supabase
         .from('question_screen_settings')
         .insert([{
-          review_forms_id: reviewFormId,
-          created_at: new Date().toISOString()
+          review_forms_id: reviewFormId
         }]);
 
       if (questionSettingsError) {
@@ -89,16 +77,7 @@ export class FormDataService {
       const { error: completionSettingsError } = await supabase
         .from('completion_screen_settings')
         .insert([{
-          review_forms_id: reviewFormId,
-          title_text: 'タイトルテキスト',
-          detail_text: '詳細テキスト',
-          is_button_1_enabled: false,
-          button_text_1: 'ボタンテキスト',
-          button_url_1: 'URL',
-          is_button_2_enabled: false,
-          button_text_2: 'ボタンテキスト',
-          button_url_2: 'URL',
-          created_at: new Date().toISOString()
+          review_forms_id: reviewFormId
         }]);
 
       if (completionSettingsError) {
