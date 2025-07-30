@@ -870,6 +870,10 @@ const QuestionSettingsMenu = ({
                           </ListItemIcon>
                           
                           <ListItemText
+                            sx={{ 
+                              minWidth: 0, // フレックスコンテナ内での縮小を有効化
+                              overflow: 'hidden' // コンテナのオーバーフローを防止
+                            }}
                             primary={
                               <Typography
                                 variant="body2"
@@ -880,21 +884,35 @@ const QuestionSettingsMenu = ({
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap',
-                                  mb: 0.3
+                                  mb: 0.3,
+                                  maxWidth: '100%' // 明示的に最大幅を指定
                                 }}
+                                title={question.question_text || '無題の質問'} // ホバー時に全文表示
                               >
                                 {question.question_text || '無題の質問'}
                               </Typography>
                             }
                             secondary={
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: 1,
+                                minWidth: 0, // フレックスコンテナ内での縮小を有効化
+                                overflow: 'hidden' // コンテナのオーバーフローを防止
+                              }}>
                                 <Typography
                                   variant="caption"
                                   sx={{
                                     color: '#6B7280',
                                     fontSize: '0.7rem',
-                                    fontWeight: 500
+                                    fontWeight: 500,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    flex: '1 1 auto', // フレックスアイテムとして縮小可能
+                                    minWidth: 0 // 縮小を有効化
                                   }}
+                                  title={config.name} // ホバー時に全文表示
                                 >
                                   {config.name}
                                 </Typography>
@@ -908,6 +926,7 @@ const QuestionSettingsMenu = ({
                                       fontWeight: 600,
                                       backgroundColor: '#FEF3C7',
                                       color: '#D97706',
+                                      flexShrink: 0, // チップの縮小を防止
                                       '& .MuiChip-label': {
                                         px: 0.8
                                       }
@@ -1022,14 +1041,18 @@ const QuestionSettingsMenu = ({
                     }} 
                   />
                 </Box>
-                <Box>
+                <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
                   <Typography
                     variant="body1"
                     sx={{
                       fontWeight: 600,
                       color: '#1F2937',
-                      fontSize: '0.9rem'
+                      fontSize: '0.9rem',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
                     }}
+                    title="テーマカラー"
                   >
                     テーマカラー
                   </Typography>
@@ -1037,8 +1060,12 @@ const QuestionSettingsMenu = ({
                     variant="caption"
                     sx={{
                       color: '#6B7280',
-                      fontSize: '0.75rem'
+                      fontSize: '0.75rem',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
                     }}
+                    title="アプリ全体のメインカラー"
                   >
                     アプリ全体のメインカラー
                   </Typography>
@@ -1160,14 +1187,18 @@ const QuestionSettingsMenu = ({
                 >
                   <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
                 </Box>
-                <Box>
+                <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
                   <Typography
                     variant="body1"
                     sx={{
                       fontWeight: 600,
                       color: '#1F2937',
-                      fontSize: '0.9rem'
+                      fontSize: '0.9rem',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
                     }}
+                    title="背景画像"
                   >
                     背景画像
                   </Typography>
@@ -1175,8 +1206,12 @@ const QuestionSettingsMenu = ({
                     variant="caption"
                     sx={{
                       color: '#6B7280',
-                      fontSize: '0.75rem'
+                      fontSize: '0.75rem',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
                     }}
+                    title="画面の背景に表示される画像"
                   >
                     画面の背景に表示される画像
                   </Typography>
@@ -1304,14 +1339,18 @@ const QuestionSettingsMenu = ({
                 >
                   <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
                 </Box>
-                <Box>
+                <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
                   <Typography
                     variant="body1"
                     sx={{
                       fontWeight: 600,
                       color: '#1F2937',
-                      fontSize: '0.9rem'
+                      fontSize: '0.9rem',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
                     }}
+                    title="ロゴ画像"
                   >
                     ロゴ画像
                   </Typography>
@@ -1319,8 +1358,12 @@ const QuestionSettingsMenu = ({
                     variant="caption"
                     sx={{
                       color: '#6B7280',
-                      fontSize: '0.75rem'
+                      fontSize: '0.75rem',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
                     }}
+                    title="ブランドロゴやアイコン"
                   >
                     ブランドロゴやアイコン
                   </Typography>

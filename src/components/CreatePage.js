@@ -1052,7 +1052,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
             {!showSettings && (
               <motion.div
                 {...SLIDE_IN_LEFT_ANIMATION}
-                style={{ flex: '0 0 300px', pointerEvents: 'auto' }}
+                style={{ width: '300px', minWidth: '300px', maxWidth: '300px', pointerEvents: 'auto' }}
               >
                 <Paper
                   elevation={8}
@@ -1251,7 +1251,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                             </Box>
 
                             {/* ページ情報 */}
-                            <Box sx={{ flex: 1, minWidth: 0, ml: 2 }}>
+                            <Box sx={{ flex: 1, minWidth: 0, ml: 2, overflow: 'hidden' }}>
                               {editingPageId === page.id ? (
                                 <Input
                                   value={editingTitle}
@@ -1296,11 +1296,16 @@ export default function CreatePage({ onBackClick, user, formId }) {
                                     cursor: page.type === 'question' && !deleteMode ? 
                                       (selectedPage?.id === page.id ? 'text' : 'pointer') : 'default',
                                     transition: 'color 0.2s ease',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis', 
+                                    whiteSpace: 'nowrap',
+                                    maxWidth: '100%',
                                     '&:hover': page.type === 'question' && !deleteMode ? {
                                       textDecoration: selectedPage?.id === page.id ? 'underline' : 'none',
                                       color: '#5e17eb'
                                     } : {}
                                   }}
+                                  title={page.title} // ホバー時に全文表示
                                 >
                                   {page.title}
                                 </Typography>
@@ -1340,7 +1345,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
             {!showSettings && (
               <motion.div
                 {...SLIDE_IN_RIGHT_ANIMATION}
-                style={{ flex: '0 0 320px', pointerEvents: 'auto' }}
+                style={{ width: '320px', minWidth: '320px', maxWidth: '320px', pointerEvents: 'auto' }}
               >
                 <Paper
                   elevation={8}
