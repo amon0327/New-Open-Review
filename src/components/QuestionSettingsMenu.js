@@ -256,6 +256,15 @@ const QuestionSettingsMenu = ({
   loginScreenSettings = {},
   onLoginTitleUpdate,
   onLoginDetailUpdate,
+  // 完了画面設定用のprops
+  completionScreenSettings = {},
+  onCompletionTitleUpdate,
+  onCompletionDetailUpdate,
+  onCompletionBackgroundUpdate,
+  onCompletionBackgroundImageFileUpload,
+  onCompletionButton1EnabledUpdate,
+  onCompletionButton1TextUpdate,
+  onCompletionButton1UrlUpdate,
   selectedColor = '#5e17eb',
   onThemeColorChange,
   onThemeColorPreview,
@@ -484,30 +493,45 @@ const QuestionSettingsMenu = ({
     }
   };
 
-  // 完了画面のテキスト即座更新ハンドラ
-
+  // 完了画面のテキスト設定のハンドラー（楽観的UI更新）
   const handleCompletionTitleChange = (value) => {
+    // 即座にローカル状態を更新（楽観的更新）
     setLocalCompletionTitle(value);
-    setCompletionTitle(value); // 即座にプレビューに反映
+    
+    // プレビューにも即座に反映
+    if (setCompletionTitle) {
+      setCompletionTitle(value);
+    }
+    
+    // バックグラウンドでSupabaseに同期
+    if (onCompletionTitleUpdate) {
+      onCompletionTitleUpdate(value);
+    }
   };
 
   const handleCompletionDetailChange = (value) => {
+    // 即座にローカル状態を更新（楽観的更新）
     setLocalCompletionDetail(value);
-    setCompletionDetail(value); // 即座にプレビューに反映
+    
+    // プレビューにも即座に反映
+    if (setCompletionDetail) {
+      setCompletionDetail(value);
+    }
+    
+    // バックグラウンドでSupabaseに同期
+    if (onCompletionDetailUpdate) {
+      onCompletionDetailUpdate(value);
+    }
   };
 
-  // 完了画面のテキストのonBlur時更新ハンドラ（データベース保存用）
-
   const handleCompletionTitleBlur = () => {
-    if (completionTitle !== localCompletionTitle) {
-      setCompletionTitle(localCompletionTitle);
-    }
+    // onChangeで既に更新されているため、blurでは何もしない
+    // 必要に応じて最終確認処理を追加可能
   };
 
   const handleCompletionDetailBlur = () => {
-    if (completionDetail !== localCompletionDetail) {
-      setCompletionDetail(localCompletionDetail);
-    }
+    // onChangeで既に更新されているため、blurでは何もしない
+    // 必要に応じて最終確認処理を追加可能
   };
 
   // ログイン画面テキスト設定のハンドラー（楽観的UI更新）
@@ -549,6 +573,28 @@ const QuestionSettingsMenu = ({
   const handleLoginDetailBlur = () => {
     // onChangeで既に更新されているため、blurでは何もしない
     // 必要に応じて最終確認処理を追加可能
+  };
+
+  // 完了画面ボタン設定のハンドラー（楽観的UI更新）
+  const handleCompletionButton1EnabledChange = (value) => {
+    // バックグラウンドでSupabaseに同期
+    if (onCompletionButton1EnabledUpdate) {
+      onCompletionButton1EnabledUpdate(value);
+    }
+  };
+
+  const handleCompletionButton1TextChange = (value) => {
+    // バックグラウンドでSupabaseに同期
+    if (onCompletionButton1TextUpdate) {
+      onCompletionButton1TextUpdate(value);
+    }
+  };
+
+  const handleCompletionButton1UrlChange = (value) => {
+    // バックグラウンドでSupabaseに同期
+    if (onCompletionButton1UrlUpdate) {
+      onCompletionButton1UrlUpdate(value);
+    }
   };
 
   // 選択肢の更新（専用テーブルに直接保存）
@@ -2170,6 +2216,332 @@ const QuestionSettingsMenu = ({
         {/* 完了画面設定 */}
         {(isCompletionPage || selectedElement?.startsWith('completion-')) && (
           <>
+            {/* 完了背景画像設定 */}
+            <Accordion 
+              expanded={expandedAccordion === 'completion-background'} 
+              onChange={() => setExpandedAccordion(expandedAccordion === 'completion-background' ? null : 'completion-background')}
+              sx={{
+                borderRadius: '8px !important',
+                border: '1px solid #E5E7EB',
+                boxShadow: 'none',
+                '&:before': { display: 'none' },
+                backgroundColor: expandedAccordion === 'completion-background' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                mb: 2
+              }}
+            >
+              <AccordionSummary
+                expandIcon={expandedAccordion === 'completion-background' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                sx={{
+                  borderRadius: '8px',
+                  '& .MuiAccordionSummary-content': {
+                    alignItems: 'center'
+                  }
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '6px',
+                      background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 8px rgba(139, 92, 246, 0.3)'
+                    }}
+                  >
+                    <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                  </Box>
+                  <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 600,
+                        color: '#1F2937',
+                        fontSize: '0.9rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title="完了背景画像"
+                    >
+                      完了背景画像
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#6B7280',
+                        fontSize: '0.75rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title="完了画面の背景画像"
+                    >
+                      完了画面の背景画像
+                    </Typography>
+                  </Box>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ pt: 0 }}>
+                <Stack spacing={3}>
+                  {/* 画像プレビュー */}
+                  {completionScreenSettings.background_image_url ? (
+                    <Card sx={{ borderRadius: 0, overflow: 'hidden' }}>
+                      <CardContent sx={{ p: 2, textAlign: 'center' }}>
+                        <Box
+                          component="img"
+                          src={completionScreenSettings.background_image_url}
+                          alt="完了背景画像"
+                          sx={{
+                            maxWidth: '100%',
+                            maxHeight: 120,
+                            objectFit: 'cover',
+                            borderRadius: 1
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card 
+                      sx={{ 
+                        borderRadius: 0,
+                        border: '2px dashed #E5E7EB',
+                        backgroundColor: '#F9FAFB'
+                      }}
+                    >
+                      <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                        <ImageIcon sx={{ fontSize: '2rem', color: '#9CA3AF', mb: 1 }} />
+                        <Typography variant="body2" sx={{ color: '#6B7280', fontSize: '0.8rem' }}>
+                          画像なし
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* アップロード・削除ボタン */}
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<CloudUploadIcon />}
+                      component="label"
+                      sx={{
+                        backgroundColor: '#5E17EB',
+                        '&:hover': { backgroundColor: '#4C1D95' },
+                        fontSize: '0.75rem',
+                        px: 2,
+                        py: 0.5,
+                        minWidth: 'auto'
+                      }}
+                    >
+                      アップロード
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file && onCompletionBackgroundImageFileUpload) {
+                            onCompletionBackgroundImageFileUpload(file);
+                          }
+                        }}
+                      />
+                    </Button>
+                    {completionScreenSettings.background_image_url && (
+                      <Button  
+                        variant="outlined"
+                        size="small"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => {
+                          if (onCompletionBackgroundUpdate) {
+                            onCompletionBackgroundUpdate('');
+                          }
+                        }}
+                        sx={{
+                          borderColor: '#DC2626',
+                          color: '#DC2626',
+                          '&:hover': {
+                            borderColor: '#B91C1C',
+                            backgroundColor: 'rgba(220, 38, 38, 0.04)'
+                          },
+                          fontSize: '0.75rem',
+                          px: 2,
+                          py: 0.5,
+                          minWidth: 'auto'
+                        }}
+                      >
+                        削除
+                      </Button>
+                    )}
+                  </Box>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* 完了画面専用ロゴ設定 */}
+            <Accordion 
+              expanded={expandedAccordion === 'completion-logo'} 
+              onChange={() => setExpandedAccordion(expandedAccordion === 'completion-logo' ? null : 'completion-logo')}
+              sx={{
+                borderRadius: '8px !important',
+                border: '1px solid #E5E7EB',
+                boxShadow: 'none',
+                '&:before': { display: 'none' },
+                backgroundColor: expandedAccordion === 'completion-logo' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                mb: 2
+              }}
+            >
+              <AccordionSummary
+                expandIcon={expandedAccordion === 'completion-logo' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                sx={{
+                  borderRadius: '8px',
+                  '& .MuiAccordionSummary-content': {
+                    alignItems: 'center'
+                  }
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '6px',
+                      background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                    }}
+                  >
+                    <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                  </Box>
+                  <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 600,
+                        color: '#1F2937',
+                        fontSize: '0.9rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title="ロゴ画像"
+                    >
+                      ロゴ画像
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#6B7280',
+                        fontSize: '0.75rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title="完了画面のロゴ画像"
+                    >
+                      完了画面のロゴ画像
+                    </Typography>
+                  </Box>
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails sx={{ pt: 0 }}>
+                <Stack spacing={3}>
+                  {/* 画像プレビュー */}
+                  {logoImage ? (
+                    <Card sx={{ borderRadius: 0, overflow: 'hidden' }}>
+                      <CardContent sx={{ p: 2, textAlign: 'center' }}>
+                        <Box
+                          component="img"
+                          src={logoImage}
+                          alt="ロゴ画像"
+                          sx={{
+                            maxWidth: '100%',
+                            maxHeight: 80,
+                            objectFit: 'contain'
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card 
+                      sx={{ 
+                        borderRadius: 0,
+                        border: '2px dashed #E5E7EB',
+                        backgroundColor: '#F9FAFB'
+                      }}
+                    >
+                      <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                        <ImageIcon sx={{ fontSize: '2rem', color: '#9CA3AF', mb: 1 }} />
+                        <Typography variant="body2" sx={{ color: '#6B7280', fontSize: '0.8rem' }}>
+                          画像なし
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* アップロード・削除ボタン */}
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<CloudUploadIcon />}
+                      component="label"
+                      sx={{
+                        backgroundColor: '#5E17EB',
+                        '&:hover': { backgroundColor: '#4C1D95' },
+                        fontSize: '0.75rem',
+                        px: 2,
+                        py: 0.5,
+                        minWidth: 'auto'
+                      }}
+                    >
+                      アップロード
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file && onLogoImageFileUpload) {
+                            onLogoImageFileUpload(file);
+                          }
+                        }}
+                      />
+                    </Button>
+                    {logoImage && (
+                      <Button  
+                        variant="outlined"
+                        size="small"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => {
+                          if (onLogoImageChange) {
+                            onLogoImageChange('');
+                          }
+                        }}
+                        sx={{
+                          borderColor: '#DC2626',
+                          color: '#DC2626',
+                          '&:hover': {
+                            borderColor: '#B91C1C',
+                            backgroundColor: 'rgba(220, 38, 38, 0.04)'
+                          },
+                          fontSize: '0.75rem',
+                          px: 2,
+                          py: 0.5,
+                          minWidth: 'auto'
+                        }}
+                      >
+                        削除
+                      </Button>
+                    )}
+                  </Box>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
             
             {/* ボタン設定 */}
             <Accordion 
@@ -2239,19 +2611,32 @@ const QuestionSettingsMenu = ({
                 </Box>
               </AccordionSummary>
               <AccordionDetails sx={{ pt: 0 }}>
-                <Stack spacing={2}>
-                  <StylishTextField
-                    label="ボタンテキスト"
-                    value="完了"
-                    onChange={() => {}}
-                    placeholder="ボタンに表示するテキスト"
+                <Stack spacing={3}>
+                  {/* ボタン表示設定 */}
+                  <StylishSwitch
+                    label="ボタンを表示"
+                    description="完了画面にボタンを表示するかどうか"
+                    checked={completionScreenSettings.is_button_1_enabled !== false}
+                    onChange={(e) => handleCompletionButton1EnabledChange(e.target.checked)}
                   />
-                  <StylishTextField
-                    label="リンク先URL"
-                    value="#"
-                    onChange={() => {}}
-                    placeholder="ボタンクリック時の移動先URL"
-                  />
+                  
+                  {/* ボタンが有効な場合のみ設定を表示 */}
+                  {completionScreenSettings.is_button_1_enabled !== false && (
+                    <>
+                      <StylishTextField
+                        label="ボタンテキスト"
+                        value={completionScreenSettings.button_text_1 || '完了'}
+                        onChange={(e) => handleCompletionButton1TextChange(e.target.value)}
+                        placeholder="ボタンに表示するテキスト"
+                      />
+                      <StylishTextField
+                        label="リンク先URL"
+                        value={completionScreenSettings.button_url_1 || '#'}
+                        onChange={(e) => handleCompletionButton1UrlChange(e.target.value)}
+                        placeholder="ボタンクリック時の移動先URL"
+                      />
+                    </>
+                  )}
                 </Stack>
               </AccordionDetails>
             </Accordion>
