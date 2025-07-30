@@ -461,7 +461,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
       let optimisticQuestion = {
         id: tempId,
         question_types_id: questionTypeId,
-        question_text: draggedData.question || draggedData.question_text || draggedData.label || '質問を入力',
+        question_text: draggedData.question || draggedData.question_text || draggedData.label || '',
         question_detail_text: draggedData.detail || draggedData.detail_text || '',
         is_required: draggedData.required !== undefined ? draggedData.required : true,
         choices: null,

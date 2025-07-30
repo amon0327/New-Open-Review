@@ -15,7 +15,7 @@ export const createReviewQuestion = async ({
         question_types_id: questionTypesId,
         review_form_pages_id: reviewFormPagesId,
         question_number: questionNumber,
-        question_text: '質問を入力',
+        question_text: '',
         is_required: true
       })
       .select()
