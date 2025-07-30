@@ -1606,6 +1606,37 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     }}
                   />
                   
+                  {/* 現在のページ名表示 */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 16,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      zIndex: 10,
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: '#5e17eb',
+                        fontWeight: 600,
+                        fontSize: '1.1rem',
+                        textAlign: 'center',
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        backdropFilter: 'blur(10px)',
+                        px: 3,
+                        py: 1,
+                        borderRadius: '20px',
+                        border: '1px solid rgba(94, 23, 235, 0.1)',
+                        boxShadow: '0 4px 16px rgba(94, 23, 235, 0.1)'
+                      }}
+                    >
+                      {selectedPage ? selectedPage.title : 'ページが選択されていません'}
+                    </Typography>
+                  </Box>
+                  
                   {/* メインプレビューエリア */}
                   <PreviewArea
                     previewMode={previewMode}
