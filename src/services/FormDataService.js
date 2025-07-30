@@ -629,10 +629,7 @@ export class FormDataService {
    * @returns {Promise<Object>} 更新結果
    */
   static async updateThemeColor(formId, themeColor) {
-    console.log('updateThemeColor called with formId:', formId, 'themeColor:', themeColor);
-    const result = await this.updateFormSettings(formId, { theme_color: themeColor });
-    console.log('updateFormSettings result:', result);
-    return result;
+    return await this.updateFormSettings(formId, { theme_color: themeColor });
   }
 
   /**

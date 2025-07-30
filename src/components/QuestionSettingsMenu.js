@@ -250,6 +250,7 @@ const QuestionSettingsMenu = ({
   onLogoImageChange,
   selectedColor = '#5e17eb',
   onThemeColorChange,
+  onThemeColorPreview,
   // テキスト設定のprops
   loginTitle,
   setLoginTitle,
@@ -273,6 +274,7 @@ const QuestionSettingsMenu = ({
   // カラーピッカーの状態
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [localSelectedColor, setLocalSelectedColor] = useState(selectedColor);
+  const [tempColorForSave, setTempColorForSave] = useState(selectedColor); // 保存用の一時的な色
   
   // テキストフィールドのローカル状態管理（onBlur時に更新）
   const [localTextValues, setLocalTextValues] = useState({
@@ -359,6 +361,7 @@ const QuestionSettingsMenu = ({
   // selectedColorの変更時にlocalSelectedColorを更新
   useEffect(() => {
     setLocalSelectedColor(selectedColor);
+    setTempColorForSave(selectedColor);
   }, [selectedColor]);
 
   // ページタイプと選択状態に応じてタブを制御
@@ -566,22 +569,22 @@ const QuestionSettingsMenu = ({
     }
   };
 
-  // カラー変更ハンドラー（プレビューのみ更新）
+  // カラー変更ハンドラー（プレビューにリアルタイム反映のみ）
   const handleColorChange = (color) => {
     setLocalSelectedColor(color.hex);
+    setTempColorForSave(color.hex);
+    // プレビューに即座に反映
+    if (onThemeColorPreview) {
+      onThemeColorPreview(color.hex);
+    }
   };
 
-  // カラー決定ハンドラー（Supabaseに保存）
-  const handleColorConfirm = (color) => {
-    console.log('Color confirmed:', color.hex);
-    setLocalSelectedColor(color.hex);
-    setShowColorPicker(false); // カラーピッカーを閉じる
-    // Supabaseでテーマカラーを更新
-    if (onThemeColorChange) {
-      console.log('Calling onThemeColorChange with:', color.hex);
-      onThemeColorChange(color.hex);
-    } else {
-      console.error('onThemeColorChange is not available');
+  // カラーピッカー終了時のハンドラー（この時点でSupabaseに保存）
+  const handleColorPickerClose = () => {
+    setShowColorPicker(false);
+    // カラーピッカーを閉じる時に、変更があった場合のみSupabaseに保存
+    if (tempColorForSave !== selectedColor && onThemeColorChange) {
+      onThemeColorChange(tempColorForSave);
     }
   };
 
@@ -1319,15 +1322,9 @@ const QuestionSettingsMenu = ({
                       value={localSelectedColor}
                       onChange={(e) => {
                         setLocalSelectedColor(e.target.value);
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && /^#[0-9A-F]{6}$/i.test(e.target.value)) {
-                          handleColorConfirm({ hex: e.target.value });
-                        }
-                      }}
-                      onBlur={(e) => {
+                        // 有効なHEXカラーの場合は即座に反映
                         if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
-                          handleColorConfirm({ hex: e.target.value });
+                          handleColorChange({ hex: e.target.value });
                         }
                       }}
                       placeholder="#5e17eb"
@@ -1353,7 +1350,7 @@ const QuestionSettingsMenu = ({
                         bottom: 0,
                         zIndex: 999
                       }}
-                      onClick={() => setShowColorPicker(false)}
+                      onClick={handleColorPickerClose}
                     />
                     <Box sx={{ position: 'relative', zIndex: 1001 }}>
                       <ChromePicker
@@ -1361,40 +1358,6 @@ const QuestionSettingsMenu = ({
                         onChange={handleColorChange}
                         disableAlpha={true}
                       />
-                      {/* カラーピッカーのボタン */}
-                      <Box sx={{ display: 'flex', gap: 1, mt: 1, justifyContent: 'flex-end' }}>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          onClick={() => {
-                            setLocalSelectedColor(selectedColor); // 元の色に戻す
-                            setShowColorPicker(false);
-                          }}
-                          sx={{
-                            textTransform: 'none',
-                            fontSize: '0.75rem',
-                            borderColor: '#E5E7EB',
-                            color: '#6B7280'
-                          }}
-                        >
-                          キャンセル
-                        </Button>
-                        <Button
-                          size="small"
-                          variant="contained"
-                          onClick={() => handleColorConfirm({ hex: localSelectedColor })}
-                          sx={{
-                            textTransform: 'none',
-                            fontSize: '0.75rem',
-                            backgroundColor: '#5E17EB',
-                            '&:hover': {
-                              backgroundColor: '#4C1D95'
-                            }
-                          }}
-                        >
-                          決定
-                        </Button>
-                      </Box>
                     </Box>
                   </Box>
                 )}

@@ -1082,22 +1082,22 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
+  // テーマカラープレビュー用ハンドラー（保存なし）
+  const handleThemeColorPreview = (themeColor) => {
+    setFormSettings(prev => ({ ...prev, theme_color: themeColor }));
+  };
+
   // 基本設定更新ハンドラー（楽観的UI更新 + Supabase保存）
   const handleThemeColorUpdate = async (themeColor) => {
-    console.log('handleThemeColorUpdate called with:', themeColor);
-    console.log('formId:', formId);
-    
     // 即座にローカル状態を更新
     setFormSettings(prev => ({ ...prev, theme_color: themeColor }));
 
     // バックグラウンドでSupabaseに保存
     try {
       const result = await FormDataService.updateThemeColor(formId, themeColor);
-      console.log('updateThemeColor result:', result);
       if (!result.success) {
         throw new Error(result.error);
       }
-      console.log('Theme color updated successfully');
     } catch (error) {
       console.error('Theme color update error:', error);
       // エラー時は元の状態に戻す
@@ -1675,6 +1675,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     // 基本設定のハンドラーを追加
                     selectedColor={formSettings.theme_color}
                     onThemeColorChange={handleThemeColorUpdate}
+                    onThemeColorPreview={handleThemeColorPreview}
                     // 専用テーブル更新ハンドラー
                     onChoiceOptionsUpdate={handleChoiceOptionsUpdate}
                     onLinearScaleOptionsUpdate={handleLinearScaleOptionsUpdate}

@@ -54,7 +54,6 @@ const PreviewLogin = ({
 
   // デフォルト値とSupabaseデータ、propsから受け取ったデータの統合
   const themeColor = formSettings.theme_color || propThemeColor || (loginData?.formSettings?.theme_color) || '#5e17eb';
-  console.log('PreviewLogin themeColor:', themeColor, 'formSettings:', formSettings);
   const backgroundImage = headerImage || loginBackgroundImage || (loginData?.loginSettings?.background_image_url) || 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg';
   const logoUrl = logoImage || loginLogoImage || (loginData?.formSettings?.logo_image_url) || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   const titleText = loginTitleText || (loginData?.loginSettings?.title_text) || 'OpenReviewへようこそ！';
