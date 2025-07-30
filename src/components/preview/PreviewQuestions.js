@@ -329,7 +329,16 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
     });
   };
 
-  const choices = question.choices ? JSON.parse(question.choices) : [];
+  // Supabaseのoptionsデータまたはローカルのchoicesから選択肢を取得
+  let choices = [];
+  
+  if (question.options && Array.isArray(question.options) && question.options.length > 0) {
+    // Supabaseの選択肢オプションを使用
+    choices = question.options.map(option => option.choice_name);
+  } else if (question.choices) {
+    // ローカルのchoicesを使用（後方互換性）
+    choices = JSON.parse(question.choices);
+  }
 
   return (
     <>
@@ -622,7 +631,16 @@ const SingleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, tot
     });
   };
 
-  const choices = question.choices ? JSON.parse(question.choices) : [];
+  // Supabaseのoptionsデータまたはローカルのchoicesから選択肢を取得
+  let choices = [];
+  
+  if (question.options && Array.isArray(question.options) && question.options.length > 0) {
+    // Supabaseの選択肢オプションを使用
+    choices = question.options.map(option => option.choice_name);
+  } else if (question.choices) {
+    // ローカルのchoicesを使用（後方互換性）
+    choices = JSON.parse(question.choices);
+  }
 
   return (
     <>
@@ -776,7 +794,16 @@ const MultipleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, t
     });
   };
 
-  const choices = question.choices ? JSON.parse(question.choices) : [];
+  // Supabaseのoptionsデータまたはローカルのchoicesから選択肢を取得
+  let choices = [];
+  
+  if (question.options && Array.isArray(question.options) && question.options.length > 0) {
+    // Supabaseの選択肢オプションを使用
+    choices = question.options.map(option => option.choice_name);
+  } else if (question.choices) {
+    // ローカルのchoicesを使用（後方互換性）
+    choices = JSON.parse(question.choices);
+  }
 
   return (
     <>
@@ -1113,7 +1140,16 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
     });
   };
 
-  const choices = question.choices ? JSON.parse(question.choices) : [];
+  // Supabaseのoptionsデータまたはローカルのchoicesから選択肢を取得
+  let choices = [];
+  
+  if (question.options && Array.isArray(question.options) && question.options.length > 0) {
+    // Supabaseの選択肢オプションを使用
+    choices = question.options.map(option => option.choice_name);
+  } else if (question.choices) {
+    // ローカルのchoicesを使用（後方互換性）
+    choices = JSON.parse(question.choices);
+  }
 
   return (
     <>
