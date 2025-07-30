@@ -703,8 +703,11 @@ export default function CreatePage({ onBackClick, user, formId }) {
   // ページ名編集関連ハンドラ
   const handleStartEditing = (page) => {
     if (page.type === 'system') return; // システムページは編集不可
-    setEditingPageId(page.id);
-    setEditingTitle(page.title);
+    // 選択されているページのみ編集可能
+    if (selectedPage && selectedPage.id === page.id) {
+      setEditingPageId(page.id);
+      setEditingTitle(page.title);
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -1240,7 +1243,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
                               ) : (
                                 <Typography
                                   variant="body2"
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // ページ選択イベントを停止
                                     if (!deleteMode) {
                                       handleStartEditing(page);
                                     }
@@ -1250,9 +1254,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
                                     color: selectedPage?.id === page.id ? '#5e17eb' : '#2d3748',
                                     fontSize: '0.8rem',
                                     mb: 0.3,
-                                    cursor: page.type === 'question' && !deleteMode ? 'text' : 'default',
+                                    cursor: page.type === 'question' && !deleteMode && selectedPage?.id === page.id ? 'text' : 'default',
                                     transition: 'color 0.2s ease',
-                                    '&:hover': page.type === 'question' && !deleteMode ? {
+                                    '&:hover': page.type === 'question' && !deleteMode && selectedPage?.id === page.id ? {
                                       textDecoration: 'underline',
                                       color: '#5e17eb'
                                     } : {}
