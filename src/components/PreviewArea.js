@@ -101,6 +101,7 @@ const PreviewArea = ({
             previewMode={previewMode}
             onElementSelect={onElementSelect}
             selectedElement={selectedElement}
+            formId={formId}
           />
         );
       default:
