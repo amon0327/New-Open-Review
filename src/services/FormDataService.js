@@ -1021,6 +1021,182 @@ export class FormDataService {
   static async updateLoginDetailText(formId, detailText) {
     return await this.updateLoginScreenSettings(formId, { detail_text: detailText });
   }
+
+  /**
+   * 完了画面設定を更新（ログイン画面と同じロジック）
+   * @param {string} formId - フォームID
+   * @param {Object} settings - 更新する設定
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateCompletionScreenSettings(formId, settings) {
+    try {
+      // 既存の設定があるかチェック
+      const { data: existingSettings } = await supabase
+        .from('completion_screen_settings')
+        .select('id')
+        .eq('review_forms_id', formId)
+        .single();
+
+      let result;
+      if (existingSettings) {
+        // 更新
+        result = await supabase
+          .from('completion_screen_settings')
+          .update({
+            ...settings
+          })
+          .eq('review_forms_id', formId)
+          .select()
+          .single();
+      } else {
+        // 新規作成
+        result = await supabase
+          .from('completion_screen_settings')
+          .insert([{
+            review_forms_id: formId,
+            ...settings
+          }])
+          .select()
+          .single();
+      }
+
+      const { data, error } = result;
+      if (error) {
+        throw error;
+      }
+
+      return {
+        success: true,
+        data,
+        error: null
+      };
+    } catch (error) {
+      console.error('Error updating completion screen settings:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * 完了画面タイトルテキストを更新
+   * @param {string} formId - フォームID
+   * @param {string} titleText - タイトルテキスト
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateCompletionTitleText(formId, titleText) {
+    return await this.updateCompletionScreenSettings(formId, { title_text: titleText });
+  }
+
+  /**
+   * 完了画面詳細テキストを更新
+   * @param {string} formId - フォームID
+   * @param {string} detailText - 詳細テキスト
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateCompletionDetailText(formId, detailText) {
+    return await this.updateCompletionScreenSettings(formId, { detail_text: detailText });
+  }
+
+  /**
+   * 完了画面ボタン1の有効/無効を更新
+   * @param {string} formId - フォームID
+   * @param {boolean} enabled - 有効/無効
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateCompletionButton1Enabled(formId, enabled) {
+    return await this.updateCompletionScreenSettings(formId, { is_button_1_enabled: enabled });
+  }
+
+  /**
+   * 完了画面ボタン1のテキストを更新
+   * @param {string} formId - フォームID
+   * @param {string} buttonText - ボタンテキスト
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateCompletionButton1Text(formId, buttonText) {
+    return await this.updateCompletionScreenSettings(formId, { button_text_1: buttonText });
+  }
+
+  /**
+   * 完了画面ボタン1のURLを更新
+   * @param {string} formId - フォームID
+   * @param {string} buttonUrl - ボタンURL
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateCompletionButton1Url(formId, buttonUrl) {
+    return await this.updateCompletionScreenSettings(formId, { button_url_1: buttonUrl });
+  }
+
+  /**
+   * 完了画面の背景画像URLを更新
+   * @param {string} formId - フォームID
+   * @param {string} backgroundImageUrl - 背景画像URL
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateCompletionBackgroundImage(formId, backgroundImageUrl) {
+    return await this.updateCompletionScreenSettings(formId, { background_image_url: backgroundImageUrl });
+  }
+
+  /**
+   * 完了画面の背景画像をアップロードして更新（ログイン画面と同じロジック）
+   * @param {string} formId - フォームID
+   * @param {File} imageFile - 画像ファイル
+   * @returns {Promise<Object>} アップロード結果
+   */
+  static async uploadAndUpdateCompletionBackgroundImage(formId, imageFile) {
+    try {
+      // 現在の設定を取得（古い画像削除のため）
+      const { data: existingSettings } = await supabase
+        .from('completion_screen_settings')
+        .select('background_image_url')
+        .eq('review_forms_id', formId)
+        .single();
+
+      // 画像をアップロード
+      const uploadResult = await ImageUploadService.uploadLoginBackgroundImage(imageFile, formId);
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error);
+      }
+
+      // データベースを更新
+      const updateResult = await this.updateCompletionScreenSettings(formId, { 
+        background_image_url: uploadResult.data.url 
+      });
+      if (!updateResult.success) {
+        // アップロードした画像を削除
+        await ImageUploadService.deleteImage(uploadResult.data.path);
+        throw new Error(updateResult.error);
+      }
+
+      // 古い画像があれば削除（デフォルト画像は削除しない）
+      if (existingSettings?.background_image_url && 
+          !existingSettings.background_image_url.includes('misezukuri.com')) {
+        await ImageUploadService.deleteImage(existingSettings.background_image_url);
+      }
+
+      console.log('Completion background image upload and update completed:', uploadResult.data.url);
+
+      return {
+        success: true,
+        data: {
+          url: uploadResult.data.url,
+          fileName: uploadResult.data.fileName
+        },
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Completion background image upload and update error:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
 }
 
 export default FormDataService;

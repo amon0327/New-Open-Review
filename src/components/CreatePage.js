@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import FormDataService from '../services/FormDataService';
 import { createQuestionWithOptions, createTemplateQuestionWithOptions } from '../services/QuestionService';
-import CompletionScreenService from '../services/CompletionScreenService';
+// import CompletionScreenService from '../services/CompletionScreenService'; // FormDataServiceを使用するため削除
 import { supabase } from '../lib/supabase';
 import {
   Box,
@@ -397,13 +397,14 @@ export default function CreatePage({ onBackClick, user, formId }) {
       if (formId) {
         setIsLoadingCompletionSettings(true);
         try {
-          const result = await CompletionScreenService.getCompletionScreenSettings(formId);
-          if (result.success) {
-            setCompletionScreenSettings(result.data);
+          const result = await FormDataService.getReviewFormWithDetails(formId);
+          if (result.success && result.data.completion_screen_settings && result.data.completion_screen_settings.length > 0) {
+            const completionData = result.data.completion_screen_settings[0];
+            setCompletionScreenSettings(completionData);
             // 後方互換性のため、completionTitle、completionDetail、completionBackgroundも更新
-            setCompletionTitle(result.data.title_text || 'ありがとうございました！');
-            setCompletionDetail(result.data.detail_text || 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。');
-            setCompletionBackground(result.data.background_image_url || 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg');
+            setCompletionTitle(completionData.title_text || 'ありがとうございました！');
+            setCompletionDetail(completionData.detail_text || 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。');
+            setCompletionBackground(completionData.background_image_url || 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg');
           }
         } catch (error) {
           console.error('Completion screen settings loading error:', error);
@@ -1332,7 +1333,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
     // バックグラウンドでSupabaseに保存
     try {
-      const result = await CompletionScreenService.updateTitleText(formId, titleText);
+      const result = await FormDataService.updateCompletionTitleText(formId, titleText);
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -1352,7 +1353,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
     // バックグラウンドでSupabaseに保存
     try {
-      const result = await CompletionScreenService.updateDetailText(formId, detailText);
+      const result = await FormDataService.updateCompletionDetailText(formId, detailText);
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -1372,7 +1373,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
     // バックグラウンドでSupabaseに保存
     try {
-      const result = await CompletionScreenService.updateBackgroundImage(formId, backgroundImageUrl);
+      const result = await FormDataService.updateCompletionBackgroundImage(formId, backgroundImageUrl);
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -1391,7 +1392,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     toast.loading('完了背景画像をアップロード中...', { id: 'completion-bg-upload' });
 
     try {
-      const result = await CompletionScreenService.uploadAndUpdateBackgroundImage(formId, imageFile);
+      const result = await FormDataService.uploadAndUpdateCompletionBackgroundImage(formId, imageFile);
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -1413,7 +1414,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
     // バックグラウンドでSupabaseに保存
     try {
-      const result = await CompletionScreenService.updateButton1Enabled(formId, isEnabled);
+      const result = await FormDataService.updateCompletionButton1Enabled(formId, isEnabled);
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -1432,7 +1433,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
     // バックグラウンドでSupabaseに保存
     try {
-      const result = await CompletionScreenService.updateButton1Text(formId, buttonText);
+      const result = await FormDataService.updateCompletionButton1Text(formId, buttonText);
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -1451,7 +1452,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
     // バックグラウンドでSupabaseに保存
     try {
-      const result = await CompletionScreenService.updateButton1Url(formId, buttonUrl);
+      const result = await FormDataService.updateCompletionButton1Url(formId, buttonUrl);
       if (!result.success) {
         throw new Error(result.error);
       }
