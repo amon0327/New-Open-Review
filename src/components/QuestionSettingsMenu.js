@@ -1371,14 +1371,23 @@ const QuestionSettingsMenu = ({
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        zIndex: 999
+                        zIndex: 999,
+                        backgroundColor: 'transparent'
                       }}
-                      onClick={handleColorPickerClose}
+                      onClick={(e) => {
+                        console.log('Background overlay clicked');
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleColorPickerClose();
+                      }}
                     />
                     <Box sx={{ position: 'relative', zIndex: 1001 }}>
                       <ChromePicker
                         color={localSelectedColor}
                         onChange={handleColorChange}
+                        onChangeComplete={(color) => {
+                          console.log('Color picker onChangeComplete called with:', color.hex);
+                        }}
                         disableAlpha={true}
                       />
                     </Box>
