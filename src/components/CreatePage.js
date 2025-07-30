@@ -1244,9 +1244,16 @@ export default function CreatePage({ onBackClick, user, formId }) {
                                 <Typography
                                   variant="body2"
                                   onClick={(e) => {
-                                    e.stopPropagation(); // ページ選択イベントを停止
                                     if (!deleteMode) {
-                                      handleStartEditing(page);
+                                      // 既に選択されている場合は編集モードに入る
+                                      if (selectedPage?.id === page.id) {
+                                        handleStartEditing(page);
+                                      } else {
+                                        // 未選択の場合はページを選択する
+                                        setSelectedPage(page);
+                                        setSelectedQuestionId(null);
+                                        setSelectedElement(null);
+                                      }
                                     }
                                   }}
                                   sx={{
@@ -1254,10 +1261,11 @@ export default function CreatePage({ onBackClick, user, formId }) {
                                     color: selectedPage?.id === page.id ? '#5e17eb' : '#2d3748',
                                     fontSize: '0.8rem',
                                     mb: 0.3,
-                                    cursor: page.type === 'question' && !deleteMode && selectedPage?.id === page.id ? 'text' : 'default',
+                                    cursor: page.type === 'question' && !deleteMode ? 
+                                      (selectedPage?.id === page.id ? 'text' : 'pointer') : 'default',
                                     transition: 'color 0.2s ease',
-                                    '&:hover': page.type === 'question' && !deleteMode && selectedPage?.id === page.id ? {
-                                      textDecoration: 'underline',
+                                    '&:hover': page.type === 'question' && !deleteMode ? {
+                                      textDecoration: selectedPage?.id === page.id ? 'underline' : 'none',
                                       color: '#5e17eb'
                                     } : {}
                                   }}
