@@ -11,7 +11,7 @@ import {
   MenuItem
 } from '@mui/material';
 import { SingleChoiceTwoColumnQuestion, MultipleChoiceTwoColumnQuestion } from './questions';
-import { getQuestionsWithOptions } from '../../services/QuestionService';
+import { getQuestionsWithOptions, getQuestionPageSettings } from '../../services/QuestionService';
 
 // Color utility function (AnswerAppと同じ)
 const stringToColor = (colorString) => {
@@ -1378,34 +1378,43 @@ const PreviewQuestions = ({
   const scrollContainerRef = useRef(null);
   const [supabaseQuestions, setSupabaseQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [pageSettings, setPageSettings] = useState({ questionScreenSettings: null, reviewFormSettings: null });
   const isMobile = previewMode === 'mobile';
 
-  const themeColor = '#5e17eb';
-  const defaultHeaderImage = 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
-  const defaultLogoUrl = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  // Supabaseのデータからテーマカラー、ロゴ、ヘッダー画像を取得
+  const themeColor = pageSettings.reviewFormSettings?.theme_color || '#5e17eb';
+  const defaultHeaderImage = pageSettings.questionScreenSettings?.header_image_url || 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
+  const defaultLogoUrl = pageSettings.reviewFormSettings?.logo_image_url || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   
   const currentHeaderImage = headerImage || defaultHeaderImage;
   const currentLogoUrl = logoImage || defaultLogoUrl;
 
-  // Supabaseから質問データを取得
+  // Supabaseから質問データとページ設定を取得
   useEffect(() => {
-    const fetchQuestions = async () => {
-      if (!formId || !selectedPage?.id) {
+    const fetchData = async () => {
+      if (!formId) {
         return;
       }
 
       setLoading(true);
       try {
-        const questionsWithOptions = await getQuestionsWithOptions(formId, selectedPage.id);
-        setSupabaseQuestions(questionsWithOptions);
+        // ページ設定を取得
+        const settings = await getQuestionPageSettings(formId);
+        setPageSettings(settings);
+
+        // 質問データを取得
+        if (selectedPage?.id) {
+          const questionsWithOptions = await getQuestionsWithOptions(formId, selectedPage.id);
+          setSupabaseQuestions(questionsWithOptions);
+        }
       } catch (error) {
-        console.error('Error fetching questions:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchQuestions();
+    fetchData();
   }, [formId, selectedPage?.id]);
 
   // ローカルの質問データとSupabaseの質問データを統合

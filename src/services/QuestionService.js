@@ -325,6 +325,73 @@ export const getQuestionChoiceOptions = async (reviewQuestionsId) => {
   }
 };
 
+// question_screen_settingsテーブルからヘッダー画像を取得する関数
+export const getQuestionScreenSettings = async (reviewFormId) => {
+  try {
+    const { data, error } = await supabase
+      .from('question_screen_settings')
+      .select('*')
+      .eq('review_forms_id', reviewFormId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // データが存在しない場合
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching question screen settings:', error);
+    return null;
+  }
+};
+
+// review_form_settingsテーブルからロゴ画像とテーマカラーを取得する関数
+export const getReviewFormSettings = async (reviewFormId) => {
+  try {
+    const { data, error } = await supabase
+      .from('review_form_settings')
+      .select('*')
+      .eq('review_form_id', reviewFormId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // データが存在しない場合
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching review form settings:', error);
+    return null;
+  }
+};
+
+// 質問ページで必要な設定データをまとめて取得する関数
+export const getQuestionPageSettings = async (reviewFormId) => {
+  try {
+    const [questionScreenSettings, reviewFormSettings] = await Promise.all([
+      getQuestionScreenSettings(reviewFormId),
+      getReviewFormSettings(reviewFormId)
+    ]);
+
+    return {
+      questionScreenSettings,
+      reviewFormSettings
+    };
+  } catch (error) {
+    console.error('Error fetching question page settings:', error);
+    return {
+      questionScreenSettings: null,
+      reviewFormSettings: null
+    };
+  }
+};
+
 // 質問とそのオプションをまとめて取得する関数
 export const getQuestionsWithOptions = async (reviewFormId, reviewFormPagesId) => {
   try {
