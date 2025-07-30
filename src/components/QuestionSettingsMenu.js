@@ -566,9 +566,15 @@ const QuestionSettingsMenu = ({
     }
   };
 
-  // カラー変更ハンドラー
+  // カラー変更ハンドラー（プレビューのみ更新）
   const handleColorChange = (color) => {
     setLocalSelectedColor(color.hex);
+  };
+
+  // カラー決定ハンドラー（Supabaseに保存）
+  const handleColorConfirm = (color) => {
+    setLocalSelectedColor(color.hex);
+    setShowColorPicker(false); // カラーピッカーを閉じる
     // Supabaseでテーマカラーを更新
     if (onThemeColorChange) {
       onThemeColorChange(color.hex);
@@ -1310,9 +1316,14 @@ const QuestionSettingsMenu = ({
                       onChange={(e) => {
                         setLocalSelectedColor(e.target.value);
                       }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && /^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                          handleColorConfirm({ hex: e.target.value });
+                        }
+                      }}
                       onBlur={(e) => {
                         if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
-                          handleColorChange({ hex: e.target.value });
+                          handleColorConfirm({ hex: e.target.value });
                         }
                       }}
                       placeholder="#5e17eb"
@@ -1346,6 +1357,40 @@ const QuestionSettingsMenu = ({
                         onChange={handleColorChange}
                         disableAlpha={true}
                       />
+                      {/* カラーピッカーのボタン */}
+                      <Box sx={{ display: 'flex', gap: 1, mt: 1, justifyContent: 'flex-end' }}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={() => {
+                            setLocalSelectedColor(selectedColor); // 元の色に戻す
+                            setShowColorPicker(false);
+                          }}
+                          sx={{
+                            textTransform: 'none',
+                            fontSize: '0.75rem',
+                            borderColor: '#E5E7EB',
+                            color: '#6B7280'
+                          }}
+                        >
+                          キャンセル
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          onClick={() => handleColorConfirm({ hex: localSelectedColor })}
+                          sx={{
+                            textTransform: 'none',
+                            fontSize: '0.75rem',
+                            backgroundColor: '#5E17EB',
+                            '&:hover': {
+                              backgroundColor: '#4C1D95'
+                            }
+                          }}
+                        >
+                          決定
+                        </Button>
+                      </Box>
                     </Box>
                   </Box>
                 )}

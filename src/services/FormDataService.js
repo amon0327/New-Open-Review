@@ -644,13 +644,58 @@ export class FormDataService {
   }
 
   /**
-   * ヘッダー画像URLを更新
+   * ヘッダー画像URLを更新（question_screen_settingsテーブル）
    * @param {string} formId - フォームID
    * @param {string} headerImageUrl - ヘッダー画像URL
    * @returns {Promise<Object>} 更新結果
    */
   static async updateHeaderImage(formId, headerImageUrl) {
-    return await this.updateFormSettings(formId, { header_image_url: headerImageUrl });
+    try {
+      // 既存の設定があるかチェック
+      const { data: existingSettings } = await supabase
+        .from('question_screen_settings')
+        .select('id')
+        .eq('review_forms_id', formId)
+        .single();
+
+      let result;
+      if (existingSettings) {
+        // 更新
+        result = await supabase
+          .from('question_screen_settings')
+          .update({
+            header_image_url: headerImageUrl
+          })
+          .eq('review_forms_id', formId)
+          .select()
+          .single();
+      } else {
+        // 新規作成
+        result = await supabase
+          .from('question_screen_settings')
+          .insert([{
+            review_forms_id: formId,
+            header_image_url: headerImageUrl
+          }])
+          .select()
+          .single();
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return {
+        success: true,
+        data: result.data
+      };
+    } catch (error) {
+      console.error('Error updating header image:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   }
 
   /**

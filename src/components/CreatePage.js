@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import FormDataService from '../services/FormDataService';
 import { createQuestionWithOptions, createTemplateQuestionWithOptions } from '../services/QuestionService';
+import { supabase } from '../lib/supabase';
 import {
   Box,
   Paper,
@@ -307,7 +308,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
           if (result.success) {
             setFormSettings(result.data);
             // ローカル状態も更新
-            setHeaderImage(result.data.header_image_url);
             setLogoImageState(result.data.logo_image_url);
           } else {
             toast.error('フォーム設定の読み込みに失敗しました');
@@ -322,6 +322,29 @@ export default function CreatePage({ onBackClick, user, formId }) {
     };
 
     loadFormSettings();
+  }, [formId]);
+
+  // ヘッダー画像設定を読み込み（question_screen_settingsから）
+  useEffect(() => {
+    const loadHeaderImage = async () => {
+      if (formId) {
+        try {
+          const { data, error } = await supabase
+            .from('question_screen_settings')
+            .select('header_image_url')
+            .eq('review_forms_id', formId)
+            .single();
+
+          if (!error && data) {
+            setHeaderImage(data.header_image_url);
+          }
+        } catch (error) {
+          console.error('Header image loading error:', error);
+        }
+      }
+    };
+
+    loadHeaderImage();
   }, [formId]);
 
   // フォームIDが存在する場合にページを読み込み
@@ -1100,10 +1123,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   const handleHeaderImageUpdate = async (headerImageUrl) => {
     // 即座にローカル状態を更新
-    setFormSettings(prev => ({ ...prev, header_image_url: headerImageUrl }));
     setHeaderImage(headerImageUrl);
 
-    // バックグラウンドでSupabaseに保存
+    // バックグラウンドでSupabaseに保存（question_screen_settingsテーブル）
     try {
       const result = await FormDataService.updateHeaderImage(formId, headerImageUrl);
       if (!result.success) {
@@ -1112,8 +1134,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     } catch (error) {
       console.error('Header image update error:', error);
       // エラー時は元の状態に戻す
-      setFormSettings(prev => ({ ...prev, header_image_url: formSettings.header_image_url }));
-      setHeaderImage(formSettings.header_image_url);
+      setHeaderImage(headerImage);
       toast.error('ヘッダー画像の更新に失敗しました');
     }
   };
