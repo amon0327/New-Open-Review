@@ -1089,15 +1089,22 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // 基本設定更新ハンドラー（楽観的UI更新 + Supabase保存）
   const handleThemeColorUpdate = async (themeColor) => {
+    console.log('handleThemeColorUpdate called with:', themeColor);
+    console.log('formId:', formId);
+    
     // 即座にローカル状態を更新
     setFormSettings(prev => ({ ...prev, theme_color: themeColor }));
 
     // バックグラウンドでSupabaseに保存
     try {
+      console.log('Calling FormDataService.updateThemeColor...');
       const result = await FormDataService.updateThemeColor(formId, themeColor);
+      console.log('FormDataService.updateThemeColor result:', result);
       if (!result.success) {
         throw new Error(result.error);
       }
+      console.log('Theme color saved successfully');
+      toast.success('テーマカラーを更新しました');
     } catch (error) {
       console.error('Theme color update error:', error);
       // エラー時は元の状態に戻す

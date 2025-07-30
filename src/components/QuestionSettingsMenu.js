@@ -364,6 +364,16 @@ const QuestionSettingsMenu = ({
     setTempColorForSave(selectedColor);
   }, [selectedColor]);
 
+  // カラーピッカーが閉じられた時の処理（代替手段）
+  useEffect(() => {
+    if (!showColorPicker && tempColorForSave && tempColorForSave !== selectedColor) {
+      console.log('Color picker closed, saving color:', tempColorForSave);
+      if (onThemeColorChange) {
+        onThemeColorChange(tempColorForSave);
+      }
+    }
+  }, [showColorPicker, tempColorForSave, selectedColor, onThemeColorChange]);
+
   // ページタイプと選択状態に応じてタブを制御
   useEffect(() => {
     if (selectedQuestionId && selectedQuestion) {
@@ -571,20 +581,33 @@ const QuestionSettingsMenu = ({
 
   // カラー変更ハンドラー（プレビューにリアルタイム反映のみ）
   const handleColorChange = (color) => {
+    console.log('handleColorChange called with:', color.hex);
     setLocalSelectedColor(color.hex);
     setTempColorForSave(color.hex);
     // プレビューに即座に反映
     if (onThemeColorPreview) {
+      console.log('Calling onThemeColorPreview with:', color.hex);
       onThemeColorPreview(color.hex);
     }
   };
 
   // カラーピッカー終了時のハンドラー（この時点でSupabaseに保存）
   const handleColorPickerClose = () => {
+    console.log('handleColorPickerClose called');
+    console.log('tempColorForSave:', tempColorForSave);
+    console.log('selectedColor:', selectedColor);
+    console.log('onThemeColorChange available:', !!onThemeColorChange);
+    
     setShowColorPicker(false);
     // カラーピッカーを閉じる時に、変更があった場合のみSupabaseに保存
     if (tempColorForSave !== selectedColor && onThemeColorChange) {
+      console.log('Calling onThemeColorChange with:', tempColorForSave);
       onThemeColorChange(tempColorForSave);
+    } else {
+      console.log('Not saving because:', {
+        colorChanged: tempColorForSave !== selectedColor,
+        handlerAvailable: !!onThemeColorChange
+      });
     }
   };
 
