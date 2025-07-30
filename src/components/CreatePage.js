@@ -454,53 +454,31 @@ export default function CreatePage({ onBackClick, user, formId }) {
       const currentQuestions = getQuestionsForPage(selectedPage.id);
       const questionNumber = currentQuestions.length + 1;
 
-      let supabaseQuestion;
+      // 楽観的更新用の一時的なIDを生成
+      const tempId = `temp_${Date.now()}_${Math.random()}`;
 
-      // テンプレート質問かどうかで処理を分岐
-      if (draggedData.isTemplate) {
-        // テンプレート質問の場合
-        supabaseQuestion = await createTemplateQuestionWithOptions({
-          reviewFormId: formId,
-          questionTypesId: questionTypeId,
-          reviewFormPagesId: selectedPage.id,
-          questionNumber: questionNumber,
-          questionText: draggedData.question || draggedData.question_text || draggedData.label || '質問を入力',
-          questionCategoriesId: draggedData.question_categories_id || null,
-          questionSubcategoriesId: draggedData.question_subcategories_id || null,
-          templateReviewQuestionsId: draggedData.id || null
-        });
-      } else {
-        // 通常の質問タイプの場合
-        supabaseQuestion = await createQuestionWithOptions({
-          reviewFormId: formId,
-          questionTypesId: questionTypeId,
-          reviewFormPagesId: selectedPage.id,
-          questionNumber: questionNumber
-        });
-      }
-
-      let newQuestion = {
-        id: supabaseQuestion.id, // SupabaseのIDを使用
+      // 楽観的更新用の質問オブジェクトを作成
+      let optimisticQuestion = {
+        id: tempId,
         question_types_id: questionTypeId,
         question_text: draggedData.question || draggedData.question_text || draggedData.label || '質問を入力',
-        detail_text: draggedData.detail || draggedData.detail_text || '',
+        question_detail_text: draggedData.detail || draggedData.detail_text || '',
         is_required: draggedData.required !== undefined ? draggedData.required : true,
         choices: null,
         scale_settings: null
       };
 
       // 質問タイプに応じてデフォルト設定を追加
-      // Supabaseデータから質問タイプ情報を取得
       const questionTypeData = questionTypesData.find(qt => qt.id === questionTypeId);
       const typeName = questionTypeData ? questionTypeData.japanese : '';
       const needsChoices = [3, 4, 8, 9, 10].includes(questionTypeId) || typeName.includes('選択') || typeName.includes('プルダウン');
       
       if (needsChoices) {
-        newQuestion.choices = JSON.stringify(['選択肢 1', '選択肢 2', '選択肢 3', '選択肢 4']);
+        optimisticQuestion.choices = JSON.stringify(['選択肢 1', '選択肢 2', '選択肢 3', '選択肢 4']);
       }
 
       if (questionTypeId === 7 || typeName.includes('スケール') || typeName.includes('リニア')) {
-        newQuestion.scale_settings = JSON.stringify({
+        optimisticQuestion.scale_settings = JSON.stringify({
           minValue: 1,
           maxValue: 5,
           minLabel: 'そう思わない',
@@ -510,36 +488,67 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
       // テンプレート質問の場合は内容をコピー
       if (draggedData.isTemplate) {
-        // テンプレートの質問タイプを適用
-        newQuestion.question_types_id = draggedData.question_types_id || getQuestionTypeId(draggedData.type);
-        newQuestion.is_required = draggedData.required !== undefined ? draggedData.required : true;
+        optimisticQuestion.question_types_id = draggedData.question_types_id || getQuestionTypeId(draggedData.type);
+        optimisticQuestion.is_required = draggedData.required !== undefined ? draggedData.required : true;
         
-        // テンプレート質問の詳細設定があれば適用
         if (draggedData.detail) {
-          newQuestion.detail_text = draggedData.detail;
+          optimisticQuestion.question_detail_text = draggedData.detail;
         }
 
-        // テンプレートの選択肢設定を適用
         if (draggedData.choices && Array.isArray(draggedData.choices)) {
-          newQuestion.choices = JSON.stringify(draggedData.choices);
+          optimisticQuestion.choices = JSON.stringify(draggedData.choices);
         }
 
-        // テンプレートのスケール設定を適用
         if (draggedData.scale_settings) {
-          newQuestion.scale_settings = JSON.stringify(draggedData.scale_settings);
+          optimisticQuestion.scale_settings = JSON.stringify(draggedData.scale_settings);
         }
       }
 
-      // 質問リストの最後に追加
-      const updatedQuestions = [...currentQuestions, newQuestion];
+      // 即座にローカル状態を更新（楽観的更新）
+      const optimisticQuestions = [...currentQuestions, optimisticQuestion];
+      handleQuestionsUpdate(selectedPage.id, optimisticQuestions);
       
-      handleQuestionsUpdate(selectedPage.id, updatedQuestions);
-      
-      toast.success('質問を追加しました');
+      // バックグラウンドでSupabaseに質問を作成
+      let supabaseQuestion;
+      try {
+        if (draggedData.isTemplate) {
+          supabaseQuestion = await createTemplateQuestionWithOptions({
+            reviewFormId: formId,
+            questionTypesId: questionTypeId,
+            reviewFormPagesId: selectedPage.id,
+            questionNumber: questionNumber,
+            questionText: optimisticQuestion.question_text,
+            questionCategoriesId: draggedData.question_categories_id || null,
+            questionSubcategoriesId: draggedData.question_subcategories_id || null,
+            templateReviewQuestionsId: draggedData.id || null
+          });
+        } else {
+          supabaseQuestion = await createQuestionWithOptions({
+            reviewFormId: formId,
+            questionTypesId: questionTypeId,
+            reviewFormPagesId: selectedPage.id,
+            questionNumber: questionNumber
+          });
+        }
+
+        // 成功時：一時IDを実際のIDに置き換え
+        const finalQuestions = optimisticQuestions.map(q => 
+          q.id === tempId ? { ...q, id: supabaseQuestion.id } : q
+        );
+        handleQuestionsUpdate(selectedPage.id, finalQuestions);
+        
+        toast.success('質問を追加しました');
+        
+      } catch (error) {
+        console.error('質問作成エラー:', error);
+        // エラー時：楽観的更新を取り消し
+        handleQuestionsUpdate(selectedPage.id, currentQuestions);
+        toast.error('質問の追加に失敗しました');
+      }
       
     } catch (error) {
       console.error('ドロップエラー:', error);
-      toast.error('質問の追加に失敗しました');
+      toast.error('質問の処理中にエラーが発生しました');
     }
   };
 
@@ -571,23 +580,50 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }));
   };
 
-  // ページ管理ハンドラ
+  // ページ管理ハンドラ（楽観的更新）
   const handleDeletePage = async (pageId) => {
     const page = pages.find(p => p.id === pageId);
     if (!page || page.type === 'system') {
       return; // システムページは削除できない
     }
 
+    // 即座にローカル状態を更新（楽観的削除）
+    const currentPages = pages;
+    const optimisticPages = pages.filter(p => p.id !== pageId);
+    setPages(optimisticPages);
+
+    // 削除されたページが選択されていた場合、別のページを選択
+    if (selectedPage && selectedPage.id === pageId) {
+      const remainingQuestionPages = optimisticPages.filter(p => p.type === 'question');
+      if (remainingQuestionPages.length > 0) {
+        setSelectedPage(remainingQuestionPages[0]);
+      } else {
+        setSelectedPage(optimisticPages.find(p => p.id === 'login') || null);
+      }
+    }
+
+    // バックグラウンドでSupabaseから削除
     try {
       const result = await FormDataService.deleteFormPage(pageId);
       
       if (result.success) {
-        setPages(prev => prev.filter(page => page.id !== pageId));
+        // 成功時は何もしない（既にUIは更新済み）
+        toast.success('ページを削除しました');
       } else {
+        // エラー時：楽観的更新を取り消し
+        setPages(currentPages);
+        if (selectedPage && selectedPage.id === pageId) {
+          setSelectedPage(page); // 選択状態も復元
+        }
         toast.error(result.error || 'ページの削除に失敗しました');
       }
     } catch (error) {
       console.error('Delete page error:', error);
+      // エラー時：楽観的更新を取り消し
+      setPages(currentPages);
+      if (selectedPage && selectedPage.id === pageId) {
+        setSelectedPage(page); // 選択状態も復元
+      }
       toast.error('ページの削除中にエラーが発生しました');
     }
   };
@@ -608,31 +644,58 @@ export default function CreatePage({ onBackClick, user, formId }) {
       const questionPageCount = pages.filter(p => p.type === 'question').length;
       const pageName = `新しいページ${questionPageCount + 1}`;
       
-      const result = await FormDataService.addFormPage(formId, pageName);
+      // 楽観的更新用の一時的なIDを生成
+      const tempId = `temp_page_${Date.now()}_${Math.random()}`;
       
-      if (result.success) {
-        const newPage = {
-          id: result.data.id,
-          title: result.data.name,
-          type: 'question',
-          icon: <Pages />,
-          canDelete: true,
-          canEdit: true,
-          questions: 0,
-          page_number: result.data.page_number
-        };
+      // 楽観的更新用のページオブジェクトを作成
+      const optimisticPage = {
+        id: tempId,
+        title: pageName,
+        type: 'question',
+        icon: <Pages />,
+        canDelete: true,
+        canEdit: true,
+        questions: 0,
+        page_number: questionPageCount + 1
+      };
+      
+      // 即座にローカル状態を更新（楽観的更新）
+      const completionIndex = pages.findIndex(p => p.id === 'completion');
+      const optimisticPages = [...pages];
+      optimisticPages.splice(completionIndex, 0, optimisticPage);
+      setPages(optimisticPages);
+      
+      // バックグラウンドでSupabaseにページを追加
+      try {
+        const result = await FormDataService.addFormPage(formId, pageName);
         
-        // 完了画面の前に挿入
-        const completionIndex = pages.findIndex(p => p.id === 'completion');
-        const newPages = [...pages];
-        newPages.splice(completionIndex, 0, newPage);
-        setPages(newPages);
-      } else {
-        toast.error(result.error || 'ページの追加に失敗しました');
+        if (result.success) {
+          // 成功時：一時IDを実際のIDに置き換え
+          const finalPages = optimisticPages.map(p => 
+            p.id === tempId ? {
+              ...p,
+              id: result.data.id,
+              title: result.data.name,
+              page_number: result.data.page_number
+            } : p
+          );
+          setPages(finalPages);
+          
+          toast.success('ページを追加しました');
+        } else {
+          // エラー時：楽観的更新を取り消し
+          setPages(pages);
+          toast.error(result.error || 'ページの追加に失敗しました');
+        }
+      } catch (error) {
+        console.error('Page creation error:', error);
+        // エラー時：楽観的更新を取り消し
+        setPages(pages);
+        toast.error('ページの追加中にエラーが発生しました');
       }
     } catch (error) {
       console.error('Add page error:', error);
-      toast.error('ページの追加中にエラーが発生しました');
+      toast.error('ページの処理中にエラーが発生しました');
     } finally {
       setIsAddingPage(false);
     }
@@ -808,6 +871,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // 質問選択ハンドラー
   const handleQuestionSelect = (questionId) => {
+    // 一時IDの質問は選択できないようにする
+    if (questionId && questionId.toString().startsWith('temp_')) {
+      return;
+    }
     setSelectedQuestionId(questionId);
     setSelectedElement(null); // 基本設定要素の選択を解除
   };
