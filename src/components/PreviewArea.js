@@ -124,6 +124,7 @@ const PreviewArea = ({
             logoImage={logoImage}
             onElementSelect={onElementSelect}
             selectedElement={selectedElement}
+            formId={formId}
           />
         );
     }

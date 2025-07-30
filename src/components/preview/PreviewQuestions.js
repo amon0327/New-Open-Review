@@ -11,6 +11,7 @@ import {
   MenuItem
 } from '@mui/material';
 import { SingleChoiceTwoColumnQuestion, MultipleChoiceTwoColumnQuestion } from './questions';
+import { getQuestionsWithOptions } from '../../services/QuestionService';
 
 // Color utility function (AnswerAppと同じ)
 const stringToColor = (colorString) => {
@@ -472,7 +473,16 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
     });
   };
 
-  const choices = question.choices ? JSON.parse(question.choices) : [];
+  // Supabaseのoptionsデータまたはローカルのchoicesから選択肢を取得
+  let choices = [];
+  
+  if (question.options && Array.isArray(question.options) && question.options.length > 0) {
+    // Supabaseの選択肢オプションを使用
+    choices = question.options.map(option => option.choice_name);
+  } else if (question.choices) {
+    // ローカルのchoicesを使用（後方互換性）
+    choices = JSON.parse(question.choices);
+  }
 
   return (
     <>
@@ -916,13 +926,24 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
     });
   };
 
-  // scale_settingsまたはscale_labelsから読み取り
-  const scaleData = question.scale_settings ? JSON.parse(question.scale_settings) : 
-                    question.scale_labels ? JSON.parse(question.scale_labels) : {};
-  const minLabel = scaleData.minLabel || scaleData.min_label || 'そう思わない';
-  const maxLabel = scaleData.maxLabel || scaleData.max_label || 'そう思う';
-  const minValue = scaleData.minValue || 1;
-  const maxValue = scaleData.maxValue || 5;
+  // Supabaseのoptionsデータまたはローカルのscale_settingsから読み取り
+  let minLabel, maxLabel, minValue, maxValue;
+  
+  if (question.options && question.options.min_text && question.options.max_text) {
+    // Supabaseのlinear_scaleオプションを使用
+    minLabel = question.options.min_text;
+    maxLabel = question.options.max_text;
+    minValue = 1;
+    maxValue = 5;
+  } else {
+    // ローカルのscale_settingsを使用（後方互換性）
+    const scaleData = question.scale_settings ? JSON.parse(question.scale_settings) : 
+                      question.scale_labels ? JSON.parse(question.scale_labels) : {};
+    minLabel = scaleData.minLabel || scaleData.min_label || 'そう思わない';
+    maxLabel = scaleData.maxLabel || scaleData.max_label || 'そう思う';
+    minValue = scaleData.minValue || 1;
+    maxValue = scaleData.maxValue || 5;
+  }
   
   // 動的にスケール配列を生成
   const scaleOptions = [];
@@ -1311,12 +1332,16 @@ const PreviewQuestions = ({
   headerImage,
   logoImage,
   onElementSelect,
-  selectedElement
+  selectedElement,
+  // フォームID
+  formId
 }) => {
   const [answers, setAnswers] = useState({});
   const [hoveredQuestionId, setHoveredQuestionId] = useState(null);
   const [prevQuestionsCount, setPrevQuestionsCount] = useState(0);
   const scrollContainerRef = useRef(null);
+  const [supabaseQuestions, setSupabaseQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
   const isMobile = previewMode === 'mobile';
 
   const themeColor = '#5e17eb';
@@ -1326,8 +1351,29 @@ const PreviewQuestions = ({
   const currentHeaderImage = headerImage || defaultHeaderImage;
   const currentLogoUrl = logoImage || defaultLogoUrl;
 
-  // 実際の質問データを使用
-  const displayQuestions = questions || [];
+  // Supabaseから質問データを取得
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      if (!formId || !selectedPage?.id) {
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const questionsWithOptions = await getQuestionsWithOptions(formId, selectedPage.id);
+        setSupabaseQuestions(questionsWithOptions);
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [formId, selectedPage?.id]);
+
+  // ローカルの質問データとSupabaseの質問データを統合
+  const displayQuestions = supabaseQuestions.length > 0 ? supabaseQuestions : (questions || []);
 
   // 質問が追加された際の自動スクロール機能
   useEffect(() => {

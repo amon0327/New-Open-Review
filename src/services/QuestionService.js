@@ -260,3 +260,101 @@ export const createQuestionWithOptions = async ({
     throw error;
   }
 };
+
+// レビューフォームの質問一覧を取得する関数
+export const getReviewQuestions = async (reviewFormId, reviewFormPagesId) => {
+  try {
+    const { data, error } = await supabase
+      .from('review_questions')
+      .select('*')
+      .eq('review_fome_id', reviewFormId)
+      .eq('review_form_pages_id', reviewFormPagesId)
+      .order('question_number');
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching review questions:', error);
+    return [];
+  }
+};
+
+// 質問のリニアスケールオプションを取得する関数
+export const getQuestionLinearScaleOption = async (reviewQuestionsId) => {
+  try {
+    const { data, error } = await supabase
+      .from('question_option_linear_scale')
+      .select('*')
+      .eq('review_questions_id', reviewQuestionsId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // データが存在しない場合
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching question linear scale option:', error);
+    return null;
+  }
+};
+
+// 質問の選択肢オプションを取得する関数
+export const getQuestionChoiceOptions = async (reviewQuestionsId) => {
+  try {
+    const { data, error } = await supabase
+      .from('question_option_choices')
+      .select('*')
+      .eq('review_questions_id', reviewQuestionsId)
+      .order('choice_number');
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching question choice options:', error);
+    return [];
+  }
+};
+
+// 質問とそのオプションをまとめて取得する関数
+export const getQuestionsWithOptions = async (reviewFormId, reviewFormPagesId) => {
+  try {
+    // 1. 基本の質問データを取得
+    const questions = await getReviewQuestions(reviewFormId, reviewFormPagesId);
+    
+    // 2. 各質問のオプションデータを取得
+    const questionsWithOptions = await Promise.all(
+      questions.map(async (question) => {
+        let options = null;
+        
+        // 質問タイプに応じてオプションを取得
+        if (question.question_types_id === 7) {
+          // リニアスケールオプション
+          options = await getQuestionLinearScaleOption(question.id);
+        } else if ([3, 4, 5, 6, 8].includes(question.question_types_id)) {
+          // 選択肢オプション
+          options = await getQuestionChoiceOptions(question.id);
+        }
+        
+        return {
+          ...question,
+          options: options
+        };
+      })
+    );
+
+    return questionsWithOptions;
+  } catch (error) {
+    console.error('Error fetching questions with options:', error);
+    return [];
+  }
+};
