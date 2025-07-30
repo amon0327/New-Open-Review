@@ -167,12 +167,13 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const {
     getQuestionsForPage,
     setQuestionsForPage,
+    loadQuestionsForPage,
     addQuestion,
     updateQuestion,
     deleteQuestion,
     duplicateQuestion,
     getQuestionCountForPage
-  } = useQuestionData();
+  } = useQuestionData(formId);
 
   // 設定関連の追加状態
   const [logoImage, setLogoImage] = useState(null);
@@ -337,6 +338,13 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   }, [pages, selectedPage, setSelectedPage]);
 
+  // 選択されたページが変更された時、質問データを読み込み
+  useEffect(() => {
+    if (selectedPage && selectedPage.type === 'question' && formId) {
+      loadQuestionsForPage(selectedPage.id);
+    }
+  }, [selectedPage, formId, loadQuestionsForPage]);
+
   // Supabaseから取得した質問タイプデータを既存フォーマットに変換
   const convertedQuestionTypes = questionTypesData.map(qType => ({
     icon: <SvgIcon src={qType.image} size={20} />,
@@ -408,6 +416,18 @@ export default function CreatePage({ onBackClick, user, formId }) {
         : page
     ));
   };
+
+  // ページの質問数を更新する処理を追加
+  useEffect(() => {
+    if (selectedPage && selectedPage.type === 'question') {
+      const currentQuestions = getQuestionsForPage(selectedPage.id);
+      setPages(prev => prev.map(page => 
+        page.id === selectedPage.id 
+          ? { ...page, questions: currentQuestions.length }
+          : page
+      ));
+    }
+  }, [selectedPage, getQuestionsForPage, setPages]);
 
   // ドラッグ&ドロップハンドラ
   const handleDragOver = (e) => {

@@ -1,13 +1,29 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { getQuestionsWithOptions } from '../services/QuestionService';
 
 // 質問データ管理のカスタムフック
-const useQuestionData = () => {
+const useQuestionData = (formId) => {
   // ページごとの質問データを管理
   const [questionsData, setQuestionsData] = useState({
     // page1: [質問配列],
     // page2: [質問配列],
     // etc...
   });
+
+  // Supabaseから質問データを読み込む
+  const loadQuestionsForPage = useCallback(async (pageId) => {
+    if (!formId || !pageId) return;
+    
+    try {
+      const questions = await getQuestionsWithOptions(formId, pageId);
+      setQuestionsData(prev => ({
+        ...prev,
+        [pageId]: questions
+      }));
+    } catch (error) {
+      console.error('Error loading questions for page:', error);
+    }
+  }, [formId]);
 
   // 特定ページの質問を取得
   const getQuestionsForPage = useCallback((pageId) => {
@@ -250,6 +266,7 @@ const useQuestionData = () => {
     // 基本操作
     getQuestionsForPage,
     setQuestionsForPage,
+    loadQuestionsForPage, // 新しく追加
     addQuestion,
     updateQuestion,
     deleteQuestion,
