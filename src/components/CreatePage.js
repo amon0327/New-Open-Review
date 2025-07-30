@@ -813,29 +813,46 @@ export default function CreatePage({ onBackClick, user, formId }) {
   };
 
   // 質問更新ハンドラー
-  const handleQuestionUpdate = (questionId, updates) => {
+  const handleQuestionUpdate = async (questionId, updates) => {
     if (!selectedPage) return;
     
-    const currentQuestions = getQuestionsForPage(selectedPage.id);
-    const updatedQuestions = currentQuestions.map(q => 
-      q.id === questionId ? { ...q, ...updates } : q
-    );
-    
-    handleQuestionsUpdate(selectedPage.id, updatedQuestions);
+    try {
+      const success = await updateQuestion(selectedPage.id, questionId, updates);
+      if (success) {
+        // 更新後にページを再読み込み
+        await loadQuestionsForPage(selectedPage.id);
+        toast.success('質問を更新しました');
+      } else {
+        toast.error('質問の更新に失敗しました');
+      }
+    } catch (error) {
+      console.error('Question update error:', error);
+      toast.error('質問の更新中にエラーが発生しました');
+    }
   };
 
   // 質問削除ハンドラー
-  const handleQuestionDelete = (questionId) => {
+  const handleQuestionDelete = async (questionId) => {
     if (!selectedPage) return;
     
-    const currentQuestions = getQuestionsForPage(selectedPage.id);
-    const updatedQuestions = currentQuestions.filter(q => q.id !== questionId);
-    
-    handleQuestionsUpdate(selectedPage.id, updatedQuestions);
-    
-    // 削除された質問が選択されていた場合、選択を解除
-    if (selectedQuestionId === questionId) {
-      setSelectedQuestionId(null);
+    try {
+      const success = await deleteQuestion(selectedPage.id, questionId);
+      if (success) {
+        // 削除後にページを再読み込み
+        await loadQuestionsForPage(selectedPage.id);
+        
+        // 削除された質問が選択されていた場合、選択を解除
+        if (selectedQuestionId === questionId) {
+          setSelectedQuestionId(null);
+        }
+        
+        toast.success('質問を削除しました');
+      } else {
+        toast.error('質問の削除に失敗しました');
+      }
+    } catch (error) {
+      console.error('Question delete error:', error);
+      toast.error('質問の削除中にエラーが発生しました');
     }
   };
 

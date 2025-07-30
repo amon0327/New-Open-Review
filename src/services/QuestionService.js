@@ -392,6 +392,167 @@ export const getQuestionPageSettings = async (reviewFormId) => {
   }
 };
 
+// 質問を更新する関数
+export const updateReviewQuestion = async (questionId, updates) => {
+  try {
+    const { data, error } = await supabase
+      .from('review_questions')
+      .update(updates)
+      .eq('id', questionId)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error updating review question:', error);
+    throw error;
+  }
+};
+
+// 質問を削除する関数
+export const deleteReviewQuestion = async (questionId) => {
+  try {
+    // 1. 関連する選択肢オプションを削除
+    await supabase
+      .from('question_option_choices')
+      .delete()
+      .eq('review_questions_id', questionId);
+
+    // 2. 関連するリニアスケールオプションを削除
+    await supabase
+      .from('question_option_linear_scale')
+      .delete()
+      .eq('review_questions_id', questionId);
+
+    // 3. 質問本体を削除
+    const { error } = await supabase
+      .from('review_questions')
+      .delete()
+      .eq('id', questionId);
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting review question:', error);
+    throw error;
+  }
+};
+
+// 選択肢オプションを更新する関数
+export const updateChoiceOptions = async (reviewQuestionsId, choices) => {
+  try {
+    // 1. 既存の選択肢を削除
+    await supabase
+      .from('question_option_choices')
+      .delete()
+      .eq('review_questions_id', reviewQuestionsId);
+
+    // 2. 新しい選択肢を追加
+    if (choices && choices.length > 0) {
+      const choiceInserts = choices.map((choice, index) => ({
+        review_questions_id: reviewQuestionsId,
+        choice_number: index + 1,
+        choice_name: choice
+      }));
+
+      const { data, error } = await supabase
+        .from('question_option_choices')
+        .insert(choiceInserts)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error updating choice options:', error);
+    throw error;
+  }
+};
+
+// リニアスケールオプションを更新する関数
+export const updateLinearScaleOption = async (reviewQuestionsId, scaleSettings) => {
+  try {
+    // 1. 既存のスケール設定を削除
+    await supabase
+      .from('question_option_linear_scale')
+      .delete()
+      .eq('review_questions_id', reviewQuestionsId);
+
+    // 2. 新しいスケール設定を追加
+    if (scaleSettings) {
+      const { data, error } = await supabase
+        .from('question_option_linear_scale')
+        .insert({
+          review_questions_id: reviewQuestionsId,
+          min_text: scaleSettings.minLabel || 'そう思わない',
+          max_text: scaleSettings.maxLabel || 'そう思う'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error updating linear scale option:', error);
+    throw error;
+  }
+};
+
+// 質問とそのオプションをまとめて更新する関数
+export const updateQuestionWithOptions = async (questionId, questionData) => {
+  try {
+    // 1. 基本の質問データを更新
+    const updatedQuestion = await updateReviewQuestion(questionId, {
+      question_text: questionData.question_text,
+      is_required: questionData.is_required,
+      question_detail_text: questionData.question_detail_text || null,
+      is_detail_enabled: questionData.is_detail_enabled || false
+    });
+
+    // 2. 質問タイプに応じてオプションを更新
+    if (questionData.question_types_id === 7) {
+      // リニアスケールオプション
+      if (questionData.scale_settings) {
+        const scaleSettings = typeof questionData.scale_settings === 'string' 
+          ? JSON.parse(questionData.scale_settings) 
+          : questionData.scale_settings;
+        await updateLinearScaleOption(questionId, scaleSettings);
+      }
+    } else if ([3, 4, 5, 6, 8].includes(questionData.question_types_id)) {
+      // 選択肢オプション
+      if (questionData.choices) {
+        const choices = typeof questionData.choices === 'string' 
+          ? JSON.parse(questionData.choices) 
+          : questionData.choices;
+        await updateChoiceOptions(questionId, choices);
+      }
+    }
+
+    return updatedQuestion;
+  } catch (error) {
+    console.error('Error updating question with options:', error);
+    throw error;
+  }
+};
+
 // 質問とそのオプションをまとめて取得する関数
 export const getQuestionsWithOptions = async (reviewFormId, reviewFormPagesId) => {
   try {

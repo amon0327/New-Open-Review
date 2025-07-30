@@ -1,5 +1,9 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { getQuestionsWithOptions } from '../services/QuestionService';
+import { 
+  getQuestionsWithOptions, 
+  updateQuestionWithOptions, 
+  deleteReviewQuestion 
+} from '../services/QuestionService';
 
 // 質問データ管理のカスタムフック
 const useQuestionData = (formId) => {
@@ -16,9 +20,38 @@ const useQuestionData = (formId) => {
     
     try {
       const questions = await getQuestionsWithOptions(formId, pageId);
+      
+      // Supabaseのデータを既存フォーマットに変換
+      const convertedQuestions = questions.map(question => {
+        const converted = {
+          ...question,
+          // オプションデータを既存の形式に変換
+          choices: null,
+          scale_settings: null
+        };
+
+        // 選択肢データの変換
+        if (question.options && Array.isArray(question.options)) {
+          const choiceNames = question.options.map(opt => opt.choice_name);
+          converted.choices = JSON.stringify(choiceNames);
+        }
+
+        // スケール設定の変換
+        if (question.options && question.options.min_text && question.options.max_text) {
+          converted.scale_settings = JSON.stringify({
+            minValue: 1,
+            maxValue: 5,
+            minLabel: question.options.min_text,
+            maxLabel: question.options.max_text
+          });
+        }
+
+        return converted;
+      });
+      
       setQuestionsData(prev => ({
         ...prev,
-        [pageId]: questions
+        [pageId]: convertedQuestions
       }));
     } catch (error) {
       console.error('Error loading questions for page:', error);
@@ -62,28 +95,50 @@ const useQuestionData = (formId) => {
     return newQuestion;
   }, []);
 
-  // 質問を更新
-  const updateQuestion = useCallback((pageId, questionId, updatedData) => {
-    setQuestionsData(prev => ({
-      ...prev,
-      [pageId]: (prev[pageId] || []).map(question =>
-        question.id === questionId
-          ? { 
-              ...question, 
-              ...updatedData, 
-              updated_at: new Date().toISOString() 
-            }
-          : question
-      )
-    }));
+  // 質問を更新（Supabaseと連携）
+  const updateQuestion = useCallback(async (pageId, questionId, updatedData) => {
+    try {
+      // Supabaseで質問を更新
+      await updateQuestionWithOptions(questionId, updatedData);
+      
+      // ローカル状態も更新
+      setQuestionsData(prev => ({
+        ...prev,
+        [pageId]: (prev[pageId] || []).map(question =>
+          question.id === questionId
+            ? { 
+                ...question, 
+                ...updatedData, 
+                updated_at: new Date().toISOString() 
+              }
+            : question
+        )
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating question:', error);
+      return false;
+    }
   }, []);
 
-  // 質問を削除
-  const deleteQuestion = useCallback((pageId, questionId) => {
-    setQuestionsData(prev => ({
-      ...prev,
-      [pageId]: (prev[pageId] || []).filter(question => question.id !== questionId)
-    }));
+  // 質問を削除（Supabaseと連携）
+  const deleteQuestion = useCallback(async (pageId, questionId) => {
+    try {
+      // Supabaseで質問を削除
+      await deleteReviewQuestion(questionId);
+      
+      // ローカル状態も更新
+      setQuestionsData(prev => ({
+        ...prev,
+        [pageId]: (prev[pageId] || []).filter(question => question.id !== questionId)
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      return false;
+    }
   }, []);
 
   // 質問を複製
