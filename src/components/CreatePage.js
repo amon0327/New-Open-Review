@@ -238,6 +238,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     { id: 'completion', title: '完了画面', type: 'system', icon: <CheckCircle />, canDelete: false, canEdit: false }
   ]);
   const [isLoadingPages, setIsLoadingPages] = useState(false);
+  const [isAddingPage, setIsAddingPage] = useState(false);
 
   // 質問タイプを読み込み
   useEffect(() => {
@@ -547,7 +548,13 @@ export default function CreatePage({ onBackClick, user, formId }) {
       return;
     }
 
+    // 既にページ追加中の場合は処理を停止
+    if (isAddingPage) {
+      return;
+    }
+
     try {
+      setIsAddingPage(true);
       const questionPageCount = pages.filter(p => p.type === 'question').length;
       const pageName = `新しいページ${questionPageCount + 1}`;
       
@@ -576,6 +583,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
     } catch (error) {
       console.error('Add page error:', error);
       toast.error('ページの追加中にエラーが発生しました');
+    } finally {
+      setIsAddingPage(false);
     }
   };
 
@@ -1035,12 +1044,17 @@ export default function CreatePage({ onBackClick, user, formId }) {
                       <Box sx={{ display: 'flex', gap: 1 }}>
                         <IconButton
                           onClick={handleAddPage}
+                          disabled={isAddingPage}
                           sx={{
-                            color: '#5e17eb',
-                            backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                            '&:hover': { 
+                            color: isAddingPage ? '#9ca3af' : '#5e17eb',
+                            backgroundColor: isAddingPage ? 'rgba(156, 163, 175, 0.1)' : 'rgba(94, 23, 235, 0.1)',
+                            '&:hover': isAddingPage ? {} : { 
                               backgroundColor: 'rgba(94, 23, 235, 0.2)',
                               transform: 'scale(1.05)'
+                            },
+                            '&.Mui-disabled': {
+                              color: '#9ca3af',
+                              backgroundColor: 'rgba(156, 163, 175, 0.1)'
                             }
                           }}
                         >
