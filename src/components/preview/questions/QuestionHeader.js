@@ -24,15 +24,16 @@ const QuestionHeader = ({ question, themeColor, currentQuestion, totalQuestions 
       <Typography
         variant="h6"
         sx={{
-          color: '#14181B',
+          color: question.question_text ? '#14181B' : '#9CA3AF',
           fontSize: '1.25rem',
-          fontWeight: 600,
+          fontWeight: question.question_text ? 600 : 400,
           fontFamily: '"Noto Sans JP", sans-serif',
           lineHeight: 1.4,
-          mb: 2
+          mb: 2,
+          fontStyle: question.question_text ? 'normal' : 'italic'
         }}
       >
-        {question.question_text}
+        {question.question_text || '質問を入力...'}
       </Typography>
 
       {/* Detail Text */}
