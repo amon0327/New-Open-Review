@@ -237,9 +237,9 @@ class CompletionScreenService {
       
       // フォーム基本設定を取得（テーマカラー、ロゴなど）
       const { data: formData, error: formError } = await supabase
-        .from('review_forms')
+        .from('review_form_settings')
         .select('theme_color, logo_image_url')
-        .eq('id', formId)
+        .eq('review_form_id', formId)
         .single();
 
       if (formError && formError.code !== 'PGRST116') {

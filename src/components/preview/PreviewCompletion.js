@@ -4,7 +4,7 @@ import {
   Typography,
   Button
 } from '@mui/material';
-import CompletionScreenService from '../../services/CompletionScreenService';
+import FormDataService from '../../services/FormDataService';
 
 const PreviewCompletion = ({ 
   previewMode,
@@ -42,8 +42,14 @@ const PreviewCompletion = ({
       }
 
       try {
-        const data = await CompletionScreenService.getCompletionPageData(formId);
-        setCompletionData(data);
+        const result = await FormDataService.getReviewFormWithDetails(formId);
+        if (result.success) {
+          const data = {
+            completionSettings: result.data.completion_screen_settings?.[0] || null,
+            formSettings: result.data.review_form_settings?.[0] || null
+          };
+          setCompletionData(data);
+        }
       } catch (error) {
         console.error('Error fetching completion data:', error);
       } finally {
