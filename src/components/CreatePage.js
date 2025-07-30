@@ -15,7 +15,7 @@ import { leftNavigationItems, questionTypes, questionTemplates, settingsCategori
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import FormDataService from '../services/FormDataService';
-import { createQuestionWithOptions } from '../services/QuestionService';
+import { createQuestionWithOptions, createTemplateQuestionWithOptions } from '../services/QuestionService';
 import {
   Box,
   Paper,
@@ -434,13 +434,30 @@ export default function CreatePage({ onBackClick, user, formId }) {
       const currentQuestions = getQuestionsForPage(selectedPage.id);
       const questionNumber = currentQuestions.length + 1;
 
-      // Supabaseに質問を登録
-      const supabaseQuestion = await createQuestionWithOptions({
-        reviewFormId: formId,
-        questionTypesId: questionTypeId,
-        reviewFormPagesId: selectedPage.id,
-        questionNumber: questionNumber
-      });
+      let supabaseQuestion;
+
+      // テンプレート質問かどうかで処理を分岐
+      if (draggedData.isTemplate) {
+        // テンプレート質問の場合
+        supabaseQuestion = await createTemplateQuestionWithOptions({
+          reviewFormId: formId,
+          questionTypesId: questionTypeId,
+          reviewFormPagesId: selectedPage.id,
+          questionNumber: questionNumber,
+          questionText: draggedData.question || draggedData.question_text || draggedData.label || '質問を入力',
+          questionCategoriesId: draggedData.question_categories_id || null,
+          questionSubcategoriesId: draggedData.question_subcategories_id || null,
+          templateReviewQuestionsId: draggedData.id || null
+        });
+      } else {
+        // 通常の質問タイプの場合
+        supabaseQuestion = await createQuestionWithOptions({
+          reviewFormId: formId,
+          questionTypesId: questionTypeId,
+          reviewFormPagesId: selectedPage.id,
+          questionNumber: questionNumber
+        });
+      }
 
       let newQuestion = {
         id: supabaseQuestion.id, // SupabaseのIDを使用
