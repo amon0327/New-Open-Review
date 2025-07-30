@@ -13,6 +13,10 @@ const PreviewLogin = ({
   selectedElement,
   // フォームID
   formId,
+  // フォーム設定
+  formSettings = {},
+  headerImage,
+  logoImage,
   // 設定データ（将来的にpropsで受け取る）
   loginBackgroundImage,
   loginLogoImage,
@@ -49,9 +53,9 @@ const PreviewLogin = ({
   }, [formId]);
 
   // デフォルト値とSupabaseデータ、propsから受け取ったデータの統合
-  const themeColor = propThemeColor || (loginData?.formSettings?.theme_color) || '#5e17eb';
-  const backgroundImage = loginBackgroundImage || (loginData?.loginSettings?.background_image_url) || 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg';
-  const logoUrl = loginLogoImage || (loginData?.formSettings?.logo_image_url) || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const themeColor = formSettings.theme_color || propThemeColor || (loginData?.formSettings?.theme_color) || '#5e17eb';
+  const backgroundImage = headerImage || loginBackgroundImage || (loginData?.loginSettings?.background_image_url) || 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg';
+  const logoUrl = logoImage || loginLogoImage || (loginData?.formSettings?.logo_image_url) || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   const titleText = loginTitleText || (loginData?.loginSettings?.title_text) || 'OpenReviewへようこそ！';
   const detailText = loginDetailText || (loginData?.loginSettings?.detail_text) || 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。';
   const displayButtonText = buttonText || '回答へ進む';

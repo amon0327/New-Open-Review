@@ -1389,6 +1389,7 @@ const PreviewQuestions = ({
   logoImage,
   onElementSelect,
   selectedElement,
+  formSettings = {},
   // フォームID
   formId
 }) => {
@@ -1402,11 +1403,11 @@ const PreviewQuestions = ({
   const isMobile = previewMode === 'mobile';
 
   // Supabaseのデータからテーマカラー、ロゴ、ヘッダー画像を取得
-  const themeColor = pageSettings.reviewFormSettings?.theme_color || '#5e17eb';
+  const themeColor = formSettings.theme_color || pageSettings.reviewFormSettings?.theme_color || '#5e17eb';
   const defaultHeaderImage = pageSettings.questionScreenSettings?.header_image_url || 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
-  const defaultLogoUrl = pageSettings.reviewFormSettings?.logo_image_url || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const defaultLogoUrl = formSettings.logo_image_url || pageSettings.reviewFormSettings?.logo_image_url || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   
-  const currentHeaderImage = headerImage || defaultHeaderImage;
+  const currentHeaderImage = headerImage || formSettings.header_image_url || defaultHeaderImage;
   const currentLogoUrl = logoImage || defaultLogoUrl;
 
   // Supabaseから質問データとページ設定を取得
