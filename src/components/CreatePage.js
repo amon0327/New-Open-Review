@@ -1606,36 +1606,39 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     }}
                   />
                   
-                  {/* 現在のページ名表示 */}
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 16,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      zIndex: 10,
-                      pointerEvents: 'none'
-                    }}
-                  >
-                    <Typography
-                      variant="h6"
+                  {/* 現在のページ名表示 - 設定画面でない時のみ */}
+                  {!showSettings && selectedPage && (
+                    <Box
                       sx={{
-                        color: '#5e17eb',
-                        fontWeight: 600,
-                        fontSize: '1.1rem',
-                        textAlign: 'center',
-                        background: 'rgba(255, 255, 255, 0.9)',
-                        backdropFilter: 'blur(10px)',
-                        px: 3,
-                        py: 1,
-                        borderRadius: '20px',
-                        border: '1px solid rgba(94, 23, 235, 0.1)',
-                        boxShadow: '0 4px 16px rgba(94, 23, 235, 0.1)'
+                        position: 'absolute',
+                        top: 20,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        zIndex: 20,
+                        pointerEvents: 'none'
                       }}
                     >
-                      {selectedPage ? selectedPage.title : 'ページが選択されていません'}
-                    </Typography>
-                  </Box>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          color: '#5e17eb',
+                          fontWeight: 700,
+                          fontSize: '1.2rem',
+                          textAlign: 'center',
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          px: 4,
+                          py: 1.5,
+                          borderRadius: '25px',
+                          border: '2px solid rgba(94, 23, 235, 0.2)',
+                          boxShadow: '0 8px 32px rgba(94, 23, 235, 0.15)',
+                          textShadow: '0 1px 2px rgba(94, 23, 235, 0.1)'
+                        }}
+                      >
+                        {selectedPage.title}
+                      </Typography>
+                    </Box>
+                  )}
                   
                   {/* メインプレビューエリア */}
                   <PreviewArea
