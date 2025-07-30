@@ -447,7 +447,28 @@ const QuestionSettingsMenu = ({
     }
   };
 
-  // ログイン・完了画面のテキストのonBlur時更新ハンドラ
+  // ログイン・完了画面のテキスト即座更新ハンドラ
+  const handleLoginTitleChange = (value) => {
+    setLocalLoginTitle(value);
+    setLoginTitle(value); // 即座にプレビューに反映
+  };
+
+  const handleLoginDetailChange = (value) => {
+    setLocalLoginDetail(value);
+    setLoginDetail(value); // 即座にプレビューに反映
+  };
+
+  const handleCompletionTitleChange = (value) => {
+    setLocalCompletionTitle(value);
+    setCompletionTitle(value); // 即座にプレビューに反映
+  };
+
+  const handleCompletionDetailChange = (value) => {
+    setLocalCompletionDetail(value);
+    setCompletionDetail(value); // 即座にプレビューに反映
+  };
+
+  // ログイン・完了画面のテキストのonBlur時更新ハンドラ（データベース保存用）
   const handleLoginTitleBlur = () => {
     if (loginTitle !== localLoginTitle) {
       setLoginTitle(localLoginTitle);
@@ -1684,7 +1705,7 @@ const QuestionSettingsMenu = ({
                   <StylishTextField
                     label="タイトルテキスト"
                     value={localLoginTitle}
-                    onChange={(e) => setLocalLoginTitle(e.target.value)}
+                    onChange={(e) => handleLoginTitleChange(e.target.value)}
                     onBlur={handleLoginTitleBlur}
                     placeholder="ログイン画面のタイトル"
                   />
@@ -1738,7 +1759,7 @@ const QuestionSettingsMenu = ({
                   <StylishTextField
                     label="詳細テキスト"
                     value={localLoginDetail}
-                    onChange={(e) => setLocalLoginDetail(e.target.value)}
+                    onChange={(e) => handleLoginDetailChange(e.target.value)}
                     onBlur={handleLoginDetailBlur}
                     multiline
                     minRows={1}
@@ -1903,7 +1924,7 @@ const QuestionSettingsMenu = ({
                 <StylishTextField
                   label="タイトルテキスト"
                   value={localCompletionTitle}
-                  onChange={(e) => setLocalCompletionTitle(e.target.value)}
+                  onChange={(e) => handleCompletionTitleChange(e.target.value)}
                   onBlur={handleCompletionTitleBlur}
                   placeholder="完了画面のタイトル"
                 />
@@ -1973,7 +1994,7 @@ const QuestionSettingsMenu = ({
                 <StylishTextField
                   label="詳細テキスト"
                   value={localCompletionDetail}
-                  onChange={(e) => setLocalCompletionDetail(e.target.value)}
+                  onChange={(e) => handleCompletionDetailChange(e.target.value)}
                   onBlur={handleCompletionDetailBlur}
                   multiline
                   minRows={1}
