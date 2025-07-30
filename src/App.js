@@ -185,7 +185,6 @@ function App() {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
 
-      console.log('🔐 Auth event:', event, 'isInitialLoad:', isInitialLoad, 'currentView:', currentView);
 
       try {
         setUser(session?.user ?? null);
@@ -193,10 +192,7 @@ function App() {
         if (session?.user) {
           // 初回ロード時のみダッシュボードに遷移
           if (isMounted && isInitialLoad) {
-            console.log('🏠 初回セッション - ダッシュボードに遷移');
             setCurrentView('dashboard');
-          } else {
-            console.log('🔄 認証状態変更検出 - ビューは維持:', currentView, 'event:', event);
           }
           
           // business_usersチェックを非同期で実行（UIブロッキングを避ける）
@@ -251,7 +247,6 @@ function App() {
   };
 
   const handleBackToDashboard = () => {
-    console.log('⬅️ handleBackToDashboard 実行');
     setCurrentFormId(null);
     setCurrentView('dashboard');
   };

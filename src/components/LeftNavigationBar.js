@@ -20,7 +20,6 @@ const LeftNavigationBar = ({
 }) => {
   const handleItemClick = (item) => {
     if (item.isLogo) {
-      console.log('🖱️ ロゴクリック - onBackClick実行');
       onBackClick();
     } else if (item.label === 'フォルダー') {
       setShowPageManager(true);
