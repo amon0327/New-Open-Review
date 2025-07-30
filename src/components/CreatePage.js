@@ -905,24 +905,46 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
-  // 選択肢専用更新ハンドラー（専用テーブルに直接保存）
+  // 選択肢専用更新ハンドラー（楽観的UI更新 + 専用テーブル保存）
   const handleChoiceOptionsUpdate = async (questionId, choices) => {
+    if (!selectedPage) return;
+
+    // 即座にローカル状態を更新（楽観的更新）
+    const currentQuestions = getQuestionsForPage(selectedPage.id);
+    const optimisticQuestions = currentQuestions.map(q => 
+      q.id === questionId ? { ...q, choices: JSON.stringify(choices) } : q
+    );
+    handleQuestionsUpdate(selectedPage.id, optimisticQuestions);
+
+    // バックグラウンドで専用テーブルに保存
     try {
       await updateChoiceOptions(questionId, choices);
-      // 成功時は何もしない（ローカル状態は既に楽観的更新済み）
     } catch (error) {
       console.error('Choice options update error:', error);
+      // エラー時は元の状態に戻す
+      handleQuestionsUpdate(selectedPage.id, currentQuestions);
       toast.error('選択肢の更新に失敗しました');
     }
   };
 
-  // 均等目盛り専用更新ハンドラー（専用テーブルに直接保存）
+  // 均等目盛り専用更新ハンドラー（楽観的UI更新 + 専用テーブル保存）
   const handleLinearScaleOptionsUpdate = async (questionId, scaleSettings) => {
+    if (!selectedPage) return;
+
+    // 即座にローカル状態を更新（楽観的更新）
+    const currentQuestions = getQuestionsForPage(selectedPage.id);
+    const optimisticQuestions = currentQuestions.map(q => 
+      q.id === questionId ? { ...q, scale_settings: JSON.stringify(scaleSettings) } : q
+    );
+    handleQuestionsUpdate(selectedPage.id, optimisticQuestions);
+
+    // バックグラウンドで専用テーブルに保存
     try {
       await updateLinearScaleOptions(questionId, scaleSettings);
-      // 成功時は何もしない（ローカル状態は既に楽観的更新済み）
     } catch (error) {
       console.error('Linear scale options update error:', error);
+      // エラー時は元の状態に戻す
+      handleQuestionsUpdate(selectedPage.id, currentQuestions);
       toast.error('均等目盛り設定の更新に失敗しました');
     }
   };

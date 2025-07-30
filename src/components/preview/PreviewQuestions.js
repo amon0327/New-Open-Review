@@ -331,15 +331,15 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
     });
   };
 
-  // Supabaseのoptionsデータまたはローカルのchoicesから選択肢を取得
+  // ローカルのchoicesを優先（楽観的UI更新用）、Supabaseデータはフォールバック
   let choices = [];
   
-  if (question.options && Array.isArray(question.options) && question.options.length > 0) {
-    // Supabaseの選択肢オプションを使用
-    choices = question.options.map(option => option.choice_name);
-  } else if (question.choices) {
-    // ローカルのchoicesを使用（後方互換性）
+  if (question.choices) {
+    // ローカルのchoicesを使用（楽観的更新で即座に反映）
     choices = JSON.parse(question.choices);
+  } else if (question.options && Array.isArray(question.options) && question.options.length > 0) {
+    // Supabaseの選択肢オプションをフォールバックとして使用
+    choices = question.options.map(option => option.choice_name);
   }
 
   return (
@@ -485,15 +485,15 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
     });
   };
 
-  // Supabaseのoptionsデータまたはローカルのchoicesから選択肢を取得
+  // ローカルのchoicesを優先（楽観的UI更新用）、Supabaseデータはフォールバック
   let choices = [];
   
-  if (question.options && Array.isArray(question.options) && question.options.length > 0) {
-    // Supabaseの選択肢オプションを使用
-    choices = question.options.map(option => option.choice_name);
-  } else if (question.choices) {
-    // ローカルのchoicesを使用（後方互換性）
+  if (question.choices) {
+    // ローカルのchoicesを使用（楽観的更新で即座に反映）
     choices = JSON.parse(question.choices);
+  } else if (question.options && Array.isArray(question.options) && question.options.length > 0) {
+    // Supabaseの選択肢オプションをフォールバックとして使用
+    choices = question.options.map(option => option.choice_name);
   }
 
   return (
@@ -635,15 +635,15 @@ const SingleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, tot
     });
   };
 
-  // Supabaseのoptionsデータまたはローカルのchoicesから選択肢を取得
+  // ローカルのchoicesを優先（楽観的UI更新用）、Supabaseデータはフォールバック
   let choices = [];
   
-  if (question.options && Array.isArray(question.options) && question.options.length > 0) {
-    // Supabaseの選択肢オプションを使用
-    choices = question.options.map(option => option.choice_name);
-  } else if (question.choices) {
-    // ローカルのchoicesを使用（後方互換性）
+  if (question.choices) {
+    // ローカルのchoicesを使用（楽観的更新で即座に反映）
     choices = JSON.parse(question.choices);
+  } else if (question.options && Array.isArray(question.options) && question.options.length > 0) {
+    // Supabaseの選択肢オプションをフォールバックとして使用
+    choices = question.options.map(option => option.choice_name);
   }
 
   return (
@@ -799,15 +799,15 @@ const MultipleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, t
     });
   };
 
-  // Supabaseのoptionsデータまたはローカルのchoicesから選択肢を取得
+  // ローカルのchoicesを優先（楽観的UI更新用）、Supabaseデータはフォールバック
   let choices = [];
   
-  if (question.options && Array.isArray(question.options) && question.options.length > 0) {
-    // Supabaseの選択肢オプションを使用
-    choices = question.options.map(option => option.choice_name);
-  } else if (question.choices) {
-    // ローカルのchoicesを使用（後方互換性）
+  if (question.choices) {
+    // ローカルのchoicesを使用（楽観的更新で即座に反映）
     choices = JSON.parse(question.choices);
+  } else if (question.options && Array.isArray(question.options) && question.options.length > 0) {
+    // Supabaseの選択肢オプションをフォールバックとして使用
+    choices = question.options.map(option => option.choice_name);
   }
 
   return (
@@ -959,23 +959,35 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
     });
   };
 
-  // Supabaseのoptionsデータまたはローカルのscale_settingsから読み取り
+  // ローカルのscale_settingsを優先（楽観的UI更新用）、Supabaseデータはフォールバック
   let minLabel, maxLabel, minValue, maxValue;
   
-  if (question.options && question.options.min_text && question.options.max_text) {
-    // Supabaseのlinear_scaleオプションを使用
+  if (question.scale_settings) {
+    // ローカルのscale_settingsを使用（楽観的更新で即座に反映）
+    const scaleData = JSON.parse(question.scale_settings);
+    minLabel = scaleData.minLabel || scaleData.min_label || 'そう思わない';
+    maxLabel = scaleData.maxLabel || scaleData.max_label || 'そう思う';
+    minValue = scaleData.minValue || 1;
+    maxValue = scaleData.maxValue || 5;
+  } else if (question.scale_labels) {
+    // 後方互換性のため
+    const scaleData = JSON.parse(question.scale_labels);
+    minLabel = scaleData.minLabel || scaleData.min_label || 'そう思わない';
+    maxLabel = scaleData.maxLabel || scaleData.max_label || 'そう思う';
+    minValue = scaleData.minValue || 1;
+    maxValue = scaleData.maxValue || 5;
+  } else if (question.options && question.options.min_text && question.options.max_text) {
+    // Supabaseのlinear_scaleオプションをフォールバックとして使用
     minLabel = question.options.min_text;
     maxLabel = question.options.max_text;
     minValue = 1;
     maxValue = 5;
   } else {
-    // ローカルのscale_settingsを使用（後方互換性）
-    const scaleData = question.scale_settings ? JSON.parse(question.scale_settings) : 
-                      question.scale_labels ? JSON.parse(question.scale_labels) : {};
-    minLabel = scaleData.minLabel || scaleData.min_label || 'そう思わない';
-    maxLabel = scaleData.maxLabel || scaleData.max_label || 'そう思う';
-    minValue = scaleData.minValue || 1;
-    maxValue = scaleData.maxValue || 5;
+    // デフォルト値
+    minLabel = 'そう思わない';
+    maxLabel = 'そう思う';
+    minValue = 1;
+    maxValue = 5;
   }
   
   // 動的にスケール配列を生成
@@ -1147,15 +1159,15 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
     });
   };
 
-  // Supabaseのoptionsデータまたはローカルのchoicesから選択肢を取得
+  // ローカルのchoicesを優先（楽観的UI更新用）、Supabaseデータはフォールバック
   let choices = [];
   
-  if (question.options && Array.isArray(question.options) && question.options.length > 0) {
-    // Supabaseの選択肢オプションを使用
-    choices = question.options.map(option => option.choice_name);
-  } else if (question.choices) {
-    // ローカルのchoicesを使用（後方互換性）
+  if (question.choices) {
+    // ローカルのchoicesを使用（楽観的更新で即座に反映）
     choices = JSON.parse(question.choices);
+  } else if (question.options && Array.isArray(question.options) && question.options.length > 0) {
+    // Supabaseの選択肢オプションをフォールバックとして使用
+    choices = question.options.map(option => option.choice_name);
   }
 
   return (
