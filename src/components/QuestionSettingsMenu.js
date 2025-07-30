@@ -492,18 +492,7 @@ const QuestionSettingsMenu = ({
     setCompletionDetail(value); // 即座にプレビューに反映
   };
 
-  // ログイン・完了画面のテキストのonBlur時更新ハンドラ（データベース保存用）
-  const handleLoginTitleBlur = () => {
-    if (loginTitle !== localLoginTitle) {
-      setLoginTitle(localLoginTitle);
-    }
-  };
-
-  const handleLoginDetailBlur = () => {
-    if (loginDetail !== localLoginDetail) {
-      setLoginDetail(localLoginDetail);
-    }
-  };
+  // 完了画面のテキストのonBlur時更新ハンドラ（データベース保存用）
 
   const handleCompletionTitleBlur = () => {
     if (completionTitle !== localCompletionTitle) {
