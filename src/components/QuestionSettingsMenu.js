@@ -563,14 +563,6 @@ const QuestionSettingsMenu = ({
         const typeName = questionTypeData ? questionTypeData.japanese : '';
         const needsChoicesForType = typeName.includes('選択') || typeName.includes('プルダウン');
         
-        // デバッグ用ログ（一時的）
-        console.log('QuestionSettingsMenu Debug:', {
-          typeId,
-          questionTypeData,
-          typeName,
-          needsChoicesForType,
-          questionTypesData
-        });
 
         return (
           <Stack spacing={3}>

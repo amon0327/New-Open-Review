@@ -437,6 +437,91 @@ export class FormDataService {
       };
     }
   }
+
+  /**
+   * テンプレート質問データを取得（カテゴリとサブカテゴリを含む）
+   * @returns {Promise<Object>} テンプレート質問データ
+   */
+  static async getTemplateQuestions() {
+    try {
+      // カテゴリを取得
+      const { data: categories, error: categoriesError } = await supabase
+        .from('question_categories')
+        .select('*')
+        .order('id', { ascending: true });
+
+      if (categoriesError) {
+        throw new Error(`カテゴリ取得エラー: ${categoriesError.message}`);
+      }
+
+      // サブカテゴリを取得
+      const { data: subcategories, error: subcategoriesError } = await supabase
+        .from('question_subcategories')
+        .select('*')
+        .eq('is_hidden', false)
+        .order('id', { ascending: true });
+
+      if (subcategoriesError) {
+        throw new Error(`サブカテゴリ取得エラー: ${subcategoriesError.message}`);
+      }
+
+      // テンプレート質問を取得
+      const { data: templateQuestions, error: questionsError } = await supabase
+        .from('template_review_questions')
+        .select('*')
+        .eq('is_hidden', false)
+        .order('id', { ascending: true });
+
+      if (questionsError) {
+        throw new Error(`テンプレート質問取得エラー: ${questionsError.message}`);
+      }
+
+      // 選択肢データを取得
+      const { data: choices, error: choicesError } = await supabase
+        .from('template_question_option_choices')
+        .select('*')
+        .order('choice_number', { ascending: true });
+
+      if (choicesError) {
+        throw new Error(`選択肢取得エラー: ${choicesError.message}`);
+      }
+
+      // スケール設定を取得
+      const { data: scaleSettings, error: scaleError } = await supabase
+        .from('template_question_option_linear_scale')
+        .select('*');
+
+      if (scaleError) {
+        throw new Error(`スケール設定取得エラー: ${scaleError.message}`);
+      }
+
+      return {
+        success: true,
+        data: {
+          categories: categories || [],
+          subcategories: subcategories || [],
+          templateQuestions: templateQuestions || [],
+          choices: choices || [],
+          scaleSettings: scaleSettings || []
+        },
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Template questions fetch error:', error);
+      return {
+        success: false,
+        data: {
+          categories: [],
+          subcategories: [],
+          templateQuestions: [],
+          choices: [],
+          scaleSettings: []
+        },
+        error: error.message
+      };
+    }
+  }
 }
 
 export default FormDataService;

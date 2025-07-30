@@ -191,6 +191,16 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const [questionTypesData, setQuestionTypesData] = useState([]);
   const [isLoadingQuestionTypes, setIsLoadingQuestionTypes] = useState(false);
 
+  // テンプレート質問データ（Supabaseから取得）
+  const [templateQuestionsData, setTemplateQuestionsData] = useState({
+    categories: [],
+    subcategories: [],
+    templateQuestions: [],
+    choices: [],
+    scaleSettings: []
+  });
+  const [isLoadingTemplateQuestions, setIsLoadingTemplateQuestions] = useState(false);
+
   // テキスト設定の状態
   const [loginTitle, setLoginTitle] = useState('OpenReviewへようこそ！');
   const [loginDetail, setLoginDetail] = useState('あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。');
@@ -249,6 +259,28 @@ export default function CreatePage({ onBackClick, user, formId }) {
     };
 
     loadQuestionTypes();
+  }, []);
+
+  // テンプレート質問を読み込み
+  useEffect(() => {
+    const loadTemplateQuestions = async () => {
+      setIsLoadingTemplateQuestions(true);
+      try {
+        const result = await FormDataService.getTemplateQuestions();
+        if (result.success) {
+          setTemplateQuestionsData(result.data);
+        } else {
+          toast.error('テンプレート質問の読み込みに失敗しました');
+        }
+      } catch (error) {
+        console.error('Template questions loading error:', error);
+        toast.error('テンプレート質問の読み込み中にエラーが発生しました');
+      } finally {
+        setIsLoadingTemplateQuestions(false);
+      }
+    };
+
+    loadTemplateQuestions();
   }, []);
 
   // フォームIDが存在する場合にページを読み込み
@@ -311,6 +343,58 @@ export default function CreatePage({ onBackClick, user, formId }) {
     question_types_id: qType.id,
     description: qType.description
   }));
+
+  // Supabaseから取得したテンプレート質問データを既存フォーマットに変換
+  const convertedQuestionTemplates = templateQuestionsData.categories.map(category => {
+    const categorySubcategories = templateQuestionsData.subcategories
+      .filter(sub => sub.category_id === category.id)
+      .map(subcategory => {
+        const subcategoryQuestions = templateQuestionsData.templateQuestions
+          .filter(q => q.question_subcategories_id === subcategory.id)
+          .map(question => {
+            // 選択肢データを取得
+            const questionChoices = templateQuestionsData.choices
+              .filter(choice => choice.template_review_questions_id === question.id)
+              .sort((a, b) => a.choice_number - b.choice_number)
+              .map(choice => choice.choice_name);
+
+            // スケール設定を取得
+            const scaleData = templateQuestionsData.scaleSettings
+              .find(scale => scale.template_review_questions_id === question.id);
+
+            return {
+              id: question.id,
+              question: question.question_text,
+              type: questionTypesData.find(qt => qt.id === question.question_types_id)?.name || 'text',
+              question_types_id: question.question_types_id,
+              detail: question.is_detail_enabled ? question.question_detail_text : '',
+              required: question.is_required,
+              choices: questionChoices.length > 0 ? questionChoices : null,
+              scale_settings: scaleData ? {
+                minValue: 1,
+                maxValue: 5,
+                minLabel: scaleData.min_text,
+                maxLabel: scaleData.max_text
+              } : null,
+              isTemplate: true
+            };
+          });
+
+        return {
+          id: subcategory.id,
+          title: subcategory.japanese_name,
+          expanded: false,
+          templates: subcategoryQuestions
+        };
+      });
+
+    return {
+      id: category.id,
+      title: category.japanese_name,
+      expanded: false,
+      categories: categorySubcategories
+    };
+  });
 
   // 質問データ関連のハンドラ
   const handleQuestionsUpdate = (pageId, questions) => {
@@ -376,28 +460,22 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // テンプレート質問の場合は内容をコピー
       if (draggedData.isTemplate) {
         // テンプレートの質問タイプを適用
-        newQuestion.question_types_id = getQuestionTypeId(draggedData.type);
+        newQuestion.question_types_id = draggedData.question_types_id || getQuestionTypeId(draggedData.type);
+        newQuestion.is_required = draggedData.required || false;
         
-        if (draggedData.choices) {
-          newQuestion.choices = JSON.stringify(draggedData.choices);
-        }
         // テンプレート質問の詳細設定があれば適用
         if (draggedData.detail) {
           newQuestion.detail_text = draggedData.detail;
         }
-        
-        // テンプレート質問タイプに応じた設定を再適用
-        const templateTypeId = getQuestionTypeId(draggedData.type);
-        const templateTypeData = questionTypesData.find(qt => qt.id === templateTypeId);
-        const templateTypeName = templateTypeData ? templateTypeData.japanese : '';
-        
-        if ((templateTypeId === 7 || templateTypeName.includes('スケール') || templateTypeName.includes('リニア')) && !newQuestion.scale_settings) {
-          newQuestion.scale_settings = JSON.stringify({
-            minValue: 1,
-            maxValue: 5,
-            minLabel: 'そう思わない',
-            maxLabel: 'そう思う'
-          });
+
+        // テンプレートの選択肢設定を適用
+        if (draggedData.choices && Array.isArray(draggedData.choices)) {
+          newQuestion.choices = JSON.stringify(draggedData.choices);
+        }
+
+        // テンプレートのスケール設定を適用
+        if (draggedData.scale_settings) {
+          newQuestion.scale_settings = JSON.stringify(draggedData.scale_settings);
         }
       }
 
@@ -1194,7 +1272,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   // 通常の質問作成ツール
                   <QuestionToolsSidebar 
                     questionTypes={convertedQuestionTypes}
-                    questionTemplates={questionTemplates}
+                    questionTemplates={convertedQuestionTemplates}
                     expandedTemplates={expandedTemplates}
                     toggleExpanded={toggleExpanded}
                     setSelectedTool={setSelectedTool}

@@ -351,14 +351,6 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
   const needsScale = typeId === 7;
   const scaleSettings = localQuestion.scale_settings ? JSON.parse(localQuestion.scale_settings) : {};
   
-  // デバッグ用ログ（一時的）
-  console.log('QuestionSettingsPanel Debug:', {
-    questionId: localQuestion.id,
-    typeId,
-    needsChoices,
-    needsMatrix,
-    needsScale
-  });
 
 
   return (
