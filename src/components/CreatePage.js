@@ -485,7 +485,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
       const updatedQuestions = [...currentQuestions, newQuestion];
       
       handleQuestionsUpdate(selectedPage.id, updatedQuestions);
-      toast.success('質問を追加しました');
       
     } catch (error) {
       console.error('ドロップエラー:', error);

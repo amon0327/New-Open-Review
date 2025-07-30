@@ -223,6 +223,46 @@ const PreviewArea = ({
             />
           )}
 
+          {/* ドラッグアクティブ時のプラスアイコン */}
+          {isDragActive && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                backgroundColor: '#5e17eb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+                opacity: 0.9,
+                boxShadow: '0 8px 32px rgba(94, 23, 235, 0.4)',
+                animation: 'pulse 1.5s ease-in-out infinite',
+                '@keyframes pulse': {
+                  '0%': { transform: 'translate(-50%, -50%) scale(1)', opacity: 0.9 },
+                  '50%': { transform: 'translate(-50%, -50%) scale(1.1)', opacity: 0.7 },
+                  '100%': { transform: 'translate(-50%, -50%) scale(1)', opacity: 0.9 }
+                }
+              }}
+            >
+              <Typography
+                variant="h2"
+                sx={{
+                  color: 'white',
+                  fontWeight: 'bold',
+                  fontSize: '2.5rem',
+                  lineHeight: 1
+                }}
+              >
+                +
+              </Typography>
+            </Box>
+          )}
+
           {/* プレビューコンテンツ */}
           {renderPreviewContent()}
         </Paper>

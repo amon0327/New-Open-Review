@@ -73,6 +73,12 @@ const QuestionToolsSidebar = ({
                   },
                   '&:active': {
                     cursor: 'grabbing'
+                  },
+                  // ドラッグ時のカスタムエフェクト
+                  '&:is([dragging])': {
+                    opacity: 0.6,
+                    transform: 'scale(1.05)',
+                    boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3)'
                   }
                 }}
                 onClick={() => setSelectedTool(item)}
