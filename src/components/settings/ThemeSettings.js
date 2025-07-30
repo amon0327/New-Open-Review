@@ -136,40 +136,59 @@ const ThemeSettings = ({
 
           {/* フォント */}
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#374151' }}>
-              フォント
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
+                フォント
+              </Typography>
+              <Box
+                sx={{
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: '12px',
+                  backgroundColor: '#fef3c7',
+                  border: '1px solid #fcd34d'
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#92400e',
+                    fontSize: '0.75rem',
+                    fontWeight: 600
+                  }}
+                >
+                  実装予定
+                </Typography>
+              </Box>
+            </Box>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {fontOptions.map((font) => (
                 <Button
                   key={font.value}
-                  variant={selectedFont === font.value ? 'contained' : 'outlined'}
-                  onClick={() => setSelectedFont(font.value)}
+                  variant="outlined"
+                  disabled
                   size="small"
                   sx={{
                     fontFamily: font.value,
                     borderRadius: 2,
                     textTransform: 'none',
                     px: 2,
-                    ...(selectedFont === font.value ? {
-                      backgroundColor: selectedColor,
-                      '&:hover': {
-                        backgroundColor: selectedColor
-                      }
-                    } : {
+                    borderColor: '#e2e8f0',
+                    color: '#94a3b8',
+                    backgroundColor: '#f8fafc',
+                    '&.Mui-disabled': {
                       borderColor: '#e2e8f0',
-                      color: '#64748b',
-                      '&:hover': {
-                        borderColor: selectedColor,
-                        backgroundColor: 'rgba(94, 23, 235, 0.05)'
-                      }
-                    })
+                      color: '#94a3b8'
+                    }
                   }}
                 >
                   {font.name}
                 </Button>
               ))}
             </Box>
+            <Typography variant="caption" sx={{ color: '#94a3b8', mt: 1, display: 'block' }}>
+              フォント変更機能は今後のアップデートで追加予定です
+            </Typography>
           </Box>
 
           <Divider />

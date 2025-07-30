@@ -192,6 +192,7 @@ export const settingsCategories = [
     description: 'フォームのデフォルト設定',
     icon: <Description />,
     settings: [
+      { id: 'theme-color', label: 'テーマカラー', value: '#5e17eb', type: 'color-picker' },
       { id: 'theme', label: 'デフォルトテーマ', value: 'モダン', type: 'select' },
       { id: 'language', label: '言語設定', value: '日本語', type: 'select' },
       { id: 'timezone', label: 'タイムゾーン', value: 'Asia/Tokyo', type: 'select' },
