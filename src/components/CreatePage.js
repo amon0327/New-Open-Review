@@ -172,7 +172,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
     updateQuestion,
     deleteQuestion,
     duplicateQuestion,
-    getQuestionCountForPage
+    getQuestionCountForPage,
+    updateChoiceOptions,
+    updateLinearScaleOptions
   } = useQuestionData(formId);
 
   // 設定関連の追加状態
@@ -903,6 +905,28 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
+  // 選択肢専用更新ハンドラー（専用テーブルに直接保存）
+  const handleChoiceOptionsUpdate = async (questionId, choices) => {
+    try {
+      await updateChoiceOptions(questionId, choices);
+      // 成功時は何もしない（ローカル状態は既に楽観的更新済み）
+    } catch (error) {
+      console.error('Choice options update error:', error);
+      toast.error('選択肢の更新に失敗しました');
+    }
+  };
+
+  // 均等目盛り専用更新ハンドラー（専用テーブルに直接保存）
+  const handleLinearScaleOptionsUpdate = async (questionId, scaleSettings) => {
+    try {
+      await updateLinearScaleOptions(questionId, scaleSettings);
+      // 成功時は何もしない（ローカル状態は既に楽観的更新済み）
+    } catch (error) {
+      console.error('Linear scale options update error:', error);
+      toast.error('均等目盛り設定の更新に失敗しました');
+    }
+  };
+
   // 質問削除ハンドラー（楽観的UI更新）
   const handleQuestionDelete = async (questionId) => {
     if (!selectedPage) return;
@@ -1487,6 +1511,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     logoImage={logoImageState}
                     onHeaderImageChange={handleHeaderImageChange}
                     onLogoImageChange={handleLogoImageChange}
+                    // 専用テーブル更新ハンドラー
+                    onChoiceOptionsUpdate={handleChoiceOptionsUpdate}
+                    onLinearScaleOptionsUpdate={handleLinearScaleOptionsUpdate}
                     // テキスト設定
                     loginTitle={loginTitle}
                     setLoginTitle={setLoginTitle}

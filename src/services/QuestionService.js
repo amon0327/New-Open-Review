@@ -553,6 +553,77 @@ export const updateQuestionWithOptions = async (questionId, questionData) => {
   }
 };
 
+// 選択肢オプションを直接更新する関数（review_questionsテーブルを経由しない）
+export const updateChoiceOptionsDirect = async (reviewQuestionsId, choices) => {
+  try {
+    // 1. 既存の選択肢を削除
+    await supabase
+      .from('question_option_choices')
+      .delete()
+      .eq('review_questions_id', reviewQuestionsId);
+
+    // 2. 新しい選択肢を追加
+    if (choices && choices.length > 0) {
+      const choiceInserts = choices.map((choice, index) => ({
+        review_questions_id: reviewQuestionsId,
+        choice_number: index + 1,
+        choice_name: choice
+      }));
+
+      const { data, error } = await supabase
+        .from('question_option_choices')
+        .insert(choiceInserts)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error updating choice options directly:', error);
+    throw error;
+  }
+};
+
+// 均等目盛りオプションを直接更新する関数（review_questionsテーブルを経由しない）
+export const updateLinearScaleOptionDirect = async (reviewQuestionsId, scaleSettings) => {
+  try {
+    // 1. 既存のスケール設定を削除
+    await supabase
+      .from('question_option_linear_scale')
+      .delete()
+      .eq('review_questions_id', reviewQuestionsId);
+
+    // 2. 新しいスケール設定を追加
+    if (scaleSettings) {
+      const { data, error } = await supabase
+        .from('question_option_linear_scale')
+        .insert({
+          review_questions_id: reviewQuestionsId,
+          min_text: scaleSettings.minLabel || '',
+          max_text: scaleSettings.maxLabel || ''
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error updating linear scale option directly:', error);
+    throw error;
+  }
+};
+
 // 質問とそのオプションをまとめて取得する関数
 export const getQuestionsWithOptions = async (reviewFormId, reviewFormPagesId) => {
   try {

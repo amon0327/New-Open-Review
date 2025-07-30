@@ -237,6 +237,9 @@ const QuestionSettingsMenu = ({
   onQuestionDelete,
   onQuestionSelect,
   onQuestionReorder,
+  // 専用テーブル更新用のprops
+  onChoiceOptionsUpdate,
+  onLinearScaleOptionsUpdate,
   // 基本設定用のprops
   selectedElement = null, // プレビューで選択された要素 ('header', 'logo', null)
   selectedPage = null, // 選択されたページ
@@ -493,9 +496,11 @@ const QuestionSettingsMenu = ({
     }
   };
 
-  // 選択肢の更新
+  // 選択肢の更新（専用テーブルに直接保存）
   const handleChoicesUpdate = (choices) => {
-    handleQuestionUpdate('choices', JSON.stringify(choices));
+    if (onChoiceOptionsUpdate && selectedQuestion) {
+      onChoiceOptionsUpdate(selectedQuestion.id, choices);
+    }
   };
 
   // 選択肢の追加（楽観的更新）
@@ -542,14 +547,16 @@ const QuestionSettingsMenu = ({
     }
   };
 
-  // スケール設定の楽観的更新（即座にプレビューに反映）
+  // スケール設定の楽観的更新（専用テーブルに直接保存）
   const handleScaleUpdate = (field, value) => {
     // 即座にローカル状態を更新
     const newSettings = { ...localScaleSettings, [field]: value };
     setLocalScaleSettings(newSettings);
     
-    // プレビューにも即座に反映
-    handleQuestionUpdate('scale_settings', JSON.stringify(newSettings));
+    // 専用テーブルに保存（プレビューには楽観的更新で即座に反映）
+    if (onLinearScaleOptionsUpdate && selectedQuestion) {
+      onLinearScaleOptionsUpdate(selectedQuestion.id, newSettings);
+    }
   };
 
   // カラー変更ハンドラー

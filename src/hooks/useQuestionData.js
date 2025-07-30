@@ -2,7 +2,9 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { 
   getQuestionsWithOptions, 
   updateQuestionWithOptions, 
-  deleteReviewQuestion 
+  deleteReviewQuestion,
+  updateChoiceOptionsDirect,
+  updateLinearScaleOptionDirect
 } from '../services/QuestionService';
 
 // 質問データ管理のカスタムフック
@@ -214,6 +216,28 @@ const useQuestionData = (formId) => {
     }));
   }, [questionsData]);
 
+  // 選択肢オプションを直接更新（専用テーブルに保存）
+  const updateChoiceOptions = useCallback(async (questionId, choices) => {
+    try {
+      await updateChoiceOptionsDirect(questionId, choices);
+      return true;
+    } catch (error) {
+      console.error('Error updating choice options:', error);
+      throw error;
+    }
+  }, []);
+
+  // 均等目盛りオプションを直接更新（専用テーブルに保存）
+  const updateLinearScaleOptions = useCallback(async (questionId, scaleSettings) => {
+    try {
+      await updateLinearScaleOptionDirect(questionId, scaleSettings);
+      return true;
+    } catch (error) {
+      console.error('Error updating linear scale options:', error);
+      throw error;
+    }
+  }, []);
+
   // データをJSON形式でエクスポート
   const exportData = useCallback(() => {
     return {
@@ -307,6 +331,10 @@ const useQuestionData = (formId) => {
     deleteQuestion,
     duplicateQuestion,
     reorderQuestions,
+    
+    // オプション専用操作
+    updateChoiceOptions,
+    updateLinearScaleOptions,
     
     // ページ操作
     deletePage,
