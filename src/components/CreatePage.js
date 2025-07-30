@@ -461,7 +461,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
       let optimisticQuestion = {
         id: tempId,
         question_types_id: questionTypeId,
-        question_text: draggedData.question || draggedData.question_text || draggedData.label || '',
+        question_text: draggedData.question || draggedData.question_text || '',
         question_detail_text: draggedData.detail || draggedData.detail_text || '',
         is_required: draggedData.required !== undefined ? draggedData.required : true,
         choices: null,
