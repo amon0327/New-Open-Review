@@ -49,17 +49,35 @@ class CompletionScreenService {
    */
   static async upsertCompletionScreenSettings(formId, settings) {
     try {
-      const { data, error } = await supabase
+      // 既存のレコードを確認
+      const { data: existing } = await supabase
         .from('completion_screen_settings')
-        .upsert({
-          review_forms_id: formId,
-          ...settings
-        }, {
-          onConflict: 'review_forms_id'
-        })
-        .select()
+        .select('id')
+        .eq('review_forms_id', formId)
         .single();
 
+      let result;
+      if (existing) {
+        // 既存レコードを更新
+        result = await supabase
+          .from('completion_screen_settings')
+          .update(settings)
+          .eq('review_forms_id', formId)
+          .select()
+          .single();
+      } else {
+        // 新規レコードを作成
+        result = await supabase
+          .from('completion_screen_settings')
+          .insert({
+            review_forms_id: formId,
+            ...settings
+          })
+          .select()
+          .single();
+      }
+
+      const { data, error } = result;
       if (error) {
         throw error;
       }
