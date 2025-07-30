@@ -281,6 +281,19 @@ const QuestionSettingsMenu = ({
   
   // 選択肢のローカル状態
   const [localChoices, setLocalChoices] = useState([]);
+  
+  // 質問設定のローカル状態
+  const [localQuestionSettings, setLocalQuestionSettings] = useState({
+    is_required: false
+  });
+  
+  // スケール設定のローカル状態
+  const [localScaleSettings, setLocalScaleSettings] = useState({
+    minValue: 1,
+    maxValue: 5,
+    minLabel: 'そう思わない',
+    maxLabel: 'そう思う'
+  });
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
 
@@ -295,6 +308,29 @@ const QuestionSettingsMenu = ({
       // 選択肢のローカル状態も初期化
       const currentChoices = selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : [];
       setLocalChoices(currentChoices);
+      
+      // 質問設定のローカル状態も初期化
+      setLocalQuestionSettings({
+        is_required: selectedQuestion.is_required || false
+      });
+      
+      // スケール設定のローカル状態も初期化
+      if (selectedQuestion.scale_settings) {
+        const scaleSettings = JSON.parse(selectedQuestion.scale_settings);
+        setLocalScaleSettings({
+          minValue: scaleSettings.minValue || 1,
+          maxValue: scaleSettings.maxValue || 5,
+          minLabel: scaleSettings.minLabel || 'そう思わない',
+          maxLabel: scaleSettings.maxLabel || 'そう思う'
+        });
+      } else {
+        setLocalScaleSettings({
+          minValue: 1,
+          maxValue: 5,
+          minLabel: 'そう思わない',
+          maxLabel: 'そう思う'
+        });
+      }
     }
   }, [selectedQuestion]);
 
@@ -376,11 +412,21 @@ const QuestionSettingsMenu = ({
     }
   }, [selectedElement]);
 
-  // 質問の基本設定更新
+  // 質問の基本設定更新（楽観的UI更新）
   const handleQuestionUpdate = (field, value) => {
     if (onQuestionUpdate && selectedQuestion) {
+      // バックグラウンドでSupabaseに同期
       onQuestionUpdate(selectedQuestion.id, { [field]: value });
     }
+  };
+
+  // 必須設定の楽観的更新ハンドラ
+  const handleRequiredChange = (checked) => {
+    // 即座にローカル状態を更新（楽観的更新）
+    setLocalQuestionSettings(prev => ({ ...prev, is_required: checked }));
+    
+    // バックグラウンドでSupabaseに同期
+    handleQuestionUpdate('is_required', checked);
   };
 
   // テキストフィールドのonBlur時更新ハンドラ
@@ -420,17 +466,21 @@ const QuestionSettingsMenu = ({
     handleQuestionUpdate('choices', JSON.stringify(choices));
   };
 
-  // 選択肢の追加
+  // 選択肢の追加（楽観的更新）
   const handleAddChoice = () => {
     const newLocalChoices = [...localChoices, `選択肢 ${localChoices.length + 1}`];
+    // 即座にローカル状態を更新
     setLocalChoices(newLocalChoices);
+    // バックグラウンドでSupabaseに同期
     handleChoicesUpdate(newLocalChoices);
   };
 
-  // 選択肢の削除
+  // 選択肢の削除（楽観的更新）
   const handleRemoveChoice = (index) => {
     const newLocalChoices = localChoices.filter((_, i) => i !== index);
+    // 即座にローカル状態を更新
     setLocalChoices(newLocalChoices);
+    // バックグラウンドでSupabaseに同期
     handleChoicesUpdate(newLocalChoices);
   };
 
@@ -457,10 +507,13 @@ const QuestionSettingsMenu = ({
     }
   };
 
-  // スケール設定の更新
+  // スケール設定の楽観的更新
   const handleScaleUpdate = (field, value) => {
-    const currentSettings = selectedQuestion.scale_settings ? JSON.parse(selectedQuestion.scale_settings) : {};
-    const newSettings = { ...currentSettings, [field]: value };
+    // 即座にローカル状態を更新
+    setLocalScaleSettings(prev => ({ ...prev, [field]: value }));
+    
+    // バックグラウンドでSupabaseに同期
+    const newSettings = { ...localScaleSettings, [field]: value };
     handleQuestionUpdate('scale_settings', JSON.stringify(newSettings));
   };
 
@@ -671,8 +724,8 @@ const QuestionSettingsMenu = ({
                 回答を必須にする
               </Typography>
               <Switch
-                checked={selectedQuestion.is_required || false}
-                onChange={(e) => handleQuestionUpdate('is_required', e.target.checked)}
+                checked={localQuestionSettings.is_required}
+                onChange={(e) => handleRequiredChange(e.target.checked)}
                 sx={{
                   '& .MuiSwitch-switchBase': {
                     '&.Mui-checked': {
@@ -816,14 +869,14 @@ const QuestionSettingsMenu = ({
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <StylishTextField
                       label="最小値"
-                      value={selectedQuestion.scale_settings ? (JSON.parse(selectedQuestion.scale_settings).minValue || 1) : 1}
+                      value={localScaleSettings.minValue}
                       onChange={(e) => handleScaleUpdate('minValue', parseInt(e.target.value) || 1)}
                       type="number"
                       placeholder="1"
                     />
                     <StylishTextField
                       label="最大値"
-                      value={selectedQuestion.scale_settings ? (JSON.parse(selectedQuestion.scale_settings).maxValue || 5) : 5}
+                      value={localScaleSettings.maxValue}
                       onChange={(e) => handleScaleUpdate('maxValue', parseInt(e.target.value) || 5)}
                       type="number"
                       placeholder="5"
@@ -831,13 +884,13 @@ const QuestionSettingsMenu = ({
                   </Box>
                   <StylishTextField
                     label="最小値ラベル"
-                    value={selectedQuestion.scale_settings ? (JSON.parse(selectedQuestion.scale_settings).minLabel || '') : ''}
+                    value={localScaleSettings.minLabel}
                     onChange={(e) => handleScaleUpdate('minLabel', e.target.value)}
                     placeholder="例: そう思わない"
                   />
                   <StylishTextField
                     label="最大値ラベル"
-                    value={selectedQuestion.scale_settings ? (JSON.parse(selectedQuestion.scale_settings).maxLabel || '') : ''}
+                    value={localScaleSettings.maxLabel}
                     onChange={(e) => handleScaleUpdate('maxLabel', e.target.value)}
                     placeholder="例: そう思う"
                   />

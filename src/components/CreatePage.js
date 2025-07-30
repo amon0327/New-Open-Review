@@ -812,47 +812,55 @@ export default function CreatePage({ onBackClick, user, formId }) {
     setSelectedElement(null); // 基本設定要素の選択を解除
   };
 
-  // 質問更新ハンドラー
+  // 質問更新ハンドラー（楽観的UI更新）
   const handleQuestionUpdate = async (questionId, updates) => {
     if (!selectedPage) return;
     
+    // 即座にローカル状態を更新（楽観的更新）
+    const currentQuestions = getQuestionsForPage(selectedPage.id);
+    const optimisticQuestions = currentQuestions.map(q => 
+      q.id === questionId ? { ...q, ...updates } : q
+    );
+    handleQuestionsUpdate(selectedPage.id, optimisticQuestions);
+    
+    // バックグラウンドでSupabaseに同期
     try {
-      const success = await updateQuestion(selectedPage.id, questionId, updates);
-      if (success) {
-        // 更新後にページを再読み込み
-        await loadQuestionsForPage(selectedPage.id);
-        toast.success('質問を更新しました');
-      } else {
-        toast.error('質問の更新に失敗しました');
-      }
+      await updateQuestion(selectedPage.id, questionId, updates);
+      // 成功時は何もしない（既にUIは更新済み）
     } catch (error) {
       console.error('Question update error:', error);
-      toast.error('質問の更新中にエラーが発生しました');
+      // エラー時は元の状態に戻す
+      handleQuestionsUpdate(selectedPage.id, currentQuestions);
+      toast.error('質問の更新に失敗しました');
     }
   };
 
-  // 質問削除ハンドラー
+  // 質問削除ハンドラー（楽観的UI更新）
   const handleQuestionDelete = async (questionId) => {
     if (!selectedPage) return;
     
+    // 即座にローカル状態を更新（楽観的削除）
+    const currentQuestions = getQuestionsForPage(selectedPage.id);
+    const optimisticQuestions = currentQuestions.filter(q => q.id !== questionId);
+    handleQuestionsUpdate(selectedPage.id, optimisticQuestions);
+    
+    // 削除された質問が選択されていた場合、選択を解除
+    if (selectedQuestionId === questionId) {
+      setSelectedQuestionId(null);
+    }
+    
+    // バックグラウンドでSupabaseから削除
     try {
-      const success = await deleteQuestion(selectedPage.id, questionId);
-      if (success) {
-        // 削除後にページを再読み込み
-        await loadQuestionsForPage(selectedPage.id);
-        
-        // 削除された質問が選択されていた場合、選択を解除
-        if (selectedQuestionId === questionId) {
-          setSelectedQuestionId(null);
-        }
-        
-        toast.success('質問を削除しました');
-      } else {
-        toast.error('質問の削除に失敗しました');
-      }
+      await deleteQuestion(selectedPage.id, questionId);
+      // 成功時は何もしない（既にUIは更新済み）
     } catch (error) {
       console.error('Question delete error:', error);
-      toast.error('質問の削除中にエラーが発生しました');
+      // エラー時は元の状態に戻す
+      handleQuestionsUpdate(selectedPage.id, currentQuestions);
+      if (selectedQuestionId === questionId) {
+        setSelectedQuestionId(questionId); // 選択状態も復元
+      }
+      toast.error('質問の削除に失敗しました');
     }
   };
 

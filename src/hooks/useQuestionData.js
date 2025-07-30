@@ -95,49 +95,29 @@ const useQuestionData = (formId) => {
     return newQuestion;
   }, []);
 
-  // 質問を更新（Supabaseと連携）
+  // 質問を更新（楽観的更新対応）
   const updateQuestion = useCallback(async (pageId, questionId, updatedData) => {
+    // 楽観的更新用：ローカル状態の更新は呼び出し元で行う
+    // ここではSupabaseとの同期のみ実行
     try {
-      // Supabaseで質問を更新
       await updateQuestionWithOptions(questionId, updatedData);
-      
-      // ローカル状態も更新
-      setQuestionsData(prev => ({
-        ...prev,
-        [pageId]: (prev[pageId] || []).map(question =>
-          question.id === questionId
-            ? { 
-                ...question, 
-                ...updatedData, 
-                updated_at: new Date().toISOString() 
-              }
-            : question
-        )
-      }));
-      
       return true;
     } catch (error) {
       console.error('Error updating question:', error);
-      return false;
+      throw error; // エラーを呼び出し元に伝播
     }
   }, []);
 
-  // 質問を削除（Supabaseと連携）
+  // 質問を削除（楽観的更新対応）
   const deleteQuestion = useCallback(async (pageId, questionId) => {
+    // 楽観的更新用：ローカル状態の更新は呼び出し元で行う
+    // ここではSupabaseとの同期のみ実行
     try {
-      // Supabaseで質問を削除
       await deleteReviewQuestion(questionId);
-      
-      // ローカル状態も更新
-      setQuestionsData(prev => ({
-        ...prev,
-        [pageId]: (prev[pageId] || []).filter(question => question.id !== questionId)
-      }));
-      
       return true;
     } catch (error) {
       console.error('Error deleting question:', error);
-      return false;
+      throw error; // エラーを呼び出し元に伝播
     }
   }, []);
 
