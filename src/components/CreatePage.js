@@ -532,7 +532,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
       
       if (result.success) {
         setPages(prev => prev.filter(page => page.id !== pageId));
-        toast.success('ページを削除しました');
       } else {
         toast.error(result.error || 'ページの削除に失敗しました');
       }
@@ -571,8 +570,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
         const newPages = [...pages];
         newPages.splice(completionIndex, 0, newPage);
         setPages(newPages);
-        
-        toast.success('新しいページを追加しました');
       } else {
         toast.error(result.error || 'ページの追加に失敗しました');
       }
@@ -714,7 +711,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
                 ? { ...page, title: editingTitle.trim() }
                 : page
             ));
-            toast.success('ページ名を更新しました');
           } else {
             toast.error(result.error || 'ページ名の更新に失敗しました');
           }
