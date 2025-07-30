@@ -573,11 +573,15 @@ const QuestionSettingsMenu = ({
 
   // カラー決定ハンドラー（Supabaseに保存）
   const handleColorConfirm = (color) => {
+    console.log('Color confirmed:', color.hex);
     setLocalSelectedColor(color.hex);
     setShowColorPicker(false); // カラーピッカーを閉じる
     // Supabaseでテーマカラーを更新
     if (onThemeColorChange) {
+      console.log('Calling onThemeColorChange with:', color.hex);
       onThemeColorChange(color.hex);
+    } else {
+      console.error('onThemeColorChange is not available');
     }
   };
 

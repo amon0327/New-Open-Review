@@ -1404,6 +1404,7 @@ const PreviewQuestions = ({
 
   // Supabaseのデータからテーマカラー、ロゴ、ヘッダー画像を取得
   const themeColor = formSettings.theme_color || pageSettings.reviewFormSettings?.theme_color || '#5e17eb';
+  console.log('PreviewQuestions themeColor:', themeColor, 'formSettings:', formSettings);
   const defaultHeaderImage = pageSettings.questionScreenSettings?.header_image_url || 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
   const defaultLogoUrl = formSettings.logo_image_url || pageSettings.reviewFormSettings?.logo_image_url || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   

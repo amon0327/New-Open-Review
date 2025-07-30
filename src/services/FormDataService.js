@@ -588,8 +588,7 @@ export class FormDataService {
         result = await supabase
           .from('review_form_settings')
           .update({
-            ...settings,
-            updated_at: new Date().toISOString()
+            ...settings
           })
           .eq('review_form_id', formId)
           .select()
@@ -630,7 +629,10 @@ export class FormDataService {
    * @returns {Promise<Object>} 更新結果
    */
   static async updateThemeColor(formId, themeColor) {
-    return await this.updateFormSettings(formId, { theme_color: themeColor });
+    console.log('updateThemeColor called with formId:', formId, 'themeColor:', themeColor);
+    const result = await this.updateFormSettings(formId, { theme_color: themeColor });
+    console.log('updateFormSettings result:', result);
+    return result;
   }
 
   /**
