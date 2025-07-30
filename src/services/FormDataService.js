@@ -406,6 +406,37 @@ export class FormDataService {
       };
     }
   }
+
+  /**
+   * 質問タイプ一覧を取得
+   * @returns {Promise<Object>} 質問タイプ一覧
+   */
+  static async getQuestionTypes() {
+    try {
+      const { data, error } = await supabase
+        .from('question_types')
+        .select('*')
+        .order('id', { ascending: true });
+
+      if (error) {
+        throw new Error(`質問タイプ取得エラー: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        data: data || [],
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Question types fetch error:', error);
+      return {
+        success: false,
+        data: [],
+        error: error.message
+      };
+    }
+  }
 }
 
 export default FormDataService;

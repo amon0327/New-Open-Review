@@ -8,6 +8,7 @@ import QuestionSettingsPanel from './QuestionSettingsPanel';
 import QuestionSettingsMenu from './QuestionSettingsMenu';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import SettingsPanel from './settings/SettingsPanel';
+import SvgIcon from './SvgIcon';
 import { useCreatePageState } from '../hooks/useCreatePageState';
 import useQuestionData from '../hooks/useQuestionData';
 import { leftNavigationItems, questionTypes, questionTemplates, settingsCategories } from '../constants/createPageData';
@@ -186,6 +187,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const [headerImage, setHeaderImage] = useState(null);
   const [logoImageState, setLogoImageState] = useState(null);
 
+  // 質問タイプデータ（Supabaseから取得）
+  const [questionTypesData, setQuestionTypesData] = useState([]);
+  const [isLoadingQuestionTypes, setIsLoadingQuestionTypes] = useState(false);
+
   // テキスト設定の状態
   const [loginTitle, setLoginTitle] = useState('OpenReviewへようこそ！');
   const [loginDetail, setLoginDetail] = useState('あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。');
@@ -193,8 +198,15 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const [completionDetail, setCompletionDetail] = useState('あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。');
   const [completionBackground, setCompletionBackground] = useState('https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg');
 
-  // 質問タイプの文字列を数値IDにマッピング
+  // 質問タイプの文字列を数値IDにマッピング（Supabaseのデータを優先）
   const getQuestionTypeId = (typeString) => {
+    // まずSupabaseから取得したデータで検索
+    const foundType = questionTypesData.find(qt => qt.name === typeString);
+    if (foundType) {
+      return foundType.id;
+    }
+
+    // フォールバック用の旧マッピング
     const typeMapping = {
       'text': 1,        // 短文テキスト
       'textarea': 2,    // 長文テキスト
@@ -216,6 +228,28 @@ export default function CreatePage({ onBackClick, user, formId }) {
     { id: 'completion', title: '完了画面', type: 'system', icon: <CheckCircle />, canDelete: false, canEdit: false }
   ]);
   const [isLoadingPages, setIsLoadingPages] = useState(false);
+
+  // 質問タイプを読み込み
+  useEffect(() => {
+    const loadQuestionTypes = async () => {
+      setIsLoadingQuestionTypes(true);
+      try {
+        const result = await FormDataService.getQuestionTypes();
+        if (result.success) {
+          setQuestionTypesData(result.data);
+        } else {
+          toast.error('質問タイプの読み込みに失敗しました');
+        }
+      } catch (error) {
+        console.error('Question types loading error:', error);
+        toast.error('質問タイプの読み込み中にエラーが発生しました');
+      } finally {
+        setIsLoadingQuestionTypes(false);
+      }
+    };
+
+    loadQuestionTypes();
+  }, []);
 
   // フォームIDが存在する場合にページを読み込み
   useEffect(() => {
@@ -268,6 +302,15 @@ export default function CreatePage({ onBackClick, user, formId }) {
       }
     }
   }, [pages, selectedPage, setSelectedPage]);
+
+  // Supabaseから取得した質問タイプデータを既存フォーマットに変換
+  const convertedQuestionTypes = questionTypesData.map(qType => ({
+    icon: <SvgIcon src={qType.image} size={20} />,
+    label: qType.japanese,
+    type: qType.name,
+    question_types_id: qType.id,
+    description: qType.description
+  }));
 
   // 質問データ関連のハンドラ
   const handleQuestionsUpdate = (pageId, questions) => {
@@ -1143,7 +1186,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                 ) : (
                   // 通常の質問作成ツール
                   <QuestionToolsSidebar 
-                    questionTypes={questionTypes}
+                    questionTypes={convertedQuestionTypes}
                     questionTemplates={questionTemplates}
                     expandedTemplates={expandedTemplates}
                     toggleExpanded={toggleExpanded}
