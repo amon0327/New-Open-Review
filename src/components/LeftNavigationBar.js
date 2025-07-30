@@ -49,7 +49,7 @@ const LeftNavigationBar = ({
     <Paper
       elevation={4}
       sx={{
-        width: 96,
+        width: 80,
         height: '100vh',
         background: gradients.secondary,
         borderRadius: 0,
