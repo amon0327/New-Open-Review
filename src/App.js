@@ -123,9 +123,9 @@ function App() {
 
   const ensureBusinessUserExists = async (user) => {
     try {
-      // 短縮されたタイムアウト設定（3秒）
+      // タイムアウト時間を延長（10秒）
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database timeout')), 3000);
+        setTimeout(() => reject(new Error('Database timeout')), 10000);
       });
 
       const selectPromise = supabase
@@ -151,7 +151,7 @@ function App() {
           }]);
 
         const insertTimeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Insert timeout')), 3000);
+          setTimeout(() => reject(new Error('Insert timeout')), 10000);
         });
 
         const { error: insertError } = await Promise.race([
@@ -166,7 +166,12 @@ function App() {
         console.error('business_usersチェックエラー:', selectError);
       }
     } catch (error) {
-      console.error('ensureBusinessUserExists エラー:', error);
+      // Database timeoutはログのみ出力して、アプリケーションの動作は継続
+      if (error.message.includes('timeout')) {
+        console.warn('⚠️ Database connection timeout - アプリケーションは継続動作します');
+      } else {
+        console.error('ensureBusinessUserExists エラー:', error);
+      }
     }
   };
 
@@ -186,12 +191,12 @@ function App() {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // 初回ロード時またはログインイベント時のみダッシュボードに遷移
-          if (isMounted && (isInitialLoad || event === 'SIGNED_IN')) {
-            console.log('🏠 ダッシュボードに遷移 - event:', event);
+          // 初回ロード時のみダッシュボードに遷移
+          if (isMounted && isInitialLoad) {
+            console.log('🏠 初回セッション - ダッシュボードに遷移');
             setCurrentView('dashboard');
           } else {
-            console.log('🔄 認証状態変更検出 - ビューは維持:', currentView);
+            console.log('🔄 認証状態変更検出 - ビューは維持:', currentView, 'event:', event);
           }
           
           // business_usersチェックを非同期で実行（UIブロッキングを避ける）
