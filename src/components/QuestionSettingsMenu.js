@@ -2245,26 +2245,42 @@ const QuestionSettingsMenu = ({
                     }
                   }}
                 >
-                  <Box>
-                    <Typography
-                      variant="body1"
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
                       sx={{
-                        fontWeight: 600,
-                        color: '#1F2937',
-                        fontSize: '0.9rem'
+                        width: 32,
+                        height: 32,
+                        borderRadius: '6px',
+                        background: 'linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(6, 182, 212, 0.3)'
                       }}
                     >
-                      詳細テキスト
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: '#6B7280',
-                        fontSize: '0.75rem'
-                      }}
-                    >
-                      ログイン画面の説明文
-                    </Typography>
+                      <NotesIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          color: '#1F2937',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        詳細テキスト
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: '#6B7280',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        ログイン画面の説明文
+                      </Typography>
+                    </Box>
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails sx={{ pt: 0 }}>
