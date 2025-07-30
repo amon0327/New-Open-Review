@@ -423,6 +423,10 @@ const QuestionSettingsMenu = ({
           setExpandedAccordion('login-detail');
         } else if (selectedElement === 'login-button') {
           setExpandedAccordion('theme-color');
+        } else if (selectedElement === 'login-logo') {
+          setExpandedAccordion('login-logo');
+        } else if (selectedElement === 'login-background') {
+          setExpandedAccordion('login-background');
         }
       } 
       // 完了画面の要素の場合
@@ -1866,6 +1870,154 @@ const QuestionSettingsMenu = ({
                   </Stack>
                 </AccordionDetails>
               </Accordion>
+              
+              {/* ログイン画面専用ロゴ設定 */}
+              <Accordion 
+                expanded={expandedAccordion === 'login-logo'} 
+                onChange={() => setExpandedAccordion(expandedAccordion === 'login-logo' ? null : 'login-logo')}
+                sx={{
+                  borderRadius: '8px !important',
+                  border: '1px solid #E5E7EB',
+                  boxShadow: 'none',
+                  '&:before': { display: 'none' },
+                  backgroundColor: expandedAccordion === 'login-logo' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                  mb: 2
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={expandedAccordion === 'login-logo' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{
+                    borderRadius: '8px',
+                    '& .MuiAccordionSummary-content': {
+                      alignItems: 'center'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '6px',
+                        background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                      }}
+                    >
+                      <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                    </Box>
+                    <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          color: '#1F2937',
+                          fontSize: '0.9rem',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                        title="ロゴ画像"
+                      >
+                        ロゴ画像
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: '#6B7280',
+                          fontSize: '0.75rem',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                        title="ログイン画面のロゴ画像"
+                      >
+                        ログイン画面のロゴ画像
+                      </Typography>
+                    </Box>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ pt: 0 }}>
+                  <Stack spacing={3}>
+                    {/* 画像プレビュー */}
+                    {logoImage ? (
+                      <Card sx={{ borderRadius: 0, overflow: 'hidden' }}>
+                        <CardContent sx={{ p: 2, textAlign: 'center' }}>
+                          <Box
+                            component="img"
+                            src={logoImage}
+                            alt="ロゴ画像"
+                            sx={{
+                              maxWidth: '100%',
+                              maxHeight: 80,
+                              objectFit: 'contain'
+                            }}
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card 
+                        sx={{ 
+                          borderRadius: 0,
+                          border: '2px dashed #E5E7EB',
+                          backgroundColor: '#F9FAFB'
+                        }}
+                      >
+                        <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                          <ImageIcon sx={{ fontSize: '2rem', color: '#9CA3AF', mb: 1 }} />
+                          <Typography variant="body2" sx={{ color: '#6B7280', fontSize: '0.8rem' }}>
+                            ロゴが設定されていません
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    )}
+                    
+                    {/* アップロードボタン */}
+                    <Button
+                      variant="outlined"
+                      startIcon={<CloudUploadIcon />}
+                      onClick={() => {
+                        // ファイル選択のダイアログを開く処理
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
+                        input.onchange = (e) => {
+                          const file = e.target.files[0];
+                          if (file && onLogoImageFileUpload) {
+                            onLogoImageFileUpload(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                      sx={{
+                        borderColor: '#E5E7EB',
+                        color: '#5E17EB',
+                        textTransform: 'none',
+                        '&:hover': {
+                          borderColor: '#5E17EB',
+                          backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                        }
+                      }}
+                    >
+                      {logoImage ? 'ロゴを変更' : 'ロゴをアップロード'}
+                    </Button>
+                    
+                    {logoImage && (
+                      <Button
+                        variant="text"
+                        color="error"
+                        onClick={() => onLogoImageChange && onLogoImageChange(null)}
+                        sx={{ textTransform: 'none' }}
+                      >
+                        ロゴを削除
+                      </Button>
+                    )}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
+
               <Accordion 
                 expanded={expandedAccordion === 'login-title'} 
                 onChange={() => setExpandedAccordion(expandedAccordion === 'login-title' ? null : 'login-title')}
