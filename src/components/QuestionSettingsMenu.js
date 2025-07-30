@@ -1637,7 +1637,6 @@ const QuestionSettingsMenu = ({
                       <Button  
                         variant="outlined"
                         size="small"
-                        startIcon={<DeleteIcon />}
                         onClick={() => {
                           if (onHeaderImageChange) {
                             onHeaderImageChange(null);
@@ -1801,7 +1800,6 @@ const QuestionSettingsMenu = ({
                       <Button  
                         variant="outlined"
                         size="small"
-                        startIcon={<DeleteIcon />}
                         onClick={() => {
                           if (onLogoImageChange) {
                             onLogoImageChange(null);
@@ -1969,7 +1967,6 @@ const QuestionSettingsMenu = ({
                         <Button  
                           variant="outlined"
                           size="small"
-                          startIcon={<DeleteIcon />}
                           onClick={() => {
                             // ログイン背景画像の削除処理を追加する必要があります
                             console.log('ログイン背景画像削除');
@@ -2131,7 +2128,6 @@ const QuestionSettingsMenu = ({
                         <Button  
                           variant="outlined"
                           size="small"
-                          startIcon={<DeleteIcon />}
                           onClick={() => {
                             if (onLogoImageChange) {
                               onLogoImageChange(null);
@@ -2427,7 +2423,6 @@ const QuestionSettingsMenu = ({
                       <Button  
                         variant="outlined"
                         size="small"
-                        startIcon={<DeleteIcon />}
                         onClick={() => {
                           if (onCompletionBackgroundUpdate) {
                             onCompletionBackgroundUpdate('');
