@@ -510,9 +510,13 @@ const QuestionSettingsMenu = ({
     }
   };
 
-  // ログイン画面テキスト設定のハンドラー
+  // ログイン画面テキスト設定のハンドラー（リアルタイム更新対応）
   const handleLoginTitleChange = (value) => {
     setLocalLoginTitle(value);
+    // リアルタイムでプレビューに反映（即座更新）
+    if (setLoginTitle) {
+      setLoginTitle(value);
+    }
   };
 
   const handleLoginTitleBlur = () => {
@@ -523,6 +527,10 @@ const QuestionSettingsMenu = ({
 
   const handleLoginDetailChange = (value) => {
     setLocalLoginDetail(value);
+    // リアルタイムでプレビューに反映（即座更新）
+    if (setLoginDetail) {
+      setLoginDetail(value);
+    }
   };
 
   const handleLoginDetailBlur = () => {
