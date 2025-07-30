@@ -57,8 +57,8 @@ const PreviewCompletion = ({
 
   // ボタン設定（1つのボタンのみ使用）
   const buttonEnabled = completionData?.completionSettings?.is_button_1_enabled || false;
-  const buttonText = completionData?.completionSettings?.button_text_1 || '完了';
-  const buttonUrl = completionData?.completionSettings?.button_url_1 || '#';
+  const displayButtonText = buttonText || completionData?.completionSettings?.button_text_1 || '完了';
+  const displayButtonUrl = buttonUrl || completionData?.completionSettings?.button_url_1 || '#';
 
   const handleButtonClick = () => {
     // プレビュー用なので何もしない
@@ -307,7 +307,7 @@ const PreviewCompletion = ({
               } : {}
             }}
           >
-            {buttonText}
+            {displayButtonText}
           </Button>
         </Box>
 
