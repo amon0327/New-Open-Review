@@ -215,9 +215,17 @@ export default function CreatePage({ onBackClick, user, formId }) {
   });
   const [isLoadingTemplateQuestions, setIsLoadingTemplateQuestions] = useState(false);
 
-  // テキスト設定の状態
-  const [loginTitle, setLoginTitle] = useState('OpenReviewへようこそ！');
-  const [loginDetail, setLoginDetail] = useState('あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。');
+  // ログイン画面設定の状態
+  const [loginScreenSettings, setLoginScreenSettings] = useState({
+    background_image_url: 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg',
+    title_text: '',
+    detail_text: ''
+  });
+  const [isLoadingLoginSettings, setIsLoadingLoginSettings] = useState(false);
+
+  // テキスト設定の状態（後方互換性のため残す）
+  const [loginTitle, setLoginTitle] = useState('');
+  const [loginDetail, setLoginDetail] = useState('');
   const [completionTitle, setCompletionTitle] = useState('ありがとうございました！');
   const [completionDetail, setCompletionDetail] = useState('あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。');
   const [completionBackground, setCompletionBackground] = useState('https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg');
@@ -345,6 +353,30 @@ export default function CreatePage({ onBackClick, user, formId }) {
     };
 
     loadHeaderImage();
+  }, [formId]);
+
+  // ログイン画面設定を読み込み
+  useEffect(() => {
+    const loadLoginScreenSettings = async () => {
+      if (formId) {
+        setIsLoadingLoginSettings(true);
+        try {
+          const result = await FormDataService.getLoginScreenSettings(formId);
+          if (result.success) {
+            setLoginScreenSettings(result.data);
+            // 後方互換性のため、loginTitleとloginDetailも更新
+            setLoginTitle(result.data.title_text || '');
+            setLoginDetail(result.data.detail_text || '');
+          }
+        } catch (error) {
+          console.error('Login screen settings loading error:', error);
+        } finally {
+          setIsLoadingLoginSettings(false);
+        }
+      }
+    };
+
+    loadLoginScreenSettings();
   }, [formId]);
 
   // フォームIDが存在する場合にページを読み込み
@@ -1194,6 +1226,67 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
+  // ログイン背景画像ファイルアップロードハンドラー
+  const handleLoginBackgroundImageFileUpload = async (imageFile) => {
+    if (!imageFile || !formId) return;
+
+    toast.loading('ログイン背景画像をアップロード中...', { id: 'login-bg-upload' });
+
+    try {
+      const result = await FormDataService.uploadAndUpdateLoginBackgroundImage(formId, imageFile);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      // ローカル状態を更新
+      setLoginScreenSettings(prev => ({ ...prev, background_image_url: result.data.url }));
+      toast.success('ログイン背景画像をアップロードしました', { id: 'login-bg-upload' });
+    } catch (error) {
+      console.error('Login background image file upload error:', error);
+      toast.error(`ログイン背景画像のアップロードに失敗: ${error.message}`, { id: 'login-bg-upload' });
+    }
+  };
+
+  // ログインタイトルテキスト更新ハンドラー
+  const handleLoginTitleUpdate = async (titleText) => {
+    // 即座にローカル状態を更新
+    setLoginScreenSettings(prev => ({ ...prev, title_text: titleText }));
+    setLoginTitle(titleText);
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await FormDataService.updateLoginTitleText(formId, titleText);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Login title update error:', error);
+      // エラー時は元の状態に戻す
+      setLoginScreenSettings(prev => ({ ...prev, title_text: loginTitle }));
+      toast.error('ログインタイトルの更新に失敗しました');
+    }
+  };
+
+  // ログイン詳細テキスト更新ハンドラー
+  const handleLoginDetailUpdate = async (detailText) => {
+    // 即座にローカル状態を更新
+    setLoginScreenSettings(prev => ({ ...prev, detail_text: detailText }));
+    setLoginDetail(detailText);
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await FormDataService.updateLoginDetailText(formId, detailText);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Login detail update error:', error);
+      // エラー時は元の状態に戻す
+      setLoginScreenSettings(prev => ({ ...prev, detail_text: loginDetail }));
+      toast.error('ログイン詳細テキストの更新に失敗しました');
+    }
+  };
+
   return (
     <Box
       className={`main-container ${showSettings ? 'settings-active' : ''}`}
@@ -1356,7 +1449,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     selectedElement={selectedElement}
                     // フォーム設定
                     formSettings={formSettings}
-                    // テキスト設定
+                    // ログイン画面設定
+                    loginScreenSettings={loginScreenSettings}
+                    // テキスト設定（後方互換性）
                     loginTitle={loginTitle}
                     loginDetail={loginDetail}
                     completionTitle={completionTitle}
@@ -1725,6 +1820,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     // 画像アップロード用ハンドラー
                     onHeaderImageFileUpload={handleHeaderImageFileUpload}
                     onLogoImageFileUpload={handleLogoImageFileUpload}
+                    onLoginBackgroundImageFileUpload={handleLoginBackgroundImageFileUpload}
                     // 基本設定のハンドラーを追加
                     selectedColor={formSettings.theme_color}
                     onThemeColorChange={handleThemeColorUpdate}
@@ -1732,7 +1828,11 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     // 専用テーブル更新ハンドラー
                     onChoiceOptionsUpdate={handleChoiceOptionsUpdate}
                     onLinearScaleOptionsUpdate={handleLinearScaleOptionsUpdate}
-                    // テキスト設定
+                    // ログイン画面設定
+                    loginScreenSettings={loginScreenSettings}
+                    onLoginTitleUpdate={handleLoginTitleUpdate}
+                    onLoginDetailUpdate={handleLoginDetailUpdate}
+                    // テキスト設定（後方互換性）
                     loginTitle={loginTitle}
                     setLoginTitle={setLoginTitle}
                     loginDetail={loginDetail}

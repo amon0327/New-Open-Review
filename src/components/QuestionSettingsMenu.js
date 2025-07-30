@@ -251,6 +251,11 @@ const QuestionSettingsMenu = ({
   // 画像ファイルアップロード用のprops
   onHeaderImageFileUpload,
   onLogoImageFileUpload,
+  onLoginBackgroundImageFileUpload,
+  // ログイン画面設定用のprops
+  loginScreenSettings = {},
+  onLoginTitleUpdate,
+  onLoginDetailUpdate,
   selectedColor = '#5e17eb',
   onThemeColorChange,
   onThemeColorPreview,
@@ -285,6 +290,7 @@ const QuestionSettingsMenu = ({
     question_text: '',
     question_detail_text: ''
   });
+  // ログイン画面設定のローカル状態
   const [localLoginTitle, setLocalLoginTitle] = useState('');
   const [localLoginDetail, setLocalLoginDetail] = useState('');
   const [localCompletionTitle, setLocalCompletionTitle] = useState('');
@@ -345,14 +351,14 @@ const QuestionSettingsMenu = ({
     }
   }, [selectedQuestion]);
 
-  // ログイン・完了画面のテキストのローカル状態を初期化
+  // ログイン画面設定のローカル状態を初期化
   useEffect(() => {
-    setLocalLoginTitle(loginTitle || '');
-  }, [loginTitle]);
+    setLocalLoginTitle(loginScreenSettings.title_text || loginTitle || '');
+  }, [loginScreenSettings.title_text, loginTitle]);
 
   useEffect(() => {
-    setLocalLoginDetail(loginDetail || '');
-  }, [loginDetail]);
+    setLocalLoginDetail(loginScreenSettings.detail_text || loginDetail || '');
+  }, [loginScreenSettings.detail_text, loginDetail]);
 
   useEffect(() => {
     setLocalCompletionTitle(completionTitle || '');
@@ -517,6 +523,27 @@ const QuestionSettingsMenu = ({
   const handleCompletionDetailBlur = () => {
     if (completionDetail !== localCompletionDetail) {
       setCompletionDetail(localCompletionDetail);
+    }
+  };
+
+  // ログイン画面テキスト設定のハンドラー
+  const handleLoginTitleChange = (value) => {
+    setLocalLoginTitle(value);
+  };
+
+  const handleLoginTitleBlur = () => {
+    if (onLoginTitleUpdate && localLoginTitle !== (loginScreenSettings.title_text || '')) {
+      onLoginTitleUpdate(localLoginTitle);
+    }
+  };
+
+  const handleLoginDetailChange = (value) => {
+    setLocalLoginDetail(value);
+  };
+
+  const handleLoginDetailBlur = () => {
+    if (onLoginDetailUpdate && localLoginDetail !== (loginScreenSettings.detail_text || '')) {
+      onLoginDetailUpdate(localLoginDetail);
     }
   };
 
@@ -1717,9 +1744,144 @@ const QuestionSettingsMenu = ({
           </Accordion>
         </Box>
 
-          {/* ログイン画面テキスト設定 - フォーム基本設定に統合 */}
+          {/* ログイン画面専用設定 - ログイン画面が選択されている場合のみ表示 */}
           {(isLoginPage || selectedElement?.startsWith('login-')) && (
             <>
+              {/* ログイン背景画像設定 */}
+              <Accordion 
+                expanded={expandedAccordion === 'login-background'} 
+                onChange={() => setExpandedAccordion(expandedAccordion === 'login-background' ? null : 'login-background')}
+                sx={{
+                  borderRadius: '8px !important',
+                  border: '1px solid #E5E7EB',
+                  boxShadow: 'none',
+                  '&:before': { display: 'none' },
+                  backgroundColor: expandedAccordion === 'login-background' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                  mb: 2
+                }}
+              >
+                <AccordionSummary
+                  expandIcon={expandedAccordion === 'login-background' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  sx={{
+                    borderRadius: '8px',
+                    '& .MuiAccordionSummary-content': {
+                      alignItems: 'center'
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '6px',
+                        background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
+                      }}
+                    >
+                      <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                    </Box>
+                    <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          color: '#1F2937',
+                          fontSize: '0.9rem',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                        title="ログイン背景画像"
+                      >
+                        ログイン背景画像
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: '#6B7280',
+                          fontSize: '0.75rem',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                        title="ログイン画面の背景画像"
+                      >
+                        ログイン画面の背景画像
+                      </Typography>
+                    </Box>
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails sx={{ pt: 0 }}>
+                  <Stack spacing={3}>
+                    {/* 画像プレビュー */}
+                    {loginScreenSettings.background_image_url ? (
+                      <Card sx={{ borderRadius: '8px', overflow: 'hidden' }}>
+                        <CardContent sx={{ p: 0 }}>
+                          <Box
+                            component="img"
+                            src={loginScreenSettings.background_image_url}
+                            alt="ログイン背景画像"
+                            sx={{
+                              width: '100%',
+                              height: 120,
+                              objectFit: 'cover'
+                            }}
+                          />
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <Card 
+                        sx={{ 
+                          borderRadius: 0,
+                          border: '2px dashed #E5E7EB',
+                          backgroundColor: '#F9FAFB'
+                        }}
+                      >
+                        <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                          <ImageIcon sx={{ fontSize: '2rem', color: '#9CA3AF', mb: 1 }} />
+                          <Typography variant="body2" sx={{ color: '#6B7280', fontSize: '0.8rem' }}>
+                            背景画像が設定されていません
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    )}
+                    
+                    {/* アップロードボタン */}
+                    <Button
+                      variant="outlined"
+                      startIcon={<CloudUploadIcon />}
+                      onClick={() => {
+                        // ファイル選択のダイアログを開く処理
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
+                        input.onchange = (e) => {
+                          const file = e.target.files[0];
+                          if (file && onLoginBackgroundImageFileUpload) {
+                            onLoginBackgroundImageFileUpload(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                      sx={{
+                        borderColor: '#E5E7EB',
+                        color: '#5E17EB',
+                        textTransform: 'none',
+                        '&:hover': {
+                          borderColor: '#5E17EB',
+                          backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                        }
+                      }}
+                    >
+                      {loginScreenSettings.background_image_url ? 'ログイン背景画像を変更' : 'ログイン背景画像をアップロード'}
+                    </Button>
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
               <Accordion 
                 expanded={expandedAccordion === 'login-title'} 
                 onChange={() => setExpandedAccordion(expandedAccordion === 'login-title' ? null : 'login-title')}
@@ -1785,7 +1947,7 @@ const QuestionSettingsMenu = ({
                     value={localLoginTitle}
                     onChange={(e) => handleLoginTitleChange(e.target.value)}
                     onBlur={handleLoginTitleBlur}
-                    placeholder="ログイン画面のタイトル"
+                    placeholder="OpenReviewへようこそ！"
                   />
                 </AccordionDetails>
               </Accordion>
@@ -1842,7 +2004,7 @@ const QuestionSettingsMenu = ({
                     multiline
                     minRows={1}
                     maxRows={3}
-                    placeholder="ログイン画面の説明文"
+                    placeholder="あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。"
                   />
                 </AccordionDetails>
               </Accordion>

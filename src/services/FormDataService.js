@@ -837,6 +837,190 @@ export class FormDataService {
   static async updateDarkMode(formId, isDarkMode) {
     return await this.updateFormSettings(formId, { is_dark_mode: isDarkMode });
   }
+
+  /**
+   * ログイン画面設定を取得
+   * @param {string} formId - フォームID
+   * @returns {Promise<Object>} ログイン画面設定データ
+   */
+  static async getLoginScreenSettings(formId) {
+    try {
+      const { data, error } = await supabase
+        .from('login_screen_settings')
+        .select('*')
+        .eq('review_forms_id', formId)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // データが存在しない場合はデフォルト設定を返す
+          return {
+            success: true,
+            data: {
+              id: null,
+              review_forms_id: formId,
+              background_image_url: 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg',
+              title_text: '',
+              detail_text: ''
+            }
+          };
+        }
+        throw error;
+      }
+
+      return {
+        success: true,
+        data: data || {}
+      };
+    } catch (error) {
+      console.error('Error fetching login screen settings:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * ログイン画面設定を更新または作成
+   * @param {string} formId - フォームID
+   * @param {Object} settings - 設定データ
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateLoginScreenSettings(formId, settings) {
+    try {
+      // 既存の設定があるかチェック
+      const { data: existingSettings } = await supabase
+        .from('login_screen_settings')
+        .select('id')
+        .eq('review_forms_id', formId)
+        .single();
+
+      let result;
+      if (existingSettings) {
+        // 更新
+        result = await supabase
+          .from('login_screen_settings')
+          .update({
+            ...settings
+          })
+          .eq('review_forms_id', formId)
+          .select()
+          .single();
+      } else {
+        // 新規作成
+        result = await supabase
+          .from('login_screen_settings')
+          .insert([{
+            review_forms_id: formId,
+            ...settings
+          }])
+          .select()
+          .single();
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return {
+        success: true,
+        data: result.data
+      };
+    } catch (error) {
+      console.error('Error updating login screen settings:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * ログイン背景画像ファイルをアップロードしてURLを更新
+   * @param {string} formId - フォームID
+   * @param {File} imageFile - アップロードする画像ファイル
+   * @returns {Promise<Object>} アップロード＆更新結果
+   */
+  static async uploadAndUpdateLoginBackgroundImage(formId, imageFile) {
+    try {
+      console.log('Starting login background image upload for form:', formId);
+
+      // ファイル検証
+      const validation = ImageUploadService.validateImageFile(imageFile);
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+
+      // 既存の背景画像URLを取得（削除のため）
+      const { data: existingSettings } = await supabase
+        .from('login_screen_settings')
+        .select('background_image_url')
+        .eq('review_forms_id', formId)
+        .single();
+
+      // 画像をアップロード
+      const uploadResult = await ImageUploadService.uploadLoginBackgroundImage(imageFile, formId);
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error);
+      }
+
+      // データベースを更新
+      const updateResult = await this.updateLoginScreenSettings(formId, { 
+        background_image_url: uploadResult.data.url 
+      });
+      if (!updateResult.success) {
+        // アップロードした画像を削除
+        await ImageUploadService.deleteImage(uploadResult.data.path);
+        throw new Error(updateResult.error);
+      }
+
+      // 古い画像があれば削除（デフォルト画像は削除しない）
+      if (existingSettings?.background_image_url && 
+          !existingSettings.background_image_url.includes('freepik.com')) {
+        await ImageUploadService.deleteImage(existingSettings.background_image_url);
+      }
+
+      console.log('Login background image upload and update completed:', uploadResult.data.url);
+
+      return {
+        success: true,
+        data: {
+          url: uploadResult.data.url,
+          fileName: uploadResult.data.fileName
+        },
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Login background image upload and update error:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * ログインタイトルテキストを更新
+   * @param {string} formId - フォームID
+   * @param {string} titleText - タイトルテキスト
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateLoginTitleText(formId, titleText) {
+    return await this.updateLoginScreenSettings(formId, { title_text: titleText });
+  }
+
+  /**
+   * ログイン詳細テキストを更新
+   * @param {string} formId - フォームID
+   * @param {string} detailText - 詳細テキスト
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateLoginDetailText(formId, detailText) {
+    return await this.updateLoginScreenSettings(formId, { detail_text: detailText });
+  }
 }
 
 export default FormDataService;

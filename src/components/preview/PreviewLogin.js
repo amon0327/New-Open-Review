@@ -15,6 +15,8 @@ const PreviewLogin = ({
   formId,
   // フォーム設定
   formSettings = {},
+  // ログイン画面設定
+  loginScreenSettings = {},
   headerImage,
   logoImage,
   // 設定データ（将来的にpropsで受け取る）
@@ -54,10 +56,14 @@ const PreviewLogin = ({
 
   // デフォルト値とSupabaseデータ、propsから受け取ったデータの統合
   const themeColor = formSettings.theme_color || propThemeColor || (loginData?.formSettings?.theme_color) || '#5e17eb';
-  const backgroundImage = headerImage || loginBackgroundImage || (loginData?.loginSettings?.background_image_url) || 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg';
+  const backgroundImage = loginScreenSettings.background_image_url || headerImage || loginBackgroundImage || (loginData?.loginSettings?.background_image_url) || 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg';
   const logoUrl = logoImage || loginLogoImage || (loginData?.formSettings?.logo_image_url) || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
-  const titleText = loginTitleText || (loginData?.loginSettings?.title_text) || 'OpenReviewへようこそ！';
-  const detailText = loginDetailText || (loginData?.loginSettings?.detail_text) || 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。';
+  const titleText = (loginScreenSettings.title_text !== undefined && loginScreenSettings.title_text !== '') 
+    ? loginScreenSettings.title_text 
+    : (loginTitleText || (loginData?.loginSettings?.title_text) || 'OpenReviewへようこそ！');
+  const detailText = (loginScreenSettings.detail_text !== undefined && loginScreenSettings.detail_text !== '') 
+    ? loginScreenSettings.detail_text 
+    : (loginDetailText || (loginData?.loginSettings?.detail_text) || 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。');
   const displayButtonText = buttonText || '回答へ進む';
   const displayButtonUrl = buttonUrl || '#';
 

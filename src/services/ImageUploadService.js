@@ -117,6 +117,62 @@ export class ImageUploadService {
   }
 
   /**
+   * ログイン背景画像をSupabaseストレージにアップロードしてURLを取得
+   * @param {File} file - アップロードする画像ファイル
+   * @param {string} formId - フォームID
+   * @returns {Promise<Object>} アップロード結果とURL
+   */
+  static async uploadLoginBackgroundImage(file, formId) {
+    try {
+      // ファイル名を生成（重複を避けるため）
+      const timestamp = Date.now();
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `login-bg-${formId}-${timestamp}.${fileExtension}`;
+      const filePath = `background-image/${fileName}`;
+
+      console.log('Uploading login background image:', { fileName, filePath, fileSize: file.size });
+
+      // Supabaseストレージにアップロード
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('review-form-assets')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        throw new Error(`ログイン背景画像アップロードエラー: ${uploadError.message}`);
+      }
+
+      // パブリックURLを取得
+      const { data: urlData } = supabase.storage
+        .from('review-form-assets')
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+      console.log('Login background image uploaded successfully:', publicUrl);
+
+      return {
+        success: true,
+        data: {
+          url: publicUrl,
+          path: filePath,
+          fileName: fileName
+        },
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Login background image upload error:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
+
+  /**
    * 古い画像ファイルを削除
    * @param {string} filePath - 削除するファイルのパス
    * @returns {Promise<Object>} 削除結果
