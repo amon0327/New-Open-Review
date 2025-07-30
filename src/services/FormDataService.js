@@ -253,6 +253,159 @@ export class FormDataService {
       };
     }
   }
+
+  /**
+   * フォームのページ一覧を取得
+   * @param {string} formId - フォームID
+   * @returns {Promise<Object>} ページ一覧
+   */
+  static async getFormPages(formId) {
+    try {
+      const { data, error } = await supabase
+        .from('review_form_pages')
+        .select('*')
+        .eq('review_forms_id', formId)
+        .order('page_number', { ascending: true });
+
+      if (error) {
+        throw new Error(`ページ取得エラー: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        data: data || [],
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Form pages fetch error:', error);
+      return {
+        success: false,
+        data: [],
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * 新しいページを追加
+   * @param {string} formId - フォームID
+   * @param {string} pageName - ページ名
+   * @returns {Promise<Object>} 追加結果
+   */
+  static async addFormPage(formId, pageName) {
+    try {
+      // 現在の最大ページ番号を取得
+      const { data: existingPages, error: fetchError } = await supabase
+        .from('review_form_pages')
+        .select('page_number')
+        .eq('review_forms_id', formId)
+        .order('page_number', { ascending: false })
+        .limit(1);
+
+      if (fetchError) {
+        throw new Error(`既存ページ取得エラー: ${fetchError.message}`);
+      }
+
+      const maxPageNumber = existingPages.length > 0 ? existingPages[0].page_number : 0;
+      const newPageNumber = maxPageNumber + 1;
+
+      const { data, error } = await supabase
+        .from('review_form_pages')
+        .insert([{
+          review_forms_id: formId,
+          page_number: newPageNumber,
+          name: pageName || `ページ ${newPageNumber}`
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`ページ追加エラー: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        data,
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Add page error:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * ページを削除
+   * @param {string} pageId - ページID
+   * @returns {Promise<Object>} 削除結果
+   */
+  static async deleteFormPage(pageId) {
+    try {
+      const { error } = await supabase
+        .from('review_form_pages')
+        .delete()
+        .eq('id', pageId);
+
+      if (error) {
+        throw new Error(`ページ削除エラー: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        data: null,
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Delete page error:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * ページ名を更新
+   * @param {string} pageId - ページID
+   * @param {string} newName - 新しいページ名
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updatePageName(pageId, newName) {
+    try {
+      const { data, error } = await supabase
+        .from('review_form_pages')
+        .update({ name: newName })
+        .eq('id', pageId)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`ページ名更新エラー: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        data,
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Update page name error:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
 }
 
 export default FormDataService;

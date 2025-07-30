@@ -13,6 +13,7 @@ import useQuestionData from '../hooks/useQuestionData';
 import { leftNavigationItems, questionTypes, questionTemplates, settingsCategories } from '../constants/createPageData';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
+import FormDataService from '../services/FormDataService';
 import {
   Box,
   Paper,
@@ -209,14 +210,54 @@ export default function CreatePage({ onBackClick, user, formId }) {
     return typeMapping[typeString] || 1; // デフォルトは短文テキスト
   };
 
-  // サンプルページデータ
+  // ページデータ
   const [pages, setPages] = useState([
     { id: 'login', title: 'ログイン画面', type: 'system', icon: <Login />, canDelete: false, canEdit: false },
-    { id: 'page1', title: '基本情報', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 0 },
-    { id: 'page2', title: '満足度調査', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 0 },
-    { id: 'page3', title: '追加質問', type: 'question', icon: <Pages />, canDelete: true, canEdit: true, questions: 0 },
     { id: 'completion', title: '完了画面', type: 'system', icon: <CheckCircle />, canDelete: false, canEdit: false }
   ]);
+  const [isLoadingPages, setIsLoadingPages] = useState(false);
+
+  // フォームIDが存在する場合にページを読み込み
+  useEffect(() => {
+    const loadFormPages = async () => {
+      if (formId) {
+        setIsLoadingPages(true);
+        try {
+          const result = await FormDataService.getFormPages(formId);
+          if (result.success) {
+            const questionPages = result.data.map(page => ({
+              id: page.id,
+              title: page.name,
+              type: 'question',
+              icon: <Pages />,
+              canDelete: true,
+              canEdit: true,
+              questions: 0,
+              page_number: page.page_number
+            }));
+
+            // システムページと質問ページを結合
+            const systemPages = [
+              { id: 'login', title: 'ログイン画面', type: 'system', icon: <Login />, canDelete: false, canEdit: false },
+              ...questionPages,
+              { id: 'completion', title: '完了画面', type: 'system', icon: <CheckCircle />, canDelete: false, canEdit: false }
+            ];
+
+            setPages(systemPages);
+          } else {
+            toast.error('ページの読み込みに失敗しました');
+          }
+        } catch (error) {
+          console.error('Page loading error:', error);
+          toast.error('ページの読み込み中にエラーが発生しました');
+        } finally {
+          setIsLoadingPages(false);
+        }
+      }
+    };
+
+    loadFormPages();
+  }, [formId]);
 
   // 初期化時に最初の質問ページを選択
   useEffect(() => {
@@ -352,25 +393,65 @@ export default function CreatePage({ onBackClick, user, formId }) {
   };
 
   // ページ管理ハンドラ
-  const handleDeletePage = (pageId) => {
-    setPages(prev => prev.filter(page => page.id !== pageId));
+  const handleDeletePage = async (pageId) => {
+    const page = pages.find(p => p.id === pageId);
+    if (!page || page.type === 'system') {
+      return; // システムページは削除できない
+    }
+
+    try {
+      const result = await FormDataService.deleteFormPage(pageId);
+      
+      if (result.success) {
+        setPages(prev => prev.filter(page => page.id !== pageId));
+        toast.success('ページを削除しました');
+      } else {
+        toast.error(result.error || 'ページの削除に失敗しました');
+      }
+    } catch (error) {
+      console.error('Delete page error:', error);
+      toast.error('ページの削除中にエラーが発生しました');
+    }
   };
 
-  const handleAddPage = () => {
-    const newPage = {
-      id: `page${pages.filter(p => p.type === 'question').length + 1}`,
-      title: `新しいページ${pages.filter(p => p.type === 'question').length + 1}`,
-      type: 'question',
-      icon: <Pages />,
-      canDelete: true,
-      canEdit: true,
-      questions: 0
-    };
-    // 完了画面の前に挿入
-    const completionIndex = pages.findIndex(p => p.id === 'completion');
-    const newPages = [...pages];
-    newPages.splice(completionIndex, 0, newPage);
-    setPages(newPages);
+  const handleAddPage = async () => {
+    if (!formId) {
+      toast.error('フォームIDが見つかりません');
+      return;
+    }
+
+    try {
+      const questionPageCount = pages.filter(p => p.type === 'question').length;
+      const pageName = `新しいページ${questionPageCount + 1}`;
+      
+      const result = await FormDataService.addFormPage(formId, pageName);
+      
+      if (result.success) {
+        const newPage = {
+          id: result.data.id,
+          title: result.data.name,
+          type: 'question',
+          icon: <Pages />,
+          canDelete: true,
+          canEdit: true,
+          questions: 0,
+          page_number: result.data.page_number
+        };
+        
+        // 完了画面の前に挿入
+        const completionIndex = pages.findIndex(p => p.id === 'completion');
+        const newPages = [...pages];
+        newPages.splice(completionIndex, 0, newPage);
+        setPages(newPages);
+        
+        toast.success('新しいページを追加しました');
+      } else {
+        toast.error(result.error || 'ページの追加に失敗しました');
+      }
+    } catch (error) {
+      console.error('Add page error:', error);
+      toast.error('ページの追加中にエラーが発生しました');
+    }
   };
 
   const handleMovePageUp = async (pageId) => {
@@ -471,9 +552,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
     setShowDeleteConfirm(true);
   };
 
-  const handleExecuteDelete = () => {
+  const handleExecuteDelete = async () => {
     if (pageToDelete) {
-      setPages(prev => prev.filter(p => p.id !== pageToDelete.id));
+      await handleDeletePage(pageToDelete.id);
       setPageToDelete(null);
       setDeleteMode(false);
       setShowDeleteConfirm(false);
@@ -492,13 +573,35 @@ export default function CreatePage({ onBackClick, user, formId }) {
     setEditingTitle(page.title);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingPageId && editingTitle.trim()) {
-      setPages(prev => prev.map(page => 
-        page.id === editingPageId 
-          ? { ...page, title: editingTitle.trim() }
-          : page
-      ));
+      const page = pages.find(p => p.id === editingPageId);
+      if (page && page.type === 'question') {
+        try {
+          const result = await FormDataService.updatePageName(editingPageId, editingTitle.trim());
+          
+          if (result.success) {
+            setPages(prev => prev.map(page => 
+              page.id === editingPageId 
+                ? { ...page, title: editingTitle.trim() }
+                : page
+            ));
+            toast.success('ページ名を更新しました');
+          } else {
+            toast.error(result.error || 'ページ名の更新に失敗しました');
+          }
+        } catch (error) {
+          console.error('Update page name error:', error);
+          toast.error('ページ名の更新中にエラーが発生しました');
+        }
+      } else {
+        // システムページの場合はローカルのみ更新
+        setPages(prev => prev.map(page => 
+          page.id === editingPageId 
+            ? { ...page, title: editingTitle.trim() }
+            : page
+        ));
+      }
     }
     setEditingPageId(null);
     setEditingTitle('');
