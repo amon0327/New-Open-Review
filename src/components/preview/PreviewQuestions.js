@@ -376,15 +376,16 @@ const SingleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQues
             <Typography
               variant="h6"
               sx={{
-                color: '#14181B',
+                color: question.question_text ? '#14181B' : '#9CA3AF',
                 fontSize: '1.25rem',
-                fontWeight: 600,
+                fontWeight: question.question_text ? 600 : 400,
                 fontFamily: '"Noto Sans JP", sans-serif',
                 lineHeight: 1.4,
-                mb: 2
+                mb: 2,
+                fontStyle: question.question_text ? 'normal' : 'italic'
               }}
             >
-              {question.question_text}
+              {question.question_text || '質問を入力...'}
             </Typography>
 
             {question.detail_text && (
@@ -529,15 +530,16 @@ const MultipleChoiceQuestion = ({ question, themeColor, currentQuestion, totalQu
             <Typography
               variant="h6"
               sx={{
-                color: '#14181B',
+                color: question.question_text ? '#14181B' : '#9CA3AF',
                 fontSize: '1.25rem',
-                fontWeight: 600,
+                fontWeight: question.question_text ? 600 : 400,
                 fontFamily: '"Noto Sans JP", sans-serif',
                 lineHeight: 1.4,
-                mb: 2
+                mb: 2,
+                fontStyle: question.question_text ? 'normal' : 'italic'
               }}
             >
-              {question.question_text}
+              {question.question_text || '質問を入力...'}
             </Typography>
 
             {question.detail_text && (
@@ -678,15 +680,16 @@ const SingleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, tot
             <Typography
               variant="h6"
               sx={{
-                color: '#14181B',
+                color: question.question_text ? '#14181B' : '#9CA3AF',
                 fontSize: '1.25rem',
-                fontWeight: 600,
+                fontWeight: question.question_text ? 600 : 400,
                 fontFamily: '"Noto Sans JP", sans-serif',
                 lineHeight: 1.4,
-                mb: 2
+                mb: 2,
+                fontStyle: question.question_text ? 'normal' : 'italic'
               }}
             >
-              {question.question_text}
+              {question.question_text || '質問を入力...'}
             </Typography>
 
             {question.detail_text && (
@@ -841,15 +844,16 @@ const MultipleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, t
             <Typography
               variant="h6"
               sx={{
-                color: '#14181B',
+                color: question.question_text ? '#14181B' : '#9CA3AF',
                 fontSize: '1.25rem',
-                fontWeight: 600,
+                fontWeight: question.question_text ? 600 : 400,
                 fontFamily: '"Noto Sans JP", sans-serif',
                 lineHeight: 1.4,
-                mb: 2
+                mb: 2,
+                fontStyle: question.question_text ? 'normal' : 'italic'
               }}
             >
-              {question.question_text}
+              {question.question_text || '質問を入力...'}
             </Typography>
 
             {question.detail_text && (
@@ -1014,15 +1018,16 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
             <Typography
               variant="h6"
               sx={{
-                color: '#14181B',
+                color: question.question_text ? '#14181B' : '#9CA3AF',
                 fontSize: '1.25rem',
-                fontWeight: 600,
+                fontWeight: question.question_text ? 600 : 400,
                 fontFamily: '"Noto Sans JP", sans-serif',
                 lineHeight: 1.4,
-                mb: 2
+                mb: 2,
+                fontStyle: question.question_text ? 'normal' : 'italic'
               }}
             >
-              {question.question_text}
+              {question.question_text || '質問を入力...'}
             </Typography>
 
             {question.detail_text && (
@@ -1187,15 +1192,16 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
             <Typography
               variant="h6"
               sx={{
-                color: '#14181B',
+                color: question.question_text ? '#14181B' : '#9CA3AF',
                 fontSize: '1.25rem',
-                fontWeight: 600,
+                fontWeight: question.question_text ? 600 : 400,
                 fontFamily: '"Noto Sans JP", sans-serif',
                 lineHeight: 1.4,
-                mb: 2
+                mb: 2,
+                fontStyle: question.question_text ? 'normal' : 'italic'
               }}
             >
-              {question.question_text}
+              {question.question_text || '質問を入力...'}
             </Typography>
 
             {question.detail_text && (
