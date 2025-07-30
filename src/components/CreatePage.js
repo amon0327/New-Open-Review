@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import FormDataService from '../services/FormDataService';
 import { createQuestionWithOptions, createTemplateQuestionWithOptions } from '../services/QuestionService';
+import CompletionScreenService from '../services/CompletionScreenService';
 import { supabase } from '../lib/supabase';
 import {
   Box,
@@ -223,6 +224,17 @@ export default function CreatePage({ onBackClick, user, formId }) {
   });
   const [isLoadingLoginSettings, setIsLoadingLoginSettings] = useState(false);
 
+  // 完了画面設定の状態
+  const [completionScreenSettings, setCompletionScreenSettings] = useState({
+    title_text: 'ありがとうございました！',
+    detail_text: 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。',
+    background_image_url: 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg',
+    is_button_1_enabled: true,
+    button_text_1: '完了',
+    button_url_1: '#'
+  });
+  const [isLoadingCompletionSettings, setIsLoadingCompletionSettings] = useState(false);
+
   // テキスト設定の状態（後方互換性のため残す）
   const [loginTitle, setLoginTitle] = useState('');
   const [loginDetail, setLoginDetail] = useState('');
@@ -377,6 +389,31 @@ export default function CreatePage({ onBackClick, user, formId }) {
     };
 
     loadLoginScreenSettings();
+  }, [formId]);
+
+  // 完了画面設定を読み込み
+  useEffect(() => {
+    const loadCompletionScreenSettings = async () => {
+      if (formId) {
+        setIsLoadingCompletionSettings(true);
+        try {
+          const result = await CompletionScreenService.getCompletionScreenSettings(formId);
+          if (result.success) {
+            setCompletionScreenSettings(result.data);
+            // 後方互換性のため、completionTitle、completionDetail、completionBackgroundも更新
+            setCompletionTitle(result.data.title_text || 'ありがとうございました！');
+            setCompletionDetail(result.data.detail_text || 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。');
+            setCompletionBackground(result.data.background_image_url || 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg');
+          }
+        } catch (error) {
+          console.error('Completion screen settings loading error:', error);
+        } finally {
+          setIsLoadingCompletionSettings(false);
+        }
+      }
+    };
+
+    loadCompletionScreenSettings();
   }, [formId]);
 
   // フォームIDが存在する場合にページを読み込み
@@ -1287,6 +1324,145 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
+  // 完了画面タイトルテキスト更新ハンドラー
+  const handleCompletionTitleUpdate = async (titleText) => {
+    // 即座にローカル状態を更新（楽観的更新）
+    setCompletionScreenSettings(prev => ({ ...prev, title_text: titleText }));
+    setCompletionTitle(titleText);
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await CompletionScreenService.updateTitleText(formId, titleText);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Completion title update error:', error);
+      // エラー時は元の状態に戻す
+      setCompletionScreenSettings(prev => ({ ...prev, title_text: completionTitle }));
+      toast.error('完了タイトルの更新に失敗しました');
+    }
+  };
+
+  // 完了画面詳細テキスト更新ハンドラー
+  const handleCompletionDetailUpdate = async (detailText) => {
+    // 即座にローカル状態を更新（楽観的更新）
+    setCompletionScreenSettings(prev => ({ ...prev, detail_text: detailText }));
+    setCompletionDetail(detailText);
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await CompletionScreenService.updateDetailText(formId, detailText);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Completion detail update error:', error);
+      // エラー時は元の状態に戻す
+      setCompletionScreenSettings(prev => ({ ...prev, detail_text: completionDetail }));
+      toast.error('完了詳細テキストの更新に失敗しました');
+    }
+  };
+
+  // 完了背景画像更新ハンドラー
+  const handleCompletionBackgroundUpdate = async (backgroundImageUrl) => {
+    // 即座にローカル状態を更新（楽観的更新）
+    setCompletionScreenSettings(prev => ({ ...prev, background_image_url: backgroundImageUrl }));
+    setCompletionBackground(backgroundImageUrl);
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await CompletionScreenService.updateBackgroundImage(formId, backgroundImageUrl);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Completion background update error:', error);
+      // エラー時は元の状態に戻す
+      setCompletionScreenSettings(prev => ({ ...prev, background_image_url: completionBackground }));
+      toast.error('完了背景画像の更新に失敗しました');
+    }
+  };
+
+  // 完了背景画像ファイルアップロードハンドラー
+  const handleCompletionBackgroundImageFileUpload = async (imageFile) => {
+    if (!imageFile || !formId) return;
+
+    toast.loading('完了背景画像をアップロード中...', { id: 'completion-bg-upload' });
+
+    try {
+      const result = await CompletionScreenService.uploadAndUpdateBackgroundImage(formId, imageFile);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      // ローカル状態を更新
+      setCompletionScreenSettings(prev => ({ ...prev, background_image_url: result.data.url }));
+      setCompletionBackground(result.data.url);
+      toast.success('完了背景画像をアップロードしました', { id: 'completion-bg-upload' });
+    } catch (error) {
+      console.error('Completion background image file upload error:', error);
+      toast.error(`完了背景画像のアップロードに失敗: ${error.message}`, { id: 'completion-bg-upload' });
+    }
+  };
+
+  // 完了ボタン1有効/無効更新ハンドラー
+  const handleCompletionButton1EnabledUpdate = async (isEnabled) => {
+    // 即座にローカル状態を更新（楽観的更新）
+    setCompletionScreenSettings(prev => ({ ...prev, is_button_1_enabled: isEnabled }));
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await CompletionScreenService.updateButton1Enabled(formId, isEnabled);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Completion button enabled update error:', error);
+      // エラー時は元の状態に戻す
+      setCompletionScreenSettings(prev => ({ ...prev, is_button_1_enabled: !isEnabled }));
+      toast.error('完了ボタン設定の更新に失敗しました');
+    }
+  };
+
+  // 完了ボタン1テキスト更新ハンドラー
+  const handleCompletionButton1TextUpdate = async (buttonText) => {
+    // 即座にローカル状態を更新（楽観的更新）
+    setCompletionScreenSettings(prev => ({ ...prev, button_text_1: buttonText }));
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await CompletionScreenService.updateButton1Text(formId, buttonText);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Completion button text update error:', error);
+      // エラー時は元の状態に戻す
+      setCompletionScreenSettings(prev => ({ ...prev, button_text_1: completionScreenSettings.button_text_1 }));
+      toast.error('完了ボタンテキストの更新に失敗しました');
+    }
+  };
+
+  // 完了ボタン1URL更新ハンドラー
+  const handleCompletionButton1UrlUpdate = async (buttonUrl) => {
+    // 即座にローカル状態を更新（楽観的更新）
+    setCompletionScreenSettings(prev => ({ ...prev, button_url_1: buttonUrl }));
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await CompletionScreenService.updateButton1Url(formId, buttonUrl);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Completion button URL update error:', error);
+      // エラー時は元の状態に戻す
+      setCompletionScreenSettings(prev => ({ ...prev, button_url_1: completionScreenSettings.button_url_1 }));
+      toast.error('完了ボタンURLの更新に失敗しました');
+    }
+  };
+
   return (
     <Box
       className={`main-container ${showSettings ? 'settings-active' : ''}`}
@@ -1451,6 +1627,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     formSettings={formSettings}
                     // ログイン画面設定
                     loginScreenSettings={loginScreenSettings}
+                    // 完了画面設定
+                    completionScreenSettings={completionScreenSettings}
                     // テキスト設定（後方互換性）
                     loginTitle={loginTitle}
                     loginDetail={loginDetail}
@@ -1832,6 +2010,15 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     loginScreenSettings={loginScreenSettings}
                     onLoginTitleUpdate={handleLoginTitleUpdate}
                     onLoginDetailUpdate={handleLoginDetailUpdate}
+                    // 完了画面設定
+                    completionScreenSettings={completionScreenSettings}
+                    onCompletionTitleUpdate={handleCompletionTitleUpdate}
+                    onCompletionDetailUpdate={handleCompletionDetailUpdate}
+                    onCompletionBackgroundUpdate={handleCompletionBackgroundUpdate}
+                    onCompletionBackgroundImageFileUpload={handleCompletionBackgroundImageFileUpload}
+                    onCompletionButton1EnabledUpdate={handleCompletionButton1EnabledUpdate}
+                    onCompletionButton1TextUpdate={handleCompletionButton1TextUpdate}
+                    onCompletionButton1UrlUpdate={handleCompletionButton1UrlUpdate}
                     // テキスト設定（後方互換性）
                     loginTitle={loginTitle}
                     setLoginTitle={setLoginTitle}

@@ -32,6 +32,8 @@ const PreviewArea = ({
   formSettings = {}, // フォーム設定（テーマカラー、ダークモードなど）
   // ログイン画面設定
   loginScreenSettings = {},
+  // 完了画面設定
+  completionScreenSettings = {},
   // フォームID
   formId,
   // テキスト設定関連（プレビュー即座更新用）
@@ -120,6 +122,7 @@ const PreviewArea = ({
             completionTitleText={completionTitle}
             completionDetailText={completionDetail}
             completionBackgroundImage={completionBackground}
+            completionScreenSettings={completionScreenSettings}
             formSettings={formSettings}
             headerImage={headerImage}
             logoImage={logoImage}

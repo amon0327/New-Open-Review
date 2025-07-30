@@ -4,7 +4,7 @@ import {
   Typography,
   Button
 } from '@mui/material';
-import { getCompletionPageData } from '../../services/LoginScreenService';
+import CompletionScreenService from '../../services/CompletionScreenService';
 
 const PreviewCompletion = ({ 
   previewMode,
@@ -13,21 +13,27 @@ const PreviewCompletion = ({
   selectedElement,
   // フォームID
   formId,
-  // 設定データ（将来的にpropsで受け取る）
+  // フォーム設定
+  formSettings = {},
+  // 完了画面設定
+  completionScreenSettings = {},
+  // 設定データ（後方互換性）
   completionBackgroundImage,
   completionLogoImage,
   completionTitleText,
   completionDetailText,
   themeColor: propThemeColor,
   buttonText,
-  buttonUrl
+  buttonUrl,
+  // ロゴ画像
+  logoImage
 }) => {
   const [completionData, setCompletionData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const isMobile = previewMode === 'mobile';
 
-  // Supabaseから完了画面データを取得
+  // Supabaseから完了画面データを取得（必要に応じて）
   useEffect(() => {
     const fetchCompletionData = async () => {
       if (!formId) {
@@ -36,7 +42,7 @@ const PreviewCompletion = ({
       }
 
       try {
-        const data = await getCompletionPageData(formId);
+        const data = await CompletionScreenService.getCompletionPageData(formId);
         setCompletionData(data);
       } catch (error) {
         console.error('Error fetching completion data:', error);
@@ -49,16 +55,22 @@ const PreviewCompletion = ({
   }, [formId]);
 
   // デフォルト値とSupabaseデータ、propsから受け取ったデータの統合
-  const themeColor = propThemeColor || (completionData?.formSettings?.theme_color) || '#5e17eb';
-  const backgroundImage = completionBackgroundImage || (completionData?.completionSettings?.background_image_url) || 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg';
-  const logoUrl = completionLogoImage || (completionData?.formSettings?.logo_image_url) || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
-  const titleText = completionTitleText || (completionData?.completionSettings?.title_text) || 'ありがとうございました！';
-  const detailText = completionDetailText || (completionData?.completionSettings?.detail_text) || 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。';
+  const themeColor = formSettings.theme_color || propThemeColor || (completionData?.formSettings?.theme_color) || '#5e17eb';
+  const backgroundImage = completionScreenSettings.background_image_url || completionBackgroundImage || (completionData?.completionSettings?.background_image_url) || 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg';
+  const logoUrl = logoImage || completionLogoImage || formSettings.logo_image_url || (completionData?.formSettings?.logo_image_url) || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const titleText = (completionScreenSettings.title_text !== undefined && completionScreenSettings.title_text !== '') 
+    ? completionScreenSettings.title_text 
+    : (completionTitleText || (completionData?.completionSettings?.title_text) || 'ありがとうございました！');
+  const detailText = (completionScreenSettings.detail_text !== undefined && completionScreenSettings.detail_text !== '') 
+    ? completionScreenSettings.detail_text 
+    : (completionDetailText || (completionData?.completionSettings?.detail_text) || 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。');
 
   // ボタン設定（1つのボタンのみ使用）
-  const buttonEnabled = completionData?.completionSettings?.is_button_1_enabled || false;
-  const displayButtonText = buttonText || completionData?.completionSettings?.button_text_1 || '完了';
-  const displayButtonUrl = buttonUrl || completionData?.completionSettings?.button_url_1 || '#';
+  const buttonEnabled = completionScreenSettings.is_button_1_enabled !== undefined 
+    ? completionScreenSettings.is_button_1_enabled 
+    : (completionData?.completionSettings?.is_button_1_enabled ?? true);
+  const displayButtonText = completionScreenSettings.button_text_1 || buttonText || (completionData?.completionSettings?.button_text_1) || '完了';
+  const displayButtonUrl = completionScreenSettings.button_url_1 || buttonUrl || (completionData?.completionSettings?.button_url_1) || '#';
 
   const handleButtonClick = () => {
     // プレビュー用なので何もしない
@@ -252,64 +264,66 @@ const PreviewCompletion = ({
           </Typography>
         </Box>
 
-        {/* Bottom button area */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            pb: isMobile ? 4 : 12
-          }}
-        >
-          <Button
-            variant="contained"
-            onClick={(e) => {
-              e.stopPropagation();
-              onElementSelect && onElementSelect('completion-button');
-            }}
+        {/* Bottom button area - ボタンが有効な場合のみ表示 */}
+        {buttonEnabled && (
+          <Box
             sx={{
-              backgroundColor: themeColor,
-              color: 'white',
-              width: '280px',
-              height: isMobile ? 56 : 64,
-              borderRadius: isMobile ? '28px' : '32px',
-              fontSize: isMobile ? '1rem' : '1.1rem',
-              fontWeight: 700,
-              textTransform: 'none',
-              boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              animation: 'fadeInUp 0.8s ease-out 0.8s both',
-              cursor: 'pointer',
-              position: 'relative',
-              zIndex: 2,
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                backgroundColor: themeColor,
-                boxShadow: '0 16px 50px rgba(0, 0, 0, 0.35)',
-                transform: 'translateY(-3px) scale(1.02)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-              },
-              '&:active': {
-                transform: 'translateY(-1px) scale(0.98)',
-                transition: 'all 0.1s ease'
-              },
-              '&::after': selectedElement === 'completion-button' ? {
-                content: '""',
-                position: 'absolute',
-                top: -8,
-                left: -8,
-                right: -8,
-                bottom: -8,
-                backgroundColor: 'rgba(94, 23, 235, 0.3)',
-                borderRadius: isMobile ? '36px' : '40px',
-                zIndex: -1,
-                pointerEvents: 'none'
-              } : {}
+              display: 'flex',
+              justifyContent: 'center',
+              pb: isMobile ? 4 : 12
             }}
           >
-            {displayButtonText}
-          </Button>
-        </Box>
+            <Button
+              variant="contained"
+              onClick={(e) => {
+                e.stopPropagation();
+                onElementSelect && onElementSelect('completion-button');
+              }}
+              sx={{
+                backgroundColor: themeColor,
+                color: 'white',
+                width: '280px',
+                height: isMobile ? 56 : 64,
+                borderRadius: isMobile ? '28px' : '32px',
+                fontSize: isMobile ? '1rem' : '1.1rem',
+                fontWeight: 700,
+                textTransform: 'none',
+                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                animation: 'fadeInUp 0.8s ease-out 0.8s both',
+                cursor: 'pointer',
+                position: 'relative',
+                zIndex: 2,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  backgroundColor: themeColor,
+                  boxShadow: '0 16px 50px rgba(0, 0, 0, 0.35)',
+                  transform: 'translateY(-3px) scale(1.02)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                },
+                '&:active': {
+                  transform: 'translateY(-1px) scale(0.98)',
+                  transition: 'all 0.1s ease'
+                },
+                '&::after': selectedElement === 'completion-button' ? {
+                  content: '""',
+                  position: 'absolute',
+                  top: -8,
+                  left: -8,
+                  right: -8,
+                  bottom: -8,
+                  backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                  borderRadius: isMobile ? '36px' : '40px',
+                  zIndex: -1,
+                  pointerEvents: 'none'
+                } : {}
+              }}
+            >
+              {displayButtonText}
+            </Button>
+          </Box>
+        )}
 
         {/* Decorative elements for mobile */}
         {isMobile && (
