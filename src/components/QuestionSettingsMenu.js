@@ -248,6 +248,9 @@ const QuestionSettingsMenu = ({
   logoImage = null,
   onHeaderImageChange,
   onLogoImageChange,
+  // 画像ファイルアップロード用のprops
+  onHeaderImageFileUpload,
+  onLogoImageFileUpload,
   selectedColor = '#5e17eb',
   onThemeColorChange,
   onThemeColorPreview,
@@ -1531,17 +1534,11 @@ const QuestionSettingsMenu = ({
                     // ファイル選択のダイアログを開く処理
                     const input = document.createElement('input');
                     input.type = 'file';
-                    input.accept = 'image/*';
+                    input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
                     input.onchange = (e) => {
                       const file = e.target.files[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                          if (onHeaderImageChange) {
-                            onHeaderImageChange(e.target.result);
-                          }
-                        };
-                        reader.readAsDataURL(file);
+                      if (file && onHeaderImageFileUpload) {
+                        onHeaderImageFileUpload(file);
                       }
                     };
                     input.click();
@@ -1683,17 +1680,11 @@ const QuestionSettingsMenu = ({
                     // ファイル選択のダイアログを開く処理
                     const input = document.createElement('input');
                     input.type = 'file';
-                    input.accept = 'image/*';
+                    input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
                     input.onchange = (e) => {
                       const file = e.target.files[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                          if (onLogoImageChange) {
-                            onLogoImageChange(e.target.result);
-                          }
-                        };
-                        reader.readAsDataURL(file);
+                      if (file && onLogoImageFileUpload) {
+                        onLogoImageFileUpload(file);
                       }
                     };
                     input.click();

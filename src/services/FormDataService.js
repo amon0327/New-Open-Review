@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import ImageUploadService from './ImageUploadService';
 
 /**
  * フォーム作成に関するCRUD操作を管理するサービスクラス
@@ -695,6 +696,133 @@ export class FormDataService {
       console.error('Error updating header image:', error);
       return {
         success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * ヘッダー画像ファイルをアップロードしてURLを更新
+   * @param {string} formId - フォームID
+   * @param {File} imageFile - アップロードする画像ファイル
+   * @returns {Promise<Object>} アップロード＆更新結果
+   */
+  static async uploadAndUpdateHeaderImage(formId, imageFile) {
+    try {
+      console.log('Starting header image upload for form:', formId);
+
+      // ファイル検証
+      const validation = ImageUploadService.validateImageFile(imageFile);
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+
+      // 既存のヘッダー画像URLを取得（削除のため）
+      const { data: existingSettings } = await supabase
+        .from('question_screen_settings')
+        .select('header_image_url')
+        .eq('review_forms_id', formId)
+        .single();
+
+      // 画像をアップロード
+      const uploadResult = await ImageUploadService.uploadHeaderImage(imageFile, formId);
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error);
+      }
+
+      // データベースを更新
+      const updateResult = await this.updateHeaderImage(formId, uploadResult.data.url);
+      if (!updateResult.success) {
+        // アップロードした画像を削除
+        await ImageUploadService.deleteImage(uploadResult.data.path);
+        throw new Error(updateResult.error);
+      }
+
+      // 古い画像があれば削除
+      if (existingSettings?.header_image_url) {
+        await ImageUploadService.deleteImage(existingSettings.header_image_url);
+      }
+
+      console.log('Header image upload and update completed:', uploadResult.data.url);
+
+      return {
+        success: true,
+        data: {
+          url: uploadResult.data.url,
+          fileName: uploadResult.data.fileName
+        },
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Header image upload and update error:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * ロゴ画像ファイルをアップロードしてURLを更新
+   * @param {string} formId - フォームID
+   * @param {File} imageFile - アップロードする画像ファイル
+   * @returns {Promise<Object>} アップロード＆更新結果
+   */
+  static async uploadAndUpdateLogoImage(formId, imageFile) {
+    try {
+      console.log('Starting logo image upload for form:', formId);
+
+      // ファイル検証
+      const validation = ImageUploadService.validateImageFile(imageFile);
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+
+      // 既存のロゴ画像URLを取得（削除のため）
+      const { data: existingSettings } = await supabase
+        .from('review_form_settings')
+        .select('logo_image_url')
+        .eq('review_form_id', formId)
+        .single();
+
+      // 画像をアップロード
+      const uploadResult = await ImageUploadService.uploadLogoImage(imageFile, formId);
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error);
+      }
+
+      // データベースを更新
+      const updateResult = await this.updateLogoImage(formId, uploadResult.data.url);
+      if (!updateResult.success) {
+        // アップロードした画像を削除
+        await ImageUploadService.deleteImage(uploadResult.data.path);
+        throw new Error(updateResult.error);
+      }
+
+      // 古い画像があれば削除（デフォルト画像は削除しない）
+      if (existingSettings?.logo_image_url && 
+          !existingSettings.logo_image_url.includes('OpenReviewWhiteThemeLoog.png')) {
+        await ImageUploadService.deleteImage(existingSettings.logo_image_url);
+      }
+
+      console.log('Logo image upload and update completed:', uploadResult.data.url);
+
+      return {
+        success: true,
+        data: {
+          url: uploadResult.data.url,
+          fileName: uploadResult.data.fileName
+        },
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Logo image upload and update error:', error);
+      return {
+        success: false,
+        data: null,
         error: error.message
       };
     }

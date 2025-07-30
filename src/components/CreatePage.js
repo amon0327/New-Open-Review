@@ -1151,6 +1151,49 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
+  // ヘッダー画像ファイルアップロードハンドラー
+  const handleHeaderImageFileUpload = async (imageFile) => {
+    if (!imageFile || !formId) return;
+
+    toast.loading('ヘッダー画像をアップロード中...', { id: 'header-upload' });
+
+    try {
+      const result = await FormDataService.uploadAndUpdateHeaderImage(formId, imageFile);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      // ローカル状態を更新
+      setHeaderImage(result.data.url);
+      toast.success('ヘッダー画像をアップロードしました', { id: 'header-upload' });
+    } catch (error) {
+      console.error('Header image file upload error:', error);
+      toast.error(`ヘッダー画像のアップロードに失敗: ${error.message}`, { id: 'header-upload' });
+    }
+  };
+
+  // ロゴ画像ファイルアップロードハンドラー
+  const handleLogoImageFileUpload = async (imageFile) => {
+    if (!imageFile || !formId) return;
+
+    toast.loading('ロゴ画像をアップロード中...', { id: 'logo-upload' });
+
+    try {
+      const result = await FormDataService.uploadAndUpdateLogoImage(formId, imageFile);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      // ローカル状態を更新
+      setFormSettings(prev => ({ ...prev, logo_image_url: result.data.url }));
+      setLogoImageState(result.data.url);
+      toast.success('ロゴ画像をアップロードしました', { id: 'logo-upload' });
+    } catch (error) {
+      console.error('Logo image file upload error:', error);
+      toast.error(`ロゴ画像のアップロードに失敗: ${error.message}`, { id: 'logo-upload' });
+    }
+  };
+
   return (
     <Box
       className={`main-container ${showSettings ? 'settings-active' : ''}`}
@@ -1679,6 +1722,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     logoImage={logoImageState}
                     onHeaderImageChange={handleHeaderImageChange}
                     onLogoImageChange={handleLogoImageChange}
+                    // 画像アップロード用ハンドラー
+                    onHeaderImageFileUpload={handleHeaderImageFileUpload}
+                    onLogoImageFileUpload={handleLogoImageFileUpload}
                     // 基本設定のハンドラーを追加
                     selectedColor={formSettings.theme_color}
                     onThemeColorChange={handleThemeColorUpdate}
