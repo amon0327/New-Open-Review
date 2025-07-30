@@ -54,7 +54,9 @@ const getQuestionTypeIcon = (typeId) => {
     5: <MatrixIcon />,
     6: <MatrixIcon />,
     7: <ScaleIcon />,
-    8: <DropdownIcon />
+    8: <DropdownIcon />,
+    9: <SingleChoiceIcon />,
+    10: <MultipleChoiceIcon />
   };
   return iconMap[typeId] || <ShortTextIcon />;
 };
@@ -69,7 +71,9 @@ const getQuestionTypeName = (typeId) => {
     5: '単一選択マトリックス',
     6: '複数選択マトリックス',
     7: 'リニアスケール',
-    8: 'プルダウン'
+    8: 'プルダウン',
+    9: '単一選択(2列)',
+    10: '複数選択(2列)'
   };
   return typeMap[typeId] || '不明';
 };
@@ -84,7 +88,9 @@ const getQuestionTypeDescription = (typeId) => {
     5: '行と列のマトリックス形式で単一選択',
     6: '行と列のマトリックス形式で複数選択',
     7: '数値スケールでの評価',
-    8: 'ドロップダウンリストから選択'
+    8: 'ドロップダウンリストから選択',
+    9: 'ラジオボタンで一つだけ選択（2列表示）',
+    10: 'チェックボックスで複数選択可能（2列表示）'
   };
   return descMap[typeId] || '';
 };
@@ -336,7 +342,7 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
   };
 
   const choices = localQuestion.choices ? JSON.parse(localQuestion.choices) : [];
-  const needsChoices = [3, 4, 8].includes(localQuestion.question_types_id);
+  const needsChoices = [3, 4, 8, 9, 10].includes(localQuestion.question_types_id);
   const needsMatrix = [5, 6].includes(localQuestion.question_types_id);
   const needsScale = localQuestion.question_types_id === 7;
   const scaleSettings = localQuestion.scale_settings ? JSON.parse(localQuestion.scale_settings) : {};
@@ -671,7 +677,7 @@ const QuestionSettingsPanel = ({ selectedPage, questions = [], onUpdateQuestions
     setExpandedQuestion(duplicatedQuestion.id);
   };
 
-  const needsChoices = (typeId) => [3, 4, 8].includes(typeId);
+  const needsChoices = (typeId) => [3, 4, 8, 9, 10].includes(typeId);
 
   if (!selectedPage || selectedPage.type === 'system') {
     return (
@@ -754,6 +760,8 @@ const QuestionSettingsPanel = ({ selectedPage, questions = [], onUpdateQuestions
               <MenuItem value={2}>長文テキスト</MenuItem>
               <MenuItem value={3}>単一選択</MenuItem>
               <MenuItem value={4}>複数選択</MenuItem>
+              <MenuItem value={9}>単一選択(2列)</MenuItem>
+              <MenuItem value={10}>複数選択(2列)</MenuItem>
               <MenuItem value={5}>単一選択マトリックス</MenuItem>
               <MenuItem value={6}>複数選択マトリックス</MenuItem>
               <MenuItem value={7}>リニアスケール</MenuItem>
