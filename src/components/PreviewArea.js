@@ -30,6 +30,8 @@ const PreviewArea = ({
   onElementSelect,
   selectedElement,
   formSettings = {}, // フォーム設定（テーマカラー、ダークモードなど）
+  // ログイン画面設定
+  loginScreenSettings = {},
   // フォームID
   formId,
   // テキスト設定関連（プレビュー即座更新用）
@@ -103,6 +105,7 @@ const PreviewArea = ({
             loginTitleText={loginTitle}
             loginDetailText={loginDetail}
             formSettings={formSettings}
+            loginScreenSettings={loginScreenSettings}
             headerImage={headerImage}
             logoImage={logoImage}
           />
