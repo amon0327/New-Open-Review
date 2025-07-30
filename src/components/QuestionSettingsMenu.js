@@ -74,7 +74,7 @@ const getQuestionTypeConfig = (typeId) => {
 };
 
 // スタイリッシュなテキストフィールドコンポーネント
-const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1, maxRows, minRows, placeholder, required = false, ...props }) => (
+const StylishTextField = ({ label, value, onChange, onBlur, multiline = false, rows = 1, maxRows, minRows, placeholder, required = false, ...props }) => (
   <Box>
     <Typography 
       variant="body2" 
@@ -92,6 +92,7 @@ const StylishTextField = ({ label, value, onChange, multiline = false, rows = 1,
     <TextField
       value={value}
       onChange={onChange}
+      onBlur={onBlur}
       multiline={multiline}
       rows={multiline ? undefined : rows}
       maxRows={maxRows}
@@ -267,8 +268,52 @@ const QuestionSettingsMenu = ({
   // カラーピッカーの状態
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [selectedColor, setSelectedColor] = useState('#5e17eb');
+  
+  // テキストフィールドのローカル状態管理（onBlur時に更新）
+  const [localTextValues, setLocalTextValues] = useState({
+    question_text: '',
+    question_detail_text: ''
+  });
+  const [localLoginTitle, setLocalLoginTitle] = useState('');
+  const [localLoginDetail, setLocalLoginDetail] = useState('');
+  const [localCompletionTitle, setLocalCompletionTitle] = useState('');
+  const [localCompletionDetail, setLocalCompletionDetail] = useState('');
+  
+  // 選択肢のローカル状態
+  const [localChoices, setLocalChoices] = useState([]);
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
+
+  // 選択された質問が変更された時にローカル状態を初期化
+  useEffect(() => {
+    if (selectedQuestion) {
+      setLocalTextValues({
+        question_text: selectedQuestion.question_text || '',
+        question_detail_text: selectedQuestion.question_detail_text || ''
+      });
+      
+      // 選択肢のローカル状態も初期化
+      const currentChoices = selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : [];
+      setLocalChoices(currentChoices);
+    }
+  }, [selectedQuestion]);
+
+  // ログイン・完了画面のテキストのローカル状態を初期化
+  useEffect(() => {
+    setLocalLoginTitle(loginTitle || '');
+  }, [loginTitle]);
+
+  useEffect(() => {
+    setLocalLoginDetail(loginDetail || '');
+  }, [loginDetail]);
+
+  useEffect(() => {
+    setLocalCompletionTitle(completionTitle || '');
+  }, [completionTitle]);
+
+  useEffect(() => {
+    setLocalCompletionDetail(completionDetail || '');
+  }, [completionDetail]);
 
   // ページタイプと選択状態に応じてタブを制御
   useEffect(() => {
@@ -338,6 +383,38 @@ const QuestionSettingsMenu = ({
     }
   };
 
+  // テキストフィールドのonBlur時更新ハンドラ
+  const handleTextBlur = (field, value) => {
+    if (selectedQuestion && selectedQuestion[field] !== value) {
+      handleQuestionUpdate(field, value);
+    }
+  };
+
+  // ログイン・完了画面のテキストのonBlur時更新ハンドラ
+  const handleLoginTitleBlur = () => {
+    if (loginTitle !== localLoginTitle) {
+      setLoginTitle(localLoginTitle);
+    }
+  };
+
+  const handleLoginDetailBlur = () => {
+    if (loginDetail !== localLoginDetail) {
+      setLoginDetail(localLoginDetail);
+    }
+  };
+
+  const handleCompletionTitleBlur = () => {
+    if (completionTitle !== localCompletionTitle) {
+      setCompletionTitle(localCompletionTitle);
+    }
+  };
+
+  const handleCompletionDetailBlur = () => {
+    if (completionDetail !== localCompletionDetail) {
+      setCompletionDetail(localCompletionDetail);
+    }
+  };
+
   // 選択肢の更新
   const handleChoicesUpdate = (choices) => {
     handleQuestionUpdate('choices', JSON.stringify(choices));
@@ -345,16 +422,16 @@ const QuestionSettingsMenu = ({
 
   // 選択肢の追加
   const handleAddChoice = () => {
-    const currentChoices = selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : [];
-    const newChoices = [...currentChoices, `選択肢 ${currentChoices.length + 1}`];
-    handleChoicesUpdate(newChoices);
+    const newLocalChoices = [...localChoices, `選択肢 ${localChoices.length + 1}`];
+    setLocalChoices(newLocalChoices);
+    handleChoicesUpdate(newLocalChoices);
   };
 
   // 選択肢の削除
   const handleRemoveChoice = (index) => {
-    const currentChoices = selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : [];
-    const newChoices = currentChoices.filter((_, i) => i !== index);
-    handleChoicesUpdate(newChoices);
+    const newLocalChoices = localChoices.filter((_, i) => i !== index);
+    setLocalChoices(newLocalChoices);
+    handleChoicesUpdate(newLocalChoices);
   };
 
   // 選択肢の編集
@@ -363,6 +440,21 @@ const QuestionSettingsMenu = ({
     const newChoices = [...currentChoices];
     newChoices[index] = value;
     handleChoicesUpdate(newChoices);
+  };
+
+  // 選択肢のローカル変更ハンドラ
+  const handleLocalChoiceChange = (index, value) => {
+    const newLocalChoices = [...localChoices];
+    newLocalChoices[index] = value;
+    setLocalChoices(newLocalChoices);
+  };
+
+  // 選択肢のonBlur時更新ハンドラ
+  const handleChoiceBlur = (index, value) => {
+    const currentChoices = selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : [];
+    if (currentChoices[index] !== value) {
+      handleChoiceEdit(index, value);
+    }
   };
 
   // スケール設定の更新
@@ -597,8 +689,9 @@ const QuestionSettingsMenu = ({
             {/* 質問テキスト */}
             <StylishTextField
               label="質問テキスト"
-              value={selectedQuestion.question_text || ''}
-              onChange={(e) => handleQuestionUpdate('question_text', e.target.value)}
+              value={localTextValues.question_text}
+              onChange={(e) => setLocalTextValues(prev => ({ ...prev, question_text: e.target.value }))}
+              onBlur={(e) => handleTextBlur('question_text', e.target.value)}
               multiline
               minRows={1}
               maxRows={3}
@@ -608,8 +701,9 @@ const QuestionSettingsMenu = ({
             {/* 詳細テキスト */}
             <StylishTextField
               label="詳細テキスト (オプション)"
-              value={selectedQuestion.detail_text || ''}
-              onChange={(e) => handleQuestionUpdate('detail_text', e.target.value)}
+              value={localTextValues.question_detail_text}
+              onChange={(e) => setLocalTextValues(prev => ({ ...prev, question_detail_text: e.target.value }))}
+              onBlur={(e) => handleTextBlur('question_detail_text', e.target.value)}
               multiline
               minRows={1}
               maxRows={3}
@@ -655,14 +749,15 @@ const QuestionSettingsMenu = ({
                   </Button>
                 </Box>
                 <Stack spacing={1}>
-                  {(selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : []).map((choice, index) => (
+                  {localChoices.map((choice, index) => (
                     <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography sx={{ minWidth: 20, fontSize: '0.875rem', color: '#6B7280' }}>
                         {index + 1}.
                       </Typography>
                       <TextField
                         value={choice}
-                        onChange={(e) => handleChoiceEdit(index, e.target.value)}
+                        onChange={(e) => handleLocalChoiceChange(index, e.target.value)}
+                        onBlur={(e) => handleChoiceBlur(index, e.target.value)}
                         variant="standard"
                         placeholder={`選択肢 ${index + 1}`}
                         fullWidth
@@ -1521,8 +1616,9 @@ const QuestionSettingsMenu = ({
                 <AccordionDetails sx={{ pt: 0 }}>
                   <StylishTextField
                     label="タイトルテキスト"
-                    value={loginTitle || 'OpenReviewへようこそ！'}
-                    onChange={(e) => setLoginTitle && setLoginTitle(e.target.value)}
+                    value={localLoginTitle}
+                    onChange={(e) => setLocalLoginTitle(e.target.value)}
+                    onBlur={handleLoginTitleBlur}
                     placeholder="ログイン画面のタイトル"
                   />
                 </AccordionDetails>
@@ -1574,8 +1670,9 @@ const QuestionSettingsMenu = ({
                 <AccordionDetails sx={{ pt: 0 }}>
                   <StylishTextField
                     label="詳細テキスト"
-                    value={loginDetail || 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。'}
-                    onChange={(e) => setLoginDetail && setLoginDetail(e.target.value)}
+                    value={localLoginDetail}
+                    onChange={(e) => setLocalLoginDetail(e.target.value)}
+                    onBlur={handleLoginDetailBlur}
                     multiline
                     minRows={1}
                     maxRows={3}
@@ -1738,8 +1835,9 @@ const QuestionSettingsMenu = ({
               <AccordionDetails sx={{ pt: 0 }}>
                 <StylishTextField
                   label="タイトルテキスト"
-                  value={completionTitle || 'ありがとうございました！'}
-                  onChange={(e) => setCompletionTitle && setCompletionTitle(e.target.value)}
+                  value={localCompletionTitle}
+                  onChange={(e) => setLocalCompletionTitle(e.target.value)}
+                  onBlur={handleCompletionTitleBlur}
                   placeholder="完了画面のタイトル"
                 />
               </AccordionDetails>
@@ -1807,8 +1905,9 @@ const QuestionSettingsMenu = ({
               <AccordionDetails sx={{ pt: 0 }}>
                 <StylishTextField
                   label="詳細テキスト"
-                  value={completionDetail || 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。'}
-                  onChange={(e) => setCompletionDetail && setCompletionDetail(e.target.value)}
+                  value={localCompletionDetail}
+                  onChange={(e) => setLocalCompletionDetail(e.target.value)}
+                  onBlur={handleCompletionDetailBlur}
                   multiline
                   minRows={1}
                   maxRows={3}
