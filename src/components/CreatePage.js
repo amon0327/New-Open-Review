@@ -474,15 +474,16 @@ export default function CreatePage({ onBackClick, user, formId }) {
       const needsChoices = [3, 4, 8, 9, 10].includes(questionTypeId) || typeName.includes('選択') || typeName.includes('プルダウン');
       
       if (needsChoices) {
-        optimisticQuestion.choices = JSON.stringify(['選択肢 1', '選択肢 2', '選択肢 3', '選択肢 4']);
+        // 通常の質問作成時は選択肢なしで開始
+        optimisticQuestion.choices = JSON.stringify([]);
       }
 
       if (questionTypeId === 7 || typeName.includes('スケール') || typeName.includes('リニア')) {
         optimisticQuestion.scale_settings = JSON.stringify({
           minValue: 1,
           maxValue: 5,
-          minLabel: 'そう思わない',
-          maxLabel: 'そう思う'
+          minLabel: '',
+          maxLabel: ''
         });
       }
 

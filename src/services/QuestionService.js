@@ -39,8 +39,8 @@ export const createLinearScaleOption = async (reviewQuestionsId) => {
       .from('question_option_linear_scale')
       .insert({
         review_questions_id: reviewQuestionsId,
-        min_text: 'そう思わない',
-        max_text: 'そう思う'
+        min_text: '',
+        max_text: ''
       })
       .select()
       .single();
