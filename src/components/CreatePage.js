@@ -355,12 +355,16 @@ export default function CreatePage({ onBackClick, user, formId }) {
       };
 
       // 質問タイプに応じてデフォルト設定を追加
-      const needsChoices = [3, 4, 8, 9, 10].includes(questionTypeId);
+      // Supabaseデータから質問タイプ情報を取得
+      const questionTypeData = questionTypesData.find(qt => qt.id === questionTypeId);
+      const typeName = questionTypeData ? questionTypeData.japanese : '';
+      const needsChoices = [3, 4, 8, 9, 10].includes(questionTypeId) || typeName.includes('選択') || typeName.includes('プルダウン');
+      
       if (needsChoices) {
         newQuestion.choices = JSON.stringify(['選択肢 1', '選択肢 2', '選択肢 3', '選択肢 4']);
       }
 
-      if (questionTypeId === 7) {
+      if (questionTypeId === 7 || typeName.includes('スケール') || typeName.includes('リニア')) {
         newQuestion.scale_settings = JSON.stringify({
           minValue: 1,
           maxValue: 5,
@@ -384,7 +388,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
         
         // テンプレート質問タイプに応じた設定を再適用
         const templateTypeId = getQuestionTypeId(draggedData.type);
-        if (templateTypeId === 7 && !newQuestion.scale_settings) {
+        const templateTypeData = questionTypesData.find(qt => qt.id === templateTypeId);
+        const templateTypeName = templateTypeData ? templateTypeData.japanese : '';
+        
+        if ((templateTypeId === 7 || templateTypeName.includes('スケール') || templateTypeName.includes('リニア')) && !newQuestion.scale_settings) {
           newQuestion.scale_settings = JSON.stringify({
             minValue: 1,
             maxValue: 5,

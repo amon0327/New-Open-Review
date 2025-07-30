@@ -557,6 +557,20 @@ const QuestionSettingsMenu = ({
         }
 
         const { question_types_id: typeId } = selectedQuestion;
+        
+        // Supabaseから取得した質問タイプデータを使用して動的に判定
+        const questionTypeData = questionTypesData.find(qt => qt.id === typeId);
+        const typeName = questionTypeData ? questionTypeData.japanese : '';
+        const needsChoicesForType = typeName.includes('選択') || typeName.includes('プルダウン');
+        
+        // デバッグ用ログ（一時的）
+        console.log('QuestionSettingsMenu Debug:', {
+          typeId,
+          questionTypeData,
+          typeName,
+          needsChoicesForType,
+          questionTypesData
+        });
 
         return (
           <Stack spacing={3}>
@@ -610,8 +624,8 @@ const QuestionSettingsMenu = ({
               placeholder="詳細説明を入力してください..."
             />
 
-            {/* 質問タイプ別の追加設定 */}
-            {(typeId === 3 || typeId === 4 || typeId === 8 || typeId === 9 || typeId === 10) && (
+            {/* 質問タイプ別の追加設定 - Supabaseデータベースに基づいて動的に判定 */}
+            {needsChoicesForType && (
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                   <Typography 
@@ -695,8 +709,8 @@ const QuestionSettingsMenu = ({
               </Box>
             )}
 
-            {/* リニアスケール設定 */}
-            {typeId === 7 && (
+            {/* リニアスケール設定 - Supabaseデータベースに基づいて動的に判定 */}
+            {(typeName.includes('スケール') || typeName.includes('リニア')) && (
               <Box>
                 <Typography 
                   variant="body2" 
@@ -765,7 +779,14 @@ const QuestionSettingsMenu = ({
             ) : (
               <List sx={{ p: 0 }}>
                 {questions.map((question, index) => {
-                  const config = getQuestionTypeConfig(question.question_types_id);
+                  // Supabaseデータから質問タイプ情報を取得
+                  const questionTypeData = questionTypesData.find(qt => qt.id === question.question_types_id);
+                  const config = questionTypeData ? {
+                    icon: <TextIcon />, // SVGアイコンは後で実装
+                    name: questionTypeData.japanese,
+                    color: '#3B82F6',
+                    gradient: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)'
+                  } : getQuestionTypeConfig(question.question_types_id);
                   const isSelected = selectedQuestionId === question.id;
                   
                   return (

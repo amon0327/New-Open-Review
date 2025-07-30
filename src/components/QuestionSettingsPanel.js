@@ -344,10 +344,21 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
   const choices = localQuestion.choices ? JSON.parse(localQuestion.choices) : [];
   const typeId = parseInt(localQuestion.question_types_id);
   
+  // Supabaseから取得した質問タイプデータを使用して動的に判定（将来的な拡張のため）
+  // 現在は基本的な数値ベース判定を維持
   const needsChoices = [3, 4, 8, 9, 10].includes(typeId);
   const needsMatrix = [5, 6].includes(typeId);
   const needsScale = typeId === 7;
   const scaleSettings = localQuestion.scale_settings ? JSON.parse(localQuestion.scale_settings) : {};
+  
+  // デバッグ用ログ（一時的）
+  console.log('QuestionSettingsPanel Debug:', {
+    questionId: localQuestion.id,
+    typeId,
+    needsChoices,
+    needsMatrix,
+    needsScale
+  });
 
 
   return (
