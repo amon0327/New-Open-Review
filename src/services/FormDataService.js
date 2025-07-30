@@ -15,9 +15,8 @@ export class FormDataService {
       const { data: reviewForm, error: reviewFormError } = await supabase
         .from('review_forms')
         .insert([{
-          business_users_id: userId,
+          business_users: userId,
           title: 'OpenReview フォーム',
-          description: '',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }])
@@ -36,9 +35,8 @@ export class FormDataService {
         .insert([{
           review_forms_id: reviewFormId,
           page_number: 1,
-          title: 'ページ 1',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          name: 'ページ 1',
+          created_at: new Date().toISOString()
         }])
         .select()
         .single();
@@ -51,12 +49,10 @@ export class FormDataService {
       const { error: settingsError } = await supabase
         .from('review_form_settings')
         .insert([{
-          review_forms_id: reviewFormId,
+          review_form_id: reviewFormId,
           theme_color: '#5e17eb',
-          font_family: 'Inter',
-          is_published: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          is_dark_mode: false,
+          created_at: new Date().toISOString()
         }]);
 
       if (settingsError) {
@@ -68,12 +64,9 @@ export class FormDataService {
         .from('login_screen_settings')
         .insert([{
           review_forms_id: reviewFormId,
-          title: 'ログイン',
-          subtitle: 'アカウントにログインしてください',
-          background_color: '#ffffff',
-          text_color: '#14181B',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          title_text: 'OpenReviewへようこそ！',
+          detail_text: 'あなたの目的に合わせたレビュー項目を設定できます 質問項目を追加して、最適なレビューを作成しましょう',
+          created_at: new Date().toISOString()
         }]);
 
       if (loginSettingsError) {
@@ -85,12 +78,7 @@ export class FormDataService {
         .from('question_screen_settings')
         .insert([{
           review_forms_id: reviewFormId,
-          title: 'アンケート',
-          subtitle: '以下の質問にお答えください',
-          background_color: '#ffffff',
-          text_color: '#14181B',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          created_at: new Date().toISOString()
         }]);
 
       if (questionSettingsError) {
@@ -102,14 +90,15 @@ export class FormDataService {
         .from('completion_screen_settings')
         .insert([{
           review_forms_id: reviewFormId,
-          title: '完了',
-          subtitle: 'ご回答ありがとうございました',
-          background_color: '#ffffff',
-          text_color: '#14181B',
-          button_text: '閉じる',
-          button_color: '#5e17eb',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          title_text: 'タイトルテキスト',
+          detail_text: '詳細テキスト',
+          is_button_1_enabled: false,
+          button_text_1: 'ボタンテキスト',
+          button_url_1: 'URL',
+          is_button_2_enabled: false,
+          button_text_2: 'ボタンテキスト',
+          button_url_2: 'URL',
+          created_at: new Date().toISOString()
         }]);
 
       if (completionSettingsError) {
@@ -220,10 +209,10 @@ export class FormDataService {
           *,
           review_form_settings (
             theme_color,
-            is_published
+            is_dark_mode
           )
         `)
-        .eq('business_users_id', userId)
+        .eq('business_users', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
