@@ -66,7 +66,9 @@ const getQuestionTypeConfig = (typeId) => {
     5: { icon: <MatrixIcon />, name: '単一選択マトリックス', color: '#8B5CF6', gradient: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)' },
     6: { icon: <MatrixIcon />, name: '複数選択マトリックス', color: '#EC4899', gradient: 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)' },
     7: { icon: <ScaleIcon />, name: 'リニアスケール', color: '#06B6D4', gradient: 'linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)' },
-    8: { icon: <DropdownIcon />, name: 'プルダウン', color: '#84CC16', gradient: 'linear-gradient(135deg, #84CC16 0%, #65A30D 100%)' }
+    8: { icon: <DropdownIcon />, name: 'プルダウン', color: '#84CC16', gradient: 'linear-gradient(135deg, #84CC16 0%, #65A30D 100%)' },
+    9: { icon: <RadioIcon />, name: '単一選択(2列)', color: '#F59E0B', gradient: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' },
+    10: { icon: <CheckboxIcon />, name: '複数選択(2列)', color: '#EF4444', gradient: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)' }
   };
   return configs[typeId] || configs[1];
 };
@@ -237,6 +239,7 @@ const QuestionSettingsMenu = ({
   // 基本設定用のprops
   selectedElement = null, // プレビューで選択された要素 ('header', 'logo', null)
   selectedPage = null, // 選択されたページ
+  questionTypesData = [], // Supabaseから取得した質問タイプデータ
   headerImage = null,
   logoImage = null,
   onHeaderImageChange,
@@ -608,7 +611,7 @@ const QuestionSettingsMenu = ({
             />
 
             {/* 質問タイプ別の追加設定 */}
-            {(typeId === 3 || typeId === 4 || typeId === 8) && (
+            {(typeId === 3 || typeId === 4 || typeId === 8 || typeId === 9 || typeId === 10) && (
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                   <Typography 

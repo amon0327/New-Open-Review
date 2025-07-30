@@ -236,7 +236,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
       try {
         const result = await FormDataService.getQuestionTypes();
         if (result.success) {
-          console.log('Loaded question types from Supabase:', result.data);
           setQuestionTypesData(result.data);
         } else {
           toast.error('質問タイプの読み込みに失敗しました');
@@ -313,11 +312,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
     description: qType.description
   }));
 
-  // デバッグ用ログ（一時的）
-  if (convertedQuestionTypes.length > 0) {
-    console.log('Converted question types:', convertedQuestionTypes);
-  }
-
   // 質問データ関連のハンドラ
   const handleQuestionsUpdate = (pageId, questions) => {
     setQuestionsForPage(pageId, questions);
@@ -349,14 +343,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
       
       // 質問タイプからデフォルトデータを作成
       const questionTypeId = draggedData.question_types_id || getQuestionTypeId(draggedData.type);
-      
-      // デバッグ用ログ（一時的）
-      console.log('Drop debug:', {
-        draggedData,
-        questionTypeId,
-        typeFromData: draggedData.type,
-        typeIdFromData: draggedData.question_types_id
-      });
       
       let newQuestion = {
         id: Date.now() + Math.random(),
@@ -1239,6 +1225,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     onQuestionReorder={handleQuestionReorder}
                     selectedElement={selectedElement}
                     selectedPage={selectedPage}
+                    questionTypesData={questionTypesData}
                     headerImage={headerImage}
                     logoImage={logoImageState}
                     onHeaderImageChange={handleHeaderImageChange}

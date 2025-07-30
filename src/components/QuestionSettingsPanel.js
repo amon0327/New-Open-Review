@@ -342,21 +342,13 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
   };
 
   const choices = localQuestion.choices ? JSON.parse(localQuestion.choices) : [];
-  const typeId = parseInt(localQuestion.question_types_id); // 文字列の場合も考慮
+  const typeId = parseInt(localQuestion.question_types_id);
+  
   const needsChoices = [3, 4, 8, 9, 10].includes(typeId);
   const needsMatrix = [5, 6].includes(typeId);
   const needsScale = typeId === 7;
   const scaleSettings = localQuestion.scale_settings ? JSON.parse(localQuestion.scale_settings) : {};
 
-  // デバッグ用ログ（一時的）
-  console.log('Question debug:', {
-    questionId: localQuestion.id,
-    originalTypeId: localQuestion.question_types_id,
-    parsedTypeId: typeId,
-    needsChoices,
-    choices,
-    questionText: localQuestion.question_text
-  });
 
   return (
     <motion.div
