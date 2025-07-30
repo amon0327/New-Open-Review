@@ -275,6 +275,7 @@ const QuestionSettingsMenu = ({
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [localSelectedColor, setLocalSelectedColor] = useState(selectedColor);
   const [tempColorForSave, setTempColorForSave] = useState(selectedColor); // 保存用の一時的な色
+  const [initialColorOnOpen, setInitialColorOnOpen] = useState(selectedColor); // カラーピッカー開始時の色
   
   // テキストフィールドのローカル状態管理（onBlur時に更新）
   const [localTextValues, setLocalTextValues] = useState({
@@ -595,18 +596,21 @@ const QuestionSettingsMenu = ({
   const handleColorPickerClose = () => {
     console.log('handleColorPickerClose called');
     console.log('tempColorForSave:', tempColorForSave);
+    console.log('initialColorOnOpen:', initialColorOnOpen);
     console.log('selectedColor:', selectedColor);
     console.log('onThemeColorChange available:', !!onThemeColorChange);
     
     setShowColorPicker(false);
-    // カラーピッカーを閉じる時に、変更があった場合のみSupabaseに保存
-    if (tempColorForSave !== selectedColor && onThemeColorChange) {
+    // カラーピッカーを閉じる時に、初期値から変更があった場合のみSupabaseに保存
+    if (tempColorForSave !== initialColorOnOpen && onThemeColorChange) {
       console.log('Calling onThemeColorChange with:', tempColorForSave);
       onThemeColorChange(tempColorForSave);
     } else {
       console.log('Not saving because:', {
-        colorChanged: tempColorForSave !== selectedColor,
-        handlerAvailable: !!onThemeColorChange
+        colorChanged: tempColorForSave !== initialColorOnOpen,
+        handlerAvailable: !!onThemeColorChange,
+        tempColorForSave: tempColorForSave,
+        initialColorOnOpen: initialColorOnOpen
       });
     }
   };
@@ -1326,7 +1330,14 @@ const QuestionSettingsMenu = ({
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Box
-                      onClick={() => setShowColorPicker(!showColorPicker)}
+                      onClick={() => {
+                        console.log('Color swatch clicked, current selectedColor:', selectedColor);
+                        if (!showColorPicker) {
+                          setInitialColorOnOpen(selectedColor);
+                          console.log('Setting initial color on open:', selectedColor);
+                        }
+                        setShowColorPicker(!showColorPicker);
+                      }}
                       sx={{
                         width: 60,
                         height: 40,
@@ -1348,6 +1359,18 @@ const QuestionSettingsMenu = ({
                         // 有効なHEXカラーの場合は即座に反映
                         if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
                           handleColorChange({ hex: e.target.value });
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // テキストフィールドをブラーした時も初期値をセット
+                        if (!initialColorOnOpen || initialColorOnOpen === selectedColor) {
+                          setInitialColorOnOpen(selectedColor);
+                          console.log('Setting initial color on text field blur:', selectedColor);
+                        }
+                        // 有効なHEXカラーで変更があった場合は保存
+                        if (/^#[0-9A-F]{6}$/i.test(e.target.value) && e.target.value !== initialColorOnOpen && onThemeColorChange) {
+                          console.log('Saving color from text field:', e.target.value);
+                          onThemeColorChange(e.target.value);
                         }
                       }}
                       placeholder="#5e17eb"
