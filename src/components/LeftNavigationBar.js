@@ -49,7 +49,7 @@ const LeftNavigationBar = ({
     <Paper
       elevation={4}
       sx={{
-        width: 80,
+        width: 96,
         height: '100vh',
         background: gradients.secondary,
         borderRadius: 0,
@@ -65,7 +65,7 @@ const LeftNavigationBar = ({
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 1.5,
+          gap: 2,
           width: '100%',
           px: 1
         }}
@@ -78,8 +78,8 @@ const LeftNavigationBar = ({
                 color: isItemActive(item) ? 'white' : 'rgba(255, 255, 255, 0.7)',
                 backgroundColor: isItemActive(item) ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                 borderRadius: 2,
-                width: 48,
-                height: 48,
+                width: 64,
+                height: 64,
                 // ロゴの後に大きなマージンを追加
                 marginBottom: item.isLogo ? 3 : 0,
                 '&:hover': {
@@ -97,8 +97,8 @@ const LeftNavigationBar = ({
                   src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"
                   alt="OpenReview Logo"
                   sx={{
-                    width: 44,
-                    height: 44,
+                    width: 56,
+                    height: 56,
                     objectFit: 'contain'
                   }}
                   onError={(e) => {
@@ -106,8 +106,8 @@ const LeftNavigationBar = ({
                     e.target.style.display = 'none';
                     e.target.parentNode.innerHTML = `
                       <div style="
-                        width: 44px; 
-                        height: 44px; 
+                        width: 56px; 
+                        height: 56px; 
                         border-radius: 4px; 
                         background: rgba(255, 255, 255, 0.2); 
                         display: flex; 
@@ -122,7 +122,7 @@ const LeftNavigationBar = ({
                   }}
                 />
               ) : (
-                item.icon
+                React.cloneElement(item.icon, { sx: { fontSize: '1.8rem' } })
               )}
             </IconButton>
           </Tooltip>
