@@ -22,7 +22,9 @@ const QuestionToolsSidebar = ({
   
   // ドラッグ開始時の処理
   const handleDragStart = (e, item) => {
-    e.dataTransfer.setData('application/json', JSON.stringify(item));
+    // Reactコンポーネント（icon）を除外してJSONシリアライズ
+    const { icon, ...itemWithoutIcon } = item;
+    e.dataTransfer.setData('application/json', JSON.stringify(itemWithoutIcon));
     e.dataTransfer.effectAllowed = 'copy';
     
     // ドラッグ中の要素を半透明にする
