@@ -1500,8 +1500,8 @@ const QuestionSettingsMenu = ({
             </AccordionDetails>
           </Accordion>
 
-          {/* ヘッダー画像設定 - ログイン画面以外で表示 */}
-          {!isLoginPage && (
+          {/* ヘッダー画像設定 - ログイン画面・完了画面以外で表示 */}
+          {!isLoginPage && !isCompletionPage && (
             <Accordion 
               expanded={expandedAccordion === 'header'} 
               onChange={() => setExpandedAccordion(expandedAccordion === 'header' ? null : 'header')}
@@ -1604,53 +1604,69 @@ const QuestionSettingsMenu = ({
                     </Card>
                   )}
                   
-                  {/* アップロードボタン */}
-                  <Button
-                    variant="outlined"
-                    startIcon={<CloudUploadIcon />}
-                    onClick={() => {
-                      // ファイル選択のダイアログを開く処理
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
-                      input.onchange = (e) => {
-                        const file = e.target.files[0];
-                        if (file && onHeaderImageFileUpload) {
-                          onHeaderImageFileUpload(file);
-                        }
-                      };
-                      input.click();
-                    }}
-                    sx={{
-                      borderColor: '#E5E7EB',
-                      color: '#5E17EB',
-                      textTransform: 'none',
-                      '&:hover': {
-                        borderColor: '#5E17EB',
-                        backgroundColor: 'rgba(94, 23, 235, 0.05)'
-                      }
-                    }}
-                  >
-                    {headerImage ? 'ヘッダー画像を変更' : 'ヘッダー画像をアップロード'}
-                  </Button>
-                  
-                  {headerImage && (
+                  {/* アップロード・削除ボタン */}
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     <Button
-                      variant="text"
-                      color="error"
-                      onClick={() => onHeaderImageChange && onHeaderImageChange(null)}
-                      sx={{ textTransform: 'none' }}
+                      variant="contained"
+                      size="small"
+                      startIcon={<CloudUploadIcon />}
+                      component="label"
+                      sx={{
+                        backgroundColor: '#5E17EB',
+                        '&:hover': { backgroundColor: '#4C1D95' },
+                        fontSize: '0.75rem',
+                        px: 2,
+                        py: 0.5,
+                        minWidth: 'auto'
+                      }}
                     >
-                      ヘッダー画像を削除
+                      アップロード
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file && onHeaderImageFileUpload) {
+                            onHeaderImageFileUpload(file);
+                          }
+                        }}
+                      />
                     </Button>
-                  )}
+                    {headerImage && (
+                      <Button  
+                        variant="outlined"
+                        size="small"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => {
+                          if (onHeaderImageChange) {
+                            onHeaderImageChange(null);
+                          }
+                        }}
+                        sx={{
+                          borderColor: '#DC2626',
+                          color: '#DC2626',
+                          '&:hover': {
+                            borderColor: '#B91C1C',
+                            backgroundColor: 'rgba(220, 38, 38, 0.04)'
+                          },
+                          fontSize: '0.75rem',
+                          px: 2,
+                          py: 0.5,
+                          minWidth: 'auto'
+                        }}
+                      >
+                        削除
+                      </Button>
+                    )}
+                  </Box>
                 </Stack>
               </AccordionDetails>
             </Accordion>
           )}
 
-          {/* ロゴ画像設定 - ログイン画面以外で表示 */}
-          {!isLoginPage && (
+          {/* ロゴ画像設定 - ログイン画面・完了画面以外で表示 */}
+          {!isLoginPage && !isCompletionPage && (
             <Accordion 
               expanded={expandedAccordion === 'logo'} 
               onChange={() => setExpandedAccordion(expandedAccordion === 'logo' ? null : 'logo')}
@@ -1752,46 +1768,62 @@ const QuestionSettingsMenu = ({
                     </Card>
                   )}
                   
-                  {/* アップロードボタン */}
-                  <Button
-                    variant="outlined"
-                    startIcon={<CloudUploadIcon />}
-                    onClick={() => {
-                      // ファイル選択のダイアログを開く処理
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
-                      input.onchange = (e) => {
-                        const file = e.target.files[0];
-                        if (file && onLogoImageFileUpload) {
-                          onLogoImageFileUpload(file);
-                        }
-                      };
-                      input.click();
-                    }}
-                    sx={{
-                      borderColor: '#E5E7EB',
-                      color: '#5E17EB',
-                      textTransform: 'none',
-                      '&:hover': {
-                        borderColor: '#5E17EB',
-                        backgroundColor: 'rgba(94, 23, 235, 0.05)'
-                      }
-                    }}
-                  >
-                    {logoImage ? 'ロゴを変更' : 'ロゴをアップロード'}
-                  </Button>
-                  
-                  {logoImage && (
+                  {/* アップロード・削除ボタン */}
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     <Button
-                      variant="text"
-                      color="error"
-                      onClick={() => onLogoImageChange && onLogoImageChange(null)}
-                      sx={{ textTransform: 'none' }}
+                      variant="contained"
+                      size="small"
+                      startIcon={<CloudUploadIcon />}
+                      component="label"
+                      sx={{
+                        backgroundColor: '#5E17EB',
+                        '&:hover': { backgroundColor: '#4C1D95' },
+                        fontSize: '0.75rem',
+                        px: 2,
+                        py: 0.5,
+                        minWidth: 'auto'
+                      }}
                     >
-                      ロゴを削除
+                      アップロード
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file && onLogoImageFileUpload) {
+                            onLogoImageFileUpload(file);
+                          }
+                        }}
+                      />
                     </Button>
-                  )}
+                    {logoImage && (
+                      <Button  
+                        variant="outlined"
+                        size="small"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => {
+                          if (onLogoImageChange) {
+                            onLogoImageChange(null);
+                          }
+                        }}
+                        sx={{
+                          borderColor: '#DC2626',
+                          color: '#DC2626',
+                          '&:hover': {
+                            borderColor: '#B91C1C',
+                            backgroundColor: 'rgba(220, 38, 38, 0.04)'
+                          },
+                          fontSize: '0.75rem',
+                          px: 2,
+                          py: 0.5,
+                          minWidth: 'auto'
+                        }}
+                      >
+                        削除
+                      </Button>
+                    )}
+                  </Box>
                 </Stack>
               </AccordionDetails>
             </Accordion>
@@ -1904,35 +1936,61 @@ const QuestionSettingsMenu = ({
                       </Card>
                     )}
                     
-                    {/* アップロードボタン */}
-                    <Button
-                      variant="outlined"
-                      startIcon={<CloudUploadIcon />}
-                      onClick={() => {
-                        // ファイル選択のダイアログを開く処理
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
-                        input.onchange = (e) => {
-                          const file = e.target.files[0];
-                          if (file && onLoginBackgroundImageFileUpload) {
-                            onLoginBackgroundImageFileUpload(file);
-                          }
-                        };
-                        input.click();
-                      }}
-                      sx={{
-                        borderColor: '#E5E7EB',
-                        color: '#5E17EB',
-                        textTransform: 'none',
-                        '&:hover': {
-                          borderColor: '#5E17EB',
-                          backgroundColor: 'rgba(94, 23, 235, 0.05)'
-                        }
-                      }}
-                    >
-                      {loginScreenSettings.background_image_url ? 'ログイン背景画像を変更' : 'ログイン背景画像をアップロード'}
-                    </Button>
+                    {/* アップロード・削除ボタン */}
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<CloudUploadIcon />}
+                        component="label"
+                        sx={{
+                          backgroundColor: '#5E17EB',
+                          '&:hover': { backgroundColor: '#4C1D95' },
+                          fontSize: '0.75rem',
+                          px: 2,
+                          py: 0.5,
+                          minWidth: 'auto'
+                        }}
+                      >
+                        アップロード
+                        <input
+                          type="file"
+                          hidden
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file && onLoginBackgroundImageFileUpload) {
+                              onLoginBackgroundImageFileUpload(file);
+                            }
+                          }}
+                        />
+                      </Button>
+                      {loginScreenSettings.background_image_url && (
+                        <Button  
+                          variant="outlined"
+                          size="small"
+                          startIcon={<DeleteIcon />}
+                          onClick={() => {
+                            // ログイン背景画像の削除処理を追加する必要があります
+                            console.log('ログイン背景画像削除');
+                          }}
+                          sx={{
+                            borderColor: '#DC2626',
+                            color: '#DC2626',
+                            '&:hover': {
+                              borderColor: '#B91C1C',
+                              backgroundColor: 'rgba(220, 38, 38, 0.04)'
+                            },
+                            fontSize: '0.75rem',
+                            px: 2,
+                            py: 0.5,
+                            minWidth: 'auto'
+                          }}
+                        >
+                          削除
+                        </Button>
+                      )}
+                    </Box>
                   </Stack>
                 </AccordionDetails>
               </Accordion>
@@ -2040,46 +2098,62 @@ const QuestionSettingsMenu = ({
                       </Card>
                     )}
                     
-                    {/* アップロードボタン */}
-                    <Button
-                      variant="outlined"
-                      startIcon={<CloudUploadIcon />}
-                      onClick={() => {
-                        // ファイル選択のダイアログを開く処理
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/jpeg,image/jpg,image/png,image/webp';
-                        input.onchange = (e) => {
-                          const file = e.target.files[0];
-                          if (file && onLogoImageFileUpload) {
-                            onLogoImageFileUpload(file);
-                          }
-                        };
-                        input.click();
-                      }}
-                      sx={{
-                        borderColor: '#E5E7EB',
-                        color: '#5E17EB',
-                        textTransform: 'none',
-                        '&:hover': {
-                          borderColor: '#5E17EB',
-                          backgroundColor: 'rgba(94, 23, 235, 0.05)'
-                        }
-                      }}
-                    >
-                      {logoImage ? 'ロゴを変更' : 'ロゴをアップロード'}
-                    </Button>
-                    
-                    {logoImage && (
+                    {/* アップロード・削除ボタン */}
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       <Button
-                        variant="text"
-                        color="error"
-                        onClick={() => onLogoImageChange && onLogoImageChange(null)}
-                        sx={{ textTransform: 'none' }}
+                        variant="contained"
+                        size="small"
+                        startIcon={<CloudUploadIcon />}
+                        component="label"
+                        sx={{
+                          backgroundColor: '#5E17EB',
+                          '&:hover': { backgroundColor: '#4C1D95' },
+                          fontSize: '0.75rem',
+                          px: 2,
+                          py: 0.5,
+                          minWidth: 'auto'
+                        }}
                       >
-                        ロゴを削除
+                        アップロード
+                        <input
+                          type="file"
+                          hidden
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file && onLogoImageFileUpload) {
+                              onLogoImageFileUpload(file);
+                            }
+                          }}
+                        />
                       </Button>
-                    )}
+                      {logoImage && (
+                        <Button  
+                          variant="outlined"
+                          size="small"
+                          startIcon={<DeleteIcon />}
+                          onClick={() => {
+                            if (onLogoImageChange) {
+                              onLogoImageChange(null);
+                            }
+                          }}
+                          sx={{
+                            borderColor: '#DC2626',
+                            color: '#DC2626',
+                            '&:hover': {
+                              borderColor: '#B91C1C',
+                              backgroundColor: 'rgba(220, 38, 38, 0.04)'
+                            },
+                            fontSize: '0.75rem',
+                            px: 2,
+                            py: 0.5,
+                            minWidth: 'auto'
+                          }}
+                        >
+                          削除
+                        </Button>
+                      )}
+                    </Box>
                   </Stack>
                 </AccordionDetails>
               </Accordion>
@@ -2380,168 +2454,6 @@ const QuestionSettingsMenu = ({
               </AccordionDetails>
             </Accordion>
 
-            {/* 完了画面専用ロゴ設定 */}
-            <Accordion 
-              expanded={expandedAccordion === 'completion-logo'} 
-              onChange={() => setExpandedAccordion(expandedAccordion === 'completion-logo' ? null : 'completion-logo')}
-              sx={{
-                borderRadius: '8px !important',
-                border: '1px solid #E5E7EB',
-                boxShadow: 'none',
-                '&:before': { display: 'none' },
-                backgroundColor: expandedAccordion === 'completion-logo' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
-                mb: 2
-              }}
-            >
-              <AccordionSummary
-                expandIcon={expandedAccordion === 'completion-logo' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                sx={{
-                  borderRadius: '8px',
-                  '& .MuiAccordionSummary-content': {
-                    alignItems: 'center'
-                  }
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: '6px',
-                      background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
-                    }}
-                  >
-                    <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
-                  </Box>
-                  <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: 600,
-                        color: '#1F2937',
-                        fontSize: '0.9rem',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                      title="ロゴ画像"
-                    >
-                      ロゴ画像
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: '#6B7280',
-                        fontSize: '0.75rem',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                      title="完了画面のロゴ画像"
-                    >
-                      完了画面のロゴ画像
-                    </Typography>
-                  </Box>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 0 }}>
-                <Stack spacing={3}>
-                  {/* 画像プレビュー */}
-                  {logoImage ? (
-                    <Card sx={{ borderRadius: 0, overflow: 'hidden' }}>
-                      <CardContent sx={{ p: 2, textAlign: 'center' }}>
-                        <Box
-                          component="img"
-                          src={logoImage}
-                          alt="ロゴ画像"
-                          sx={{
-                            maxWidth: '100%',
-                            maxHeight: 80,
-                            objectFit: 'contain'
-                          }}
-                        />
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <Card 
-                      sx={{ 
-                        borderRadius: 0,
-                        border: '2px dashed #E5E7EB',
-                        backgroundColor: '#F9FAFB'
-                      }}
-                    >
-                      <CardContent sx={{ p: 3, textAlign: 'center' }}>
-                        <ImageIcon sx={{ fontSize: '2rem', color: '#9CA3AF', mb: 1 }} />
-                        <Typography variant="body2" sx={{ color: '#6B7280', fontSize: '0.8rem' }}>
-                          画像なし
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* アップロード・削除ボタン */}
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<CloudUploadIcon />}
-                      component="label"
-                      sx={{
-                        backgroundColor: '#5E17EB',
-                        '&:hover': { backgroundColor: '#4C1D95' },
-                        fontSize: '0.75rem',
-                        px: 2,
-                        py: 0.5,
-                        minWidth: 'auto'
-                      }}
-                    >
-                      アップロード
-                      <input
-                        type="file"
-                        hidden
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file && onLogoImageFileUpload) {
-                            onLogoImageFileUpload(file);
-                          }
-                        }}
-                      />
-                    </Button>
-                    {logoImage && (
-                      <Button  
-                        variant="outlined"
-                        size="small"
-                        startIcon={<DeleteIcon />}
-                        onClick={() => {
-                          if (onLogoImageChange) {
-                            onLogoImageChange('');
-                          }
-                        }}
-                        sx={{
-                          borderColor: '#DC2626',
-                          color: '#DC2626',
-                          '&:hover': {
-                            borderColor: '#B91C1C',
-                            backgroundColor: 'rgba(220, 38, 38, 0.04)'
-                          },
-                          fontSize: '0.75rem',
-                          px: 2,
-                          py: 0.5,
-                          minWidth: 'auto'
-                        }}
-                      >
-                        削除
-                      </Button>
-                    )}
-                  </Box>
-                </Stack>
-              </AccordionDetails>
-            </Accordion>
             
             {/* ボタン設定 */}
             <Accordion 
