@@ -197,71 +197,56 @@ const PreviewArea = ({
               gap: 1
             }}
           >
-            {(() => {
-              const carouselPages = [];
-              
-              // ログイン画面
-              const loginPage = pages.find(p => p.id === 'login');
-              if (loginPage) {
-                carouselPages.push({ page: loginPage, id: 'login', label: loginPage.title });
-              }
-              
-              // 質問ページ（複数ある場合は現在選択中のページまたは最初の質問ページ）
-              const currentQuestionPage = pages.find(p => p.type === 'question' && p.id === selectedPage?.id);
-              const firstQuestionPage = pages.find(p => p.type === 'question');
-              const questionPage = currentQuestionPage || firstQuestionPage;
-              if (questionPage) {
-                carouselPages.push({ page: questionPage, id: 'question', label: questionPage.title });
-              }
-              
-              // 完了画面
-              const completionPage = pages.find(p => p.id === 'completion');
-              if (completionPage) {
-                carouselPages.push({ page: completionPage, id: 'completion', label: completionPage.title });
-              }
-              
-              return carouselPages.map((screen) => {
-                const isActive = (screen.id === 'question' && selectedPage?.type === 'question') ||
-                                (screen.id === selectedPage?.id);
+            {[
+              pages.find(p => p.id === 'login'),
+              pages.find(p => p.type === 'question' && p.id === selectedPage?.id) || 
+              pages.find(p => p.type === 'question'),
+              pages.find(p => p.id === 'completion')
+            ]
+              .filter(Boolean)
+              .map((page) => {
+                const screenId = page.type === 'question' ? 'question' : page.id;
+                const isActive = (screenId === 'question' && selectedPage?.type === 'question') ||
+                                (screenId === selectedPage?.id);
                 
                 return (
                   <Box
-                    key={screen.id}
+                    key={screenId}
                     onClick={() => {
-                      if (screen.page && onPageSelect) {
+                      if (page && onPageSelect) {
                         onQuestionSelect?.(null);
-                        onPageSelect(screen.page);
+                        onPageSelect(page);
                       }
                     }}
                     sx={{
-                    px: 2,
-                    py: 1,
-                    borderRadius: 3,
-                    backgroundColor: isActive ? '#5e17eb' : 'rgba(255, 255, 255, 0.9)',
-                    color: isActive ? 'white' : '#6b7280',
-                    fontSize: '0.75rem',
-                    fontWeight: isActive ? 600 : 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    border: '1px solid',
-                    borderColor: isActive ? '#5e17eb' : 'rgba(0, 0, 0, 0.1)',
-                    boxShadow: isActive 
-                      ? '0 2px 8px rgba(94, 23, 235, 0.3)'
-                      : '0 1px 3px rgba(0, 0, 0, 0.1)',
-                    '&:hover': {
-                      backgroundColor: isActive ? '#4c1d95' : 'rgba(94, 23, 235, 0.1)',
-                      borderColor: '#5e17eb',
-                      transform: 'translateY(-1px)',
+                      px: 2,
+                      py: 1,
+                      borderRadius: 3,
+                      backgroundColor: isActive ? '#5e17eb' : 'rgba(255, 255, 255, 0.9)',
+                      color: isActive ? 'white' : '#6b7280',
+                      fontSize: '0.75rem',
+                      fontWeight: isActive ? 600 : 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      border: '1px solid',
+                      borderColor: isActive ? '#5e17eb' : 'rgba(0, 0, 0, 0.1)',
                       boxShadow: isActive 
-                        ? '0 4px 12px rgba(94, 23, 235, 0.4)'
-                        : '0 2px 8px rgba(94, 23, 235, 0.2)'
-                    }
-                  }}
-                >
-                  {screen.label}
-                </Box>
-              );
-            })}
+                        ? '0 2px 8px rgba(94, 23, 235, 0.3)'
+                        : '0 1px 3px rgba(0, 0, 0, 0.1)',
+                      '&:hover': {
+                        backgroundColor: isActive ? '#4c1d95' : 'rgba(94, 23, 235, 0.1)',
+                        borderColor: '#5e17eb',
+                        transform: 'translateY(-1px)',
+                        boxShadow: isActive 
+                          ? '0 4px 12px rgba(94, 23, 235, 0.4)'
+                          : '0 2px 8px rgba(94, 23, 235, 0.2)'
+                      }
+                    }}
+                  >
+                    {page.title}
+                  </Box>
+                );
+              })}
           </Box>
         )}
         
