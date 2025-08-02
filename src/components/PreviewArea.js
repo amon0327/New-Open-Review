@@ -172,92 +172,12 @@ const PreviewArea = ({
         transform: 'translate(-50%, -50%)',
         zIndex: 1,
         display: 'flex',
-        flexDirection: previewMode === 'mobile' ? 'row' : 'column',
+        flexDirection: 'column',
         alignItems: 'center',
         gap: 2,
         pointerEvents: 'auto'
       }}
     >
-      {/* モバイル用縦カルーセル - 右側に配置 */}
-      {previewMode === 'mobile' && pages && pages.length > 0 && (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 1,
-            ml: 3
-          }}
-        >
-          {(() => {
-            const currentIndex = pages.findIndex(page => page.id === selectedPage?.id);
-            const visiblePages = [];
-            
-            // 現在のページを中心に前後1つずつ、計3つのページを表示
-            for (let i = currentIndex - 1; i <= currentIndex + 1; i++) {
-              if (i >= 0 && i < pages.length) {
-                visiblePages.push(pages[i]);
-              }
-            }
-            
-            return visiblePages.map((page, index) => {
-              const isActive = selectedPage?.id === page.id;
-              const isCenter = index === Math.floor(visiblePages.length / 2);
-              
-              return (
-                <Box
-                  key={page.id}
-                  onClick={() => {
-                    if (page && onPageSelect) {
-                      onQuestionSelect?.(null);
-                      onPageSelect(page);
-                    }
-                  }}
-                  sx={{
-                    px: isCenter ? 2 : 1.5,
-                    py: isCenter ? 2 : 1.5,
-                    borderRadius: 3,
-                    backgroundColor: isActive ? '#5e17eb' : 'rgba(255, 255, 255, 0.9)',
-                    color: isActive ? 'white' : '#6b7280',
-                    fontSize: isCenter ? '0.75rem' : '0.65rem',
-                    fontWeight: isActive ? 600 : 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    border: '1px solid',
-                    borderColor: isActive ? '#5e17eb' : 'rgba(0, 0, 0, 0.1)',
-                    boxShadow: isActive 
-                      ? '0 3px 12px rgba(94, 23, 235, 0.4)'
-                      : '0 1px 3px rgba(0, 0, 0, 0.1)',
-                    whiteSpace: 'nowrap',
-                    minWidth: 'fit-content',
-                    flexShrink: 0,
-                    transform: isCenter ? 'scale(1.05)' : 'scale(1)',
-                    opacity: isCenter ? 1 : 0.7,
-                    writingMode: 'vertical-rl',
-                    textOrientation: 'mixed',
-                    minHeight: '80px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    '&:hover': {
-                      backgroundColor: isActive ? '#4c1d95' : 'rgba(94, 23, 235, 0.1)',
-                      borderColor: '#5e17eb',
-                      transform: isCenter ? 'scale(1.08) translateX(2px)' : 'scale(1.02) translateX(2px)',
-                      opacity: 1,
-                      boxShadow: isActive 
-                        ? '0 4px 16px rgba(94, 23, 235, 0.5)'
-                        : '0 2px 8px rgba(94, 23, 235, 0.2)'
-                    }
-                  }}
-                >
-                  {page.title}
-                </Box>
-              );
-            });
-          })()}
-        </Box>
-      )}
-
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: zoom }}
@@ -267,8 +187,8 @@ const PreviewArea = ({
           transformOrigin: 'center'
         }}
       >
-        {/* PC用横カルーセル - プレビュー上部に表示 */}
-        {previewMode !== 'mobile' && pages && pages.length > 0 && (
+        {/* カルーセルタブ - プレビュー時に表示 */}
+        {pages && pages.length > 0 && (
           <Box
             sx={{
               display: 'flex',
