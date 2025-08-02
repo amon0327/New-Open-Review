@@ -158,7 +158,7 @@ const ThemeSettings = ({
                     width: 40,
                     height: 40,
                     borderRadius: 2,
-                    background: 'linear-gradient(45deg, #ff0000 0%, #ff7f00 16.66%, #ffff00 33.33%, #00ff00 50%, #0000ff 66.66%, #4b0082 83.33%, #9400d3 100%)',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',
                     cursor: 'pointer',
                     border: showColorPicker ? '3px solid #1e293b' : '2px solid transparent',
                     boxShadow: showColorPicker 
