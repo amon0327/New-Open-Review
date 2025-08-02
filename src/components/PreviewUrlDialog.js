@@ -31,7 +31,7 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
   const [copied, setCopied] = useState(false);
 
   // プレビューURLを生成
-  const previewUrl = `http://localhost:3000/?reviewFormId=${formId}&preview=true`;
+  const previewUrl = `http://localhost:3000/preview?reviewFormId=${formId}`;
 
   // QRコード生成
   useEffect(() => {
