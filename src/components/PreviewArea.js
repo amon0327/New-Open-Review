@@ -223,6 +223,9 @@ const PreviewArea = ({
                       }
                     }}
                     sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       px: isCenter ? 3 : 2,
                       py: isCenter ? 1.5 : 1,
                       borderRadius: 3,
