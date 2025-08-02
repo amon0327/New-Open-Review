@@ -70,7 +70,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
       const result = await FormDataService.createNewForm(user.id);
       
       if (result.success) {
-        toast.success('新しいフォームを作成しました');
+        // フォーム作成成功時は通知なし
         // フォーム作成画面に遷移（formIdを渡す）
         onCreateClick(result.data.reviewFormId);
       } else {
