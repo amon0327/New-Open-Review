@@ -1868,7 +1868,6 @@ const QuestionSettingsMenu = ({
             </Accordion>
           )}
         </Box>
-
           {/* ログイン画面専用設定 - ログイン画面が選択されている場合のみ表示 */}
           {(isLoginPage || selectedElement?.startsWith('login-')) && (
             <>
