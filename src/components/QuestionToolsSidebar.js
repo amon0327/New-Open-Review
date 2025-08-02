@@ -46,7 +46,7 @@ const QuestionToolsSidebar = ({
     // 一定時間後にアニメーションを停止
     setTimeout(() => {
       setTapAnimations(prev => ({ ...prev, [itemId]: false }));
-    }, 800);
+    }, 1200);
   };
   return (
     <>
@@ -62,12 +62,12 @@ const QuestionToolsSidebar = ({
               animate={{ 
                 opacity: 1, 
                 scale: 1,
-                x: tapAnimations[`questionType-${index}`] ? 30 : 0
+                x: tapAnimations[`questionType-${index}`] ? 150 : 0
               }}
               transition={{ 
                 duration: 0.3, 
                 delay: index * 0.05,
-                x: { duration: 0.4, ease: "easeInOut" }
+                x: { duration: 0.6, ease: "easeInOut" }
               }}
             >
               <Paper
@@ -112,13 +112,13 @@ const QuestionToolsSidebar = ({
                 <AnimatePresence>
                   {tapAnimations[`questionType-${index}`] && (
                     <motion.div
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 10 }}
-                      exit={{ opacity: 0, x: 20 }}
-                      transition={{ duration: 0.4 }}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 30 }}
+                      exit={{ opacity: 0, x: 60 }}
+                      transition={{ duration: 0.6 }}
                       style={{
                         position: 'absolute',
-                        right: -25,
+                        right: -50,
                         top: '50%',
                         transform: 'translateY(-50%)',
                         zIndex: 10
@@ -270,12 +270,12 @@ const QuestionToolsSidebar = ({
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ 
                             opacity: 1, 
-                            x: tapAnimations[`template-${temp.id}`] ? 30 : 0
+                            x: tapAnimations[`template-${temp.id}`] ? 150 : 0
                           }}
                           transition={{ 
                             duration: 0.2, 
                             delay: tempIndex * 0.05,
-                            x: { duration: 0.4, ease: "easeInOut" }
+                            x: { duration: 0.6, ease: "easeInOut" }
                           }}
                         >
                           <Box
@@ -314,13 +314,13 @@ const QuestionToolsSidebar = ({
                             <AnimatePresence>
                               {tapAnimations[`template-${temp.id}`] && (
                                 <motion.div
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 10 }}
-                                  exit={{ opacity: 0, x: 20 }}
-                                  transition={{ duration: 0.4 }}
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 30 }}
+                                  exit={{ opacity: 0, x: 60 }}
+                                  transition={{ duration: 0.6 }}
                                   style={{
                                     position: 'absolute',
-                                    right: -25,
+                                    right: -50,
                                     top: '50%',
                                     transform: 'translateY(-50%)',
                                     zIndex: 10
