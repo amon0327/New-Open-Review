@@ -24,6 +24,7 @@ const PreviewArea = ({
   pages = [],
   selectedQuestionId,
   onQuestionSelect,
+  onPageSelect,
   // 基本設定関連
   headerImage,
   logoImage,
@@ -210,21 +211,21 @@ const PreviewArea = ({
                   onClick={() => {
                     if (screen.id === 'login') {
                       const loginPage = pages.find(p => p.id === 'login');
-                      if (loginPage) {
+                      if (loginPage && onPageSelect) {
                         onQuestionSelect?.(null);
-                        // ログイン画面に切り替える処理をここに追加
+                        onPageSelect(loginPage);
                       }
                     } else if (screen.id === 'question') {
                       const questionPage = pages.find(p => p.type === 'question');
-                      if (questionPage) {
+                      if (questionPage && onPageSelect) {
                         onQuestionSelect?.(null);
-                        // 質問画面に切り替える処理をここに追加
+                        onPageSelect(questionPage);
                       }
                     } else if (screen.id === 'completion') {
                       const completionPage = pages.find(p => p.id === 'completion');
-                      if (completionPage) {
+                      if (completionPage && onPageSelect) {
                         onQuestionSelect?.(null);
-                        // 完了画面に切り替える処理をここに追加
+                        onPageSelect(completionPage);
                       }
                     }
                   }}
