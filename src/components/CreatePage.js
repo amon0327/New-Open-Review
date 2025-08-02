@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PreviewControlPanel from './PreviewControlPanel';
 import LeftNavigationBar from './LeftNavigationBar';
 import HeaderBar from './HeaderBar';
@@ -255,6 +255,33 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // 保存状態管理
   const [isSaving, setIsSaving] = useState(false);
+  const [showSavingIndicator, setShowSavingIndicator] = useState(false);
+  const savingTimerRef = useRef(null);
+
+  // 保存状態の効果管理
+  useEffect(() => {
+    if (isSaving) {
+      // 1.5秒後に保存インジケーターを表示
+      savingTimerRef.current = setTimeout(() => {
+        setShowSavingIndicator(true);
+      }, 1500);
+    } else {
+      // 保存が完了したらタイマーをクリアし、インジケーターを非表示
+      if (savingTimerRef.current) {
+        clearTimeout(savingTimerRef.current);
+        savingTimerRef.current = null;
+      }
+      setShowSavingIndicator(false);
+    }
+
+    // クリーンアップ
+    return () => {
+      if (savingTimerRef.current) {
+        clearTimeout(savingTimerRef.current);
+        savingTimerRef.current = null;
+      }
+    };
+  }, [isSaving]);
 
   // テキスト設定の状態（後方互換性のため残す）
   const [loginTitle, setLoginTitle] = useState('');
@@ -1598,7 +1625,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
           setProjectTitle={setProjectTitle}
           setIsEditingTitle={setIsEditingTitle}
           onProjectTitleUpdate={handleProjectTitleUpdate}
-          isSaving={isSaving}
+          isSaving={showSavingIndicator}
           formId={formId}
         />
 
