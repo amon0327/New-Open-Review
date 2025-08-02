@@ -10,7 +10,8 @@ import {
 import {
   Preview,
   Save,
-  MoreVert
+  MoreVert,
+  CloudSync
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 
@@ -20,7 +21,9 @@ const HeaderBar = ({
   setProjectTitle,
   setIsEditingTitle,
   // Supabase連携用のprops
-  onProjectTitleUpdate
+  onProjectTitleUpdate,
+  // 保存状態の表示用
+  isSaving = false
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
@@ -127,7 +130,34 @@ const HeaderBar = ({
       )}
 
       {/* ヘッダー右側のアクションボタン */}
-      <Box sx={{ display: 'flex', gap: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        {/* 保存状態インジケーター */}
+        {isSaving && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 2 }}>
+            <CloudSync 
+              sx={{ 
+                color: '#5E17EB', 
+                fontSize: '1rem',
+                animation: 'spin 1s linear infinite',
+                '@keyframes spin': {
+                  '0%': { transform: 'rotate(0deg)' },
+                  '100%': { transform: 'rotate(360deg)' }
+                }
+              }} 
+            />
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                color: '#5E17EB', 
+                fontSize: '0.75rem',
+                fontWeight: 500
+              }}
+            >
+              保存中...
+            </Typography>
+          </Box>
+        )}
+        
         <Tooltip title="プレビュー">
           <IconButton sx={iconButtonStyles.secondary}>
             <Preview />

@@ -253,6 +253,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
   });
   const [isLoadingCompletionSettings, setIsLoadingCompletionSettings] = useState(false);
 
+  // 保存状態管理
+  const [isSaving, setIsSaving] = useState(false);
+
   // テキスト設定の状態（後方互換性のため残す）
   const [loginTitle, setLoginTitle] = useState('');
   const [loginDetail, setLoginDetail] = useState('');
@@ -1185,6 +1188,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     
     // 即座にローカル状態を更新
     setFormSettings(prev => ({ ...prev, theme_color: themeColor }));
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
     try {
@@ -1201,6 +1205,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       setFormSettings(prev => ({ ...prev, theme_color: formSettings.theme_color }));
       toast.error('テーマカラーの更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1208,6 +1214,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     // 即座にローカル状態を更新
     setFormSettings(prev => ({ ...prev, logo_image_url: logoImageUrl }));
     setLogoImageState(logoImageUrl);
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
     try {
@@ -1221,6 +1228,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       setFormSettings(prev => ({ ...prev, logo_image_url: formSettings.logo_image_url }));
       setLogoImageState(formSettings.logo_image_url);
       toast.error('ロゴ画像の更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1489,6 +1498,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const handleProjectTitleUpdate = async (title) => {
     // 即座にローカル状態を更新
     setProjectTitle(title);
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
     try {
@@ -1499,6 +1509,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
     } catch (error) {
       console.error('Project title update error:', error);
       toast.error('プロジェクトタイトルの更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1542,6 +1554,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
           setProjectTitle={setProjectTitle}
           setIsEditingTitle={setIsEditingTitle}
           onProjectTitleUpdate={handleProjectTitleUpdate}
+          isSaving={isSaving}
         />
 
         {/* メインコンテンツエリア */}
