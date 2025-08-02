@@ -1439,7 +1439,8 @@ const PreviewQuestions = ({
   }, [formId, selectedPage?.id]);
 
   // ローカルの質問データとSupabaseの質問データを統合
-  const displayQuestions = supabaseQuestions.length > 0 ? supabaseQuestions : (questions || []);
+  // CreatePageから渡されるquestionsプロパティを優先し、リアルタイム更新を確保
+  const displayQuestions = (questions && questions.length > 0) ? questions : supabaseQuestions;
 
   // 質問が追加された際の自動スクロール機能
   useEffect(() => {
