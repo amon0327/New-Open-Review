@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Box,
@@ -9,7 +9,8 @@ import {
 } from '@mui/material';
 import {
   TextFields,
-  ExpandMore as ExpandMoreIcon
+  ExpandMore as ExpandMoreIcon,
+  ArrowForward
 } from '@mui/icons-material';
 
 const QuestionToolsSidebar = ({
@@ -19,6 +20,8 @@ const QuestionToolsSidebar = ({
   toggleExpanded,
   setSelectedTool
 }) => {
+  // タップアニメーション状態管理
+  const [tapAnimations, setTapAnimations] = useState({});
   
   // ドラッグ開始時の処理
   const handleDragStart = (e, item) => {
@@ -35,6 +38,16 @@ const QuestionToolsSidebar = ({
   const handleDragEnd = (e) => {
     e.target.style.opacity = '1';
   };
+
+  // タップ時のアニメーション効果
+  const handleTapAnimation = (itemId) => {
+    setTapAnimations(prev => ({ ...prev, [itemId]: true }));
+    
+    // 一定時間後にアニメーションを停止
+    setTimeout(() => {
+      setTapAnimations(prev => ({ ...prev, [itemId]: false }));
+    }, 800);
+  };
   return (
     <>
       {/* 質問タイプグリッド */}
@@ -46,8 +59,16 @@ const QuestionToolsSidebar = ({
           <Grid item xs={4} key={index}>
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                x: tapAnimations[`questionType-${index}`] ? 30 : 0
+              }}
+              transition={{ 
+                duration: 0.3, 
+                delay: index * 0.05,
+                x: { duration: 0.4, ease: "easeInOut" }
+              }}
             >
               <Paper
                 elevation={2}
@@ -65,6 +86,7 @@ const QuestionToolsSidebar = ({
                   alignItems: 'center',
                   gap: 0.5,
                   minHeight: 70,
+                  position: 'relative',
                   transition: 'all 0.2s ease',
                   '&:hover': {
                     transform: 'translateY(-2px)',
@@ -81,8 +103,37 @@ const QuestionToolsSidebar = ({
                     boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3)'
                   }
                 }}
-                onClick={() => setSelectedTool(item)}
+                onClick={() => {
+                  setSelectedTool(item);
+                  handleTapAnimation(`questionType-${index}`);
+                }}
               >
+                {/* 矢印アニメーション */}
+                <AnimatePresence>
+                  {tapAnimations[`questionType-${index}`] && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 10 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ duration: 0.4 }}
+                      style={{
+                        position: 'absolute',
+                        right: -25,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        zIndex: 10
+                      }}
+                    >
+                      <ArrowForward 
+                        sx={{ 
+                          color: '#5e17eb',
+                          fontSize: '1.2rem'
+                        }} 
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
                 <Box
                   sx={{
                     width: 28,
@@ -217,19 +268,30 @@ const QuestionToolsSidebar = ({
                         <motion.div
                           key={temp.id}
                           initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.2, delay: tempIndex * 0.05 }}
+                          animate={{ 
+                            opacity: 1, 
+                            x: tapAnimations[`template-${temp.id}`] ? 30 : 0
+                          }}
+                          transition={{ 
+                            duration: 0.2, 
+                            delay: tempIndex * 0.05,
+                            x: { duration: 0.4, ease: "easeInOut" }
+                          }}
                         >
                           <Box
                             draggable
                             onDragStart={(e) => handleDragStart(e, { ...temp, isTemplate: true })}
                             onDragEnd={handleDragEnd}
-                            onClick={() => setSelectedTool({ ...temp, isTemplate: true })}
+                            onClick={() => {
+                              setSelectedTool({ ...temp, isTemplate: true });
+                              handleTapAnimation(`template-${temp.id}`);
+                            }}
                             sx={{
                               p: 1.5,
                               mb: 1,
                               cursor: 'grab',
                               borderRadius: 1,
+                              position: 'relative',
                               backgroundColor: 'rgba(255, 255, 255, 0.9)',
                               border: '1px solid rgba(0, 0, 0, 0.06)',
                               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
@@ -248,6 +310,32 @@ const QuestionToolsSidebar = ({
                               transition: 'all 0.3s ease'
                             }}
                           >
+                            {/* 矢印アニメーション */}
+                            <AnimatePresence>
+                              {tapAnimations[`template-${temp.id}`] && (
+                                <motion.div
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 10 }}
+                                  exit={{ opacity: 0, x: 20 }}
+                                  transition={{ duration: 0.4 }}
+                                  style={{
+                                    position: 'absolute',
+                                    right: -25,
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    zIndex: 10
+                                  }}
+                                >
+                                  <ArrowForward 
+                                    sx={{ 
+                                      color: '#5e17eb',
+                                      fontSize: '1.2rem'
+                                    }} 
+                                  />
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                            
                             {/* 左側: アイコン */}
                             <Box
                               sx={{
