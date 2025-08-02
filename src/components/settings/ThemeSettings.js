@@ -168,7 +168,7 @@ const ThemeSettings = ({
                     borderRadius: '20px', // 半径を明示的に指定
                     background: lastCustomColor !== '#5e17eb' && colorOptions.every(color => color.value !== lastCustomColor)
                       ? lastCustomColor // カスタムカラーが設定されている場合はその色
-                      : 'conic-gradient(from 0deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080, #ff0000)', // 虹色グラデーション
+                      : '#e5e7eb', // 薄い灰色
                     cursor: 'pointer',
                     border: (showColorPicker || isCustomColor) ? '3px solid #1e293b' : '2px solid transparent',
                     boxShadow: (showColorPicker || isCustomColor)
@@ -191,9 +191,8 @@ const ThemeSettings = ({
                   {(lastCustomColor === '#5e17eb' || colorOptions.some(color => color.value === lastCustomColor)) && (
                     <Add 
                       sx={{ 
-                        color: 'white', 
-                        fontSize: '1.2rem',
-                        filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5))'
+                        color: '#6b7280', // 灰色背景に合わせてダークグレー
+                        fontSize: '1.2rem'
                       }} 
                     />
                   )}

@@ -1624,6 +1624,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     pages={pages}
                     selectedQuestionId={selectedQuestionId}
                     onQuestionSelect={handleQuestionSelect}
+                    onPageSelect={setSelectedPage}
                     headerImage={headerImage}
                     logoImage={logoImageState}
                     onElementSelect={handleElementSelect}

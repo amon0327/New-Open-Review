@@ -186,6 +186,80 @@ const PreviewArea = ({
           transformOrigin: 'center'
         }}
       >
+        {/* カルーセルタブ - モバイルプレビューでのみ表示 */}
+        {previewMode === 'mobile' && (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              mb: 2,
+              gap: 1
+            }}
+          >
+            {[
+              { id: 'login', label: 'ログイン画面' },
+              { id: 'question', label: '質問画面' },
+              { id: 'completion', label: '完了画面' }
+            ].map((screen) => {
+              const isActive = (screen.id === 'question' && selectedPage?.type === 'question') ||
+                              (screen.id === selectedPage?.id);
+              
+              return (
+                <Box
+                  key={screen.id}
+                  onClick={() => {
+                    if (screen.id === 'login') {
+                      const loginPage = pages.find(p => p.id === 'login');
+                      if (loginPage) {
+                        onQuestionSelect?.(null);
+                        // ログイン画面に切り替える処理をここに追加
+                      }
+                    } else if (screen.id === 'question') {
+                      const questionPage = pages.find(p => p.type === 'question');
+                      if (questionPage) {
+                        onQuestionSelect?.(null);
+                        // 質問画面に切り替える処理をここに追加
+                      }
+                    } else if (screen.id === 'completion') {
+                      const completionPage = pages.find(p => p.id === 'completion');
+                      if (completionPage) {
+                        onQuestionSelect?.(null);
+                        // 完了画面に切り替える処理をここに追加
+                      }
+                    }
+                  }}
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    borderRadius: 3,
+                    backgroundColor: isActive ? '#5e17eb' : 'rgba(255, 255, 255, 0.9)',
+                    color: isActive ? 'white' : '#6b7280',
+                    fontSize: '0.75rem',
+                    fontWeight: isActive ? 600 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    border: '1px solid',
+                    borderColor: isActive ? '#5e17eb' : 'rgba(0, 0, 0, 0.1)',
+                    boxShadow: isActive 
+                      ? '0 2px 8px rgba(94, 23, 235, 0.3)'
+                      : '0 1px 3px rgba(0, 0, 0, 0.1)',
+                    '&:hover': {
+                      backgroundColor: isActive ? '#4c1d95' : 'rgba(94, 23, 235, 0.1)',
+                      borderColor: '#5e17eb',
+                      transform: 'translateY(-1px)',
+                      boxShadow: isActive 
+                        ? '0 4px 12px rgba(94, 23, 235, 0.4)'
+                        : '0 2px 8px rgba(94, 23, 235, 0.2)'
+                    }
+                  }}
+                >
+                  {screen.label}
+                </Box>
+              );
+            })}
+          </Box>
+        )}
+        
         <Paper
           elevation={12}
           onDragOver={handleDragOver}
