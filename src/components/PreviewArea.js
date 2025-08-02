@@ -192,61 +192,63 @@ const PreviewArea = ({
           <Box
             sx={{
               display: 'flex',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
               mb: 2,
-              gap: 1
+              gap: 1,
+              overflowX: 'auto',
+              maxWidth: '100%',
+              px: 1,
+              '&::-webkit-scrollbar': {
+                display: 'none'
+              },
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
             }}
           >
-            {[
-              pages.find(p => p.id === 'login'),
-              pages.find(p => p.type === 'question' && p.id === selectedPage?.id) || 
-              pages.find(p => p.type === 'question'),
-              pages.find(p => p.id === 'completion')
-            ]
-              .filter(Boolean)
-              .map((page) => {
-                const screenId = page.type === 'question' ? 'question' : page.id;
-                const isActive = (screenId === 'question' && selectedPage?.type === 'question') ||
-                                (screenId === selectedPage?.id);
-                
-                return (
-                  <Box
-                    key={screenId}
-                    onClick={() => {
-                      if (page && onPageSelect) {
-                        onQuestionSelect?.(null);
-                        onPageSelect(page);
-                      }
-                    }}
-                    sx={{
-                      px: 2,
-                      py: 1,
-                      borderRadius: 3,
-                      backgroundColor: isActive ? '#5e17eb' : 'rgba(255, 255, 255, 0.9)',
-                      color: isActive ? 'white' : '#6b7280',
-                      fontSize: '0.75rem',
-                      fontWeight: isActive ? 600 : 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      border: '1px solid',
-                      borderColor: isActive ? '#5e17eb' : 'rgba(0, 0, 0, 0.1)',
+            {pages.map((page) => {
+              const isActive = selectedPage?.id === page.id;
+              
+              return (
+                <Box
+                  key={page.id}
+                  onClick={() => {
+                    if (page && onPageSelect) {
+                      onQuestionSelect?.(null);
+                      onPageSelect(page);
+                    }
+                  }}
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    borderRadius: 3,
+                    backgroundColor: isActive ? '#5e17eb' : 'rgba(255, 255, 255, 0.9)',
+                    color: isActive ? 'white' : '#6b7280',
+                    fontSize: '0.75rem',
+                    fontWeight: isActive ? 600 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    border: '1px solid',
+                    borderColor: isActive ? '#5e17eb' : 'rgba(0, 0, 0, 0.1)',
+                    boxShadow: isActive 
+                      ? '0 2px 8px rgba(94, 23, 235, 0.3)'
+                      : '0 1px 3px rgba(0, 0, 0, 0.1)',
+                    whiteSpace: 'nowrap',
+                    minWidth: 'fit-content',
+                    flexShrink: 0,
+                    '&:hover': {
+                      backgroundColor: isActive ? '#4c1d95' : 'rgba(94, 23, 235, 0.1)',
+                      borderColor: '#5e17eb',
+                      transform: 'translateY(-1px)',
                       boxShadow: isActive 
-                        ? '0 2px 8px rgba(94, 23, 235, 0.3)'
-                        : '0 1px 3px rgba(0, 0, 0, 0.1)',
-                      '&:hover': {
-                        backgroundColor: isActive ? '#4c1d95' : 'rgba(94, 23, 235, 0.1)',
-                        borderColor: '#5e17eb',
-                        transform: 'translateY(-1px)',
-                        boxShadow: isActive 
-                          ? '0 4px 12px rgba(94, 23, 235, 0.4)'
-                          : '0 2px 8px rgba(94, 23, 235, 0.2)'
-                      }
-                    }}
-                  >
-                    {page.title}
-                  </Box>
-                );
-              })}
+                        ? '0 4px 12px rgba(94, 23, 235, 0.4)'
+                        : '0 2px 8px rgba(94, 23, 235, 0.2)'
+                    }
+                  }}
+                >
+                  {page.title}
+                </Box>
+              );
+            })}
           </Box>
         )}
         
