@@ -167,7 +167,7 @@ const PreviewArea = ({
       }}
       sx={{
         position: 'absolute',
-        top: '52%',
+        top: '53%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
         zIndex: 1,

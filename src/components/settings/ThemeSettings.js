@@ -9,9 +9,22 @@ import {
   Stack,
   IconButton,
   Avatar,
-  Divider
+  Divider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  CardContent
 } from '@mui/material';
-import { Palette, Upload, Photo, Add } from '@mui/icons-material';
+import { 
+  Palette, 
+  Upload, 
+  Photo, 
+  Add, 
+  Image as ImageIcon,
+  CloudUpload as CloudUploadIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon
+} from '@mui/icons-material';
 
 const ThemeSettings = ({
   selectedColor,
@@ -27,6 +40,9 @@ const ThemeSettings = ({
   // カラーピッカーの状態
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [lastCustomColor, setLastCustomColor] = useState('#5e17eb'); // 最後に選択されたカスタムカラー
+  
+  // アコーディオンの状態
+  const [expandedAccordion, setExpandedAccordion] = useState(null);
   
   // カラーパレット
   const colorOptions = [
