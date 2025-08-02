@@ -1045,6 +1045,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
       q.id === questionId ? { ...q, ...updates } : q
     );
     handleQuestionsUpdate(selectedPage.id, optimisticQuestions);
+    setIsSaving(true);
     
     // バックグラウンドでSupabaseに同期
     try {
@@ -1055,6 +1056,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       handleQuestionsUpdate(selectedPage.id, currentQuestions);
       toast.error('質問の更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1068,6 +1071,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
       q.id === questionId ? { ...q, choices: JSON.stringify(choices) } : q
     );
     handleQuestionsUpdate(selectedPage.id, optimisticQuestions);
+    setIsSaving(true);
 
     // バックグラウンドで専用テーブルに保存
     try {
@@ -1077,6 +1081,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       handleQuestionsUpdate(selectedPage.id, currentQuestions);
       toast.error('選択肢の更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1555,6 +1561,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
           setIsEditingTitle={setIsEditingTitle}
           onProjectTitleUpdate={handleProjectTitleUpdate}
           isSaving={isSaving}
+          formId={formId}
         />
 
         {/* メインコンテンツエリア */}

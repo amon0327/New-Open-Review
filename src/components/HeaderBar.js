@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
@@ -14,6 +14,7 @@ import {
   CloudSync
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
+import PreviewUrlDialog from './PreviewUrlDialog';
 
 const HeaderBar = ({
   isEditingTitle,
@@ -23,10 +24,14 @@ const HeaderBar = ({
   // Supabase連携用のprops
   onProjectTitleUpdate,
   // 保存状態の表示用
-  isSaving = false
+  isSaving = false,
+  // フォームID
+  formId
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
+  // プレビューダイアログの状態
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
     setProjectTitle(newTitle);
@@ -159,7 +164,10 @@ const HeaderBar = ({
         )}
         
         <Tooltip title="プレビュー">
-          <IconButton sx={iconButtonStyles.secondary}>
+          <IconButton 
+            onClick={() => setShowPreviewDialog(true)}
+            sx={iconButtonStyles.secondary}
+          >
             <Preview />
           </IconButton>
         </Tooltip>
@@ -176,6 +184,13 @@ const HeaderBar = ({
           </IconButton>
         </Tooltip>
       </Box>
+
+      {/* プレビューURLダイアログ */}
+      <PreviewUrlDialog
+        open={showPreviewDialog}
+        onClose={() => setShowPreviewDialog(false)}
+        formId={formId}
+      />
     </Paper>
   );
 };
