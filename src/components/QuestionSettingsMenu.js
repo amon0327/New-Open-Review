@@ -778,8 +778,7 @@ const QuestionSettingsMenu = ({
             value={selectedTab}
             onChange={handleTabChange}
             variant="scrollable"
-            scrollButtons="auto"
-            allowScrollButtonsMobile
+            scrollButtons={false}
             sx={{
               '& .MuiTabs-root': {
                 minHeight: 48
@@ -804,30 +803,13 @@ const QuestionSettingsMenu = ({
               '& .MuiTabs-scroller': {
                 overflow: 'auto !important',
                 '&::-webkit-scrollbar': {
-                  width: '4px',
-                  height: '4px'
+                  display: 'none'
                 },
-                '&::-webkit-scrollbar-track': {
-                  background: 'rgba(0, 0, 0, 0.1)',
-                  borderRadius: '2px'
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: 'rgba(94, 23, 235, 0.3)',
-                  borderRadius: '2px',
-                  '&:hover': {
-                    background: 'rgba(94, 23, 235, 0.5)'
-                  }
-                },
-                scrollbarWidth: 'thin',
-                scrollbarColor: 'rgba(94, 23, 235, 0.3) rgba(0, 0, 0, 0.1)'
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
               },
               '& .MuiTabs-flexContainer': {
                 gap: 0.5
-              },
-              '& .MuiTabs-scrollButtons': {
-                '&.Mui-disabled': {
-                  opacity: 0.3
-                }
               }
             }}
           >
