@@ -115,26 +115,95 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               backdropFilter: 'blur(20px)',
               border: '1px solid rgba(255, 255, 255, 0.3)',
               boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
-              borderRadius: 3
+              borderRadius: 3,
+              position: 'relative',
+              overflow: 'hidden'
             }}
           >
             <CardContent sx={{ textAlign: 'center', p: 4 }}>
+              {/* モダンなバウンシングドットローディングアニメーション */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3, height: 60 }}>
+                {[0, 1, 2].map((index) => (
+                  <motion.div
+                    key={index}
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 50%, #667eea 100%)',
+                      margin: '0 6px',
+                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                      border: '2px solid rgba(255, 255, 255, 0.3)'
+                    }}
+                    animate={{
+                      y: [0, -30, 0],
+                      scale: [1, 1.3, 1],
+                      rotate: [0, 180, 360],
+                      boxShadow: [
+                        '0 6px 20px rgba(94, 23, 235, 0.4)',
+                        '0 15px 40px rgba(94, 23, 235, 0.6)',
+                        '0 6px 20px rgba(94, 23, 235, 0.4)'
+                      ]
+                    }}
+                    transition={{
+                      duration: 1.4,
+                      repeat: Infinity,
+                      delay: index * 0.2,
+                      ease: [0.68, -0.55, 0.265, 1.55] // カスタムイージング（バウンス効果）
+                    }}
+                  />
+                ))}
+              </Box>
+              
+              {/* 追加のビジュアルエフェクト：波紋 */}
               <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                style={{ display: 'inline-block', marginBottom: 16 }}
-              >
-                <CircularProgress
-                  size={50}
-                  thickness={4}
-                  sx={{
-                    color: '#5e17eb',
-                    '& .MuiCircularProgress-circle': {
-                      strokeLinecap: 'round',
-                    }
-                  }}
-                />
-              </motion.div>
+                style={{
+                  position: 'absolute',
+                  top: '40%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: 120,
+                  height: 120,
+                  borderRadius: '50%',
+                  border: '2px solid rgba(94, 23, 235, 0.2)',
+                  zIndex: -1
+                }}
+                animate={{
+                  scale: [0.8, 1.2, 0.8],
+                  opacity: [0.6, 0.2, 0.6],
+                  rotate: [0, 360]
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              
+              {/* さらに外側の波紋 */}
+              <motion.div
+                style={{
+                  position: 'absolute',
+                  top: '40%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: 160,
+                  height: 160,
+                  borderRadius: '50%',
+                  border: '1px solid rgba(118, 75, 162, 0.15)',
+                  zIndex: -2
+                }}
+                animate={{
+                  scale: [0.6, 1.4, 0.6],
+                  opacity: [0.4, 0.1, 0.4],
+                  rotate: [360, 0]
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
               <Typography
                 variant="h6"
                 sx={{
