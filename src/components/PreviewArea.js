@@ -197,38 +197,42 @@ const PreviewArea = ({
               gap: 1
             }}
           >
-            {[
-              { id: 'login', label: 'ログイン画面' },
-              { id: 'question', label: '質問画面' },
-              { id: 'completion', label: '完了画面' }
-            ].map((screen) => {
-              const isActive = (screen.id === 'question' && selectedPage?.type === 'question') ||
-                              (screen.id === selectedPage?.id);
+            {(() => {
+              const carouselPages = [];
               
-              return (
-                <Box
-                  key={screen.id}
-                  onClick={() => {
-                    if (screen.id === 'login') {
-                      const loginPage = pages.find(p => p.id === 'login');
-                      if (loginPage && onPageSelect) {
+              // ログイン画面
+              const loginPage = pages.find(p => p.id === 'login');
+              if (loginPage) {
+                carouselPages.push({ page: loginPage, id: 'login', label: loginPage.title });
+              }
+              
+              // 質問ページ（複数ある場合は現在選択中のページまたは最初の質問ページ）
+              const currentQuestionPage = pages.find(p => p.type === 'question' && p.id === selectedPage?.id);
+              const firstQuestionPage = pages.find(p => p.type === 'question');
+              const questionPage = currentQuestionPage || firstQuestionPage;
+              if (questionPage) {
+                carouselPages.push({ page: questionPage, id: 'question', label: questionPage.title });
+              }
+              
+              // 完了画面
+              const completionPage = pages.find(p => p.id === 'completion');
+              if (completionPage) {
+                carouselPages.push({ page: completionPage, id: 'completion', label: completionPage.title });
+              }
+              
+              return carouselPages.map((screen) => {
+                const isActive = (screen.id === 'question' && selectedPage?.type === 'question') ||
+                                (screen.id === selectedPage?.id);
+                
+                return (
+                  <Box
+                    key={screen.id}
+                    onClick={() => {
+                      if (screen.page && onPageSelect) {
                         onQuestionSelect?.(null);
-                        onPageSelect(loginPage);
+                        onPageSelect(screen.page);
                       }
-                    } else if (screen.id === 'question') {
-                      const questionPage = pages.find(p => p.type === 'question');
-                      if (questionPage && onPageSelect) {
-                        onQuestionSelect?.(null);
-                        onPageSelect(questionPage);
-                      }
-                    } else if (screen.id === 'completion') {
-                      const completionPage = pages.find(p => p.id === 'completion');
-                      if (completionPage && onPageSelect) {
-                        onQuestionSelect?.(null);
-                        onPageSelect(completionPage);
-                      }
-                    }
-                  }}
+                    }}
                   sx={{
                     px: 2,
                     py: 1,
