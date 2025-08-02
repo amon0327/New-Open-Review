@@ -605,8 +605,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       const needsChoices = [3, 4, 8, 9, 10].includes(questionTypeId) || typeName.includes('選択') || typeName.includes('プルダウン');
       
       if (needsChoices) {
-        // 通常の質問作成時は選択肢なしで開始
-        optimisticQuestion.choices = JSON.stringify([]);
+        // 通常の質問作成時は選択肢を1つ作成
+        optimisticQuestion.choices = JSON.stringify(['選択肢1']);
       }
 
       if (questionTypeId === 7 || typeName.includes('スケール') || typeName.includes('リニア')) {
@@ -627,8 +627,11 @@ export default function CreatePage({ onBackClick, user, formId }) {
           optimisticQuestion.question_detail_text = draggedData.detail;
         }
 
-        if (draggedData.choices && Array.isArray(draggedData.choices)) {
+        if (draggedData.choices && Array.isArray(draggedData.choices) && draggedData.choices.length > 0) {
           optimisticQuestion.choices = JSON.stringify(draggedData.choices);
+        } else if (needsChoices) {
+          // テンプレート質問でも選択肢が空の場合はデフォルト選択肢を作成
+          optimisticQuestion.choices = JSON.stringify(['選択肢1']);
         }
 
         if (draggedData.scale_settings) {
