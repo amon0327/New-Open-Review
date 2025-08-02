@@ -720,7 +720,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
         );
         handleQuestionsUpdate(selectedPage.id, finalQuestions);
         
-        toast.success('質問を追加しました');
+        // 質問追加成功時は通知なし
         
       } catch (error) {
         console.error('質問作成エラー:', error);
@@ -792,7 +792,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
       
       if (result.success) {
         // 成功時は何もしない（既にUIは更新済み）
-        toast.success('ページを削除しました');
       } else {
         // エラー時：楽観的更新を取り消し
         setPages(currentPages);
@@ -868,7 +867,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
           );
           setPages(finalPages);
           
-          toast.success('ページを追加しました');
+          // ページ追加成功時は通知なし
         } else {
           // エラー時：楽観的更新を取り消し
           setPages(pages);
@@ -1243,7 +1242,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
         throw new Error(result.error);
       }
       console.log('Theme color saved successfully');
-      toast.success('テーマカラーを更新しました');
     } catch (error) {
       console.error('Theme color update error:', error);
       // エラー時は元の状態に戻す
@@ -1312,7 +1310,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
       // ローカル状態を更新
       setHeaderImage(result.data.url);
-      toast.success('ヘッダー画像をアップロードしました', { id: 'header-upload' });
     } catch (error) {
       console.error('Header image file upload error:', error);
       toast.error(`ヘッダー画像のアップロードに失敗: ${error.message}`, { id: 'header-upload' });
@@ -1334,7 +1331,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // ローカル状態を更新
       setFormSettings(prev => ({ ...prev, logo_image_url: result.data.url }));
       setLogoImageState(result.data.url);
-      toast.success('ロゴ画像をアップロードしました', { id: 'logo-upload' });
     } catch (error) {
       console.error('Logo image file upload error:', error);
       toast.error(`ロゴ画像のアップロードに失敗: ${error.message}`, { id: 'logo-upload' });
@@ -1355,7 +1351,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
       // ローカル状態を更新
       setLoginScreenSettings(prev => ({ ...prev, background_image_url: result.data.url }));
-      toast.success('ログイン背景画像をアップロードしました', { id: 'login-bg-upload' });
     } catch (error) {
       console.error('Login background image file upload error:', error);
       toast.error(`ログイン背景画像のアップロードに失敗: ${error.message}`, { id: 'login-bg-upload' });
@@ -1492,7 +1487,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // ローカル状態を更新
       setCompletionScreenSettings(prev => ({ ...prev, background_image_url: result.data.url }));
       setCompletionBackground(result.data.url);
-      toast.success('完了背景画像をアップロードしました', { id: 'completion-bg-upload' });
     } catch (error) {
       console.error('Completion background image file upload error:', error);
       toast.error(`完了背景画像のアップロードに失敗: ${error.message}`, { id: 'completion-bg-upload' });
@@ -1779,6 +1773,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     handleZoomIn={handleZoomIn}
                     handleZoomOut={handleZoomOut}
                     handleFitScreen={handleFitScreen}
+                    formId={formId}
                   />
                 </>
               )}
