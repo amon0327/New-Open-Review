@@ -28,10 +28,10 @@ const PreviewControlPanel = ({
     <Box
       sx={{
         position: 'absolute',
-        top: 12,
+        top: 8,
         left: '50%',
         transform: 'translateX(-50%)',
-        zIndex: 30,
+        zIndex: 20,
         pointerEvents: 'auto'
       }}
     >
