@@ -36,6 +36,12 @@ const useQuestionData = (formId) => {
         if (question.options && Array.isArray(question.options)) {
           const choiceNames = question.options.map(opt => opt.choice_name);
           converted.choices = JSON.stringify(choiceNames);
+        } else {
+          // 選択肢が必要な質問タイプの場合はデフォルト選択肢を設定
+          const needsChoices = [3, 4, 8, 9, 10].includes(question.question_types_id);
+          if (needsChoices) {
+            converted.choices = JSON.stringify(['選択肢1']);
+          }
         }
 
         // スケール設定の変換

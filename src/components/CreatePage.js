@@ -520,9 +520,13 @@ export default function CreatePage({ onBackClick, user, formId }) {
   // 選択されたページが変更された時、質問データを読み込み
   useEffect(() => {
     if (selectedPage && selectedPage.type === 'question' && formId) {
-      loadQuestionsForPage(selectedPage.id);
+      // 既に質問データが存在する場合は再読み込みしない（設定画面から戻った場合を考慮）
+      const existingQuestions = getQuestionsForPage(selectedPage.id);
+      if (existingQuestions.length === 0) {
+        loadQuestionsForPage(selectedPage.id);
+      }
     }
-  }, [selectedPage, formId, loadQuestionsForPage]);
+  }, [selectedPage, formId, loadQuestionsForPage, getQuestionsForPage]);
 
   // Supabaseから取得した質問タイプデータを既存フォーマットに変換
   const convertedQuestionTypes = questionTypesData.map(qType => ({

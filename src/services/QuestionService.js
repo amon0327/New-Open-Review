@@ -253,6 +253,11 @@ export const createQuestionWithOptions = async ({
     if (questionTypesId === 7) {
       await createLinearScaleOption(question.id);
     }
+    // 3. 選択肢が必要な質問タイプの場合、デフォルト選択肢を作成
+    else if ([3, 4, 8, 9, 10].includes(questionTypesId)) {
+      const defaultChoices = ['選択肢1'];
+      await updateChoiceOptions(question.id, defaultChoices);
+    }
 
     return question;
   } catch (error) {
