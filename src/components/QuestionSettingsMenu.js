@@ -828,7 +828,6 @@ const QuestionSettingsMenu = ({
                 iconPosition="start" 
                 label="質問設定" 
                 value={0}
-                disabled={!selectedQuestion}
               />
             )}
             {/* 質問一覧タブ - 質問ページでのみ表示 */}
