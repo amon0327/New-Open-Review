@@ -9,8 +9,7 @@ import {
 } from '@mui/material';
 import {
   TextFields,
-  ExpandMore as ExpandMoreIcon,
-  ArrowForward
+  ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material';
 
 const QuestionToolsSidebar = ({
@@ -20,8 +19,6 @@ const QuestionToolsSidebar = ({
   toggleExpanded,
   setSelectedTool
 }) => {
-  // タップアニメーション状態管理
-  const [tapAnimations, setTapAnimations] = useState({});
   
   // ドラッグ開始時の処理
   const handleDragStart = (e, item) => {
@@ -39,15 +36,6 @@ const QuestionToolsSidebar = ({
     e.target.style.opacity = '1';
   };
 
-  // タップ時のアニメーション効果
-  const handleTapAnimation = (itemId) => {
-    setTapAnimations(prev => ({ ...prev, [itemId]: true }));
-    
-    // 一定時間後にアニメーションを停止
-    setTimeout(() => {
-      setTapAnimations(prev => ({ ...prev, [itemId]: false }));
-    }, 1200);
-  };
   return (
     <>
       {/* 質問タイプグリッド */}
@@ -59,16 +47,8 @@ const QuestionToolsSidebar = ({
           <Grid item xs={4} key={index}>
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ 
-                opacity: 1, 
-                scale: 1,
-                x: tapAnimations[`questionType-${index}`] ? 150 : 0
-              }}
-              transition={{ 
-                duration: 0.3, 
-                delay: index * 0.05,
-                x: { duration: 0.6, ease: "easeInOut" }
-              }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
             >
               <Paper
                 elevation={2}
@@ -103,37 +83,8 @@ const QuestionToolsSidebar = ({
                     boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3)'
                   }
                 }}
-                onClick={() => {
-                  setSelectedTool(item);
-                  handleTapAnimation(`questionType-${index}`);
-                }}
+                onClick={() => setSelectedTool(item)}
               >
-                {/* 矢印アニメーション */}
-                <AnimatePresence>
-                  {tapAnimations[`questionType-${index}`] && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 30 }}
-                      exit={{ opacity: 0, x: 60 }}
-                      transition={{ duration: 0.6 }}
-                      style={{
-                        position: 'absolute',
-                        right: -50,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        zIndex: 10
-                      }}
-                    >
-                      <ArrowForward 
-                        sx={{ 
-                          color: '#5e17eb',
-                          fontSize: '1.2rem'
-                        }} 
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                
                 <Box
                   sx={{
                     width: 28,
@@ -268,24 +219,14 @@ const QuestionToolsSidebar = ({
                         <motion.div
                           key={temp.id}
                           initial={{ opacity: 0, x: -10 }}
-                          animate={{ 
-                            opacity: 1, 
-                            x: tapAnimations[`template-${temp.id}`] ? 150 : 0
-                          }}
-                          transition={{ 
-                            duration: 0.2, 
-                            delay: tempIndex * 0.05,
-                            x: { duration: 0.6, ease: "easeInOut" }
-                          }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.2, delay: tempIndex * 0.05 }}
                         >
                           <Box
                             draggable
                             onDragStart={(e) => handleDragStart(e, { ...temp, isTemplate: true })}
                             onDragEnd={handleDragEnd}
-                            onClick={() => {
-                              setSelectedTool({ ...temp, isTemplate: true });
-                              handleTapAnimation(`template-${temp.id}`);
-                            }}
+                            onClick={() => setSelectedTool({ ...temp, isTemplate: true })}
                             sx={{
                               p: 1.5,
                               mb: 1,
@@ -310,32 +251,6 @@ const QuestionToolsSidebar = ({
                               transition: 'all 0.3s ease'
                             }}
                           >
-                            {/* 矢印アニメーション */}
-                            <AnimatePresence>
-                              {tapAnimations[`template-${temp.id}`] && (
-                                <motion.div
-                                  initial={{ opacity: 0, x: -20 }}
-                                  animate={{ opacity: 1, x: 30 }}
-                                  exit={{ opacity: 0, x: 60 }}
-                                  transition={{ duration: 0.6 }}
-                                  style={{
-                                    position: 'absolute',
-                                    right: -50,
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                    zIndex: 10
-                                  }}
-                                >
-                                  <ArrowForward 
-                                    sx={{ 
-                                      color: '#5e17eb',
-                                      fontSize: '1.2rem'
-                                    }} 
-                                  />
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                            
                             {/* 左側: アイコン */}
                             <Box
                               sx={{
