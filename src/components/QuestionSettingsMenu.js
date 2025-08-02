@@ -312,12 +312,6 @@ const QuestionSettingsMenu = ({
   const [localQuestionSettings, setLocalQuestionSettings] = useState({
     is_required: false
   });
-
-  // ドラッグスクロール用の状態
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [tabScrollerRef, setTabScrollerRef] = useState(null);
   
   // スケール設定のローカル状態
   const [localScaleSettings, setLocalScaleSettings] = useState({
@@ -425,15 +419,6 @@ const QuestionSettingsMenu = ({
       setSelectedTab(2);
     }
   }, [selectedQuestionId, selectedQuestion, selectedElement, selectedPage]);
-
-  // ドラッグスクロール用のクリーンアップ
-  useEffect(() => {
-    return () => {
-      if (tabScrollerRef && tabScrollerRef._cleanupListeners) {
-        tabScrollerRef._cleanupListeners();
-      }
-    };
-  }, [tabScrollerRef]);
 
   // プレビューで要素が選択されたときのアコーディオン制御
   useEffect(() => {
@@ -713,6 +698,14 @@ const QuestionSettingsMenu = ({
   // タブ変更ハンドラー
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
+    
+    // 質問設定タブ（0）が選択され、質問が選択されていない場合は一番上の質問を自動選択
+    if (newValue === 0 && !selectedQuestionId && questions && questions.length > 0) {
+      const firstQuestion = questions[0];
+      if (firstQuestion && onQuestionSelect) {
+        onQuestionSelect(firstQuestion.id);
+      }
+    }
   };
 
   // 利用可能なタブのインデックスを計算
@@ -781,38 +774,6 @@ const QuestionSettingsMenu = ({
     setDragOverIndex(null);
   };
 
-  // ドラッグスクロール用のハンドラー
-  const handleMouseDown = (e) => {
-    if (!tabScrollerRef) return;
-    setIsDragging(true);
-    setStartX(e.pageX - tabScrollerRef.offsetLeft);
-    setScrollLeft(tabScrollerRef.scrollLeft);
-    tabScrollerRef.style.cursor = 'grabbing';
-    tabScrollerRef.style.userSelect = 'none';
-  };
-
-  const handleMouseLeave = () => {
-    if (!tabScrollerRef) return;
-    setIsDragging(false);
-    tabScrollerRef.style.cursor = 'grab';
-    tabScrollerRef.style.userSelect = 'auto';
-  };
-
-  const handleMouseUp = () => {
-    if (!tabScrollerRef) return;
-    setIsDragging(false);
-    tabScrollerRef.style.cursor = 'grab';
-    tabScrollerRef.style.userSelect = 'auto';
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging || !tabScrollerRef) return;
-    e.preventDefault();
-    const x = e.pageX - tabScrollerRef.offsetLeft;
-    const walk = (x - startX) * 2; // スクロール速度調整
-    tabScrollerRef.scrollLeft = scrollLeft - walk;
-  };
-
 
   // メインレンダリング関数
   const renderMainContent = () => {
@@ -849,7 +810,6 @@ const QuestionSettingsMenu = ({
               },
               '& .MuiTabs-scroller': {
                 overflow: 'auto !important',
-                cursor: 'grab',
                 '&::-webkit-scrollbar': {
                   display: 'none'
                 },
@@ -858,28 +818,6 @@ const QuestionSettingsMenu = ({
               },
               '& .MuiTabs-flexContainer': {
                 gap: 0.5
-              }
-            }}
-            ref={(el) => {
-              if (el) {
-                const scroller = el.querySelector('.MuiTabs-scroller');
-                if (scroller && scroller !== tabScrollerRef) {
-                  setTabScrollerRef(scroller);
-                  
-                  // イベントリスナーを追加
-                  scroller.addEventListener('mousedown', handleMouseDown);
-                  scroller.addEventListener('mouseleave', handleMouseLeave);
-                  scroller.addEventListener('mouseup', handleMouseUp);
-                  scroller.addEventListener('mousemove', handleMouseMove);
-                  
-                  // クリーンアップ用にrefに保存
-                  scroller._cleanupListeners = () => {
-                    scroller.removeEventListener('mousedown', handleMouseDown);
-                    scroller.removeEventListener('mouseleave', handleMouseLeave);
-                    scroller.removeEventListener('mouseup', handleMouseUp);
-                    scroller.removeEventListener('mousemove', handleMouseMove);
-                  };
-                }
               }
             }}
           >
