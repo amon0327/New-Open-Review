@@ -391,7 +391,7 @@ const ThemeSettings = ({
               <Stack spacing={3}>
                 {/* 画像プレビュー */}
                 {logoImage ? (
-                  <Card sx={{ borderRadius: 0, overflow: 'hidden' }}>
+                  <Card sx={{ borderRadius: 0, overflow: 'hidden', alignSelf: 'center', maxWidth: 200 }}>
                     <CardContent sx={{ p: 2, textAlign: 'center' }}>
                       <Box
                         component="img"
