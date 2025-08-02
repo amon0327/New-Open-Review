@@ -423,7 +423,6 @@ const QuestionSettingsMenu = ({
   // プレビューで要素が選択されたときのアコーディオン制御
   useEffect(() => {
     if (selectedElement) {
-      
       // ログイン画面の要素の場合
       if (selectedElement.startsWith('login-')) {
         if (selectedElement === 'login-title') {
@@ -443,7 +442,7 @@ const QuestionSettingsMenu = ({
         if (selectedElement === 'completion-background') {
           setExpandedAccordion('completion-background');
         } else if (selectedElement === 'completion-logo') {
-          setExpandedAccordion('completion-logo');
+          setExpandedAccordion('logo');
         } else if (selectedElement === 'completion-title') {
           setExpandedAccordion('completion-title');
         } else if (selectedElement === 'completion-detail') {
@@ -452,7 +451,7 @@ const QuestionSettingsMenu = ({
           setExpandedAccordion('completion-button');
         }
       } else {
-        // 質問画面の要素の場合
+        // 質問画面の要素の場合（ロゴ、ヘッダーなど）
         setExpandedAccordion(selectedElement);
       }
     }
