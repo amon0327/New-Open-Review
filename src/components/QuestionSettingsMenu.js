@@ -694,15 +694,50 @@ const QuestionSettingsMenu = ({
     }
   };
 
+  // プレビュー画面の中心に最も近い質問を見つける関数
+  const findCenterMostQuestion = () => {
+    if (!questions || questions.length === 0) return null;
+
+    // プレビュー画面のコンテナを取得
+    const previewContainer = document.querySelector('.preview-area, [class*="preview"]');
+    if (!previewContainer) {
+      // フォールバック: 一番上の質問を返す
+      return questions[0];
+    }
+
+    const containerRect = previewContainer.getBoundingClientRect();
+    const containerCenterY = containerRect.top + containerRect.height / 2;
+
+    let closestQuestion = questions[0];
+    let minDistance = Infinity;
+
+    // 各質問要素の位置を確認
+    questions.forEach(question => {
+      const questionElement = document.querySelector(`[data-question-id="${question.id}"]`);
+      if (questionElement) {
+        const questionRect = questionElement.getBoundingClientRect();
+        const questionCenterY = questionRect.top + questionRect.height / 2;
+        const distance = Math.abs(questionCenterY - containerCenterY);
+
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestQuestion = question;
+        }
+      }
+    });
+
+    return closestQuestion;
+  };
+
   // タブ変更ハンドラー
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);
     
-    // 質問設定タブ（0）が選択され、質問が選択されていない場合は一番上の質問を自動選択
+    // 質問設定タブ（0）が選択され、質問が選択されていない場合は中心に近い質問を自動選択
     if (newValue === 0 && !selectedQuestionId && questions && questions.length > 0) {
-      const firstQuestion = questions[0];
-      if (firstQuestion && onQuestionSelect) {
-        onQuestionSelect(firstQuestion.id);
+      const centerQuestion = findCenterMostQuestion();
+      if (centerQuestion && onQuestionSelect) {
+        onQuestionSelect(centerQuestion.id);
       }
     }
   };
