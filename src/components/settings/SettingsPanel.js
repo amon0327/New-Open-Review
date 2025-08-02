@@ -24,7 +24,12 @@ const SettingsPanel = ({
   
   // 公開設定のprops
   isPublished,
-  setIsPublished
+  setIsPublished,
+  
+  // Supabase連携用のprops
+  onThemeColorUpdate,
+  onLogoImageUpdate,
+  onProjectTitleUpdate
 }) => {
   return (
     <Box
@@ -64,12 +69,15 @@ const SettingsPanel = ({
             setSelectedFont={setSelectedFont}
             logoImage={logoImage}
             setLogoImage={setLogoImage}
+            onThemeColorUpdate={onThemeColorUpdate}
+            onLogoImageUpdate={onLogoImageUpdate}
           />
 
           {/* プロジェクト設定 */}
           <ProjectSettings
             projectTitle={projectTitle}
             setProjectTitle={setProjectTitle}
+            onProjectTitleUpdate={onProjectTitleUpdate}
           />
 
           {/* 公開設定 */}

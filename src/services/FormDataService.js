@@ -839,6 +839,77 @@ export class FormDataService {
   }
 
   /**
+   * プロジェクトタイトルを更新
+   * @param {string} formId - フォームID
+   * @param {string} title - プロジェクトタイトル
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateProjectTitle(formId, title) {
+    try {
+      const { data, error } = await supabase
+        .from('review_forms')
+        .update({
+          title: title,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', formId)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`プロジェクトタイトル更新エラー: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        data,
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Project title update error:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * プロジェクトタイトルを取得
+   * @param {string} formId - フォームID
+   * @returns {Promise<Object>} 取得結果
+   */
+  static async getProjectTitle(formId) {
+    try {
+      const { data, error } = await supabase
+        .from('review_forms')
+        .select('title')
+        .eq('id', formId)
+        .single();
+
+      if (error) {
+        throw new Error(`プロジェクトタイトル取得エラー: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        data: data?.title || '名称未設定',
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Project title fetch error:', error);
+      return {
+        success: false,
+        data: '名称未設定',
+        error: error.message
+      };
+    }
+  }
+
+  /**
    * ログイン画面設定を取得
    * @param {string} formId - フォームID
    * @returns {Promise<Object>} ログイン画面設定データ

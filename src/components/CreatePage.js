@@ -224,6 +224,24 @@ export default function CreatePage({ onBackClick, user, formId }) {
   });
   const [isLoadingLoginSettings, setIsLoadingLoginSettings] = useState(false);
 
+  // プロジェクトタイトル読み込み
+  useEffect(() => {
+    const loadProjectTitle = async () => {
+      if (formId) {
+        try {
+          const result = await FormDataService.getProjectTitle(formId);
+          if (result.success) {
+            setProjectTitle(result.data);
+          }
+        } catch (error) {
+          console.error('Project title loading error:', error);
+        }
+      }
+    };
+
+    loadProjectTitle();
+  }, [formId, setProjectTitle]);
+
   // 完了画面設定の状態
   const [completionScreenSettings, setCompletionScreenSettings] = useState({
     title_text: 'ありがとうございました！',
@@ -1467,6 +1485,23 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
+  // プロジェクトタイトル更新ハンドラー
+  const handleProjectTitleUpdate = async (title) => {
+    // 即座にローカル状態を更新
+    setProjectTitle(title);
+
+    // バックグラウンドでSupabaseに保存
+    try {
+      const result = await FormDataService.updateProjectTitle(formId, title);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Project title update error:', error);
+      toast.error('プロジェクトタイトルの更新に失敗しました');
+    }
+  };
+
   return (
     <Box
       className={`main-container ${showSettings ? 'settings-active' : ''}`}
@@ -1506,6 +1541,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
           projectTitle={projectTitle}
           setProjectTitle={setProjectTitle}
           setIsEditingTitle={setIsEditingTitle}
+          onProjectTitleUpdate={handleProjectTitleUpdate}
         />
 
         {/* メインコンテンツエリア */}
@@ -1574,11 +1610,11 @@ export default function CreatePage({ onBackClick, user, formId }) {
                 /* 設定画面 */
                 <SettingsPanel
                   // テーマ設定のprops
-                  selectedColor={selectedColor}
+                  selectedColor={formSettings.theme_color}
                   setSelectedColor={setSelectedColor}
                   selectedFont={selectedFont}
                   setSelectedFont={setSelectedFont}
-                  logoImage={logoImage}
+                  logoImage={formSettings.logo_image_url}
                   setLogoImage={setLogoImage}
                   
                   // プロジェクト設定のprops
@@ -1588,6 +1624,11 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   // 公開設定のprops
                   isPublished={isPublished}
                   setIsPublished={setIsPublished}
+                  
+                  // Supabase連携用のprops
+                  onThemeColorUpdate={handleThemeColorUpdate}
+                  onLogoImageUpdate={handleLogoImageFileUpload}
+                  onProjectTitleUpdate={handleProjectTitleUpdate}
                 />
               ) : (
                 /* 中央プレビューエリア - 設定画面でない場合 */

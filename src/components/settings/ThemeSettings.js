@@ -19,7 +19,10 @@ const ThemeSettings = ({
   selectedFont,
   setSelectedFont,
   logoImage,
-  setLogoImage
+  setLogoImage,
+  // Supabase連携用のprops
+  onThemeColorUpdate,
+  onLogoImageUpdate
 }) => {
   // カラーピッカーの状態
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -47,21 +50,40 @@ const ThemeSettings = ({
     { name: 'Noto Sans', value: 'Noto Sans JP' }
   ];
 
-  const handleLogoUpload = (event) => {
+  const handleLogoUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
+      // ローカル状態を即座に更新（プレビュー用）
       const reader = new FileReader();
       reader.onload = (e) => {
         setLogoImage(e.target.result);
       };
       reader.readAsDataURL(file);
+
+      // Supabaseにアップロード（onLogoImageUpdateハンドラーが定義されている場合）
+      if (onLogoImageUpdate) {
+        try {
+          await onLogoImageUpdate(file);
+        } catch (error) {
+          console.error('Logo upload error:', error);
+        }
+      }
     }
   };
 
   // カラーピッカーのハンドラー
-  const handleColorChange = (color) => {
+  const handleColorChange = async (color) => {
     setSelectedColor(color.hex);
     setLastCustomColor(color.hex); // カスタムカラーを履歴として保存
+    
+    // Supabaseに保存（onThemeColorUpdateハンドラーが定義されている場合）
+    if (onThemeColorUpdate) {
+      try {
+        await onThemeColorUpdate(color.hex);
+      } catch (error) {
+        console.error('Theme color update error:', error);
+      }
+    }
   };
 
   const handleColorPickerToggle = () => {
@@ -130,7 +152,17 @@ const ThemeSettings = ({
                   whileTap={{ scale: 0.95 }}
                 >
                   <Box
-                    onClick={() => setSelectedColor(color.value)}
+                    onClick={async () => {
+                      setSelectedColor(color.value);
+                      // Supabaseに保存
+                      if (onThemeColorUpdate) {
+                        try {
+                          await onThemeColorUpdate(color.value);
+                        } catch (error) {
+                          console.error('Theme color update error:', error);
+                        }
+                      }
+                    }}
                     sx={{
                       width: 40,
                       height: 40,
@@ -352,7 +384,17 @@ const ThemeSettings = ({
                   <Button
                     variant="text"
                     size="small"
-                    onClick={() => setLogoImage(null)}
+                    onClick={async () => {
+                      setLogoImage(null);
+                      // Supabaseからも削除
+                      if (onLogoImageUpdate) {
+                        try {
+                          await onLogoImageUpdate(null);
+                        } catch (error) {
+                          console.error('Logo deletion error:', error);
+                        }
+                      }
+                    }}
                     sx={{
                       ml: 1,
                       color: '#64748b',

@@ -18,14 +18,54 @@ const HeaderBar = ({
   isEditingTitle,
   projectTitle,
   setProjectTitle,
-  setIsEditingTitle
+  setIsEditingTitle,
+  // Supabase連携用のprops
+  onProjectTitleUpdate
 }) => {
+  // デバウンス用のタイムアウト
+  const [debounceTimeout, setDebounceTimeout] = React.useState(null);
+  const handleTitleChange = (e) => {
+    const newTitle = e.target.value;
+    setProjectTitle(newTitle);
+
+    // 既存のタイムアウトをクリア
+    if (debounceTimeout) {
+      clearTimeout(debounceTimeout);
+    }
+
+    // 500ms後にSupabaseに保存
+    const timeout = setTimeout(async () => {
+      if (onProjectTitleUpdate) {
+        try {
+          await onProjectTitleUpdate(newTitle);
+        } catch (error) {
+          console.error('Project title update error:', error);
+        }
+      }
+    }, 500);
+
+    setDebounceTimeout(timeout);
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
       setIsEditingTitle(false);
     } else if (e.key === 'Escape') {
       setProjectTitle('OpenReview フォーム');
       setIsEditingTitle(false);
+    }
+  };
+
+  const handleBlur = async () => {
+    setIsEditingTitle(false);
+    // ブラー時にも即座に保存
+    if (onProjectTitleUpdate && debounceTimeout) {
+      clearTimeout(debounceTimeout);
+      try {
+        await onProjectTitleUpdate(projectTitle);
+      } catch (error) {
+        console.error('Project title update error:', error);
+      }
     }
   };
 
@@ -48,8 +88,8 @@ const HeaderBar = ({
       {isEditingTitle ? (
         <Input
           value={projectTitle}
-          onChange={(e) => setProjectTitle(e.target.value)}
-          onBlur={() => setIsEditingTitle(false)}
+          onChange={handleTitleChange}
+          onBlur={handleBlur}
           onKeyPress={handleKeyPress}
           autoFocus
           sx={{

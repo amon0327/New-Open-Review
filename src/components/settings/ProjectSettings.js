@@ -10,8 +10,35 @@ import { Folder } from '@mui/icons-material';
 
 const ProjectSettings = ({
   projectTitle,
-  setProjectTitle
+  setProjectTitle,
+  // Supabase連携用のprops
+  onProjectTitleUpdate
 }) => {
+  // デバウンス用のタイムアウト
+  const [debounceTimeout, setDebounceTimeout] = React.useState(null);
+
+  const handleTitleChange = (e) => {
+    const newTitle = e.target.value;
+    setProjectTitle(newTitle);
+
+    // 既存のタイムアウトをクリア
+    if (debounceTimeout) {
+      clearTimeout(debounceTimeout);
+    }
+
+    // 500ms後にSupabaseに保存
+    const timeout = setTimeout(async () => {
+      if (onProjectTitleUpdate) {
+        try {
+          await onProjectTitleUpdate(newTitle);
+        } catch (error) {
+          console.error('Project title update error:', error);
+        }
+      }
+    }, 500);
+
+    setDebounceTimeout(timeout);
+  };
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -67,7 +94,7 @@ const ProjectSettings = ({
           <TextField
             fullWidth
             value={projectTitle}
-            onChange={(e) => setProjectTitle(e.target.value)}
+            onChange={handleTitleChange}
             placeholder="フォームのタイトルを入力してください"
             variant="outlined"
             sx={{
