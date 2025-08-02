@@ -187,8 +187,8 @@ const PreviewArea = ({
           transformOrigin: 'center'
         }}
       >
-        {/* カルーセルタブ - モバイルプレビューでのみ表示 */}
-        {previewMode === 'mobile' && (
+        {/* カルーセルタブ - プレビュー時に表示 */}
+        {pages && pages.length > 0 && (
           <Box
             sx={{
               display: 'flex',
