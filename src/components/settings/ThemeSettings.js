@@ -339,93 +339,173 @@ const ThemeSettings = ({
 
           <Divider />
 
-          {/* ロゴ画像 */}
+          {/* ロゴ画像 - 基本設定と同じアコーディオンUI */}
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#374151' }}>
-              ロゴ画像
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              {logoImage ? (
-                <Avatar
-                  src={logoImage}
-                  sx={{ width: 60, height: 60, borderRadius: 0 }}
-                  variant="square"
-                />
-              ) : (
-                <Box
-                  sx={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 0,
-                    border: '2px dashed #cbd5e1',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: '#f8fafc'
-                  }}
-                >
-                  <Photo sx={{ color: '#94a3b8', fontSize: '1.5rem' }} />
+            <Accordion 
+              expanded={expandedAccordion === 'logo'} 
+              onChange={() => setExpandedAccordion(expandedAccordion === 'logo' ? null : 'logo')}
+              sx={{
+                borderRadius: '8px !important',
+                border: '1px solid #E5E7EB',
+                boxShadow: 'none',
+                '&:before': { display: 'none' },
+                backgroundColor: expandedAccordion === 'logo' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+              }}
+            >
+              <AccordionSummary
+                expandIcon={expandedAccordion === 'logo' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                sx={{
+                  borderRadius: '8px',
+                  '& .MuiAccordionSummary-content': {
+                    alignItems: 'center'
+                  }
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '6px',
+                      background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                    }}
+                  >
+                    <ImageIcon sx={{ color: 'white', fontSize: '1rem' }} />
+                  </Box>
+                  <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 600,
+                        color: '#1F2937',
+                        fontSize: '0.9rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title="ロゴ画像"
+                    >
+                      ロゴ画像
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#6B7280',
+                        fontSize: '0.75rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title="ブランドロゴやアイコン"
+                    >
+                      ブランドロゴやアイコン
+                    </Typography>
+                  </Box>
                 </Box>
-              )}
-              
-              <Box>
-                <input
-                  accept="image/*"
-                  type="file"
-                  id="logo-upload"
-                  style={{ display: 'none' }}
-                  onChange={handleLogoUpload}
-                />
-                <label htmlFor="logo-upload">
-                  <Button
-                    component="span"
-                    variant="outlined"
-                    startIcon={<Upload />}
-                    size="small"
-                    sx={{
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      borderColor: '#e2e8f0',
-                      color: '#64748b',
-                      '&:hover': {
-                        borderColor: selectedColor,
-                        backgroundColor: 'rgba(94, 23, 235, 0.05)'
-                      }
-                    }}
-                  >
-                    {logoImage ? '変更' : 'アップロード'}
-                  </Button>
-                </label>
-                {logoImage && (
-                  <Button
-                    variant="text"
-                    size="small"
-                    onClick={async () => {
-                      setLogoImage(null);
-                      // Supabaseからも削除
-                      if (onLogoImageUpdate) {
-                        try {
-                          await onLogoImageUpdate(null);
-                        } catch (error) {
-                          console.error('Logo deletion error:', error);
-                        }
-                      }
-                    }}
-                    sx={{
-                      ml: 1,
-                      color: '#64748b',
-                      textTransform: 'none',
-                      '&:hover': { color: '#ef4444' }
-                    }}
-                  >
-                    削除
-                  </Button>
-                )}
-              </Box>
-            </Box>
-            <Typography variant="caption" sx={{ color: '#94a3b8', mt: 1, display: 'block' }}>
-              推奨サイズ: 200×200px以下、PNG/JPG形式
-            </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ pt: 0 }}>
+                <Stack spacing={3}>
+                  {/* 画像プレビュー */}
+                  {logoImage ? (
+                    <Card sx={{ borderRadius: 0, overflow: 'hidden' }}>
+                      <CardContent sx={{ p: 2, textAlign: 'center' }}>
+                        <Box
+                          component="img"
+                          src={logoImage}
+                          alt="ロゴ画像"
+                          sx={{
+                            maxWidth: '100%',
+                            maxHeight: 80,
+                            objectFit: 'contain'
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card 
+                      sx={{ 
+                        borderRadius: 0,
+                        border: '2px dashed #E5E7EB',
+                        backgroundColor: '#F9FAFB'
+                      }}
+                    >
+                      <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                        <ImageIcon sx={{ fontSize: '2rem', color: '#9CA3AF', mb: 1 }} />
+                        <Typography variant="body2" sx={{ color: '#6B7280', fontSize: '0.8rem' }}>
+                          ロゴが設定されていません
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
+                  {/* アップロード・削除ボタン */}
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<CloudUploadIcon />}
+                      component="label"
+                      sx={{
+                        backgroundColor: '#5E17EB',
+                        '&:hover': { backgroundColor: '#4C1D95' },
+                        fontSize: '0.75rem',
+                        px: 2,
+                        py: 0.5,
+                        minWidth: 'auto'
+                      }}
+                    >
+                      アップロード
+                      <input
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                      />
+                    </Button>
+                    {logoImage && (
+                      <Button  
+                        variant="outlined"
+                        size="small"
+                        onClick={async () => {
+                          setLogoImage(null);
+                          // Supabaseからも削除
+                          if (onLogoImageUpdate) {
+                            try {
+                              await onLogoImageUpdate(null);
+                            } catch (error) {
+                              console.error('Logo deletion error:', error);
+                            }
+                          }
+                        }}
+                        sx={{
+                          borderColor: '#DC2626',
+                          color: '#DC2626',
+                          '&:hover': {
+                            borderColor: '#B91C1C',
+                            backgroundColor: 'rgba(220, 38, 38, 0.04)'
+                          },
+                          fontSize: '0.75rem',
+                          px: 2,
+                          py: 0.5,
+                          minWidth: 'auto'
+                        }}
+                      >
+                        削除
+                      </Button>
+                    )}
+                  </Box>
+                  
+                  {/* 使用ガイド */}
+                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.75rem' }}>
+                    推奨サイズ: 200×200px以下、PNG/JPG形式
+                  </Typography>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
           </Box>
         </Stack>
       </Card>
