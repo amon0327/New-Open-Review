@@ -10,7 +10,12 @@ import {
 import {
   Preview,
   Save,
-  MoreVert
+  MoreVert,
+  PhoneAndroid,
+  Computer,
+  ZoomIn,
+  ZoomOut,
+  FitScreen
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 
@@ -18,7 +23,13 @@ const HeaderBar = ({
   isEditingTitle,
   projectTitle,
   setProjectTitle,
-  setIsEditingTitle
+  setIsEditingTitle,
+  previewMode, 
+  setPreviewMode, 
+  zoom, 
+  handleZoomIn, 
+  handleZoomOut, 
+  handleFitScreen 
 }) => {
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
@@ -41,7 +52,8 @@ const HeaderBar = ({
         display: 'flex',
         alignItems: 'center',
         px: 2,
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        position: 'relative'
       }}
     >
       {/* ヘッダー左側 - プロジェクトタイトル */}
@@ -85,6 +97,83 @@ const HeaderBar = ({
           {projectTitle}
         </Typography>
       )}
+
+      {/* プレビューコントロール - 中央配置 */}
+      <Box
+        sx={{
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          px: 1,
+          py: 0.5,
+          borderRadius: 2,
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)'
+        }}
+      >
+        {/* デバイス切り替え */}
+        <Tooltip title="モバイル表示">
+          <IconButton
+            onClick={() => setPreviewMode('mobile')}
+            sx={previewMode === 'mobile' ? iconButtonStyles.primary : iconButtonStyles.secondary}
+            size="small"
+          >
+            <PhoneAndroid fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="PC表示">
+          <IconButton
+            onClick={() => setPreviewMode('desktop')}
+            sx={previewMode === 'desktop' ? iconButtonStyles.primary : iconButtonStyles.secondary}
+            size="small"
+          >
+            <Computer fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
+        {/* ズーム制御 */}
+        <Tooltip title="縮小">
+          <IconButton
+            onClick={handleZoomOut}
+            disabled={zoom <= 0.3}
+            sx={iconButtonStyles.secondary}
+            size="small"
+          >
+            <ZoomOut fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
+        <Typography variant="caption" sx={{ minWidth: 35, textAlign: 'center', color: colors.textSecondary, fontSize: '0.65rem' }}>
+          {Math.round(zoom * 100)}%
+        </Typography>
+
+        <Tooltip title="拡大">
+          <IconButton
+            onClick={handleZoomIn}
+            disabled={zoom >= 1.5}
+            sx={iconButtonStyles.secondary}
+            size="small"
+          >
+            <ZoomIn fontSize="small" />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="フィット">
+          <IconButton
+            onClick={handleFitScreen}
+            sx={iconButtonStyles.secondary}
+            size="small"
+          >
+            <FitScreen fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       {/* ヘッダー右側のアクションボタン */}
       <Box sx={{ display: 'flex', gap: 1 }}>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import PreviewControlPanel from './PreviewControlPanel';
 import LeftNavigationBar from './LeftNavigationBar';
 import HeaderBar from './HeaderBar';
 import PreviewArea from './PreviewArea';
@@ -1506,6 +1505,12 @@ export default function CreatePage({ onBackClick, user, formId }) {
           projectTitle={projectTitle}
           setProjectTitle={setProjectTitle}
           setIsEditingTitle={setIsEditingTitle}
+          previewMode={previewMode}
+          setPreviewMode={setPreviewMode}
+          zoom={zoom}
+          handleZoomIn={handleZoomIn}
+          handleZoomOut={handleZoomOut}
+          handleFitScreen={handleFitScreen}
         />
 
         {/* メインコンテンツエリア */}
@@ -1643,16 +1648,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     completionBackground={completionBackground}
                     // フォームID
                     formId={formId}
-                  />
-                  
-                  {/* プレビューコントロール */}
-                  <PreviewControlPanel
-                    previewMode={previewMode}
-                    setPreviewMode={setPreviewMode}
-                    zoom={zoom}
-                    handleZoomIn={handleZoomIn}
-                    handleZoomOut={handleZoomOut}
-                    handleFitScreen={handleFitScreen}
                   />
                 </>
               )}
