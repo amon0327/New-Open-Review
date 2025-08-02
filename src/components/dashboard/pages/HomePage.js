@@ -1,35 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Paper, 
-  Typography, 
-  Box, 
-  Grid, 
-  Card, 
-  CardContent, 
-  CardActions, 
-  Button, 
-  Fab, 
-  CircularProgress,
-  Chip,
-  IconButton,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText
-} from '@mui/material';
-import {
-  Add,
-  Edit,
-  Delete,
-  MoreVert,
-  Launch,
-  Assessment,
-  DateRange,
-  Settings as SettingsIcon
-} from '@mui/icons-material';
-import FormDataService from '../../../services/FormDataService';
-import { toast } from 'react-hot-toast';
+import { Paper, Typography } from '@mui/material';
 
 export default function HomePage({ onCreateFormClick, user }) {
   const [forms, setForms] = useState([]);
