@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Box,
   Drawer,
@@ -14,7 +14,10 @@ import {
   Avatar,
   IconButton,
   Badge,
-  CircularProgress
+  CircularProgress,
+  Backdrop,
+  Card,
+  CardContent
 } from '@mui/material';
 import {
   Home,
@@ -89,6 +92,76 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
+      {/* モダンなローディング表示 */}
+      <Backdrop
+        sx={{
+          color: '#fff',
+          zIndex: 9999,
+          background: 'rgba(94, 23, 235, 0.1)',
+          backdropFilter: 'blur(10px)'
+        }}
+        open={isCreatingForm}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
+          <Card
+            sx={{
+              minWidth: 300,
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
+              borderRadius: 3
+            }}
+          >
+            <CardContent sx={{ textAlign: 'center', p: 4 }}>
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                style={{ display: 'inline-block', marginBottom: 16 }}
+              >
+                <CircularProgress
+                  size={50}
+                  thickness={4}
+                  sx={{
+                    color: '#5e17eb',
+                    '& .MuiCircularProgress-circle': {
+                      strokeLinecap: 'round',
+                    }
+                  }}
+                />
+              </motion.div>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 600,
+                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  mb: 1
+                }}
+              >
+                フォームを作成中...
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: '#64748b',
+                  fontWeight: 400
+                }}
+              >
+                新しいレビューフォームを準備しています
+              </Typography>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </Backdrop>
+
       {/* Sidebar */}
       <Drawer
         variant="permanent"
