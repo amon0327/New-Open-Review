@@ -12,10 +12,8 @@ import {
   Computer,
   ZoomIn,
   ZoomOut,
-  FitScreen,
-  Preview
+  FitScreen
 } from '@mui/icons-material';
-import PreviewUrlDialog from './PreviewUrlDialog';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 
 const PreviewControlPanel = ({ 
@@ -27,11 +25,6 @@ const PreviewControlPanel = ({
   handleFitScreen,
   formId
 }) => {
-  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
-
-  const handlePreviewClick = () => {
-    setShowPreviewDialog(true);
-  };
   return (
     <Box
       sx={{
@@ -112,33 +105,8 @@ const PreviewControlPanel = ({
               <FitScreen />
             </IconButton>
           </Tooltip>
-
-          {/* プレビューボタン */}
-          <Tooltip title="プレビュー">
-            <IconButton
-              onClick={handlePreviewClick}
-              sx={{
-                ...iconButtonStyles.secondary,
-                backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                color: '#5e17eb',
-                '&:hover': {
-                  backgroundColor: 'rgba(94, 23, 235, 0.2)',
-                  transform: 'scale(1.05)'
-                }
-              }}
-            >
-              <Preview />
-            </IconButton>
-          </Tooltip>
         </Paper>
       </motion.div>
-
-      {/* プレビューURL・QRコードダイアログ */}
-      <PreviewUrlDialog
-        open={showPreviewDialog}
-        onClose={() => setShowPreviewDialog(false)}
-        formId={formId}
-      />
     </Box>
   );
 };
