@@ -23,6 +23,7 @@ const ThemeSettings = ({
 }) => {
   // カラーピッカーの状態
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [lastCustomColor, setLastCustomColor] = useState('#5e17eb'); // 最後に選択されたカスタムカラー
   
   // カラーパレット
   const colorOptions = [
@@ -60,6 +61,7 @@ const ThemeSettings = ({
   // カラーピッカーのハンドラー
   const handleColorChange = (color) => {
     setSelectedColor(color.hex);
+    setLastCustomColor(color.hex); // カスタムカラーを履歴として保存
   };
 
   const handleColorPickerToggle = () => {
@@ -132,7 +134,7 @@ const ThemeSettings = ({
                     sx={{
                       width: 40,
                       height: 40,
-                      borderRadius: 2,
+                      borderRadius: '50%',
                       backgroundColor: color.value,
                       cursor: 'pointer',
                       border: selectedColor === color.value 
@@ -161,14 +163,14 @@ const ThemeSettings = ({
                   sx={{
                     width: 40,
                     height: 40,
-                    borderRadius: 2,
-                    background: isCustomColor 
-                      ? selectedColor 
-                      : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',
+                    borderRadius: '50%', // 完全な円形
+                    background: lastCustomColor !== '#5e17eb' && colorOptions.every(color => color.value !== lastCustomColor)
+                      ? lastCustomColor // カスタムカラーが設定されている場合はその色
+                      : 'conic-gradient(from 0deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080, #ff0000)', // 虹色グラデーション
                     cursor: 'pointer',
                     border: (showColorPicker || isCustomColor) ? '3px solid #1e293b' : '2px solid transparent',
                     boxShadow: (showColorPicker || isCustomColor)
-                      ? `0 0 0 2px white, 0 0 0 4px ${isCustomColor ? selectedColor : '#ff6b6b'}`
+                      ? `0 0 0 2px white, 0 0 0 4px ${isCustomColor ? selectedColor : lastCustomColor}`
                       : '0 2px 4px rgba(0, 0, 0, 0.1)',
                     transition: 'all 0.2s ease',
                     display: 'flex',
@@ -181,13 +183,16 @@ const ThemeSettings = ({
                     }
                   }}
                 >
-                  <Add 
-                    sx={{ 
-                      color: isCustomColor ? 'white' : 'white', 
-                      fontSize: '1.2rem',
-                      filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5))'
-                    }} 
-                  />
+                  {/* プラスアイコンはカスタムカラー未設定時のみ表示 */}
+                  {(lastCustomColor === '#5e17eb' || colorOptions.some(color => color.value === lastCustomColor)) && (
+                    <Add 
+                      sx={{ 
+                        color: 'white', 
+                        fontSize: '1.2rem',
+                        filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5))'
+                      }} 
+                    />
+                  )}
                 </Box>
               </motion.div>
             </Box>
