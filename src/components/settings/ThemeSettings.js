@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { ChromePicker } from 'react-color';
 import {
   Box,
   Card,
@@ -10,7 +11,7 @@ import {
   Avatar,
   Divider
 } from '@mui/material';
-import { Palette, Upload, Photo } from '@mui/icons-material';
+import { Palette, Upload, Photo, Add } from '@mui/icons-material';
 
 const ThemeSettings = ({
   selectedColor,
@@ -20,6 +21,9 @@ const ThemeSettings = ({
   logoImage,
   setLogoImage
 }) => {
+  // カラーピッカーの状態
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  
   // カラーパレット
   const colorOptions = [
     { name: '紫', value: '#5e17eb' },
@@ -47,6 +51,19 @@ const ThemeSettings = ({
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  // カラーピッカーのハンドラー
+  const handleColorChange = (color) => {
+    setSelectedColor(color.hex);
+  };
+
+  const handleColorPickerToggle = () => {
+    setShowColorPicker(!showColorPicker);
+  };
+
+  const handleColorPickerClose = () => {
+    setShowColorPicker(false);
   };
 
   return (
@@ -129,7 +146,74 @@ const ThemeSettings = ({
                   />
                 </motion.div>
               ))}
+              
+              {/* カスタムカラー選択ボタン */}
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Box
+                  onClick={handleColorPickerToggle}
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 2,
+                    background: 'linear-gradient(45deg, #ff0000 0%, #ff7f00 16.66%, #ffff00 33.33%, #00ff00 50%, #0000ff 66.66%, #4b0082 83.33%, #9400d3 100%)',
+                    cursor: 'pointer',
+                    border: showColorPicker ? '3px solid #1e293b' : '2px solid transparent',
+                    boxShadow: showColorPicker 
+                      ? '0 0 0 2px white, 0 0 0 4px #ff6b6b'
+                      : '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+                    }
+                  }}
+                >
+                  <Add 
+                    sx={{ 
+                      color: 'white', 
+                      fontSize: '1.2rem',
+                      filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5))'
+                    }} 
+                  />
+                </Box>
+              </motion.div>
             </Box>
+            
+            {/* カラーピッカー */}
+            {showColorPicker && (
+              <Box sx={{ mt: 3, position: 'relative' }}>
+                {/* 背景オーバーレイ */}
+                <Box
+                  sx={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 999,
+                    backgroundColor: 'transparent'
+                  }}
+                  onClick={handleColorPickerClose}
+                />
+                
+                {/* カラーピッカー */}
+                <Box sx={{ position: 'relative', zIndex: 1000 }}>
+                  <ChromePicker
+                    color={selectedColor}
+                    onChange={handleColorChange}
+                    onChangeComplete={(color) => setSelectedColor(color.hex)}
+                    disableAlpha={true}
+                  />
+                </Box>
+              </Box>
+            )}
           </Box>
 
           <Divider />

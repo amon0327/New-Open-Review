@@ -53,6 +53,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     const ActiveComponent = navigationItems[activeTab].component;
     if (navigationItems[activeTab].text === 'Settings') {
       return <ActiveComponent user={user} onLogout={onLogout} />;
+    } else if (navigationItems[activeTab].text === 'Home') {
+      return <ActiveComponent user={user} onCreateFormClick={onCreateClick} />;
     }
     return <ActiveComponent />;
   };
