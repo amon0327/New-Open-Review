@@ -34,6 +34,10 @@ const ThemeSettings = ({
     { name: 'ピンク', value: '#ec4899' }
   ];
 
+  // プリセットカラーかどうかを判定
+  const isPresetColor = colorOptions.some(color => color.value === selectedColor);
+  const isCustomColor = !isPresetColor;
+
   // フォントオプション
   const fontOptions = [
     { name: 'デフォルト', value: 'system-ui' },
@@ -158,11 +162,13 @@ const ThemeSettings = ({
                     width: 40,
                     height: 40,
                     borderRadius: 2,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',
+                    background: isCustomColor 
+                      ? selectedColor 
+                      : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%)',
                     cursor: 'pointer',
-                    border: showColorPicker ? '3px solid #1e293b' : '2px solid transparent',
-                    boxShadow: showColorPicker 
-                      ? '0 0 0 2px white, 0 0 0 4px #ff6b6b'
+                    border: (showColorPicker || isCustomColor) ? '3px solid #1e293b' : '2px solid transparent',
+                    boxShadow: (showColorPicker || isCustomColor)
+                      ? `0 0 0 2px white, 0 0 0 4px ${isCustomColor ? selectedColor : '#ff6b6b'}`
                       : '0 2px 4px rgba(0, 0, 0, 0.1)',
                     transition: 'all 0.2s ease',
                     display: 'flex',
@@ -177,7 +183,7 @@ const ThemeSettings = ({
                 >
                   <Add 
                     sx={{ 
-                      color: 'white', 
+                      color: isCustomColor ? 'white' : 'white', 
                       fontSize: '1.2rem',
                       filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5))'
                     }} 
