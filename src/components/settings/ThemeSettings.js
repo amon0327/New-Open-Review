@@ -134,7 +134,7 @@ const ThemeSettings = ({
                     sx={{
                       width: 40,
                       height: 40,
-                      borderRadius: '50%',
+                      borderRadius: '20px', // 半径を明示的に指定
                       backgroundColor: color.value,
                       cursor: 'pointer',
                       border: selectedColor === color.value 
@@ -144,6 +144,8 @@ const ThemeSettings = ({
                         ? '0 0 0 2px white, 0 0 0 4px ' + color.value
                         : '0 2px 4px rgba(0, 0, 0, 0.1)',
                       transition: 'all 0.2s ease',
+                      overflow: 'hidden', // 内容のはみ出しを防ぐ
+                      flexShrink: 0, // 縮小を防ぐ
                       '&:hover': {
                         transform: 'translateY(-2px)',
                         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
@@ -163,7 +165,7 @@ const ThemeSettings = ({
                   sx={{
                     width: 40,
                     height: 40,
-                    borderRadius: '50%', // 完全な円形
+                    borderRadius: '20px', // 半径を明示的に指定
                     background: lastCustomColor !== '#5e17eb' && colorOptions.every(color => color.value !== lastCustomColor)
                       ? lastCustomColor // カスタムカラーが設定されている場合はその色
                       : 'conic-gradient(from 0deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080, #ff0000)', // 虹色グラデーション
@@ -177,6 +179,8 @@ const ThemeSettings = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     position: 'relative',
+                    overflow: 'hidden', // 内容のはみ出しを防ぐ
+                    flexShrink: 0, // 縮小を防ぐ
                     '&:hover': {
                       transform: 'translateY(-2px)',
                       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
