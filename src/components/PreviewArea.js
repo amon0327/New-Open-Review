@@ -233,7 +233,7 @@ const PreviewArea = ({
                         onPageSelect(screen.page);
                       }
                     }}
-                  sx={{
+                    sx={{
                     px: 2,
                     py: 1,
                     borderRadius: 3,
