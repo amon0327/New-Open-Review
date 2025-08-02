@@ -698,10 +698,17 @@ const QuestionSettingsMenu = ({
   const findCenterMostQuestion = () => {
     if (!questions || questions.length === 0) return null;
 
-    // プレビュー画面のコンテナを取得
-    const previewContainer = document.querySelector('.preview-area, [class*="preview"]');
+    // プレビュー画面のコンテナを複数の方法で検索
+    let previewContainer = document.querySelector('[class*="preview-area"]');
     if (!previewContainer) {
-      // フォールバック: 一番上の質問を返す
+      previewContainer = document.querySelector('[class*="MuiPaper-root"]');
+    }
+    if (!previewContainer) {
+      previewContainer = document.querySelector('.main-content-area');
+    }
+    
+    if (!previewContainer) {
+      console.log('プレビューコンテナが見つかりません。フォールバックを使用します。');
       return questions[0];
     }
 
@@ -711,21 +718,28 @@ const QuestionSettingsMenu = ({
     let closestQuestion = questions[0];
     let minDistance = Infinity;
 
+    console.log(`プレビューコンテナ中心Y: ${containerCenterY}`);
+
     // 各質問要素の位置を確認
-    questions.forEach(question => {
+    questions.forEach((question, index) => {
       const questionElement = document.querySelector(`[data-question-id="${question.id}"]`);
       if (questionElement) {
         const questionRect = questionElement.getBoundingClientRect();
         const questionCenterY = questionRect.top + questionRect.height / 2;
         const distance = Math.abs(questionCenterY - containerCenterY);
 
+        console.log(`質問${index + 1} (ID: ${question.id}): Y=${questionCenterY}, 距離=${distance}`);
+
         if (distance < minDistance) {
           minDistance = distance;
           closestQuestion = question;
         }
+      } else {
+        console.log(`質問要素が見つかりません: ID=${question.id}`);
       }
     });
 
+    console.log(`選択された質問: ID=${closestQuestion.id}, 最小距離=${minDistance}`);
     return closestQuestion;
   };
 

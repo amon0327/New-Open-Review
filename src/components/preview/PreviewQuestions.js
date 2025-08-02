@@ -1488,6 +1488,7 @@ const PreviewQuestions = ({
 
     const questionWrapper = (children) => (
       <Box
+        data-question-id={question.id}
         onClick={handleQuestionClick}
         onMouseEnter={() => setHoveredQuestionId(question.id)}
         onMouseLeave={() => setHoveredQuestionId(null)}
