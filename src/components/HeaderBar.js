@@ -11,7 +11,7 @@ import {
   Preview,
   Save,
   MoreVert,
-  CloudSync
+  Sync
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 import PreviewUrlDialog from './PreviewUrlDialog';
@@ -139,12 +139,12 @@ const HeaderBar = ({
         {/* 保存状態インジケーター */}
         {isSaving && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 2 }}>
-            <CloudSync 
+            <Sync 
               sx={{ 
                 color: '#5E17EB', 
                 fontSize: '1rem',
-                animation: 'spin 1s linear infinite',
-                '@keyframes spin': {
+                animation: 'rotate 1s linear infinite',
+                '@keyframes rotate': {
                   '0%': { transform: 'rotate(0deg)' },
                   '100%': { transform: 'rotate(360deg)' }
                 }
