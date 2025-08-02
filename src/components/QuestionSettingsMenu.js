@@ -1734,8 +1734,8 @@ const QuestionSettingsMenu = ({
             </Accordion>
           )}
 
-          {/* ロゴ画像設定 - ログイン画面・完了画面以外で表示 */}
-          {!isLoginPage && !isCompletionPage && (
+          {/* ロゴ画像設定 - ログイン画面以外で表示 */}
+          {!isLoginPage && (
             <Accordion 
               expanded={expandedAccordion === 'logo'} 
               onChange={() => setExpandedAccordion(expandedAccordion === 'logo' ? null : 'logo')}
