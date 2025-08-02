@@ -95,35 +95,25 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
               color: 'white',
               display: 'flex',
               alignItems: 'center',
-              gap: 2,
-              py: 2.5,
+              justifyContent: 'center',
+              py: 3,
               position: 'relative'
             }}
           >
             <Box
+              component="img"
+              src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png"
+              alt="OpenReview Logo"
               sx={{
-                width: 32,
                 height: 32,
-                borderRadius: '8px',
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                objectFit: 'contain'
               }}
-            >
-              <PreviewIcon sx={{ fontSize: '1.2rem' }} />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
-                プレビューURL
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, fontSize: '0.85rem' }}>
-                フォームをプレビューで確認
-              </Typography>
-            </Box>
+            />
             <IconButton
               onClick={onClose}
               sx={{
+                position: 'absolute',
+                right: 16,
                 color: 'white',
                 '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }
               }}
@@ -135,71 +125,6 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
           {/* コンテンツ */}
           <DialogContent sx={{ p: 3 }}>
             <Stack spacing={3}>
-              {/* URL表示セクション */}
-              <Box>
-                <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: '#374151' }}>
-                  プレビューURL
-                </Typography>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    backgroundColor: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 2
-                  }}
-                >
-                  <TextField
-                    value={previewUrl}
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                    InputProps={{
-                      readOnly: true,
-                      endAdornment: (
-                        <IconButton
-                          onClick={handleCopyUrl}
-                          size="small"
-                          sx={{
-                            color: copied ? '#10b981' : '#6b7280',
-                            '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.1)' }
-                          }}
-                        >
-                          <CopyIcon fontSize="small" />
-                        </IconButton>
-                      ),
-                      sx: {
-                        backgroundColor: 'white',
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#d1d5db'
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#5e17eb'
-                        }
-                      }
-                    }}
-                    sx={{ fontSize: '0.85rem' }}
-                  />
-                  
-                  {copied && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                    >
-                      <Chip
-                        label="コピーしました！"
-                        size="small"
-                        color="success"
-                        sx={{ mt: 1, fontSize: '0.75rem' }}
-                      />
-                    </motion.div>
-                  )}
-                </Paper>
-              </Box>
-
-              <Divider />
-
               {/* QRコードセクション */}
               <Box sx={{ textAlign: 'center' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
@@ -274,34 +199,98 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
           </DialogContent>
 
           {/* アクション */}
-          <DialogActions sx={{ p: 3, pt: 0 }}>
-            <Button
-              variant="outlined"
-              onClick={handleCopyUrl}
-              startIcon={<CopyIcon />}
+          <DialogActions sx={{ p: 3, pt: 0, flexDirection: 'column', gap: 2 }}>
+            {/* URL表示セクション */}
+            <Paper
+              elevation={0}
               sx={{
-                borderColor: '#d1d5db',
-                color: '#374151',
-                '&:hover': {
-                  borderColor: '#5e17eb',
-                  backgroundColor: 'rgba(94, 23, 235, 0.05)'
-                }
+                p: 2,
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 2,
+                width: '100%'
               }}
             >
-              URLをコピー
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleOpenPreview}
-              startIcon={<LaunchIcon />}
-              sx={{
-                backgroundColor: '#5e17eb',
-                '&:hover': { backgroundColor: '#4c1d95' },
-                boxShadow: '0 4px 12px rgba(94, 23, 235, 0.4)'
-              }}
-            >
-              プレビューを開く
-            </Button>
+              <TextField
+                value={previewUrl}
+                variant="outlined"
+                size="small"
+                fullWidth
+                InputProps={{
+                  readOnly: true,
+                  endAdornment: (
+                    <IconButton
+                      onClick={handleCopyUrl}
+                      size="small"
+                      sx={{
+                        color: copied ? '#10b981' : '#6b7280',
+                        '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.1)' }
+                      }}
+                    >
+                      <CopyIcon fontSize="small" />
+                    </IconButton>
+                  ),
+                  sx: {
+                    backgroundColor: 'white',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#d1d5db'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#5e17eb'
+                    }
+                  }
+                }}
+                sx={{ fontSize: '0.85rem' }}
+              />
+              
+              {copied && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <Chip
+                    label="コピーしました！"
+                    size="small"
+                    color="success"
+                    sx={{ mt: 1, fontSize: '0.75rem' }}
+                  />
+                </motion.div>
+              )}
+            </Paper>
+
+            {/* ボタン */}
+            <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+              <Button
+                variant="outlined"
+                onClick={handleCopyUrl}
+                startIcon={<CopyIcon />}
+                sx={{
+                  flex: 1,
+                  borderColor: '#d1d5db',
+                  color: '#374151',
+                  '&:hover': {
+                    borderColor: '#5e17eb',
+                    backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                  }
+                }}
+              >
+                URLをコピー
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleOpenPreview}
+                startIcon={<LaunchIcon />}
+                sx={{
+                  flex: 1,
+                  backgroundColor: '#5e17eb',
+                  '&:hover': { backgroundColor: '#4c1d95' },
+                  boxShadow: '0 4px 12px rgba(94, 23, 235, 0.4)'
+                }}
+              >
+                プレビューを開く
+              </Button>
+            </Box>
           </DialogActions>
         </Dialog>
       )}
