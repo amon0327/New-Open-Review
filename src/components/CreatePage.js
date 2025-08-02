@@ -747,6 +747,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     const currentPages = pages;
     const optimisticPages = pages.filter(p => p.id !== pageId);
     setPages(optimisticPages);
+    setIsSaving(true);
 
     // 削除されたページが選択されていた場合、別のページを選択
     if (selectedPage && selectedPage.id === pageId) {
@@ -781,6 +782,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
         setSelectedPage(page); // 選択状態も復元
       }
       toast.error('ページの削除中にエラーが発生しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -797,6 +800,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
     try {
       setIsAddingPage(true);
+      setIsSaving(true);
       const questionPageCount = pages.filter(p => p.type === 'question').length;
       const pageName = `新しいページ${questionPageCount + 1}`;
       
@@ -854,6 +858,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
       toast.error('ページの処理中にエラーが発生しました');
     } finally {
       setIsAddingPage(false);
+      setIsSaving(false);
     }
   };
 
@@ -1096,6 +1101,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
       q.id === questionId ? { ...q, scale_settings: JSON.stringify(scaleSettings) } : q
     );
     handleQuestionsUpdate(selectedPage.id, optimisticQuestions);
+    setIsSaving(true);
 
     // バックグラウンドで専用テーブルに保存
     try {
@@ -1105,6 +1111,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       handleQuestionsUpdate(selectedPage.id, currentQuestions);
       toast.error('均等目盛り設定の更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1116,6 +1124,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     const currentQuestions = getQuestionsForPage(selectedPage.id);
     const optimisticQuestions = currentQuestions.filter(q => q.id !== questionId);
     handleQuestionsUpdate(selectedPage.id, optimisticQuestions);
+    setIsSaving(true);
     
     // 削除された質問が選択されていた場合、選択を解除
     if (selectedQuestionId === questionId) {
@@ -1134,6 +1143,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
         setSelectedQuestionId(questionId); // 選択状態も復元
       }
       toast.error('質問の削除に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1242,6 +1253,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const handleHeaderImageUpdate = async (headerImageUrl) => {
     // 即座にローカル状態を更新
     setHeaderImage(headerImageUrl);
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存（question_screen_settingsテーブル）
     try {
@@ -1254,6 +1266,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       setHeaderImage(headerImage);
       toast.error('ヘッダー画像の更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1326,6 +1340,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     // 即座にローカル状態を更新
     setLoginScreenSettings(prev => ({ ...prev, title_text: titleText }));
     setLoginTitle(titleText);
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
     try {
@@ -1338,6 +1353,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       setLoginScreenSettings(prev => ({ ...prev, title_text: loginTitle }));
       toast.error('ログインタイトルの更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1346,6 +1363,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     // 即座にローカル状態を更新
     setLoginScreenSettings(prev => ({ ...prev, detail_text: detailText }));
     setLoginDetail(detailText);
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
     try {
@@ -1358,6 +1376,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       setLoginScreenSettings(prev => ({ ...prev, detail_text: loginDetail }));
       toast.error('ログイン詳細テキストの更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1366,6 +1386,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     // 即座にローカル状態を更新（楽観的更新）
     setCompletionScreenSettings(prev => ({ ...prev, title_text: titleText }));
     setCompletionTitle(titleText);
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
     try {
@@ -1378,6 +1399,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       setCompletionScreenSettings(prev => ({ ...prev, title_text: completionTitle }));
       toast.error('完了タイトルの更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1386,6 +1409,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     // 即座にローカル状態を更新（楽観的更新）
     setCompletionScreenSettings(prev => ({ ...prev, detail_text: detailText }));
     setCompletionDetail(detailText);
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
     try {
@@ -1398,6 +1422,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       setCompletionScreenSettings(prev => ({ ...prev, detail_text: completionDetail }));
       toast.error('完了詳細テキストの更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1406,6 +1432,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     // 即座にローカル状態を更新（楽観的更新）
     setCompletionScreenSettings(prev => ({ ...prev, background_image_url: backgroundImageUrl }));
     setCompletionBackground(backgroundImageUrl);
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
     try {
@@ -1418,6 +1445,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       setCompletionScreenSettings(prev => ({ ...prev, background_image_url: completionBackground }));
       toast.error('完了背景画像の更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1447,6 +1476,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const handleCompletionButton1EnabledUpdate = async (isEnabled) => {
     // 即座にローカル状態を更新（楽観的更新）
     setCompletionScreenSettings(prev => ({ ...prev, is_button_1_enabled: isEnabled }));
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
     try {
@@ -1459,6 +1489,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       setCompletionScreenSettings(prev => ({ ...prev, is_button_1_enabled: !isEnabled }));
       toast.error('完了ボタン設定の更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1466,6 +1498,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const handleCompletionButton1TextUpdate = async (buttonText) => {
     // 即座にローカル状態を更新（楽観的更新）
     setCompletionScreenSettings(prev => ({ ...prev, button_text_1: buttonText }));
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
     try {
@@ -1478,6 +1511,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       setCompletionScreenSettings(prev => ({ ...prev, button_text_1: completionScreenSettings.button_text_1 }));
       toast.error('完了ボタンテキストの更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1485,6 +1520,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const handleCompletionButton1UrlUpdate = async (buttonUrl) => {
     // 即座にローカル状態を更新（楽観的更新）
     setCompletionScreenSettings(prev => ({ ...prev, button_url_1: buttonUrl }));
+    setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
     try {
@@ -1497,6 +1533,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // エラー時は元の状態に戻す
       setCompletionScreenSettings(prev => ({ ...prev, button_url_1: completionScreenSettings.button_url_1 }));
       toast.error('完了ボタンURLの更新に失敗しました');
+    } finally {
+      setIsSaving(false);
     }
   };
 
