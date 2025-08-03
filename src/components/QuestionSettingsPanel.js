@@ -529,7 +529,24 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                     placeholder="質問を入力してください"
                     variant="outlined"
                     size="small"
-                    sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.9rem' } }}
+                    sx={{ 
+                      '& .MuiOutlinedInput-root': { 
+                        fontSize: '0.9rem',
+                        ...(questionErrorHighlight === `missing-question-text-${localQuestion.id}` && {
+                          '& fieldset': {
+                            borderColor: '#ef4444',
+                            borderWidth: '2px',
+                            animation: 'errorPulse 2s ease-in-out'
+                          },
+                          backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                          '@keyframes errorPulse': {
+                            '0%': { borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.05)' },
+                            '50%': { borderColor: '#dc2626', backgroundColor: 'rgba(239, 68, 68, 0.1)' },
+                            '100%': { borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.05)' }
+                          }
+                        })
+                      }
+                    }}
                   />
                   <TextField
                     label="詳細説明（任意）"
@@ -636,7 +653,7 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
 };
 
 // メインコンポーネント
-const QuestionSettingsPanel = ({ selectedPage, questions = [], onUpdateQuestions }) => {
+const QuestionSettingsPanel = ({ selectedPage, questions = [], onUpdateQuestions, questionErrorHighlight }) => {
   const [expandedQuestion, setExpandedQuestion] = useState(null);
   const [newQuestionType, setNewQuestionType] = useState(1);
 

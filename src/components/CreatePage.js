@@ -164,7 +164,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
     projectDescription, setProjectDescription,
     selectedFont, setSelectedFont,
     logoPreview, setLogoPreview,
-    pageErrorHighlight, setPageErrorHighlight
+    pageErrorHighlight, setPageErrorHighlight,
+    questionErrorHighlight, setQuestionErrorHighlight
   } = useCreatePageState();
 
   // 質問データ管理フック
@@ -649,6 +650,17 @@ export default function CreatePage({ onBackClick, user, formId }) {
       });
     }
   }, [selectedPage, currentQuestions, allQuestions]);
+
+  // 質問IDからページIDを検索する関数
+  const findPageIdByQuestionId = (questionId) => {
+    for (const pageId in questionsData) {
+      const pageQuestions = questionsData[pageId] || [];
+      if (pageQuestions.some(q => q.id === questionId)) {
+        return pageId;
+      }
+    }
+    return null;
+  };
 
   // ドラッグ&ドロップハンドラ
   const handleDragOver = (e) => {
@@ -1761,6 +1773,23 @@ export default function CreatePage({ onBackClick, user, formId }) {
             setPageErrorHighlight(pageId);
             setTimeout(() => setPageErrorHighlight(null), 3000);
           }}
+          onShowQuestionError={(questionId, errorId) => {
+            // 質問があるページを見つけて移動
+            const questionPageId = findPageIdByQuestionId(questionId);
+            if (questionPageId) {
+              const targetPage = pages.find(p => p.id === questionPageId);
+              if (targetPage) {
+                setSelectedPage(targetPage);
+              }
+            }
+            // 質問を選択
+            setSelectedQuestionId(questionId);
+            // 質問設定パネルを開く
+            setShowQuestionSettings(true);
+            // エラーフィールドをハイライト
+            setQuestionErrorHighlight(errorId);
+            setTimeout(() => setQuestionErrorHighlight(null), 3000);
+          }}
         />
 
         {/* メインコンテンツエリア */}
@@ -2302,6 +2331,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     setCompletionDetail={setCompletionDetail}
                     completionBackground={completionBackground}
                     setCompletionBackground={setCompletionBackground}
+                    questionErrorHighlight={questionErrorHighlight}
                   />
                 </Paper>
               </motion.div>

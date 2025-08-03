@@ -56,6 +56,8 @@ const HeaderBar = ({
   // ページナビゲーション用のコールバック関数
   onNavigateToPage,
   onShowPageError,
+  // 質問エラー表示用のコールバック関数
+  onShowQuestionError,
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
@@ -104,6 +106,23 @@ const HeaderBar = ({
       }
       if (onShowPageError) {
         onShowPageError(error.pageId);
+      }
+    }
+    // 質問エラーの場合は特別処理
+    else if (error.questionId) {
+      // 質問を選択してハイライト
+      if (onQuestionSelect) {
+        onQuestionSelect(error.questionId);
+      }
+      if (onHighlightElement) {
+        onHighlightElement({
+          elementType: 'question',
+          questionId: error.questionId
+        });
+      }
+      // 質問設定でのフィールドエラー表示
+      if (onShowQuestionError) {
+        onShowQuestionError(error.questionId, error.id);
       }
     }
     // それ以外のエラーは何もしない

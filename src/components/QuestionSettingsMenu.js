@@ -74,7 +74,7 @@ const getQuestionTypeConfig = (typeId) => {
 };
 
 // スタイリッシュなテキストフィールドコンポーネント
-const StylishTextField = ({ label, value, onChange, onBlur, multiline = false, rows = 1, maxRows, minRows, placeholder, required = false, ...props }) => (
+const StylishTextField = ({ label, value, onChange, onBlur, multiline = false, rows = 1, maxRows, minRows, placeholder, required = false, hasError = false, ...props }) => (
   <Box>
     <Typography 
       variant="body2" 
@@ -118,10 +118,23 @@ const StylishTextField = ({ label, value, onChange, onBlur, multiline = false, r
           '&.Mui-focused': {
             backgroundColor: '#FFFFFF',
             '& fieldset': {
-              borderColor: '#5E17EB',
+              borderColor: hasError ? '#ef4444' : '#5E17EB',
               borderWidth: '1px'
             }
           },
+          ...(hasError && {
+            backgroundColor: 'rgba(239, 68, 68, 0.05)',
+            '& fieldset': {
+              borderColor: '#ef4444',
+              borderWidth: '2px',
+              animation: 'errorPulse 2s ease-in-out'
+            },
+            '@keyframes errorPulse': {
+              '0%': { borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.05)' },
+              '50%': { borderColor: '#dc2626', backgroundColor: 'rgba(239, 68, 68, 0.1)' },
+              '100%': { borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.05)' }
+            }
+          }),
           '& .MuiOutlinedInput-input': {
             padding: '6px 8px !important',
             fontSize: '0.875rem',
@@ -283,7 +296,8 @@ const QuestionSettingsMenu = ({
   completionDetail,
   setCompletionDetail,
   completionBackground,
-  setCompletionBackground
+  setCompletionBackground,
+  questionErrorHighlight
 }) => {
   const [editingChoices, setEditingChoices] = useState({});
   const [selectedTab, setSelectedTab] = useState(2); // デフォルトで基本設定タブ
@@ -1122,6 +1136,7 @@ const QuestionSettingsMenu = ({
               minRows={1}
               maxRows={3}
               placeholder="質問を入力してください..."
+              hasError={questionErrorHighlight === `missing-question-text-${currentQuestion.id}`}
             />
 
             {/* 詳細テキスト */}
