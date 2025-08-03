@@ -1,26 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Box,
   Typography,
-  TextField,
   Button,
   IconButton,
   Paper,
   Stack,
-  Divider,
-  Chip,
-  Alert
+  Chip
 } from '@mui/material';
 import {
   Close as CloseIcon,
   ContentCopy as CopyIcon,
-  QrCode as QrCodeIcon,
   Launch as LaunchIcon,
-  Preview as PreviewIcon
+  Smartphone as SmartphoneIcon
 } from '@mui/icons-material';
 import QRCode from 'qrcode';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -73,225 +66,212 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
         <Dialog
           open={open}
           onClose={onClose}
-          maxWidth="sm"
+          maxWidth="xs"
           fullWidth
           PaperProps={{
             component: motion.div,
-            initial: { opacity: 0, scale: 0.9, y: 50 },
+            initial: { opacity: 0, scale: 0.8, y: 50 },
             animate: { opacity: 1, scale: 1, y: 0 },
-            exit: { opacity: 0, scale: 0.9, y: 50 },
+            exit: { opacity: 0, scale: 0.8, y: 50 },
             transition: { duration: 0.3, ease: "easeOut" },
             sx: {
-              borderRadius: 3,
+              borderRadius: 4,
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
             }
           }}
         >
           {/* ヘッダー */}
-          <DialogTitle
+          <Box
             sx={{
-              background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
-              color: 'white',
+              position: 'relative',
+              p: 3,
+              pb: 2,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              py: 3,
-              position: 'relative'
+              justifyContent: 'center'
             }}
           >
-            <Box
-              component="img"
-              src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png"
-              alt="OpenReview Logo"
-              sx={{
-                height: 32,
-                objectFit: 'contain'
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 700,
+                color: '#1f2937',
+                fontSize: '1.1rem'
               }}
-            />
+            >
+              プレビュー共有
+            </Typography>
             <IconButton
               onClick={onClose}
               sx={{
                 position: 'absolute',
-                right: 16,
-                color: 'white',
-                '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }
+                right: 8,
+                top: 8,
+                color: '#6b7280',
+                '&:hover': { 
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                  color: '#374151'
+                }
               }}
             >
-              <CloseIcon />
+              <CloseIcon fontSize="small" />
             </IconButton>
-          </DialogTitle>
+          </Box>
 
           {/* コンテンツ */}
-          <DialogContent sx={{ p: 3 }}>
-            <Stack spacing={3}>
-              {/* QRコードセクション */}
+          <Box sx={{ px: 3, pb: 3 }}>
+            <Stack spacing={3} alignItems="center">
+              {/* QRコード */}
               <Box sx={{ textAlign: 'center' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
-                  <QrCodeIcon sx={{ color: '#5e17eb', fontSize: '1.2rem' }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
-                    QRコード
-                  </Typography>
-                </Box>
-                
                 {qrCodeDataUrl ? (
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      display: 'inline-block',
-                      p: 2,
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: 2,
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                    }}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 }}
                   >
-                    <Box
-                      component="img"
-                      src={qrCodeDataUrl}
-                      alt="QR Code"
+                    <Paper
+                      elevation={0}
                       sx={{
-                        width: 180,
-                        height: 180,
-                        display: 'block'
+                        display: 'inline-block',
+                        p: 2.5,
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: 3,
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                       }}
-                    />
-                  </Paper>
+                    >
+                      <Box
+                        component="img"
+                        src={qrCodeDataUrl}
+                        alt="QR Code"
+                        sx={{
+                          width: 140,
+                          height: 140,
+                          display: 'block'
+                        }}
+                      />
+                    </Paper>
+                  </motion.div>
                 ) : (
                   <Box
                     sx={{
-                      width: 180,
-                      height: 180,
-                      backgroundColor: '#f3f4f6',
-                      borderRadius: 2,
+                      width: 140,
+                      height: 140,
+                      backgroundColor: '#f9fafb',
+                      borderRadius: 3,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      margin: '0 auto'
+                      margin: '0 auto',
+                      border: '1px solid #e5e7eb'
                     }}
                   >
-                    <Typography variant="body2" sx={{ color: '#9ca3af' }}>
-                      QRコード生成中...
+                    <Typography variant="body2" sx={{ color: '#9ca3af', fontSize: '0.85rem' }}>
+                      生成中...
                     </Typography>
                   </Box>
                 )}
                 
-                <Typography variant="caption" sx={{ color: '#6b7280', mt: 1, display: 'block' }}>
-                  スマートフォンでQRコードを読み取ってプレビューを確認
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 2 }}>
+                  <SmartphoneIcon sx={{ color: '#6b7280', fontSize: '1rem' }} />
+                  <Typography variant="caption" sx={{ color: '#6b7280', fontSize: '0.8rem' }}>
+                    スマホで読み取り
+                  </Typography>
+                </Box>
               </Box>
 
-              {/* 注意事項 */}
-              <Alert
-                severity="info"
-                sx={{
-                  borderRadius: 2,
-                  backgroundColor: 'rgba(59, 130, 246, 0.05)',
-                  border: '1px solid rgba(59, 130, 246, 0.2)',
-                  '& .MuiAlert-icon': { color: '#3b82f6' }
-                }}
-              >
-                <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                  このURLは開発環境用です。本番環境では適切なドメインが使用されます。
-                </Typography>
-              </Alert>
-            </Stack>
-          </DialogContent>
-
-          {/* アクション */}
-          <DialogActions sx={{ p: 3, pt: 0, flexDirection: 'column', gap: 2 }}>
-            {/* URL表示セクション */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2,
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: 2,
-                width: '100%'
-              }}
-            >
-              <TextField
-                value={previewUrl}
-                variant="outlined"
-                size="small"
-                fullWidth
-                InputProps={{
-                  readOnly: true,
-                  endAdornment: (
-                    <IconButton
-                      onClick={handleCopyUrl}
-                      size="small"
-                      sx={{
-                        color: copied ? '#10b981' : '#6b7280',
-                        '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.1)' }
-                      }}
-                    >
-                      <CopyIcon fontSize="small" />
-                    </IconButton>
-                  ),
-                  sx: {
-                    backgroundColor: 'white',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#d1d5db'
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#5e17eb'
+              {/* URL表示 */}
+              <Box sx={{ width: '100%' }}>
+                <Paper
+                  elevation={0}
+                  onClick={handleCopyUrl}
+                  sx={{
+                    p: 2,
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: 2,
+                    width: '100%',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      borderColor: '#5e17eb',
+                      backgroundColor: 'rgba(94, 23, 235, 0.02)'
                     }
-                  }
-                }}
-                sx={{ fontSize: '0.85rem' }}
-              />
-              
-              {copied && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
+                  }}
                 >
-                  <Chip
-                    label="コピーしました！"
-                    size="small"
-                    color="success"
-                    sx={{ mt: 1, fontSize: '0.75rem' }}
-                  />
-                </motion.div>
-              )}
-            </Paper>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: '#374151',
+                      fontSize: '0.8rem',
+                      wordBreak: 'break-all',
+                      lineHeight: 1.4
+                    }}
+                  >
+                    {previewUrl}
+                  </Typography>
+                </Paper>
+                
+                {copied && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <Chip
+                      label="コピー完了"
+                      size="small"
+                      color="success"
+                      sx={{ 
+                        mt: 1.5, 
+                        fontSize: '0.75rem',
+                        height: 24
+                      }}
+                    />
+                  </motion.div>
+                )}
+              </Box>
 
-            {/* ボタン */}
-            <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
-              <Button
-                variant="outlined"
-                onClick={handleCopyUrl}
-                startIcon={<CopyIcon />}
-                sx={{
-                  flex: 1,
-                  borderColor: '#d1d5db',
-                  color: '#374151',
-                  '&:hover': {
-                    borderColor: '#5e17eb',
-                    backgroundColor: 'rgba(94, 23, 235, 0.05)'
-                  }
-                }}
-              >
-                URLをコピー
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleOpenPreview}
-                startIcon={<LaunchIcon />}
-                sx={{
-                  flex: 1,
-                  backgroundColor: '#5e17eb',
-                  '&:hover': { backgroundColor: '#4c1d95' },
-                  boxShadow: '0 4px 12px rgba(94, 23, 235, 0.4)'
-                }}
-              >
-                プレビューを開く
-              </Button>
-            </Box>
-          </DialogActions>
+              {/* アクションボタン */}
+              <Stack direction="row" spacing={2} sx={{ width: '100%' }}>
+                <Button
+                  variant="outlined"
+                  onClick={handleCopyUrl}
+                  startIcon={<CopyIcon fontSize="small" />}
+                  sx={{
+                    flex: 1,
+                    borderColor: '#d1d5db',
+                    color: '#374151',
+                    fontSize: '0.85rem',
+                    py: 1.2,
+                    '&:hover': {
+                      borderColor: '#5e17eb',
+                      backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                    }
+                  }}
+                >
+                  コピー
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleOpenPreview}
+                  startIcon={<LaunchIcon fontSize="small" />}
+                  sx={{
+                    flex: 1,
+                    backgroundColor: '#5e17eb',
+                    fontSize: '0.85rem',
+                    py: 1.2,
+                    '&:hover': { backgroundColor: '#4c1d95' },
+                    boxShadow: '0 4px 12px rgba(94, 23, 235, 0.3)'
+                  }}
+                >
+                  開く
+                </Button>
+              </Stack>
+            </Stack>
+          </Box>
         </Dialog>
       )}
     </AnimatePresence>
