@@ -20,8 +20,8 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
                     question.scale_labels ? JSON.parse(question.scale_labels) : {};
   const minLabel = scaleData.minLabel || scaleData.min_label || 'そう思わない';
   const maxLabel = scaleData.maxLabel || scaleData.max_label || 'そう思う';
-  const minValue = scaleData.minValue || 1;
-  const maxValue = scaleData.maxValue || 5;
+  const minValue = scaleData.minValue !== null && scaleData.minValue !== undefined ? scaleData.minValue : 1;
+  const maxValue = scaleData.maxValue !== null && scaleData.maxValue !== undefined ? scaleData.maxValue : 5;
   
   // 動的にスケール配列を生成
   const scaleOptions = [];

@@ -1226,7 +1226,7 @@ const QuestionSettingsMenu = ({
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <StylishTextField
                       label="最小値"
-                      value={localScaleSettings.minValue}
+                      value={localScaleSettings.minValue ?? ''}
                       onChange={(e) => {
                         const value = e.target.value.trim();
                         if (value === '') {
@@ -1241,7 +1241,7 @@ const QuestionSettingsMenu = ({
                     />
                     <StylishTextField
                       label="最大値"
-                      value={localScaleSettings.maxValue}
+                      value={localScaleSettings.maxValue ?? ''}
                       onChange={(e) => {
                         const value = e.target.value.trim();
                         if (value === '') {
