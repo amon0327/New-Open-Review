@@ -1123,6 +1123,37 @@ const QuestionSettingsMenu = ({
                 </Stack>
               </Box>
             )}
+
+            {/* 質問削除ボタン */}
+            <Box sx={{ pt: 2, mt: 2, borderTop: '1px solid #E5E7EB' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<DeleteIcon />}
+                onClick={() => {
+                  if (onQuestionDelete && selectedQuestion) {
+                    onQuestionDelete(selectedQuestion.id);
+                  }
+                }}
+                sx={{
+                  borderColor: '#DC2626',
+                  color: '#DC2626',
+                  textTransform: 'none',
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  px: 2,
+                  py: 0.75,
+                  width: '100%',
+                  '&:hover': {
+                    borderColor: '#B91C1C',
+                    backgroundColor: 'rgba(220, 38, 38, 0.04)',
+                    color: '#B91C1C'
+                  }
+                }}
+              >
+                この質問を削除
+              </Button>
+            </Box>
           </Stack>
         );
 
