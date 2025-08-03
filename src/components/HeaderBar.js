@@ -22,7 +22,8 @@ import {
   ErrorOutline,
   WarningAmber,
   CheckCircle,
-  Close
+  Close,
+  CheckCircleOutline
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 import PreviewUrlDialog from './PreviewUrlDialog';
@@ -224,7 +225,7 @@ const HeaderBar = ({
         {/* エラー・警告表示 */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 1 }}>
           {/* エラー件数 */}
-          <Tooltip title={errorCount > 0 ? `${errorCount}件のエラーがあります` : 'エラーはありません'}>
+          <Tooltip title={errorCount > 0 ? `${errorCount}件のエラーがあります` : 'エラーチェック完了'}>
             <Box
               onClick={errorCount > 0 ? handleErrorClick : undefined}
               sx={{
@@ -235,8 +236,8 @@ const HeaderBar = ({
                 py: 0.5,
                 borderRadius: 1.5,
                 cursor: errorCount > 0 ? 'pointer' : 'default',
-                backgroundColor: errorCount > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)',
-                border: `1px solid ${errorCount > 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`,
+                backgroundColor: errorCount > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.08)',
+                border: `1px solid ${errorCount > 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.25)'}`,
                 transition: 'all 0.2s ease',
                 '&:hover': errorCount > 0 ? {
                   backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -247,7 +248,7 @@ const HeaderBar = ({
               {errorCount > 0 ? (
                 <ErrorOutline sx={{ color: '#ef4444', fontSize: '1rem' }} />
               ) : (
-                <CheckCircle sx={{ color: '#10b981', fontSize: '1rem' }} />
+                <CheckCircleOutline sx={{ color: '#10b981', fontSize: '1rem' }} />
               )}
               
               {errorCount > 0 && (
@@ -273,7 +274,7 @@ const HeaderBar = ({
           </Tooltip>
 
           {/* 警告件数 */}
-          <Tooltip title={warningCount > 0 ? `${warningCount}件の警告があります` : '警告はありません'}>
+          <Tooltip title={warningCount > 0 ? `${warningCount}件の警告があります` : '警告チェック完了'}>
             <Box
               onClick={warningCount > 0 ? handleWarningClick : undefined}
               sx={{
@@ -284,8 +285,8 @@ const HeaderBar = ({
                 py: 0.5,
                 borderRadius: 1.5,
                 cursor: warningCount > 0 ? 'pointer' : 'default',
-                backgroundColor: warningCount > 0 ? 'rgba(245, 158, 11, 0.05)' : 'rgba(16, 185, 129, 0.05)',
-                border: `1px solid ${warningCount > 0 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`,
+                backgroundColor: warningCount > 0 ? 'rgba(245, 158, 11, 0.05)' : 'rgba(16, 185, 129, 0.08)',
+                border: `1px solid ${warningCount > 0 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.25)'}`,
                 transition: 'all 0.2s ease',
                 '&:hover': warningCount > 0 ? {
                   backgroundColor: 'rgba(245, 158, 11, 0.1)',
@@ -296,7 +297,7 @@ const HeaderBar = ({
               {warningCount > 0 ? (
                 <WarningAmber sx={{ color: '#f59e0b', fontSize: '1rem' }} />
               ) : (
-                <CheckCircle sx={{ color: '#10b981', fontSize: '1rem' }} />
+                <CheckCircleOutline sx={{ color: '#10b981', fontSize: '1rem' }} />
               )}
               
               {warningCount > 0 && (
