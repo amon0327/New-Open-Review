@@ -65,6 +65,26 @@ export const validateForm = (formData) => {
     });
   }
 
+  // 2.5. 各質問ページに最低1つの質問が存在するかチェック
+  console.log('Starting page-level question validation');
+  questionPages.forEach((page, pageIndex) => {
+    const pageQuestions = questions.filter(q => q.review_form_pages_id === page.id);
+    console.log(`Page ${pageIndex + 1} (${page.title || page.name || 'Unknown'}):`, {
+      pageId: page.id,
+      questionCount: pageQuestions.length,
+      questions: pageQuestions.map(q => ({ id: q.id, text: q.question_text || q.question }))
+    });
+    
+    if (pageQuestions.length === 0) {
+      errors.push({
+        id: `missing-questions-page-${page.id}`,
+        message: `「${page.title || page.name || 'ページ'}」に質問が設定されていません`,
+        location: '質問設定',
+        action: 'openSettings'
+      });
+    }
+  });
+
   // 3. 質問が存在するかチェック（全体で最低1つ必要）
   if (questions.length === 0) {
     errors.push({
