@@ -402,7 +402,7 @@ const HeaderBar = ({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <ErrorOutline sx={{ color: '#ef4444', fontSize: '1.1rem' }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
-              エラー一覧 ({errorCount}件)
+              エラー ({errorCount}件)
             </Typography>
           </Box>
         </Box>
@@ -465,7 +465,7 @@ const HeaderBar = ({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <WarningAmber sx={{ color: '#f59e0b', fontSize: '1.1rem' }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
-              警告一覧 ({warningCount}件)
+              警告 ({warningCount}件)
             </Typography>
           </Box>
         </Box>
