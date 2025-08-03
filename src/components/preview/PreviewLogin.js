@@ -64,6 +64,10 @@ const PreviewLogin = ({
   const detailText = (loginScreenSettings.detail_text !== undefined && loginScreenSettings.detail_text !== '') 
     ? loginScreenSettings.detail_text 
     : (loginDetailText || (loginData?.loginSettings?.detail_text) || 'テキストを入力...');
+
+  // ヒントテキストかどうかを判定
+  const isTitleHint = titleText === 'テキストを入力...';
+  const isDetailHint = detailText === 'テキストを入力...';
   const displayButtonText = buttonText || '回答へ進む';
   const displayButtonUrl = buttonUrl || '#';
 
@@ -174,7 +178,7 @@ const PreviewLogin = ({
                 onElementSelect && onElementSelect('login-title');
               }}
               sx={{
-                color: 'white',
+                color: isTitleHint ? 'rgba(255, 255, 255, 0.5)' : 'white',
                 fontWeight: 700,
                 mb: isMobile ? 3 : 4,
                 fontSize: isMobile ? 'clamp(1.5rem, 5vw, 1.8rem)' : 'clamp(2rem, 3vw, 2.5rem)',
@@ -188,6 +192,7 @@ const PreviewLogin = ({
                 position: 'relative',
                 zIndex: 2,
                 transition: 'all 0.3s ease',
+                fontStyle: isTitleHint ? 'italic' : 'normal',
                 '&::after': selectedElement === 'login-title' ? {
                   content: '""',
                   position: 'absolute',
@@ -213,7 +218,7 @@ const PreviewLogin = ({
                 onElementSelect && onElementSelect('login-detail');
               }}
               sx={{
-                color: 'rgba(255, 255, 255, 0.85)',
+                color: isDetailHint ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.85)',
                 mb: isMobile ? 4 : 5,
                 lineHeight: 1.7,
                 fontSize: isMobile ? '0.95rem' : '1.1rem',
@@ -227,6 +232,7 @@ const PreviewLogin = ({
                 position: 'relative',
                 zIndex: 2,
                 transition: 'all 0.3s ease',
+                fontStyle: isDetailHint ? 'italic' : 'normal',
                 '&::after': selectedElement === 'login-detail' ? {
                   content: '""',
                   position: 'absolute',

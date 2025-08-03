@@ -71,6 +71,11 @@ const PreviewCompletion = ({
     ? completionScreenSettings.detail_text 
     : (completionDetailText || (completionData?.completionSettings?.detail_text) || 'テキストを入力...');
 
+  // ヒントテキストかどうかを判定
+  const isTitleHint = titleText === 'テキストを入力...';
+  const isDetailHint = detailText === 'テキストを入力...';
+  const isButtonHint = displayButtonText === 'テキストを入力...';
+
   // ボタン設定（1つのボタンのみ使用）
   const buttonEnabled = completionScreenSettings.is_button_1_enabled !== undefined 
     ? completionScreenSettings.is_button_1_enabled 
@@ -200,7 +205,7 @@ const PreviewCompletion = ({
               onElementSelect && onElementSelect('completion-title');
             }}
             sx={{
-              color: 'white',
+              color: isTitleHint ? 'rgba(255, 255, 255, 0.5)' : 'white',
               fontWeight: 700,
               mb: isMobile ? 3 : 4,
               fontSize: isMobile ? 'clamp(1.5rem, 5vw, 1.8rem)' : 'clamp(2rem, 3vw, 2.5rem)',
@@ -214,6 +219,7 @@ const PreviewCompletion = ({
               position: 'relative',
               zIndex: 2,
               transition: 'all 0.3s ease',
+              fontStyle: isTitleHint ? 'italic' : 'normal',
               '&::after': selectedElement === 'completion-title' ? {
                 content: '""',
                 position: 'absolute',
@@ -239,7 +245,7 @@ const PreviewCompletion = ({
               onElementSelect && onElementSelect('completion-detail');
             }}
             sx={{
-              color: 'rgba(255, 255, 255, 0.85)',
+              color: isDetailHint ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.85)',
               mb: isMobile ? 4 : 5,
               lineHeight: 1.7,
               fontSize: isMobile ? '0.95rem' : '1.1rem',
@@ -253,6 +259,7 @@ const PreviewCompletion = ({
               position: 'relative',
               zIndex: 2,
               transition: 'all 0.3s ease',
+              fontStyle: isDetailHint ? 'italic' : 'normal',
               '&::after': selectedElement === 'completion-detail' ? {
                 content: '""',
                 position: 'absolute',
@@ -288,7 +295,7 @@ const PreviewCompletion = ({
               }}
               sx={{
                 backgroundColor: themeColor,
-                color: 'white',
+                color: isButtonHint ? 'rgba(255, 255, 255, 0.6)' : 'white',
                 width: '280px',
                 height: isMobile ? 56 : 64,
                 borderRadius: isMobile ? '28px' : '32px',
@@ -302,6 +309,7 @@ const PreviewCompletion = ({
                 position: 'relative',
                 zIndex: 2,
                 transition: 'all 0.3s ease',
+                fontStyle: isButtonHint ? 'italic' : 'normal',
                 '&:hover': {
                   backgroundColor: themeColor,
                   boxShadow: '0 16px 50px rgba(0, 0, 0, 0.35)',
