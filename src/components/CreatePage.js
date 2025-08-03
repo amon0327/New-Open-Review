@@ -1107,6 +1107,28 @@ export default function CreatePage({ onBackClick, user, formId }) {
     setSelectedElement(null); // 基本設定要素の選択を解除
   };
 
+  // エラーリストから要素ハイライト用ハンドラー
+  const handleElementHighlight = (highlightData) => {
+    if (!highlightData) return;
+
+    const { elementType, questionId } = highlightData;
+
+    if (elementType === 'question' && questionId) {
+      // 質問をハイライトする場合
+      handleQuestionSelect(questionId);
+      
+      // 質問が存在するページに移動
+      const questionPage = pages.find(page => {
+        const pageQuestions = getQuestionsForPage(page.id);
+        return pageQuestions.some(q => q.id === questionId);
+      });
+      
+      if (questionPage && questionPage.id !== selectedPage?.id) {
+        setSelectedPage(questionPage);
+      }
+    }
+  };
+
   // 質問更新ハンドラー（楽観的UI更新）
   const handleQuestionUpdate = async (questionId, updates) => {
     if (!selectedPage) return;
@@ -1729,6 +1751,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
             setShowSettings(true);
           }}
           onQuestionSelect={handleQuestionSelect}
+          onHighlightElement={handleElementHighlight}
         />
 
         {/* メインコンテンツエリア */}

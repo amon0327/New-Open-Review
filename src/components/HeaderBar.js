@@ -51,6 +51,8 @@ const HeaderBar = ({
   onOpenSettings,
   // 質問選択用のコールバック関数
   onQuestionSelect,
+  // エラーハイライト用のコールバック関数
+  onHighlightElement,
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
@@ -91,9 +93,16 @@ const HeaderBar = ({
     // エラー項目がクリックされた時の処理
     setErrorAnchorEl(null); // ポップオーバーを閉じる
     
-    // 質問関連のエラーの場合は質問を選択
+    // 質問関連のエラーの場合は質問を選択とハイライト
     if (error.questionId && onQuestionSelect) {
       onQuestionSelect(error.questionId);
+      // プレビュー画面で質問をハイライト
+      if (onHighlightElement) {
+        onHighlightElement({
+          elementType: 'question',
+          questionId: error.questionId
+        });
+      }
     }
     
     // actionに基づいて適切な設定画面を開く
@@ -120,9 +129,16 @@ const HeaderBar = ({
     // 警告項目がクリックされた時の処理
     setWarningAnchorEl(null); // ポップオーバーを閉じる
     
-    // 質問関連の警告の場合は質問を選択
+    // 質問関連の警告の場合は質問を選択とハイライト
     if (warning.questionId && onQuestionSelect) {
       onQuestionSelect(warning.questionId);
+      // プレビュー画面で質問をハイライト
+      if (onHighlightElement) {
+        onHighlightElement({
+          elementType: 'question',
+          questionId: warning.questionId
+        });
+      }
     }
     
     // actionに基づいて適切な設定画面を開く
