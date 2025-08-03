@@ -133,7 +133,12 @@ const StylishTextField = ({ label, value, onChange, onBlur, multiline = false, r
             fontSize: '0.875rem',
             resize: 'none',
             lineHeight: '1.4375em',
-            verticalAlign: 'top'
+            verticalAlign: 'top',
+            '&::-webkit-scrollbar': {
+              display: 'none'
+            },
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
           },
           '& textarea.MuiOutlinedInput-input::placeholder': {
             lineHeight: '1.4375em',
