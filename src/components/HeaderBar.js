@@ -125,6 +125,14 @@ const HeaderBar = ({
         break;
     }
   };
+
+  const handlePreviewClick = () => {
+    if (errorCount > 0) {
+      alert(`エラーが${errorCount}件あります。エラーを解消してからプレビューを表示してください。`);
+      return;
+    }
+    setShowPreviewDialog(true);
+  };
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
     setProjectTitle(newTitle);
@@ -347,7 +355,7 @@ const HeaderBar = ({
         
         <Tooltip title="プレビュー">
           <IconButton 
-            onClick={() => setShowPreviewDialog(true)}
+            onClick={handlePreviewClick}
             sx={iconButtonStyles.secondary}
           >
             <Preview />
