@@ -367,6 +367,18 @@ const QuestionSettingsMenu = ({
     }
   }, [selectedQuestion]);
 
+  // タイマーのクリーンアップ処理
+  useEffect(() => {
+    return () => {
+      if (choiceUpdateTimeoutRef.current) {
+        clearTimeout(choiceUpdateTimeoutRef.current);
+      }
+      if (scaleUpdateTimeoutRef.current) {
+        clearTimeout(scaleUpdateTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // ログイン画面設定のローカル状態を初期化
   useEffect(() => {
     setLocalLoginTitle(loginScreenSettings.title_text || loginTitle || '');
@@ -627,7 +639,9 @@ const QuestionSettingsMenu = ({
 
   // デバウンス処理用のref
   const choiceUpdateTimeoutRef = useRef(null);
+  const scaleUpdateTimeoutRef = useRef(null);
   const [isChoiceUpdating, setIsChoiceUpdating] = useState(false);
+  const [isScaleUpdating, setIsScaleUpdating] = useState(false);
 
   // 選択肢の更新（専用テーブルに直接保存） - デバウンス処理付き
   const handleChoicesUpdate = useCallback((choices) => {
@@ -750,17 +764,38 @@ const QuestionSettingsMenu = ({
     };
   }, []);
 
-  // スケール設定の楽観的更新（専用テーブルに直接保存）
-  const handleScaleUpdate = (field, value) => {
+  // スケール設定の楽観的更新（専用テーブルに直接保存） - デバウンス処理付き
+  const handleScaleUpdate = useCallback((field, value) => {
     // 即座にローカル状態を更新
     const newSettings = { ...localScaleSettings, [field]: value };
     setLocalScaleSettings(newSettings);
     
-    // 専用テーブルに保存（プレビューには楽観的更新で即座に反映）
+    // 専用テーブルに保存（デバウンス処理付き）
     if (onLinearScaleOptionsUpdate && selectedQuestion) {
-      onLinearScaleOptionsUpdate(selectedQuestion.id, newSettings);
+      // 既存のタイマーをクリア
+      if (scaleUpdateTimeoutRef.current) {
+        clearTimeout(scaleUpdateTimeoutRef.current);
+      }
+
+      setIsScaleUpdating(true);
+      
+      // 500ms後に実際の更新処理を実行
+      scaleUpdateTimeoutRef.current = setTimeout(async () => {
+        try {
+          await onLinearScaleOptionsUpdate(selectedQuestion.id, newSettings);
+        } catch (error) {
+          console.error('Scale update error (debounced):', error);
+          // エラー時はローカル状態を元に戻す
+          if (selectedQuestion.scale_settings) {
+            const originalSettings = JSON.parse(selectedQuestion.scale_settings);
+            setLocalScaleSettings(originalSettings);
+          }
+        } finally {
+          setIsScaleUpdating(false);
+        }
+      }, 500);
     }
-  };
+  }, [localScaleSettings, onLinearScaleOptionsUpdate, selectedQuestion]);
 
   // カラー変更ハンドラー（プレビューにリアルタイム反映のみ）
   const handleColorChange = (color) => {
