@@ -7,13 +7,12 @@ import {
   Tooltip,
   Input,
   Badge,
-  Dialog,
-  DialogTitle,
-  DialogContent,
+  Popover,
   List,
   ListItem,
   ListItemIcon,
-  ListItemText
+  ListItemText,
+  Divider
 } from '@mui/material';
 import {
   Preview,
@@ -44,9 +43,9 @@ const HeaderBar = ({
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
   // プレビューダイアログの状態
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
-  // エラー・警告ダイアログの状態
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-  const [warningDialogOpen, setWarningDialogOpen] = useState(false);
+  // エラー・警告ポップオーバーの状態
+  const [errorAnchorEl, setErrorAnchorEl] = useState(null);
+  const [warningAnchorEl, setWarningAnchorEl] = useState(null);
 
   // モック用のエラー・警告データ（実際の実装時は props や state から取得）
   const errors = [
@@ -62,6 +61,22 @@ const HeaderBar = ({
 
   const errorCount = errors.length;
   const warningCount = warnings.length;
+
+  const handleErrorClick = (event) => {
+    setErrorAnchorEl(event.currentTarget);
+  };
+
+  const handleWarningClick = (event) => {
+    setWarningAnchorEl(event.currentTarget);
+  };
+
+  const handleErrorClose = () => {
+    setErrorAnchorEl(null);
+  };
+
+  const handleWarningClose = () => {
+    setWarningAnchorEl(null);
+  };
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
     setProjectTitle(newTitle);
@@ -199,7 +214,7 @@ const HeaderBar = ({
           <Tooltip title={errorCount > 0 ? `${errorCount}件のエラーがあります` : 'エラーはありません'}>
             <IconButton
               size="small"
-              onClick={() => errorCount > 0 && setErrorDialogOpen(true)}
+              onClick={errorCount > 0 ? handleErrorClick : undefined}
               sx={{
                 color: errorCount > 0 ? '#ef4444' : '#10b981',
                 '&:hover': {
@@ -221,7 +236,7 @@ const HeaderBar = ({
           <Tooltip title={warningCount > 0 ? `${warningCount}件の警告があります` : '警告はありません'}>
             <IconButton
               size="small"
-              onClick={() => warningCount > 0 && setWarningDialogOpen(true)}
+              onClick={warningCount > 0 ? handleWarningClick : undefined}
               sx={{
                 color: warningCount > 0 ? '#f59e0b' : '#10b981',
                 '&:hover': {
@@ -269,135 +284,129 @@ const HeaderBar = ({
         formId={formId}
       />
 
-      {/* エラー詳細ダイアログ */}
-      <Dialog
-        open={errorDialogOpen}
-        onClose={() => setErrorDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
+      {/* エラー詳細ポップオーバー */}
+      <Popover
+        open={Boolean(errorAnchorEl)}
+        anchorEl={errorAnchorEl}
+        onClose={handleErrorClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
         PaperProps={{
           sx: {
-            borderRadius: 3,
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)'
+            borderRadius: 2,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            border: '1px solid #f3f4f6',
+            mt: 1,
+            maxWidth: 400,
+            minWidth: 300
           }
         }}
       >
-        <DialogTitle
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            pb: 1,
-            borderBottom: '1px solid #f3f4f6'
-          }}
-        >
+        <Box sx={{ p: 2, borderBottom: '1px solid #f3f4f6' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Error sx={{ color: '#ef4444' }} />
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151' }}>
+            <Error sx={{ color: '#ef4444', fontSize: '1.1rem' }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
               エラー一覧 ({errorCount}件)
             </Typography>
           </Box>
-          <IconButton
-            size="small"
-            onClick={() => setErrorDialogOpen(false)}
-            sx={{ color: '#6b7280' }}
-          >
-            <Close fontSize="small" />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ p: 0 }}>
-          <List>
-            {errors.map((error, index) => (
-              <ListItem
-                key={error.id}
-                sx={{
-                  borderBottom: index < errors.length - 1 ? '1px solid #f3f4f6' : 'none',
-                  '&:hover': { backgroundColor: '#fef2f2' }
+        </Box>
+        <List sx={{ p: 0, maxHeight: 300, overflow: 'auto' }}>
+          {errors.map((error, index) => (
+            <ListItem
+              key={error.id}
+              sx={{
+                borderBottom: index < errors.length - 1 ? '1px solid #f9fafb' : 'none',
+                '&:hover': { backgroundColor: '#fef2f2' },
+                cursor: 'pointer',
+                px: 2,
+                py: 1.5
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <Error sx={{ color: '#ef4444', fontSize: '1rem' }} />
+              </ListItemIcon>
+              <ListItemText
+                primary={error.message}
+                secondary={error.location}
+                primaryTypographyProps={{
+                  sx: { fontWeight: 500, color: '#374151', fontSize: '0.85rem', lineHeight: 1.4 }
                 }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <Error sx={{ color: '#ef4444', fontSize: '1.2rem' }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={error.message}
-                  secondary={error.location}
-                  primaryTypographyProps={{
-                    sx: { fontWeight: 500, color: '#374151', fontSize: '0.9rem' }
-                  }}
-                  secondaryTypographyProps={{
-                    sx: { color: '#6b7280', fontSize: '0.8rem', mt: 0.5 }
-                  }}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </DialogContent>
-      </Dialog>
+                secondaryTypographyProps={{
+                  sx: { color: '#6b7280', fontSize: '0.75rem', mt: 0.25 }
+                }}
+              />
+            </ListItem>
+          ))}
+        </List>
+      </Popover>
 
-      {/* 警告詳細ダイアログ */}
-      <Dialog
-        open={warningDialogOpen}
-        onClose={() => setWarningDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
+      {/* 警告詳細ポップオーバー */}
+      <Popover
+        open={Boolean(warningAnchorEl)}
+        anchorEl={warningAnchorEl}
+        onClose={handleWarningClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
         PaperProps={{
           sx: {
-            borderRadius: 3,
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15)'
+            borderRadius: 2,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            border: '1px solid #f3f4f6',
+            mt: 1,
+            maxWidth: 400,
+            minWidth: 300
           }
         }}
       >
-        <DialogTitle
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            pb: 1,
-            borderBottom: '1px solid #f3f4f6'
-          }}
-        >
+        <Box sx={{ p: 2, borderBottom: '1px solid #f3f4f6' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Warning sx={{ color: '#f59e0b' }} />
-            <Typography variant="h6" sx={{ fontWeight: 600, color: '#374151' }}>
+            <Warning sx={{ color: '#f59e0b', fontSize: '1.1rem' }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
               警告一覧 ({warningCount}件)
             </Typography>
           </Box>
-          <IconButton
-            size="small"
-            onClick={() => setWarningDialogOpen(false)}
-            sx={{ color: '#6b7280' }}
-          >
-            <Close fontSize="small" />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ p: 0 }}>
-          <List>
-            {warnings.map((warning, index) => (
-              <ListItem
-                key={warning.id}
-                sx={{
-                  borderBottom: index < warnings.length - 1 ? '1px solid #f3f4f6' : 'none',
-                  '&:hover': { backgroundColor: '#fffbeb' }
+        </Box>
+        <List sx={{ p: 0, maxHeight: 300, overflow: 'auto' }}>
+          {warnings.map((warning, index) => (
+            <ListItem
+              key={warning.id}
+              sx={{
+                borderBottom: index < warnings.length - 1 ? '1px solid #f9fafb' : 'none',
+                '&:hover': { backgroundColor: '#fffbeb' },
+                cursor: 'pointer',
+                px: 2,
+                py: 1.5
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                <Warning sx={{ color: '#f59e0b', fontSize: '1rem' }} />
+              </ListItemIcon>
+              <ListItemText
+                primary={warning.message}
+                secondary={warning.location}
+                primaryTypographyProps={{
+                  sx: { fontWeight: 500, color: '#374151', fontSize: '0.85rem', lineHeight: 1.4 }
                 }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <Warning sx={{ color: '#f59e0b', fontSize: '1.2rem' }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={warning.message}
-                  secondary={warning.location}
-                  primaryTypographyProps={{
-                    sx: { fontWeight: 500, color: '#374151', fontSize: '0.9rem' }
-                  }}
-                  secondaryTypographyProps={{
-                    sx: { color: '#6b7280', fontSize: '0.8rem', mt: 0.5 }
-                  }}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </DialogContent>
-      </Dialog>
+                secondaryTypographyProps={{
+                  sx: { color: '#6b7280', fontSize: '0.75rem', mt: 0.25 }
+                }}
+              />
+            </ListItem>
+          ))}
+        </List>
+      </Popover>
     </Paper>
   );
 };
