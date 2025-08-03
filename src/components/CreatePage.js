@@ -522,12 +522,12 @@ export default function CreatePage({ onBackClick, user, formId }) {
   useEffect(() => {
     if (selectedPage && selectedPage.type === 'question' && formId) {
       // 既に質問データが存在する場合は再読み込みしない（設定画面から戻った場合を考慮）
-      const existingQuestions = getQuestionsForPage(selectedPage.id);
+      const existingQuestions = questionsData[selectedPage.id] || [];
       if (existingQuestions.length === 0) {
         loadQuestionsForPage(selectedPage.id);
       }
     }
-  }, [selectedPage, formId, loadQuestionsForPage, getQuestionsForPage]);
+  }, [selectedPage, formId, loadQuestionsForPage, questionsData]);
 
   // Supabaseから取得した質問タイプデータを既存フォーマットに変換
   const convertedQuestionTypes = questionTypesData.map(qType => ({
@@ -614,7 +614,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     const allQuestionsArray = [];
     
     questionPages.forEach(page => {
-      const pageQuestions = getQuestionsForPage(page.id);
+      const pageQuestions = questionsData[page.id] || [];
       // 各質問にページIDを確実に付加
       const questionsWithPageId = pageQuestions.map(question => ({
         ...question,
@@ -625,7 +625,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     });
     
     return allQuestionsArray;
-  }, [pages, questionsData, getQuestionsForPage]);
+  }, [pages, questionsData]);
 
   // デバッグ用：質問データの変化をログ出力（selectedPageが変更された時のみ）
   useEffect(() => {
