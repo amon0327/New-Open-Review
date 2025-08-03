@@ -71,17 +71,17 @@ const PreviewCompletion = ({
     ? completionScreenSettings.detail_text 
     : (completionDetailText || (completionData?.completionSettings?.detail_text) || 'テキストを入力...');
 
-  // ヒントテキストかどうかを判定
-  const isTitleHint = titleText === 'テキストを入力...';
-  const isDetailHint = detailText === 'テキストを入力...';
-  const isButtonHint = displayButtonText === 'テキストを入力...';
-
   // ボタン設定（1つのボタンのみ使用）
   const buttonEnabled = completionScreenSettings.is_button_1_enabled !== undefined 
     ? completionScreenSettings.is_button_1_enabled 
     : (completionData?.completionSettings?.is_button_1_enabled ?? true);
   const displayButtonText = completionScreenSettings.button_text_1 || buttonText || (completionData?.completionSettings?.button_text_1) || 'テキストを入力...';
   const displayButtonUrl = completionScreenSettings.button_url_1 || buttonUrl || (completionData?.completionSettings?.button_url_1) || '#';
+
+  // ヒントテキストかどうかを判定
+  const isTitleHint = titleText === 'テキストを入力...';
+  const isDetailHint = detailText === 'テキストを入力...';
+  const isButtonHint = displayButtonText === 'テキストを入力...';
 
   const handleButtonClick = () => {
     // プレビュー用なので何もしない
