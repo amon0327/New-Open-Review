@@ -141,24 +141,8 @@ const HeaderBar = ({
       }
     }
     
-    // actionに基づいて適切な設定画面を開く
-    switch (warning.action) {
-      case 'openSettings':
-        onOpenSettings && onOpenSettings('project');
-        break;
-      case 'openDesignSettings':
-        onOpenDesignSettings && onOpenDesignSettings('design');
-        break;
-      case 'openLoginSettings':
-        onOpenLoginSettings && onOpenLoginSettings('login');
-        break;
-      case 'openCompletionSettings':
-        onOpenCompletionSettings && onOpenCompletionSettings('completion');
-        break;
-      default:
-        // フォールバック: 一般設定を開く
-        onOpenSettings && onOpenSettings('project');
-    }
+    // 警告クリック時の遷移を無効化
+    // 何もしない
   };
 
   const handlePreviewClick = () => {
