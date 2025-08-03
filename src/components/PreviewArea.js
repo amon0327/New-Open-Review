@@ -227,7 +227,7 @@ const PreviewArea = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      px: isCenter ? 3 : 2,
+                      px: isCenter ? 2 : 1.5,
                       py: isCenter ? 1.5 : 1,
                       borderRadius: 3,
                       backgroundColor: isActive ? '#5e17eb' : 'rgba(255, 255, 255, 0.9)',
