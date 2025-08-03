@@ -24,11 +24,11 @@ class CompletionScreenService {
       return {
         success: true,
         data: data || {
-          title_text: 'ありがとうございました！',
-          detail_text: 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。',
+          title_text: '',
+          detail_text: '',
           background_image_url: 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg',
           is_button_1_enabled: true,
-          button_text_1: '完了',
+          button_text_1: '',
           button_url_1: '#'
         }
       };

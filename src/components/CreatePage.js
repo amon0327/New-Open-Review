@@ -245,11 +245,11 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // 完了画面設定の状態
   const [completionScreenSettings, setCompletionScreenSettings] = useState({
-    title_text: 'ありがとうございました！',
-    detail_text: 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。',
+    title_text: '',
+    detail_text: '',
     background_image_url: 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg',
     is_button_1_enabled: true,
-    button_text_1: '完了',
+    button_text_1: '',
     button_url_1: '#'
   });
   const [isLoadingCompletionSettings, setIsLoadingCompletionSettings] = useState(false);
@@ -287,8 +287,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
   // テキスト設定の状態（後方互換性のため残す）
   const [loginTitle, setLoginTitle] = useState('');
   const [loginDetail, setLoginDetail] = useState('');
-  const [completionTitle, setCompletionTitle] = useState('ありがとうございました！');
-  const [completionDetail, setCompletionDetail] = useState('あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。');
+  const [completionTitle, setCompletionTitle] = useState('');
+  const [completionDetail, setCompletionDetail] = useState('');
   const [completionBackground, setCompletionBackground] = useState('https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg');
 
   // 質問タイプの文字列を数値IDにマッピング（Supabaseのデータを優先）
@@ -451,8 +451,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
             const completionData = result.data.completion_screen_settings[0];
             setCompletionScreenSettings(completionData);
             // 後方互換性のため、completionTitle、completionDetail、completionBackgroundも更新
-            setCompletionTitle(completionData.title_text || 'ありがとうございました！');
-            setCompletionDetail(completionData.detail_text || 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。');
+            setCompletionTitle(completionData.title_text || '');
+            setCompletionDetail(completionData.detail_text || '');
             setCompletionBackground(completionData.background_image_url || 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg');
           }
         } catch (error) {
