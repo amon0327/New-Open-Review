@@ -66,10 +66,10 @@ const PreviewCompletion = ({
   const logoUrl = logoImage || completionLogoImage || formSettings.logo_image_url || (completionData?.formSettings?.logo_image_url) || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   const titleText = (completionScreenSettings.title_text !== undefined && completionScreenSettings.title_text !== '') 
     ? completionScreenSettings.title_text 
-    : (completionTitleText || (completionData?.completionSettings?.title_text) || 'ありがとうございました！');
+    : (completionTitleText || (completionData?.completionSettings?.title_text) || 'テキストを入力...');
   const detailText = (completionScreenSettings.detail_text !== undefined && completionScreenSettings.detail_text !== '') 
     ? completionScreenSettings.detail_text 
-    : (completionDetailText || (completionData?.completionSettings?.detail_text) || 'あなたの貴重なご意見をお聞かせいただき、ありがとうございました。いただいたフィードバックは今後のサービス向上に活用させていただきます。');
+    : (completionDetailText || (completionData?.completionSettings?.detail_text) || 'テキストを入力...');
 
   // ボタン設定（1つのボタンのみ使用）
   const buttonEnabled = completionScreenSettings.is_button_1_enabled !== undefined 

@@ -2337,7 +2337,7 @@ const QuestionSettingsMenu = ({
                     value={localLoginTitle}
                     onChange={(e) => handleLoginTitleChange(e.target.value)}
                     onBlur={handleLoginTitleBlur}
-                    placeholder="OpenReviewへようこそ！"
+                    placeholder="テキストを入力"
                   />
                 </AccordionDetails>
               </Accordion>
@@ -2410,7 +2410,7 @@ const QuestionSettingsMenu = ({
                     multiline
                     minRows={1}
                     maxRows={3}
-                    placeholder="あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。"
+                    placeholder="テキストを入力"
                   />
                 </AccordionDetails>
               </Accordion>
@@ -2750,7 +2750,7 @@ const QuestionSettingsMenu = ({
                   value={localCompletionTitle}
                   onChange={(e) => handleCompletionTitleChange(e.target.value)}
                   onBlur={handleCompletionTitleBlur}
-                  placeholder="完了画面のタイトル"
+                  placeholder="テキストを入力"
                 />
               </AccordionDetails>
             </Accordion>
@@ -2823,7 +2823,7 @@ const QuestionSettingsMenu = ({
                   multiline
                   minRows={1}
                   maxRows={3}
-                  placeholder="完了画面の説明文"
+                  placeholder="テキストを入力"
                 />
               </AccordionDetails>
             </Accordion>

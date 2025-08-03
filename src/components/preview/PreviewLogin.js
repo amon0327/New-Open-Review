@@ -60,10 +60,10 @@ const PreviewLogin = ({
   const logoUrl = logoImage || loginLogoImage || (loginData?.formSettings?.logo_image_url) || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   const titleText = (loginScreenSettings.title_text !== undefined && loginScreenSettings.title_text !== '') 
     ? loginScreenSettings.title_text 
-    : (loginTitleText || (loginData?.loginSettings?.title_text) || 'OpenReviewへようこそ！');
+    : (loginTitleText || (loginData?.loginSettings?.title_text) || 'テキストを入力...');
   const detailText = (loginScreenSettings.detail_text !== undefined && loginScreenSettings.detail_text !== '') 
     ? loginScreenSettings.detail_text 
-    : (loginDetailText || (loginData?.loginSettings?.detail_text) || 'あなたの目的に合わせたレビュー項目を設定できます。質問項目を追加して、最適なレビューを作成しましょう。');
+    : (loginDetailText || (loginData?.loginSettings?.detail_text) || 'テキストを入力...');
   const displayButtonText = buttonText || '回答へ進む';
   const displayButtonUrl = buttonUrl || '#';
 
