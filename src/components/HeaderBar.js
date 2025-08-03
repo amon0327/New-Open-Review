@@ -28,7 +28,6 @@ import {
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 import PreviewUrlDialog from './PreviewUrlDialog';
-import ErrorNotification from './ErrorNotification';
 import { validateForm } from '../utils/validation';
 
 const HeaderBar = ({
@@ -54,8 +53,6 @@ const HeaderBar = ({
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
   // プレビューダイアログの状態
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
-  // エラー通知の状態
-  const [showErrorNotification, setShowErrorNotification] = useState(false);
   // エラー・警告ポップオーバーの状態
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
@@ -101,31 +98,7 @@ const HeaderBar = ({
 
   const handlePreviewClick = () => {
     console.log('🔍 プレビューボタンがクリックされました');
-    console.log('📊 エラー検証の結果:', {
-      errorCount,
-      warningCount,
-      errors,
-      warnings,
-      validationData
-    });
-    console.log('💡 showErrorNotification の現在の状態:', showErrorNotification);
-    
-    if (errorCount > 0) {
-      console.log('❌ エラーが検出されました。通知を表示します');
-      console.log('📋 検出されたエラー:', errors);
-      
-      setShowErrorNotification(true);
-      console.log('✅ setShowErrorNotification(true) を実行しました');
-      
-      // 3秒後に自動で閉じる
-      setTimeout(() => {
-        console.log('⏰ 3秒後: エラー通知を閉じます');
-        setShowErrorNotification(false);
-      }, 3000);
-      return;
-    }
-    
-    console.log('✅ エラーなし。プレビューダイアログを表示します');
+    console.log('✅ プレビューダイアログを表示します');
     setShowPreviewDialog(true);
   };
   const handleTitleChange = (e) => {
@@ -377,13 +350,6 @@ const HeaderBar = ({
         formId={formId}
       />
 
-      {/* エラー通知 */}
-      <ErrorNotification
-        open={showErrorNotification}
-        onClose={() => setShowErrorNotification(false)}
-        message="エラーを修正してからプレビューしてください"
-        errorCount={errorCount}
-      />
 
       {/* エラー詳細ポップオーバー */}
       <Popover
