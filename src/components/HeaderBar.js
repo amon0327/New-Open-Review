@@ -12,7 +12,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider
+  Divider,
+  Chip
 } from '@mui/material';
 import {
   Preview,
@@ -42,7 +43,12 @@ const HeaderBar = ({
   // エラー・警告判定用のprops
   isUsingDefaultTheme = true, // デフォルトテーマ使用中かどうか
   emptyFields = [], // 未入力フィールド配列 [{ fieldName: '項目名', location: '場所' }]
-  errors = [] // エラー配列 [{ id, message, location }]
+  errors = [], // エラー配列 [{ id, message, location }]
+  // 設定メニューを開くコールバック関数
+  onOpenDesignSettings,
+  onOpenLoginSettings,
+  onOpenCompletionSettings,
+  onOpenSettings
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
@@ -52,24 +58,45 @@ const HeaderBar = ({
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
 
-  // 警告条件を変更：デフォルトテーマ使用時と未入力部分がある時
+  // 警告条件を変更：デフォルト要素使用時と未入力部分がある時
   const warnings = [];
   
-  // デフォルトテーマを使用している場合の警告
-  if (isUsingDefaultTheme) {
-    warnings.push({
-      id: 'default-theme',
-      message: 'デフォルトテーマが使用されています',
-      location: 'デザイン設定'
-    });
-  }
+  // デフォルト要素使用時の警告
+  const defaultItems = [
+    { key: 'logo', name: 'ロゴ画像', location: 'デザイン設定', action: 'openDesignSettings' },
+    { key: 'themeColor', name: 'テーマカラー', location: 'デザイン設定', action: 'openDesignSettings' },
+    { key: 'loginBackground', name: 'ログイン画面背景', location: 'ログイン画面設定', action: 'openLoginSettings' },
+    { key: 'completionBackground', name: '完了画面背景', location: '完了画面設定', action: 'openCompletionSettings' }
+  ];
+  
+  // 実際の実装時はpropsから各デフォルト使用状況を取得
+  const defaultUsage = {
+    logo: true,
+    themeColor: true, 
+    loginBackground: false,
+    completionBackground: true
+  };
+  
+  defaultItems.forEach(item => {
+    if (defaultUsage[item.key]) {
+      warnings.push({
+        id: `default-${item.key}`,
+        message: `デフォルトの${item.name}が使用されています`,
+        location: item.location,
+        action: item.action,
+        type: 'default'
+      });
+    }
+  });
   
   // 未入力部分がある場合の警告
   emptyFields.forEach((field, index) => {
     warnings.push({
       id: `empty-${index}`,
       message: `${field.fieldName}が未入力です`,
-      location: field.location
+      location: field.location,
+      action: field.action || 'openSettings',
+      type: 'empty'
     });
   });
 
@@ -90,6 +117,27 @@ const HeaderBar = ({
 
   const handleWarningClose = () => {
     setWarningAnchorEl(null);
+  };
+
+  const handleWarningItemClick = (warning) => {
+    // 警告項目がクリックされた時の処理
+    setWarningAnchorEl(null); // ポップオーバーを閉じる
+    
+    // 設定メニューを開く処理
+    switch(warning.action) {
+      case 'openDesignSettings':
+        onOpenDesignSettings?.();
+        break;
+      case 'openLoginSettings':
+        onOpenLoginSettings?.();
+        break;
+      case 'openCompletionSettings':
+        onOpenCompletionSettings?.();
+        break;
+      default:
+        onOpenSettings?.();
+        break;
+    }
   };
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
@@ -438,25 +486,69 @@ const HeaderBar = ({
           {warnings.map((warning, index) => (
             <ListItem
               key={warning.id}
+              onClick={() => handleWarningItemClick(warning)}
               sx={{
                 borderBottom: index < warnings.length - 1 ? '1px solid #f9fafb' : 'none',
-                '&:hover': { backgroundColor: '#fffbeb' },
+                '&:hover': { 
+                  backgroundColor: warning.type === 'default' ? '#fffbeb' : '#f0f9ff',
+                  '& .warning-arrow': { opacity: 1, transform: 'translateX(2px)' }
+                },
                 cursor: 'pointer',
                 px: 2,
-                py: 1.5
+                py: 1.5,
+                transition: 'all 0.2s ease'
               }}
             >
               <ListItemIcon sx={{ minWidth: 36 }}>
-                <WarningAmber sx={{ color: '#f59e0b', fontSize: '1rem' }} />
+                <WarningAmber sx={{ 
+                  color: warning.type === 'default' ? '#f59e0b' : '#0ea5e9', 
+                  fontSize: '1rem' 
+                }} />
               </ListItemIcon>
               <ListItemText
-                primary={warning.message}
-                secondary={warning.location}
+                primary={
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>{warning.message}</span>
+                    <Box 
+                      className="warning-arrow"
+                      sx={{ 
+                        opacity: 0.5, 
+                        transition: 'all 0.2s ease',
+                        color: '#9ca3af',
+                        fontSize: '0.8rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5
+                      }}
+                    >
+                      設定を開く
+                      <Box sx={{ fontSize: '0.7rem' }}>→</Box>
+                    </Box>
+                  </Box>
+                }
+                secondary={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
+                    <span>{warning.location}</span>
+                    {warning.type === 'default' && (
+                      <Chip 
+                        label="デフォルト" 
+                        size="small"
+                        sx={{ 
+                          height: 16, 
+                          fontSize: '0.65rem',
+                          backgroundColor: '#fef3c7',
+                          color: '#d97706',
+                          fontWeight: 500
+                        }}
+                      />
+                    )}
+                  </Box>
+                }
                 primaryTypographyProps={{
                   sx: { fontWeight: 500, color: '#374151', fontSize: '0.85rem', lineHeight: 1.4 }
                 }}
                 secondaryTypographyProps={{
-                  sx: { color: '#6b7280', fontSize: '0.75rem', mt: 0.25 }
+                  sx: { color: '#6b7280', fontSize: '0.75rem' }
                 }}
               />
             </ListItem>
