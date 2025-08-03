@@ -248,6 +248,7 @@ const PreviewCompletion = ({
               mx: 'auto',
               animation: 'fadeInUp 0.8s ease-out 0.6s both',
               fontWeight: 400,
+              whiteSpace: 'pre-wrap',
               cursor: 'pointer',
               position: 'relative',
               zIndex: 2,
