@@ -221,7 +221,6 @@ const PreviewCompletion = ({
               zIndex: 2,
               transition: 'all 0.3s ease',
               fontStyle: isTitleHint ? 'italic' : 'normal',
-              ...getHighlightStyle('completion-title'),
               '&::after': selectedElement === 'completion-title' ? {
                 content: '""',
                 position: 'absolute',
@@ -262,7 +261,6 @@ const PreviewCompletion = ({
               zIndex: 2,
               transition: 'all 0.3s ease',
               fontStyle: isDetailHint ? 'italic' : 'normal',
-              ...getHighlightStyle('completion-detail'),
               '&::after': selectedElement === 'completion-detail' ? {
                 content: '""',
                 position: 'absolute',
