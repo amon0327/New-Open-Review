@@ -608,16 +608,31 @@ export default function CreatePage({ onBackClick, user, formId }) {
       : [];
   }, [selectedPage, questionsData]);
 
+  // 全ページの質問を収集（エラー検証用）
+  const allQuestions = useMemo(() => {
+    const questionPages = pages.filter(page => page.type === 'question');
+    const allQuestionsArray = [];
+    
+    questionPages.forEach(page => {
+      const pageQuestions = getQuestionsForPage(page.id);
+      allQuestionsArray.push(...pageQuestions);
+    });
+    
+    return allQuestionsArray;
+  }, [pages, questionsData, getQuestionsForPage]);
+
   // デバッグ用：質問データの変化をログ出力（selectedPageが変更された時のみ）
   useEffect(() => {
     if (selectedPage && selectedPage.type === 'question') {
       console.log('CreatePage - page selected, questions:', {
         pageId: selectedPage.id,
-        questionsLength: currentQuestions.length,
-        questions: currentQuestions.map(q => ({ id: q.id, text: q.question_text }))
+        currentPageQuestionsLength: currentQuestions.length,
+        allQuestionsLength: allQuestions.length,
+        currentPageQuestions: currentQuestions.map(q => ({ id: q.id, text: q.question_text })),
+        allQuestions: allQuestions.map(q => ({ id: q.id, text: q.question_text, pageId: q.review_form_pages_id }))
       });
     }
-  }, [selectedPage, currentQuestions]);
+  }, [selectedPage, currentQuestions, allQuestions]);
 
   // ドラッグ&ドロップハンドラ
   const handleDragOver = (e) => {
@@ -1633,7 +1648,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
           isSaving={showSavingIndicator}
           formId={formId}
           formData={{
-            questions: currentQuestions,
+            questions: allQuestions,
             pages,
             formSettings,
             loginScreenSettings,

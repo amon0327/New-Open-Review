@@ -76,6 +76,7 @@ export const validateForm = (formData) => {
   }
 
   // 4. 各質問の内容検証
+  console.log(`Starting validation for ${questions.length} questions`);
   questions.forEach((question, index) => {
     console.log(`Validating question ${index + 1}:`, question);
     
