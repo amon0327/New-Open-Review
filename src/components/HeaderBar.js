@@ -19,8 +19,8 @@ import {
   Save,
   MoreVert,
   Sync,
-  Error,
-  Warning,
+  ErrorOutline,
+  WarningAmber,
   CheckCircle,
   Close
 } from '@mui/icons-material';
@@ -232,7 +232,7 @@ const HeaderBar = ({
               }}
             >
               {errorCount > 0 ? (
-                <Error sx={{ color: '#ef4444', fontSize: '1rem' }} />
+                <ErrorOutline sx={{ color: '#ef4444', fontSize: '1rem' }} />
               ) : (
                 <CheckCircle sx={{ color: '#10b981', fontSize: '1rem' }} />
               )}
@@ -281,7 +281,7 @@ const HeaderBar = ({
               }}
             >
               {warningCount > 0 ? (
-                <Warning sx={{ color: '#f59e0b', fontSize: '1rem' }} />
+                <WarningAmber sx={{ color: '#f59e0b', fontSize: '1rem' }} />
               ) : (
                 <CheckCircle sx={{ color: '#10b981', fontSize: '1rem' }} />
               )}
@@ -364,7 +364,7 @@ const HeaderBar = ({
       >
         <Box sx={{ p: 2, borderBottom: '1px solid #f3f4f6' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Error sx={{ color: '#ef4444', fontSize: '1.1rem' }} />
+            <ErrorOutline sx={{ color: '#ef4444', fontSize: '1.1rem' }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
               エラー一覧 ({errorCount}件)
             </Typography>
@@ -383,7 +383,7 @@ const HeaderBar = ({
               }}
             >
               <ListItemIcon sx={{ minWidth: 36 }}>
-                <Error sx={{ color: '#ef4444', fontSize: '1rem' }} />
+                <ErrorOutline sx={{ color: '#ef4444', fontSize: '1rem' }} />
               </ListItemIcon>
               <ListItemText
                 primary={error.message}
@@ -426,7 +426,7 @@ const HeaderBar = ({
       >
         <Box sx={{ p: 2, borderBottom: '1px solid #f3f4f6' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Warning sx={{ color: '#f59e0b', fontSize: '1.1rem' }} />
+            <WarningAmber sx={{ color: '#f59e0b', fontSize: '1.1rem' }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
               警告一覧 ({warningCount}件)
             </Typography>
@@ -445,7 +445,7 @@ const HeaderBar = ({
               }}
             >
               <ListItemIcon sx={{ minWidth: 36 }}>
-                <Warning sx={{ color: '#f59e0b', fontSize: '1rem' }} />
+                <WarningAmber sx={{ color: '#f59e0b', fontSize: '1rem' }} />
               </ListItemIcon>
               <ListItemText
                 primary={warning.message}
