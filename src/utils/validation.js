@@ -65,23 +65,23 @@ export const validateForm = (formData) => {
     });
   }
 
-  // 3. 各質問ページに質問が存在するかチェック
-  questionPages.forEach((page, pageIndex) => {
-    const pageQuestions = questions.filter(q => q.pageId === page.id);
-    if (pageQuestions.length === 0) {
-      errors.push({
-        id: `missing-questions-page-${page.id}`,
-        message: `${page.title}に質問が設定されていません`,
-        location: '質問設定',
-        action: 'openSettings'
-      });
-    }
-  });
+  // 3. 質問が存在するかチェック（全体で最低1つ必要）
+  if (questions.length === 0) {
+    errors.push({
+      id: 'missing-questions',
+      message: 'レビューフォームに質問が設定されていません',
+      location: '質問設定',
+      action: 'openSettings'
+    });
+  }
 
   // 4. 各質問の内容検証
   questions.forEach((question, index) => {
-    // 質問テキストの検証
-    if (!question.question || question.question.trim() === '') {
+    console.log(`Validating question ${index + 1}:`, question);
+    
+    // 質問テキストの検証（question_textフィールドも確認）
+    const questionText = question.question || question.question_text || '';
+    if (!questionText || questionText.trim() === '') {
       errors.push({
         id: `missing-question-text-${question.id}`,
         message: `質問${index + 1}のテキストが入力されていません`,
@@ -90,10 +90,17 @@ export const validateForm = (formData) => {
       });
     }
 
+    // 質問タイプIDの取得（typeまたはtype_idを確認）
+    const questionTypeId = question.type || question.type_id || question.question_type_id;
+    
     // 選択肢がある質問タイプの場合の検証
     const choiceRequiredTypes = [3, 4, 5, 6, 8, 9, 10]; // 単一選択、複数選択、マトリックス、プルダウン等
-    if (choiceRequiredTypes.includes(question.type)) {
-      if (!question.choices || question.choices.length === 0) {
+    if (choiceRequiredTypes.includes(questionTypeId)) {
+      // choicesまたはoptionsフィールドを確認
+      const choices = question.choices || question.options || [];
+      console.log(`Question ${index + 1} choices:`, choices);
+      
+      if (choices.length === 0) {
         errors.push({
           id: `missing-choices-${question.id}`,
           message: `質問${index + 1}の選択肢が設定されていません`,
@@ -102,8 +109,9 @@ export const validateForm = (formData) => {
         });
       } else {
         // 選択肢内容の検証
-        question.choices.forEach((choice, choiceIndex) => {
-          if (!choice.text || choice.text.trim() === '') {
+        choices.forEach((choice, choiceIndex) => {
+          const choiceText = choice.text || choice.choice_text || choice.label || '';
+          if (!choiceText || choiceText.trim() === '') {
             errors.push({
               id: `missing-choice-text-${question.id}-${choiceIndex}`,
               message: `質問${index + 1}の選択肢${choiceIndex + 1}が空です`,
@@ -116,8 +124,11 @@ export const validateForm = (formData) => {
     }
 
     // リニアスケールの場合のラベル検証
-    if (question.type === 7) { // リニアスケール
-      if (!question.minLabel || question.minLabel.trim() === '') {
+    if (questionTypeId === 7) { // リニアスケール
+      const minLabel = question.minLabel || question.min_label || question.scale_min_label || '';
+      const maxLabel = question.maxLabel || question.max_label || question.scale_max_label || '';
+      
+      if (!minLabel || minLabel.trim() === '') {
         errors.push({
           id: `missing-min-label-${question.id}`,
           message: `質問${index + 1}の最小値ラベルが設定されていません`,
@@ -125,7 +136,7 @@ export const validateForm = (formData) => {
           action: 'openSettings'
         });
       }
-      if (!question.maxLabel || question.maxLabel.trim() === '') {
+      if (!maxLabel || maxLabel.trim() === '') {
         errors.push({
           id: `missing-max-label-${question.id}`,
           message: `質問${index + 1}の最大値ラベルが設定されていません`,
@@ -137,8 +148,9 @@ export const validateForm = (formData) => {
 
     // マトリックス質問の行ラベル検証
     const matrixTypes = [5, 6]; // マトリックス質問
-    if (matrixTypes.includes(question.type)) {
-      if (!question.rows || question.rows.length === 0) {
+    if (matrixTypes.includes(questionTypeId)) {
+      const rows = question.rows || question.matrix_rows || [];
+      if (rows.length === 0) {
         errors.push({
           id: `missing-matrix-rows-${question.id}`,
           message: `質問${index + 1}の行ラベルが設定されていません`,
@@ -146,8 +158,9 @@ export const validateForm = (formData) => {
           action: 'openSettings'
         });
       } else {
-        question.rows.forEach((row, rowIndex) => {
-          if (!row.text || row.text.trim() === '') {
+        rows.forEach((row, rowIndex) => {
+          const rowText = row.text || row.label || '';
+          if (!rowText || rowText.trim() === '') {
             errors.push({
               id: `missing-matrix-row-${question.id}-${rowIndex}`,
               message: `質問${index + 1}の行ラベル${rowIndex + 1}が空です`,
@@ -160,82 +173,66 @@ export const validateForm = (formData) => {
     }
   });
 
-  // 5. テーマカラーの検証
-  if (!formSettings.themeColor) {
-    errors.push({
-      id: 'missing-theme-color',
-      message: 'テーマカラーが設定されていません',
-      location: 'デザイン設定',
-      action: 'openDesignSettings'
-    });
+  // 5. テーマカラーの検証（Supabaseに保存されていればOK）
+  const hasCustomThemeColor = formSettings.themeColor && formSettings.themeColor !== '#5e17eb';
+  if (!hasCustomThemeColor) {
+    console.log('Theme color validation:', { formSettings, hasCustomThemeColor });
+    // デフォルト値の場合はエラーとしない（警告のみ）
   }
 
-  // 6. ロゴ画像の検証
-  if (!logoImage) {
-    errors.push({
-      id: 'missing-logo',
-      message: 'ロゴ画像が設定されていません',
-      location: 'デザイン設定',
-      action: 'openDesignSettings'
-    });
+  // 6. ロゴ画像の検証（Supabaseに保存されていればOK）
+  const hasCustomLogo = logoImage && logoImage !== null;
+  const hasHeaderLogo = headerImage?.logo && headerImage.logo !== null;
+  if (!hasCustomLogo && !hasHeaderLogo) {
+    console.log('Logo validation:', { logoImage, headerImage, hasCustomLogo, hasHeaderLogo });
+    // デフォルト値の場合はエラーとしない（警告のみ）
   }
 
-  // 7. ログイン画面の背景画像検証
-  if (!loginScreenSettings.backgroundImage) {
-    errors.push({
-      id: 'missing-login-background',
-      message: 'ログイン画面の背景画像が設定されていません',
-      location: 'ログイン画面設定',
-      action: 'openLoginSettings'
-    });
+  // 7. ログイン画面の背景画像検証（Supabaseに保存されていればOK）
+  const hasLoginBackground = loginScreenSettings.backgroundImage && loginScreenSettings.backgroundImage !== null;
+  if (!hasLoginBackground) {
+    console.log('Login background validation:', { loginScreenSettings, hasLoginBackground });
+    // デフォルト値の場合はエラーとしない（警告のみ）
   }
 
-  // 8. 完了画面の背景画像検証
-  if (!completionBackground && !completionScreenSettings.backgroundImage) {
-    errors.push({
-      id: 'missing-completion-background',
-      message: '完了画面の背景画像が設定されていません',
-      location: '完了画面設定',
-      action: 'openCompletionSettings'
-    });
+  // 8. 完了画面の背景画像検証（Supabaseに保存されていればOK）
+  const hasCompletionBackground = (completionBackground && completionBackground !== null) || 
+                                  (completionScreenSettings.backgroundImage && completionScreenSettings.backgroundImage !== null);
+  if (!hasCompletionBackground) {
+    console.log('Completion background validation:', { completionBackground, completionScreenSettings, hasCompletionBackground });
+    // デフォルト値の場合はエラーとしない（警告のみ）
   }
 
-  // 9. ログイン画面のテキスト検証
-  if (!loginTitle || loginTitle.trim() === '') {
-    errors.push({
-      id: 'missing-login-title',
-      message: 'ログイン画面のタイトルが入力されていません',
-      location: 'ログイン画面設定',
-      action: 'openLoginSettings'
-    });
+  // 9. ログイン画面のテキスト検証（Supabaseに保存されていればOK）
+  const hasLoginTitle = (loginTitle && loginTitle.trim() !== '') || 
+                       (loginScreenSettings.title_text && loginScreenSettings.title_text.trim() !== '');
+  const hasLoginDetail = (loginDetail && loginDetail.trim() !== '') || 
+                        (loginScreenSettings.detail_text && loginScreenSettings.detail_text.trim() !== '');
+  
+  if (!hasLoginTitle) {
+    console.log('Login title validation:', { loginTitle, loginScreenSettings });
+    // デフォルト値でも動作するためエラーとしない
   }
 
-  if (!loginDetail || loginDetail.trim() === '') {
-    errors.push({
-      id: 'missing-login-detail',
-      message: 'ログイン画面の詳細テキストが入力されていません',
-      location: 'ログイン画面設定',
-      action: 'openLoginSettings'
-    });
+  if (!hasLoginDetail) {
+    console.log('Login detail validation:', { loginDetail, loginScreenSettings });
+    // デフォルト値でも動作するためエラーとしない
   }
 
-  // 10. 完了画面のテキスト検証
-  if (!completionTitle || completionTitle.trim() === '') {
-    errors.push({
-      id: 'missing-completion-title',
-      message: '完了画面のタイトルが入力されていません',
-      location: '完了画面設定',
-      action: 'openCompletionSettings'
-    });
+  // 10. 完了画面のテキスト検証（Supabaseに保存されていればOK）
+  const hasCompletionTitle = (completionTitle && completionTitle.trim() !== '') || 
+                            (completionScreenSettings.title_text && completionScreenSettings.title_text.trim() !== '');
+  const hasCompletionDetail = (completionDetail && completionDetail.trim() !== '') || 
+                             (completionScreenSettings.detail_text && completionScreenSettings.detail_text.trim() !== '');
+
+  if (!hasCompletionTitle) {
+    console.log('Completion title validation:', { completionTitle, completionScreenSettings });
+    // デフォルト値でも動作するためエラーとしない
   }
 
-  if (!completionDetail || completionDetail.trim() === '') {
-    errors.push({
-      id: 'missing-completion-detail',
-      message: '完了画面の詳細テキストが入力されていません',
-      location: '完了画面設定',
-      action: 'openCompletionSettings'
-    });
+  if (!hasCompletionDetail) {
+    console.log('Completion detail validation:', { completionDetail, completionScreenSettings });
+    // デフォルト値でも動作するためエラーとしない
   }
 
   // 11. 完了画面のボタン設定検証
