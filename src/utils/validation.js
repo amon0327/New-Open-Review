@@ -66,31 +66,12 @@ export const validateForm = (formData) => {
   }
 
   // 2.5. 各質問ページに最低1つの質問が存在するかチェック
-  console.log('Starting page-level question validation');
-  console.log('Sample question data structure:', questions[0]);
-  console.log('Sample page data structure:', questionPages[0]);
-  
   questionPages.forEach((page, pageIndex) => {
-    // 複数のフィールド名をチェック（データベースの構造によって異なる可能性）
+    // review_form_pages_idまたはpageIdフィールドで質問を検索
     const pageQuestions = questions.filter(q => 
       q.review_form_pages_id === page.id ||
-      q.review_forms_pages_id === page.id ||
-      q.page_id === page.id ||
       q.pageId === page.id
     );
-    
-    console.log(`Page ${pageIndex + 1} (${page.title || page.name || 'Unknown'}):`, {
-      pageId: page.id,
-      questionCount: pageQuestions.length,
-      allQuestionFields: questions.map(q => ({
-        id: q.id,
-        text: q.question_text || q.question,
-        review_form_pages_id: q.review_form_pages_id,
-        review_forms_pages_id: q.review_forms_pages_id,
-        page_id: q.page_id,
-        pageId: q.pageId
-      }))
-    });
     
     if (pageQuestions.length === 0) {
       errors.push({
