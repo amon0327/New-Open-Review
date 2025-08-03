@@ -43,22 +43,23 @@ const CustomAlert = ({ open, onClose, title = 'お知らせ', message, type = 'e
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
-      fullWidth
+      maxWidth="xs"
       PaperProps={{
         sx: {
-          borderRadius: '16px',
-          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
+          borderRadius: '12px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)',
           border: 'none',
           background: 'rgba(255, 255, 255, 0.98)',
           backdropFilter: 'blur(20px)',
-          overflow: 'visible'
+          overflow: 'visible',
+          width: '320px',
+          margin: 'auto'
         }
       }}
       BackdropProps={{
         sx: {
-          backgroundColor: 'rgba(0, 0, 0, 0.4)',
-          backdropFilter: 'blur(8px)'
+          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(6px)'
         }
       }}
     >
@@ -76,34 +77,36 @@ const CustomAlert = ({ open, onClose, title = 'お知らせ', message, type = 'e
                 onClick={onClose}
                 sx={{
                   position: 'absolute',
-                  top: 16,
-                  right: 16,
+                  top: 8,
+                  right: 8,
                   color: '#9CA3AF',
                   zIndex: 1,
+                  width: 32,
+                  height: 32,
                   '&:hover': {
                     backgroundColor: 'rgba(156, 163, 175, 0.1)',
                     color: '#6B7280'
                   }
                 }}
               >
-                <Close sx={{ fontSize: '1.25rem' }} />
+                <Close sx={{ fontSize: '1rem' }} />
               </IconButton>
 
               <Box
                 sx={{
-                  p: 4,
+                  p: 3,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   textAlign: 'center',
-                  gap: 3
+                  gap: 2
                 }}
               >
                 {/* アイコン */}
                 <Box
                   sx={{
-                    width: 64,
-                    height: 64,
+                    width: 48,
+                    height: 48,
                     borderRadius: '50%',
                     backgroundColor: config.iconBg,
                     display: 'flex',
@@ -112,7 +115,7 @@ const CustomAlert = ({ open, onClose, title = 'お知らせ', message, type = 'e
                     border: `2px solid ${config.borderColor}20`
                   }}
                 >
-                  {config.icon}
+                  <ErrorOutline sx={{ fontSize: '1.5rem', color: config.borderColor }} />
                 </Box>
 
                 {/* テキスト */}

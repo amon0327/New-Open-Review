@@ -90,12 +90,13 @@ export const validateForm = (formData) => {
       });
     }
 
-    // 質問タイプIDの取得（typeまたはtype_idを確認）
-    const questionTypeId = question.type || question.type_id || question.question_type_id;
+    // 質問タイプIDの取得（複数のフィールドを確認）
+    const questionTypeId = question.type || question.type_id || question.question_type_id || question.question_types_id;
     console.log(`Question ${index + 1} type extraction:`, {
       questionType: question.type,
       questionTypeId: question.type_id,
       questionQuestionTypeId: question.question_type_id,
+      questionTypesId: question.question_types_id,
       finalQuestionTypeId: questionTypeId,
       typeofFinalId: typeof questionTypeId
     });
@@ -115,16 +116,32 @@ export const validateForm = (formData) => {
     });
     
     if (isChoiceRequired) {
-      // choicesまたはoptionsフィールドを確認
-      const choices = question.choices || question.options || [];
+      // choicesフィールドを確認（JSON文字列の場合はパース）
+      let choices = [];
+      
+      if (question.choices) {
+        if (typeof question.choices === 'string') {
+          try {
+            choices = JSON.parse(question.choices);
+          } catch (e) {
+            console.error('Failed to parse choices JSON:', question.choices);
+            choices = [];
+          }
+        } else if (Array.isArray(question.choices)) {
+          choices = question.choices;
+        }
+      } else if (question.options && Array.isArray(question.options)) {
+        choices = question.options;
+      }
+      
       console.log(`Question ${index + 1} choices validation:`, {
-        choices,
+        originalChoices: question.choices,
+        parsedChoices: choices,
         choicesLength: choices.length,
-        questionChoices: question.choices,
         questionOptions: question.options
       });
       
-      if (choices.length === 0) {
+      if (!choices || choices.length === 0) {
         console.log(`Adding choice error for question ${index + 1}`);
         errors.push({
           id: `missing-choices-${question.id}`,
@@ -135,7 +152,9 @@ export const validateForm = (formData) => {
       } else {
         // 選択肢内容の検証
         choices.forEach((choice, choiceIndex) => {
-          const choiceText = choice.text || choice.choice_text || choice.label || '';
+          // 文字列の場合はそのまま、オブジェクトの場合は各種プロパティを確認
+          const choiceText = typeof choice === 'string' ? choice : 
+                           (choice.text || choice.choice_text || choice.choice_name || choice.label || '');
           console.log(`Choice ${choiceIndex + 1} validation:`, { choice, choiceText });
           
           if (!choiceText || choiceText.trim() === '') {
