@@ -37,7 +37,11 @@ const HeaderBar = ({
   // 保存状態の表示用
   isSaving = false,
   // フォームID
-  formId
+  formId,
+  // エラー・警告判定用のprops
+  isUsingDefaultTheme = true, // デフォルトテーマ使用中かどうか
+  emptyFields = [], // 未入力フィールド配列 [{ fieldName: '項目名', location: '場所' }]
+  errors = [] // エラー配列 [{ id, message, location }]
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
@@ -47,17 +51,26 @@ const HeaderBar = ({
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
 
-  // モック用のエラー・警告データ（実際の実装時は props や state から取得）
-  const errors = [
-    { id: 1, message: 'ログイン画面のタイトルが設定されていません', location: 'ログイン画面設定' },
-    { id: 2, message: '質問が1つも作成されていません', location: '質問設定' }
-  ];
+  // 警告条件を変更：デフォルトテーマ使用時と未入力部分がある時
+  const warnings = [];
   
-  const warnings = [
-    { id: 1, message: '完了画面のボタンURLが設定されていません', location: '完了画面設定' },
-    { id: 2, message: 'フォームの説明文が長すぎます', location: '基本設定' },
-    { id: 3, message: 'ロゴ画像が推奨サイズと異なります', location: 'デザイン設定' }
-  ];
+  // デフォルトテーマを使用している場合の警告
+  if (isUsingDefaultTheme) {
+    warnings.push({
+      id: 'default-theme',
+      message: 'デフォルトテーマが使用されています',
+      location: 'デザイン設定'
+    });
+  }
+  
+  // 未入力部分がある場合の警告
+  emptyFields.forEach((field, index) => {
+    warnings.push({
+      id: `empty-${index}`,
+      message: `${field.fieldName}が未入力です`,
+      location: field.location
+    });
+  });
 
   const errorCount = errors.length;
   const warningCount = warnings.length;
