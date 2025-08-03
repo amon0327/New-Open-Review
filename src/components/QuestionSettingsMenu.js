@@ -1227,14 +1227,30 @@ const QuestionSettingsMenu = ({
                     <StylishTextField
                       label="最小値"
                       value={localScaleSettings.minValue}
-                      onChange={(e) => handleScaleUpdate('minValue', parseInt(e.target.value) || 1)}
+                      onChange={(e) => {
+                        const value = e.target.value.trim();
+                        if (value === '') {
+                          handleScaleUpdate('minValue', null);
+                        } else {
+                          const numValue = parseInt(value);
+                          handleScaleUpdate('minValue', isNaN(numValue) ? null : numValue);
+                        }
+                      }}
                       type="number"
                       placeholder="1"
                     />
                     <StylishTextField
                       label="最大値"
                       value={localScaleSettings.maxValue}
-                      onChange={(e) => handleScaleUpdate('maxValue', parseInt(e.target.value) || 5)}
+                      onChange={(e) => {
+                        const value = e.target.value.trim();
+                        if (value === '') {
+                          handleScaleUpdate('maxValue', null);
+                        } else {
+                          const numValue = parseInt(value);
+                          handleScaleUpdate('maxValue', isNaN(numValue) ? null : numValue);
+                        }
+                      }}
                       type="number"
                       placeholder="5"
                     />

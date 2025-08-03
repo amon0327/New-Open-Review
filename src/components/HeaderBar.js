@@ -28,7 +28,7 @@ import {
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 import PreviewUrlDialog from './PreviewUrlDialog';
-import CustomAlert from './CustomAlert';
+import ErrorNotification from './ErrorNotification';
 import { validateForm } from '../utils/validation';
 
 const HeaderBar = ({
@@ -54,8 +54,8 @@ const HeaderBar = ({
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
   // プレビューダイアログの状態
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
-  // カスタムアラートの状態
-  const [showAlert, setShowAlert] = useState(false);
+  // エラー通知の状態
+  const [showErrorNotification, setShowErrorNotification] = useState(false);
   // エラー・警告ポップオーバーの状態
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
@@ -131,7 +131,11 @@ const HeaderBar = ({
 
   const handlePreviewClick = () => {
     if (errorCount > 0) {
-      setShowAlert(true);
+      setShowErrorNotification(true);
+      // 3秒後に自動で閉じる
+      setTimeout(() => {
+        setShowErrorNotification(false);
+      }, 3000);
       return;
     }
     setShowPreviewDialog(true);
@@ -385,13 +389,12 @@ const HeaderBar = ({
         formId={formId}
       />
 
-      {/* カスタムアラート */}
-      <CustomAlert
-        open={showAlert}
-        onClose={() => setShowAlert(false)}
-        title="プレビューできません"
-        message="プレビューを表示するには、エラーを修正してください"
-        type="error"
+      {/* エラー通知 */}
+      <ErrorNotification
+        open={showErrorNotification}
+        onClose={() => setShowErrorNotification(false)}
+        message="エラーを修正してからプレビューしてください"
+        errorCount={errorCount}
       />
 
       {/* エラー詳細ポップオーバー */}
