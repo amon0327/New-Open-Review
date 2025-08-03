@@ -218,7 +218,7 @@ export const createTemplateQuestionWithOptions = async ({
       if (templateLinearOption) {
         await createLinearScaleOptionFromTemplate(question.id, templateLinearOption);
       }
-    } else if ([3, 4, 5, 6, 8].includes(questionTypesId)) {
+    } else if ([3, 4, 5, 6, 8, 9, 10].includes(questionTypesId)) {
       // 選択肢オプションを取得してコピー
       const templateChoiceOptions = await getTemplateChoiceOptions(templateReviewQuestionsId);
       if (templateChoiceOptions.length > 0) {
@@ -254,8 +254,9 @@ export const createQuestionWithOptions = async ({
       await createLinearScaleOption(question.id);
     }
     // 3. 選択肢が必要な質問タイプの場合、デフォルト選択肢を作成
-    else if ([3, 4, 8, 9, 10].includes(questionTypesId)) {
+    else if ([3, 4, 5, 6, 8, 9, 10].includes(questionTypesId)) {
       const defaultChoices = ['選択肢1'];
+      console.log(`Creating default choice for question type ${questionTypesId}:`, defaultChoices);
       await updateChoiceOptions(question.id, defaultChoices);
     }
 
@@ -541,7 +542,7 @@ export const updateQuestionWithOptions = async (questionId, questionData) => {
           : questionData.scale_settings;
         await updateLinearScaleOption(questionId, scaleSettings);
       }
-    } else if ([3, 4, 5, 6, 8].includes(questionData.question_types_id)) {
+    } else if ([3, 4, 5, 6, 8, 9, 10].includes(questionData.question_types_id)) {
       // 選択肢オプション
       if (questionData.choices) {
         const choices = typeof questionData.choices === 'string' 
@@ -644,7 +645,7 @@ export const getQuestionsWithOptions = async (reviewFormId, reviewFormPagesId) =
         if (question.question_types_id === 7) {
           // リニアスケールオプション
           options = await getQuestionLinearScaleOption(question.id);
-        } else if ([3, 4, 5, 6, 8].includes(question.question_types_id)) {
+        } else if ([3, 4, 5, 6, 8, 9, 10].includes(question.question_types_id)) {
           // 選択肢オプション
           options = await getQuestionChoiceOptions(question.id);
         }
