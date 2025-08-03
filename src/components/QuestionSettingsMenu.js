@@ -1257,13 +1257,13 @@ const QuestionSettingsMenu = ({
                   </Box>
                   <StylishTextField
                     label="最小値ラベル"
-                    value={localScaleSettings.minLabel}
+                    value={localScaleSettings.minLabel || ''}
                     onChange={(e) => handleScaleUpdate('minLabel', e.target.value)}
                     placeholder="例: そう思わない"
                   />
                   <StylishTextField
                     label="最大値ラベル"
-                    value={localScaleSettings.maxLabel}
+                    value={localScaleSettings.maxLabel || ''}
                     onChange={(e) => handleScaleUpdate('maxLabel', e.target.value)}
                     placeholder="例: そう思う"
                   />

@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Snackbar,
   Alert,
   Box,
   Typography,
@@ -13,18 +12,16 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ErrorNotification = ({ open, onClose, message, errorCount = 0 }) => {
+  if (!open) return null;
+
   return (
-    <Snackbar
-      open={open}
-      onClose={onClose}
-      anchorOrigin={{ 
-        vertical: 'bottom', 
-        horizontal: 'center' 
-      }}
+    <Box
       sx={{
-        '& .MuiSnackbar-root': {
-          position: 'static'
-        }
+        position: 'fixed',
+        bottom: 24,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 9999
       }}
     >
       <AnimatePresence>
@@ -113,7 +110,7 @@ const ErrorNotification = ({ open, onClose, message, errorCount = 0 }) => {
           </motion.div>
         )}
       </AnimatePresence>
-    </Snackbar>
+    </Box>
   );
 };
 
