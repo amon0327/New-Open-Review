@@ -226,7 +226,7 @@ const PreviewArea = ({
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'flex-start',
+                      justifyContent: 'center',
                       px: isCenter ? 3 : 2,
                       py: isCenter ? 1.5 : 1,
                       borderRadius: 3,
@@ -241,11 +241,11 @@ const PreviewArea = ({
                       boxShadow: isActive 
                         ? '0 3px 12px rgba(94, 23, 235, 0.4)'
                         : '0 1px 3px rgba(0, 0, 0, 0.1)',
-                      width: isCenter ? '140px' : '110px', // コンテナサイズをより小さく
+                      maxWidth: isCenter ? '200px' : '150px', // コンテナサイズを制限
                       overflow: 'hidden', // テキストオーバーフロー対応
                       textOverflow: 'ellipsis', // 省略記号(...) を表示
                       whiteSpace: 'nowrap',
-                      textAlign: 'left', // 文字を左側から表示
+                      minWidth: 'fit-content',
                       flexShrink: 0,
                       transform: isCenter ? 'scale(1.05)' : 'scale(1)',
                       opacity: isCenter ? 1 : 0.7,
