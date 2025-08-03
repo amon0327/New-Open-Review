@@ -324,8 +324,8 @@ const QuestionSettingsMenu = ({
   const [localScaleSettings, setLocalScaleSettings] = useState({
     minValue: 1,
     maxValue: 5,
-    minLabel: 'そう思わない',
-    maxLabel: 'そう思う'
+    minLabel: '',
+    maxLabel: ''
   });
 
   const selectedQuestion = questions.find(q => q.id === selectedQuestionId);
@@ -351,17 +351,17 @@ const QuestionSettingsMenu = ({
       if (selectedQuestion.scale_settings) {
         const scaleSettings = JSON.parse(selectedQuestion.scale_settings);
         setLocalScaleSettings({
-          minValue: scaleSettings.minValue || 1,
-          maxValue: scaleSettings.maxValue || 5,
-          minLabel: scaleSettings.minLabel || 'そう思わない',
-          maxLabel: scaleSettings.maxLabel || 'そう思う'
+          minValue: scaleSettings.minValue ?? 1,
+          maxValue: scaleSettings.maxValue ?? 5,
+          minLabel: scaleSettings.minLabel || '',
+          maxLabel: scaleSettings.maxLabel || ''
         });
       } else {
         setLocalScaleSettings({
           minValue: 1,
           maxValue: 5,
-          minLabel: 'そう思わない',
-          maxLabel: 'そう思う'
+          minLabel: '',
+          maxLabel: ''
         });
       }
     }
