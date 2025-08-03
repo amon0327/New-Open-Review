@@ -54,7 +54,8 @@ export const validateForm = (formData) => {
       elementType: 'header',
       elementId: 'project-title',
       highlightTarget: 'header-title',
-      displayTarget: 'settings' // 設定画面を表示
+      displayTarget: 'settings',
+      settingsSection: 'project' // プロジェクト設定セクション
     });
   }
 
@@ -124,7 +125,8 @@ export const validateForm = (formData) => {
         highlightTarget: `question-${question.id}`,
         questionId: question.id,
         questionIndex: index,
-        displayTarget: 'preview' // プレビュー画面で質問を表示
+        displayTarget: 'preview',
+        navigationTarget: 'questions' // 質問画面に遷移
       });
     }
 
@@ -192,7 +194,8 @@ export const validateForm = (formData) => {
           questionId: question.id,
           questionIndex: index,
           errorField: 'choices',
-          displayTarget: 'preview' // プレビュー画面で質問を表示
+          displayTarget: 'preview',
+          navigationTarget: 'questions' // 質問画面に遷移
         });
       } else {
         // 選択肢内容の検証
@@ -302,7 +305,8 @@ export const validateForm = (formData) => {
       elementId: 'login-screen',
       highlightTarget: 'login-title',
       previewMode: 'login',
-      displayTarget: 'preview' // プレビュー画面でログイン画面を表示
+      displayTarget: 'preview',
+      navigationTarget: 'login' // ログイン画面に遷移
     });
   }
 
@@ -316,7 +320,8 @@ export const validateForm = (formData) => {
       elementId: 'login-screen',
       highlightTarget: 'login-detail',
       previewMode: 'login',
-      displayTarget: 'preview' // プレビュー画面でログイン画面を表示
+      displayTarget: 'preview',
+      navigationTarget: 'login' // ログイン画面に遷移
     });
   }
 
@@ -344,7 +349,8 @@ export const validateForm = (formData) => {
       elementId: 'completion-screen',
       highlightTarget: 'completion-title',
       previewMode: 'completion',
-      displayTarget: 'preview' // プレビュー画面で完了画面を表示
+      displayTarget: 'preview',
+      navigationTarget: 'completion' // 完了画面に遷移
     });
   }
 
@@ -358,7 +364,8 @@ export const validateForm = (formData) => {
       elementId: 'completion-screen',
       highlightTarget: 'completion-detail',
       previewMode: 'completion',
-      displayTarget: 'preview' // プレビュー画面で完了画面を表示
+      displayTarget: 'preview',
+      navigationTarget: 'completion' // 完了画面に遷移
     });
   }
 

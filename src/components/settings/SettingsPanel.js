@@ -29,7 +29,11 @@ const SettingsPanel = ({
   // Supabase連携用のprops
   onThemeColorUpdate,
   onLogoImageUpdate,
-  onProjectTitleUpdate
+  onProjectTitleUpdate,
+  
+  // セクション選択機能
+  activeSection = null,
+  onSectionChange
 }) => {
   return (
     <Box
@@ -62,30 +66,60 @@ const SettingsPanel = ({
         {/* 設定カード */}
         <Stack spacing={3} sx={{ width: '100%' }}>
           {/* テーマ設定 */}
-          <ThemeSettings
-            selectedColor={selectedColor}
-            setSelectedColor={setSelectedColor}
-            selectedFont={selectedFont}
-            setSelectedFont={setSelectedFont}
-            logoImage={logoImage}
-            setLogoImage={setLogoImage}
-            onThemeColorUpdate={onThemeColorUpdate}
-            onLogoImageUpdate={onLogoImageUpdate}
-          />
+          <Box 
+            sx={{
+              border: activeSection === 'theme' ? '2px solid #5e17eb' : 'none',
+              borderRadius: activeSection === 'theme' ? 2 : 0,
+              p: activeSection === 'theme' ? 1 : 0,
+              background: activeSection === 'theme' ? 'rgba(94, 23, 235, 0.05)' : 'transparent',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            <ThemeSettings
+              selectedColor={selectedColor}
+              setSelectedColor={setSelectedColor}
+              selectedFont={selectedFont}
+              setSelectedFont={setSelectedFont}
+              logoImage={logoImage}
+              setLogoImage={setLogoImage}
+              onThemeColorUpdate={onThemeColorUpdate}
+              onLogoImageUpdate={onLogoImageUpdate}
+            />
+          </Box>
 
           {/* プロジェクト設定 */}
-          <ProjectSettings
-            projectTitle={projectTitle}
-            setProjectTitle={setProjectTitle}
-            onProjectTitleUpdate={onProjectTitleUpdate}
-          />
+          <Box 
+            sx={{
+              border: activeSection === 'project' ? '2px solid #5e17eb' : 'none',
+              borderRadius: activeSection === 'project' ? 2 : 0,
+              p: activeSection === 'project' ? 1 : 0,
+              background: activeSection === 'project' ? 'rgba(94, 23, 235, 0.05)' : 'transparent',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            <ProjectSettings
+              projectTitle={projectTitle}
+              setProjectTitle={setProjectTitle}
+              onProjectTitleUpdate={onProjectTitleUpdate}
+            />
+          </Box>
 
           {/* 公開設定 */}
-          <PublishSettings
-            isPublished={isPublished}
-            setIsPublished={setIsPublished}
-            projectTitle={projectTitle}
-          />
+          <Box 
+            sx={{
+              border: activeSection === 'publish' ? '2px solid #5e17eb' : 'none',
+              borderRadius: activeSection === 'publish' ? 2 : 0,
+              p: activeSection === 'publish' ? 1 : 0,
+              background: activeSection === 'publish' ? 'rgba(94, 23, 235, 0.05)' : 'transparent',
+              transition: 'all 0.3s ease'
+            }}
+          >
+            <PublishSettings
+              isPublished={isPublished}
+              setIsPublished={setIsPublished}
+              projectTitle={projectTitle}
+            />
+          </Box>
         </Stack>
 
         {/* フッター余白 */}

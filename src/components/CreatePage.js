@@ -193,6 +193,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const [highlightedElement, setHighlightedElement] = useState(null);
   const [highlightAnimation, setHighlightAnimation] = useState(false);
 
+  // 設定画面のアクティブセクション
+  const [activeSettingsSection, setActiveSettingsSection] = useState(null);
+
   // 基本設定関連の状態
   const [selectedElement, setSelectedElement] = useState(null); // 'header', 'logo', null
   const [headerImage, setHeaderImage] = useState(null);
@@ -1645,6 +1648,68 @@ export default function CreatePage({ onBackClick, user, formId }) {
     setShowSettings(false);
   };
 
+  // エラーから画面遷移を行うハンドラー
+  const handleNavigateFromError = (error) => {
+    console.log('Navigating from error:', error);
+    
+    if (error.navigationTarget) {
+      switch (error.navigationTarget) {
+        case 'login':
+          // ログイン画面に遷移
+          const loginPage = pages.find(page => page.id === 'login');
+          if (loginPage) {
+            setSelectedPage(loginPage.id);
+            setShowSettings(false); // 設定画面を閉じる
+          }
+          break;
+          
+        case 'completion':
+          // 完了画面に遷移
+          const completionPage = pages.find(page => page.id === 'completion');
+          if (completionPage) {
+            setSelectedPage(completionPage.id);
+            setShowSettings(false); // 設定画面を閉じる
+          }
+          break;
+          
+        case 'questions':
+          // 質問画面に遷移
+          if (error.questionId) {
+            // 特定の質問がある場合、その質問のページを選択
+            const targetQuestion = allQuestions.find(q => q.id === error.questionId);
+            if (targetQuestion) {
+              const targetPageId = targetQuestion.review_form_pages_id || targetQuestion.pageId;
+              if (targetPageId) {
+                setSelectedPage(targetPageId);
+                setSelectedQuestionId(error.questionId);
+                setShowSettings(false); // 設定画面を閉じる
+              }
+            }
+          } else {
+            // 最初の質問ページに遷移
+            const firstQuestionPage = pages.find(page => page.type === 'question');
+            if (firstQuestionPage) {
+              setSelectedPage(firstQuestionPage.id);
+              setShowSettings(false); // 設定画面を閉じる
+            }
+          }
+          break;
+          
+        default:
+          console.log('Unknown navigation target:', error.navigationTarget);
+      }
+    } else if (error.settingsSection) {
+      // 設定画面の特定セクションに遷移
+      setShowSettings(true);
+      setActiveSettingsSection(error.settingsSection);
+      
+      // 3秒後にセクション強調を解除
+      setTimeout(() => {
+        setActiveSettingsSection(null);
+      }, 3000);
+    }
+  };
+
   // プロジェクトタイトル更新ハンドラー
   const handleProjectTitleUpdate = async (title) => {
     // 即座にローカル状態を更新
@@ -1730,6 +1795,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
           onSelectQuestion={handleSelectQuestion}
           onSelectPage={handleSelectPage}
           onCloseSettings={handleCloseSettings}
+          onNavigateFromError={handleNavigateFromError}
         />
 
         {/* メインコンテンツエリア */}
@@ -1817,6 +1883,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   onThemeColorUpdate={handleThemeColorUpdate}
                   onLogoImageUpdate={handleLogoImageFileUpload}
                   onProjectTitleUpdate={handleProjectTitleUpdate}
+                  
+                  // セクション選択機能
+                  activeSection={activeSettingsSection}
+                  onSectionChange={setActiveSettingsSection}
                 />
               ) : (
                 /* 中央プレビューエリア - 設定画面でない場合 */
