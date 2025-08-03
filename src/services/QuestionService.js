@@ -1,5 +1,20 @@
 import { supabase } from '../supabaseClient';
 
+// 排他制御用のマップ（質問IDごとにロックを管理）
+const choiceUpdateLocks = new Map();
+
+// 排他制御ヘルパー関数
+const acquireChoiceUpdateLock = async (questionId) => {
+  while (choiceUpdateLocks.get(questionId)) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  choiceUpdateLocks.set(questionId, true);
+};
+
+const releaseChoiceUpdateLock = (questionId) => {
+  choiceUpdateLocks.delete(questionId);
+};
+
 // review_questionsテーブルに質問を登録する関数
 export const createReviewQuestion = async ({
   reviewFormId,
@@ -453,6 +468,9 @@ export const deleteReviewQuestion = async (questionId) => {
 
 // 選択肢オプションを更新する関数（既存行を更新、新規行は追加、不要行は削除）
 export const updateChoiceOptions = async (reviewQuestionsId, choices) => {
+  // 排他制御でロックを取得
+  await acquireChoiceUpdateLock(reviewQuestionsId);
+  
   try {
     console.log(`Updating choices for question ${reviewQuestionsId}:`, choices);
     
@@ -460,9 +478,52 @@ export const updateChoiceOptions = async (reviewQuestionsId, choices) => {
     const existingChoices = await getQuestionChoiceOptions(reviewQuestionsId);
     console.log('Existing choices:', existingChoices);
 
+    // 2. 変更が必要かチェック（不要な処理を避ける）
+    const hasChanges = choices && choices.length > 0 && 
+      (existingChoices.length !== choices.length ||
+       existingChoices.some((existing, index) => 
+         existing.choice_name !== choices[index] || existing.choice_number !== (index + 1)
+       ));
+
+    if (!hasChanges && choices && choices.length > 0) {
+      console.log('No changes needed for choices');
+      return existingChoices;
+    }
+
+    // 3. choice_numberの整合性を確保（既存データの重複チェック）
+    const duplicateNumbers = existingChoices
+      .map(c => c.choice_number)
+      .filter((num, index, arr) => arr.indexOf(num) !== index);
+    
+    if (duplicateNumbers.length > 0) {
+      console.warn('Duplicate choice_numbers detected:', duplicateNumbers);
+      // 重複がある場合は一旦全削除してから再作成
+      await supabase
+        .from('question_option_choices')
+        .delete()
+        .eq('review_questions_id', reviewQuestionsId);
+      
+      // 新しい選択肢を順番に作成
+      if (choices && choices.length > 0) {
+        for (let i = 0; i < choices.length; i++) {
+          await supabase
+            .from('question_option_choices')
+            .insert({
+              review_questions_id: reviewQuestionsId,
+              choice_number: i + 1,
+              choice_name: choices[i]
+            });
+        }
+      }
+      
+      const updatedChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+      console.log('Rebuilt choices after duplicate cleanup:', updatedChoices);
+      return updatedChoices;
+    }
+
     const operations = [];
     
-    // 2. 新しい選択肢リストを処理
+    // 3. 新しい選択肢リストを処理
     if (choices && choices.length > 0) {
       for (let i = 0; i < choices.length; i++) {
         const choiceText = choices[i];
@@ -473,57 +534,65 @@ export const updateChoiceOptions = async (reviewQuestionsId, choices) => {
           // 既存の選択肢を更新
           if (existingChoice.choice_name !== choiceText) {
             console.log(`Updating choice ${choiceNumber}: "${existingChoice.choice_name}" → "${choiceText}"`);
-            operations.push(
-              supabase
+            operations.push({
+              type: 'update',
+              operation: () => supabase
                 .from('question_option_choices')
                 .update({ choice_name: choiceText })
                 .eq('id', existingChoice.id)
-            );
+            });
           }
         } else {
           // 新しい選択肢を追加
           console.log(`Adding new choice ${choiceNumber}: "${choiceText}"`);
-          operations.push(
-            supabase
+          operations.push({
+            type: 'insert',
+            operation: () => supabase
               .from('question_option_choices')
               .insert({
                 review_questions_id: reviewQuestionsId,
                 choice_number: choiceNumber,
                 choice_name: choiceText
               })
-          );
+          });
         }
       }
     }
 
-    // 3. 不要になった選択肢を削除
+    // 4. 不要になった選択肢を削除
     const choicesToDelete = existingChoices.filter(existing => 
       !choices || existing.choice_number > choices.length
     );
     
     for (const choiceToDelete of choicesToDelete) {
       console.log(`Deleting choice ${choiceToDelete.choice_number}: "${choiceToDelete.choice_name}"`);
-      operations.push(
-        supabase
+      operations.push({
+        type: 'delete',
+        operation: () => supabase
           .from('question_option_choices')
           .delete()
           .eq('id', choiceToDelete.id)
-      );
+      });
     }
 
-    // 4. 全ての操作を実行
+    // 5. 操作をシーケンシャルに実行（競合を防ぐ）
     if (operations.length > 0) {
-      const results = await Promise.all(operations);
-      
-      // エラーチェック
-      for (const result of results) {
-        if (result.error) {
-          throw result.error;
+      for (let i = 0; i < operations.length; i++) {
+        const op = operations[i];
+        try {
+          const result = await op.operation();
+          if (result.error) {
+            console.error(`Choice update error - Operation ${i + 1}/${operations.length} (${op.type}):`, result.error);
+            throw new Error(`Failed to ${op.type} choice: ${result.error.message || result.error}`);
+          }
+        } catch (error) {
+          console.error(`Choice update operation failed - Operation ${i + 1}/${operations.length} (${op.type}):`, error);
+          throw new Error(`Choice ${op.type} operation failed: ${error.message}`);
         }
       }
     }
 
-    // 5. 更新後の選択肢を取得して返却
+    // 6. 更新後の選択肢を取得して返却
     const updatedChoices = await getQuestionChoiceOptions(reviewQuestionsId);
     console.log('Updated choices:', updatedChoices);
     
@@ -531,6 +600,9 @@ export const updateChoiceOptions = async (reviewQuestionsId, choices) => {
   } catch (error) {
     console.error('Error updating choice options:', error);
     throw error;
+  } finally {
+    // 必ずロックを解除
+    releaseChoiceUpdateLock(reviewQuestionsId);
   }
 };
 
@@ -608,6 +680,9 @@ export const updateQuestionWithOptions = async (questionId, questionData) => {
 
 // 選択肢オプションを直接更新する関数（review_questionsテーブルを経由しない）
 export const updateChoiceOptionsDirect = async (reviewQuestionsId, choices) => {
+  // 排他制御でロックを取得
+  await acquireChoiceUpdateLock(reviewQuestionsId);
+  
   try {
     console.log(`Updating choices directly for question ${reviewQuestionsId}:`, choices);
     
@@ -615,9 +690,53 @@ export const updateChoiceOptionsDirect = async (reviewQuestionsId, choices) => {
     const existingChoices = await getQuestionChoiceOptions(reviewQuestionsId);
     console.log('Existing choices (direct):', existingChoices);
 
+    // 2. 変更が必要かチェック（不要な処理を避ける）
+    const hasChanges = choices && choices.length > 0 && 
+      (existingChoices.length !== choices.length ||
+       existingChoices.some((existing, index) => 
+         existing.choice_name !== choices[index] || existing.choice_number !== (index + 1)
+       ));
+
+    if (!hasChanges && choices && choices.length > 0) {
+      console.log('No changes needed for choices');
+      return existingChoices;
+    }
+
+    // 3. choice_numberの整合性を確保（既存データの重複チェック）
+    const duplicateNumbers = existingChoices
+      .map(c => c.choice_number)
+      .filter((num, index, arr) => arr.indexOf(num) !== index);
+    
+    if (duplicateNumbers.length > 0) {
+      console.warn('Duplicate choice_numbers detected (direct):', duplicateNumbers);
+      // 重複がある場合は一旦全削除してから再作成
+      await supabase
+        .from('question_option_choices')
+        .delete()
+        .eq('review_questions_id', reviewQuestionsId);
+      
+      // 新しい選択肢を順番に作成
+      if (choices && choices.length > 0) {
+        for (let i = 0; i < choices.length; i++) {
+          await supabase
+            .from('question_option_choices')
+            .insert({
+              review_questions_id: reviewQuestionsId,
+              choice_number: i + 1,
+              choice_name: choices[i]
+            });
+        }
+      }
+      
+      const updatedChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+      console.log('Rebuilt choices after duplicate cleanup (direct):', updatedChoices);
+      return updatedChoices;
+    }
+
+    // 3. 一括更新処理（シーケンシャル実行で競合を防ぐ）
     const operations = [];
     
-    // 2. 新しい選択肢リストを処理
+    // 新しい選択肢リストを処理
     if (choices && choices.length > 0) {
       for (let i = 0; i < choices.length; i++) {
         const choiceText = choices[i];
@@ -628,52 +747,60 @@ export const updateChoiceOptionsDirect = async (reviewQuestionsId, choices) => {
           // 既存の選択肢を更新
           if (existingChoice.choice_name !== choiceText) {
             console.log(`Updating choice ${choiceNumber} (direct): "${existingChoice.choice_name}" → "${choiceText}"`);
-            operations.push(
-              supabase
+            operations.push({
+              type: 'update',
+              operation: () => supabase
                 .from('question_option_choices')
                 .update({ choice_name: choiceText })
                 .eq('id', existingChoice.id)
-            );
+            });
           }
         } else {
           // 新しい選択肢を追加
           console.log(`Adding new choice ${choiceNumber} (direct): "${choiceText}"`);
-          operations.push(
-            supabase
+          operations.push({
+            type: 'insert',
+            operation: () => supabase
               .from('question_option_choices')
               .insert({
                 review_questions_id: reviewQuestionsId,
                 choice_number: choiceNumber,
                 choice_name: choiceText
               })
-          );
+          });
         }
       }
     }
 
-    // 3. 不要になった選択肢を削除
+    // 不要になった選択肢を削除
     const choicesToDelete = existingChoices.filter(existing => 
       !choices || existing.choice_number > choices.length
     );
     
     for (const choiceToDelete of choicesToDelete) {
       console.log(`Deleting choice ${choiceToDelete.choice_number} (direct): "${choiceToDelete.choice_name}"`);
-      operations.push(
-        supabase
+      operations.push({
+        type: 'delete',
+        operation: () => supabase
           .from('question_option_choices')
           .delete()
           .eq('id', choiceToDelete.id)
-      );
+      });
     }
 
-    // 4. 全ての操作を実行
+    // 4. 操作をシーケンシャルに実行（競合を防ぐ）
     if (operations.length > 0) {
-      const results = await Promise.all(operations);
-      
-      // エラーチェック
-      for (const result of results) {
-        if (result.error) {
-          throw result.error;
+      for (let i = 0; i < operations.length; i++) {
+        const op = operations[i];
+        try {
+          const result = await op.operation();
+          if (result.error) {
+            console.error(`Choice update error (direct) - Operation ${i + 1}/${operations.length} (${op.type}):`, result.error);
+            throw new Error(`Failed to ${op.type} choice: ${result.error.message || result.error}`);
+          }
+        } catch (error) {
+          console.error(`Choice update operation failed (direct) - Operation ${i + 1}/${operations.length} (${op.type}):`, error);
+          throw new Error(`Choice ${op.type} operation failed: ${error.message}`);
         }
       }
     }
@@ -686,6 +813,9 @@ export const updateChoiceOptionsDirect = async (reviewQuestionsId, choices) => {
   } catch (error) {
     console.error('Error updating choice options directly:', error);
     throw error;
+  } finally {
+    // 必ずロックを解除
+    releaseChoiceUpdateLock(reviewQuestionsId);
   }
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChromePicker } from 'react-color';
 import {
   Box,
@@ -625,10 +625,59 @@ const QuestionSettingsMenu = ({
     // onChangeで既に更新されているため、blurでは何もしない
   };
 
-  // 選択肢の更新（専用テーブルに直接保存）
-  const handleChoicesUpdate = (choices) => {
+  // デバウンス処理用のref
+  const choiceUpdateTimeoutRef = useRef(null);
+  const [isChoiceUpdating, setIsChoiceUpdating] = useState(false);
+
+  // 選択肢の更新（専用テーブルに直接保存） - デバウンス処理付き
+  const handleChoicesUpdate = useCallback((choices) => {
     if (onChoiceOptionsUpdate && selectedQuestion) {
-      onChoiceOptionsUpdate(selectedQuestion.id, choices);
+      // 既存のタイマーをクリア
+      if (choiceUpdateTimeoutRef.current) {
+        clearTimeout(choiceUpdateTimeoutRef.current);
+      }
+
+      setIsChoiceUpdating(true);
+      
+      // 500ms後に実際の更新処理を実行
+      choiceUpdateTimeoutRef.current = setTimeout(async () => {
+        try {
+          await onChoiceOptionsUpdate(selectedQuestion.id, choices);
+        } catch (error) {
+          console.error('Choice update error (debounced):', error);
+          // エラー時はローカル状態を元に戻す
+          if (selectedQuestion.choices) {
+            const originalChoices = JSON.parse(selectedQuestion.choices);
+            setLocalChoices(originalChoices);
+          }
+        } finally {
+          setIsChoiceUpdating(false);
+        }
+      }, 500);
+    }
+  }, [onChoiceOptionsUpdate, selectedQuestion]);
+
+  // 即座に保存する場合の関数（追加・削除時に使用）
+  const handleChoicesUpdateImmediate = async (choices) => {
+    if (onChoiceOptionsUpdate && selectedQuestion) {
+      // タイマーをクリア
+      if (choiceUpdateTimeoutRef.current) {
+        clearTimeout(choiceUpdateTimeoutRef.current);
+      }
+      setIsChoiceUpdating(true);
+      
+      try {
+        await onChoiceOptionsUpdate(selectedQuestion.id, choices);
+      } catch (error) {
+        console.error('Choice update error (immediate):', error);
+        // エラー時はローカル状態を元に戻す
+        if (selectedQuestion.choices) {
+          const originalChoices = JSON.parse(selectedQuestion.choices);
+          setLocalChoices(originalChoices);
+        }
+      } finally {
+        setIsChoiceUpdating(false);
+      }
     }
   };
 
@@ -637,8 +686,8 @@ const QuestionSettingsMenu = ({
     const newLocalChoices = [...localChoices, `選択肢 ${localChoices.length + 1}`];
     // 即座にローカル状態を更新
     setLocalChoices(newLocalChoices);
-    // バックグラウンドでSupabaseに同期
-    handleChoicesUpdate(newLocalChoices);
+    // バックグラウンドでSupabaseに同期（即座に実行）
+    handleChoicesUpdateImmediate(newLocalChoices);
   };
 
   // 選択肢の削除（楽観的更新）
@@ -646,16 +695,17 @@ const QuestionSettingsMenu = ({
     const newLocalChoices = localChoices.filter((_, i) => i !== index);
     // 即座にローカル状態を更新
     setLocalChoices(newLocalChoices);
-    // バックグラウンドでSupabaseに同期
-    handleChoicesUpdate(newLocalChoices);
+    // バックグラウンドでSupabaseに同期（即座に実行）
+    handleChoicesUpdateImmediate(newLocalChoices);
   };
 
   // 選択肢の編集
   const handleChoiceEdit = (index, value) => {
-    const currentChoices = selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : [];
-    const newChoices = [...currentChoices];
-    newChoices[index] = value;
-    handleChoicesUpdate(newChoices);
+    const newLocalChoices = [...localChoices];
+    newLocalChoices[index] = value;
+    setLocalChoices(newLocalChoices);
+    // デバウンス処理で保存
+    handleChoicesUpdate(newLocalChoices);
   };
 
   // 選択肢のローカル変更ハンドラ（即座にプレビューに反映）
@@ -664,17 +714,35 @@ const QuestionSettingsMenu = ({
     newLocalChoices[index] = value;
     setLocalChoices(newLocalChoices);
     
-    // プレビューにも即座に反映
+    // デバウンス処理で保存
     handleChoicesUpdate(newLocalChoices);
   };
 
   // 選択肢のonBlur時更新ハンドラ
   const handleChoiceBlur = (index, value) => {
-    const currentChoices = selectedQuestion.choices ? JSON.parse(selectedQuestion.choices) : [];
-    if (currentChoices[index] !== value) {
-      handleChoiceEdit(index, value);
+    // タイマーがあれば即座に実行
+    if (choiceUpdateTimeoutRef.current) {
+      clearTimeout(choiceUpdateTimeoutRef.current);
+      setIsChoiceUpdating(true);
+      
+      const newLocalChoices = [...localChoices];
+      newLocalChoices[index] = value;
+      
+      if (onChoiceOptionsUpdate && selectedQuestion) {
+        onChoiceOptionsUpdate(selectedQuestion.id, newLocalChoices);
+      }
+      setIsChoiceUpdating(false);
     }
   };
+
+  // コンポーネントのクリーンアップ
+  useEffect(() => {
+    return () => {
+      if (choiceUpdateTimeoutRef.current) {
+        clearTimeout(choiceUpdateTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // スケール設定の楽観的更新（専用テーブルに直接保存）
   const handleScaleUpdate = (field, value) => {
