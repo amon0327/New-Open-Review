@@ -241,11 +241,10 @@ const PreviewArea = ({
                       boxShadow: isActive 
                         ? '0 3px 12px rgba(94, 23, 235, 0.4)'
                         : '0 1px 3px rgba(0, 0, 0, 0.1)',
-                      maxWidth: isCenter ? '200px' : '150px', // コンテナサイズを制限
+                      width: isCenter ? '120px' : '80px', // 固定幅でサイズ統一
                       overflow: 'hidden', // テキストオーバーフロー対応
                       textOverflow: 'ellipsis', // 省略記号(...) を表示
                       whiteSpace: 'nowrap',
-                      minWidth: 'fit-content',
                       flexShrink: 0,
                       transform: isCenter ? 'scale(1.05)' : 'scale(1)',
                       opacity: isCenter ? 1 : 0.7,
