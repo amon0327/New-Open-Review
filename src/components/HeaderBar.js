@@ -209,49 +209,103 @@ const HeaderBar = ({
         )}
 
         {/* エラー・警告表示 */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mr: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 1 }}>
           {/* エラー件数 */}
           <Tooltip title={errorCount > 0 ? `${errorCount}件のエラーがあります` : 'エラーはありません'}>
-            <IconButton
-              size="small"
+            <Box
               onClick={errorCount > 0 ? handleErrorClick : undefined}
               sx={{
-                color: errorCount > 0 ? '#ef4444' : '#10b981',
-                '&:hover': {
-                  backgroundColor: errorCount > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)'
-                }
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 1,
+                py: 0.5,
+                borderRadius: 1.5,
+                cursor: errorCount > 0 ? 'pointer' : 'default',
+                backgroundColor: errorCount > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)',
+                border: `1px solid ${errorCount > 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`,
+                transition: 'all 0.2s ease',
+                '&:hover': errorCount > 0 ? {
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  borderColor: 'rgba(239, 68, 68, 0.3)'
+                } : {}
               }}
             >
               {errorCount > 0 ? (
-                <Badge badgeContent={errorCount} color="error" max={99}>
-                  <Error fontSize="small" />
-                </Badge>
+                <Error sx={{ color: '#ef4444', fontSize: '1rem' }} />
               ) : (
-                <CheckCircle fontSize="small" />
+                <CheckCircle sx={{ color: '#10b981', fontSize: '1rem' }} />
               )}
-            </IconButton>
+              
+              {errorCount > 0 && (
+                <Box
+                  sx={{
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: 18,
+                    height: 18,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    minWidth: 18
+                  }}
+                >
+                  {errorCount > 99 ? '99+' : errorCount}
+                </Box>
+              )}
+            </Box>
           </Tooltip>
 
           {/* 警告件数 */}
           <Tooltip title={warningCount > 0 ? `${warningCount}件の警告があります` : '警告はありません'}>
-            <IconButton
-              size="small"
+            <Box
               onClick={warningCount > 0 ? handleWarningClick : undefined}
               sx={{
-                color: warningCount > 0 ? '#f59e0b' : '#10b981',
-                '&:hover': {
-                  backgroundColor: warningCount > 0 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)'
-                }
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 1,
+                py: 0.5,
+                borderRadius: 1.5,
+                cursor: warningCount > 0 ? 'pointer' : 'default',
+                backgroundColor: warningCount > 0 ? 'rgba(245, 158, 11, 0.05)' : 'rgba(16, 185, 129, 0.05)',
+                border: `1px solid ${warningCount > 0 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`,
+                transition: 'all 0.2s ease',
+                '&:hover': warningCount > 0 ? {
+                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                  borderColor: 'rgba(245, 158, 11, 0.3)'
+                } : {}
               }}
             >
               {warningCount > 0 ? (
-                <Badge badgeContent={warningCount} color="warning" max={99}>
-                  <Warning fontSize="small" />
-                </Badge>
+                <Warning sx={{ color: '#f59e0b', fontSize: '1rem' }} />
               ) : (
-                <CheckCircle fontSize="small" />
+                <CheckCircle sx={{ color: '#10b981', fontSize: '1rem' }} />
               )}
-            </IconButton>
+              
+              {warningCount > 0 && (
+                <Box
+                  sx={{
+                    backgroundColor: '#f59e0b',
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: 18,
+                    height: 18,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.7rem',
+                    fontWeight: 600,
+                    minWidth: 18
+                  }}
+                >
+                  {warningCount > 99 ? '99+' : warningCount}
+                </Box>
+              )}
+            </Box>
           </Tooltip>
         </Box>
         
