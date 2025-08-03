@@ -75,7 +75,7 @@ const PreviewCompletion = ({
   const buttonEnabled = completionScreenSettings.is_button_1_enabled !== undefined 
     ? completionScreenSettings.is_button_1_enabled 
     : (completionData?.completionSettings?.is_button_1_enabled ?? true);
-  const displayButtonText = completionScreenSettings.button_text_1 || buttonText || (completionData?.completionSettings?.button_text_1) || '完了';
+  const displayButtonText = completionScreenSettings.button_text_1 || buttonText || (completionData?.completionSettings?.button_text_1) || 'テキストを入力...';
   const displayButtonUrl = completionScreenSettings.button_url_1 || buttonUrl || (completionData?.completionSettings?.button_url_1) || '#';
 
   const handleButtonClick = () => {

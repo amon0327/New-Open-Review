@@ -2669,7 +2669,7 @@ const QuestionSettingsMenu = ({
                         value={localButtonText}
                         onChange={(e) => handleCompletionButton1TextChange(e.target.value)}
                         onBlur={handleCompletionButton1TextBlur}
-                        placeholder="ホームページ"
+                        placeholder="テキストを入力"
                       />
                       <StylishTextField
                         label="リンク先URL"
