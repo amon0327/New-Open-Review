@@ -227,7 +227,7 @@ const HeaderBar = ({
           {/* エラー件数 */}
           <Tooltip title={errorCount > 0 ? `${errorCount}件のエラーがあります` : 'エラーチェック完了'}>
             <Box
-              onClick={errorCount > 0 ? handleErrorClick : undefined}
+              onClick={handleErrorClick}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -235,48 +235,42 @@ const HeaderBar = ({
                 px: 1,
                 py: 0.5,
                 borderRadius: 1.5,
-                cursor: errorCount > 0 ? 'pointer' : 'default',
+                cursor: 'pointer',
                 backgroundColor: errorCount > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.08)',
                 border: `1px solid ${errorCount > 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.25)'}`,
                 transition: 'all 0.2s ease',
-                '&:hover': errorCount > 0 ? {
-                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                  borderColor: 'rgba(239, 68, 68, 0.3)'
-                } : {}
+                '&:hover': {
+                  backgroundColor: errorCount > 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.12)',
+                  borderColor: errorCount > 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.35)'
+                }
               }}
             >
-              {errorCount > 0 ? (
-                <ErrorOutline sx={{ color: '#ef4444', fontSize: '1rem' }} />
-              ) : (
-                <CheckCircleOutline sx={{ color: '#10b981', fontSize: '1rem' }} />
-              )}
+              <ErrorOutline sx={{ color: errorCount > 0 ? '#ef4444' : '#10b981', fontSize: '1rem' }} />
               
-              {errorCount > 0 && (
-                <Box
-                  sx={{
-                    backgroundColor: '#ef4444',
-                    color: 'white',
-                    borderRadius: '50%',
-                    width: 18,
-                    height: 18,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.7rem',
-                    fontWeight: 600,
-                    minWidth: 18
-                  }}
-                >
-                  {errorCount > 99 ? '99+' : errorCount}
-                </Box>
-              )}
+              <Box
+                sx={{
+                  backgroundColor: errorCount > 0 ? '#ef4444' : '#10b981',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: 18,
+                  height: 18,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  minWidth: 18
+                }}
+              >
+                {errorCount > 99 ? '99+' : errorCount}
+              </Box>
             </Box>
           </Tooltip>
 
           {/* 警告件数 */}
           <Tooltip title={warningCount > 0 ? `${warningCount}件の警告があります` : '警告チェック完了'}>
             <Box
-              onClick={warningCount > 0 ? handleWarningClick : undefined}
+              onClick={handleWarningClick}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -284,41 +278,35 @@ const HeaderBar = ({
                 px: 1,
                 py: 0.5,
                 borderRadius: 1.5,
-                cursor: warningCount > 0 ? 'pointer' : 'default',
+                cursor: 'pointer',
                 backgroundColor: warningCount > 0 ? 'rgba(245, 158, 11, 0.05)' : 'rgba(16, 185, 129, 0.08)',
                 border: `1px solid ${warningCount > 0 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.25)'}`,
                 transition: 'all 0.2s ease',
-                '&:hover': warningCount > 0 ? {
-                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                  borderColor: 'rgba(245, 158, 11, 0.3)'
-                } : {}
+                '&:hover': {
+                  backgroundColor: warningCount > 0 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.12)',
+                  borderColor: warningCount > 0 ? 'rgba(245, 158, 11, 0.3)' : 'rgba(16, 185, 129, 0.35)'
+                }
               }}
             >
-              {warningCount > 0 ? (
-                <WarningAmber sx={{ color: '#f59e0b', fontSize: '1rem' }} />
-              ) : (
-                <CheckCircleOutline sx={{ color: '#10b981', fontSize: '1rem' }} />
-              )}
+              <WarningAmber sx={{ color: warningCount > 0 ? '#f59e0b' : '#10b981', fontSize: '1rem' }} />
               
-              {warningCount > 0 && (
-                <Box
-                  sx={{
-                    backgroundColor: '#f59e0b',
-                    color: 'white',
-                    borderRadius: '50%',
-                    width: 18,
-                    height: 18,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.7rem',
-                    fontWeight: 600,
-                    minWidth: 18
-                  }}
-                >
-                  {warningCount > 99 ? '99+' : warningCount}
-                </Box>
-              )}
+              <Box
+                sx={{
+                  backgroundColor: warningCount > 0 ? '#f59e0b' : '#10b981',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: 18,
+                  height: 18,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  minWidth: 18
+                }}
+              >
+                {warningCount > 99 ? '99+' : warningCount}
+              </Box>
             </Box>
           </Tooltip>
         </Box>
