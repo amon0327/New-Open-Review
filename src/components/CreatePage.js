@@ -612,6 +612,18 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   }, [selectedPage, getQuestionsForPage, setPages]);
 
+  // デバッグ用：質問データの変化をログ出力
+  useEffect(() => {
+    if (selectedPage && selectedPage.type === 'question') {
+      const currentQuestions = getQuestionsForPage(selectedPage.id);
+      console.log('CreatePage - questions updated:', {
+        pageId: selectedPage.id,
+        questionsLength: currentQuestions.length,
+        questions: currentQuestions.map(q => ({ id: q.id, text: q.question_text }))
+      });
+    }
+  }, [selectedPage, getQuestionsForPage]);
+
   // ドラッグ&ドロップハンドラ
   const handleDragOver = (e) => {
     e.preventDefault();

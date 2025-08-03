@@ -1442,6 +1442,16 @@ const PreviewQuestions = ({
   // CreatePageから渡されるquestionsプロパティを優先し、リアルタイム更新を確保
   const displayQuestions = (questions && questions.length > 0) ? questions : supabaseQuestions;
 
+  // デバッグ用ログ
+  useEffect(() => {
+    console.log('PreviewQuestions - questions changed:', {
+      questionsLength: questions?.length || 0,
+      supabaseQuestionsLength: supabaseQuestions.length,
+      displayQuestionsLength: displayQuestions.length,
+      selectedPageId: selectedPage?.id
+    });
+  }, [questions, supabaseQuestions, displayQuestions, selectedPage?.id]);
+
   // 質問が追加された際の自動スクロール機能
   useEffect(() => {
     if (displayQuestions.length > prevQuestionsCount && scrollContainerRef.current) {
