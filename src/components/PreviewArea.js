@@ -241,7 +241,7 @@ const PreviewArea = ({
                       boxShadow: isActive 
                         ? '0 3px 12px rgba(94, 23, 235, 0.4)'
                         : '0 1px 3px rgba(0, 0, 0, 0.1)',
-                      width: isCenter ? '120px' : '80px', // 固定幅でサイズ統一
+                      width: isCenter ? '130px' : '110px', // 固定幅でサイズ統一
                       overflow: 'hidden', // テキストオーバーフロー対応
                       textOverflow: 'ellipsis', // 省略記号(...) を表示
                       whiteSpace: 'nowrap',
