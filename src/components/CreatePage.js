@@ -518,16 +518,23 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   }, [pages, selectedPage, setSelectedPage]);
 
+  // 読み込み済みページを追跡するRef
+  const loadedPages = useRef(new Set());
+
   // 選択されたページが変更された時、質問データを読み込み
   useEffect(() => {
     if (selectedPage && selectedPage.type === 'question' && formId) {
-      // 既に質問データが存在する場合は再読み込みしない（設定画面から戻った場合を考慮）
-      const existingQuestions = questionsData[selectedPage.id] || [];
-      if (existingQuestions.length === 0) {
-        loadQuestionsForPage(selectedPage.id);
+      // 既に読み込み済みの場合はスキップ
+      if (loadedPages.current.has(selectedPage.id)) {
+        return;
       }
+      
+      // 質問データを読み込み
+      loadQuestionsForPage(selectedPage.id);
+      // 読み込み済みとして記録
+      loadedPages.current.add(selectedPage.id);
     }
-  }, [selectedPage, formId, loadQuestionsForPage, questionsData]);
+  }, [selectedPage, formId, loadQuestionsForPage]);
 
   // Supabaseから取得した質問タイプデータを既存フォーマットに変換
   const convertedQuestionTypes = questionTypesData.map(qType => ({
