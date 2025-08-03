@@ -232,31 +232,6 @@ export const validateForm = (formData) => {
       }
     }
 
-    // マトリックス質問の行ラベル検証
-    const matrixTypes = [5, 6]; // マトリックス質問
-    if (matrixTypes.includes(numericQuestionTypeId)) {
-      const rows = question.rows || question.matrix_rows || [];
-      if (rows.length === 0) {
-        errors.push({
-          id: `missing-matrix-rows-${question.id}`,
-          message: `質問${index + 1}の行ラベルが設定されていません`,
-          location: '質問設定',
-          action: 'openSettings'
-        });
-      } else {
-        rows.forEach((row, rowIndex) => {
-          const rowText = row.text || row.label || '';
-          if (!rowText || rowText.trim() === '') {
-            errors.push({
-              id: `missing-matrix-row-${question.id}-${rowIndex}`,
-              message: `質問${index + 1}の行ラベル${rowIndex + 1}が空です`,
-              location: '質問設定',
-              action: 'openSettings'
-            });
-          }
-        });
-      }
-    }
   });
 
   // 5. テーマカラーの検証（Supabaseに保存されていればOK）
