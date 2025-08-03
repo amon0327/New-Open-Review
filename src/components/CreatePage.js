@@ -1632,6 +1632,24 @@ export default function CreatePage({ onBackClick, user, formId }) {
           onProjectTitleUpdate={handleProjectTitleUpdate}
           isSaving={showSavingIndicator}
           formId={formId}
+          formData={{
+            questions,
+            pages,
+            formSettings,
+            loginScreenSettings,
+            completionScreenSettings,
+            loginTitle: loginTitleText,
+            loginDetail: loginDetailText,
+            completionTitle: completionTitleText,
+            completionDetail: completionDetailText,
+            logoImage: headerImage?.logo || logoImage,
+            headerImage,
+            completionBackground: completionBackgroundImage
+          }}
+          onOpenDesignSettings={() => setActiveCategory('design')}
+          onOpenLoginSettings={() => setActiveCategory('login')}
+          onOpenCompletionSettings={() => setActiveCategory('completion')}
+          onOpenSettings={() => setActiveCategory('general')}
         />
 
         {/* メインコンテンツエリア */}
