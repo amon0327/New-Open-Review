@@ -451,36 +451,83 @@ export const deleteReviewQuestion = async (questionId) => {
   }
 };
 
-// 選択肢オプションを更新する関数
+// 選択肢オプションを更新する関数（既存行を更新、新規行は追加、不要行は削除）
 export const updateChoiceOptions = async (reviewQuestionsId, choices) => {
   try {
-    // 1. 既存の選択肢を削除
-    await supabase
-      .from('question_option_choices')
-      .delete()
-      .eq('review_questions_id', reviewQuestionsId);
+    console.log(`Updating choices for question ${reviewQuestionsId}:`, choices);
+    
+    // 1. 既存の選択肢を取得
+    const existingChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+    console.log('Existing choices:', existingChoices);
 
-    // 2. 新しい選択肢を追加
+    const operations = [];
+    
+    // 2. 新しい選択肢リストを処理
     if (choices && choices.length > 0) {
-      const choiceInserts = choices.map((choice, index) => ({
-        review_questions_id: reviewQuestionsId,
-        choice_number: index + 1,
-        choice_name: choice
-      }));
+      for (let i = 0; i < choices.length; i++) {
+        const choiceText = choices[i];
+        const choiceNumber = i + 1;
+        const existingChoice = existingChoices.find(c => c.choice_number === choiceNumber);
 
-      const { data, error } = await supabase
-        .from('question_option_choices')
-        .insert(choiceInserts)
-        .select();
-
-      if (error) {
-        throw error;
+        if (existingChoice) {
+          // 既存の選択肢を更新
+          if (existingChoice.choice_name !== choiceText) {
+            console.log(`Updating choice ${choiceNumber}: "${existingChoice.choice_name}" → "${choiceText}"`);
+            operations.push(
+              supabase
+                .from('question_option_choices')
+                .update({ choice_name: choiceText })
+                .eq('id', existingChoice.id)
+            );
+          }
+        } else {
+          // 新しい選択肢を追加
+          console.log(`Adding new choice ${choiceNumber}: "${choiceText}"`);
+          operations.push(
+            supabase
+              .from('question_option_choices')
+              .insert({
+                review_questions_id: reviewQuestionsId,
+                choice_number: choiceNumber,
+                choice_name: choiceText
+              })
+          );
+        }
       }
-
-      return data;
     }
 
-    return [];
+    // 3. 不要になった選択肢を削除
+    const choicesToDelete = existingChoices.filter(existing => 
+      !choices || existing.choice_number > choices.length
+    );
+    
+    for (const choiceToDelete of choicesToDelete) {
+      console.log(`Deleting choice ${choiceToDelete.choice_number}: "${choiceToDelete.choice_name}"`);
+      operations.push(
+        supabase
+          .from('question_option_choices')
+          .delete()
+          .eq('id', choiceToDelete.id)
+      );
+    }
+
+    // 4. 全ての操作を実行
+    if (operations.length > 0) {
+      const results = await Promise.all(operations);
+      
+      // エラーチェック
+      for (const result of results) {
+        if (result.error) {
+          throw result.error;
+        }
+      }
+    }
+
+    // 5. 更新後の選択肢を取得して返却
+    const updatedChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+    console.log('Updated choices:', updatedChoices);
+    
+    return updatedChoices;
   } catch (error) {
     console.error('Error updating choice options:', error);
     throw error;
@@ -562,33 +609,80 @@ export const updateQuestionWithOptions = async (questionId, questionData) => {
 // 選択肢オプションを直接更新する関数（review_questionsテーブルを経由しない）
 export const updateChoiceOptionsDirect = async (reviewQuestionsId, choices) => {
   try {
-    // 1. 既存の選択肢を削除
-    await supabase
-      .from('question_option_choices')
-      .delete()
-      .eq('review_questions_id', reviewQuestionsId);
+    console.log(`Updating choices directly for question ${reviewQuestionsId}:`, choices);
+    
+    // 1. 既存の選択肢を取得
+    const existingChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+    console.log('Existing choices (direct):', existingChoices);
 
-    // 2. 新しい選択肢を追加
+    const operations = [];
+    
+    // 2. 新しい選択肢リストを処理
     if (choices && choices.length > 0) {
-      const choiceInserts = choices.map((choice, index) => ({
-        review_questions_id: reviewQuestionsId,
-        choice_number: index + 1,
-        choice_name: choice
-      }));
+      for (let i = 0; i < choices.length; i++) {
+        const choiceText = choices[i];
+        const choiceNumber = i + 1;
+        const existingChoice = existingChoices.find(c => c.choice_number === choiceNumber);
 
-      const { data, error } = await supabase
-        .from('question_option_choices')
-        .insert(choiceInserts)
-        .select();
-
-      if (error) {
-        throw error;
+        if (existingChoice) {
+          // 既存の選択肢を更新
+          if (existingChoice.choice_name !== choiceText) {
+            console.log(`Updating choice ${choiceNumber} (direct): "${existingChoice.choice_name}" → "${choiceText}"`);
+            operations.push(
+              supabase
+                .from('question_option_choices')
+                .update({ choice_name: choiceText })
+                .eq('id', existingChoice.id)
+            );
+          }
+        } else {
+          // 新しい選択肢を追加
+          console.log(`Adding new choice ${choiceNumber} (direct): "${choiceText}"`);
+          operations.push(
+            supabase
+              .from('question_option_choices')
+              .insert({
+                review_questions_id: reviewQuestionsId,
+                choice_number: choiceNumber,
+                choice_name: choiceText
+              })
+          );
+        }
       }
-
-      return data;
     }
 
-    return [];
+    // 3. 不要になった選択肢を削除
+    const choicesToDelete = existingChoices.filter(existing => 
+      !choices || existing.choice_number > choices.length
+    );
+    
+    for (const choiceToDelete of choicesToDelete) {
+      console.log(`Deleting choice ${choiceToDelete.choice_number} (direct): "${choiceToDelete.choice_name}"`);
+      operations.push(
+        supabase
+          .from('question_option_choices')
+          .delete()
+          .eq('id', choiceToDelete.id)
+      );
+    }
+
+    // 4. 全ての操作を実行
+    if (operations.length > 0) {
+      const results = await Promise.all(operations);
+      
+      // エラーチェック
+      for (const result of results) {
+        if (result.error) {
+          throw result.error;
+        }
+      }
+    }
+
+    // 5. 更新後の選択肢を取得して返却
+    const updatedChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+    console.log('Updated choices (direct):', updatedChoices);
+    
+    return updatedChoices;
   } catch (error) {
     console.error('Error updating choice options directly:', error);
     throw error;
