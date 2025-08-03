@@ -203,36 +203,68 @@ export const validateForm = (formData) => {
     // デフォルト値の場合はエラーとしない（警告のみ）
   }
 
-  // 9. ログイン画面のテキスト検証（Supabaseに保存されていればOK）
+  // 9. ログイン画面のテキスト検証
   const hasLoginTitle = (loginTitle && loginTitle.trim() !== '') || 
                        (loginScreenSettings.title_text && loginScreenSettings.title_text.trim() !== '');
   const hasLoginDetail = (loginDetail && loginDetail.trim() !== '') || 
                         (loginScreenSettings.detail_text && loginScreenSettings.detail_text.trim() !== '');
   
+  console.log('Login text validation:', { 
+    loginTitle, 
+    loginDetail, 
+    loginScreenSettings, 
+    hasLoginTitle, 
+    hasLoginDetail 
+  });
+  
   if (!hasLoginTitle) {
-    console.log('Login title validation:', { loginTitle, loginScreenSettings });
-    // デフォルト値でも動作するためエラーとしない
+    errors.push({
+      id: 'missing-login-title',
+      message: 'ログイン画面のタイトルテキストが入力されていません',
+      location: 'ログイン画面設定',
+      action: 'openLoginSettings'
+    });
   }
 
   if (!hasLoginDetail) {
-    console.log('Login detail validation:', { loginDetail, loginScreenSettings });
-    // デフォルト値でも動作するためエラーとしない
+    errors.push({
+      id: 'missing-login-detail',
+      message: 'ログイン画面の詳細テキストが入力されていません',
+      location: 'ログイン画面設定',
+      action: 'openLoginSettings'
+    });
   }
 
-  // 10. 完了画面のテキスト検証（Supabaseに保存されていればOK）
+  // 10. 完了画面のテキスト検証
   const hasCompletionTitle = (completionTitle && completionTitle.trim() !== '') || 
                             (completionScreenSettings.title_text && completionScreenSettings.title_text.trim() !== '');
   const hasCompletionDetail = (completionDetail && completionDetail.trim() !== '') || 
                              (completionScreenSettings.detail_text && completionScreenSettings.detail_text.trim() !== '');
 
+  console.log('Completion text validation:', { 
+    completionTitle, 
+    completionDetail, 
+    completionScreenSettings, 
+    hasCompletionTitle, 
+    hasCompletionDetail 
+  });
+
   if (!hasCompletionTitle) {
-    console.log('Completion title validation:', { completionTitle, completionScreenSettings });
-    // デフォルト値でも動作するためエラーとしない
+    errors.push({
+      id: 'missing-completion-title',
+      message: '完了画面のタイトルテキストが入力されていません',
+      location: '完了画面設定',
+      action: 'openCompletionSettings'
+    });
   }
 
   if (!hasCompletionDetail) {
-    console.log('Completion detail validation:', { completionDetail, completionScreenSettings });
-    // デフォルト値でも動作するためエラーとしない
+    errors.push({
+      id: 'missing-completion-detail',
+      message: '完了画面の詳細テキストが入力されていません',
+      location: '完了画面設定',
+      action: 'openCompletionSettings'
+    });
   }
 
   // 11. 完了画面のボタン設定検証
