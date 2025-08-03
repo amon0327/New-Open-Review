@@ -18,10 +18,10 @@ const ErrorNotification = ({ open, onClose, message, errorCount = 0 }) => {
     <Box
       sx={{
         position: 'fixed',
-        bottom: 24,
+        bottom: '50%',
         left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 9999
+        transform: 'translate(-50%, 50%)',
+        zIndex: 10000
       }}
     >
       <AnimatePresence>
