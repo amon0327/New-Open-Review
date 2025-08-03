@@ -898,7 +898,16 @@ const QuestionSettingsMenu = ({
         </Box>
 
         {/* タブ内容 */}
-        <Box sx={{ flex: 1, overflow: 'auto', p: 0 }}>
+        <Box sx={{ 
+          flex: 1, 
+          overflow: 'auto', 
+          p: 0,
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          },
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}>
           <Box sx={{ p: 2 }}>
             {renderTabContent()}
           </Box>
