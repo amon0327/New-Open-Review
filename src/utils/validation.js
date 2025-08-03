@@ -50,12 +50,7 @@ export const validateForm = (formData) => {
       id: 'missing-project-title',
       message: 'プロジェクト名が設定されていません',
       location: 'プロジェクト設定',
-      action: 'openSettings',
-      elementType: 'header',
-      elementId: 'project-title',
-      highlightTarget: 'header-title',
-      displayTarget: 'settings',
-      settingsSection: 'project' // プロジェクト設定セクション
+      action: 'openSettings'
     });
   }
 
@@ -66,11 +61,7 @@ export const validateForm = (formData) => {
       id: 'missing-question-page',
       message: '質問ページが1つ以上必要です',
       location: '質問設定',
-      action: 'openSettings',
-      elementType: 'navigation',
-      elementId: 'page-manager',
-      highlightTarget: 'page-manager-button',
-      displayTarget: 'preview' // プレビュー画面にフォーカス
+      action: 'openSettings'
     });
   }
 
@@ -87,12 +78,7 @@ export const validateForm = (formData) => {
         id: `missing-questions-page-${page.id}`,
         message: `「${page.title || page.name || 'ページ'}」に質問が設定されていません`,
         location: '質問設定',
-        action: 'openSettings',
-        elementType: 'page',
-        elementId: `page-${page.id}`,
-        highlightTarget: `page-${page.id}`,
-        pageId: page.id,
-        displayTarget: 'preview' // プレビュー画面でページを表示
+        action: 'openSettings'
       });
     }
   });
@@ -119,14 +105,7 @@ export const validateForm = (formData) => {
         id: `missing-question-text-${question.id}`,
         message: `質問${index + 1}のテキストが入力されていません`,
         location: '質問設定',
-        action: 'openSettings',
-        elementType: 'question',
-        elementId: `question-${question.id}`,
-        highlightTarget: `question-${question.id}`,
-        questionId: question.id,
-        questionIndex: index,
-        displayTarget: 'preview',
-        navigationTarget: 'questions' // 質問画面に遷移
+        action: 'openSettings'
       });
     }
 
@@ -187,15 +166,7 @@ export const validateForm = (formData) => {
           id: `missing-choices-${question.id}`,
           message: `質問${index + 1}の選択肢が設定されていません`,
           location: '質問設定',
-          action: 'openSettings',
-          elementType: 'question',
-          elementId: `question-${question.id}`,
-          highlightTarget: `question-${question.id}`,
-          questionId: question.id,
-          questionIndex: index,
-          errorField: 'choices',
-          displayTarget: 'preview',
-          navigationTarget: 'questions' // 質問画面に遷移
+          action: 'openSettings'
         });
       } else {
         // 選択肢内容の検証
