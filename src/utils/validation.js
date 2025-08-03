@@ -79,7 +79,8 @@ export const validateForm = (formData) => {
         id: `missing-questions-page-${page.id}`,
         message: `「${page.title || page.name || 'ページ'}」に質問が設定されていません`,
         location: '質問設定',
-        action: 'openSettings'
+        action: 'navigateToPage',
+        pageId: page.id
       });
     }
   });

@@ -1394,7 +1394,8 @@ const PreviewQuestions = ({
   formId,
   // エラーハイライト関連
   highlightedElement,
-  highlightAnimation
+  highlightAnimation,
+  pageErrorHighlight
 }) => {
   const [answers, setAnswers] = useState({});
   const [hoveredQuestionId, setHoveredQuestionId] = useState(null);
@@ -1410,6 +1411,35 @@ const PreviewQuestions = ({
     if (!highlightedElement || 
         highlightedElement.elementType !== 'question' || 
         highlightedElement.questionId !== questionId) {
+      return {};
+    }
+    
+    return {
+      position: 'relative',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: -8,
+        left: -8,
+        right: -8,
+        bottom: -8,
+        background: 'rgba(239, 68, 68, 0.2)',
+        borderRadius: 2,
+        border: '2px solid #ef4444',
+        zIndex: 1000,
+        animation: highlightAnimation ? 'errorPulse 2s ease-in-out' : 'none',
+        '@keyframes errorPulse': {
+          '0%': { opacity: 0, transform: 'scale(0.9)' },
+          '50%': { opacity: 1, transform: 'scale(1.05)' },
+          '100%': { opacity: 0.8, transform: 'scale(1)' }
+        }
+      }
+    };
+  };
+
+  // ページエラーハイライトスタイルを生成するヘルパー関数
+  const getPageErrorHighlightStyle = () => {
+    if (!pageErrorHighlight || pageErrorHighlight !== selectedPage?.id) {
       return {};
     }
     
@@ -1957,7 +1987,8 @@ const PreviewQuestions = ({
                   height: '100%',
                   color: '#6b7280',
                   textAlign: 'center',
-                  p: 4
+                  p: 4,
+                  ...getPageErrorHighlightStyle()
                 }}
               >
                 <Box

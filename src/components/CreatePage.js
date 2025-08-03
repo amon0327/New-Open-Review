@@ -163,7 +163,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
     isPublished, setIsPublished,
     projectDescription, setProjectDescription,
     selectedFont, setSelectedFont,
-    logoPreview, setLogoPreview
+    logoPreview, setLogoPreview,
+    pageErrorHighlight, setPageErrorHighlight
   } = useCreatePageState();
 
   // 質問データ管理フック
@@ -1750,6 +1751,13 @@ export default function CreatePage({ onBackClick, user, formId }) {
           }}
           onQuestionSelect={handleQuestionSelect}
           onHighlightElement={handleElementHighlight}
+          onNavigateToPage={(pageId) => {
+            setCurrentPageIndex(pages.findIndex(p => p.id === pageId));
+          }}
+          onShowPageError={(pageId) => {
+            setPageErrorHighlight(pageId);
+            setTimeout(() => setPageErrorHighlight(null), 3000);
+          }}
         />
 
         {/* メインコンテンツエリア */}
@@ -1895,6 +1903,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     completionBackground={completionBackground}
                     // フォームID
                     formId={formId}
+                    // ページエラーハイライト
+                    pageErrorHighlight={pageErrorHighlight}
                   />
                   
                   {/* プレビューコントロール */}

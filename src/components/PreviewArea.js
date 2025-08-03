@@ -42,7 +42,8 @@ const PreviewArea = ({
   loginDetail,
   completionTitle,
   completionDetail,
-  completionBackground
+  completionBackground,
+  pageErrorHighlight
 }) => {
   const dropRef = useRef(null);
   const [dropIndicator, setDropIndicator] = useState(null);
@@ -151,6 +152,7 @@ const PreviewArea = ({
             selectedElement={selectedElement}
             formId={formId}
             formSettings={formSettings}
+            pageErrorHighlight={pageErrorHighlight}
           />
         );
     }

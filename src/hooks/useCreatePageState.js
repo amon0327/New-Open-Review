@@ -42,6 +42,7 @@ export const useCreatePageState = () => {
   const [projectDescription, setProjectDescription] = useState(''); // プロジェクト説明
   const [selectedFont, setSelectedFont] = useState('Inter'); // 選択されたフォント
   const [logoPreview, setLogoPreview] = useState(null); // ロゴプレビュー
+  const [pageErrorHighlight, setPageErrorHighlight] = useState(null); // ページエラーハイライト
 
   return {
     // ツール・プレビュー関連
@@ -98,6 +99,8 @@ export const useCreatePageState = () => {
     selectedFont,
     setSelectedFont,
     logoPreview,
-    setLogoPreview
+    setLogoPreview,
+    pageErrorHighlight,
+    setPageErrorHighlight
   };
 };

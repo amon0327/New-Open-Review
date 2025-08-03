@@ -93,8 +93,17 @@ const HeaderBar = ({
     // エラー項目がクリックされた時の処理
     setErrorAnchorEl(null); // ポップオーバーを閉じる
     
-    // エラークリック時の遷移を無効化
-    // 何もしない
+    // ページエラーの場合は特別処理
+    if (error.action === 'navigateToPage' && error.pageId) {
+      // ページに遷移してエラー表示
+      if (onNavigateToPage) {
+        onNavigateToPage(error.pageId);
+      }
+      if (onShowPageError) {
+        onShowPageError(error.pageId);
+      }
+    }
+    // それ以外のエラーは何もしない
   };
 
   const handleWarningItemClick = (warning) => {
