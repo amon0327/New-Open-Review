@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 import PreviewUrlDialog from './PreviewUrlDialog';
+import CustomAlert from './CustomAlert';
 import { validateForm } from '../utils/validation';
 
 const HeaderBar = ({
@@ -53,6 +54,8 @@ const HeaderBar = ({
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
   // プレビューダイアログの状態
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  // カスタムアラートの状態
+  const [showAlert, setShowAlert] = useState(false);
   // エラー・警告ポップオーバーの状態
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
@@ -128,7 +131,7 @@ const HeaderBar = ({
 
   const handlePreviewClick = () => {
     if (errorCount > 0) {
-      alert('プレビューを表示するには、エラーを修正してください');
+      setShowAlert(true);
       return;
     }
     setShowPreviewDialog(true);
@@ -380,6 +383,15 @@ const HeaderBar = ({
         open={showPreviewDialog}
         onClose={() => setShowPreviewDialog(false)}
         formId={formId}
+      />
+
+      {/* カスタムアラート */}
+      <CustomAlert
+        open={showAlert}
+        onClose={() => setShowAlert(false)}
+        title="プレビューできません"
+        message="プレビューを表示するには、エラーを修正してください"
+        type="error"
       />
 
       {/* エラー詳細ポップオーバー */}
