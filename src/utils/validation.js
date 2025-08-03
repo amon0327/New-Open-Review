@@ -378,24 +378,6 @@ export const validateForm = (formData) => {
     });
   }
 
-  // ログイン画面のテキストがデフォルトの場合
-  if (!loginTitle || loginTitle === 'ログイン' || loginTitle === 'テキストを入力...') {
-    warnings.push({
-      id: 'default-login-title',
-      message: 'デフォルトのログイン画面タイトルが使用されています',
-      location: 'ログイン画面設定',
-      action: 'openLoginSettings'
-    });
-  }
-
-  if (!loginDetail || loginDetail === 'アンケートにご協力いただき、ありがとうございます。' || loginDetail === 'テキストを入力...') {
-    warnings.push({
-      id: 'default-login-detail',
-      message: 'デフォルトのログイン画面詳細テキストが使用されています',
-      location: 'ログイン画面設定',
-      action: 'openLoginSettings'
-    });
-  }
 
   // 完了画面のテキストがデフォルトの場合
   if (!completionTitle || completionTitle === '完了' || completionTitle === 'テキストを入力...') {
