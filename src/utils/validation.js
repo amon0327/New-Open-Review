@@ -106,7 +106,8 @@ export const validateForm = (formData) => {
         id: `missing-question-text-${question.id}`,
         message: `質問${index + 1}のテキストが入力されていません`,
         location: '質問設定',
-        action: 'openSettings'
+        action: 'openSettings',
+        questionId: question.id
       });
     }
 
@@ -167,7 +168,8 @@ export const validateForm = (formData) => {
           id: `missing-choices-${question.id}`,
           message: `質問${index + 1}の選択肢が設定されていません`,
           location: '質問設定',
-          action: 'openSettings'
+          action: 'openSettings',
+          questionId: question.id
         });
       } else {
         // 選択肢内容の検証
@@ -182,7 +184,8 @@ export const validateForm = (formData) => {
               id: `missing-choice-text-${question.id}-${choiceIndex}`,
               message: `質問${index + 1}の選択肢${choiceIndex + 1}が空です`,
               location: '質問設定',
-              action: 'openSettings'
+              action: 'openSettings',
+              questionId: question.id
             });
           }
         });
@@ -201,7 +204,8 @@ export const validateForm = (formData) => {
           id: `missing-min-label-${question.id}`,
           message: `質問${index + 1}の最小値ラベルが設定されていません`,
           location: '質問設定',
-          action: 'openSettings'
+          action: 'openSettings',
+          questionId: question.id
         });
       }
       if (!maxLabel || maxLabel.trim() === '') {
@@ -209,7 +213,8 @@ export const validateForm = (formData) => {
           id: `missing-max-label-${question.id}`,
           message: `質問${index + 1}の最大値ラベルが設定されていません`,
           location: '質問設定',
-          action: 'openSettings'
+          action: 'openSettings',
+          questionId: question.id
         });
       }
     }

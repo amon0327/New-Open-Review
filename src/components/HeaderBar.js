@@ -49,6 +49,8 @@ const HeaderBar = ({
   onOpenLoginSettings,
   onOpenCompletionSettings,
   onOpenSettings,
+  // 質問選択用のコールバック関数
+  onQuestionSelect,
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
@@ -89,6 +91,11 @@ const HeaderBar = ({
     // エラー項目がクリックされた時の処理
     setErrorAnchorEl(null); // ポップオーバーを閉じる
     
+    // 質問関連のエラーの場合は質問を選択
+    if (error.questionId && onQuestionSelect) {
+      onQuestionSelect(error.questionId);
+    }
+    
     // actionに基づいて適切な設定画面を開く
     switch (error.action) {
       case 'openSettings':
@@ -112,6 +119,11 @@ const HeaderBar = ({
   const handleWarningItemClick = (warning) => {
     // 警告項目がクリックされた時の処理
     setWarningAnchorEl(null); // ポップオーバーを閉じる
+    
+    // 質問関連の警告の場合は質問を選択
+    if (warning.questionId && onQuestionSelect) {
+      onQuestionSelect(warning.questionId);
+    }
     
     // actionに基づいて適切な設定画面を開く
     switch (warning.action) {

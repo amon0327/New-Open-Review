@@ -1728,6 +1728,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
             setActiveSection('all');
             setShowSettings(true);
           }}
+          onQuestionSelect={handleQuestionSelect}
         />
 
         {/* メインコンテンツエリア */}
