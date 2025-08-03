@@ -1639,6 +1639,12 @@ export default function CreatePage({ onBackClick, user, formId }) {
     setSelectedPage(pageId);
   };
 
+  // 設定画面を閉じるハンドラー
+  const handleCloseSettings = () => {
+    console.log('Closing settings');
+    setShowSettings(false);
+  };
+
   // プロジェクトタイトル更新ハンドラー
   const handleProjectTitleUpdate = async (title) => {
     // 即座にローカル状態を更新
@@ -1723,6 +1729,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
           onSetPreviewMode={handleSetPreviewMode}
           onSelectQuestion={handleSelectQuestion}
           onSelectPage={handleSelectPage}
+          onCloseSettings={handleCloseSettings}
         />
 
         {/* メインコンテンツエリア */}

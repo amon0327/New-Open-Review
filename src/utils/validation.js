@@ -53,7 +53,8 @@ export const validateForm = (formData) => {
       action: 'openSettings',
       elementType: 'header',
       elementId: 'project-title',
-      highlightTarget: 'header-title'
+      highlightTarget: 'header-title',
+      displayTarget: 'settings' // 設定画面を表示
     });
   }
 
@@ -67,7 +68,8 @@ export const validateForm = (formData) => {
       action: 'openSettings',
       elementType: 'navigation',
       elementId: 'page-manager',
-      highlightTarget: 'page-manager-button'
+      highlightTarget: 'page-manager-button',
+      displayTarget: 'preview' // プレビュー画面にフォーカス
     });
   }
 
@@ -88,7 +90,8 @@ export const validateForm = (formData) => {
         elementType: 'page',
         elementId: `page-${page.id}`,
         highlightTarget: `page-${page.id}`,
-        pageId: page.id
+        pageId: page.id,
+        displayTarget: 'preview' // プレビュー画面でページを表示
       });
     }
   });
@@ -120,7 +123,8 @@ export const validateForm = (formData) => {
         elementId: `question-${question.id}`,
         highlightTarget: `question-${question.id}`,
         questionId: question.id,
-        questionIndex: index
+        questionIndex: index,
+        displayTarget: 'preview' // プレビュー画面で質問を表示
       });
     }
 
@@ -187,7 +191,8 @@ export const validateForm = (formData) => {
           highlightTarget: `question-${question.id}`,
           questionId: question.id,
           questionIndex: index,
-          errorField: 'choices'
+          errorField: 'choices',
+          displayTarget: 'preview' // プレビュー画面で質問を表示
         });
       } else {
         // 選択肢内容の検証
@@ -296,7 +301,8 @@ export const validateForm = (formData) => {
       elementType: 'preview',
       elementId: 'login-screen',
       highlightTarget: 'login-title',
-      previewMode: 'login'
+      previewMode: 'login',
+      displayTarget: 'preview' // プレビュー画面でログイン画面を表示
     });
   }
 
@@ -309,7 +315,8 @@ export const validateForm = (formData) => {
       elementType: 'preview',
       elementId: 'login-screen',
       highlightTarget: 'login-detail',
-      previewMode: 'login'
+      previewMode: 'login',
+      displayTarget: 'preview' // プレビュー画面でログイン画面を表示
     });
   }
 
@@ -336,7 +343,8 @@ export const validateForm = (formData) => {
       elementType: 'preview',
       elementId: 'completion-screen',
       highlightTarget: 'completion-title',
-      previewMode: 'completion'
+      previewMode: 'completion',
+      displayTarget: 'preview' // プレビュー画面で完了画面を表示
     });
   }
 
@@ -349,7 +357,8 @@ export const validateForm = (formData) => {
       elementType: 'preview',
       elementId: 'completion-screen',
       highlightTarget: 'completion-detail',
-      previewMode: 'completion'
+      previewMode: 'completion',
+      displayTarget: 'preview' // プレビュー画面で完了画面を表示
     });
   }
 

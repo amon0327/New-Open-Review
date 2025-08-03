@@ -53,7 +53,9 @@ const HeaderBar = ({
   onHighlightElement,
   onSetPreviewMode,
   onSelectQuestion,
-  onSelectPage
+  onSelectPage,
+  // 設定画面を閉じる機能
+  onCloseSettings
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
@@ -124,21 +126,31 @@ const HeaderBar = ({
       }
     }
     
-    // 設定メニューを開く処理（ハイライト後に実行）
+    // 表示先に応じて適切な画面を表示
     setTimeout(() => {
-      switch(error.action) {
-        case 'openDesignSettings':
-          onOpenDesignSettings?.();
-          break;
-        case 'openLoginSettings':
-          onOpenLoginSettings?.();
-          break;
-        case 'openCompletionSettings':
-          onOpenCompletionSettings?.();
-          break;
-        default:
-          onOpenSettings?.();
-          break;
+      if (error.displayTarget === 'preview') {
+        // プレビュー画面を表示（設定画面は開かない）
+        console.log('Showing preview for error:', error.id);
+        // 設定画面が開いている場合は閉じる
+        if (onCloseSettings) {
+          onCloseSettings();
+        }
+      } else if (error.displayTarget === 'settings') {
+        // 設定画面を開く
+        switch(error.action) {
+          case 'openDesignSettings':
+            onOpenDesignSettings?.();
+            break;
+          case 'openLoginSettings':
+            onOpenLoginSettings?.();
+            break;
+          case 'openCompletionSettings':
+            onOpenCompletionSettings?.();
+            break;
+          default:
+            onOpenSettings?.();
+            break;
+        }
       }
     }, 100); // 少し遅延させてハイライトが先に実行されるようにする
   };
