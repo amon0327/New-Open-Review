@@ -90,43 +90,13 @@ const HeaderBar = ({
   const handleErrorItemClick = (error) => {
     // エラー項目がクリックされた時の処理
     setErrorAnchorEl(null); // ポップオーバーを閉じる
-    
-    // 設定メニューを開く処理
-    switch(error.action) {
-      case 'openDesignSettings':
-        onOpenDesignSettings?.();
-        break;
-      case 'openLoginSettings':
-        onOpenLoginSettings?.();
-        break;
-      case 'openCompletionSettings':
-        onOpenCompletionSettings?.();
-        break;
-      default:
-        onOpenSettings?.();
-        break;
-    }
+    // 何も処理しない
   };
 
   const handleWarningItemClick = (warning) => {
     // 警告項目がクリックされた時の処理
     setWarningAnchorEl(null); // ポップオーバーを閉じる
-    
-    // 設定メニューを開く処理
-    switch(warning.action) {
-      case 'openDesignSettings':
-        onOpenDesignSettings?.();
-        break;
-      case 'openLoginSettings':
-        onOpenLoginSettings?.();
-        break;
-      case 'openCompletionSettings':
-        onOpenCompletionSettings?.();
-        break;
-      default:
-        onOpenSettings?.();
-        break;
-    }
+    // 何も処理しない
   };
 
   const handlePreviewClick = () => {
