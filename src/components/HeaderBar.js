@@ -88,13 +88,49 @@ const HeaderBar = ({
   const handleErrorItemClick = (error) => {
     // エラー項目がクリックされた時の処理
     setErrorAnchorEl(null); // ポップオーバーを閉じる
-    // 何も処理しない
+    
+    // actionに基づいて適切な設定画面を開く
+    switch (error.action) {
+      case 'openSettings':
+        onOpenSettings && onOpenSettings('project');
+        break;
+      case 'openDesignSettings':
+        onOpenDesignSettings && onOpenDesignSettings('design');
+        break;
+      case 'openLoginSettings':
+        onOpenLoginSettings && onOpenLoginSettings('login');
+        break;
+      case 'openCompletionSettings':
+        onOpenCompletionSettings && onOpenCompletionSettings('completion');
+        break;
+      default:
+        // フォールバック: 一般設定を開く
+        onOpenSettings && onOpenSettings('project');
+    }
   };
 
   const handleWarningItemClick = (warning) => {
     // 警告項目がクリックされた時の処理
     setWarningAnchorEl(null); // ポップオーバーを閉じる
-    // 何も処理しない
+    
+    // actionに基づいて適切な設定画面を開く
+    switch (warning.action) {
+      case 'openSettings':
+        onOpenSettings && onOpenSettings('project');
+        break;
+      case 'openDesignSettings':
+        onOpenDesignSettings && onOpenDesignSettings('design');
+        break;
+      case 'openLoginSettings':
+        onOpenLoginSettings && onOpenLoginSettings('login');
+        break;
+      case 'openCompletionSettings':
+        onOpenCompletionSettings && onOpenCompletionSettings('completion');
+        break;
+      default:
+        // フォールバック: 一般設定を開く
+        onOpenSettings && onOpenSettings('project');
+    }
   };
 
   const handlePreviewClick = () => {

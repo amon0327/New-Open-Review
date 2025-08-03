@@ -155,6 +155,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     editingPageId, setEditingPageId,
     editingTitle, setEditingTitle,
     showSettings, setShowSettings,
+    activeSection, setActiveSection,
     projectTitle, setProjectTitle,
     isEditingTitle, setIsEditingTitle,
     showColorPicker, setShowColorPicker,
@@ -1711,10 +1712,22 @@ export default function CreatePage({ onBackClick, user, formId }) {
             headerImage,
             completionBackground
           }}
-          onOpenDesignSettings={() => setShowSettings(true)}
-          onOpenLoginSettings={() => setShowSettings(true)}
-          onOpenCompletionSettings={() => setShowSettings(true)}
-          onOpenSettings={() => setShowSettings(true)}
+          onOpenDesignSettings={() => {
+            setActiveSection('design');
+            setShowSettings(true);
+          }}
+          onOpenLoginSettings={() => {
+            setActiveSection('login');
+            setShowSettings(true);
+          }}
+          onOpenCompletionSettings={() => {
+            setActiveSection('completion');
+            setShowSettings(true);
+          }}
+          onOpenSettings={() => {
+            setActiveSection('all');
+            setShowSettings(true);
+          }}
         />
 
         {/* メインコンテンツエリア */}
@@ -1802,6 +1815,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   onThemeColorUpdate={handleThemeColorUpdate}
                   onLogoImageUpdate={handleLogoImageFileUpload}
                   onProjectTitleUpdate={handleProjectTitleUpdate}
+                  
+                  // アクティブセクション
+                  activeSection={activeSection}
                 />
               ) : (
                 /* 中央プレビューエリア - 設定画面でない場合 */

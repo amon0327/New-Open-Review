@@ -33,6 +33,7 @@ export const useCreatePageState = () => {
   
   // 設定・UI関連
   const [showSettings, setShowSettings] = useState(false); // 設定画面表示状態
+  const [activeSection, setActiveSection] = useState('all'); // アクティブな設定セクション
   const [projectTitle, setProjectTitle] = useState('OpenReview フォーム'); // プロジェクトタイトル
   const [isEditingTitle, setIsEditingTitle] = useState(false); // タイトル編集状態
   const [showColorPicker, setShowColorPicker] = useState(false); // カラーピッカー表示状態
@@ -80,6 +81,8 @@ export const useCreatePageState = () => {
     // 設定・UI関連
     showSettings,
     setShowSettings,
+    activeSection,
+    setActiveSection,
     projectTitle,
     setProjectTitle,
     isEditingTitle,

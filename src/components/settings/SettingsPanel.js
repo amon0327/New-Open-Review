@@ -29,7 +29,10 @@ const SettingsPanel = ({
   // Supabase連携用のprops
   onThemeColorUpdate,
   onLogoImageUpdate,
-  onProjectTitleUpdate
+  onProjectTitleUpdate,
+  
+  // アクティブセクション指定用
+  activeSection = 'all' // 'all', 'design', 'project', 'publish', 'login', 'completion'
 }) => {
   return (
     <Box
@@ -62,30 +65,76 @@ const SettingsPanel = ({
         {/* 設定カード */}
         <Stack spacing={3} sx={{ width: '100%' }}>
           {/* テーマ設定 */}
-          <ThemeSettings
-            selectedColor={selectedColor}
-            setSelectedColor={setSelectedColor}
-            selectedFont={selectedFont}
-            setSelectedFont={setSelectedFont}
-            logoImage={logoImage}
-            setLogoImage={setLogoImage}
-            onThemeColorUpdate={onThemeColorUpdate}
-            onLogoImageUpdate={onLogoImageUpdate}
-          />
+          {(activeSection === 'all' || activeSection === 'design') && (
+            <ThemeSettings
+              selectedColor={selectedColor}
+              setSelectedColor={setSelectedColor}
+              selectedFont={selectedFont}
+              setSelectedFont={setSelectedFont}
+              logoImage={logoImage}
+              setLogoImage={setLogoImage}
+              onThemeColorUpdate={onThemeColorUpdate}
+              onLogoImageUpdate={onLogoImageUpdate}
+            />
+          )}
 
           {/* プロジェクト設定 */}
-          <ProjectSettings
-            projectTitle={projectTitle}
-            setProjectTitle={setProjectTitle}
-            onProjectTitleUpdate={onProjectTitleUpdate}
-          />
+          {(activeSection === 'all' || activeSection === 'project') && (
+            <ProjectSettings
+              projectTitle={projectTitle}
+              setProjectTitle={setProjectTitle}
+              onProjectTitleUpdate={onProjectTitleUpdate}
+            />
+          )}
 
           {/* 公開設定 */}
-          <PublishSettings
-            isPublished={isPublished}
-            setIsPublished={setIsPublished}
-            projectTitle={projectTitle}
-          />
+          {(activeSection === 'all' || activeSection === 'publish') && (
+            <PublishSettings
+              isPublished={isPublished}
+              setIsPublished={setIsPublished}
+              projectTitle={projectTitle}
+            />
+          )}
+
+          {/* ログイン設定メッセージ */}
+          {activeSection === 'login' && (
+            <Box
+              sx={{
+                p: 3,
+                border: '1px solid #e5e7eb',
+                borderRadius: 2,
+                backgroundColor: '#f9fafb',
+                textAlign: 'center'
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 1, color: '#374151' }}>
+                ログイン画面設定
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6b7280' }}>
+                ログイン画面の設定は左側のメニューから「ログイン画面」を選択してください。
+              </Typography>
+            </Box>
+          )}
+
+          {/* 完了画面設定メッセージ */}
+          {activeSection === 'completion' && (
+            <Box
+              sx={{
+                p: 3,
+                border: '1px solid #e5e7eb',
+                borderRadius: 2,
+                backgroundColor: '#f9fafb',
+                textAlign: 'center'
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 1, color: '#374151' }}>
+                完了画面設定
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#6b7280' }}>
+                完了画面の設定は左側のメニューから「完了画面」を選択してください。
+              </Typography>
+            </Box>
+          )}
         </Stack>
 
         {/* フッター余白 */}
