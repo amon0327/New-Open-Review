@@ -49,15 +49,6 @@ const HeaderBar = ({
   onOpenLoginSettings,
   onOpenCompletionSettings,
   onOpenSettings,
-  // エラーハイライト機能のprops
-  onHighlightElement,
-  onSetPreviewMode,
-  onSelectQuestion,
-  onSelectPage,
-  // 設定画面を閉じる機能
-  onCloseSettings,
-  // エラーからの画面遷移機能
-  onNavigateFromError
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
@@ -100,64 +91,21 @@ const HeaderBar = ({
     // エラー項目がクリックされた時の処理
     setErrorAnchorEl(null); // ポップオーバーを閉じる
     
-    // エラーの要素タイプに応じてハイライト処理を実行
-    if (error.elementType && onHighlightElement) {
-      // エラーに関連する要素をハイライト
-      onHighlightElement({
-        elementType: error.elementType,
-        elementId: error.elementId,
-        highlightTarget: error.highlightTarget,
-        questionId: error.questionId,
-        pageId: error.pageId,
-        previewMode: error.previewMode
-      });
-      
-      // プレビューモードの変更が必要な場合
-      if (error.previewMode && onSetPreviewMode) {
-        onSetPreviewMode(error.previewMode);
-      }
-      
-      // 質問の選択が必要な場合
-      if (error.questionId && onSelectQuestion) {
-        onSelectQuestion(error.questionId);
-      }
-      
-      // ページの選択が必要な場合
-      if (error.pageId && onSelectPage) {
-        onSelectPage(error.pageId);
-      }
+    // 設定メニューを開く処理
+    switch(error.action) {
+      case 'openDesignSettings':
+        onOpenDesignSettings?.();
+        break;
+      case 'openLoginSettings':
+        onOpenLoginSettings?.();
+        break;
+      case 'openCompletionSettings':
+        onOpenCompletionSettings?.();
+        break;
+      default:
+        onOpenSettings?.();
+        break;
     }
-    
-    // 表示先に応じて適切な画面を表示
-    setTimeout(() => {
-      if (error.displayTarget === 'preview') {
-        // プレビュー画面を表示して画面遷移
-        console.log('Showing preview for error:', error.id);
-        if (onNavigateFromError) {
-          onNavigateFromError(error);
-        }
-      } else if (error.displayTarget === 'settings') {
-        // 設定画面を開く
-        if (onNavigateFromError) {
-          onNavigateFromError(error);
-        }
-        // 従来の設定画面を開く処理も実行
-        switch(error.action) {
-          case 'openDesignSettings':
-            onOpenDesignSettings?.();
-            break;
-          case 'openLoginSettings':
-            onOpenLoginSettings?.();
-            break;
-          case 'openCompletionSettings':
-            onOpenCompletionSettings?.();
-            break;
-          default:
-            onOpenSettings?.();
-            break;
-        }
-      }
-    }, 100); // 少し遅延させてハイライトが先に実行されるようにする
   };
 
   const handleWarningItemClick = (warning) => {
@@ -182,14 +130,32 @@ const HeaderBar = ({
   };
 
   const handlePreviewClick = () => {
+    console.log('🔍 プレビューボタンがクリックされました');
+    console.log('📊 エラー検証の結果:', {
+      errorCount,
+      warningCount,
+      errors,
+      warnings,
+      validationData
+    });
+    console.log('💡 showErrorNotification の現在の状態:', showErrorNotification);
+    
     if (errorCount > 0) {
+      console.log('❌ エラーが検出されました。通知を表示します');
+      console.log('📋 検出されたエラー:', errors);
+      
       setShowErrorNotification(true);
+      console.log('✅ setShowErrorNotification(true) を実行しました');
+      
       // 3秒後に自動で閉じる
       setTimeout(() => {
+        console.log('⏰ 3秒後: エラー通知を閉じます');
         setShowErrorNotification(false);
       }, 3000);
       return;
     }
+    
+    console.log('✅ エラーなし。プレビューダイアログを表示します');
     setShowPreviewDialog(true);
   };
   const handleTitleChange = (e) => {

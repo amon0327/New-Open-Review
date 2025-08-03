@@ -7,11 +7,12 @@
  * @returns {Object} { errors: Array, warnings: Array }
  */
 export const validateForm = (formData) => {
+  console.log('🔍 validateForm が呼び出されました');
   const errors = [];
   const warnings = [];
   
   // デバッグ用：受け取ったformDataの内容を確認
-  console.log('Validation formData:', formData);
+  console.log('📋 Validation formData:', formData);
   
   const {
     projectTitle,
@@ -181,14 +182,7 @@ export const validateForm = (formData) => {
               id: `missing-choice-text-${question.id}-${choiceIndex}`,
               message: `質問${index + 1}の選択肢${choiceIndex + 1}が空です`,
               location: '質問設定',
-              action: 'openSettings',
-              elementType: 'question',
-              elementId: `question-${question.id}`,
-              highlightTarget: `question-${question.id}`,
-              questionId: question.id,
-              questionIndex: index,
-              errorField: 'choice',
-              choiceIndex: choiceIndex
+              action: 'openSettings'
             });
           }
         });
@@ -271,13 +265,7 @@ export const validateForm = (formData) => {
       id: 'missing-login-title',
       message: 'ログイン画面のタイトルテキストが入力されていません',
       location: 'ログイン画面設定',
-      action: 'openLoginSettings',
-      elementType: 'preview',
-      elementId: 'login-screen',
-      highlightTarget: 'login-title',
-      previewMode: 'login',
-      displayTarget: 'preview',
-      navigationTarget: 'login' // ログイン画面に遷移
+      action: 'openLoginSettings'
     });
   }
 
@@ -286,13 +274,7 @@ export const validateForm = (formData) => {
       id: 'missing-login-detail',
       message: 'ログイン画面の詳細テキストが入力されていません',
       location: 'ログイン画面設定',
-      action: 'openLoginSettings',
-      elementType: 'preview',
-      elementId: 'login-screen',
-      highlightTarget: 'login-detail',
-      previewMode: 'login',
-      displayTarget: 'preview',
-      navigationTarget: 'login' // ログイン画面に遷移
+      action: 'openLoginSettings'
     });
   }
 
@@ -315,13 +297,7 @@ export const validateForm = (formData) => {
       id: 'missing-completion-title',
       message: '完了画面のタイトルテキストが入力されていません',
       location: '完了画面設定',
-      action: 'openCompletionSettings',
-      elementType: 'preview',
-      elementId: 'completion-screen',
-      highlightTarget: 'completion-title',
-      previewMode: 'completion',
-      displayTarget: 'preview',
-      navigationTarget: 'completion' // 完了画面に遷移
+      action: 'openCompletionSettings'
     });
   }
 
@@ -330,13 +306,7 @@ export const validateForm = (formData) => {
       id: 'missing-completion-detail',
       message: '完了画面の詳細テキストが入力されていません',
       location: '完了画面設定',
-      action: 'openCompletionSettings',
-      elementType: 'preview',
-      elementId: 'completion-screen',
-      highlightTarget: 'completion-detail',
-      previewMode: 'completion',
-      displayTarget: 'preview',
-      navigationTarget: 'completion' // 完了画面に遷移
+      action: 'openCompletionSettings'
     });
   }
 
@@ -441,6 +411,13 @@ export const validateForm = (formData) => {
     });
   }
 
+  console.log('🏁 検証完了:', {
+    errorCount: errors.length,
+    warningCount: warnings.length,
+    errors: errors.map(e => ({ id: e.id, message: e.message })),
+    warnings: warnings.map(w => ({ id: w.id, message: w.message }))
+  });
+  
   return { errors, warnings };
 };
 

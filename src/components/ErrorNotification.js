@@ -12,7 +12,19 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ErrorNotification = ({ open, onClose, message, errorCount = 0 }) => {
-  if (!open) return null;
+  console.log('🔔 ErrorNotification レンダリング:', {
+    open,
+    message,
+    errorCount,
+    onClose: typeof onClose
+  });
+  
+  if (!open) {
+    console.log('❌ ErrorNotification: open=false のため表示されません');
+    return null;
+  }
+  
+  console.log('✅ ErrorNotification: 表示されます');
 
   return (
     <Box
