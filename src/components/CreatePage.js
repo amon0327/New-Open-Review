@@ -1633,23 +1633,23 @@ export default function CreatePage({ onBackClick, user, formId }) {
           isSaving={showSavingIndicator}
           formId={formId}
           formData={{
-            questions,
+            questions: currentQuestions,
             pages,
             formSettings,
             loginScreenSettings,
             completionScreenSettings,
-            loginTitle: loginTitleText,
-            loginDetail: loginDetailText,
-            completionTitle: completionTitleText,
-            completionDetail: completionDetailText,
+            loginTitle,
+            loginDetail,
+            completionTitle,
+            completionDetail,
             logoImage: headerImage?.logo || logoImage,
             headerImage,
-            completionBackground: completionBackgroundImage
+            completionBackground
           }}
-          onOpenDesignSettings={() => setActiveCategory('design')}
-          onOpenLoginSettings={() => setActiveCategory('login')}
-          onOpenCompletionSettings={() => setActiveCategory('completion')}
-          onOpenSettings={() => setActiveCategory('general')}
+          onOpenDesignSettings={() => setShowSettings(true)}
+          onOpenLoginSettings={() => setShowSettings(true)}
+          onOpenCompletionSettings={() => setShowSettings(true)}
+          onOpenSettings={() => setShowSettings(true)}
         />
 
         {/* メインコンテンツエリア */}
