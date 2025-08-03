@@ -615,13 +615,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     
     questionPages.forEach(page => {
       const pageQuestions = getQuestionsForPage(page.id);
-      // 各質問にページIDを確実に付加
-      const questionsWithPageId = pageQuestions.map(question => ({
-        ...question,
-        review_form_pages_id: page.id,
-        pageId: page.id // バックアップ用
-      }));
-      allQuestionsArray.push(...questionsWithPageId);
+      allQuestionsArray.push(...pageQuestions);
     });
     
     return allQuestionsArray;
