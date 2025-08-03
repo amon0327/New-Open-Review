@@ -260,7 +260,13 @@ const PreviewArea = ({
                       }
                     }}
                   >
-                    {page.title}
+                    {(() => {
+                      const maxLength = isCenter ? 9 : 6;
+                      if (page.title.length > maxLength) {
+                        return page.title.substring(0, maxLength) + '..';
+                      }
+                      return page.title;
+                    })()}
                   </Box>
                 );
               });
