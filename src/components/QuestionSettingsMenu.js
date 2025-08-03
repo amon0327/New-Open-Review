@@ -690,8 +690,14 @@ const QuestionSettingsMenu = ({
     handleChoicesUpdateImmediate(newLocalChoices);
   };
 
-  // 選択肢の削除（楽観的更新）
+  // 選択肢の削除（楽観的更新） - 最小数チェック付き
   const handleRemoveChoice = (index) => {
+    // 選択肢が1個しかない場合は削除を防ぐ
+    if (localChoices.length <= 1) {
+      console.warn('Cannot remove last choice - at least one choice is required');
+      return;
+    }
+    
     const newLocalChoices = localChoices.filter((_, i) => i !== index);
     // 即座にローカル状態を更新
     setLocalChoices(newLocalChoices);
@@ -1099,18 +1105,33 @@ const QuestionSettingsMenu = ({
             {needsChoicesForType && (
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: '#374151',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}
-                  >
-                    選択肢設定
-                  </Typography>
+                  <Box>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: '#374151',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}
+                    >
+                      選択肢設定
+                    </Typography>
+                    {localChoices.length === 0 && (
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          fontSize: '0.7rem',
+                          color: '#DC2626',
+                          display: 'block',
+                          mt: 0.5
+                        }}
+                      >
+                        ⚠️ 最低1つの選択肢が必要です
+                      </Typography>
+                    )}
+                  </Box>
                   <Button
                     startIcon={<AddIcon />}
                     onClick={handleAddChoice}
@@ -1165,11 +1186,15 @@ const QuestionSettingsMenu = ({
                       <IconButton
                         size="small"
                         onClick={() => handleRemoveChoice(index)}
+                        disabled={localChoices.length <= 1}
                         sx={{ 
-                          color: '#9CA3AF',
-                          '&:hover': { 
+                          color: localChoices.length <= 1 ? '#D1D5DB' : '#9CA3AF',
+                          '&:hover': localChoices.length > 1 ? { 
                             color: '#EF4444',
                             backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                          } : {},
+                          '&.Mui-disabled': {
+                            color: '#D1D5DB'
                           }
                         }}
                       >
