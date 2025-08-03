@@ -1739,12 +1739,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
             setShowSettings(true);
           }}
           onOpenLoginSettings={() => {
-            setActiveSection('login');
-            setShowSettings(true);
+            // 何もしない - 遷移を無効化
           }}
           onOpenCompletionSettings={() => {
-            setActiveSection('completion');
-            setShowSettings(true);
+            // 何もしない - 遷移を無効化
           }}
           onOpenSettings={() => {
             setActiveSection('all');

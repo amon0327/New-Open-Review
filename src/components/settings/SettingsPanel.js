@@ -96,45 +96,6 @@ const SettingsPanel = ({
             />
           )}
 
-          {/* ログイン設定メッセージ */}
-          {activeSection === 'login' && (
-            <Box
-              sx={{
-                p: 3,
-                border: '1px solid #e5e7eb',
-                borderRadius: 2,
-                backgroundColor: '#f9fafb',
-                textAlign: 'center'
-              }}
-            >
-              <Typography variant="h6" sx={{ mb: 1, color: '#374151' }}>
-                ログイン画面設定
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6b7280' }}>
-                ログイン画面の設定は左側のメニューから「ログイン画面」を選択してください。
-              </Typography>
-            </Box>
-          )}
-
-          {/* 完了画面設定メッセージ */}
-          {activeSection === 'completion' && (
-            <Box
-              sx={{
-                p: 3,
-                border: '1px solid #e5e7eb',
-                borderRadius: 2,
-                backgroundColor: '#f9fafb',
-                textAlign: 'center'
-              }}
-            >
-              <Typography variant="h6" sx={{ mb: 1, color: '#374151' }}>
-                完了画面設定
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#6b7280' }}>
-                完了画面の設定は左側のメニューから「完了画面」を選択してください。
-              </Typography>
-            </Box>
-          )}
         </Stack>
 
         {/* フッター余白 */}
