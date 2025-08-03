@@ -304,6 +304,8 @@ const QuestionSettingsMenu = ({
   const [localLoginDetail, setLocalLoginDetail] = useState('');
   const [localCompletionTitle, setLocalCompletionTitle] = useState('');
   const [localCompletionDetail, setLocalCompletionDetail] = useState('');
+  const [localButtonText, setLocalButtonText] = useState('');
+  const [localButtonUrl, setLocalButtonUrl] = useState('');
   
   // 選択肢のローカル状態
   const [localChoices, setLocalChoices] = useState([]);
@@ -376,6 +378,14 @@ const QuestionSettingsMenu = ({
   useEffect(() => {
     setLocalCompletionDetail(completionDetail || '');
   }, [completionDetail]);
+
+  useEffect(() => {
+    setLocalButtonText(completionScreenSettings.button_text_1 || '');
+  }, [completionScreenSettings.button_text_1]);
+
+  useEffect(() => {
+    setLocalButtonUrl(completionScreenSettings.button_url_1 || '');
+  }, [completionScreenSettings.button_url_1]);
 
   // selectedColorの変更時にlocalSelectedColorを更新
   useEffect(() => {
@@ -583,6 +593,9 @@ const QuestionSettingsMenu = ({
   };
 
   const handleCompletionButton1TextChange = (value) => {
+    // 即座にローカル状態を更新（楽観的更新）
+    setLocalButtonText(value);
+    
     // バックグラウンドでSupabaseに同期
     if (onCompletionButton1TextUpdate) {
       onCompletionButton1TextUpdate(value);
@@ -590,10 +603,21 @@ const QuestionSettingsMenu = ({
   };
 
   const handleCompletionButton1UrlChange = (value) => {
+    // 即座にローカル状態を更新（楽観的更新）
+    setLocalButtonUrl(value);
+    
     // バックグラウンドでSupabaseに同期
     if (onCompletionButton1UrlUpdate) {
       onCompletionButton1UrlUpdate(value);
     }
+  };
+
+  const handleCompletionButton1TextBlur = () => {
+    // onChangeで既に更新されているため、blurでは何もしない
+  };
+
+  const handleCompletionButton1UrlBlur = () => {
+    // onChangeで既に更新されているため、blurでは何もしない
   };
 
   // 選択肢の更新（専用テーブルに直接保存）
@@ -2642,14 +2666,16 @@ const QuestionSettingsMenu = ({
                     <>
                       <StylishTextField
                         label="ボタンテキスト"
-                        value={completionScreenSettings.button_text_1 || '完了'}
+                        value={localButtonText}
                         onChange={(e) => handleCompletionButton1TextChange(e.target.value)}
-                        placeholder="ボタンに表示するテキスト"
+                        onBlur={handleCompletionButton1TextBlur}
+                        placeholder="ホームページ"
                       />
                       <StylishTextField
                         label="リンク先URL"
-                        value={completionScreenSettings.button_url_1 || '#'}
+                        value={localButtonUrl}
                         onChange={(e) => handleCompletionButton1UrlChange(e.target.value)}
+                        onBlur={handleCompletionButton1UrlBlur}
                         placeholder="ボタンクリック時の移動先URL"
                       />
                     </>
