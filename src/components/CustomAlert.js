@@ -119,25 +119,25 @@ const CustomAlert = ({ open, onClose, title = 'お知らせ', message, type = 'e
                 </Box>
 
                 {/* テキスト */}
-                <Box sx={{ maxWidth: 320 }}>
+                <Box sx={{ maxWidth: 280 }}>
                   <Typography
                     variant="h6"
                     sx={{
                       fontWeight: 600,
                       color: '#1F2937',
-                      mb: 1,
-                      fontSize: '1.25rem'
+                      mb: 0.5,
+                      fontSize: '1.1rem'
                     }}
                   >
                     {title}
                   </Typography>
                   
                   <Typography
-                    variant="body1"
+                    variant="body2"
                     sx={{
                       color: '#6B7280',
-                      lineHeight: 1.6,
-                      fontSize: '1rem'
+                      lineHeight: 1.5,
+                      fontSize: '0.9rem'
                     }}
                   >
                     {message}
@@ -149,24 +149,24 @@ const CustomAlert = ({ open, onClose, title = 'お知らせ', message, type = 'e
                   onClick={onClose}
                   variant="contained"
                   sx={{
-                    mt: 1,
-                    px: 4,
-                    py: 1.5,
-                    borderRadius: '12px',
-                    fontSize: '1rem',
+                    mt: 0.5,
+                    px: 3,
+                    py: 1,
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
                     fontWeight: 600,
                     textTransform: 'none',
                     background: 'linear-gradient(135deg, #5E17EB 0%, #764BA2 100%)',
-                    boxShadow: '0 4px 16px rgba(94, 23, 235, 0.3)',
+                    boxShadow: '0 3px 12px rgba(94, 23, 235, 0.3)',
                     '&:hover': {
                       background: 'linear-gradient(135deg, #4C1D95 0%, #6D28D9 100%)',
-                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                      boxShadow: '0 4px 16px rgba(94, 23, 235, 0.4)',
                       transform: 'translateY(-1px)'
                     },
                     transition: 'all 0.2s ease'
                   }}
                 >
-                  確認
+                  OK
                 </Button>
               </Box>
             </DialogContent>
