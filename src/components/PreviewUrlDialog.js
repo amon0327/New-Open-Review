@@ -3,25 +3,17 @@ import {
   Dialog,
   Box,
   Typography,
-  Button,
   IconButton,
-  Paper,
-  Stack,
-  Chip
+  Paper
 } from '@mui/material';
 import {
-  Close as CloseIcon,
-  ContentCopy as CopyIcon,
-  Launch as LaunchIcon,
-  Smartphone as SmartphoneIcon
+  Close as CloseIcon
 } from '@mui/icons-material';
 import QRCode from 'qrcode';
 import { motion, AnimatePresence } from 'framer-motion';
-import toast from 'react-hot-toast';
 
 const PreviewUrlDialog = ({ open, onClose, formId }) => {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
-  const [copied, setCopied] = useState(false);
 
   // プレビューURLを生成
   const previewUrl = `http://localhost:3000/preview?reviewFormId=${formId}`;
@@ -33,7 +25,7 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
         width: 200,
         margin: 2,
         color: {
-          dark: '#1a1a1a',
+          dark: '#5e17eb',
           light: '#ffffff'
         }
       })
@@ -42,24 +34,6 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
     }
   }, [open, formId, previewUrl]);
 
-  // URLをクリップボードにコピー
-  const handleCopyUrl = async () => {
-    try {
-      await navigator.clipboard.writeText(previewUrl);
-      setCopied(true);
-      toast.success('URLをコピーしました');
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Copy error:', err);
-      toast.error('コピーに失敗しました');
-    }
-  };
-
-  // プレビューを新しいタブで開く
-  const handleOpenPreview = () => {
-    window.open(previewUrl, '_blank');
-  };
-
   return (
     <AnimatePresence>
       {open && (
@@ -67,210 +41,142 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
           open={open}
           onClose={onClose}
           maxWidth="xs"
-          fullWidth
           PaperProps={{
             component: motion.div,
-            initial: { opacity: 0, scale: 0.8, y: 50 },
+            initial: { opacity: 0, scale: 0.8, y: 30 },
             animate: { opacity: 1, scale: 1, y: 0 },
-            exit: { opacity: 0, scale: 0.8, y: 50 },
-            transition: { duration: 0.3, ease: "easeOut" },
+            exit: { opacity: 0, scale: 0.8, y: 30 },
+            transition: { duration: 0.4, ease: "easeOut" },
             sx: {
-              borderRadius: 4,
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              borderRadius: 5,
+              boxShadow: '0 25px 50px -12px rgba(94, 23, 235, 0.3)',
               overflow: 'hidden',
-              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+              background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+              color: 'white',
+              minWidth: 320
             }
           }}
         >
-          {/* ヘッダー */}
           <Box
             sx={{
               position: 'relative',
-              p: 3,
-              pb: 2,
+              p: 4,
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center'
+              textAlign: 'center'
             }}
           >
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                fontWeight: 700,
-                color: '#1f2937',
-                fontSize: '1.1rem'
-              }}
-            >
-              プレビュー共有
-            </Typography>
+            {/* 閉じるボタン */}
             <IconButton
               onClick={onClose}
               sx={{
                 position: 'absolute',
-                right: 8,
-                top: 8,
-                color: '#6b7280',
+                right: 12,
+                top: 12,
+                color: 'rgba(255, 255, 255, 0.8)',
                 '&:hover': { 
-                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                  color: '#374151'
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white'
                 }
               }}
             >
               <CloseIcon fontSize="small" />
             </IconButton>
-          </Box>
 
-          {/* コンテンツ */}
-          <Box sx={{ px: 3, pb: 3 }}>
-            <Stack spacing={3} alignItems="center">
-              {/* QRコード */}
-              <Box sx={{ textAlign: 'center' }}>
-                {qrCodeDataUrl ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1 }}
-                  >
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        display: 'inline-block',
-                        p: 2.5,
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: 3,
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                      }}
-                    >
-                      <Box
-                        component="img"
-                        src={qrCodeDataUrl}
-                        alt="QR Code"
-                        sx={{
-                          width: 140,
-                          height: 140,
-                          display: 'block'
-                        }}
-                      />
-                    </Paper>
-                  </motion.div>
-                ) : (
-                  <Box
-                    sx={{
-                      width: 140,
-                      height: 140,
-                      backgroundColor: '#f9fafb',
-                      borderRadius: 3,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto',
-                      border: '1px solid #e5e7eb'
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ color: '#9ca3af', fontSize: '0.85rem' }}>
-                      生成中...
-                    </Typography>
-                  </Box>
-                )}
-                
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 2 }}>
-                  <SmartphoneIcon sx={{ color: '#6b7280', fontSize: '1rem' }} />
-                  <Typography variant="caption" sx={{ color: '#6b7280', fontSize: '0.8rem' }}>
-                    スマホで読み取り
-                  </Typography>
-                </Box>
-              </Box>
+            {/* ロゴ */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Box
+                component="img"
+                src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png"
+                alt="OpenReview Logo"
+                sx={{
+                  height: 40,
+                  objectFit: 'contain',
+                  mb: 3
+                }}
+              />
+            </motion.div>
 
-              {/* URL表示 */}
-              <Box sx={{ width: '100%' }}>
+            {/* タイトル */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 700,
+                  mb: 1,
+                  fontSize: '1.25rem'
+                }}
+              >
+                プレビューを確認
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  opacity: 0.9,
+                  mb: 3,
+                  fontSize: '0.9rem'
+                }}
+              >
+                QRコードをスマートフォンで読み取ってください
+              </Typography>
+            </motion.div>
+
+            {/* QRコード */}
+            {qrCodeDataUrl ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
                 <Paper
                   elevation={0}
-                  onClick={handleCopyUrl}
                   sx={{
-                    p: 2,
-                    backgroundColor: '#f8fafc',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: 2,
-                    width: '100%',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      borderColor: '#5e17eb',
-                      backgroundColor: 'rgba(94, 23, 235, 0.02)'
-                    }
+                    display: 'inline-block',
+                    p: 3,
+                    backgroundColor: 'white',
+                    borderRadius: 4,
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
                   }}
                 >
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      color: '#374151',
-                      fontSize: '0.8rem',
-                      wordBreak: 'break-all',
-                      lineHeight: 1.4
+                  <Box
+                    component="img"
+                    src={qrCodeDataUrl}
+                    alt="QR Code"
+                    sx={{
+                      width: 160,
+                      height: 160,
+                      display: 'block'
                     }}
-                  >
-                    {previewUrl}
-                  </Typography>
+                  />
                 </Paper>
-                
-                {copied && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    <Chip
-                      label="コピー完了"
-                      size="small"
-                      color="success"
-                      sx={{ 
-                        mt: 1.5, 
-                        fontSize: '0.75rem',
-                        height: 24
-                      }}
-                    />
-                  </motion.div>
-                )}
+              </motion.div>
+            ) : (
+              <Box
+                sx={{
+                  width: 160,
+                  height: 160,
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px dashed rgba(255, 255, 255, 0.3)'
+                }}
+              >
+                <Typography variant="body2" sx={{ opacity: 0.7, fontSize: '0.9rem' }}>
+                  QRコード生成中...
+                </Typography>
               </Box>
-
-              {/* アクションボタン */}
-              <Stack direction="row" spacing={2} sx={{ width: '100%' }}>
-                <Button
-                  variant="outlined"
-                  onClick={handleCopyUrl}
-                  startIcon={<CopyIcon fontSize="small" />}
-                  sx={{
-                    flex: 1,
-                    borderColor: '#d1d5db',
-                    color: '#374151',
-                    fontSize: '0.85rem',
-                    py: 1.2,
-                    '&:hover': {
-                      borderColor: '#5e17eb',
-                      backgroundColor: 'rgba(94, 23, 235, 0.05)'
-                    }
-                  }}
-                >
-                  コピー
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleOpenPreview}
-                  startIcon={<LaunchIcon fontSize="small" />}
-                  sx={{
-                    flex: 1,
-                    backgroundColor: '#5e17eb',
-                    fontSize: '0.85rem',
-                    py: 1.2,
-                    '&:hover': { backgroundColor: '#4c1d95' },
-                    boxShadow: '0 4px 12px rgba(94, 23, 235, 0.3)'
-                  }}
-                >
-                  開く
-                </Button>
-              </Stack>
-            </Stack>
+            )}
           </Box>
         </Dialog>
       )}
