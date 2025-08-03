@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import PreviewControlPanel from './PreviewControlPanel';
 import LeftNavigationBar from './LeftNavigationBar';
 import HeaderBar from './HeaderBar';
@@ -167,6 +167,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // 質問データ管理フック
   const {
+    questionsData,
     getQuestionsForPage,
     setQuestionsForPage,
     loadQuestionsForPage,
@@ -445,7 +446,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
       if (formId) {
         setIsLoadingCompletionSettings(true);
         try {
-          const result = await FormDataService.getReviewFormWithDetails(formId);
+          const result = await FormDataService.getFormDetails(formId);
           if (result.success && result.data.completion_screen_settings && result.data.completion_screen_settings.length > 0) {
             const completionData = result.data.completion_screen_settings[0];
             setCompletionScreenSettings(completionData);
@@ -600,29 +601,23 @@ export default function CreatePage({ onBackClick, user, formId }) {
     ));
   };
 
-  // ページの質問数を更新する処理を追加
-  useEffect(() => {
-    if (selectedPage && selectedPage.type === 'question') {
-      const currentQuestions = getQuestionsForPage(selectedPage.id);
-      setPages(prev => prev.map(page => 
-        page.id === selectedPage.id 
-          ? { ...page, questions: currentQuestions.length }
-          : page
-      ));
-    }
-  }, [selectedPage, getQuestionsForPage, setPages]);
+  // questionsをメモ化してPreviewAreaの不要な再レンダリングを防ぐ
+  const currentQuestions = useMemo(() => {
+    return selectedPage && selectedPage.type === 'question' 
+      ? getQuestionsForPage(selectedPage.id) 
+      : [];
+  }, [selectedPage, questionsData]);
 
-  // デバッグ用：質問データの変化をログ出力
+  // デバッグ用：質問データの変化をログ出力（selectedPageが変更された時のみ）
   useEffect(() => {
     if (selectedPage && selectedPage.type === 'question') {
-      const currentQuestions = getQuestionsForPage(selectedPage.id);
-      console.log('CreatePage - questions updated:', {
+      console.log('CreatePage - page selected, questions:', {
         pageId: selectedPage.id,
         questionsLength: currentQuestions.length,
         questions: currentQuestions.map(q => ({ id: q.id, text: q.question_text }))
       });
     }
-  }, [selectedPage, getQuestionsForPage]);
+  }, [selectedPage, currentQuestions]);
 
   // ドラッグ&ドロップハンドラ
   const handleDragOver = (e) => {
@@ -1751,7 +1746,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     previewMode={previewMode}
                     zoom={zoom}
                     selectedPage={selectedPage}
-                    questions={selectedPage ? getQuestionsForPage(selectedPage.id) : []}
+                    questions={currentQuestions}
                     onQuestionAdd={handleDrop}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -2125,7 +2120,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                 >
                   {/* 質問設定メニュー */}
                   <QuestionSettingsMenu
-                    questions={selectedPage ? getQuestionsForPage(selectedPage.id) : []}
+                    questions={currentQuestions}
                     selectedQuestionId={selectedQuestionId}
                     onQuestionUpdate={handleQuestionUpdate}
                     onQuestionDelete={handleQuestionDelete}
