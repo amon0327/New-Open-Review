@@ -211,7 +211,7 @@ const PreviewArea = ({
               
               return visiblePages.map((page, index) => {
                 const isActive = selectedPage?.id === page.id;
-                const isCenter = index === Math.floor(visiblePages.length / 2);
+                const isCenter = isActive; // 選択されているページが常に中心タブとして扱われる
                 
                 return (
                   <Box
