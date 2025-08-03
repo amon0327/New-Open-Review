@@ -93,36 +93,8 @@ const HeaderBar = ({
     // エラー項目がクリックされた時の処理
     setErrorAnchorEl(null); // ポップオーバーを閉じる
     
-    // 質問関連のエラーの場合は質問を選択とハイライト
-    if (error.questionId && onQuestionSelect) {
-      onQuestionSelect(error.questionId);
-      // プレビュー画面で質問をハイライト
-      if (onHighlightElement) {
-        onHighlightElement({
-          elementType: 'question',
-          questionId: error.questionId
-        });
-      }
-    }
-    
-    // actionに基づいて適切な設定画面を開く
-    switch (error.action) {
-      case 'openSettings':
-        onOpenSettings && onOpenSettings('project');
-        break;
-      case 'openDesignSettings':
-        onOpenDesignSettings && onOpenDesignSettings('design');
-        break;
-      case 'openLoginSettings':
-        onOpenLoginSettings && onOpenLoginSettings('login');
-        break;
-      case 'openCompletionSettings':
-        onOpenCompletionSettings && onOpenCompletionSettings('completion');
-        break;
-      default:
-        // フォールバック: 一般設定を開く
-        onOpenSettings && onOpenSettings('project');
-    }
+    // エラークリック時の遷移を無効化
+    // 何もしない
   };
 
   const handleWarningItemClick = (warning) => {
