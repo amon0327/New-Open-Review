@@ -379,24 +379,6 @@ export const validateForm = (formData) => {
   }
 
 
-  // 完了画面のテキストがデフォルトの場合
-  if (!completionTitle || completionTitle === '完了' || completionTitle === 'テキストを入力...') {
-    warnings.push({
-      id: 'default-completion-title',
-      message: 'デフォルトの完了画面タイトルが使用されています',
-      location: '完了画面設定',
-      action: 'openCompletionSettings'
-    });
-  }
-
-  if (!completionDetail || completionDetail === 'アンケートにご協力いただき、ありがとうございました。' || completionDetail === 'テキストを入力...') {
-    warnings.push({
-      id: 'default-completion-detail',
-      message: 'デフォルトの完了画面詳細テキストが使用されています',
-      location: '完了画面設定',
-      action: 'openCompletionSettings'
-    });
-  }
 
   console.log('🏁 検証完了:', {
     errorCount: errors.length,
