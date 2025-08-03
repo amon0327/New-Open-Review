@@ -10,6 +10,9 @@ export const validateForm = (formData) => {
   const errors = [];
   const warnings = [];
   
+  // デバッグ用：受け取ったformDataの内容を確認
+  console.log('Validation formData:', formData);
+  
   const {
     projectTitle,
     questions = [],
@@ -25,6 +28,19 @@ export const validateForm = (formData) => {
     headerImage,
     completionBackground
   } = formData;
+  
+  console.log('Validation data extracted:', {
+    projectTitle,
+    questionsLength: questions.length,
+    pagesLength: pages.length,
+    formSettings,
+    loginTitle,
+    loginDetail,
+    completionTitle,
+    completionDetail,
+    logoImage,
+    completionBackground
+  });
 
   // ===== エラー検証 (必須項目) =====
   
@@ -144,27 +160,87 @@ export const validateForm = (formData) => {
     }
   });
 
-  // 5. テーマカラーの検証（デフォルト値の場合はエラーではなく警告）
-  // エラーとしては扱わない - デフォルト値でも動作する
+  // 5. テーマカラーの検証
+  if (!formSettings.themeColor) {
+    errors.push({
+      id: 'missing-theme-color',
+      message: 'テーマカラーが設定されていません',
+      location: 'デザイン設定',
+      action: 'openDesignSettings'
+    });
+  }
 
-  // 6. ロゴ画像の検証（デフォルト値でも動作するため警告のみ）
-  // エラーとしては扱わない
+  // 6. ロゴ画像の検証
+  if (!logoImage) {
+    errors.push({
+      id: 'missing-logo',
+      message: 'ロゴ画像が設定されていません',
+      location: 'デザイン設定',
+      action: 'openDesignSettings'
+    });
+  }
 
-  // 7. ログイン画面の背景画像検証（デフォルト値でも動作するため警告のみ）
-  // エラーとしては扱わない
+  // 7. ログイン画面の背景画像検証
+  if (!loginScreenSettings.backgroundImage) {
+    errors.push({
+      id: 'missing-login-background',
+      message: 'ログイン画面の背景画像が設定されていません',
+      location: 'ログイン画面設定',
+      action: 'openLoginSettings'
+    });
+  }
 
-  // 8. 完了画面の背景画像検証（デフォルト値でも動作するため警告のみ）
-  // エラーとしては扱わない
+  // 8. 完了画面の背景画像検証
+  if (!completionBackground && !completionScreenSettings.backgroundImage) {
+    errors.push({
+      id: 'missing-completion-background',
+      message: '完了画面の背景画像が設定されていません',
+      location: '完了画面設定',
+      action: 'openCompletionSettings'
+    });
+  }
 
-  // 9. ログイン画面のテキスト検証（デフォルトでも動作するため警告のみ）
-  // エラーとしては扱わない
+  // 9. ログイン画面のテキスト検証
+  if (!loginTitle || loginTitle.trim() === '') {
+    errors.push({
+      id: 'missing-login-title',
+      message: 'ログイン画面のタイトルが入力されていません',
+      location: 'ログイン画面設定',
+      action: 'openLoginSettings'
+    });
+  }
 
-  // 10. 完了画面のテキスト検証（デフォルトでも動作するため警告のみ）
-  // エラーとしては扱わない
+  if (!loginDetail || loginDetail.trim() === '') {
+    errors.push({
+      id: 'missing-login-detail',
+      message: 'ログイン画面の詳細テキストが入力されていません',
+      location: 'ログイン画面設定',
+      action: 'openLoginSettings'
+    });
+  }
+
+  // 10. 完了画面のテキスト検証
+  if (!completionTitle || completionTitle.trim() === '') {
+    errors.push({
+      id: 'missing-completion-title',
+      message: '完了画面のタイトルが入力されていません',
+      location: '完了画面設定',
+      action: 'openCompletionSettings'
+    });
+  }
+
+  if (!completionDetail || completionDetail.trim() === '') {
+    errors.push({
+      id: 'missing-completion-detail',
+      message: '完了画面の詳細テキストが入力されていません',
+      location: '完了画面設定',
+      action: 'openCompletionSettings'
+    });
+  }
 
   // 11. 完了画面のボタン設定検証
   if (completionScreenSettings?.showButton) {
-    if (!completionScreenSettings.buttonText || completionScreenSettings.buttonText.trim() === '' || completionScreenSettings.buttonText === 'テキストを入力...') {
+    if (!completionScreenSettings.buttonText || completionScreenSettings.buttonText.trim() === '') {
       errors.push({
         id: 'missing-completion-button-text',
         message: '完了画面のボタンテキストが入力されていません',
