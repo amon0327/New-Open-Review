@@ -189,6 +189,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
   // 質問選択状態
   const [selectedQuestionId, setSelectedQuestionId] = useState(null);
 
+  // エラーハイライト関連の状態
+  const [highlightedElement, setHighlightedElement] = useState(null);
+  const [highlightAnimation, setHighlightAnimation] = useState(false);
+
   // 基本設定関連の状態
   const [selectedElement, setSelectedElement] = useState(null); // 'header', 'logo', null
   const [headerImage, setHeaderImage] = useState(null);
@@ -1598,6 +1602,43 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
+  // エラーハイライト機能のハンドラー
+  const handleHighlightElement = (highlightInfo) => {
+    console.log('Highlighting element:', highlightInfo);
+    
+    // ハイライト情報を設定
+    setHighlightedElement(highlightInfo);
+    setHighlightAnimation(true);
+    
+    // アニメーションのリセット
+    setTimeout(() => {
+      setHighlightAnimation(false);
+    }, 2000);
+    
+    // 3秒後にハイライトを解除
+    setTimeout(() => {
+      setHighlightedElement(null);
+    }, 3000);
+  };
+
+  // プレビューモード変更ハンドラー
+  const handleSetPreviewMode = (mode) => {
+    console.log('Setting preview mode:', mode);
+    setPreviewMode(mode);
+  };
+
+  // 質問選択ハンドラー
+  const handleSelectQuestion = (questionId) => {
+    console.log('Selecting question:', questionId);
+    setSelectedQuestionId(questionId);
+  };
+
+  // ページ選択ハンドラー
+  const handleSelectPage = (pageId) => {
+    console.log('Selecting page:', pageId);
+    setSelectedPage(pageId);
+  };
+
   // プロジェクトタイトル更新ハンドラー
   const handleProjectTitleUpdate = async (title) => {
     // 即座にローカル状態を更新
@@ -1678,6 +1719,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
           onOpenLoginSettings={() => setShowSettings(true)}
           onOpenCompletionSettings={() => setShowSettings(true)}
           onOpenSettings={() => setShowSettings(true)}
+          onHighlightElement={handleHighlightElement}
+          onSetPreviewMode={handleSetPreviewMode}
+          onSelectQuestion={handleSelectQuestion}
+          onSelectPage={handleSelectPage}
         />
 
         {/* メインコンテンツエリア */}
@@ -1820,6 +1865,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     completionBackground={completionBackground}
                     // フォームID
                     formId={formId}
+                    // エラーハイライト関連
+                    highlightedElement={highlightedElement}
+                    highlightAnimation={highlightAnimation}
                   />
                   
                   {/* プレビューコントロール */}

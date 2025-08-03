@@ -26,12 +26,44 @@ const PreviewCompletion = ({
   buttonText,
   buttonUrl,
   // ロゴ画像
-  logoImage
+  logoImage,
+  // エラーハイライト関連
+  highlightedElement,
+  highlightAnimation
 }) => {
   const [completionData, setCompletionData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const isMobile = previewMode === 'mobile';
+
+  // ハイライトスタイルを生成するヘルパー関数
+  const getHighlightStyle = (targetElement) => {
+    if (!highlightedElement || highlightedElement.highlightTarget !== targetElement) {
+      return {};
+    }
+    
+    return {
+      position: 'relative',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: -4,
+        left: -4,
+        right: -4,
+        bottom: -4,
+        background: 'rgba(239, 68, 68, 0.2)',
+        borderRadius: 2,
+        border: '2px solid #ef4444',
+        zIndex: 1000,
+        animation: highlightAnimation ? 'errorPulse 2s ease-in-out' : 'none',
+        '@keyframes errorPulse': {
+          '0%': { opacity: 0, transform: 'scale(0.9)' },
+          '50%': { opacity: 1, transform: 'scale(1.05)' },
+          '100%': { opacity: 0.8, transform: 'scale(1)' }
+        }
+      }
+    };
+  };
 
   // Supabaseから完了画面データを取得（必要に応じて）
   useEffect(() => {
@@ -220,6 +252,7 @@ const PreviewCompletion = ({
               zIndex: 2,
               transition: 'all 0.3s ease',
               fontStyle: isTitleHint ? 'italic' : 'normal',
+              ...getHighlightStyle('completion-title'),
               '&::after': selectedElement === 'completion-title' ? {
                 content: '""',
                 position: 'absolute',
@@ -260,6 +293,7 @@ const PreviewCompletion = ({
               zIndex: 2,
               transition: 'all 0.3s ease',
               fontStyle: isDetailHint ? 'italic' : 'normal',
+              ...getHighlightStyle('completion-detail'),
               '&::after': selectedElement === 'completion-detail' ? {
                 content: '""',
                 position: 'absolute',

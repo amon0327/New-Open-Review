@@ -42,7 +42,10 @@ const PreviewArea = ({
   loginDetail,
   completionTitle,
   completionDetail,
-  completionBackground
+  completionBackground,
+  // エラーハイライト関連
+  highlightedElement,
+  highlightAnimation
 }) => {
   const dropRef = useRef(null);
   const [dropIndicator, setDropIndicator] = useState(null);
@@ -111,6 +114,8 @@ const PreviewArea = ({
             loginScreenSettings={loginScreenSettings}
             headerImage={headerImage}
             logoImage={logoImage}
+            highlightedElement={highlightedElement}
+            highlightAnimation={highlightAnimation}
           />
         );
       case 'completion':
@@ -127,6 +132,8 @@ const PreviewArea = ({
             formSettings={formSettings}
             headerImage={headerImage}
             logoImage={logoImage}
+            highlightedElement={highlightedElement}
+            highlightAnimation={highlightAnimation}
           />
         );
       default:
@@ -151,6 +158,8 @@ const PreviewArea = ({
             selectedElement={selectedElement}
             formId={formId}
             formSettings={formSettings}
+            highlightedElement={highlightedElement}
+            highlightAnimation={highlightAnimation}
           />
         );
     }

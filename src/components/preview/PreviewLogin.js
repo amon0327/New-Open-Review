@@ -26,12 +26,44 @@ const PreviewLogin = ({
   loginDetailText,
   themeColor: propThemeColor,
   buttonText,
-  buttonUrl
+  buttonUrl,
+  // エラーハイライト関連
+  highlightedElement,
+  highlightAnimation
 }) => {
   const [loginData, setLoginData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const isMobile = previewMode === 'mobile';
+
+  // ハイライトスタイルを生成するヘルパー関数
+  const getHighlightStyle = (targetElement) => {
+    if (!highlightedElement || highlightedElement.highlightTarget !== targetElement) {
+      return {};
+    }
+    
+    return {
+      position: 'relative',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: -4,
+        left: -4,
+        right: -4,
+        bottom: -4,
+        background: 'rgba(239, 68, 68, 0.2)',
+        borderRadius: 2,
+        border: '2px solid #ef4444',
+        zIndex: 1000,
+        animation: highlightAnimation ? 'errorPulse 2s ease-in-out' : 'none',
+        '@keyframes errorPulse': {
+          '0%': { opacity: 0, transform: 'scale(0.9)' },
+          '50%': { opacity: 1, transform: 'scale(1.05)' },
+          '100%': { opacity: 0.8, transform: 'scale(1)' }
+        }
+      }
+    };
+  };
 
   // Supabaseからログイン画面データを取得
   useEffect(() => {
@@ -185,6 +217,7 @@ const PreviewLogin = ({
                 textShadow: '0 6px 20px rgba(0, 0, 0, 0.6)',
                 lineHeight: 1.2,
                 maxWidth: isMobile ? '95vw' : '800px',
+                ...getHighlightStyle('login-title'),
                 mx: 'auto',
                 animation: 'fadeInUp 0.8s ease-out 0.4s both',
                 letterSpacing: '-0.01em',
@@ -233,6 +266,7 @@ const PreviewLogin = ({
                 zIndex: 2,
                 transition: 'all 0.3s ease',
                 fontStyle: isDetailHint ? 'italic' : 'normal',
+                ...getHighlightStyle('login-detail'),
                 '&::after': selectedElement === 'login-detail' ? {
                   content: '""',
                   position: 'absolute',

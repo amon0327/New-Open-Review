@@ -48,7 +48,12 @@ const HeaderBar = ({
   onOpenDesignSettings,
   onOpenLoginSettings,
   onOpenCompletionSettings,
-  onOpenSettings
+  onOpenSettings,
+  // エラーハイライト機能のprops
+  onHighlightElement,
+  onSetPreviewMode,
+  onSelectQuestion,
+  onSelectPage
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
@@ -91,21 +96,51 @@ const HeaderBar = ({
     // エラー項目がクリックされた時の処理
     setErrorAnchorEl(null); // ポップオーバーを閉じる
     
-    // 設定メニューを開く処理
-    switch(error.action) {
-      case 'openDesignSettings':
-        onOpenDesignSettings?.();
-        break;
-      case 'openLoginSettings':
-        onOpenLoginSettings?.();
-        break;
-      case 'openCompletionSettings':
-        onOpenCompletionSettings?.();
-        break;
-      default:
-        onOpenSettings?.();
-        break;
+    // エラーの要素タイプに応じてハイライト処理を実行
+    if (error.elementType && onHighlightElement) {
+      // エラーに関連する要素をハイライト
+      onHighlightElement({
+        elementType: error.elementType,
+        elementId: error.elementId,
+        highlightTarget: error.highlightTarget,
+        questionId: error.questionId,
+        pageId: error.pageId,
+        previewMode: error.previewMode
+      });
+      
+      // プレビューモードの変更が必要な場合
+      if (error.previewMode && onSetPreviewMode) {
+        onSetPreviewMode(error.previewMode);
+      }
+      
+      // 質問の選択が必要な場合
+      if (error.questionId && onSelectQuestion) {
+        onSelectQuestion(error.questionId);
+      }
+      
+      // ページの選択が必要な場合
+      if (error.pageId && onSelectPage) {
+        onSelectPage(error.pageId);
+      }
     }
+    
+    // 設定メニューを開く処理（ハイライト後に実行）
+    setTimeout(() => {
+      switch(error.action) {
+        case 'openDesignSettings':
+          onOpenDesignSettings?.();
+          break;
+        case 'openLoginSettings':
+          onOpenLoginSettings?.();
+          break;
+        case 'openCompletionSettings':
+          onOpenCompletionSettings?.();
+          break;
+        default:
+          onOpenSettings?.();
+          break;
+      }
+    }, 100); // 少し遅延させてハイライトが先に実行されるようにする
   };
 
   const handleWarningItemClick = (warning) => {

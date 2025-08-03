@@ -50,7 +50,10 @@ export const validateForm = (formData) => {
       id: 'missing-project-title',
       message: 'プロジェクト名が設定されていません',
       location: 'プロジェクト設定',
-      action: 'openSettings'
+      action: 'openSettings',
+      elementType: 'header',
+      elementId: 'project-title',
+      highlightTarget: 'header-title'
     });
   }
 
@@ -61,7 +64,10 @@ export const validateForm = (formData) => {
       id: 'missing-question-page',
       message: '質問ページが1つ以上必要です',
       location: '質問設定',
-      action: 'openSettings'
+      action: 'openSettings',
+      elementType: 'navigation',
+      elementId: 'page-manager',
+      highlightTarget: 'page-manager-button'
     });
   }
 
@@ -78,7 +84,11 @@ export const validateForm = (formData) => {
         id: `missing-questions-page-${page.id}`,
         message: `「${page.title || page.name || 'ページ'}」に質問が設定されていません`,
         location: '質問設定',
-        action: 'openSettings'
+        action: 'openSettings',
+        elementType: 'page',
+        elementId: `page-${page.id}`,
+        highlightTarget: `page-${page.id}`,
+        pageId: page.id
       });
     }
   });
@@ -105,7 +115,12 @@ export const validateForm = (formData) => {
         id: `missing-question-text-${question.id}`,
         message: `質問${index + 1}のテキストが入力されていません`,
         location: '質問設定',
-        action: 'openSettings'
+        action: 'openSettings',
+        elementType: 'question',
+        elementId: `question-${question.id}`,
+        highlightTarget: `question-${question.id}`,
+        questionId: question.id,
+        questionIndex: index
       });
     }
 
@@ -166,7 +181,13 @@ export const validateForm = (formData) => {
           id: `missing-choices-${question.id}`,
           message: `質問${index + 1}の選択肢が設定されていません`,
           location: '質問設定',
-          action: 'openSettings'
+          action: 'openSettings',
+          elementType: 'question',
+          elementId: `question-${question.id}`,
+          highlightTarget: `question-${question.id}`,
+          questionId: question.id,
+          questionIndex: index,
+          errorField: 'choices'
         });
       } else {
         // 選択肢内容の検証
@@ -181,7 +202,14 @@ export const validateForm = (formData) => {
               id: `missing-choice-text-${question.id}-${choiceIndex}`,
               message: `質問${index + 1}の選択肢${choiceIndex + 1}が空です`,
               location: '質問設定',
-              action: 'openSettings'
+              action: 'openSettings',
+              elementType: 'question',
+              elementId: `question-${question.id}`,
+              highlightTarget: `question-${question.id}`,
+              questionId: question.id,
+              questionIndex: index,
+              errorField: 'choice',
+              choiceIndex: choiceIndex
             });
           }
         });
@@ -264,7 +292,11 @@ export const validateForm = (formData) => {
       id: 'missing-login-title',
       message: 'ログイン画面のタイトルテキストが入力されていません',
       location: 'ログイン画面設定',
-      action: 'openLoginSettings'
+      action: 'openLoginSettings',
+      elementType: 'preview',
+      elementId: 'login-screen',
+      highlightTarget: 'login-title',
+      previewMode: 'login'
     });
   }
 
@@ -273,7 +305,11 @@ export const validateForm = (formData) => {
       id: 'missing-login-detail',
       message: 'ログイン画面の詳細テキストが入力されていません',
       location: 'ログイン画面設定',
-      action: 'openLoginSettings'
+      action: 'openLoginSettings',
+      elementType: 'preview',
+      elementId: 'login-screen',
+      highlightTarget: 'login-detail',
+      previewMode: 'login'
     });
   }
 
@@ -296,7 +332,11 @@ export const validateForm = (formData) => {
       id: 'missing-completion-title',
       message: '完了画面のタイトルテキストが入力されていません',
       location: '完了画面設定',
-      action: 'openCompletionSettings'
+      action: 'openCompletionSettings',
+      elementType: 'preview',
+      elementId: 'completion-screen',
+      highlightTarget: 'completion-title',
+      previewMode: 'completion'
     });
   }
 
@@ -305,7 +345,11 @@ export const validateForm = (formData) => {
       id: 'missing-completion-detail',
       message: '完了画面の詳細テキストが入力されていません',
       location: '完了画面設定',
-      action: 'openCompletionSettings'
+      action: 'openCompletionSettings',
+      elementType: 'preview',
+      elementId: 'completion-screen',
+      highlightTarget: 'completion-detail',
+      previewMode: 'completion'
     });
   }
 
