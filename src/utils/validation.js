@@ -92,15 +92,40 @@ export const validateForm = (formData) => {
 
     // 質問タイプIDの取得（typeまたはtype_idを確認）
     const questionTypeId = question.type || question.type_id || question.question_type_id;
+    console.log(`Question ${index + 1} type extraction:`, {
+      questionType: question.type,
+      questionTypeId: question.type_id,
+      questionQuestionTypeId: question.question_type_id,
+      finalQuestionTypeId: questionTypeId,
+      typeofFinalId: typeof questionTypeId
+    });
     
     // 選択肢がある質問タイプの場合の検証
     const choiceRequiredTypes = [3, 4, 5, 6, 8, 9, 10]; // 単一選択、複数選択、マトリックス、プルダウン等
-    if (choiceRequiredTypes.includes(questionTypeId)) {
+    
+    // 数値型に変換して比較
+    const numericQuestionTypeId = parseInt(questionTypeId, 10);
+    const isChoiceRequired = choiceRequiredTypes.includes(numericQuestionTypeId);
+    
+    console.log(`Question ${index + 1} type check:`, {
+      questionTypeId,
+      numericQuestionTypeId,
+      isChoiceRequired,
+      choiceRequiredTypes
+    });
+    
+    if (isChoiceRequired) {
       // choicesまたはoptionsフィールドを確認
       const choices = question.choices || question.options || [];
-      console.log(`Question ${index + 1} choices:`, choices);
+      console.log(`Question ${index + 1} choices validation:`, {
+        choices,
+        choicesLength: choices.length,
+        questionChoices: question.choices,
+        questionOptions: question.options
+      });
       
       if (choices.length === 0) {
+        console.log(`Adding choice error for question ${index + 1}`);
         errors.push({
           id: `missing-choices-${question.id}`,
           message: `質問${index + 1}の選択肢が設定されていません`,
@@ -111,6 +136,8 @@ export const validateForm = (formData) => {
         // 選択肢内容の検証
         choices.forEach((choice, choiceIndex) => {
           const choiceText = choice.text || choice.choice_text || choice.label || '';
+          console.log(`Choice ${choiceIndex + 1} validation:`, { choice, choiceText });
+          
           if (!choiceText || choiceText.trim() === '') {
             errors.push({
               id: `missing-choice-text-${question.id}-${choiceIndex}`,
@@ -121,10 +148,12 @@ export const validateForm = (formData) => {
           }
         });
       }
+    } else {
+      console.log(`Question ${index + 1} does not require choices (type: ${questionTypeId}, numeric: ${numericQuestionTypeId})`);
     }
 
     // リニアスケールの場合のラベル検証
-    if (questionTypeId === 7) { // リニアスケール
+    if (numericQuestionTypeId === 7) { // リニアスケール
       const minLabel = question.minLabel || question.min_label || question.scale_min_label || '';
       const maxLabel = question.maxLabel || question.max_label || question.scale_max_label || '';
       
@@ -148,7 +177,7 @@ export const validateForm = (formData) => {
 
     // マトリックス質問の行ラベル検証
     const matrixTypes = [5, 6]; // マトリックス質問
-    if (matrixTypes.includes(questionTypeId)) {
+    if (matrixTypes.includes(numericQuestionTypeId)) {
       const rows = question.rows || question.matrix_rows || [];
       if (rows.length === 0) {
         errors.push({
