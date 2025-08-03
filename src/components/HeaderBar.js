@@ -128,7 +128,7 @@ const HeaderBar = ({
 
   const handlePreviewClick = () => {
     if (errorCount > 0) {
-      alert(`エラーが${errorCount}件あります。エラーを解消してからプレビューを表示してください。`);
+      alert('プレビューを表示するには、エラーを修正してください');
       return;
     }
     setShowPreviewDialog(true);
