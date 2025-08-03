@@ -1752,7 +1752,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
           onQuestionSelect={handleQuestionSelect}
           onHighlightElement={handleElementHighlight}
           onNavigateToPage={(pageId) => {
-            setCurrentPageIndex(pages.findIndex(p => p.id === pageId));
+            const targetPage = pages.find(p => p.id === pageId);
+            if (targetPage) {
+              setSelectedPage(targetPage);
+            }
           }}
           onShowPageError={(pageId) => {
             setPageErrorHighlight(pageId);

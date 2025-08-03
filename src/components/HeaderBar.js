@@ -53,6 +53,9 @@ const HeaderBar = ({
   onQuestionSelect,
   // エラーハイライト用のコールバック関数
   onHighlightElement,
+  // ページナビゲーション用のコールバック関数
+  onNavigateToPage,
+  onShowPageError,
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
