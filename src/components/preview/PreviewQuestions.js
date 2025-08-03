@@ -1468,11 +1468,11 @@ const PreviewQuestions = ({
         }, 100);
       }
       setPrevQuestionsCount(displayQuestions.length);
-    } else if (displayQuestions.length < prevQuestionsCount) {
-      // 質問が削除された場合は単純に数を更新
+    } else if (displayQuestions.length !== prevQuestionsCount) {
+      // 質問数が変更された場合は単純に数を更新
       setPrevQuestionsCount(displayQuestions.length);
     }
-  }, [displayQuestions.length, prevQuestionsCount]);
+  }, [displayQuestions.length]);
 
   const handleAnswerChange = useCallback((questionId, answerData) => {
     setAnswers(prev => ({
