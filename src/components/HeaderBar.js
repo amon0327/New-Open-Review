@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 import PreviewUrlDialog from './PreviewUrlDialog';
+import { validateForm } from '../utils/validation';
 
 const HeaderBar = ({
   isEditingTitle,
@@ -40,11 +41,8 @@ const HeaderBar = ({
   isSaving = false,
   // フォームID
   formId,
-  // エラー・警告判定用のprops  
-  // デフォルト値使用状況
-  defaultUsage = {}, // { logo: true, themeColor: true, loginBackground: true, etc... }
-  // 必須入力チェック
-  missingRequiredFields = [], // [{ fieldName: '項目名', location: '場所', action: 'openXXX' }]
+  // 検証用のフォームデータ
+  formData = {},
   // 設定メニューを開くコールバック関数
   onOpenDesignSettings,
   onOpenLoginSettings,
@@ -59,54 +57,13 @@ const HeaderBar = ({
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
 
-  // エラー・警告の生成
-  const errors = [];
-  const warnings = [];
-
-  // エラー：必須入力が未設定の場合
-  missingRequiredFields.forEach((field, index) => {
-    errors.push({
-      id: `missing-${index}`,
-      message: `${field.fieldName}が設定されていません`,
-      location: field.location,
-      action: field.action || 'openSettings'
-    });
-  });
+  // フォーム検証の実行
+  const validationData = {
+    projectTitle,
+    ...formData
+  };
   
-  // デフォルト要素使用時の警告
-  const defaultItems = [
-    // グローバルデザイン設定
-    { key: 'logo', name: 'ロゴ画像', location: 'デザイン設定', action: 'openDesignSettings' },
-    { key: 'themeColor', name: 'テーマカラー', location: 'デザイン設定', action: 'openDesignSettings' },
-    
-    // ログイン画面設定
-    { key: 'loginBackground', name: 'ログイン画面背景画像', location: 'ログイン画面設定', action: 'openLoginSettings' },
-    { key: 'loginTitle', name: 'ログイン画面タイトル', location: 'ログイン画面設定', action: 'openLoginSettings' },
-    { key: 'loginDetail', name: 'ログイン画面詳細テキスト', location: 'ログイン画面設定', action: 'openLoginSettings' },
-    
-    // 完了画面設定
-    { key: 'completionBackground', name: '完了画面背景画像', location: '完了画面設定', action: 'openCompletionSettings' },
-    { key: 'completionTitle', name: '完了画面タイトル', location: '完了画面設定', action: 'openCompletionSettings' },
-    { key: 'completionDetail', name: '完了画面詳細テキスト', location: '完了画面設定', action: 'openCompletionSettings' },
-    { key: 'completionButton', name: '完了画面ボタンテキスト', location: '完了画面設定', action: 'openCompletionSettings' },
-    
-    // 質問画面設定（質問が作成されていない場合）
-    { key: 'noQuestions', name: '質問', location: '質問設定', action: 'openSettings' }
-  ];
-  
-  defaultItems.forEach(item => {
-    if (defaultUsage[item.key]) {
-      warnings.push({
-        id: `default-${item.key}`,
-        message: `デフォルトの${item.name}が使用されています`,
-        location: item.location,
-        action: item.action,
-        type: 'default'
-      });
-    }
-  });
-  
-  // 注意: 未入力フィールドはエラーとして扱うため、警告としては処理しない
+  const { errors, warnings } = validateForm(validationData);
 
   const errorCount = errors.length;
   const warningCount = warnings.length;
