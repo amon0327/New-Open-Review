@@ -75,13 +75,15 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
                 right: 12,
                 top: 12,
                 color: 'rgba(255, 255, 255, 0.8)',
+                width: 40,
+                height: 40,
                 '&:hover': { 
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   color: 'white'
                 }
               }}
             >
-              <CloseIcon fontSize="small" />
+              <CloseIcon sx={{ fontSize: '1.5rem' }} />
             </IconButton>
 
             {/* ロゴ */}
@@ -92,7 +94,7 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
             >
               <Box
                 component="img"
-                src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png"
+                src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png"
                 alt="OpenReview Logo"
                 sx={{
                   height: 40,
