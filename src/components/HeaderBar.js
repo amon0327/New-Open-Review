@@ -406,7 +406,16 @@ const HeaderBar = ({
             </Typography>
           </Box>
         </Box>
-        <List sx={{ p: 0, maxHeight: 300, overflow: 'auto' }}>
+        <List sx={{ 
+          p: 0, 
+          maxHeight: 300, 
+          overflow: 'auto',
+          '&::-webkit-scrollbar': {
+            display: 'none'
+          },
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}>
           {errors.map((error, index) => (
             <ListItem
               key={error.id}
