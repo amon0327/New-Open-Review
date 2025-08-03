@@ -40,11 +40,11 @@ const HeaderBar = ({
   isSaving = false,
   // フォームID
   formId,
-  // エラー・警告判定用のprops
-  errors = [], // エラー配列 [{ id, message, location }]
-  emptyFields = [], // 未入力フィールド配列 [{ fieldName: '項目名', location: '場所' }]
+  // エラー・警告判定用のprops  
   // デフォルト値使用状況
   defaultUsage = {}, // { logo: true, themeColor: true, loginBackground: true, etc... }
+  // 必須入力チェック
+  missingRequiredFields = [], // [{ fieldName: '項目名', location: '場所', action: 'openXXX' }]
   // 設定メニューを開くコールバック関数
   onOpenDesignSettings,
   onOpenLoginSettings,
@@ -59,8 +59,19 @@ const HeaderBar = ({
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
 
-  // 警告条件：デフォルト要素使用時と未入力部分がある時
+  // エラー・警告の生成
+  const errors = [];
   const warnings = [];
+
+  // エラー：必須入力が未設定の場合
+  missingRequiredFields.forEach((field, index) => {
+    errors.push({
+      id: `missing-${index}`,
+      message: `${field.fieldName}が設定されていません`,
+      location: field.location,
+      action: field.action || 'openSettings'
+    });
+  });
   
   // デフォルト要素使用時の警告
   const defaultItems = [
@@ -95,16 +106,7 @@ const HeaderBar = ({
     }
   });
   
-  // 未入力部分がある場合の警告
-  emptyFields.forEach((field, index) => {
-    warnings.push({
-      id: `empty-${index}`,
-      message: `${field.fieldName}が未入力です`,
-      location: field.location,
-      action: field.action || 'openSettings',
-      type: 'empty'
-    });
-  });
+  // 注意: 未入力フィールドはエラーとして扱うため、警告としては処理しない
 
   const errorCount = errors.length;
   const warningCount = warnings.length;
@@ -123,6 +125,27 @@ const HeaderBar = ({
 
   const handleWarningClose = () => {
     setWarningAnchorEl(null);
+  };
+
+  const handleErrorItemClick = (error) => {
+    // エラー項目がクリックされた時の処理
+    setErrorAnchorEl(null); // ポップオーバーを閉じる
+    
+    // 設定メニューを開く処理
+    switch(error.action) {
+      case 'openDesignSettings':
+        onOpenDesignSettings?.();
+        break;
+      case 'openLoginSettings':
+        onOpenLoginSettings?.();
+        break;
+      case 'openCompletionSettings':
+        onOpenCompletionSettings?.();
+        break;
+      default:
+        onOpenSettings?.();
+        break;
+    }
   };
 
   const handleWarningItemClick = (warning) => {
@@ -430,6 +453,7 @@ const HeaderBar = ({
           {errors.map((error, index) => (
             <ListItem
               key={error.id}
+              onClick={() => handleErrorItemClick(error)}
               sx={{
                 borderBottom: index < errors.length - 1 ? '1px solid #f9fafb' : 'none',
                 '&:hover': { backgroundColor: '#fef2f2' },
