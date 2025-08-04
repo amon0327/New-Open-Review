@@ -29,9 +29,7 @@ import {
   Close,
   CheckCircleOutline,
   Public,
-  CloudDone,
-  ContentCopy,
-  QrCode2
+  CloudDone
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 import PreviewUrlDialog from './PreviewUrlDialog';
@@ -82,12 +80,8 @@ const HeaderBar = ({
   const [isErrorChecking, setIsErrorChecking] = useState(false);
   // 公開済みアラートの状態
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);
-  // 公開完了アラートの状態
-  const [showPublishCompleteAlert, setShowPublishCompleteAlert] = useState(false);
   // 公開状態（propsから受け取るか、独自に管理）
   const [isPublished, setIsPublished] = useState(false);
-  // 公開URL
-  const [publishedUrl, setPublishedUrl] = useState('');
   // エラー・警告ポップオーバーの状態
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
@@ -333,12 +327,22 @@ const HeaderBar = ({
       setShowPublishDialog(false);
       setIsPublished(true); // 公開状態を更新
       
-      // 公開URLを生成（実際のURLに置き換えてください）
-      const formUrl = `https://openreview.jp/form/${formId}`;
-      setPublishedUrl(formUrl);
-      
-      // 公開完了アラートを表示
-      setShowPublishCompleteAlert(true);
+      // 成功トースト
+      toast.success('フォームが公開されました！', {
+        duration: 3000,
+        position: 'bottom-center',
+        style: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(34, 197, 94, 0.2)',
+          borderRadius: '12px',
+          color: '#374151',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        },
+      });
       
     } catch (error) {
       console.error('❌ 公開処理エラー:', error);
@@ -369,37 +373,6 @@ const HeaderBar = ({
     setErrorCheckItems([]);
   };
 
-  const handleCopyUrl = async () => {
-    try {
-      await navigator.clipboard.writeText(publishedUrl);
-      toast.success('URLをコピーしました', {
-        duration: 2000,
-        position: 'bottom-center',
-        style: {
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(34, 197, 94, 0.2)',
-          borderRadius: '12px',
-          color: '#374151',
-          fontSize: '14px',
-          fontWeight: '500',
-          padding: '12px 20px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-        },
-      });
-    } catch (err) {
-      toast.error('URLのコピーに失敗しました', {
-        duration: 2000,
-        position: 'bottom-center'
-      });
-    }
-  };
-
-  // シンプルなQRコード生成関数
-  const generateQRCode = (text) => {
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
-    return qrApiUrl;
-  };
 
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
@@ -1467,238 +1440,6 @@ const HeaderBar = ({
         </DialogContent>
       </Dialog>
 
-      {/* 公開完了アラートダイアログ */}
-      <Dialog
-        open={showPublishCompleteAlert}
-        onClose={() => setShowPublishCompleteAlert(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '20px',
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)',
-            backdropFilter: 'blur(24px)',
-            border: '2px solid transparent',
-            backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%), ' +
-                            'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
-            backgroundOrigin: 'border-box',
-            backgroundClip: 'content-box, border-box',
-            boxShadow: '0 32px 80px rgba(102, 126, 234, 0.25)',
-            overflow: 'hidden'
-          }
-        }}
-        BackdropProps={{
-          sx: {
-            backgroundColor: 'rgba(0, 0, 0, 0.4)',
-            backdropFilter: 'blur(12px)'
-          }
-        }}
-      >
-        <DialogContent sx={{ p: 0 }}>
-          <Box
-            sx={{
-              textAlign: 'center',
-              py: 6,
-              px: 4,
-              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
-              color: '#374151',
-              mb: 0,
-              minHeight: 360, // 既存のアラートと同じ高さに統一
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              position: 'relative',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 50%, rgba(255, 107, 107, 0.03) 100%)',
-                zIndex: -1
-              }
-            }}
-          >
-            {/* メインコンテンツエリア */}
-            <Box sx={{ 
-              flex: 1, 
-              display: 'flex', 
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              gap: 3
-            }}>
-              {/* タイトルとメッセージ */}
-              <Box sx={{ mb: 2 }}>
-                <Typography
-                  variant="h4"
-                  sx={{
-                    fontWeight: 700,
-                    mb: 2,
-                    fontSize: '1.8rem',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    textShadow: 'none'
-                  }}
-                >
-                  🎉 フォーム公開完了！
-                </Typography>
-                
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: '#6b7280',
-                    fontSize: '1rem',
-                    lineHeight: 1.6,
-                    fontWeight: 500
-                  }}
-                >
-                  フォームが正常に公開されました。以下の方法でアクセスできます。
-                </Typography>
-              </Box>
-
-              {/* QRコードとURL - 横並び */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  width: '100%',
-                  maxWidth: 480,
-                  p: 3,
-                  backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                  borderRadius: '20px',
-                  border: '1px solid rgba(0, 0, 0, 0.05)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06)',
-                  backdropFilter: 'blur(20px)'
-                }}
-              >
-                {/* QRコード */}
-                <Box
-                  sx={{
-                    p: 2,
-                    backgroundColor: 'white',
-                    borderRadius: '16px',
-                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
-                    border: '1px solid rgba(0, 0, 0, 0.04)'
-                  }}
-                >
-                  <img
-                    src={generateQRCode(publishedUrl)}
-                    alt="QR Code"
-                    style={{
-                      width: '80px',
-                      height: '80px',
-                      display: 'block'
-                    }}
-                  />
-                </Box>
-
-                {/* URL部分 */}
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: '#9ca3af',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      letterSpacing: '0.5px',
-                      textTransform: 'uppercase',
-                      display: 'block',
-                      mb: 1.5
-                    }}
-                  >
-                    フォームURL
-                  </Typography>
-                  
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      p: 2,
-                      backgroundColor: 'rgba(248, 249, 250, 0.8)',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(0, 0, 0, 0.06)'
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        flex: 1,
-                        color: '#374151',
-                        fontSize: '0.85rem',
-                        fontFamily: 'monospace',
-                        fontWeight: 500,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {publishedUrl}
-                    </Typography>
-                    
-                    <IconButton
-                      onClick={handleCopyUrl}
-                      size="small"
-                      sx={{
-                        color: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        width: 32,
-                        height: 32,
-                        '&:hover': {
-                          backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                          transform: 'scale(1.05)'
-                        },
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      <ContentCopy sx={{ fontSize: 14 }} />
-                    </IconButton>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-
-            {/* ボタンエリア */}
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 2,
-                justifyContent: 'center',
-                pt: 2
-              }}
-            >
-              <Button
-                onClick={() => setShowPublishCompleteAlert(false)}
-                variant="contained"
-                sx={{
-                  minWidth: 120,
-                  height: 52,
-                  borderRadius: '26px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
-                    boxShadow: '0 12px 32px rgba(102, 126, 234, 0.5)',
-                    transform: 'translateY(-2px)'
-                  }
-                }}
-              >
-                完了
-              </Button>
-            </Box>
-          </Box>
-        </DialogContent>
-      </Dialog>
 
       {/* エラー詳細ポップオーバー */}
       <Popover
