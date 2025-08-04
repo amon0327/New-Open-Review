@@ -73,9 +73,9 @@ const HeaderBar = ({
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   // 公開確認ダイアログの状態
   const [showPublishDialog, setShowPublishDialog] = useState(false);
-  const [showErrorCheckDialog, setShowErrorCheckDialog] = useState(false);
   const [errorCheckProgress, setErrorCheckProgress] = useState(0);
   const [errorCheckItems, setErrorCheckItems] = useState([]);
+  const [isErrorChecking, setIsErrorChecking] = useState(false);
   // エラー・警告ポップオーバーの状態
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
@@ -234,7 +234,7 @@ const HeaderBar = ({
       return;
     }
     
-    // エラーがない場合は最終チェックを実行
+    // エラーがない場合は最終チェックを実行後、直接公開確認ダイアログを表示
     console.log('✅ エラーがないため最終チェックを実行します');
     
     // エラーチェック項目を定義
@@ -249,7 +249,8 @@ const HeaderBar = ({
     
     setErrorCheckItems(checkItems);
     setErrorCheckProgress(0);
-    setShowErrorCheckDialog(true);
+    setIsErrorChecking(true);
+    setShowPublishDialog(true); // 直接公開ダイアログを表示
     
     // エラーチェック処理をシミュレート
     let currentProgress = 0;
@@ -268,12 +269,7 @@ const HeaderBar = ({
       
       if (currentProgress >= checkItems.length) {
         clearInterval(checkInterval);
-        
-        // チェック完了後、少し待ってから確認ダイアログを表示
-        setTimeout(() => {
-          setShowErrorCheckDialog(false);
-          setShowPublishDialog(true);
-        }, 800);
+        setIsErrorChecking(false);
       }
     }, 400);
   };
@@ -302,6 +298,9 @@ const HeaderBar = ({
 
   const handlePublishCancel = () => {
     setShowPublishDialog(false);
+    setIsErrorChecking(false);
+    setErrorCheckProgress(0);
+    setErrorCheckItems([]);
   };
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
@@ -552,274 +551,6 @@ const HeaderBar = ({
         formId={formId}
       />
 
-      {/* エラーチェックダイアログ - モダンなデザイン */}
-      <Dialog
-        open={showErrorCheckDialog}
-        maxWidth="sm"
-        fullWidth
-        disableEscapeKeyDown
-        PaperProps={{
-          sx: {
-            borderRadius: '24px',
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)',
-            backdropFilter: 'blur(24px)',
-            border: '3px solid transparent',
-            backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%), linear-gradient(135deg, #667eea 0%, #764ba2 25%, #ff6b6b 75%, #feca57 100%)',
-            backgroundOrigin: 'border-box',
-            backgroundClip: 'content-box, border-box',
-            boxShadow: '0 32px 80px rgba(0, 0, 0, 0.2), 0 8px 32px rgba(102, 126, 234, 0.15)',
-            overflow: 'hidden',
-            animation: 'dialogSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-            '@keyframes dialogSlideIn': {
-              '0%': {
-                transform: 'scale(0.8) translateY(20px)',
-                opacity: 0
-              },
-              '100%': {
-                transform: 'scale(1) translateY(0)',
-                opacity: 1
-              }
-            }
-          }
-        }}
-        BackdropProps={{
-          sx: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(16px)'
-          }
-        }}
-      >
-        <DialogContent sx={{ p: 0 }}>
-          <Box
-            sx={{
-              textAlign: 'center',
-              py: 8,
-              px: 5,
-              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.06) 0%, rgba(118, 75, 162, 0.06) 25%, rgba(255, 107, 107, 0.06) 75%, rgba(254, 202, 87, 0.06) 100%)',
-              color: '#374151',
-              position: 'relative',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.02) 25%, rgba(255, 107, 107, 0.02) 75%, rgba(254, 202, 87, 0.02) 100%)',
-                zIndex: -1
-              }
-            }}
-          >
-            {/* 洗練されたアニメーションアイコン */}
-            <Box
-              sx={{
-                width: 120,
-                height: 120,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 25%, rgba(255, 107, 107, 0.12) 75%, rgba(254, 202, 87, 0.12) 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: 5,
-                fontSize: '3.5rem',
-                boxShadow: '0 20px 60px rgba(102, 126, 234, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                position: 'relative',
-                animation: 'breathe 3s ease-in-out infinite',
-                '@keyframes breathe': {
-                  '0%, 100%': { 
-                    transform: 'scale(1)',
-                    boxShadow: '0 20px 60px rgba(102, 126, 234, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)'
-                  },
-                  '50%': { 
-                    transform: 'scale(1.08)',
-                    boxShadow: '0 24px 72px rgba(102, 126, 234, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.15)'
-                  }
-                },
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: -4,
-                  left: -4,
-                  right: -4,
-                  bottom: -4,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #ff6b6b 75%, #feca57 100%)',
-                  zIndex: -1,
-                  opacity: 0.3,
-                  animation: 'rotate 8s linear infinite',
-                  '@keyframes rotate': {
-                    '0%': { transform: 'rotate(0deg)' },
-                    '100%': { transform: 'rotate(360deg)' }
-                  }
-                }
-              }}
-            >
-              🔍
-            </Box>
-            
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 800,
-                mb: 3,
-                fontSize: '2rem',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #ff6b6b 75%, #feca57 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                textShadow: 'none',
-                letterSpacing: '-0.02em'
-              }}
-            >
-              エラーチェック中...
-            </Typography>
-            
-            <Typography
-              variant="body1"
-              sx={{
-                color: '#64748b',
-                fontSize: '1.15rem',
-                lineHeight: 1.7,
-                fontWeight: 500,
-                mb: 6,
-                maxWidth: 360,
-                mx: 'auto'
-              }}
-            >
-              フォームの設定を丁寧に確認しています
-            </Typography>
-
-            {/* 洗練されたチェック項目リスト */}
-            <Box sx={{ textAlign: 'left', maxWidth: 440, mx: 'auto', mb: 6 }}>
-              {errorCheckItems.map((item, index) => (
-                <Box
-                  key={item.id}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    py: 2,
-                    px: 4,
-                    mb: 1.5,
-                    borderRadius: '16px',
-                    background: item.status === 'completed' 
-                      ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.04) 100%)'
-                      : 'rgba(248, 250, 252, 0.8)',
-                    border: item.status === 'completed' 
-                      ? '2px solid rgba(34, 197, 94, 0.2)'
-                      : '2px solid rgba(226, 232, 240, 0.6)',
-                    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                    transform: item.status === 'completed' ? 'translateX(0)' : 'translateX(-8px)',
-                    animation: item.status === 'completed' 
-                      ? `checkComplete 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) ${index * 0.1}s forwards`
-                      : 'none',
-                    '@keyframes checkComplete': {
-                      '0%': {
-                        transform: 'translateX(-8px) scale(0.95)',
-                        opacity: 0.7
-                      },
-                      '60%': {
-                        transform: 'translateX(4px) scale(1.02)'
-                      },
-                      '100%': {
-                        transform: 'translateX(0) scale(1)',
-                        opacity: 1
-                      }
-                    }
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: '50%',
-                      mr: 3,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: item.status === 'completed' 
-                        ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-                        : 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)',
-                      color: item.status === 'completed' ? 'white' : '#94a3b8',
-                      fontSize: '0.9rem',
-                      fontWeight: 'bold',
-                      boxShadow: item.status === 'completed' 
-                        ? '0 4px 12px rgba(34, 197, 94, 0.3)'
-                        : '0 2px 8px rgba(148, 163, 184, 0.15)',
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    {item.status === 'completed' ? '✓' : item.id}
-                  </Box>
-                  <Typography
-                    sx={{
-                      color: item.status === 'completed' ? '#059669' : '#64748b',
-                      fontWeight: item.status === 'completed' ? 600 : 500,
-                      fontSize: '1rem',
-                      letterSpacing: '-0.01em'
-                    }}
-                  >
-                    {item.name}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-
-            {/* 美しいプログレスバー */}
-            <Box sx={{ px: 3 }}>
-              <Box
-                sx={{
-                  width: '100%',
-                  height: 12,
-                  borderRadius: '6px',
-                  background: 'rgba(226, 232, 240, 0.6)',
-                  overflow: 'hidden',
-                  position: 'relative',
-                  boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.05)'
-                }}
-              >
-                <Box
-                  sx={{
-                    height: '100%',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #ff6b6b 75%, #feca57 100%)',
-                    borderRadius: '6px',
-                    width: `${(errorCheckProgress / errorCheckItems.length) * 100}%`,
-                    transition: 'width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                    position: 'relative',
-                    boxShadow: '0 2px 8px rgba(102, 126, 234, 0.4)',
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)',
-                      animation: 'shimmer 2s infinite linear',
-                      '@keyframes shimmer': {
-                        '0%': { transform: 'translateX(-100%)' },
-                        '100%': { transform: 'translateX(100%)' }
-                      }
-                    }
-                  }}
-                />
-              </Box>
-              <Typography
-                sx={{
-                  textAlign: 'center',
-                  mt: 3,
-                  color: '#64748b',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  letterSpacing: '-0.01em'
-                }}
-              >
-                {errorCheckProgress} / {errorCheckItems.length} 項目完了
-              </Typography>
-            </Box>
-          </Box>
-        </DialogContent>
-      </Dialog>
 
       {/* 公開確認・エラー通知共通ダイアログ */}
       <Dialog
@@ -928,14 +659,58 @@ const HeaderBar = ({
                 fontSize: '1.1rem',
                 lineHeight: 1.6,
                 fontWeight: 500,
-                mb: errorCount > 0 ? 2 : 0
+                mb: errorCount > 0 ? 2 : (isErrorChecking ? 4 : 0)
               }}
             >
               {errorCount > 0 
                 ? `${errorCount}件のエラーがあります。\nエラーを解決してから公開してください。`
-                : 'エラーチェックが完了しました。\nフォームを公開して利用可能にします。'
+                : isErrorChecking
+                  ? 'フォームの設定を確認しています...'
+                  : 'エラーチェックが完了しました。\nフォームを公開して利用可能にします。'
               }
             </Typography>
+            
+            {/* エラーチェック中の簡素化されたUI */}
+            {isErrorChecking && (
+              <Box sx={{ mb: 4 }}>
+                {/* シンプルなプログレスバー */}
+                <Box sx={{ px: 2, mb: 2 }}>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 6,
+                      borderRadius: '3px',
+                      background: 'rgba(226, 232, 240, 0.6)',
+                      overflow: 'hidden',
+                      position: 'relative'
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: '100%',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        borderRadius: '3px',
+                        width: `${(errorCheckProgress / errorCheckItems.length) * 100}%`,
+                        transition: 'width 0.4s ease',
+                        position: 'relative'
+                      }}
+                    />
+                  </Box>
+                </Box>
+                
+                {/* 進捗テキスト */}
+                <Typography
+                  sx={{
+                    textAlign: 'center',
+                    color: '#64748b',
+                    fontSize: '0.9rem',
+                    fontWeight: 500
+                  }}
+                >
+                  {errorCheckProgress} / {errorCheckItems.length} 項目完了
+                </Typography>
+              </Box>
+            )}
             
             {/* エラーがある場合の追加メッセージ */}
             {errorCount > 0 && (
@@ -995,7 +770,7 @@ const HeaderBar = ({
               >
                 {errorCount > 0 ? '閉じる' : 'キャンセル'}
               </Button>
-              {errorCount === 0 && (
+              {errorCount === 0 && !isErrorChecking && (
                 <Button
                   onClick={handlePublishConfirm}
                   variant="contained"
