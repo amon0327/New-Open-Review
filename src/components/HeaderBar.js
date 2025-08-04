@@ -1503,7 +1503,7 @@ const HeaderBar = ({
               background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
               color: '#374151',
               mb: 0,
-              minHeight: 500,
+              minHeight: 360, // 既存のアラートと同じ高さに統一
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
@@ -1524,127 +1524,77 @@ const HeaderBar = ({
             <Box sx={{ 
               flex: 1, 
               display: 'flex', 
-              flexDirection: 'column', 
-              justifyContent: 'center',
               alignItems: 'center',
-              textAlign: 'center'
+              justifyContent: 'space-between',
+              gap: 4,
+              textAlign: 'left'
             }}>
-              {/* 公開完了アイコン */}
-              <Box
-                sx={{
-                  width: 88,
-                  height: 88,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.15) 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 32px auto',
-                  fontSize: '2.8rem',
-                  boxShadow: '0 12px 32px rgba(102, 126, 234, 0.2)',
-                  animation: 'pulse 2s ease-in-out infinite',
-                  '@keyframes pulse': {
-                    '0%, 100%': { transform: 'scale(1)' },
-                    '50%': { transform: 'scale(1.05)' }
-                  }
-                }}
-              >
-                🎉
-              </Box>
-
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  mb: 2,
-                  fontSize: '1.8rem',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  textShadow: 'none'
-                }}
-              >
-                公開完了！
-              </Typography>
-              
-              <Typography
-                variant="body1"
-                sx={{
-                  color: '#6b7280',
-                  fontSize: '1.1rem',
-                  lineHeight: 1.6,
-                  fontWeight: 500,
-                  mb: 4
-                }}
-              >
-                フォームが公開されました。<br />
-                以下のQRコードまたはURLから<br />
-                アクセスできます。
-              </Typography>
-
-              {/* QRコードとURL */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 3,
-                  width: '100%',
-                  maxWidth: 400
-                }}
-              >
-                {/* QRコード */}
-                <Box
+              {/* 左側: テキストコンテンツ */}
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  variant="h4"
                   sx={{
-                    p: 2,
-                    backgroundColor: 'white',
-                    borderRadius: '16px',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                    border: '1px solid rgba(0, 0, 0, 0.05)'
+                    fontWeight: 700,
+                    mb: 2,
+                    fontSize: '1.8rem',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    textShadow: 'none'
                   }}
                 >
-                  <img
-                    src={generateQRCode(publishedUrl)}
-                    alt="QR Code"
-                    style={{
-                      width: '200px',
-                      height: '200px',
-                      display: 'block'
-                    }}
-                  />
-                </Box>
+                  公開完了！
+                </Typography>
+                
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: '#6b7280',
+                    fontSize: '1rem',
+                    lineHeight: 1.6,
+                    fontWeight: 500,
+                    mb: 3
+                  }}
+                >
+                  フォームが公開されました。
+                  <br />
+                  QRコードまたはURLからアクセスできます。
+                </Typography>
 
                 {/* URL表示・コピー */}
                 <Box
                   sx={{
-                    width: '100%',
-                    p: 2,
-                    backgroundColor: 'rgba(248, 249, 250, 0.8)',
+                    p: 3,
+                    backgroundColor: 'rgba(248, 249, 250, 0.6)',
                     borderRadius: '12px',
-                    border: '1px solid rgba(0, 0, 0, 0.08)'
+                    border: '1px solid rgba(0, 0, 0, 0.06)',
+                    backdropFilter: 'blur(10px)'
                   }}
                 >
                   <Typography
                     variant="body2"
                     sx={{
                       color: '#6b7280',
-                      fontSize: '0.9rem',
-                      mb: 1,
-                      fontWeight: 600
+                      fontSize: '0.85rem',
+                      mb: 2,
+                      fontWeight: 600,
+                      letterSpacing: '0.5px',
+                      textTransform: 'uppercase'
                     }}
                   >
-                    フォームURL
+                    フォーム URL
                   </Typography>
                   <Box
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1,
-                      p: 2,
-                      backgroundColor: 'white',
+                      gap: 2,
+                      p: 2.5,
+                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
                       borderRadius: '8px',
-                      border: '1px solid rgba(0, 0, 0, 0.08)'
+                      border: '1px solid rgba(0, 0, 0, 0.06)',
+                      backdropFilter: 'blur(10px)'
                     }}
                   >
                     <Typography
@@ -1654,6 +1604,7 @@ const HeaderBar = ({
                         color: '#374151',
                         fontSize: '0.9rem',
                         fontFamily: 'monospace',
+                        fontWeight: 500,
                         wordBreak: 'break-all'
                       }}
                     >
@@ -1664,15 +1615,59 @@ const HeaderBar = ({
                       size="small"
                       sx={{
                         color: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.08)',
+                        border: '1px solid rgba(102, 126, 234, 0.15)',
                         '&:hover': {
-                          backgroundColor: 'rgba(102, 126, 234, 0.1)'
-                        }
+                          backgroundColor: 'rgba(102, 126, 234, 0.15)',
+                          transform: 'scale(1.05)'
+                        },
+                        transition: 'all 0.2s ease'
                       }}
                     >
                       <ContentCopy sx={{ fontSize: 16 }} />
                     </IconButton>
                   </Box>
                 </Box>
+              </Box>
+
+              {/* 右側: QRコード */}
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center',
+                gap: 1
+              }}>
+                <Box
+                  sx={{
+                    p: 2,
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    borderRadius: '16px',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+                    border: '1px solid rgba(0, 0, 0, 0.06)',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  <img
+                    src={generateQRCode(publishedUrl)}
+                    alt="QR Code"
+                    style={{
+                      width: '120px',
+                      height: '120px',
+                      display: 'block'
+                    }}
+                  />
+                </Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: '#9ca3af',
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    textAlign: 'center'
+                  }}
+                >
+                  QRコード
+                </Typography>
               </Box>
             </Box>
 
@@ -1682,7 +1677,7 @@ const HeaderBar = ({
                 display: 'flex',
                 gap: 2,
                 justifyContent: 'center',
-                pt: 4
+                pt: 2
               }}
             >
               <Button
