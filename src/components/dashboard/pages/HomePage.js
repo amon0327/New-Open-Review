@@ -33,7 +33,9 @@ import {
   Delete,
   Share,
   Analytics,
-  ContentCopy
+  ContentCopy,
+  KeyboardArrowUp,
+  KeyboardArrowDown
 } from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
 import FormDataService from '../../../services/FormDataService';
@@ -50,6 +52,10 @@ export default function HomePage({ user, onCreateFormClick }) {
   const [articles, setArticles] = useState([]);
   const [articlesLoading, setArticlesLoading] = useState(true);
   const [articlesError, setArticlesError] = useState(null);
+  
+  // ソート関連の状態
+  const [sortField, setSortField] = useState('updated_at'); // デフォルトは更新日
+  const [sortDirection, setSortDirection] = useState('desc'); // デフォルトは降順（最新順）
 
 
   // フォーム一覧を取得
@@ -138,6 +144,18 @@ export default function HomePage({ user, onCreateFormClick }) {
     }
   };
 
+  // ソートハンドラー
+  const handleSort = (field) => {
+    if (sortField === field) {
+      // 同じフィールドをクリックした場合は方向を切り替え
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // 違うフィールドをクリックした場合は新しいフィールドを設定し、降順から開始
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
   // フォームデータの変換
   const formatFormData = (form) => ({
     id: form.id,
@@ -148,8 +166,48 @@ export default function HomePage({ user, onCreateFormClick }) {
     lastModified: new Date(form.updated_at).toISOString().split('T')[0],
     category: 'レビュー',
     themeColor: form.review_form_settings?.[0]?.theme_color || '#5e17eb',
-    createdAt: new Date(form.created_at).toLocaleDateString('ja-JP')
+    createdAt: new Date(form.created_at).toLocaleDateString('ja-JP'),
+    // ソート用の生データも保持
+    created_at: form.created_at,
+    updated_at: form.updated_at
   });
+
+  // ソートされたフォームデータを生成
+  const sortedForms = useMemo(() => {
+    if (!forms.length) return [];
+    
+    const formattedFormsWithOriginal = forms.map(form => ({
+      ...formatFormData(form),
+      originalForm: form // 元のformオブジェクトも保持
+    }));
+    
+    return [...formattedFormsWithOriginal].sort((a, b) => {
+      let valueA, valueB;
+      
+      switch (sortField) {
+        case 'responses':
+          valueA = a.responses;
+          valueB = b.responses;
+          break;
+        case 'created_at':
+          valueA = new Date(a.created_at);
+          valueB = new Date(b.created_at);
+          break;
+        case 'updated_at':
+          valueA = new Date(a.updated_at);
+          valueB = new Date(b.updated_at);
+          break;
+        default:
+          return 0;
+      }
+      
+      if (sortDirection === 'asc') {
+        return valueA > valueB ? 1 : -1;
+      } else {
+        return valueA < valueB ? 1 : -1;
+      }
+    });
+  }, [forms, sortField, sortDirection]);
 
   // アニメーション定義
   const fadeInUp = keyframes`
@@ -563,7 +621,7 @@ export default function HomePage({ user, onCreateFormClick }) {
           {/* フォーム一覧テーブル */}
           {!loading && !error && (
             <>
-              {forms.length === 0 ? (
+              {sortedForms.length === 0 ? (
                 // 空の状態
                 <Box sx={{ 
                   textAlign: 'center',
@@ -645,18 +703,68 @@ export default function HomePage({ user, onCreateFormClick }) {
                       >
                         <TableCell>フォーム名</TableCell>
                         <TableCell align="center">ステータス</TableCell>
-                        <TableCell align="center">回答数</TableCell>
-                        <TableCell align="center">作成日</TableCell>
-                        <TableCell align="center">更新日</TableCell>
+                        <TableCell 
+                          align="center"
+                          sx={{ 
+                            cursor: 'pointer',
+                            '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.05)' },
+                            userSelect: 'none'
+                          }}
+                          onClick={() => handleSort('responses')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                            回答数
+                            {sortField === 'responses' && (
+                              sortDirection === 'desc' ? 
+                                <KeyboardArrowDown sx={{ fontSize: 16 }} /> : 
+                                <KeyboardArrowUp sx={{ fontSize: 16 }} />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell 
+                          align="center"
+                          sx={{ 
+                            cursor: 'pointer',
+                            '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.05)' },
+                            userSelect: 'none'
+                          }}
+                          onClick={() => handleSort('created_at')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                            作成日
+                            {sortField === 'created_at' && (
+                              sortDirection === 'desc' ? 
+                                <KeyboardArrowDown sx={{ fontSize: 16 }} /> : 
+                                <KeyboardArrowUp sx={{ fontSize: 16 }} />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell 
+                          align="center"
+                          sx={{ 
+                            cursor: 'pointer',
+                            '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.05)' },
+                            userSelect: 'none'
+                          }}
+                          onClick={() => handleSort('updated_at')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                            更新日
+                            {sortField === 'updated_at' && (
+                              sortDirection === 'desc' ? 
+                                <KeyboardArrowDown sx={{ fontSize: 16 }} /> : 
+                                <KeyboardArrowUp sx={{ fontSize: 16 }} />
+                            )}
+                          </Box>
+                        </TableCell>
                         <TableCell align="center">アクション</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {forms.map((form) => {
-                        const formattedForm = formatFormData(form);
+                      {sortedForms.map((formattedForm) => {
                         return (
                           <TableRow
-                            key={form.id}
+                            key={formattedForm.id}
                             sx={{
                               '&:hover': {
                                 backgroundColor: 'rgba(94, 23, 235, 0.02)',
@@ -782,35 +890,14 @@ export default function HomePage({ user, onCreateFormClick }) {
                                   display: 'flex', 
                                   gap: 0.5, 
                                   justifyContent: 'center',
-                                  alignItems: 'center',
                                   opacity: 0.7,
                                   transition: 'opacity 0.2s ease'
                                 }}
                               >
-                                {/* その他アイコンを左側に配置 */}
-                                <Tooltip title="その他">
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => handleMenuClick(e, form)}
-                                    sx={{
-                                      color: '#64748b',
-                                      '&:hover': {
-                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
-                                      }
-                                    }}
-                                  >
-                                    <MoreVert sx={{ fontSize: 18 }} />
-                                  </IconButton>
-                                </Tooltip>
-                                
-                                {/* スペーサー */}
-                                <Box sx={{ width: 16 }} />
-                                
-                                {/* 主要アクション */}
                                 <Tooltip title="編集">
                                   <IconButton
                                     size="small"
-                                    onClick={() => onCreateFormClick(form.id)}
+                                    onClick={() => onCreateFormClick(formattedForm.id)}
                                     sx={{
                                       color: formattedForm.themeColor,
                                       '&:hover': {
@@ -845,6 +932,20 @@ export default function HomePage({ user, onCreateFormClick }) {
                                     }}
                                   >
                                     <Analytics sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="その他">
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => handleMenuClick(e, formattedForm.originalForm)}
+                                    sx={{
+                                      color: '#64748b',
+                                      '&:hover': {
+                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                                      }
+                                    }}
+                                  >
+                                    <MoreVert sx={{ fontSize: 18 }} />
                                   </IconButton>
                                 </Tooltip>
                               </Box>
