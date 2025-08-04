@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import {
   Preview,
-  Save,
+  Rocket,
   MoreVert,
   Sync,
   ErrorOutline,
@@ -436,9 +436,9 @@ const HeaderBar = ({
           </IconButton>
         </Tooltip>
         
-        <Tooltip title="保存">
+        <Tooltip title="公開">
           <IconButton sx={iconButtonStyles.secondary}>
-            <Save />
+            <Rocket />
           </IconButton>
         </Tooltip>
         
