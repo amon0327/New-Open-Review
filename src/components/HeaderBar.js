@@ -604,17 +604,7 @@ const HeaderBar = ({
         <Tooltip title={isPublished ? "公開中" : "公開"}>
           <IconButton 
             onClick={handlePublishClick}
-            sx={{
-              ...iconButtonStyles.secondary,
-              ...(isPublished && {
-                backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                border: '1px solid rgba(34, 197, 94, 0.2)',
-                '&:hover': {
-                  backgroundColor: 'rgba(34, 197, 94, 0.15)',
-                  transform: 'translateY(-1px)',
-                }
-              })
-            }}
+            sx={iconButtonStyles.secondary}
           >
             <Rocket sx={{ color: isPublished ? '#22c55e' : 'inherit' }} />
           </IconButton>
