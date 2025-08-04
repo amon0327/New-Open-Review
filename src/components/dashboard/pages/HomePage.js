@@ -12,16 +12,21 @@ export default function HomePage({ user, onCreateFormClick }) {
 
   // マウスドラッグスクロール機能
   const handleMouseDown = (e) => {
+    // カードのクリックイベントを防止
+    e.preventDefault();
     setIsDragging(true);
     setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
     setScrollLeft(scrollContainerRef.current.scrollLeft);
     scrollContainerRef.current.style.cursor = 'grabbing';
+    // スクロール機能を無効化
+    scrollContainerRef.current.style.overflow = 'hidden';
   };
 
   const handleMouseLeave = () => {
     setIsDragging(false);
     if (scrollContainerRef.current) {
       scrollContainerRef.current.style.cursor = 'grab';
+      scrollContainerRef.current.style.overflow = 'auto';
     }
   };
 
@@ -29,6 +34,8 @@ export default function HomePage({ user, onCreateFormClick }) {
     setIsDragging(false);
     if (scrollContainerRef.current) {
       scrollContainerRef.current.style.cursor = 'grab';
+      // スクロール機能を再度無効化（ドラッグのみでスクロール）
+      scrollContainerRef.current.style.overflow = 'hidden';
     }
   };
 
@@ -303,7 +310,7 @@ export default function HomePage({ user, onCreateFormClick }) {
             sx={{
               display: 'flex',
               gap: 2,
-              overflowX: 'auto',
+              overflowX: 'hidden',
               overflowY: 'hidden',
               pb: 2,
               cursor: 'grab',
