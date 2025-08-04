@@ -618,7 +618,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                   component={Paper} 
                   sx={{ 
                     borderRadius: 1.5,
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                    boxShadow: 'none',
                     border: '1px solid rgba(0, 0, 0, 0.06)',
                     overflow: 'hidden'
                   }}
