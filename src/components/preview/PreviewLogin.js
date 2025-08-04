@@ -26,7 +26,9 @@ const PreviewLogin = ({
   loginDetailText,
   themeColor: propThemeColor,
   buttonText,
-  buttonUrl
+  buttonUrl,
+  // エラーハイライト
+  loginErrorHighlight
 }) => {
   const [loginData, setLoginData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -194,14 +196,14 @@ const PreviewLogin = ({
                 zIndex: 2,
                 transition: 'all 0.3s ease',
                 fontStyle: isTitleHint ? 'italic' : 'normal',
-                '&::after': selectedElement === 'login-title' ? {
+                '&::after': (selectedElement === 'login-title' || (loginErrorHighlight && loginErrorHighlight.fieldType === 'title')) ? {
                   content: '""',
                   position: 'absolute',
                   top: -8,
                   left: -16,
                   right: -16,
                   bottom: -8,
-                  backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                  backgroundColor: (loginErrorHighlight && loginErrorHighlight.fieldType === 'title') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
                   borderRadius: 2,
                   zIndex: -1,
                   pointerEvents: 'none'
@@ -234,14 +236,14 @@ const PreviewLogin = ({
                 zIndex: 2,
                 transition: 'all 0.3s ease',
                 fontStyle: isDetailHint ? 'italic' : 'normal',
-                '&::after': selectedElement === 'login-detail' ? {
+                '&::after': (selectedElement === 'login-detail' || (loginErrorHighlight && loginErrorHighlight.fieldType === 'detail')) ? {
                   content: '""',
                   position: 'absolute',
                   top: -8,
                   left: -16,
                   right: -16,
                   bottom: -8,
-                  backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                  backgroundColor: (loginErrorHighlight && loginErrorHighlight.fieldType === 'detail') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
                   borderRadius: 2,
                   zIndex: -1,
                   pointerEvents: 'none'

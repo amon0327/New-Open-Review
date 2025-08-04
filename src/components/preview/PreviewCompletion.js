@@ -26,7 +26,9 @@ const PreviewCompletion = ({
   buttonText,
   buttonUrl,
   // ロゴ画像
-  logoImage
+  logoImage,
+  // エラーハイライト
+  completionErrorHighlight
 }) => {
   const [completionData, setCompletionData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -221,14 +223,14 @@ const PreviewCompletion = ({
               zIndex: 2,
               transition: 'all 0.3s ease',
               fontStyle: isTitleHint ? 'italic' : 'normal',
-              '&::after': selectedElement === 'completion-title' ? {
+              '&::after': (selectedElement === 'completion-title' || (completionErrorHighlight && completionErrorHighlight.fieldType === 'title')) ? {
                 content: '""',
                 position: 'absolute',
                 top: -8,
                 left: -16,
                 right: -16,
                 bottom: -8,
-                backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                backgroundColor: (completionErrorHighlight && completionErrorHighlight.fieldType === 'title') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
                 borderRadius: 2,
                 zIndex: -1,
                 pointerEvents: 'none'
@@ -261,14 +263,14 @@ const PreviewCompletion = ({
               zIndex: 2,
               transition: 'all 0.3s ease',
               fontStyle: isDetailHint ? 'italic' : 'normal',
-              '&::after': selectedElement === 'completion-detail' ? {
+              '&::after': (selectedElement === 'completion-detail' || (completionErrorHighlight && completionErrorHighlight.fieldType === 'detail')) ? {
                 content: '""',
                 position: 'absolute',
                 top: -8,
                 left: -16,
                 right: -16,
                 bottom: -8,
-                backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                backgroundColor: (completionErrorHighlight && completionErrorHighlight.fieldType === 'detail') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
                 borderRadius: 2,
                 zIndex: -1,
                 pointerEvents: 'none'
