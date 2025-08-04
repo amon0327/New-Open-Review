@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import QRCode from 'react-qr-code';
 import toast from 'react-hot-toast';
@@ -37,15 +37,24 @@ const PublishSettings = ({
   const [errorCheckProgress, setErrorCheckProgress] = useState(0);
   const [errorCheckItems, setErrorCheckItems] = useState([]);
   const [isErrorChecking, setIsErrorChecking] = useState(false);
-
-  // フォーム検証の実行
-  const validationData = {
-    projectTitle,
-    ...formData
-  };
   
-  const { errors, warnings } = validateForm(validationData);
-  const errorCount = errors.length;
+  // 検証結果を状態として管理
+  const [validationResults, setValidationResults] = useState({ errors: [], warnings: [] });
+  const errorCount = validationResults.errors.length;
+
+  // フォームデータが変更されるたびに検証を実行
+  useEffect(() => {
+    const validationData = {
+      projectTitle,
+      ...formData
+    };
+    
+    console.log('📝 PublishSettings - フォーム検証実行:', validationData);
+    const results = validateForm(validationData);
+    console.log('📝 PublishSettings - 検証結果:', results);
+    
+    setValidationResults(results);
+  }, [projectTitle, formData]);
 
   const handlePublishClick = async () => {
     console.log('📝 PublishSettings - 公開ボタンがクリックされました');
@@ -441,8 +450,8 @@ const PublishSettings = ({
         open={showPublishDialog}
         onClose={handlePublishCancel}
         onPublish={handlePublishConfirm}
-        errors={errors}
-        warnings={warnings}
+        errors={validationResults.errors}
+        warnings={validationResults.warnings}
         isErrorChecking={isErrorChecking}
         errorCheckItems={errorCheckItems}
         errorCheckProgress={errorCheckProgress}

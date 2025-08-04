@@ -2142,7 +2142,11 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   setIsPublished={setIsPublished}
                   onPublishClick={handlePublishClick}
                   formId={formId}
-                  formData={formSettings}
+                  formData={{
+                    ...formSettings,
+                    questionsData,
+                    projectTitle
+                  }}
                   
                   // Supabase連携用のprops
                   onThemeColorUpdate={handleThemeColorUpdate}
