@@ -86,14 +86,15 @@ export const validateForm = (formData) => {
   });
 
   // 3. 質問が存在するかチェック（全体で最低1つ必要）
-  if (questions.length === 0) {
-    errors.push({
-      id: 'missing-questions',
-      message: 'レビューフォームに質問が設定されていません',
-      location: '質問設定',
-      action: 'openSettings'
-    });
-  }
+  // 注意: このエラーは表示しない（個別ページのエラーで十分）
+  // if (questions.length === 0) {
+  //   errors.push({
+  //     id: 'missing-questions',
+  //     message: 'レビューフォームに質問が設定されていません',
+  //     location: '質問設定',
+  //     action: 'openSettings'
+  //   });
+  // }
 
   // 4. 各質問の内容検証
   console.log(`Starting validation for ${questions.length} questions`);
