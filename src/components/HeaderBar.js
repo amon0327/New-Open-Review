@@ -274,26 +274,83 @@ const HeaderBar = ({
     }, 400);
   };
 
-  const handlePublishConfirm = () => {
+  const handlePublishConfirm = async () => {
     console.log('✅ 公開処理を実行します');
-    setShowPublishDialog(false);
     
-    // 公開処理を実装
-    toast.success('フォームを公開しました', {
-      duration: 3000,
-      position: 'bottom-center',
-      style: {
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(34, 197, 94, 0.2)',
-        borderRadius: '12px',
-        color: '#374151',
-        fontSize: '14px',
-        fontWeight: '500',
-        padding: '12px 20px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-      },
-    });
+    if (!formId) {
+      toast.error('フォームIDが見つかりません', {
+        duration: 3000,
+        position: 'bottom-center',
+      });
+      return;
+    }
+
+    try {
+      // Supabaseのis_publishedをtrueに更新
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Supabase設定が見つかりません');
+      }
+      
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      const { data, error } = await supabase
+        .from('review_forms')
+        .update({ 
+          is_published: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', formId)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('✅ フォーム公開完了:', data);
+      
+      setShowPublishDialog(false);
+      
+      // 成功トースト
+      toast.success('フォームを公開しました', {
+        duration: 3000,
+        position: 'bottom-center',
+        style: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(34, 197, 94, 0.2)',
+          borderRadius: '12px',
+          color: '#374151',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        },
+      });
+      
+    } catch (error) {
+      console.error('❌ 公開処理エラー:', error);
+      
+      // エラートースト
+      toast.error(`公開に失敗しました: ${error.message}`, {
+        duration: 4000,
+        position: 'bottom-center',
+        style: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+          borderRadius: '12px',
+          color: '#374151',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        },
+      });
+    }
   };
 
   const handlePublishCancel = () => {
