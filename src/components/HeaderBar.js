@@ -754,28 +754,28 @@ const HeaderBar = ({
                               boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
                             },
                             '20%': { 
-                              borderColor: 'rgba(0, 0, 0, 0.2)',
-                              background: 'rgba(248, 249, 250, 0.95)',
+                              borderColor: 'rgba(102, 126, 234, 0.4)',
+                              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
                               transform: 'scale(1.02)',
-                              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)'
+                              boxShadow: '0 8px 24px rgba(102, 126, 234, 0.2)'
                             },
                             '40%': { 
-                              borderColor: 'rgba(0, 0, 0, 0.35)',
-                              background: 'rgba(241, 245, 249, 0.95)',
+                              borderColor: 'rgba(102, 126, 234, 0.6)',
+                              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)',
                               transform: 'scale(1.04)',
-                              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.16)'
+                              boxShadow: '0 12px 32px rgba(102, 126, 234, 0.25)'
                             },
                             '60%': { 
-                              borderColor: 'rgba(0, 0, 0, 0.5)',
-                              background: 'rgba(226, 232, 240, 0.95)',
+                              borderColor: 'rgba(34, 197, 94, 0.6)',
+                              background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(22, 163, 74, 0.12) 100%)',
                               transform: 'scale(1.02)',
-                              boxShadow: '0 8px 28px rgba(0, 0, 0, 0.14)'
+                              boxShadow: '0 8px 28px rgba(34, 197, 94, 0.2)'
                             },
                             '80%': { 
-                              borderColor: 'rgba(0, 0, 0, 0.6)',
-                              background: 'rgba(203, 213, 225, 0.9)',
+                              borderColor: 'rgba(34, 197, 94, 0.8)',
+                              background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(22, 163, 74, 0.08) 100%)',
                               transform: 'scale(1)',
-                              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'
+                              boxShadow: '0 4px 16px rgba(34, 197, 94, 0.15)'
                             },
                             '100%': { 
                               borderColor: 'rgba(0, 0, 0, 0.08)',
@@ -806,7 +806,10 @@ const HeaderBar = ({
                             }
                           }}
                         >
-                          Container {index + 1}
+                          {index === 0 && 'フォーム設定'}
+                          {index === 1 && '質問チェック'}
+                          {index === 2 && 'ページ検証'}
+                          {index === 3 && '公開準備'}
                         </Typography>
 
                         {/* 進捗表示バー */}
@@ -826,15 +829,30 @@ const HeaderBar = ({
                             sx={{
                               height: '100%',
                               width: '0%',
-                              background: 'linear-gradient(90deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%)',
+                              background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.8) 50%, rgba(34, 197, 94, 0.6) 100%)',
                               borderRadius: 2,
                               animation: `progressFill 4s ease-in-out infinite ${index * 1}s`,
                               '@keyframes progressFill': {
-                                '0%': { width: '0%' },
-                                '20%': { width: '25%' },
-                                '40%': { width: '60%' },
-                                '60%': { width: '85%' },
-                                '80%': { width: '100%' },
+                                '0%': { 
+                                  width: '0%',
+                                  background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%)'
+                                },
+                                '20%': { 
+                                  width: '25%',
+                                  background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%)'
+                                },
+                                '40%': { 
+                                  width: '60%',
+                                  background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.7) 0%, rgba(118, 75, 162, 0.8) 100%)'
+                                },
+                                '60%': { 
+                                  width: '85%',
+                                  background: 'linear-gradient(90deg, rgba(118, 75, 162, 0.6) 0%, rgba(34, 197, 94, 0.7) 100%)'
+                                },
+                                '80%': { 
+                                  width: '100%',
+                                  background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.6) 0%, rgba(22, 163, 74, 0.6) 100%)'
+                                },
                                 '100%': { width: '0%' }
                               }
                             }}
@@ -865,22 +883,22 @@ const HeaderBar = ({
                                 boxShadow: 'none'
                               },
                               '20%': { 
-                                borderColor: 'rgba(0, 0, 0, 0.3)',
-                                background: 'rgba(248, 249, 250, 0.95)',
+                                borderColor: 'rgba(102, 126, 234, 0.5)',
+                                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
                                 transform: 'translateY(-50%) scale(1.1)',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.2)'
                               },
                               '60%': { 
-                                borderColor: 'rgba(0, 0, 0, 0.6)',
-                                background: 'rgba(226, 232, 240, 0.95)',
+                                borderColor: 'rgba(102, 126, 234, 0.8)',
+                                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)',
                                 transform: 'translateY(-50%) scale(1.2)',
-                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.25)'
                               },
                               '80%': { 
-                                borderColor: 'rgba(0, 0, 0, 0.7)',
-                                background: 'rgba(203, 213, 225, 0.9)',
+                                borderColor: 'rgba(34, 197, 94, 0.8)',
+                                background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.1) 100%)',
                                 transform: 'translateY(-50%) scale(1)',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                                boxShadow: '0 2px 8px rgba(34, 197, 94, 0.2)'
                               },
                               '85%, 100%': { 
                                 borderColor: 'rgba(0, 0, 0, 0.15)',
@@ -897,26 +915,31 @@ const HeaderBar = ({
                               width: 8,
                               height: 8,
                               border: '1.5px solid transparent',
-                              borderTop: '1.5px solid rgba(0, 0, 0, 0.4)',
+                              borderTop: '1.5px solid rgba(102, 126, 234, 0.8)',
+                              borderRight: '1.5px solid rgba(118, 75, 162, 0.6)',
                               borderRadius: '50%',
                               opacity: 0,
                               animation: `loadingSpin 4s ease-in-out infinite ${index * 1}s`,
                               '@keyframes loadingSpin': {
                                 '0%, 15%': { 
                                   opacity: 0,
-                                  transform: 'rotate(0deg)'
+                                  transform: 'rotate(0deg)',
+                                  borderTop: '1.5px solid rgba(102, 126, 234, 0.8)'
                                 },
                                 '20%': { 
                                   opacity: 1,
-                                  transform: 'rotate(90deg)'
+                                  transform: 'rotate(90deg)',
+                                  borderTop: '1.5px solid rgba(102, 126, 234, 0.8)'
                                 },
                                 '40%': { 
                                   opacity: 1,
-                                  transform: 'rotate(270deg)'
+                                  transform: 'rotate(270deg)',
+                                  borderTop: '1.5px solid rgba(118, 75, 162, 0.8)'
                                 },
                                 '60%': { 
                                   opacity: 1,
-                                  transform: 'rotate(450deg)'
+                                  transform: 'rotate(450deg)',
+                                  borderTop: '1.5px solid rgba(34, 197, 94, 0.8)'
                                 },
                                 '75%': { 
                                   opacity: 0,
@@ -950,7 +973,7 @@ const HeaderBar = ({
                                 top: 2.5,
                                 width: 3,
                                 height: 1.2,
-                                background: 'rgba(0, 0, 0, 0.7)',
+                                background: 'rgba(34, 197, 94, 0.9)',
                                 borderRadius: '0.6px',
                                 transform: 'rotate(45deg)',
                                 transformOrigin: 'left bottom'
@@ -962,7 +985,7 @@ const HeaderBar = ({
                                 top: 1,
                                 width: 5,
                                 height: 1.2,
-                                background: 'rgba(0, 0, 0, 0.7)',
+                                background: 'rgba(34, 197, 94, 0.9)',
                                 borderRadius: '0.6px',
                                 transform: 'rotate(-45deg)',
                                 transformOrigin: 'left bottom'
@@ -1059,65 +1082,42 @@ const HeaderBar = ({
               )}
             </Box>
 
-            {/* ボタンエリア */}
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 2,
-                justifyContent: 'center',
-                pt: 2
-              }}
-            >
-              <Button
-                onClick={handlePublishCancel}
-                variant="outlined"
+            {/* ボタンエリア - エラーチェック中は非表示 */}
+            {!isErrorChecking && (
+              <Box
                 sx={{
-                  minWidth: 120,
-                  height: 52,
-                  borderRadius: '26px',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  color: '#6b7280',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-                  '&:hover': {
-                    border: '2px solid rgba(255, 255, 255, 0.4)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
-                    transform: 'translateY(-1px)'
-                  }
+                  display: 'flex',
+                  gap: 2,
+                  justifyContent: 'center',
+                  pt: 2
                 }}
               >
-                {errorCount > 0 ? '閉じる' : 'キャンセル'}
-              </Button>
-              {errorCount === 0 && !isErrorChecking && (
-                <Button
-                  onClick={handlePublishConfirm}
-                  variant="contained"
-                  sx={{
-                    minWidth: 120,
-                    height: 52,
-                    borderRadius: '26px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
-                      boxShadow: '0 12px 32px rgba(102, 126, 234, 0.5)',
-                      transform: 'translateY(-2px)'
+                {errorCount === 0 && (
+                  <Button
+                    onClick={handlePublishConfirm}
+                    variant="contained"
+                    sx={{
+                      minWidth: 120,
+                      height: 52,
+                      borderRadius: '26px',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
+                        boxShadow: '0 12px 32px rgba(102, 126, 234, 0.5)',
+                        transform: 'translateY(-2px)'
                     }
                   }}
                 >
                   公開する
                 </Button>
               )}
-            </Box>
+              </Box>
+            )}
           </Box>
         </DialogContent>
       </Dialog>
