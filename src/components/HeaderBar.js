@@ -720,12 +720,7 @@ const HeaderBar = ({
                   {errorCount > 0 ? (
                     '⚠️'
                   ) : (
-                    <Rocket 
-                      sx={{ 
-                        fontSize: '2.8rem',
-                        color: '#667eea'
-                      }}
-                    />
+                    '🚀'
                   )}
                 </Box>
               )}
