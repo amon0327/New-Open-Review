@@ -593,11 +593,11 @@ const HeaderBar = ({
                 ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.08) 50%, rgba(185, 28, 28, 0.08) 100%)'
                 : 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
               color: '#374151',
-              mb: 4,
-              minHeight: 280, // 固定高さを設定
+              mb: 0,
+              minHeight: 360, // ボタンエリアも含めた固定高さを設定
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'center',
+              justifyContent: 'space-between',
               position: 'relative',
               '&::before': {
                 content: '""',
@@ -637,42 +637,68 @@ const HeaderBar = ({
                 }
               }}
             >
-              {errorCount > 0 ? '⚠️' : '🚀'}
-            </Box>
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                mb: 2,
-                fontSize: '1.8rem',
-                background: errorCount > 0
-                  ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
-                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                textShadow: 'none'
-              }}
-            >
-              {errorCount > 0 ? 'エラーの解決が必要です' : 'フォームを公開しますか？'}
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: '#6b7280',
-                fontSize: '1.1rem',
-                lineHeight: 1.6,
-                fontWeight: 500,
-                mb: errorCount > 0 ? 2 : (isErrorChecking ? 4 : 0)
-              }}
-            >
-              {errorCount > 0 
-                ? `${errorCount}件のエラーがあります。\nエラーを解決してから公開してください。`
-                : isErrorChecking
-                  ? 'フォームの設定を確認しています...'
-                  : 'エラーチェックが完了しました。\nフォームを公開して利用可能にします。'
-              }
-            </Typography>
+              {/* メインコンテンツエリア */}
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <Box
+                sx={{
+                  width: 88,
+                  height: 88,
+                  borderRadius: '50%',
+                  background: errorCount > 0
+                    ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 50%, rgba(185, 28, 28, 0.15) 100%)'
+                    : 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.15) 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 4,
+                  fontSize: '2.8rem',
+                  boxShadow: errorCount > 0
+                    ? '0 12px 32px rgba(239, 68, 68, 0.2)'
+                    : '0 12px 32px rgba(102, 126, 234, 0.2)',
+                  animation: 'pulse 2s ease-in-out infinite',
+                  '@keyframes pulse': {
+                    '0%, 100%': { transform: 'scale(1)' },
+                    '50%': { transform: 'scale(1.05)' }
+                  }
+                }}
+              >
+                {errorCount > 0 ? '⚠️' : '🚀'}
+              </Box>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 700,
+                  mb: 2,
+                  fontSize: '1.8rem',
+                  background: errorCount > 0
+                    ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
+                    : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  textShadow: 'none'
+                }}
+              >
+                {errorCount > 0 ? 'エラーの解決が必要です' : 'フォームを公開しますか？'}
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: '#6b7280',
+                  fontSize: '1.1rem',
+                  lineHeight: 1.6,
+                  fontWeight: 500,
+                  mb: errorCount > 0 ? 2 : (isErrorChecking ? 4 : 0)
+                }}
+              >
+                {errorCount > 0 
+                  ? `${errorCount}件のエラーがあります。\nエラーを解決してから公開してください。`
+                  : isErrorChecking
+                    ? 'フォームの設定を確認しています...'
+                    : 'エラーチェックが完了しました。\nフォームを公開して利用可能にします。'
+                }
+              </Typography>
             
             {/* エラーチェック中のモダンな抽象UI */}
             {isErrorChecking && (
@@ -778,46 +804,40 @@ const HeaderBar = ({
               </Box>
             )}
             
-            {/* エラーがある場合の追加メッセージ */}
-            {errorCount > 0 && (
-              <Box
-                sx={{
-                  mt: 3,
-                  p: 3,
-                  borderRadius: '12px',
-                  background: 'rgba(239, 68, 68, 0.05)',
-                  border: '1px solid rgba(239, 68, 68, 0.15)'
-                }}
-              >
-                <Typography
-                  variant="body2"
+              {/* エラーがある場合の追加メッセージ */}
+              {errorCount > 0 && (
+                <Box
                   sx={{
-                    color: '#ef4444',
-                    fontSize: '0.9rem',
-                    fontWeight: 600,
-                    textAlign: 'left'
+                    mt: 3,
+                    p: 3,
+                    borderRadius: '12px',
+                    background: 'rgba(239, 68, 68, 0.05)',
+                    border: '1px solid rgba(239, 68, 68, 0.15)'
                   }}
                 >
-                  💡 エラーを確認するには：<br />
-                  ヘッダーの赤いエラーカウンターをクリックしてください
-                </Typography>
-              </Box>
-            )}
-          </Box>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#ef4444',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
+                      textAlign: 'left'
+                    }}
+                  >
+                    💡 エラーを確認するには：<br />
+                    ヘッダーの赤いエラーカウンターをクリックしてください
+                  </Typography>
+                </Box>
+              )}
+            </Box>
 
-          <Box 
-            sx={{ 
-              px: 4, 
-              pb: 4,
-              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.02) 50%, rgba(255, 107, 107, 0.02) 100%)',
-              borderTop: '1px solid rgba(226, 232, 240, 0.3)'
-            }}
-          >
+            {/* ボタンエリア */}
             <Box
               sx={{
                 display: 'flex',
                 gap: 2,
-                justifyContent: 'center'
+                justifyContent: 'center',
+                pt: 2
               }}
             >
               <Button
@@ -827,15 +847,17 @@ const HeaderBar = ({
                   minWidth: 120,
                   height: 52,
                   borderRadius: '26px',
-                  border: '2px solid #e5e7eb',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
                   color: '#6b7280',
                   fontSize: '1rem',
                   fontWeight: 600,
                   textTransform: 'none',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  backdropFilter: 'blur(10px)',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
                   '&:hover': {
-                    border: '2px solid #d1d5db',
-                    backgroundColor: '#f9fafb',
+                    border: '2px solid rgba(255, 255, 255, 0.4)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
                     boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
                     transform: 'translateY(-1px)'
                   }
@@ -868,7 +890,6 @@ const HeaderBar = ({
                 </Button>
               )}
             </Box>
-          </Box>
         </DialogContent>
       </Dialog>
 
