@@ -308,7 +308,8 @@ export const validateForm = (formData) => {
       id: 'missing-completion-title',
       message: '完了画面のタイトルテキストが入力されていません',
       location: '完了画面設定',
-      action: 'openCompletionSettings'
+      action: 'openCompletionSettings',
+      fieldType: 'title'
     });
   }
 
@@ -317,7 +318,8 @@ export const validateForm = (formData) => {
       id: 'missing-completion-detail',
       message: '完了画面の詳細テキストが入力されていません',
       location: '完了画面設定',
-      action: 'openCompletionSettings'
+      action: 'openCompletionSettings',
+      fieldType: 'detail'
     });
   }
 
