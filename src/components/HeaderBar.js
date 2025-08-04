@@ -610,6 +610,26 @@ const HeaderBar = ({
           </IconButton>
         </Tooltip>
         
+        {/* テスト用リセットボタン */}
+        {isPublished && (
+          <Tooltip title="テスト: 未公開に戻す">
+            <IconButton 
+              onClick={() => setIsPublished(false)}
+              sx={{
+                ...iconButtonStyles.secondary,
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                '&:hover': {
+                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                  transform: 'translateY(-1px)',
+                }
+              }}
+            >
+              <Close sx={{ color: '#ef4444', fontSize: '1rem' }} />
+            </IconButton>
+          </Tooltip>
+        )}
+        
         {/* スペース確保用の空要素 */}
         <Box sx={{ width: 18 }} />
       </Box>
