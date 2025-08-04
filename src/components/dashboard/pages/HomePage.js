@@ -246,47 +246,9 @@ export default function HomePage({ user, onCreateFormClick }) {
           overflow: 'hidden'
         }}
       >
-        {/* シンプルなグラデーションテキスト */}
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            mb: 4,
-            textAlign: 'center'
-          }}
-        >
-          レビューフォームを作成
-        </Typography>
-
-        {/* シンプルなボタン */}
-        <Button
-          variant="contained"
-          size="large"
-          startIcon={<Add />}
-          onClick={onCreateFormClick}
-          sx={{
-            background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-            color: 'white',
-            fontWeight: 600,
-            py: 1.5,
-            px: 4,
-            borderRadius: 1,
-            textTransform: 'none',
-            mb: 6,
-            '&:hover': {
-              background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-            }
-          }}
-        >
-          新しいフォームを作成
-        </Button>
 
         {/* 記事一覧セクション */}
-        <Container maxWidth="lg" sx={{ mt: 1 }}>
+        <Container maxWidth="lg" sx={{ mt: 6 }}>
           {/* セクションタイトル */}
           <Typography
             variant="h6"
