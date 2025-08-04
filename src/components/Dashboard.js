@@ -333,7 +333,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         </AppBar>
 
         {/* Page Content */}
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ height: 'calc(100vh - 64px)', overflow: 'auto' }}>
           <AnimatePresence mode="wait">
             {renderContent()}
           </AnimatePresence>
