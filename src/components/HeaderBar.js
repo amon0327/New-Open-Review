@@ -755,33 +755,39 @@ const HeaderBar = ({
                             },
                             '20%': { 
                               borderColor: 'rgba(102, 126, 234, 0.4)',
-                              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
                               transform: 'scale(1.02)',
                               boxShadow: '0 8px 24px rgba(102, 126, 234, 0.2)'
                             },
                             '40%': { 
                               borderColor: 'rgba(102, 126, 234, 0.6)',
-                              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)',
+                              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.12) 50%, rgba(255, 107, 107, 0.1) 100%)',
                               transform: 'scale(1.04)',
                               boxShadow: '0 12px 32px rgba(102, 126, 234, 0.25)'
                             },
                             '60%': { 
-                              borderColor: 'rgba(34, 197, 94, 0.6)',
-                              background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(22, 163, 74, 0.12) 100%)',
+                              borderColor: 'rgba(118, 75, 162, 0.6)',
+                              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.12) 100%)',
                               transform: 'scale(1.02)',
-                              boxShadow: '0 8px 28px rgba(34, 197, 94, 0.2)'
+                              boxShadow: '0 8px 28px rgba(118, 75, 162, 0.2)'
                             },
                             '80%': { 
+                              borderColor: 'rgba(255, 107, 107, 0.6)',
+                              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.1) 50%, rgba(255, 107, 107, 0.12) 100%)',
+                              transform: 'scale(1)',
+                              boxShadow: '0 4px 16px rgba(255, 107, 107, 0.15)'
+                            },
+                            '90%': { 
                               borderColor: 'rgba(34, 197, 94, 0.8)',
                               background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(22, 163, 74, 0.08) 100%)',
                               transform: 'scale(1)',
                               boxShadow: '0 4px 16px rgba(34, 197, 94, 0.15)'
                             },
                             '100%': { 
-                              borderColor: 'rgba(0, 0, 0, 0.08)',
-                              background: 'rgba(255, 255, 255, 0.8)',
+                              borderColor: 'rgba(34, 197, 94, 0.8)',
+                              background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(22, 163, 74, 0.08) 100%)',
                               transform: 'scale(1)',
-                              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
+                              boxShadow: '0 4px 16px rgba(34, 197, 94, 0.15)'
                             }
                           }
                         }}
@@ -835,25 +841,32 @@ const HeaderBar = ({
                               '@keyframes progressFill': {
                                 '0%': { 
                                   width: '0%',
-                                  background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%)'
+                                  background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 50%, rgba(255, 107, 107, 0.3) 100%)'
                                 },
                                 '20%': { 
                                   width: '25%',
-                                  background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%)'
+                                  background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.5) 50%, rgba(255, 107, 107, 0.4) 100%)'
                                 },
                                 '40%': { 
                                   width: '60%',
-                                  background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.7) 0%, rgba(118, 75, 162, 0.8) 100%)'
+                                  background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.7) 0%, rgba(118, 75, 162, 0.8) 50%, rgba(255, 107, 107, 0.6) 100%)'
                                 },
                                 '60%': { 
                                   width: '85%',
-                                  background: 'linear-gradient(90deg, rgba(118, 75, 162, 0.6) 0%, rgba(34, 197, 94, 0.7) 100%)'
+                                  background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.7) 50%, rgba(255, 107, 107, 0.8) 100%)'
                                 },
                                 '80%': { 
                                   width: '100%',
+                                  background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.5) 0%, rgba(118, 75, 162, 0.6) 50%, rgba(255, 107, 107, 0.7) 100%)'
+                                },
+                                '90%': { 
+                                  width: '100%',
                                   background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.6) 0%, rgba(22, 163, 74, 0.6) 100%)'
                                 },
-                                '100%': { width: '0%' }
+                                '100%': { 
+                                  width: '100%',
+                                  background: 'linear-gradient(90deg, rgba(34, 197, 94, 0.6) 0%, rgba(22, 163, 74, 0.6) 100%)'
+                                }
                               }
                             }}
                           />
@@ -884,27 +897,27 @@ const HeaderBar = ({
                               },
                               '20%': { 
                                 borderColor: 'rgba(102, 126, 234, 0.5)',
-                                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.06) 100%)',
                                 transform: 'translateY(-50%) scale(1.1)',
                                 boxShadow: '0 2px 8px rgba(102, 126, 234, 0.2)'
                               },
                               '60%': { 
-                                borderColor: 'rgba(102, 126, 234, 0.8)',
-                                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%)',
+                                borderColor: 'rgba(118, 75, 162, 0.8)',
+                                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.1) 100%)',
                                 transform: 'translateY(-50%) scale(1.2)',
-                                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.25)'
+                                boxShadow: '0 4px 12px rgba(118, 75, 162, 0.25)'
                               },
                               '80%': { 
+                                borderColor: 'rgba(255, 107, 107, 0.8)',
+                                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.1) 50%, rgba(255, 107, 107, 0.12) 100%)',
+                                transform: 'translateY(-50%) scale(1)',
+                                boxShadow: '0 2px 8px rgba(255, 107, 107, 0.2)'
+                              },
+                              '90%, 100%': { 
                                 borderColor: 'rgba(34, 197, 94, 0.8)',
                                 background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.1) 100%)',
                                 transform: 'translateY(-50%) scale(1)',
                                 boxShadow: '0 2px 8px rgba(34, 197, 94, 0.2)'
-                              },
-                              '85%, 100%': { 
-                                borderColor: 'rgba(0, 0, 0, 0.15)',
-                                background: 'rgba(255, 255, 255, 0.9)',
-                                transform: 'translateY(-50%) scale(1)',
-                                boxShadow: 'none'
                               }
                             }
                           }}
@@ -939,13 +952,13 @@ const HeaderBar = ({
                                 '60%': { 
                                   opacity: 1,
                                   transform: 'rotate(450deg)',
-                                  borderTop: '1.5px solid rgba(34, 197, 94, 0.8)'
+                                  borderTop: '1.5px solid rgba(255, 107, 107, 0.8)'
                                 },
-                                '75%': { 
+                                '85%': { 
                                   opacity: 0,
                                   transform: 'rotate(540deg)'
                                 },
-                                '80%, 100%': { 
+                                '90%, 100%': { 
                                   opacity: 0,
                                   transform: 'rotate(540deg)'
                                 }
@@ -962,9 +975,8 @@ const HeaderBar = ({
                               opacity: 0,
                               animation: `checkComplete 4s ease-in-out infinite ${index * 1 + 0.6}s`,
                               '@keyframes checkComplete': {
-                                '0%, 60%': { opacity: 0 },
-                                '75%, 85%': { opacity: 1 },
-                                '90%, 100%': { opacity: 0 }
+                                '0%, 80%': { opacity: 0 },
+                                '90%, 100%': { opacity: 1 }
                               },
                               '&::before': {
                                 content: '""',
