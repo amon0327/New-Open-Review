@@ -723,11 +723,7 @@ const HeaderBar = ({
                     <Rocket 
                       sx={{ 
                         fontSize: '2.8rem',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        color: 'transparent'
+                        color: '#667eea'
                       }}
                     />
                   )}
