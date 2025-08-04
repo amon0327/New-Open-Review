@@ -192,7 +192,7 @@ export default function HomePage({ user, onCreateFormClick }) {
 
   // シンプルな記事カード用スタイル  
   const ArticleCard = styled(Card)(({ theme }) => ({
-    height: '320px',
+    minHeight: '320px',
     maxWidth: '280px',
     width: '100%',
     margin: '0 auto',
@@ -220,7 +220,7 @@ export default function HomePage({ user, onCreateFormClick }) {
 
   const ArticleImage = styled(CardMedia)({
     width: '100%',
-    height: '160px',
+    aspectRatio: '16 / 9',
     position: 'relative',
     overflow: 'hidden',
     display: 'block',
