@@ -1,39 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Box, Typography, Button, Card, CardContent, CardMedia, Chip } from '@mui/material';
+import { Box, Typography, Button, Card, CardContent, CardMedia, Chip, Grid, Container } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
 
 export default function HomePage({ user, onCreateFormClick }) {
-  const scrollRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
-    scrollRef.current.style.cursor = 'grabbing';
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    scrollRef.current.style.cursor = 'grab';
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-    scrollRef.current.style.cursor = 'grab';
-  };
 
   // アニメーション定義
   const fadeInUp = keyframes`
@@ -274,162 +245,134 @@ export default function HomePage({ user, onCreateFormClick }) {
         </Button>
 
         {/* 記事一覧セクション */}
-        <Box
-          sx={{
-            width: '100%'
-          }}
-        >
+        <Container maxWidth="lg" sx={{ mt: 6 }}>
           {/* セクションタイトル */}
-          <Box
+          <Typography
+            variant="h6"
             sx={{
-              mb: 3,
-              px: 2
+              fontWeight: 600,
+              color: '#1a202c',
+              textAlign: 'left',
+              mb: 3
             }}
           >
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 600,
-                color: '#1a202c',
-                textAlign: 'left'
-              }}
-            >
-              OpenReviewの記事一覧
-            </Typography>
-          </Box>
+            OpenReviewの記事一覧
+          </Typography>
 
-          {/* スライダーカード */}
-          <Box
-            ref={scrollRef}
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            sx={{
-              display: 'flex',
-              gap: 3,
-              overflowX: 'auto',
-              scrollbarWidth: 'none',
-              '&::-webkit-scrollbar': {
-                display: 'none'
-              },
-              pb: 2,
-              pl: 2,
-              pr: 0,
-              cursor: 'grab',
-              userSelect: 'none'
-            }}
-          >
+          {/* PC版グリッドレイアウト */}
+          <Grid container spacing={3} justifyContent="flex-start">
             {articles.map((article, index) => (
-              <ArticleCard
+              <Grid 
+                item 
+                xs={12}    // 1列（スマートフォン）
+                sm={6}     // 2列（タブレット）
+                md={4}     // 3列（PC - 960px以上）
+                lg={4}     // 3列（デスクトップ - 1280px以上）
+                xl={4}     // 3列（大画面 - 1920px以上）
                 key={article.id}
                 sx={{
-                  cursor: isDragging ? 'grabbing' : 'pointer',
-                  transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                  marginRight: index === articles.length - 1 ? 2 : 0,
-                  pointerEvents: isDragging ? 'none' : 'auto',
                   animation: `${fadeInUp} 0.3s ease-out ${index * 0.05}s both`,
-                  '&:hover': {
-                    transform: isDragging ? 'none' : 'translateY(-8px)',
-                    boxShadow: isDragging ? '0 4px 20px rgba(0, 0, 0, 0.08)' : '0 12px 40px rgba(0, 0, 0, 0.15)'
-                  }
+                  display: 'flex',
+                  justifyContent: 'flex-start'
                 }}
               >
-                <ArticleImage
-                  className="article-image"
-                  component="img"
-                  image={article.thumbnail_url}
-                  alt={article.title}
-                />
-                <CardContent sx={{ flexGrow: 1, p: 3, paddingTop: '0 !important' }}>
-                  <Box sx={{ 
-                    mb: 2, 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center' 
-                  }}>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <CategoryChip
-                        label={article.category_name}
-                        categorycolor={article.category_color}
-                        size="small"
-                      />
-                      <StatsChip 
-                        label={`${article.read_time_minutes}分で読了`}
-                        size="small"
-                      />
-                    </Box>
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        fontSize: '0.7rem',
-                        fontWeight: 500,
-                        color: 'text.secondary',
-                        letterSpacing: '0.025em',
-                      }}
-                    >
-                      {formatDate(article.published_at)}
-                    </Typography>
-                  </Box>
-                  
-                  <Typography 
-                    variant="h6" 
-                    component="h3" 
-                    sx={{ 
-                      fontWeight: 600,
-                      mb: 0.5,
-                      lineHeight: 1.3,
-                      height: '2.8rem',
-                      fontSize: '1.1rem',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}
-                  >
-                    {article.title}
-                  </Typography>
-                  
-                  <Box sx={{ 
-                    display: 'flex', 
-                    flexWrap: 'wrap', 
-                    gap: 0.8,
-                    mt: 1,
-                    height: '1.5rem',
-                    overflow: 'hidden'
-                  }}>
-                    {article.keywords.slice(0, 4).map((keyword, keywordIndex) => (
-                      <Typography
-                        key={keywordIndex}
-                        variant="caption"
-                        sx={{
-                          color: 'text.secondary',
-                          fontSize: '0.75rem',
+                <ArticleCard>
+                  <ArticleImage
+                    className="article-image"
+                    component="img"
+                    image={article.thumbnail_url}
+                    alt={article.title}
+                  />
+                  <CardContent sx={{ flexGrow: 1, p: 3, paddingTop: '0 !important' }}>
+                    <Box sx={{ 
+                      mb: 2, 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center' 
+                    }}>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <CategoryChip
+                          label={article.category_name}
+                          categorycolor={article.category_color}
+                          size="small"
+                        />
+                        <StatsChip 
+                          label={`${article.read_time_minutes}分で読了`}
+                          size="small"
+                        />
+                      </Box>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          fontSize: '0.7rem',
                           fontWeight: 500,
-                          opacity: 0.7,
-                          lineHeight: 1.5,
-                          whiteSpace: 'nowrap',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          '&:hover': {
-                            opacity: 1,
-                            color: 'primary.main',
-                          }
+                          color: 'text.secondary',
+                          letterSpacing: '0.025em',
                         }}
                       >
-                        #{keyword}
+                        {formatDate(article.published_at)}
                       </Typography>
-                    ))}
-                  </Box>
-                </CardContent>
-              </ArticleCard>
+                    </Box>
+                    
+                    <Typography 
+                      variant="h6" 
+                      component="h3" 
+                      sx={{ 
+                        fontWeight: 600,
+                        mb: 0.5,
+                        lineHeight: 1.3,
+                        height: '2.8rem',
+                        fontSize: '1.1rem',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {article.title}
+                    </Typography>
+                    
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: 0.8,
+                      mt: 1,
+                      height: '1.5rem',
+                      overflow: 'hidden'
+                    }}>
+                      {article.keywords.slice(0, 4).map((keyword, keywordIndex) => (
+                        <Typography
+                          key={keywordIndex}
+                          variant="caption"
+                          sx={{
+                            color: 'text.secondary',
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
+                            opacity: 0.7,
+                            lineHeight: 1.5,
+                            whiteSpace: 'nowrap',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 1,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            '&:hover': {
+                              opacity: 1,
+                              color: 'primary.main',
+                            }
+                          }}
+                        >
+                          #{keyword}
+                        </Typography>
+                      ))}
+                    </Box>
+                  </CardContent>
+                </ArticleCard>
+              </Grid>
             ))}
-          </Box>
-        </Box>
+          </Grid>
+        </Container>
       </Box>
     </motion.div>
   );
