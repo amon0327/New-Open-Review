@@ -789,6 +789,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                                 <Tooltip title="編集">
                                   <IconButton
                                     size="small"
+                                    onClick={() => onCreateFormClick(form.id)}
                                     sx={{
                                       color: formattedForm.themeColor,
                                       '&:hover': {

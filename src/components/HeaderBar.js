@@ -46,6 +46,9 @@ const HeaderBar = ({
   isSaving = false,
   // フォームID
   formId,
+  // 公開状態
+  isPublished,
+  setIsPublished,
   // 検証用のフォームデータ
   formData = {},
   // 設定メニューを開くコールバック関数
@@ -80,8 +83,6 @@ const HeaderBar = ({
   const [isErrorChecking, setIsErrorChecking] = useState(false);
   // 公開済みアラートの状態
   const [showPublishedAlert, setShowPublishedAlert] = useState(false);
-  // 公開状態（propsから受け取るか、独自に管理）
-  const [isPublished, setIsPublished] = useState(false);
   // エラー・警告ポップオーバーの状態
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
