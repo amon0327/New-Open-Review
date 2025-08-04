@@ -305,6 +305,12 @@ const QuestionSettingsMenu = ({
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   
+  // タブバードラッグ用の状態
+  const tabsRef = useRef(null);
+  const [isTabDragging, setIsTabDragging] = useState(false);
+  const [tabStartX, setTabStartX] = useState(0);
+  const [tabScrollLeft, setTabScrollLeft] = useState(0);
+  
   // アコーディオンの展開状態
   const [expandedAccordion, setExpandedAccordion] = useState(null);
   
@@ -910,14 +916,48 @@ const QuestionSettingsMenu = ({
 
   // タブ変更ハンドラー
   const handleTabChange = (event, newValue) => {
-    setSelectedTab(newValue);
-    
-    // 質問設定タブ（0）が選択され、質問が選択されていない場合は中心に近い質問を自動選択
-    if (newValue === 0 && !selectedQuestionId && questions && questions.length > 0) {
-      const centerQuestion = findCenterMostQuestion();
-      if (centerQuestion && onQuestionSelect) {
-        onQuestionSelect(centerQuestion.id);
+    if (!isTabDragging) {
+      setSelectedTab(newValue);
+      
+      // 質問設定タブ（0）が選択され、質問が選択されていない場合は中心に近い質問を自動選択
+      if (newValue === 0 && !selectedQuestionId && questions && questions.length > 0) {
+        const centerQuestion = findCenterMostQuestion();
+        if (centerQuestion && onQuestionSelect) {
+          onQuestionSelect(centerQuestion.id);
+        }
       }
+    }
+  };
+
+  // タブバードラッグ機能
+  const handleTabMouseDown = (e) => {
+    if (tabsRef.current) {
+      setIsTabDragging(true);
+      setTabStartX(e.pageX - tabsRef.current.offsetLeft);
+      setTabScrollLeft(tabsRef.current.scrollLeft);
+      tabsRef.current.style.cursor = 'grabbing';
+    }
+  };
+
+  const handleTabMouseUp = () => {
+    setIsTabDragging(false);
+    if (tabsRef.current) {
+      tabsRef.current.style.cursor = 'grab';
+    }
+  };
+
+  const handleTabMouseMove = (e) => {
+    if (!isTabDragging || !tabsRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - tabsRef.current.offsetLeft;
+    const walk = (x - tabStartX) * 2;
+    tabsRef.current.scrollLeft = tabScrollLeft - walk;
+  };
+
+  const handleTabMouseLeave = () => {
+    setIsTabDragging(false);
+    if (tabsRef.current) {
+      tabsRef.current.style.cursor = 'grab';
     }
   };
 
@@ -996,10 +1036,15 @@ const QuestionSettingsMenu = ({
         {/* タブバー */}
         <Box sx={{ borderBottom: '1px solid #E5E7EB', px: 2, pt: 2 }}>
           <Tabs
+            ref={tabsRef}
             value={selectedTab}
             onChange={handleTabChange}
             variant="scrollable"
             scrollButtons={false}
+            onMouseDown={handleTabMouseDown}
+            onMouseUp={handleTabMouseUp}
+            onMouseMove={handleTabMouseMove}
+            onMouseLeave={handleTabMouseLeave}
             sx={{
               '& .MuiTabs-root': {
                 minHeight: 48
@@ -1012,6 +1057,8 @@ const QuestionSettingsMenu = ({
                 color: '#6B7280',
                 minWidth: 80,
                 px: 1.5,
+                cursor: isTabDragging ? 'grabbing' : 'pointer',
+                pointerEvents: isTabDragging ? 'none' : 'auto',
                 '&.Mui-selected': {
                   color: '#5E17EB',
                   fontWeight: 600
@@ -1023,6 +1070,8 @@ const QuestionSettingsMenu = ({
               },
               '& .MuiTabs-scroller': {
                 overflow: 'auto !important',
+                cursor: 'grab',
+                userSelect: 'none',
                 '&::-webkit-scrollbar': {
                   display: 'none'
                 },
