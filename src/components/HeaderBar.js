@@ -61,6 +61,9 @@ const HeaderBar = ({
   // ログイン画面ナビゲーション用のコールバック関数
   onNavigateToLoginScreen,
   onShowLoginError,
+  // 完了画面ナビゲーション用のコールバック関数
+  onNavigateToCompletionScreen,
+  onShowCompletionError,
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
@@ -118,6 +121,15 @@ const HeaderBar = ({
       }
       if (onShowLoginError) {
         onShowLoginError(error.id, error.fieldType);
+      }
+    }
+    // 完了画面エラーの場合は特別処理
+    else if (error.action === 'openCompletionSettings') {
+      if (onNavigateToCompletionScreen) {
+        onNavigateToCompletionScreen(error.fieldType);
+      }
+      if (onShowCompletionError) {
+        onShowCompletionError(error.id, error.fieldType);
       }
     }
     // 質問エラーの場合は特別処理

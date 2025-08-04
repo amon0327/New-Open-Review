@@ -29,7 +29,7 @@ export default function HomePage({ user, onCreateFormClick }) {
       >
         {/* シンプルなグラデーションテキスト */}
         <Typography
-          variant="h3"
+          variant="h5"
           sx={{
             fontWeight: 700,
             background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
@@ -55,7 +55,7 @@ export default function HomePage({ user, onCreateFormClick }) {
             fontWeight: 600,
             py: 1.5,
             px: 4,
-            borderRadius: 2,
+            borderRadius: 1,
             textTransform: 'none',
             '&:hover': {
               background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
