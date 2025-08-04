@@ -241,7 +241,7 @@ export default function HomePage({ user, onCreateFormClick }) {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          pt: 8,
+          pt: 2,
           px: 0,
           overflow: 'hidden'
         }}
