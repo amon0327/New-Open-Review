@@ -186,7 +186,8 @@ export const validateForm = (formData) => {
               message: `質問${index + 1}の選択肢${choiceIndex + 1}が空です`,
               location: '質問設定',
               action: 'openSettings',
-              questionId: question.id
+              questionId: question.id,
+              choiceIndex: choiceIndex
             });
           }
         });

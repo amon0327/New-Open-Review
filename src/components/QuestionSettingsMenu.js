@@ -1139,7 +1139,7 @@ const QuestionSettingsMenu = ({
               minRows={1}
               maxRows={3}
               placeholder="質問を入力してください..."
-              hasError={currentQuestion && questionErrorHighlight === `missing-question-text-${currentQuestion.id}`}
+              hasError={currentQuestion && (questionErrorHighlight === `missing-question-text-${currentQuestion.id}` || questionErrorHighlight?.errorId === `missing-question-text-${currentQuestion.id}`)}
             />
 
             {/* 詳細テキスト */}
@@ -1228,12 +1228,23 @@ const QuestionSettingsMenu = ({
                             borderBottomColor: '#D1D5DB'
                           },
                           '& .MuiInput-underline:after': {
-                            borderBottomColor: '#5E17EB'
+                            borderBottomColor: currentQuestion && questionErrorHighlight?.choiceIndex === index && questionErrorHighlight?.errorId === `missing-choice-text-${currentQuestion.id}-${index}` ? '#ef4444' : '#5E17EB'
                           },
                           '& input': {
                             fontSize: '0.875rem',
-                            padding: '4px 0'
-                          }
+                            padding: '4px 0',
+                            ...(currentQuestion && questionErrorHighlight?.choiceIndex === index && questionErrorHighlight?.errorId === `missing-choice-text-${currentQuestion.id}-${index}` && {
+                              backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                              animation: 'errorPulse 2s ease-in-out'
+                            })
+                          },
+                          ...(currentQuestion && questionErrorHighlight?.choiceIndex === index && questionErrorHighlight?.errorId === `missing-choice-text-${currentQuestion.id}-${index}` && {
+                            '@keyframes errorPulse': {
+                              '0%': { '& .MuiInput-underline:after': { borderBottomColor: '#ef4444' } },
+                              '50%': { '& .MuiInput-underline:after': { borderBottomColor: '#dc2626' } },
+                              '100%': { '& .MuiInput-underline:after': { borderBottomColor: '#ef4444' } }
+                            }
+                          })
                         }}
                       />
                       <IconButton
