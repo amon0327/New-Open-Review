@@ -768,8 +768,7 @@ const HeaderBar = ({
                       }}
                     />
                   ))}
-                </Box>
-                
+                  
                   {/* モダンな進捗表示 */}
                   <Typography
                     sx={{
