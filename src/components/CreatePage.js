@@ -2141,6 +2141,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   isPublished={isPublished}
                   setIsPublished={setIsPublished}
                   onPublishClick={handlePublishClick}
+                  formId={formId}
+                  formData={formSettings}
                   
                   // Supabase連携用のprops
                   onThemeColorUpdate={handleThemeColorUpdate}

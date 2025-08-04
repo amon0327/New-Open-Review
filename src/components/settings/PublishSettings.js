@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import QRCode from 'react-qr-code';
 import toast from 'react-hot-toast';
@@ -19,19 +19,191 @@ import {
   ContentCopy,
   Download
 } from '@mui/icons-material';
+import PublishDialog from '../PublishDialog';
+import { validateForm } from '../../utils/validation';
 
 const PublishSettings = ({
   isPublished,
   setIsPublished,
   projectTitle,
+  formId, // フォームID
+  formData = {}, // フォームデータ (検証用)
   onPublishClick // HeaderBarの公開処理を呼び出すためのコールバック関数
 }) => {
   const formUrl = `https://forms.openreview.app/${projectTitle.toLowerCase().replace(/\s+/g, '-')}`;
+  
+  // 公開ダイアログの状態
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [errorCheckProgress, setErrorCheckProgress] = useState(0);
+  const [errorCheckItems, setErrorCheckItems] = useState([]);
+  const [isErrorChecking, setIsErrorChecking] = useState(false);
 
-  const handlePublishClick = () => {
-    if (onPublishClick) {
-      onPublishClick(); // HeaderBarの公開処理を呼び出し
+  // フォーム検証の実行
+  const validationData = {
+    projectTitle,
+    ...formData
+  };
+  
+  const { errors, warnings } = validateForm(validationData);
+  const errorCount = errors.length;
+
+  const handlePublishClick = async () => {
+    console.log('📝 PublishSettings - 公開ボタンがクリックされました');
+    
+    // すでに公開済みの場合は何もしない
+    if (isPublished) {
+      return;
     }
+    
+    // エラーがある場合は公開を阻止し、エラー解決を促すメッセージを表示
+    if (errorCount > 0) {
+      toast.error('エラーを解決してから公開が可能です', {
+        duration: 4000,
+        position: 'bottom-center',
+        style: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+          borderRadius: '12px',
+          color: '#374151',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        },
+        iconTheme: {
+          primary: '#ef4444',
+          secondary: '#ffffff',
+        },
+      });
+      return;
+    }
+    
+    // エラーがない場合は最終チェックを実行後、直接公開確認ダイアログを表示
+    console.log('✅ PublishSettings - エラーがないため最終チェックを実行します');
+    
+    // エラーチェック項目を定義
+    const checkItems = [
+      { id: 1, name: 'プロジェクトタイトル', status: 'pending' },
+      { id: 2, name: '質問設定', status: 'pending' },
+      { id: 3, name: 'ページ設定', status: 'pending' },
+      { id: 4, name: 'ログイン画面', status: 'pending' },
+      { id: 5, name: '完了画面', status: 'pending' },
+      { id: 6, name: '全体設定', status: 'pending' }
+    ];
+    
+    setErrorCheckItems(checkItems);
+    setErrorCheckProgress(0);
+    setIsErrorChecking(true);
+    setShowPublishDialog(true); // 直接公開ダイアログを表示
+    
+    // エラーチェック処理をシミュレート
+    let currentProgress = 0;
+    const checkInterval = setInterval(() => {
+      currentProgress += 1;
+      setErrorCheckProgress(currentProgress);
+      
+      // 各項目を順次チェック完了にする
+      setErrorCheckItems(prev => 
+        prev.map(item => 
+          item.id <= currentProgress 
+            ? { ...item, status: 'completed' }
+            : item
+        )
+      );
+      
+      if (currentProgress >= checkItems.length) {
+        clearInterval(checkInterval);
+        setIsErrorChecking(false);
+      }
+    }, 400);
+  };
+
+  const handlePublishConfirm = async () => {
+    console.log('✅ PublishSettings - 公開処理を実行します');
+    
+    if (!formId) {
+      toast.error('フォームIDが見つかりません', {
+        duration: 3000,
+        position: 'bottom-center',
+      });
+      return;
+    }
+
+    try {
+      // Supabaseのis_publishedをtrueに更新
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Supabase設定が見つかりません');
+      }
+      
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      const { data, error } = await supabase
+        .from('review_forms')
+        .update({ 
+          is_published: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', formId)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('✅ PublishSettings - フォーム公開完了:', data);
+      
+      setShowPublishDialog(false);
+      setIsPublished(true); // 公開状態を更新
+      
+      // 成功トースト
+      toast.success('フォームが公開されました！', {
+        duration: 3000,
+        position: 'bottom-center',
+        style: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(34, 197, 94, 0.2)',
+          borderRadius: '12px',
+          color: '#374151',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        },
+      });
+      
+    } catch (error) {
+      console.error('❌ PublishSettings - 公開処理エラー:', error);
+      
+      // エラートースト
+      toast.error(`公開に失敗しました: ${error.message}`, {
+        duration: 4000,
+        position: 'bottom-center',
+        style: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+          borderRadius: '12px',
+          color: '#374151',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        },
+      });
+    }
+  };
+
+  const handlePublishCancel = () => {
+    setShowPublishDialog(false);
+    setIsErrorChecking(false);
+    setErrorCheckProgress(0);
+    setErrorCheckItems([]);
   };
 
   const copyUrl = () => {
@@ -263,6 +435,18 @@ const PublishSettings = ({
           )}
         </Stack>
       </Card>
+
+      {/* 公開確認・エラー通知共通ダイアログ */}
+      <PublishDialog
+        open={showPublishDialog}
+        onClose={handlePublishCancel}
+        onPublish={handlePublishConfirm}
+        errors={errors}
+        warnings={warnings}
+        isErrorChecking={isErrorChecking}
+        errorCheckItems={errorCheckItems}
+        errorCheckProgress={errorCheckProgress}
+      />
     </motion.div>
   );
 };
