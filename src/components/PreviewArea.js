@@ -43,7 +43,10 @@ const PreviewArea = ({
   completionTitle,
   completionDetail,
   completionBackground,
-  pageErrorHighlight
+  pageErrorHighlight,
+  // エラーハイライト関連
+  loginErrorHighlight,
+  completionErrorHighlight
 }) => {
   const dropRef = useRef(null);
   const [dropIndicator, setDropIndicator] = useState(null);
@@ -112,6 +115,7 @@ const PreviewArea = ({
             loginScreenSettings={loginScreenSettings}
             headerImage={headerImage}
             logoImage={logoImage}
+            loginErrorHighlight={loginErrorHighlight}
           />
         );
       case 'completion':
@@ -128,6 +132,7 @@ const PreviewArea = ({
             formSettings={formSettings}
             headerImage={headerImage}
             logoImage={logoImage}
+            completionErrorHighlight={completionErrorHighlight}
           />
         );
       default:

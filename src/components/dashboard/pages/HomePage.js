@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Box, Typography, Button } from '@mui/material';
-import { Add } from '@mui/icons-material';
+import { Box, Typography, Button, Card, CardContent, IconButton } from '@mui/material';
+import { Add, ChevronLeft, ChevronRight } from '@mui/icons-material';
 
 export default function HomePage({ user, onCreateFormClick }) {
   return (

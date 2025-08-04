@@ -166,7 +166,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
     logoPreview, setLogoPreview,
     pageErrorHighlight, setPageErrorHighlight,
     questionErrorHighlight, setQuestionErrorHighlight,
-    loginErrorHighlight, setLoginErrorHighlight
+    loginErrorHighlight, setLoginErrorHighlight,
+    completionErrorHighlight, setCompletionErrorHighlight
   } = useCreatePageState();
 
   // 質問データ管理フック
@@ -1801,6 +1802,18 @@ export default function CreatePage({ onBackClick, user, formId }) {
             setLoginErrorHighlight({ errorId, fieldType });
             setTimeout(() => setLoginErrorHighlight(null), 3000);
           }}
+          onNavigateToCompletionScreen={(fieldType) => {
+            // 完了画面に遷移
+            const completionPage = pages.find(p => p.id === 'completion');
+            if (completionPage) {
+              setSelectedPage(completionPage);
+            }
+          }}
+          onShowCompletionError={(errorId, fieldType) => {
+            // 完了画面エラーをハイライト
+            setCompletionErrorHighlight({ errorId, fieldType });
+            setTimeout(() => setCompletionErrorHighlight(null), 3000);
+          }}
         />
 
         {/* メインコンテンツエリア */}
@@ -2344,6 +2357,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     setCompletionBackground={setCompletionBackground}
                     questionErrorHighlight={questionErrorHighlight}
                     loginErrorHighlight={loginErrorHighlight}
+                    completionErrorHighlight={completionErrorHighlight}
                   />
                 </Paper>
               </motion.div>

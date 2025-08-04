@@ -45,6 +45,7 @@ export const useCreatePageState = () => {
   const [pageErrorHighlight, setPageErrorHighlight] = useState(null); // ページエラーハイライト
   const [questionErrorHighlight, setQuestionErrorHighlight] = useState(null); // 質問エラーハイライト
   const [loginErrorHighlight, setLoginErrorHighlight] = useState(null); // ログインエラーハイライト
+  const [completionErrorHighlight, setCompletionErrorHighlight] = useState(null); // 完了画面エラーハイライト
 
   return {
     // ツール・プレビュー関連
@@ -107,6 +108,8 @@ export const useCreatePageState = () => {
     questionErrorHighlight,
     setQuestionErrorHighlight,
     loginErrorHighlight,
-    setLoginErrorHighlight
+    setLoginErrorHighlight,
+    completionErrorHighlight,
+    setCompletionErrorHighlight
   };
 };
