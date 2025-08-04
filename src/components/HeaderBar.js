@@ -650,148 +650,171 @@ const HeaderBar = ({
                   {errorCount > 0 ? '⚠️' : '🚀'}
                 </Box>
               )}
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  mb: 2,
-                  fontSize: '1.8rem',
-                  background: errorCount > 0
-                    ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
-                    : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  textShadow: 'none'
-                }}
-              >
-                {errorCount > 0 ? 'エラーの解決が必要です' : 'フォームを公開しますか？'}
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: '#6b7280',
-                  fontSize: '1.1rem',
-                  lineHeight: 1.6,
-                  fontWeight: 500,
-                  mb: errorCount > 0 ? 2 : (isErrorChecking ? 4 : 0)
-                }}
-              >
-                {errorCount > 0 
-                  ? `${errorCount}件のエラーがあります。\nエラーを解決してから公開してください。`
-                  : isErrorChecking
-                    ? 'フォームの設定を確認しています...'
-                    : 'エラーチェックが完了しました。\nフォームを公開して利用可能にします。'
-                }
-              </Typography>
+              {/* エラーチェック中以外の時のみタイトルと説明を表示 */}
+              {!isErrorChecking && (
+                <>
+                  <Typography
+                    variant="h4"
+                    sx={{
+                      fontWeight: 700,
+                      mb: 2,
+                      fontSize: '1.8rem',
+                      background: errorCount > 0
+                        ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
+                        : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      textShadow: 'none'
+                    }}
+                  >
+                    {errorCount > 0 ? 'エラーの解決が必要です' : 'フォームを公開しますか？'}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: '#6b7280',
+                      fontSize: '1.1rem',
+                      lineHeight: 1.6,
+                      fontWeight: 500,
+                      mb: errorCount > 0 ? 2 : 0
+                    }}
+                  >
+                    {errorCount > 0 
+                      ? `${errorCount}件のエラーがあります。\nエラーを解決してから公開してください。`
+                      : 'エラーチェックが完了しました。\nフォームを公開して利用可能にします。'
+                    }
+                  </Typography>
+                </>
+              )}
             
               {/* エラーチェック中のモダンな抽象UI */}
               {isErrorChecking && (
                 <Box
                   sx={{
-                    width: 88,
-                    height: 88,
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
+                    width: '100%',
+                    maxWidth: 320,
+                    height: 120,
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    margin: '0 auto 32px auto',
-                    boxShadow: '0 12px 32px rgba(102, 126, 234, 0.15)',
+                    margin: '0 auto',
                     position: 'relative'
                   }}
                 >
-                  {/* 回転する幾何学形状 */}
+                  {/* メインチェックインジケーター */}
                   <Box
                     sx={{
-                      width: 40,
-                      height: 40,
-                      position: 'relative',
-                      animation: 'spin 2s linear infinite',
-                      '@keyframes spin': {
-                        '0%': { transform: 'rotate(0deg)' },
-                        '100%': { transform: 'rotate(360deg)' }
-                      }
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 1,
+                      mb: 3
                     }}
                   >
-                    {/* 外側のリング */}
+                    {/* 順次点灯するチェックポイント */}
+                    {Array.from({ length: 6 }, (_, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          opacity: 0.2,
+                          animation: `checkSequence 3s ease-in-out infinite ${index * 0.5}s`,
+                          '@keyframes checkSequence': {
+                            '0%': { 
+                              opacity: 0.2, 
+                              transform: 'scale(1)',
+                              background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)'
+                            },
+                            '20%': { 
+                              opacity: 1, 
+                              transform: 'scale(1.4)',
+                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                            },
+                            '40%': { 
+                              opacity: 0.8, 
+                              transform: 'scale(1.1)',
+                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                            },
+                            '100%': { 
+                              opacity: 0.6, 
+                              transform: 'scale(1)',
+                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                            }
+                          }
+                        }}
+                      />
+                    ))}
+                  </Box>
+
+                  {/* 流れるような進捗バー */}
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 2,
+                      background: 'rgba(226, 232, 240, 0.3)',
+                      borderRadius: '1px',
+                      overflow: 'hidden',
+                      position: 'relative'
+                    }}
+                  >
                     <Box
                       sx={{
                         position: 'absolute',
-                        width: '100%',
+                        top: 0,
+                        left: 0,
                         height: '100%',
-                        border: '2px solid transparent',
-                        borderTop: '2px solid',
-                        borderImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1',
-                        borderRadius: '50%',
-                        animation: 'spinReverse 1.5s linear infinite',
-                        '@keyframes spinReverse': {
-                          '0%': { transform: 'rotate(0deg)' },
-                          '100%': { transform: 'rotate(-360deg)' }
-                        }
-                      }}
-                    />
-                    {/* 内側の点 */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: 6,
-                        height: 6,
-                        borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        animation: 'pulse 1s ease-in-out infinite',
-                        '@keyframes pulse': {
-                          '0%, 100%': { opacity: 0.4, transform: 'translate(-50%, -50%) scale(0.8)' },
-                          '50%': { opacity: 1, transform: 'translate(-50%, -50%) scale(1.2)' }
+                        width: '30%',
+                        background: 'linear-gradient(90deg, transparent 0%, rgba(102, 126, 234, 0.8) 50%, transparent 100%)',
+                        animation: 'flowProgress 2s ease-in-out infinite',
+                        '@keyframes flowProgress': {
+                          '0%': { 
+                            left: '-30%',
+                            opacity: 0
+                          },
+                          '50%': { 
+                            left: '50%',
+                            opacity: 1
+                          },
+                          '100%': { 
+                            left: '130%',
+                            opacity: 0
+                          }
                         }
                       }}
                     />
                   </Box>
-                  
-                  {/* 周りの装飾点 */}
-                  {[0, 1, 2, 3].map((index) => (
+
+                  {/* 浮遊する抽象的な要素 */}
+                  {[0, 1, 2, 3, 4].map((index) => (
                     <Box
                       key={index}
                       sx={{
                         position: 'absolute',
-                        width: 3,
-                        height: 3,
+                        width: 4,
+                        height: 4,
                         borderRadius: '50%',
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        opacity: 0.6,
-                        transform: `rotate(${index * 90}deg) translateY(-30px)`,
-                        transformOrigin: '0 30px',
-                        animation: `orbit 3s linear infinite ${index * 0.75}s`,
-                        '@keyframes orbit': {
-                          '0%': { opacity: 0.3 },
-                          '50%': { opacity: 1 },
-                          '100%': { opacity: 0.3 }
+                        opacity: 0.4,
+                        left: `${20 + index * 15}%`,
+                        animation: `float 4s ease-in-out infinite ${index * 0.8}s`,
+                        '@keyframes float': {
+                          '0%, 100%': { 
+                            transform: 'translateY(0px)',
+                            opacity: 0.2
+                          },
+                          '50%': { 
+                            transform: 'translateY(-20px)',
+                            opacity: 0.8
+                          }
                         }
                       }}
                     />
                   ))}
-                  
-                  {/* モダンな進捗表示 */}
-                  <Typography
-                    sx={{
-                      textAlign: 'center',
-                      color: '#64748b',
-                      fontSize: '0.9rem',
-                      fontWeight: 500,
-                      opacity: 0.9,
-                      letterSpacing: '0.5px',
-                      position: 'absolute',
-                      bottom: -35,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    検証中
-                  </Typography>
                 </Box>
               )}
             
