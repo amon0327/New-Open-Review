@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import EmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
@@ -55,18 +55,26 @@ export default function HomePage({ user, onCreateFormClick }) {
   const [articlesLoading, setArticlesLoading] = useState(true);
   const [articlesError, setArticlesError] = useState(null);
   
+  // カルーセルのオプションを安定化
+  const carouselOptions = useMemo(() => ({
+    loop: true,
+    dragFree: false,
+    containScroll: false,
+    align: 'center',
+    slidesToScroll: 1,
+    skipSnaps: false
+  }), []);
+
+  const carouselPlugins = useMemo(() => [
+    Autoplay({ delay: 5000, stopOnInteraction: false })
+  ], []);
+
   // カルーセル用の状態
-  const [emblaRef, emblaApi] = EmblaCarousel(
-    { 
-      loop: true,
-      dragFree: false,
-      containScroll: false,
-      align: 'center',
-      slidesToScroll: 1,
-      skipSnaps: false
-    },
-    [Autoplay({ delay: 5000, stopOnInteraction: false })]
-  );
+  const [emblaRef, emblaApi] = EmblaCarousel(carouselOptions, carouselPlugins);
+
+  // カルーセルAPIの状態を追跡
+  const [prevButtonDisabled, setPrevButtonDisabled] = useState(true);
+  const [nextButtonDisabled, setNextButtonDisabled] = useState(true);
 
 
   // フォーム一覧を取得
@@ -114,6 +122,26 @@ export default function HomePage({ user, onCreateFormClick }) {
 
     fetchArticles();
   }, []);
+
+  // カルーセルボタンの状態を更新する関数
+  const onSelect = useCallback((emblaApi) => {
+    setPrevButtonDisabled(!emblaApi.canScrollPrev());
+    setNextButtonDisabled(!emblaApi.canScrollNext());
+  }, []);
+
+  // カルーセルAPIが初期化されたときのイベントリスナー設定
+  useEffect(() => {
+    if (!emblaApi) return;
+
+    onSelect(emblaApi);
+    emblaApi.on('reInit', onSelect);
+    emblaApi.on('select', onSelect);
+
+    return () => {
+      emblaApi.off('reInit', onSelect);
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi, onSelect]);
 
   // カルーセルナビゲーション関数
   const scrollToPrev = useCallback(() => {
@@ -405,7 +433,7 @@ export default function HomePage({ user, onCreateFormClick }) {
           )}
 
           {/* 記事カルーセル */}
-          {!articlesLoading && !articlesError && articles.length > 0 && (
+          {!articlesLoading && !articlesError && articles && articles.length > 0 && (
             <CarouselContainer>
               <div className="embla" ref={emblaRef}>
                 <div className="embla__container">
@@ -490,7 +518,7 @@ export default function HomePage({ user, onCreateFormClick }) {
           )}
 
           {/* 記事が0件の場合 */}
-          {!articlesLoading && !articlesError && articles.length === 0 && (
+          {!articlesLoading && !articlesError && (!articles || articles.length === 0) && (
             <Box sx={{ 
               textAlign: 'center', 
               py: 8,
