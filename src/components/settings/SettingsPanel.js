@@ -25,6 +25,7 @@ const SettingsPanel = ({
   // 公開設定のprops
   isPublished,
   setIsPublished,
+  onPublishClick, // HeaderBarの公開処理を呼び出すためのコールバック関数
   
   // Supabase連携用のprops
   onThemeColorUpdate,
@@ -93,6 +94,7 @@ const SettingsPanel = ({
               isPublished={isPublished}
               setIsPublished={setIsPublished}
               projectTitle={projectTitle}
+              onPublishClick={onPublishClick}
             />
           )}
 

@@ -6,7 +6,6 @@ import {
   Box,
   Card,
   Typography,
-  Switch,
   TextField,
   Button,
   Stack,
@@ -24,9 +23,16 @@ import {
 const PublishSettings = ({
   isPublished,
   setIsPublished,
-  projectTitle
+  projectTitle,
+  onPublishClick // HeaderBarの公開処理を呼び出すためのコールバック関数
 }) => {
   const formUrl = `https://forms.openreview.app/${projectTitle.toLowerCase().replace(/\s+/g, '-')}`;
+
+  const handlePublishClick = () => {
+    if (onPublishClick) {
+      onPublishClick(); // HeaderBarの公開処理を呼び出し
+    }
+  };
 
   const copyUrl = () => {
     navigator.clipboard.writeText(formUrl);
@@ -103,60 +109,70 @@ const PublishSettings = ({
         </Box>
 
         <Stack spacing={3}>
-          {/* 公開スイッチ */}
+          {/* 公開ボタン */}
           <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
-                  フォームを公開する
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.875rem' }}>
-                  オンにするとフォームが一般公開されます
-                </Typography>
-              </Box>
-              <Switch
-                checked={isPublished}
-                onChange={(e) => setIsPublished(e.target.checked)}
-                sx={{
-                  '& .MuiSwitch-switchBase.Mui-checked': {
-                    color: '#10b981'
-                  },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                    backgroundColor: '#10b981'
-                  },
-                  '& .MuiSwitch-track': {
-                    backgroundColor: '#e5e7eb'
-                  }
-                }}
-              />
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
+                フォームを公開する
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.875rem' }}>
+                ボタンを押すとフォームが一般公開されます
+              </Typography>
             </Box>
-          </Box>
-
-          {isPublished && (
-            <>
-              <Divider />
-
-              {/* 公開状態表示 */}
+            
+            {isPublished ? (
+              // 公開済みの場合は状態表示
               <Box
                 sx={{
                   p: 2.5,
                   borderRadius: 2,
                   backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                  border: '1px solid rgba(16, 185, 129, 0.2)'
+                  border: '1px solid rgba(16, 185, 129, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <CheckCircle sx={{ color: '#10b981', fontSize: '1.25rem' }} />
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#065f46' }}>
-                      公開中
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: '#047857', fontSize: '0.875rem' }}>
-                      フォームにアクセス可能です
-                    </Typography>
-                  </Box>
+                <CheckCircle sx={{ color: '#10b981', fontSize: '1.25rem' }} />
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#065f46' }}>
+                    公開済み
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#047857', fontSize: '0.875rem' }}>
+                    フォームにアクセス可能です
+                  </Typography>
                 </Box>
               </Box>
+            ) : (
+              // 未公開の場合は公開ボタン
+              <Button
+                variant="contained"
+                onClick={handlePublishClick}
+                sx={{
+                  height: 48,
+                  borderRadius: 2,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
+                    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.4)',
+                    transform: 'translateY(-1px)'
+                  },
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                フォームを公開する
+              </Button>
+            )}
+          </Box>
+
+          {isPublished && (
+            <>
+              <Divider />
 
               {/* 公開URL */}
               <Box>

@@ -1268,6 +1268,43 @@ export class FormDataService {
       };
     }
   }
+
+  /**
+   * フォームの公開状態を更新
+   * @param {string} formId - フォームのID
+   * @param {boolean} isPublished - 公開状態 (true: 公開, false: 非公開)
+   * @returns {Promise<Object>} 更新結果
+   */
+  static async updateFormPublishStatus(formId, isPublished) {
+    try {
+      const { data, error } = await supabase
+        .from('review_forms')
+        .update({ 
+          is_published: isPublished,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', formId)
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      return {
+        success: true,
+        data: data,
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Form publish status update error:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
 }
 
 export default FormDataService;

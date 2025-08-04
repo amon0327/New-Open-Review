@@ -1659,6 +1659,122 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
+  // 公開処理ハンドラー（HeaderBarの公開処理と同じロジックを呼び出し）
+  const handlePublishClick = () => {
+    // HeaderBarのhandlePublishClickと同じ処理を呼び出す
+    // この関数はHeaderBarの公開ダイアログを表示するためのもの
+    console.log('🚀 SettingsPanel: 公開ボタンがクリックされました');
+    
+    // 現在は公開ダイアログを直接表示する機能がないため、
+    // エラーがある場合はトースト、ない場合は直接公開を試行
+    
+    // フォーム検証を実行（HeaderBarと同じ方法）
+    const { validateForm } = require('../utils/validation');
+    const validationData = {
+      projectTitle,
+      questions: allQuestions,
+      pages,
+      formSettings,
+      loginScreenSettings,
+      completionScreenSettings,
+      loginTitle,
+      loginDetail,
+      completionTitle,
+      completionDetail
+    };
+    const { errors } = validateForm(validationData);
+    
+    if (errors.length > 0) {
+      // エラーがある場合はトーストで通知
+      toast.error('エラーを解決してから公開が可能です', {
+        duration: 4000,
+        position: 'bottom-center',
+        style: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+          borderRadius: '12px',
+          color: '#374151',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        },
+        iconTheme: {
+          primary: '#ef4444',
+          secondary: '#ffffff',
+        },
+      });
+      return;
+    }
+    
+    // エラーがない場合は公開確認を表示（未実装のため一旦確認なしで公開）
+    handlePublishConfirm();
+  };
+
+  // 公開確認処理
+  const handlePublishConfirm = async () => {
+    console.log('✅ 公開処理を実行します');
+    
+    if (!formId) {
+      toast.error('フォームIDが見つかりません', {
+        duration: 3000,
+        position: 'bottom-center',
+      });
+      return;
+    }
+
+    try {
+      // FormDataServiceを使用してフォームを公開状態に更新
+      const result = await FormDataService.updateFormPublishStatus(formId, true);
+      
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+
+      console.log('✅ フォーム公開完了:', result.data);
+      
+      setIsPublished(true); // 公開状態を更新
+      
+      // 成功トースト
+      toast.success('フォームが公開されました！', {
+        duration: 3000,
+        position: 'bottom-center',
+        style: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(34, 197, 94, 0.2)',
+          borderRadius: '12px',
+          color: '#374151',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        },
+      });
+      
+    } catch (error) {
+      console.error('❌ 公開処理エラー:', error);
+      
+      // エラートースト
+      toast.error(`公開に失敗しました: ${error.message}`, {
+        duration: 4000,
+        position: 'bottom-center',
+        style: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+          borderRadius: '12px',
+          color: '#374151',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        },
+      });
+    }
+  };
+
   return (
     <Box
       className={`main-container ${showSettings ? 'settings-active' : ''}`}
@@ -1934,6 +2050,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   // 公開設定のprops
                   isPublished={isPublished}
                   setIsPublished={setIsPublished}
+                  onPublishClick={handlePublishClick}
                   
                   // Supabase連携用のprops
                   onThemeColorUpdate={handleThemeColorUpdate}
