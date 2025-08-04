@@ -1791,7 +1791,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
           }}
           onNavigateToLoginScreen={(fieldType) => {
             // ログイン画面に遷移
-            const loginPage = pages.find(p => p.type === 'login');
+            const loginPage = pages.find(p => p.id === 'login');
             if (loginPage) {
               setSelectedPage(loginPage);
             }
