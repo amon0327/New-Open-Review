@@ -286,7 +286,7 @@ export default function HomePage({ user, onCreateFormClick }) {
         </Button>
 
         {/* 記事一覧セクション */}
-        <Container maxWidth="lg" sx={{ mt: 3 }}>
+        <Container maxWidth="lg" sx={{ mt: 1 }}>
           {/* セクションタイトル */}
           <Typography
             variant="h6"
@@ -294,7 +294,7 @@ export default function HomePage({ user, onCreateFormClick }) {
               fontWeight: 600,
               color: '#1a202c',
               textAlign: 'left',
-              mb: 3
+              mb: 2
             }}
           >
             OpenReviewの記事一覧
