@@ -2143,9 +2143,18 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   onPublishClick={handlePublishClick}
                   formId={formId}
                   formData={{
-                    ...formSettings,
-                    questionsData,
-                    projectTitle
+                    questions: allQuestions,
+                    pages,
+                    formSettings,
+                    loginScreenSettings,
+                    completionScreenSettings,
+                    loginTitle,
+                    loginDetail,
+                    completionTitle,
+                    completionDetail,
+                    logoImage: headerImage?.logo || logoImage,
+                    headerImage,
+                    completionBackground
                   }}
                   
                   // Supabase連携用のprops
