@@ -670,44 +670,56 @@ const HeaderBar = ({
               }
             </Typography>
             
-            {/* エラーチェック中の簡素化されたUI */}
+            {/* エラーチェック中の抽象的なUI */}
             {isErrorChecking && (
               <Box sx={{ mb: 4 }}>
-                {/* シンプルなプログレスバー */}
-                <Box sx={{ px: 2, mb: 2 }}>
-                  <Box
-                    sx={{
-                      width: '100%',
-                      height: 6,
-                      borderRadius: '3px',
-                      background: 'rgba(226, 232, 240, 0.6)',
-                      overflow: 'hidden',
-                      position: 'relative'
-                    }}
-                  >
+                {/* 抽象的なローディング表現 */}
+                <Box 
+                  sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    mb: 3,
+                    height: 40
+                  }}
+                >
+                  {/* 複数の点でローディングを表現 */}
+                  {[0, 1, 2].map((index) => (
                     <Box
+                      key={index}
                       sx={{
-                        height: '100%',
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        borderRadius: '3px',
-                        width: `${(errorCheckProgress / errorCheckItems.length) * 100}%`,
-                        transition: 'width 0.4s ease',
-                        position: 'relative'
+                        mx: 0.5,
+                        animation: `pulse 1.5s ease-in-out ${index * 0.2}s infinite`,
+                        '@keyframes pulse': {
+                          '0%, 100%': {
+                            opacity: 0.3,
+                            transform: 'scale(0.8)'
+                          },
+                          '50%': {
+                            opacity: 1,
+                            transform: 'scale(1.2)'
+                          }
+                        }
                       }}
                     />
-                  </Box>
+                  ))}
                 </Box>
                 
-                {/* 進捗テキスト */}
+                {/* 抽象的な進捗表示 */}
                 <Typography
                   sx={{
                     textAlign: 'center',
                     color: '#64748b',
-                    fontSize: '0.9rem',
-                    fontWeight: 500
+                    fontSize: '0.85rem',
+                    fontWeight: 400,
+                    opacity: 0.8
                   }}
                 >
-                  {errorCheckProgress} / {errorCheckItems.length} 項目完了
+                  検証中...
                 </Typography>
               </Box>
             )}
@@ -739,7 +751,14 @@ const HeaderBar = ({
             )}
           </Box>
 
-          <Box sx={{ px: 4, pb: 4 }}>
+          <Box 
+            sx={{ 
+              px: 4, 
+              pb: 4,
+              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.02) 50%, rgba(255, 107, 107, 0.02) 100%)',
+              borderTop: '1px solid rgba(226, 232, 240, 0.3)'
+            }}
+          >
             <Box
               sx={{
                 display: 'flex',
