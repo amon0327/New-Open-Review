@@ -35,6 +35,12 @@ const PreviewLogin = ({
 
   const isMobile = previewMode === 'mobile';
 
+  // エラーハイライトの状態をログ出力
+  React.useEffect(() => {
+    if (loginErrorHighlight) {
+      console.log('🔴 PreviewLogin - エラーハイライト受信:', loginErrorHighlight);
+    }
+  }, [loginErrorHighlight]);
 
   // Supabaseからログイン画面データを取得
   useEffect(() => {

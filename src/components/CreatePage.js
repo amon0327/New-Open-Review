@@ -1804,8 +1804,12 @@ export default function CreatePage({ onBackClick, user, formId }) {
           }}
           onShowLoginError={(errorId, fieldType) => {
             // ログインエラーをハイライト
+            console.log('🔴 CreatePage - ログインエラーハイライト設定:', { errorId, fieldType });
             setLoginErrorHighlight({ errorId, fieldType });
-            setTimeout(() => setLoginErrorHighlight(null), 3000);
+            setTimeout(() => {
+              console.log('🔴 CreatePage - ログインエラーハイライト解除');
+              setLoginErrorHighlight(null);
+            }, 3000);
           }}
           onNavigateToCompletionScreen={(fieldType) => {
             // 完了画面に遷移
