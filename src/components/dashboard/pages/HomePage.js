@@ -267,12 +267,12 @@ export default function HomePage({ user, onCreateFormClick }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      style={{ height: '100%', width: '100%' }}
+      style={{ width: '100%' }}
     >
       <Box
         sx={{
-          height: '100%',
           width: '100%',
+          minHeight: '100vh',
           background: `
             linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 1) 60%),
             linear-gradient(90deg, rgba(94, 23, 235, 0.2) 0%, rgba(102, 126, 234, 0.2) 100%)
@@ -281,8 +281,7 @@ export default function HomePage({ user, onCreateFormClick }) {
           flexDirection: 'column',
           alignItems: 'center',
           pt: 2,
-          px: 0,
-          overflow: 'hidden'
+          px: 0
         }}
       >
 

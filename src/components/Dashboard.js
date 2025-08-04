@@ -293,8 +293,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         sx={{
           flexGrow: 1,
           bgcolor: '#f8fafc',
-          overflow: 'auto',
-          height: '100vh'
+          overflow: 'hidden'
         }}
       >
         {/* Top App Bar */}
