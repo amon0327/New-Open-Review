@@ -688,13 +688,13 @@ const HeaderBar = ({
                 </>
               )}
             
-              {/* エラーチェック中のモダンな抽象UI */}
+              {/* レビューフォーム エラーチェック中のモダンな抽象UI */}
               {isErrorChecking && (
                 <Box
                   sx={{
                     width: '100%',
-                    maxWidth: 320,
-                    height: 120,
+                    maxWidth: 360,
+                    height: 160,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -703,100 +703,125 @@ const HeaderBar = ({
                     position: 'relative'
                   }}
                 >
-                  {/* メインチェックインジケーター */}
+                  {/* レビューフォームチェック表示 */}
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 600,
+                      mb: 3,
+                      fontSize: '1.1rem',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      textAlign: 'center',
+                      opacity: 0.9
+                    }}
+                  >
+                    レビューフォーム チェック中...
+                  </Typography>
+
+                  {/* フォーム要素の抽象的表現 */}
                   <Box
                     sx={{
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      flexDirection: 'column',
                       gap: 1,
-                      mb: 3
+                      width: '100%',
+                      maxWidth: 280,
+                      mb: 2
                     }}
                   >
-                    {/* 順次点灯するチェックポイント */}
+                    {/* フォーム項目を表現する抽象バー */}
                     {Array.from({ length: 6 }, (_, index) => (
                       <Box
                         key={index}
                         sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          opacity: 0.2,
-                          animation: `checkSequence 3s ease-in-out infinite ${index * 0.5}s`,
-                          '@keyframes checkSequence': {
+                          width: `${85 - index * 8}%`,
+                          height: 6,
+                          borderRadius: 3,
+                          background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          animation: `formCheck 2.5s ease-in-out infinite ${index * 0.4}s`,
+                          '@keyframes formCheck': {
                             '0%': { 
-                              opacity: 0.2, 
-                              transform: 'scale(1)',
-                              background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)'
+                              background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)',
                             },
-                            '20%': { 
-                              opacity: 1, 
-                              transform: 'scale(1.4)',
-                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                            '30%': { 
+                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              transform: 'scaleX(1.02)'
                             },
-                            '40%': { 
-                              opacity: 0.8, 
-                              transform: 'scale(1.1)',
-                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                            '70%': { 
+                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                              transform: 'scaleX(1)'
                             },
                             '100%': { 
-                              opacity: 0.6, 
-                              transform: 'scale(1)',
-                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
                             }
                           }
                         }}
-                      />
+                      >
+                        {/* チェック完了インジケーター */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            right: 4,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            width: 3,
+                            height: 3,
+                            borderRadius: '50%',
+                            background: '#ffffff',
+                            opacity: 0,
+                            animation: `checkComplete 2.5s ease-in-out infinite ${index * 0.4 + 1.2}s`,
+                            '@keyframes checkComplete': {
+                              '0%, 50%': { opacity: 0, transform: 'translateY(-50%) scale(0.5)' },
+                              '70%, 100%': { opacity: 1, transform: 'translateY(-50%) scale(1)' }
+                            }
+                          }}
+                        />
+                      </Box>
                     ))}
                   </Box>
 
-                  {/* 流れるような進捗バー */}
+                  {/* スキャン効果 */}
                   <Box
                     sx={{
-                      width: '100%',
-                      height: 2,
-                      background: 'rgba(226, 232, 240, 0.3)',
-                      borderRadius: '1px',
-                      overflow: 'hidden',
-                      position: 'relative'
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        height: '100%',
-                        width: '30%',
-                        background: 'linear-gradient(90deg, transparent 0%, rgba(102, 126, 234, 0.8) 50%, transparent 100%)',
-                        animation: 'flowProgress 2s ease-in-out infinite',
-                        '@keyframes flowProgress': {
-                          '0%': { 
-                            left: '-30%',
-                            opacity: 0
-                          },
-                          '50%': { 
-                            left: '50%',
-                            opacity: 1
-                          },
-                          '100%': { 
-                            left: '130%',
-                            opacity: 0
-                          }
+                      position: 'absolute',
+                      top: 40,
+                      left: '10%',
+                      right: '10%',
+                      height: 80,
+                      background: 'linear-gradient(180deg, transparent 0%, rgba(102, 126, 234, 0.15) 45%, rgba(102, 126, 234, 0.25) 50%, rgba(102, 126, 234, 0.15) 55%, transparent 100%)',
+                      animation: 'scanEffect 3s ease-in-out infinite',
+                      '@keyframes scanEffect': {
+                        '0%': { 
+                          transform: 'translateY(-20px)',
+                          opacity: 0
+                        },
+                        '20%': { 
+                          opacity: 1
+                        },
+                        '80%': { 
+                          opacity: 1
+                        },
+                        '100%': { 
+                          transform: 'translateY(20px)',
+                          opacity: 0
                         }
-                      }}
-                    />
-                  </Box>
+                      }
+                    }}
+                  />
 
-                  {/* 浮遊する抽象的な要素 */}
-                  {[0, 1, 2, 3, 4].map((index) => (
+                  {/* 浮遊する検証ポイント */}
+                  {[0, 1, 2].map((index) => (
                     <Box
                       key={index}
                       sx={{
                         position: 'absolute',
-                        width: 4,
-                        height: 4,
+                        width: 2,
+                        height: 2,
                         borderRadius: '50%',
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         opacity: 0.4,
