@@ -102,6 +102,13 @@ const HeaderBar = ({
   const handleErrorItemClick = (error) => {
     // エラー項目がクリックされた時の処理
     console.log('🔴 HeaderBar - エラー項目がクリックされました:', error);
+    console.log('🔴 HeaderBar - エラーアクション評価:', {
+      action: error.action,
+      isNavigateToPage: error.action === 'navigateToPage' && error.pageId,
+      isNavigateToLoginScreen: error.action === 'navigateToLoginScreen',
+      isOpenCompletionSettings: error.action === 'openCompletionSettings',
+      hasQuestionId: !!error.questionId
+    });
     setErrorAnchorEl(null); // ポップオーバーを閉じる
     
     // ページエラーの場合は特別処理
@@ -128,10 +135,13 @@ const HeaderBar = ({
     }
     // 完了画面エラーの場合は特別処理
     else if (error.action === 'openCompletionSettings') {
+      console.log('🔴 HeaderBar - 完了画面エラー処理開始:', { errorId: error.id, fieldType: error.fieldType });
       if (onNavigateToCompletionScreen) {
+        console.log('🔴 HeaderBar - 完了画面に遷移中...');
         onNavigateToCompletionScreen(error.fieldType);
       }
       if (onShowCompletionError) {
+        console.log('🔴 HeaderBar - 完了画面エラーハイライト設定中...');
         onShowCompletionError(error.id, error.fieldType);
       }
     }

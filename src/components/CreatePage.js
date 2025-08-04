@@ -1813,15 +1813,24 @@ export default function CreatePage({ onBackClick, user, formId }) {
           }}
           onNavigateToCompletionScreen={(fieldType) => {
             // 完了画面に遷移
+            console.log('🔴 CreatePage - 完了画面遷移処理開始:', { fieldType });
             const completionPage = pages.find(p => p.id === 'completion');
+            console.log('🔴 CreatePage - 完了画面検索結果:', completionPage);
             if (completionPage) {
+              console.log('🔴 CreatePage - 完了画面に遷移中...');
               setSelectedPage(completionPage);
+            } else {
+              console.error('🔴 CreatePage - 完了画面が見つかりません!');
             }
           }}
           onShowCompletionError={(errorId, fieldType) => {
             // 完了画面エラーをハイライト
+            console.log('🔴 CreatePage - 完了画面エラーハイライト設定:', { errorId, fieldType });
             setCompletionErrorHighlight({ errorId, fieldType });
-            setTimeout(() => setCompletionErrorHighlight(null), 3000);
+            setTimeout(() => {
+              console.log('🔴 CreatePage - 完了画面エラーハイライト解除');
+              setCompletionErrorHighlight(null);
+            }, 3000);
           }}
         />
 
