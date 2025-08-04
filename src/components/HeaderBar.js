@@ -890,6 +890,7 @@ const HeaderBar = ({
                 </Button>
               )}
             </Box>
+          </Box>
         </DialogContent>
       </Dialog>
 
