@@ -1,14 +1,18 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Box, Typography, Button, Card, CardContent, CardMedia, Chip, Grid, Container } from '@mui/material';
-import { Add } from '@mui/icons-material';
+import { Box, Typography, Button, Card, CardContent, CardMedia, Chip, Grid, Container, CircularProgress, Avatar } from '@mui/material';
+import { Add, Description, Visibility, Edit, MoreVert } from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
+import FormDataService from '../../../services/FormDataService';
 
 export default function HomePage({ user, onCreateFormClick }) {
   const scrollContainerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [forms, setForms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // マウスドラッグスクロール機能
   const handleMouseDown = (e) => {
@@ -46,6 +50,41 @@ export default function HomePage({ user, onCreateFormClick }) {
     const walk = (x - startX) * 2;
     scrollContainerRef.current.scrollLeft = scrollLeft - walk;
   };
+
+  // フォーム一覧を取得
+  useEffect(() => {
+    const fetchForms = async () => {
+      if (!user?.id) return;
+      
+      setLoading(true);
+      try {
+        const result = await FormDataService.getUserForms(user.id);
+        if (result.success) {
+          setForms(result.data);
+        } else {
+          setError(result.error);
+        }
+      } catch (err) {
+        setError('フォームの取得に失敗しました');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchForms();
+  }, [user?.id]);
+
+  // フォームデータの変換
+  const formatFormData = (form) => ({
+    id: form.id,
+    title: form.title || '名称未設定',
+    description: 'レビューフォーム',
+    status: form.is_published ? '公開中' : '下書き',
+    responses: 0, // TODO: 実際の回答数を取得
+    lastModified: new Date(form.updated_at).toISOString().split('T')[0],
+    category: 'レビュー',
+    themeColor: form.review_form_settings?.[0]?.theme_color || '#5e17eb'
+  });
 
   // アニメーション定義
   const fadeInUp = keyframes`
@@ -393,246 +432,371 @@ export default function HomePage({ user, onCreateFormClick }) {
         </Container>
 
         {/* フォーム一覧セクション */}
-        <Container maxWidth="lg" sx={{ mt: 6, mb: 4 }}>
-          {/* セクションタイトル */}
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 600,
-              color: '#1a202c',
-              textAlign: 'left',
-              mb: 2
-            }}
-          >
-            作成したフォーム
-          </Typography>
-
-          {/* フォーム一覧グリッド */}
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: 3,
-              mt: 2,
-            }}
-          >
-            {/* サンプルフォームデータ */}
-            {[
-              {
-                id: 1,
-                title: "顧客満足度調査フォーム",
-                description: "サービス品質に関する包括的な評価フォーム",
-                status: "公開中",
-                responses: 127,
-                lastModified: "2024-08-03",
-                category: "調査"
-              },
-              {
-                id: 2,
-                title: "従業員フィードバックフォーム",
-                description: "チーム内での360度評価とパフォーマンス向上",
-                status: "下書き",
-                responses: 0,
-                lastModified: "2024-08-02",
-                category: "評価"
-              },
-              {
-                id: 3,
-                title: "プロジェクト評価フォーム",
-                description: "プロジェクト完了後の振り返りと改善点の収集",
-                status: "公開中",
-                responses: 45,
-                lastModified: "2024-08-01",
-                category: "レビュー"
-              }
-            ].map((form) => (
-              <Card
-                key={form.id}
+        <Container maxWidth="xl" sx={{ mt: 6, mb: 6 }}>
+          {/* セクションヘッダー */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            mb: 4 
+          }}>
+            <Box>
+              <Typography
+                variant="h5"
                 sx={{
-                  borderRadius: 3,
-                  border: '1px solid rgba(0, 0, 0, 0.08)',
-                  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  cursor: 'pointer',
-                  background: 'linear-gradient(145deg, #ffffff 0%, #fafafa 100%)',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.12)',
-                    borderColor: 'rgba(94, 23, 235, 0.2)',
-                  },
+                  fontWeight: 700,
+                  color: '#1a202c',
+                  mb: 0.5,
+                  fontSize: '1.75rem'
                 }}
               >
-                <CardContent sx={{ p: 3 }}>
-                  {/* ステータスとカテゴリ */}
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    mb: 2 
-                  }}>
-                    <Chip
-                      label={form.status}
-                      size="small"
-                      sx={{
-                        backgroundColor: form.status === '公開中' ? '#e8f5e8' : '#fff3cd',
-                        color: form.status === '公開中' ? '#2e7d32' : '#856404',
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                      }}
-                    />
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'text.secondary',
-                        fontSize: '0.75rem',
-                        fontWeight: 500,
-                      }}
-                    >
-                      {form.category}
-                    </Typography>
-                  </Box>
-
-                  {/* タイトル */}
-                  <Typography
-                    variant="h6"
-                    component="h3"
-                    sx={{
-                      fontWeight: 600,
-                      mb: 1,
-                      fontSize: '1.1rem',
-                      lineHeight: 1.3,
-                      color: '#1a202c',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      minHeight: '2.6rem',
-                    }}
-                  >
-                    {form.title}
-                  </Typography>
-
-                  {/* 説明 */}
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: 'text.secondary',
-                      mb: 3,
-                      lineHeight: 1.5,
-                      fontSize: '0.875rem',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      minHeight: '2.6rem',
-                    }}
-                  >
-                    {form.description}
-                  </Typography>
-
-                  {/* 統計とメタ情報 */}
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    pt: 2,
-                    borderTop: '1px solid rgba(0, 0, 0, 0.05)',
-                  }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: 'primary.main',
-                          fontWeight: 600,
-                          fontSize: '0.8rem',
-                        }}
-                      >
-                        {form.responses}回答
-                      </Typography>
-                    </Box>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'text.secondary',
-                        fontSize: '0.75rem',
-                      }}
-                    >
-                      {new Date(form.lastModified).toLocaleDateString('ja-JP', {
-                        month: 'short',
-                        day: 'numeric'
-                      })}更新
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-            ))}
-
-            {/* 新しいフォーム作成カード */}
-            <Card
+                マイフォーム
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: '0.875rem'
+                }}
+              >
+                作成したレビューフォームを管理
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
               onClick={onCreateFormClick}
               sx={{
+                background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
                 borderRadius: 3,
-                border: '2px dashed rgba(94, 23, 235, 0.3)',
-                boxShadow: 'none',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                cursor: 'pointer',
-                background: 'linear-gradient(145deg, rgba(94, 23, 235, 0.02) 0%, rgba(102, 126, 234, 0.02) 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '200px',
+                px: 3,
+                py: 1.5,
+                textTransform: 'none',
+                fontWeight: 600,
+                boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
                 '&:hover': {
-                  borderColor: 'rgba(94, 23, 235, 0.5)',
-                  background: 'linear-gradient(145deg, rgba(94, 23, 235, 0.05) 0%, rgba(102, 126, 234, 0.05) 100%)',
+                  background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
                   transform: 'translateY(-2px)',
-                },
+                  boxShadow: '0 8px 30px rgba(94, 23, 235, 0.4)',
+                }
               }}
             >
-              <CardContent sx={{ 
-                textAlign: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 2,
-              }}>
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                  }}
-                >
-                  <Add sx={{ fontSize: 24 }} />
-                </Box>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 600,
-                    color: '#1a202c',
-                    fontSize: '1rem',
-                  }}
-                >
-                  新しいフォームを作成
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: 'text.secondary',
-                    fontSize: '0.875rem',
-                  }}
-                >
-                  評価フォームを簡単に作成できます
-                </Typography>
-              </CardContent>
-            </Card>
+              新規作成
+            </Button>
           </Box>
+
+          {/* ローディング状態 */}
+          {loading && (
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              minHeight: '300px' 
+            }}>
+              <CircularProgress 
+                sx={{ 
+                  color: '#5e17eb',
+                  '& .MuiCircularProgress-circle': {
+                    strokeLinecap: 'round',
+                  }
+                }} 
+              />
+            </Box>
+          )}
+
+          {/* エラー状態 */}
+          {error && (
+            <Box sx={{ 
+              textAlign: 'center', 
+              py: 6,
+              color: 'text.secondary'
+            }}>
+              <Typography variant="body1">
+                {error}
+              </Typography>
+            </Box>
+          )}
+
+          {/* フォーム一覧グリッド */}
+          {!loading && !error && (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, 1fr)',
+                  md: 'repeat(3, 1fr)',
+                  lg: 'repeat(4, 1fr)',
+                  xl: 'repeat(5, 1fr)'
+                },
+                gap: 3,
+              }}
+            >
+              {forms.length === 0 ? (
+                // 空の状態
+                <Box sx={{ 
+                  gridColumn: '1 / -1',
+                  textAlign: 'center',
+                  py: 8,
+                  px: 4,
+                  backgroundColor: 'rgba(248, 249, 250, 0.8)',
+                  borderRadius: 4,
+                  border: '2px dashed rgba(0, 0, 0, 0.1)'
+                }}>
+                  <Description sx={{ 
+                    fontSize: 64, 
+                    color: 'text.disabled',
+                    mb: 2 
+                  }} />
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontWeight: 600, 
+                      color: 'text.secondary',
+                      mb: 1 
+                    }}
+                  >
+                    まだフォームがありません
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: 'text.secondary',
+                      mb: 3 
+                    }}
+                  >
+                    新しいレビューフォームを作成してみましょう
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    startIcon={<Add />}
+                    onClick={onCreateFormClick}
+                    sx={{
+                      background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                      borderRadius: 2,
+                      px: 3,
+                      py: 1,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                    }}
+                  >
+                    最初のフォームを作成
+                  </Button>
+                </Box>
+              ) : (
+                forms.map((form) => {
+                  const formattedForm = formatFormData(form);
+                  return (
+                    <Card
+                      key={form.id}
+                      sx={{
+                        borderRadius: 4,
+                        border: 'none',
+                        background: 'linear-gradient(145deg, #ffffff 0%, #fefefe 100%)',
+                        boxShadow: '0 2px 20px rgba(0, 0, 0, 0.06)',
+                        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                        cursor: 'pointer',
+                        position: 'relative',
+                        overflow: 'visible',
+                        '&:hover': {
+                          transform: 'translateY(-8px) scale(1.02)',
+                          boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12)',
+                          '& .form-actions': {
+                            opacity: 1,
+                            transform: 'translateY(0)',
+                          }
+                        },
+                        '&:before': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: 4,
+                          background: `linear-gradient(90deg, ${formattedForm.themeColor} 0%, ${formattedForm.themeColor}cc 100%)`,
+                          borderRadius: '16px 16px 0 0',
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 3, pb: 2 }}>
+                        {/* ヘッダー部分 */}
+                        <Box sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'flex-start',
+                          mb: 2.5
+                        }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Chip
+                              label={formattedForm.status}
+                              size="small"
+                              sx={{
+                                backgroundColor: formattedForm.status === '公開中' 
+                                  ? 'rgba(76, 175, 80, 0.1)' 
+                                  : 'rgba(255, 152, 0, 0.1)',
+                                color: formattedForm.status === '公開中' 
+                                  ? '#388e3c' 
+                                  : '#f57c00',
+                                fontWeight: 600,
+                                fontSize: '0.7rem',
+                                height: 24,
+                                borderRadius: 3,
+                                border: `1px solid ${formattedForm.status === '公開中' 
+                                  ? 'rgba(76, 175, 80, 0.2)' 
+                                  : 'rgba(255, 152, 0, 0.2)'}`,
+                              }}
+                            />
+                          </Box>
+                          <Avatar
+                            sx={{
+                              width: 32,
+                              height: 32,
+                              background: `linear-gradient(135deg, ${formattedForm.themeColor} 0%, ${formattedForm.themeColor}aa 100%)`,
+                              fontSize: '0.75rem',
+                              fontWeight: 600
+                            }}
+                          >
+                            {formattedForm.title.charAt(0)}
+                          </Avatar>
+                        </Box>
+
+                        {/* タイトル */}
+                        <Typography
+                          variant="h6"
+                          component="h3"
+                          sx={{
+                            fontWeight: 700,
+                            mb: 1.5,
+                            fontSize: '1.1rem',
+                            lineHeight: 1.3,
+                            color: '#1a202c',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            minHeight: '2.6rem',
+                          }}
+                        >
+                          {formattedForm.title}
+                        </Typography>
+
+                        {/* 統計情報 */}
+                        <Box sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'space-between', 
+                          alignItems: 'center',
+                          mb: 2,
+                          py: 1.5,
+                          px: 2,
+                          backgroundColor: 'rgba(248, 249, 250, 0.8)',
+                          borderRadius: 2,
+                        }}>
+                          <Box sx={{ textAlign: 'center' }}>
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                fontWeight: 700,
+                                color: formattedForm.themeColor,
+                                fontSize: '1.25rem',
+                                lineHeight: 1,
+                              }}
+                            >
+                              {formattedForm.responses}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: 'text.secondary',
+                                fontSize: '0.7rem',
+                                fontWeight: 500,
+                              }}
+                            >
+                              回答
+                            </Typography>
+                          </Box>
+                          <Box sx={{ textAlign: 'center' }}>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: 'text.secondary',
+                                fontSize: '0.75rem',
+                                fontWeight: 500,
+                              }}
+                            >
+                              {new Date(formattedForm.lastModified).toLocaleDateString('ja-JP', {
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: 'text.secondary',
+                                fontSize: '0.7rem',
+                                fontWeight: 500,
+                              }}
+                            >
+                              更新
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        {/* アクション部分 */}
+                        <Box 
+                          className="form-actions"
+                          sx={{ 
+                            display: 'flex', 
+                            gap: 1,
+                            opacity: 0,
+                            transform: 'translateY(10px)',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          }}
+                        >
+                          <Button
+                            size="small"
+                            startIcon={<Edit sx={{ fontSize: 16 }} />}
+                            sx={{
+                              flex: 1,
+                              borderRadius: 2,
+                              textTransform: 'none',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: formattedForm.themeColor,
+                              backgroundColor: `${formattedForm.themeColor}15`,
+                              '&:hover': {
+                                backgroundColor: `${formattedForm.themeColor}25`,
+                              }
+                            }}
+                          >
+                            編集
+                          </Button>
+                          <Button
+                            size="small"
+                            startIcon={<Visibility sx={{ fontSize: 16 }} />}
+                            sx={{
+                              flex: 1,
+                              borderRadius: 2,
+                              textTransform: 'none',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: 'text.secondary',
+                              backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                              '&:hover': {
+                                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                              }
+                            }}
+                          >
+                            プレビュー
+                          </Button>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
+            </Box>
+          )}
         </Container>
       </Box>
     </motion.div>
