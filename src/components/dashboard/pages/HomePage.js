@@ -17,7 +17,7 @@ export default function HomePage() {
           width: '100%',
           background: `
             linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 1) 60%),
-            linear-gradient(90deg, rgba(94, 23, 235, 0.15) 0%, rgba(246, 222, 120, 0.15) 100%)
+            linear-gradient(90deg, rgba(94, 23, 235, 0.15) 0%, rgba(102, 126, 234, 0.15) 100%)
           `,
           display: 'flex',
           alignItems: 'center',
