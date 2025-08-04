@@ -37,8 +37,14 @@ const PreviewLogin = ({
 
   // エラーハイライトの状態をログ出力
   React.useEffect(() => {
+    console.log('🔴 PreviewLogin - loginErrorHighlight状態変更:', loginErrorHighlight);
     if (loginErrorHighlight) {
-      console.log('🔴 PreviewLogin - エラーハイライト受信:', loginErrorHighlight);
+      console.log('🔴 PreviewLogin - エラーハイライト受信:', {
+        errorId: loginErrorHighlight.errorId,
+        fieldType: loginErrorHighlight.fieldType,
+        isTitleError: loginErrorHighlight.fieldType === 'title',
+        isDetailError: loginErrorHighlight.fieldType === 'detail'
+      });
     }
   }, [loginErrorHighlight]);
 
@@ -79,6 +85,19 @@ const PreviewLogin = ({
   const isDetailHint = detailText === 'テキストを入力...';
   const displayButtonText = buttonText || '回答へ進む';
   const displayButtonUrl = buttonUrl || '#';
+
+  // ハイライト条件をデバッグ
+  const isTitleHighlighted = selectedElement === 'login-title' || (loginErrorHighlight && loginErrorHighlight.fieldType === 'title');
+  const isDetailHighlighted = selectedElement === 'login-detail' || (loginErrorHighlight && loginErrorHighlight.fieldType === 'detail');
+  
+  console.log('🔴 PreviewLogin - ハイライト条件:', {
+    selectedElement,
+    loginErrorHighlight,
+    isTitleHighlighted,
+    isDetailHighlighted,
+    titleText,
+    isTitleHint
+  });
 
 
   return (

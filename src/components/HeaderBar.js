@@ -19,7 +19,6 @@ import {
 import {
   Preview,
   Rocket,
-  MoreVert,
   Sync,
   ErrorOutline,
   WarningAmber,
@@ -439,12 +438,6 @@ const HeaderBar = ({
         <Tooltip title="公開">
           <IconButton sx={iconButtonStyles.secondary}>
             <Rocket />
-          </IconButton>
-        </Tooltip>
-        
-        <Tooltip title="その他">
-          <IconButton sx={iconButtonStyles.secondary}>
-            <MoreVert />
           </IconButton>
         </Tooltip>
       </Box>
