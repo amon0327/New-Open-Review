@@ -245,16 +245,15 @@ export default function HomePage({ user, onCreateFormClick }) {
 
   // 記事クリック時の処理
   const handleArticleClick = (article) => {
-    // openreview-landingサイトの記事URLを生成
-    // 実際の記事サイトのURLに合わせて調整
+    // openreview.jpサイトの記事URLを生成
     let articleUrl;
     
     if (article.slug) {
       // slugがある場合はslugを使用
-      articleUrl = `https://openreview.blog/blog/${article.slug}`;
+      articleUrl = `https://openreview.jp/blog/${article.slug}`;
     } else {
       // slugがない場合はIDを使用
-      articleUrl = `https://openreview.blog/blog/${article.id}`;
+      articleUrl = `https://openreview.jp/blog/${article.id}`;
     }
     
     // 新しいタブで記事を開く
