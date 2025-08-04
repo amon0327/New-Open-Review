@@ -58,6 +58,9 @@ const HeaderBar = ({
   onShowPageError,
   // 質問エラー表示用のコールバック関数
   onShowQuestionError,
+  // ログイン画面ナビゲーション用のコールバック関数
+  onNavigateToLoginScreen,
+  onShowLoginError,
 }) => {
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
@@ -106,6 +109,15 @@ const HeaderBar = ({
       }
       if (onShowPageError) {
         onShowPageError(error.pageId);
+      }
+    }
+    // ログイン画面エラーの場合は特別処理
+    else if (error.action === 'navigateToLoginScreen') {
+      if (onNavigateToLoginScreen) {
+        onNavigateToLoginScreen(error.fieldType);
+      }
+      if (onShowLoginError) {
+        onShowLoginError(error.id, error.fieldType);
       }
     }
     // 質問エラーの場合は特別処理

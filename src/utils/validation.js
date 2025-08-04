@@ -274,7 +274,8 @@ export const validateForm = (formData) => {
       id: 'missing-login-title',
       message: 'ログイン画面のタイトルテキストが入力されていません',
       location: 'ログイン画面設定',
-      action: 'openLoginSettings'
+      action: 'navigateToLoginScreen',
+      fieldType: 'title'
     });
   }
 
@@ -283,7 +284,8 @@ export const validateForm = (formData) => {
       id: 'missing-login-detail',
       message: 'ログイン画面の詳細テキストが入力されていません',
       location: 'ログイン画面設定',
-      action: 'openLoginSettings'
+      action: 'navigateToLoginScreen',
+      fieldType: 'detail'
     });
   }
 

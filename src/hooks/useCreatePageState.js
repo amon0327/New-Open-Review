@@ -44,6 +44,7 @@ export const useCreatePageState = () => {
   const [logoPreview, setLogoPreview] = useState(null); // ロゴプレビュー
   const [pageErrorHighlight, setPageErrorHighlight] = useState(null); // ページエラーハイライト
   const [questionErrorHighlight, setQuestionErrorHighlight] = useState(null); // 質問エラーハイライト
+  const [loginErrorHighlight, setLoginErrorHighlight] = useState(null); // ログインエラーハイライト
 
   return {
     // ツール・プレビュー関連
@@ -104,6 +105,8 @@ export const useCreatePageState = () => {
     pageErrorHighlight,
     setPageErrorHighlight,
     questionErrorHighlight,
-    setQuestionErrorHighlight
+    setQuestionErrorHighlight,
+    loginErrorHighlight,
+    setLoginErrorHighlight
   };
 };

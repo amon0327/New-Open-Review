@@ -297,7 +297,8 @@ const QuestionSettingsMenu = ({
   setCompletionDetail,
   completionBackground,
   setCompletionBackground,
-  questionErrorHighlight
+  questionErrorHighlight,
+  loginErrorHighlight
 }) => {
   const [editingChoices, setEditingChoices] = useState({});
   const [selectedTab, setSelectedTab] = useState(2); // デフォルトで基本設定タブ
@@ -309,6 +310,15 @@ const QuestionSettingsMenu = ({
   
   // 現在選択されている質問を取得
   const currentQuestion = questions.find(q => q.id === selectedQuestionId);
+  
+  // ログインエラー時にアコーディオンを自動展開
+  useEffect(() => {
+    if (loginErrorHighlight?.fieldType === 'title') {
+      setExpandedAccordion('login-title');
+    } else if (loginErrorHighlight?.fieldType === 'detail') {
+      setExpandedAccordion('login-detail');
+    }
+  }, [loginErrorHighlight]);
   
   // カラーピッカーの状態
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -2518,6 +2528,7 @@ const QuestionSettingsMenu = ({
                     onChange={(e) => handleLoginTitleChange(e.target.value)}
                     onBlur={handleLoginTitleBlur}
                     placeholder="テキストを入力"
+                    hasError={loginErrorHighlight?.fieldType === 'title' && loginErrorHighlight?.errorId === 'missing-login-title'}
                   />
                 </AccordionDetails>
               </Accordion>
@@ -2591,6 +2602,7 @@ const QuestionSettingsMenu = ({
                     minRows={1}
                     maxRows={3}
                     placeholder="テキストを入力"
+                    hasError={loginErrorHighlight?.fieldType === 'detail' && loginErrorHighlight?.errorId === 'missing-login-detail'}
                   />
                 </AccordionDetails>
               </Accordion>
