@@ -122,7 +122,7 @@ const HeaderBar = ({
       }
       // 質問設定でのフィールドエラー表示
       if (onShowQuestionError) {
-        onShowQuestionError(error.questionId, error.id, error.choiceIndex);
+        onShowQuestionError(error.questionId, error.id, error.choiceIndex, error.labelType);
       }
     }
     // それ以外のエラーは何もしない

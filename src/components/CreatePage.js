@@ -1773,7 +1773,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
             setPageErrorHighlight(pageId);
             setTimeout(() => setPageErrorHighlight(null), 3000);
           }}
-          onShowQuestionError={(questionId, errorId, choiceIndex) => {
+          onShowQuestionError={(questionId, errorId, choiceIndex, labelType) => {
             // 質問があるページを見つけて移動
             const questionPageId = findPageIdByQuestionId(questionId);
             if (questionPageId) {
@@ -1784,8 +1784,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
             }
             // 質問を選択
             setSelectedQuestionId(questionId);
-            // エラーフィールドをハイライト（選択肢インデックスも含む）
-            setQuestionErrorHighlight({ errorId, choiceIndex });
+            // エラーフィールドをハイライト（選択肢インデックス、ラベルタイプも含む）
+            setQuestionErrorHighlight({ errorId, choiceIndex, labelType });
             setTimeout(() => setQuestionErrorHighlight(null), 3000);
           }}
         />

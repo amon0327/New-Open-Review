@@ -1324,12 +1324,14 @@ const QuestionSettingsMenu = ({
                     value={localScaleSettings.minLabel || ''}
                     onChange={(e) => handleScaleUpdate('minLabel', e.target.value)}
                     placeholder="例: そう思わない"
+                    hasError={currentQuestion && questionErrorHighlight?.labelType === 'min' && questionErrorHighlight?.errorId === `missing-min-label-${currentQuestion.id}`}
                   />
                   <StylishTextField
                     label="最大値ラベル"
                     value={localScaleSettings.maxLabel || ''}
                     onChange={(e) => handleScaleUpdate('maxLabel', e.target.value)}
                     placeholder="例: そう思う"
+                    hasError={currentQuestion && questionErrorHighlight?.labelType === 'max' && questionErrorHighlight?.errorId === `missing-max-label-${currentQuestion.id}`}
                   />
                 </Stack>
               </Box>

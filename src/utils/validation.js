@@ -207,7 +207,8 @@ export const validateForm = (formData) => {
           message: `質問${index + 1}の最小値ラベルが設定されていません`,
           location: '質問設定',
           action: 'openSettings',
-          questionId: question.id
+          questionId: question.id,
+          labelType: 'min'
         });
       }
       if (!maxLabel || maxLabel.trim() === '') {
@@ -216,7 +217,8 @@ export const validateForm = (formData) => {
           message: `質問${index + 1}の最大値ラベルが設定されていません`,
           location: '質問設定',
           action: 'openSettings',
-          questionId: question.id
+          questionId: question.id,
+          labelType: 'max'
         });
       }
     }
