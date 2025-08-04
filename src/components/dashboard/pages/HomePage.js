@@ -254,7 +254,7 @@ export default function HomePage({ user, onCreateFormClick }) {
             variant="h6"
             sx={{
               fontWeight: 600,
-              color: 'white',
+              color: '#1a202c',
               textAlign: 'left',
               mb: 2
             }}
