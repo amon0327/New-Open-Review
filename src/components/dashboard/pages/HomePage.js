@@ -15,7 +15,10 @@ export default function HomePage() {
         sx={{
           height: '100%',
           width: '100%',
-          background: 'linear-gradient(180deg, rgba(94, 23, 235, 0.1) 0%, rgba(246, 222, 120, 0.1) 30%, rgba(255, 255, 255, 1) 70%)',
+          background: `
+            linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 1) 60%),
+            linear-gradient(90deg, rgba(94, 23, 235, 0.15) 0%, rgba(246, 222, 120, 0.15) 100%)
+          `,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
