@@ -717,7 +717,20 @@ const HeaderBar = ({
                     }
                   }}
                 >
-                  {errorCount > 0 ? '⚠️' : '🚀'}
+                  {errorCount > 0 ? (
+                    '⚠️'
+                  ) : (
+                    <Rocket 
+                      sx={{ 
+                        fontSize: '2.8rem',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        color: 'transparent'
+                      }}
+                    />
+                  )}
                 </Box>
               )}
               {/* エラーチェック中以外の時のみタイトルと説明を表示 */}
