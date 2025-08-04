@@ -333,7 +333,17 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         </AppBar>
 
         {/* Page Content */}
-        <Box sx={{ height: 'calc(100vh - 64px)', overflow: 'auto' }}>
+        <Box sx={{ 
+          height: 'calc(100vh - 64px)', 
+          overflow: 'auto',
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+          '&': {
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'none',
+          },
+        }}>
           <AnimatePresence mode="wait">
             {renderContent()}
           </AnimatePresence>
