@@ -614,7 +614,14 @@ const HeaderBar = ({
             }}
           >
             {/* メインコンテンツエリア */}
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <Box sx={{ 
+              flex: 1, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center',
+              alignItems: 'center',
+              textAlign: 'center'
+            }}>
               {/* ロケットアイコン - エラーチェック中は非表示 */}
               {!isErrorChecking && (
                 <Box
@@ -628,8 +635,7 @@ const HeaderBar = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    mx: 'auto',
-                    mb: 4,
+                    margin: '0 auto 32px auto',
                     fontSize: '2.8rem',
                     boxShadow: errorCount > 0
                       ? '0 12px 32px rgba(239, 68, 68, 0.2)'
@@ -690,8 +696,7 @@ const HeaderBar = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    mx: 'auto',
-                    mb: 4,
+                    margin: '0 auto 32px auto',
                     boxShadow: '0 12px 32px rgba(102, 126, 234, 0.15)',
                     position: 'relative'
                   }}
