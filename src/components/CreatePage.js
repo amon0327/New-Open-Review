@@ -1806,6 +1806,16 @@ export default function CreatePage({ onBackClick, user, formId }) {
             // ログインエラーをハイライト
             console.log('🔴 CreatePage - ログインエラーハイライト設定:', { errorId, fieldType });
             setLoginErrorHighlight({ errorId, fieldType });
+            
+            // 対応するアコーディオンを開くためにelementを選択
+            if (fieldType === 'title') {
+              console.log('🔴 CreatePage - ログインタイトル要素を選択してアコーディオンを開く');
+              handleElementSelect('login-title');
+            } else if (fieldType === 'detail') {
+              console.log('🔴 CreatePage - ログイン詳細要素を選択してアコーディオンを開く');
+              handleElementSelect('login-detail');
+            }
+            
             setTimeout(() => {
               console.log('🔴 CreatePage - ログインエラーハイライト解除');
               setLoginErrorHighlight(null);
@@ -1827,6 +1837,16 @@ export default function CreatePage({ onBackClick, user, formId }) {
             // 完了画面エラーをハイライト
             console.log('🔴 CreatePage - 完了画面エラーハイライト設定:', { errorId, fieldType });
             setCompletionErrorHighlight({ errorId, fieldType });
+            
+            // 対応するアコーディオンを開くためにelementを選択
+            if (fieldType === 'title') {
+              console.log('🔴 CreatePage - 完了画面タイトル要素を選択してアコーディオンを開く');
+              handleElementSelect('completion-title');
+            } else if (fieldType === 'detail') {
+              console.log('🔴 CreatePage - 完了画面詳細要素を選択してアコーディオンを開く');
+              handleElementSelect('completion-detail');
+            }
+            
             setTimeout(() => {
               console.log('🔴 CreatePage - 完了画面エラーハイライト解除');
               setCompletionErrorHighlight(null);

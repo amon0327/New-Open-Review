@@ -959,27 +959,8 @@ const QuestionSettingsMenu = ({
     }
   }, [selectedPage]); // selectedPageが変更された時に実行
 
-  // completionErrorHighlightが設定された時にアコーディオンを自動で開く
-  useEffect(() => {
-    if (completionErrorHighlight && completionErrorHighlight.fieldType === 'title') {
-      console.log('🔴 QuestionSettingsMenu - 完了画面タイトルエラーのためアコーディオンを開きます');
-      setExpandedAccordion('completion-title');
-    } else if (completionErrorHighlight && completionErrorHighlight.fieldType === 'detail') {
-      console.log('🔴 QuestionSettingsMenu - 完了画面詳細エラーのためアコーディオンを開きます');
-      setExpandedAccordion('completion-detail');
-    }
-  }, [completionErrorHighlight]);
-
-  // loginErrorHighlightが設定された時にアコーディオンを自動で開く
-  useEffect(() => {
-    if (loginErrorHighlight && loginErrorHighlight.fieldType === 'title') {
-      console.log('🔴 QuestionSettingsMenu - ログイン画面タイトルエラーのためアコーディオンを開きます');
-      setExpandedAccordion('login-title');
-    } else if (loginErrorHighlight && loginErrorHighlight.fieldType === 'detail') {
-      console.log('🔴 QuestionSettingsMenu - ログイン画面詳細エラーのためアコーディオンを開きます');
-      setExpandedAccordion('login-detail');
-    }
-  }, [loginErrorHighlight]);
+  // 既存のselectedElementベースのアコーディオン展開機能を使用するため、
+  // 個別のuseEffectは削除
 
   // ドラッグ&ドロップハンドラー
   const handleDragStart = (e, question, index) => {
