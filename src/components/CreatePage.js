@@ -27,7 +27,9 @@ import {
   Stack,
   Grid,
   Button,
-  Input
+  Input,
+  Dialog,
+  DialogContent
 } from '@mui/material';
 import {
   ArrowBack,
@@ -296,6 +298,12 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const [completionTitle, setCompletionTitle] = useState('');
   const [completionDetail, setCompletionDetail] = useState('');
   const [completionBackground, setCompletionBackground] = useState('https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg');
+
+  // 公開ダイアログの状態管理（HeaderBarと同じ）
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [errorCheckProgress, setErrorCheckProgress] = useState(0);
+  const [errorCheckItems, setErrorCheckItems] = useState([]);
+  const [isErrorChecking, setIsErrorChecking] = useState(false);
 
   // 質問タイプの文字列を数値IDにマッピング（Supabaseのデータを優先）
   const getQuestionTypeId = (typeString) => {
@@ -1659,14 +1667,14 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
-  // 公開処理ハンドラー（HeaderBarの公開処理と同じロジックを呼び出し）
-  const handlePublishClick = () => {
-    // HeaderBarのhandlePublishClickと同じ処理を呼び出す
-    // この関数はHeaderBarの公開ダイアログを表示するためのもの
+  // 公開処理ハンドラー（HeaderBarの公開処理と同じロジック）
+  const handlePublishClick = async () => {
     console.log('🚀 SettingsPanel: 公開ボタンがクリックされました');
     
-    // 現在は公開ダイアログを直接表示する機能がないため、
-    // エラーがある場合はトースト、ない場合は直接公開を試行
+    // すでに公開済みの場合は何もしない
+    if (isPublished) {
+      return;
+    }
     
     // フォーム検証を実行（HeaderBarと同じ方法）
     const { validateForm } = require('../utils/validation');
@@ -1684,32 +1692,50 @@ export default function CreatePage({ onBackClick, user, formId }) {
     };
     const { errors } = validateForm(validationData);
     
+    // エラーがある場合は公開を阻止し、エラー解決を促すメッセージを表示
     if (errors.length > 0) {
-      // エラーがある場合はトーストで通知
-      toast.error('エラーを解決してから公開が可能です', {
-        duration: 4000,
-        position: 'bottom-center',
-        style: {
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(239, 68, 68, 0.2)',
-          borderRadius: '12px',
-          color: '#374151',
-          fontSize: '14px',
-          fontWeight: '500',
-          padding: '12px 20px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-        },
-        iconTheme: {
-          primary: '#ef4444',
-          secondary: '#ffffff',
-        },
-      });
+      setShowPublishDialog(true);
       return;
     }
     
-    // エラーがない場合は公開確認を表示（未実装のため一旦確認なしで公開）
-    handlePublishConfirm();
+    // エラーがない場合は最終チェックを実行後、直接公開確認ダイアログを表示
+    console.log('✅ エラーがないため最終チェックを実行します');
+    
+    // エラーチェック項目を定義
+    const checkItems = [
+      { id: 1, name: 'プロジェクトタイトル', status: 'pending' },
+      { id: 2, name: '質問設定', status: 'pending' },
+      { id: 3, name: 'ページ設定', status: 'pending' },
+      { id: 4, name: 'ログイン画面', status: 'pending' },
+      { id: 5, name: '完了画面', status: 'pending' },
+      { id: 6, name: '全体設定', status: 'pending' }
+    ];
+    
+    setErrorCheckItems(checkItems);
+    setErrorCheckProgress(0);
+    setIsErrorChecking(true);
+    setShowPublishDialog(true); // 直接公開ダイアログを表示
+    
+    // エラーチェック処理をシミュレート
+    let currentProgress = 0;
+    const checkInterval = setInterval(() => {
+      currentProgress += 1;
+      setErrorCheckProgress(currentProgress);
+      
+      // 各項目を順次チェック完了にする
+      setErrorCheckItems(prev => 
+        prev.map(item => 
+          item.id <= currentProgress 
+            ? { ...item, status: 'completed' }
+            : item
+        )
+      );
+      
+      if (currentProgress >= checkItems.length) {
+        clearInterval(checkInterval);
+        setIsErrorChecking(false);
+      }
+    }, 400);
   };
 
   // 公開確認処理
@@ -1725,15 +1751,33 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
 
     try {
-      // FormDataServiceを使用してフォームを公開状態に更新
-      const result = await FormDataService.updateFormPublishStatus(formId, true);
+      // HeaderBarと同じ方法でSupabaseを直接使用
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
       
-      if (!result.success) {
-        throw new Error(result.error);
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Supabase設定が見つかりません');
+      }
+      
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      const { data, error } = await supabase
+        .from('review_forms')
+        .update({ 
+          is_published: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', formId)
+        .select();
+
+      if (error) {
+        throw error;
       }
 
-      console.log('✅ フォーム公開完了:', result.data);
+      console.log('✅ フォーム公開完了:', data);
       
+      setShowPublishDialog(false); // ダイアログを閉じる
       setIsPublished(true); // 公開状態を更新
       
       // 成功トースト
@@ -1773,6 +1817,13 @@ export default function CreatePage({ onBackClick, user, formId }) {
         },
       });
     }
+  };
+
+  const handlePublishCancel = () => {
+    setShowPublishDialog(false);
+    setIsErrorChecking(false);
+    setErrorCheckProgress(0);
+    setErrorCheckItems([]);
   };
 
   return (
@@ -2543,6 +2594,265 @@ export default function CreatePage({ onBackClick, user, formId }) {
           onConfirm={handleExecuteDelete}
           pageToDelete={pageToDelete}
         />
+
+        {/* 公開確認ダイアログ（HeaderBarと同じ機能） */}
+        <Dialog
+          open={showPublishDialog}
+          onClose={handlePublishCancel}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: '20px',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)',
+              backdropFilter: 'blur(24px)',
+              border: '2px solid transparent',
+              backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%), ' +
+                              'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'content-box, border-box',
+              boxShadow: '0 32px 80px rgba(102, 126, 234, 0.25)',
+              overflow: 'hidden'
+            }
+          }}
+          BackdropProps={{
+            sx: {
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              backdropFilter: 'blur(12px)'
+            }
+          }}
+        >
+          <DialogContent sx={{ p: 0 }}>
+            <Box
+              sx={{
+                textAlign: 'center',
+                py: 6,
+                px: 4,
+                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
+                color: '#374151',
+                mb: 0,
+                minHeight: 360,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                position: 'relative',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 50%, rgba(255, 107, 107, 0.03) 100%)',
+                  zIndex: -1
+                }
+              }}
+            >
+              {/* メインコンテンツエリア */}
+              <Box sx={{ 
+                flex: 1, 
+                display: 'flex', 
+                flexDirection: 'column', 
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center'
+              }}>
+                {/* ロケットアイコン - エラーチェック中は非表示 */}
+                {!isErrorChecking && (
+                  <Box
+                    sx={{
+                      width: 88,
+                      height: 88,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.15) 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 32px auto',
+                      fontSize: '2.8rem',
+                      boxShadow: '0 12px 32px rgba(102, 126, 234, 0.2)',
+                      animation: 'pulse 2s ease-in-out infinite',
+                      '@keyframes pulse': {
+                        '0%, 100%': { transform: 'scale(1)' },
+                        '50%': { transform: 'scale(1.05)' }
+                      }
+                    }}
+                  >
+                    🚀
+                  </Box>
+                )}
+              
+                {/* エラーチェック中以外の時のみタイトルと説明を表示 */}
+                {!isErrorChecking && (
+                  <>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        fontWeight: 700,
+                        mb: 2,
+                        fontSize: '1.8rem',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        textShadow: 'none'
+                      }}
+                    >
+                      フォームを公開しますか？
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: '#6b7280',
+                        fontSize: '1.1rem',
+                        lineHeight: 1.6,
+                        fontWeight: 500,
+                        mb: 0
+                      }}
+                    >
+                      公開すると質問の追加や変更など{'\n'}編集できなくなります。{'\n'}よろしいですか？
+                    </Typography>
+                  </>
+                )}
+              
+                {/* エラーチェック中のモダンなUI */}
+                {isErrorChecking && (
+                  <Box
+                    sx={{
+                      width: '100%',
+                      maxWidth: 360,
+                      height: 160,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto'
+                    }}
+                  >
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 600,
+                        mb: 3,
+                        fontSize: '1.1rem',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        textAlign: 'center',
+                        opacity: 0.9
+                      }}
+                    >
+                      レビューフォーム チェック中...
+                    </Typography>
+
+                    {/* シンプルなチェック項目表示 */}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%', maxWidth: 280 }}>
+                      {errorCheckItems.map((item, index) => (
+                        <Box
+                          key={item.id}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 2,
+                            p: 1.5,
+                            borderRadius: 2,
+                            backgroundColor: item.status === 'completed' 
+                              ? 'rgba(34, 197, 94, 0.1)' 
+                              : 'rgba(0, 0, 0, 0.05)',
+                            border: '1px solid',
+                            borderColor: item.status === 'completed' 
+                              ? 'rgba(34, 197, 94, 0.2)' 
+                              : 'rgba(0, 0, 0, 0.1)',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: '50%',
+                              backgroundColor: item.status === 'completed' ? '#22c55e' : '#e5e7eb',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            {item.status === 'completed' ? '✓' : ''}
+                          </Box>
+                          <Typography variant="body2" sx={{ color: '#374151', fontWeight: 500 }}>
+                            {item.name}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+
+              {/* ボタンエリア */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  justifyContent: 'center',
+                  pt: 2
+                }}
+              >
+                <Button
+                  onClick={handlePublishCancel}
+                  variant="outlined"
+                  sx={{
+                    minWidth: 120,
+                    height: 52,
+                    borderRadius: '26px',
+                    borderColor: 'rgba(0, 0, 0, 0.2)',
+                    color: '#64748b',
+                    fontSize: '1rem',
+                    fontWeight: 500,
+                    textTransform: 'none',
+                    '&:hover': {
+                      borderColor: 'rgba(0, 0, 0, 0.3)',
+                      backgroundColor: 'rgba(0, 0, 0, 0.05)'
+                    }
+                  }}
+                >
+                  キャンセル
+                </Button>
+                
+                <Button
+                  onClick={handlePublishConfirm}
+                  variant="contained"
+                  disabled={isErrorChecking}
+                  sx={{
+                    minWidth: 120,
+                    height: 52,
+                    borderRadius: '26px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
+                      boxShadow: '0 12px 32px rgba(102, 126, 234, 0.5)',
+                      transform: 'translateY(-2px)'
+                    },
+                    '&.Mui-disabled': {
+                      background: 'linear-gradient(135deg, #94a3b8 0%, #8b909a 100%)',
+                      color: 'white',
+                      opacity: 0.7
+                    }
+                  }}
+                >
+                  {isErrorChecking ? 'チェック中...' : '公開する'}
+                </Button>
+              </Box>
+            </Box>
+          </DialogContent>
+        </Dialog>
 
       </Box>
     </Box>

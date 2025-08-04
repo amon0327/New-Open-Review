@@ -1277,6 +1277,8 @@ export class FormDataService {
    */
   static async updateFormPublishStatus(formId, isPublished) {
     try {
+      console.log('FormDataService.updateFormPublishStatus called with:', { formId, isPublished });
+      
       const { data, error } = await supabase
         .from('review_forms')
         .update({ 
@@ -1287,8 +1289,11 @@ export class FormDataService {
         .select();
 
       if (error) {
+        console.error('Supabase error:', error);
         throw error;
       }
+
+      console.log('Supabase update successful:', data);
 
       return {
         success: true,
