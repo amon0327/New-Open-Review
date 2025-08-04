@@ -1524,13 +1524,14 @@ const HeaderBar = ({
             <Box sx={{ 
               flex: 1, 
               display: 'flex', 
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 4,
-              textAlign: 'left'
+              justifyContent: 'center',
+              textAlign: 'center',
+              gap: 3
             }}>
-              {/* 左側: テキストコンテンツ */}
-              <Box sx={{ flex: 1 }}>
+              {/* タイトルとメッセージ */}
+              <Box sx={{ mb: 2 }}>
                 <Typography
                   variant="h4"
                   sx={{
@@ -1544,7 +1545,7 @@ const HeaderBar = ({
                     textShadow: 'none'
                   }}
                 >
-                  公開完了！
+                  🎉 フォーム公開完了！
                 </Typography>
                 
                 <Typography
@@ -1553,48 +1554,76 @@ const HeaderBar = ({
                     color: '#6b7280',
                     fontSize: '1rem',
                     lineHeight: 1.6,
-                    fontWeight: 500,
-                    mb: 3
+                    fontWeight: 500
                   }}
                 >
-                  フォームが公開されました。
-                  <br />
-                  QRコードまたはURLからアクセスできます。
+                  フォームが正常に公開されました。以下の方法でアクセスできます。
                 </Typography>
+              </Box>
 
-                {/* URL表示・コピー */}
+              {/* QRコードとURL - 横並び */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  width: '100%',
+                  maxWidth: 480,
+                  p: 3,
+                  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(0, 0, 0, 0.05)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06)',
+                  backdropFilter: 'blur(20px)'
+                }}
+              >
+                {/* QRコード */}
                 <Box
                   sx={{
-                    p: 3,
-                    backgroundColor: 'rgba(248, 249, 250, 0.6)',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(0, 0, 0, 0.06)',
-                    backdropFilter: 'blur(10px)'
+                    p: 2,
+                    backgroundColor: 'white',
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+                    border: '1px solid rgba(0, 0, 0, 0.04)'
                   }}
                 >
+                  <img
+                    src={generateQRCode(publishedUrl)}
+                    alt="QR Code"
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      display: 'block'
+                    }}
+                  />
+                </Box>
+
+                {/* URL部分 */}
+                <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography
-                    variant="body2"
+                    variant="caption"
                     sx={{
-                      color: '#6b7280',
-                      fontSize: '0.85rem',
-                      mb: 2,
+                      color: '#9ca3af',
+                      fontSize: '0.75rem',
                       fontWeight: 600,
                       letterSpacing: '0.5px',
-                      textTransform: 'uppercase'
+                      textTransform: 'uppercase',
+                      display: 'block',
+                      mb: 1.5
                     }}
                   >
-                    フォーム URL
+                    フォームURL
                   </Typography>
+                  
                   <Box
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 2,
-                      p: 2.5,
-                      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(0, 0, 0, 0.06)',
-                      backdropFilter: 'blur(10px)'
+                      gap: 1.5,
+                      p: 2,
+                      backgroundColor: 'rgba(248, 249, 250, 0.8)',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(0, 0, 0, 0.06)'
                     }}
                   >
                     <Typography
@@ -1602,72 +1631,36 @@ const HeaderBar = ({
                       sx={{
                         flex: 1,
                         color: '#374151',
-                        fontSize: '0.9rem',
+                        fontSize: '0.85rem',
                         fontFamily: 'monospace',
                         fontWeight: 500,
-                        wordBreak: 'break-all'
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
                       }}
                     >
                       {publishedUrl}
                     </Typography>
+                    
                     <IconButton
                       onClick={handleCopyUrl}
                       size="small"
                       sx={{
                         color: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.08)',
-                        border: '1px solid rgba(102, 126, 234, 0.15)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        width: 32,
+                        height: 32,
                         '&:hover': {
-                          backgroundColor: 'rgba(102, 126, 234, 0.15)',
+                          backgroundColor: 'rgba(102, 126, 234, 0.2)',
                           transform: 'scale(1.05)'
                         },
                         transition: 'all 0.2s ease'
                       }}
                     >
-                      <ContentCopy sx={{ fontSize: 16 }} />
+                      <ContentCopy sx={{ fontSize: 14 }} />
                     </IconButton>
                   </Box>
                 </Box>
-              </Box>
-
-              {/* 右側: QRコード */}
-              <Box sx={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center',
-                gap: 1
-              }}>
-                <Box
-                  sx={{
-                    p: 2,
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    borderRadius: '16px',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-                    border: '1px solid rgba(0, 0, 0, 0.06)',
-                    backdropFilter: 'blur(10px)'
-                  }}
-                >
-                  <img
-                    src={generateQRCode(publishedUrl)}
-                    alt="QR Code"
-                    style={{
-                      width: '120px',
-                      height: '120px',
-                      display: 'block'
-                    }}
-                  />
-                </Box>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: '#9ca3af',
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    textAlign: 'center'
-                  }}
-                >
-                  QRコード
-                </Typography>
               </Box>
             </Box>
 
