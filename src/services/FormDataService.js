@@ -1310,6 +1310,39 @@ export class FormDataService {
       };
     }
   }
+
+  /**
+   * 単一フォームの基本データを取得
+   * @param {string} formId - フォームのID
+   * @returns {Promise<Object>} フォーム基本データ
+   */
+  static async getFormBasicData(formId) {
+    try {
+      const { data, error } = await supabase
+        .from('review_forms')
+        .select('id, title, is_published, created_at, updated_at, business_users')
+        .eq('id', formId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return {
+        success: true,
+        data: data,
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Form basic data fetch error:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
 }
 
 export default FormDataService;

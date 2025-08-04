@@ -38,7 +38,7 @@ export const useCreatePageState = () => {
   const [isEditingTitle, setIsEditingTitle] = useState(false); // タイトル編集状態
   const [showColorPicker, setShowColorPicker] = useState(false); // カラーピッカー表示状態
   const [selectedColor, setSelectedColor] = useState('#5e17eb'); // 選択されたテーマカラー
-  const [isPublished, setIsPublished] = useState(true); // 公開状態
+  const [isPublished, setIsPublished] = useState(false); // 公開状態（データベースから読み込まれる）
   const [projectDescription, setProjectDescription] = useState(''); // プロジェクト説明
   const [selectedFont, setSelectedFont] = useState('Inter'); // 選択されたフォント
   const [logoPreview, setLogoPreview] = useState(null); // ロゴプレビュー

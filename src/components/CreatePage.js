@@ -532,6 +532,34 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   }, [pages, selectedPage, setSelectedPage]);
 
+  // フォーム基本データを読み込み（公開状態を含む）
+  useEffect(() => {
+    const loadFormBasicData = async () => {
+      if (formId) {
+        try {
+          const result = await FormDataService.getFormBasicData(formId);
+          if (result.success) {
+            console.log('📊 フォーム基本データ読み込み成功:', result.data);
+            
+            // 公開状態を設定
+            setIsPublished(result.data.is_published || false);
+            
+            // プロジェクトタイトルも更新（必要に応じて）
+            if (result.data.title && result.data.title !== 'OpenReview フォーム') {
+              setProjectTitle(result.data.title);
+            }
+          } else {
+            console.error('❌ フォーム基本データ読み込み失敗:', result.error);
+          }
+        } catch (error) {
+          console.error('❌ フォーム基本データ読み込みエラー:', error);
+        }
+      }
+    };
+
+    loadFormBasicData();
+  }, [formId, setIsPublished, setProjectTitle]);
+
   // 読み込み済みページを追跡するRef
   const loadedPages = useRef(new Set());
 
@@ -1902,6 +1930,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
           onProjectTitleUpdate={handleProjectTitleUpdate}
           isSaving={showSavingIndicator}
           formId={formId}
+          isPublished={isPublished}
+          setIsPublished={setIsPublished}
           formData={{
             questions: allQuestions,
             pages,
