@@ -259,21 +259,36 @@ export default function HomePage({ user, onCreateFormClick }) {
             OpenReviewの記事一覧
           </Typography>
 
-          {/* PC版グリッドレイアウト */}
-          <Grid container spacing={2} justifyContent="flex-start">
+          {/* 横スクロール可能なレイアウト */}
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              pb: 2,
+              '&::-webkit-scrollbar': {
+                height: 8,
+              },
+              '&::-webkit-scrollbar-track': {
+                backgroundColor: 'rgba(0,0,0,0.1)',
+                borderRadius: 4,
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                borderRadius: 4,
+                '&:hover': {
+                  backgroundColor: 'rgba(94, 23, 235, 0.5)',
+                },
+              },
+            }}
+          >
             {articles.map((article, index) => (
-              <Grid 
-                item 
-                xs={12}    // 1列（スマートフォン）
-                sm={6}     // 2列（タブレット）
-                md={3}     // 4列（PC - 960px以上）
-                lg={3}     // 4列（デスクトップ - 1280px以上）
-                xl={3}     // 4列（大画面 - 1920px以上）
+              <Box
                 key={article.id}
                 sx={{
+                  flex: '0 0 auto',
                   animation: `${fadeInUp} 0.3s ease-out ${index * 0.05}s both`,
-                  display: 'flex',
-                  justifyContent: 'flex-start'
                 }}
               >
                 <ArticleCard>
@@ -369,9 +384,9 @@ export default function HomePage({ user, onCreateFormClick }) {
                     </Box>
                   </CardContent>
                 </ArticleCard>
-              </Grid>
+              </Box>
             ))}
-          </Grid>
+          </Box>
         </Container>
       </Box>
     </motion.div>
