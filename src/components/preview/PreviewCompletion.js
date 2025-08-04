@@ -35,6 +35,18 @@ const PreviewCompletion = ({
 
   const isMobile = previewMode === 'mobile';
 
+  // エラーハイライトの状態をログ出力
+  React.useEffect(() => {
+    console.log('🔴 PreviewCompletion - completionErrorHighlight状態変更:', completionErrorHighlight);
+    if (completionErrorHighlight) {
+      console.log('🔴 PreviewCompletion - エラーハイライト受信:', {
+        errorId: completionErrorHighlight.errorId,
+        fieldType: completionErrorHighlight.fieldType,
+        isTitleError: completionErrorHighlight.fieldType === 'title',
+        isDetailError: completionErrorHighlight.fieldType === 'detail'
+      });
+    }
+  }, [completionErrorHighlight]);
 
   // Supabaseから完了画面データを取得（必要に応じて）
   useEffect(() => {
@@ -45,14 +57,10 @@ const PreviewCompletion = ({
       }
 
       try {
-        const result = await FormDataService.getReviewFormWithDetails(formId);
-        if (result.success) {
-          const data = {
-            completionSettings: result.data.completion_screen_settings?.[0] || null,
-            formSettings: result.data.review_form_settings?.[0] || null
-          };
-          setCompletionData(data);
-        }
+        // FormDataService.getReviewFormWithDetails関数が存在しないため、
+        // 現在はpropsから受け取ったデータを使用
+        console.log('PreviewCompletion - Using props data instead of Supabase fetch');
+        setCompletionData(null);
       } catch (error) {
         console.error('Error fetching completion data:', error);
       } finally {
@@ -86,9 +94,9 @@ const PreviewCompletion = ({
   const isDetailHint = detailText === 'テキストを入力...';
   const isButtonHint = displayButtonText === 'テキストを入力...';
 
-  // ハイライト条件をデバッグ
-  const isTitleHighlighted = selectedElement === 'completion-title' || (completionErrorHighlight && completionErrorHighlight.fieldType === 'title');
-  const isDetailHighlighted = selectedElement === 'completion-detail' || (completionErrorHighlight && completionErrorHighlight.fieldType === 'detail');
+  // ハイライト条件をデバッグ（安全なチェック）
+  const isTitleHighlighted = selectedElement === 'completion-title' || (completionErrorHighlight?.fieldType === 'title');
+  const isDetailHighlighted = selectedElement === 'completion-detail' || (completionErrorHighlight?.fieldType === 'detail');
   
   console.log('🔴 PreviewCompletion - ハイライト条件:', {
     selectedElement,
@@ -243,7 +251,7 @@ const PreviewCompletion = ({
                 left: -16,
                 right: -16,
                 bottom: -8,
-                backgroundColor: (completionErrorHighlight && completionErrorHighlight.fieldType === 'title') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
+                backgroundColor: (completionErrorHighlight?.fieldType === 'title') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
                 borderRadius: 2,
                 zIndex: -1,
                 pointerEvents: 'none'
@@ -283,7 +291,7 @@ const PreviewCompletion = ({
                 left: -16,
                 right: -16,
                 bottom: -8,
-                backgroundColor: (completionErrorHighlight && completionErrorHighlight.fieldType === 'detail') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
+                backgroundColor: (completionErrorHighlight?.fieldType === 'detail') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
                 borderRadius: 2,
                 zIndex: -1,
                 pointerEvents: 'none'

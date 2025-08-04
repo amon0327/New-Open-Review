@@ -86,9 +86,9 @@ const PreviewLogin = ({
   const displayButtonText = buttonText || '回答へ進む';
   const displayButtonUrl = buttonUrl || '#';
 
-  // ハイライト条件をデバッグ
-  const isTitleHighlighted = selectedElement === 'login-title' || (loginErrorHighlight && loginErrorHighlight.fieldType === 'title');
-  const isDetailHighlighted = selectedElement === 'login-detail' || (loginErrorHighlight && loginErrorHighlight.fieldType === 'detail');
+  // ハイライト条件をデバッグ（安全なチェック）
+  const isTitleHighlighted = selectedElement === 'login-title' || (loginErrorHighlight?.fieldType === 'title');
+  const isDetailHighlighted = selectedElement === 'login-detail' || (loginErrorHighlight?.fieldType === 'detail');
   
   console.log('🔴 PreviewLogin - ハイライト条件:', {
     selectedElement,
@@ -228,7 +228,7 @@ const PreviewLogin = ({
                   left: -16,
                   right: -16,
                   bottom: -8,
-                  backgroundColor: (loginErrorHighlight && loginErrorHighlight.fieldType === 'title') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
+                  backgroundColor: (loginErrorHighlight?.fieldType === 'title') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
                   borderRadius: 2,
                   zIndex: -1,
                   pointerEvents: 'none'
@@ -268,7 +268,7 @@ const PreviewLogin = ({
                   left: -16,
                   right: -16,
                   bottom: -8,
-                  backgroundColor: (loginErrorHighlight && loginErrorHighlight.fieldType === 'detail') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
+                  backgroundColor: (loginErrorHighlight?.fieldType === 'detail') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
                   borderRadius: 2,
                   zIndex: -1,
                   pointerEvents: 'none'
