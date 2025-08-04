@@ -304,6 +304,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const [errorCheckProgress, setErrorCheckProgress] = useState(0);
   const [errorCheckItems, setErrorCheckItems] = useState([]);
   const [isErrorChecking, setIsErrorChecking] = useState(false);
+  const [publishDialogErrors, setPublishDialogErrors] = useState([]);
+  const [publishDialogWarnings, setPublishDialogWarnings] = useState([]);
 
   // 質問タイプの文字列を数値IDにマッピング（Supabaseのデータを優先）
   const getQuestionTypeId = (typeString) => {
@@ -1718,10 +1720,15 @@ export default function CreatePage({ onBackClick, user, formId }) {
       completionTitle,
       completionDetail
     };
-    const { errors } = validateForm(validationData);
+    const { errors, warnings } = validateForm(validationData);
     
-    // エラーがある場合は公開を阻止し、エラー解決を促すメッセージを表示
+    // エラーと警告を状態に設定
+    setPublishDialogErrors(errors);
+    setPublishDialogWarnings(warnings);
+    
+    // エラーがある場合は公開を阻止し、エラー表示ダイアログを表示
     if (errors.length > 0) {
+      console.log('❌ エラーが検出されました:', errors);
       setShowPublishDialog(true);
       return;
     }
@@ -1852,6 +1859,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
     setIsErrorChecking(false);
     setErrorCheckProgress(0);
     setErrorCheckItems([]);
+    setPublishDialogErrors([]);
+    setPublishDialogWarnings([]);
   };
 
   return (
@@ -2638,10 +2647,14 @@ export default function CreatePage({ onBackClick, user, formId }) {
               backdropFilter: 'blur(24px)',
               border: '2px solid transparent',
               backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%), ' +
-                              'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                              (publishDialogErrors.length > 0 
+                                ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
+                                : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)'),
               backgroundOrigin: 'border-box',
               backgroundClip: 'content-box, border-box',
-              boxShadow: '0 32px 80px rgba(102, 126, 234, 0.25)',
+              boxShadow: publishDialogErrors.length > 0 
+                ? '0 32px 80px rgba(239, 68, 68, 0.25)' 
+                : '0 32px 80px rgba(102, 126, 234, 0.25)',
               overflow: 'hidden'
             }
           }}
@@ -2658,7 +2671,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
                 textAlign: 'center',
                 py: 6,
                 px: 4,
-                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
+                background: publishDialogErrors.length > 0 
+                  ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.08) 50%, rgba(185, 28, 28, 0.08) 100%)'
+                  : 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
                 color: '#374151',
                 mb: 0,
                 minHeight: 360,
@@ -2673,7 +2688,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 50%, rgba(255, 107, 107, 0.03) 100%)',
+                  background: publishDialogErrors.length > 0 
+                    ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.03) 0%, rgba(220, 38, 38, 0.03) 50%, rgba(185, 28, 28, 0.03) 100%)'
+                    : 'linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 50%, rgba(255, 107, 107, 0.03) 100%)',
                   zIndex: -1
                 }
               }}
@@ -2694,13 +2711,17 @@ export default function CreatePage({ onBackClick, user, formId }) {
                       width: 88,
                       height: 88,
                       borderRadius: '50%',
-                      background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.15) 100%)',
+                      background: publishDialogErrors.length > 0
+                        ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 50%, rgba(185, 28, 28, 0.15) 100%)'
+                        : 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.15) 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       margin: '0 auto 32px auto',
                       fontSize: '2.8rem',
-                      boxShadow: '0 12px 32px rgba(102, 126, 234, 0.2)',
+                      boxShadow: publishDialogErrors.length > 0
+                        ? '0 12px 32px rgba(239, 68, 68, 0.2)'
+                        : '0 12px 32px rgba(102, 126, 234, 0.2)',
                       animation: 'pulse 2s ease-in-out infinite',
                       '@keyframes pulse': {
                         '0%, 100%': { transform: 'scale(1)' },
@@ -2708,7 +2729,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                       }
                     }}
                   >
-                    🚀
+                    {publishDialogErrors.length > 0 ? '⚠️' : '🚀'}
                   </Box>
                 )}
               
@@ -2721,14 +2742,16 @@ export default function CreatePage({ onBackClick, user, formId }) {
                         fontWeight: 700,
                         mb: 2,
                         fontSize: '1.8rem',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                        background: publishDialogErrors.length > 0
+                          ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
+                          : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
                         backgroundClip: 'text',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
                         textShadow: 'none'
                       }}
                     >
-                      フォームを公開しますか？
+                      {publishDialogErrors.length > 0 ? 'エラーの解決が必要です' : 'フォームを公開しますか？'}
                     </Typography>
                     <Typography
                       variant="body1"
@@ -2737,12 +2760,80 @@ export default function CreatePage({ onBackClick, user, formId }) {
                         fontSize: '1.1rem',
                         lineHeight: 1.6,
                         fontWeight: 500,
-                        mb: 0
+                        mb: publishDialogErrors.length > 0 ? 2 : 0
                       }}
                     >
-                      公開すると質問の追加や変更など{'\n'}編集できなくなります。{'\n'}よろしいですか？
+                      {publishDialogErrors.length > 0 
+                        ? `${publishDialogErrors.length}件のエラーがあります。\nエラーを解決してから公開してください。`
+                        : '公開すると質問の追加や変更など\n編集できなくなります。\nよろしいですか？'
+                      }
                     </Typography>
                   </>
+                )}
+
+                {/* エラーがある場合のエラーリスト表示 */}
+                {!isErrorChecking && publishDialogErrors.length > 0 && (
+                  <Box sx={{ mt: 3, width: '100%', maxWidth: 400 }}>
+                    <Typography variant="h6" sx={{ 
+                      fontWeight: 600, 
+                      mb: 2, 
+                      color: '#ef4444',
+                      fontSize: '1rem'
+                    }}>
+                      エラー詳細:
+                    </Typography>
+                    {publishDialogErrors.slice(0, 5).map((error, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: 1.5,
+                          mb: 1.5,
+                          p: 2,
+                          borderRadius: 2,
+                          backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                          border: '1px solid rgba(239, 68, 68, 0.2)'
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 20,
+                            height: 20,
+                            borderRadius: '50%',
+                            backgroundColor: '#ef4444',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            mt: 0.1
+                          }}
+                        >
+                          <Typography sx={{ color: 'white', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                            !
+                          </Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ 
+                          color: '#991b1b', 
+                          fontWeight: 500,
+                          fontSize: '0.875rem',
+                          lineHeight: 1.4
+                        }}>
+                          {error.message}
+                        </Typography>
+                      </Box>
+                    ))}
+                    {publishDialogErrors.length > 5 && (
+                      <Typography variant="body2" sx={{ 
+                        color: '#ef4444',
+                        textAlign: 'center',
+                        mt: 1,
+                        fontStyle: 'italic'
+                      }}>
+                        他 {publishDialogErrors.length - 5} 件のエラーがあります
+                      </Typography>
+                    )}
+                  </Box>
                 )}
               
                 {/* エラーチェック中のモダンなUI */}
@@ -2854,7 +2945,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                 <Button
                   onClick={handlePublishConfirm}
                   variant="contained"
-                  disabled={isErrorChecking}
+                  disabled={isErrorChecking || publishDialogErrors.length > 0}
                   sx={{
                     minWidth: 120,
                     height: 52,
@@ -2877,7 +2968,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     }
                   }}
                 >
-                  {isErrorChecking ? 'チェック中...' : '公開する'}
+                  {isErrorChecking ? 'チェック中...' : (publishDialogErrors.length > 0 ? 'エラーを解決' : '公開する')}
                 </Button>
               </Box>
             </Box>
