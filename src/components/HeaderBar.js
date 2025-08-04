@@ -216,6 +216,42 @@ const HeaderBar = ({
     console.log('✅ プレビューダイアログを表示します');
     setShowPreviewDialog(true);
   };
+
+  const handlePublishClick = () => {
+    console.log('🚀 公開ボタンがクリックされました');
+    
+    // エラーがある場合は公開を阻止し、エラー解決を促すメッセージを表示
+    if (errorCount > 0) {
+      // react-hot-toastで中央下にエラーメッセージを表示
+      toast.error('エラーを解決してから公開が可能です', {
+        duration: 4000,
+        position: 'bottom-center',
+        style: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+          borderRadius: '12px',
+          color: '#374151',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        },
+        iconTheme: {
+          primary: '#ef4444',
+          secondary: '#ffffff',
+        },
+      });
+      return;
+    }
+    
+    console.log('✅ 公開処理を実行します');
+    // TODO: 公開処理を実装
+    toast.success('フォームを公開しました', {
+      duration: 3000,
+      position: 'bottom-center',
+    });
+  };
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
     setProjectTitle(newTitle);
@@ -446,7 +482,10 @@ const HeaderBar = ({
         </Tooltip>
         
         <Tooltip title="公開">
-          <IconButton sx={iconButtonStyles.secondary}>
+          <IconButton 
+            onClick={handlePublishClick}
+            sx={iconButtonStyles.secondary}
+          >
             <Rocket />
           </IconButton>
         </Tooltip>
