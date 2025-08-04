@@ -1784,8 +1784,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
             }
             // 質問を選択
             setSelectedQuestionId(questionId);
-            // 質問設定パネルを開く
-            setShowQuestionSettings(true);
             // エラーフィールドをハイライト
             setQuestionErrorHighlight(errorId);
             setTimeout(() => setQuestionErrorHighlight(null), 3000);

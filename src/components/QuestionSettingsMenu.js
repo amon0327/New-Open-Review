@@ -307,6 +307,9 @@ const QuestionSettingsMenu = ({
   // アコーディオンの展開状態
   const [expandedAccordion, setExpandedAccordion] = useState(null);
   
+  // 現在選択されている質問を取得
+  const currentQuestion = questions.find(q => q.id === selectedQuestionId);
+  
   // カラーピッカーの状態
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [localSelectedColor, setLocalSelectedColor] = useState(selectedColor);
@@ -1136,7 +1139,7 @@ const QuestionSettingsMenu = ({
               minRows={1}
               maxRows={3}
               placeholder="質問を入力してください..."
-              hasError={questionErrorHighlight === `missing-question-text-${currentQuestion.id}`}
+              hasError={currentQuestion && questionErrorHighlight === `missing-question-text-${currentQuestion.id}`}
             />
 
             {/* 詳細テキスト */}

@@ -317,7 +317,7 @@ const ScaleSettings = ({ settings, onChange, disabled = false }) => {
 };
 
 // 個別質問設定コンポーネント
-const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExpanded, onToggleExpand }) => {
+const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExpanded, onToggleExpand, questionErrorHighlight }) => {
   const [localQuestion, setLocalQuestion] = useState(question);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -857,6 +857,7 @@ const QuestionSettingsPanel = ({ selectedPage, questions = [], onUpdateQuestions
                 onDuplicate={handleDuplicateQuestion}
                 isExpanded={expandedQuestion === question.id}
                 onToggleExpand={() => handleToggleExpand(question.id)}
+                questionErrorHighlight={questionErrorHighlight}
               />
             ))}
           </AnimatePresence>
