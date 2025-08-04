@@ -298,7 +298,8 @@ const QuestionSettingsMenu = ({
   completionBackground,
   setCompletionBackground,
   questionErrorHighlight,
-  loginErrorHighlight
+  loginErrorHighlight,
+  completionErrorHighlight
 }) => {
   const [editingChoices, setEditingChoices] = useState({});
   const [selectedTab, setSelectedTab] = useState(2); // デフォルトで基本設定タブ
@@ -957,6 +958,28 @@ const QuestionSettingsMenu = ({
       }
     }
   }, [selectedPage]); // selectedPageが変更された時に実行
+
+  // completionErrorHighlightが設定された時にアコーディオンを自動で開く
+  useEffect(() => {
+    if (completionErrorHighlight && completionErrorHighlight.fieldType === 'title') {
+      console.log('🔴 QuestionSettingsMenu - 完了画面タイトルエラーのためアコーディオンを開きます');
+      setExpandedAccordion('completion-title');
+    } else if (completionErrorHighlight && completionErrorHighlight.fieldType === 'detail') {
+      console.log('🔴 QuestionSettingsMenu - 完了画面詳細エラーのためアコーディオンを開きます');
+      setExpandedAccordion('completion-detail');
+    }
+  }, [completionErrorHighlight]);
+
+  // loginErrorHighlightが設定された時にアコーディオンを自動で開く
+  useEffect(() => {
+    if (loginErrorHighlight && loginErrorHighlight.fieldType === 'title') {
+      console.log('🔴 QuestionSettingsMenu - ログイン画面タイトルエラーのためアコーディオンを開きます');
+      setExpandedAccordion('login-title');
+    } else if (loginErrorHighlight && loginErrorHighlight.fieldType === 'detail') {
+      console.log('🔴 QuestionSettingsMenu - ログイン画面詳細エラーのためアコーディオンを開きます');
+      setExpandedAccordion('login-detail');
+    }
+  }, [loginErrorHighlight]);
 
   // ドラッグ&ドロップハンドラー
   const handleDragStart = (e, question, index) => {
@@ -2954,6 +2977,7 @@ const QuestionSettingsMenu = ({
                   onChange={(e) => handleCompletionTitleChange(e.target.value)}
                   onBlur={handleCompletionTitleBlur}
                   placeholder="テキストを入力"
+                  hasError={completionErrorHighlight?.fieldType === 'title'}
                 />
               </AccordionDetails>
             </Accordion>
@@ -3027,6 +3051,7 @@ const QuestionSettingsMenu = ({
                   minRows={1}
                   maxRows={3}
                   placeholder="テキストを入力"
+                  hasError={completionErrorHighlight?.fieldType === 'detail'}
                 />
               </AccordionDetails>
             </Accordion>
