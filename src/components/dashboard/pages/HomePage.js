@@ -391,6 +391,249 @@ export default function HomePage({ user, onCreateFormClick }) {
             ))}
           </Box>
         </Container>
+
+        {/* フォーム一覧セクション */}
+        <Container maxWidth="lg" sx={{ mt: 6, mb: 4 }}>
+          {/* セクションタイトル */}
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              color: '#1a202c',
+              textAlign: 'left',
+              mb: 2
+            }}
+          >
+            作成したフォーム
+          </Typography>
+
+          {/* フォーム一覧グリッド */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: 3,
+              mt: 2,
+            }}
+          >
+            {/* サンプルフォームデータ */}
+            {[
+              {
+                id: 1,
+                title: "顧客満足度調査フォーム",
+                description: "サービス品質に関する包括的な評価フォーム",
+                status: "公開中",
+                responses: 127,
+                lastModified: "2024-08-03",
+                category: "調査"
+              },
+              {
+                id: 2,
+                title: "従業員フィードバックフォーム",
+                description: "チーム内での360度評価とパフォーマンス向上",
+                status: "下書き",
+                responses: 0,
+                lastModified: "2024-08-02",
+                category: "評価"
+              },
+              {
+                id: 3,
+                title: "プロジェクト評価フォーム",
+                description: "プロジェクト完了後の振り返りと改善点の収集",
+                status: "公開中",
+                responses: 45,
+                lastModified: "2024-08-01",
+                category: "レビュー"
+              }
+            ].map((form) => (
+              <Card
+                key={form.id}
+                sx={{
+                  borderRadius: 3,
+                  border: '1px solid rgba(0, 0, 0, 0.08)',
+                  boxShadow: '0 2px 12px rgba(0, 0, 0, 0.04)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  cursor: 'pointer',
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fafafa 100%)',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.12)',
+                    borderColor: 'rgba(94, 23, 235, 0.2)',
+                  },
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  {/* ステータスとカテゴリ */}
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    mb: 2 
+                  }}>
+                    <Chip
+                      label={form.status}
+                      size="small"
+                      sx={{
+                        backgroundColor: form.status === '公開中' ? '#e8f5e8' : '#fff3cd',
+                        color: form.status === '公開中' ? '#2e7d32' : '#856404',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                      }}
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
+                      }}
+                    >
+                      {form.category}
+                    </Typography>
+                  </Box>
+
+                  {/* タイトル */}
+                  <Typography
+                    variant="h6"
+                    component="h3"
+                    sx={{
+                      fontWeight: 600,
+                      mb: 1,
+                      fontSize: '1.1rem',
+                      lineHeight: 1.3,
+                      color: '#1a202c',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      minHeight: '2.6rem',
+                    }}
+                  >
+                    {form.title}
+                  </Typography>
+
+                  {/* 説明 */}
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                      mb: 3,
+                      lineHeight: 1.5,
+                      fontSize: '0.875rem',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      minHeight: '2.6rem',
+                    }}
+                  >
+                    {form.description}
+                  </Typography>
+
+                  {/* 統計とメタ情報 */}
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    pt: 2,
+                    borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: 'primary.main',
+                          fontWeight: 600,
+                          fontSize: '0.8rem',
+                        }}
+                      >
+                        {form.responses}回答
+                      </Typography>
+                    </Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        fontSize: '0.75rem',
+                      }}
+                    >
+                      {new Date(form.lastModified).toLocaleDateString('ja-JP', {
+                        month: 'short',
+                        day: 'numeric'
+                      })}更新
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            ))}
+
+            {/* 新しいフォーム作成カード */}
+            <Card
+              onClick={onCreateFormClick}
+              sx={{
+                borderRadius: 3,
+                border: '2px dashed rgba(94, 23, 235, 0.3)',
+                boxShadow: 'none',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: 'pointer',
+                background: 'linear-gradient(145deg, rgba(94, 23, 235, 0.02) 0%, rgba(102, 126, 234, 0.02) 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '200px',
+                '&:hover': {
+                  borderColor: 'rgba(94, 23, 235, 0.5)',
+                  background: 'linear-gradient(145deg, rgba(94, 23, 235, 0.05) 0%, rgba(102, 126, 234, 0.05) 100%)',
+                  transform: 'translateY(-2px)',
+                },
+              }}
+            >
+              <CardContent sx={{ 
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+              }}>
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                  }}
+                >
+                  <Add sx={{ fontSize: 24 }} />
+                </Box>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 600,
+                    color: '#1a202c',
+                    fontSize: '1rem',
+                  }}
+                >
+                  新しいフォームを作成
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  評価フォームを簡単に作成できます
+                </Typography>
+              </CardContent>
+            </Card>
+          </Box>
+        </Container>
       </Box>
     </motion.div>
   );
