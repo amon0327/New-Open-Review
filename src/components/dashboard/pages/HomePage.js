@@ -207,14 +207,10 @@ export default function HomePage({ user, onCreateFormClick }) {
     background: '#ffffff',
     position: 'relative',
     '&:hover': {
-      transform: 'translateY(-8px) scale(1.02)',
-      boxShadow: '0 16px 50px rgba(94, 23, 235, 0.2)',
+      boxShadow: '0 8px 30px rgba(94, 23, 235, 0.15)',
       '& .article-image': {
         transform: 'scale(1.05)',
       },
-    },
-    '&:active': {
-      transform: 'translateY(-4px) scale(1.01)',
     },
   }));
 

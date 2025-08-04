@@ -676,8 +676,8 @@ const HeaderBar = ({
                 }
               </Typography>
             
-            {/* エラーチェック中のモダンな抽象UI */}
-            {isErrorChecking && (
+              {/* エラーチェック中のモダンな抽象UI */}
+              {isErrorChecking && (
               <Box sx={{ mb: 0 }}>
                 {/* モダンな幾何学模様のローディング */}
                 <Box 
@@ -778,7 +778,7 @@ const HeaderBar = ({
                   検証中
                 </Typography>
               </Box>
-            )}
+              )}
             
               {/* エラーがある場合の追加メッセージ */}
               {errorCount > 0 && (
