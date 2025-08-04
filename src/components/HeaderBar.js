@@ -616,7 +616,7 @@ const HeaderBar = ({
               })
             }}
           >
-            {isPublished ? <CloudDone sx={{ color: '#22c55e' }} /> : <Rocket />}
+            <Rocket sx={{ color: isPublished ? '#22c55e' : 'inherit' }} />
           </IconButton>
         </Tooltip>
         
