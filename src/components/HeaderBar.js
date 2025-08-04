@@ -1343,7 +1343,7 @@ const HeaderBar = ({
                   }
                 }}
               >
-                <CloudDone sx={{ fontSize: '2.8rem', color: '#22c55e' }} />
+                <Rocket sx={{ fontSize: '2.8rem', color: '#22c55e' }} />
               </Box>
 
               <Typography
