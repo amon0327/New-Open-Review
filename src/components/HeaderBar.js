@@ -615,32 +615,35 @@ const HeaderBar = ({
           >
             {/* メインコンテンツエリア */}
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <Box
-                sx={{
-                  width: 88,
-                  height: 88,
-                  borderRadius: '50%',
-                  background: errorCount > 0
-                    ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 50%, rgba(185, 28, 28, 0.15) 100%)'
-                    : 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.15) 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mx: 'auto',
-                  mb: 4,
-                  fontSize: '2.8rem',
-                  boxShadow: errorCount > 0
-                    ? '0 12px 32px rgba(239, 68, 68, 0.2)'
-                    : '0 12px 32px rgba(102, 126, 234, 0.2)',
-                  animation: 'pulse 2s ease-in-out infinite',
-                  '@keyframes pulse': {
-                    '0%, 100%': { transform: 'scale(1)' },
-                    '50%': { transform: 'scale(1.05)' }
-                  }
-                }}
-              >
-                {errorCount > 0 ? '⚠️' : '🚀'}
-              </Box>
+              {/* ロケットアイコン - エラーチェック中は非表示 */}
+              {!isErrorChecking && (
+                <Box
+                  sx={{
+                    width: 88,
+                    height: 88,
+                    borderRadius: '50%',
+                    background: errorCount > 0
+                      ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 50%, rgba(185, 28, 28, 0.15) 100%)'
+                      : 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.15) 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mx: 'auto',
+                    mb: 4,
+                    fontSize: '2.8rem',
+                    boxShadow: errorCount > 0
+                      ? '0 12px 32px rgba(239, 68, 68, 0.2)'
+                      : '0 12px 32px rgba(102, 126, 234, 0.2)',
+                    animation: 'pulse 2s ease-in-out infinite',
+                    '@keyframes pulse': {
+                      '0%, 100%': { transform: 'scale(1)' },
+                      '50%': { transform: 'scale(1.05)' }
+                    }
+                  }}
+                >
+                  {errorCount > 0 ? '⚠️' : '🚀'}
+                </Box>
+              )}
               <Typography
                 variant="h4"
                 sx={{
@@ -678,15 +681,18 @@ const HeaderBar = ({
             
               {/* エラーチェック中のモダンな抽象UI */}
               {isErrorChecking && (
-              <Box sx={{ mb: 0 }}>
-                {/* モダンな幾何学模様のローディング */}
-                <Box 
-                  sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
+                <Box
+                  sx={{
+                    width: 88,
+                    height: 88,
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
+                    display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
+                    mx: 'auto',
                     mb: 4,
-                    height: 60,
+                    boxShadow: '0 12px 32px rgba(102, 126, 234, 0.15)',
                     position: 'relative'
                   }}
                 >
@@ -764,20 +770,25 @@ const HeaderBar = ({
                   ))}
                 </Box>
                 
-                {/* モダンな進捗表示 */}
-                <Typography
-                  sx={{
-                    textAlign: 'center',
-                    color: '#64748b',
-                    fontSize: '0.9rem',
-                    fontWeight: 500,
-                    opacity: 0.9,
-                    letterSpacing: '0.5px'
-                  }}
-                >
-                  検証中
-                </Typography>
-              </Box>
+                  {/* モダンな進捗表示 */}
+                  <Typography
+                    sx={{
+                      textAlign: 'center',
+                      color: '#64748b',
+                      fontSize: '0.9rem',
+                      fontWeight: 500,
+                      opacity: 0.9,
+                      letterSpacing: '0.5px',
+                      position: 'absolute',
+                      bottom: -35,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    検証中
+                  </Typography>
+                </Box>
               )}
             
               {/* エラーがある場合の追加メッセージ */}
