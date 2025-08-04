@@ -192,8 +192,8 @@ export default function HomePage({ user, onCreateFormClick }) {
 
   // シンプルな記事カード用スタイル  
   const ArticleCard = styled(Card)(({ theme }) => ({
-    height: '380px',
-    minHeight: '380px',
+    height: '320px',
+    minHeight: '320px',
     maxWidth: '280px',
     width: '100%',
     margin: '0 auto',
