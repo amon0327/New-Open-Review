@@ -1,7 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import EmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
 import { 
   Box, 
   Typography, 
@@ -35,9 +33,7 @@ import {
   Delete,
   Share,
   Analytics,
-  ContentCopy,
-  ArrowBackIos,
-  ArrowForwardIos
+  ContentCopy
 } from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
 import FormDataService from '../../../services/FormDataService';
@@ -54,27 +50,6 @@ export default function HomePage({ user, onCreateFormClick }) {
   const [articles, setArticles] = useState([]);
   const [articlesLoading, setArticlesLoading] = useState(true);
   const [articlesError, setArticlesError] = useState(null);
-  
-  // カルーセルのオプションを安定化
-  const carouselOptions = useMemo(() => ({
-    loop: true,
-    dragFree: false,
-    containScroll: false,
-    align: 'center',
-    slidesToScroll: 1,
-    skipSnaps: false
-  }), []);
-
-  const carouselPlugins = useMemo(() => [
-    Autoplay({ delay: 5000, stopOnInteraction: false })
-  ], []);
-
-  // カルーセル用の状態
-  const [emblaRef, emblaApi] = EmblaCarousel(carouselOptions, carouselPlugins);
-
-  // カルーセルAPIの状態を追跡
-  const [prevButtonDisabled, setPrevButtonDisabled] = useState(true);
-  const [nextButtonDisabled, setNextButtonDisabled] = useState(true);
 
 
   // フォーム一覧を取得
@@ -123,34 +98,6 @@ export default function HomePage({ user, onCreateFormClick }) {
     fetchArticles();
   }, []);
 
-  // カルーセルボタンの状態を更新する関数
-  const onSelect = useCallback((emblaApi) => {
-    setPrevButtonDisabled(!emblaApi.canScrollPrev());
-    setNextButtonDisabled(!emblaApi.canScrollNext());
-  }, []);
-
-  // カルーセルAPIが初期化されたときのイベントリスナー設定
-  useEffect(() => {
-    if (!emblaApi) return;
-
-    onSelect(emblaApi);
-    emblaApi.on('reInit', onSelect);
-    emblaApi.on('select', onSelect);
-
-    return () => {
-      emblaApi.off('reInit', onSelect);
-      emblaApi.off('select', onSelect);
-    };
-  }, [emblaApi, onSelect]);
-
-  // カルーセルナビゲーション関数
-  const scrollToPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollToNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
 
   // メニューハンドラー
   const handleMenuClick = (event, form) => {
@@ -243,102 +190,49 @@ export default function HomePage({ user, onCreateFormClick }) {
     },
   }));
 
-  // カルーセル用スタイル
-  const CarouselContainer = styled(Box)(({ theme }) => ({
-    position: 'relative',
+  // シンプルな記事カード用スタイル  
+  const ArticleCard = styled(Card)(({ theme }) => ({
+    height: '320px',
+    maxWidth: '280px',
     width: '100%',
-    maxWidth: '1200px',
     margin: '0 auto',
-    '& .embla': {
-      overflow: 'hidden',
-      borderRadius: '16px',
-      boxShadow: '0 8px 40px rgba(0, 0, 0, 0.12)',
-    },
-    '& .embla__container': {
-      display: 'flex',
-    },
-    '& .embla__slide': {
-      flex: '0 0 100%',
-      minWidth: 0,
-    },
-  }));
-
-  const CarouselSlide = styled(Box)(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'stretch',
-    backgroundColor: '#ffffff',
-    minHeight: '400px',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      transform: 'scale(1.02)',
-    },
-    [theme.breakpoints.down('md')]: {
-      flexDirection: 'column',
-      minHeight: '500px',
-    },
-  }));
-
-  const SlideContent = styled(Box)(({ theme }) => ({
-    flex: '0 0 35%',
-    padding: '48px 40px',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
-    background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-    [theme.breakpoints.down('md')]: {
-      flex: '1',
-      padding: '32px 24px',
+    borderRadius: 12,
+    border: 'none',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+    cursor: 'pointer',
+    overflow: 'hidden',
+    background: '#ffffff',
+    position: 'relative',
+    '&:hover': {
+      transform: 'translateY(-8px)',
+      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
+      '& .article-image': {
+        transform: 'scale(1.05)',
+      },
     },
   }));
 
-  const SlideImage = styled(Box)(({ theme }) => ({
-    flex: '0 0 65%',
+  const ArticleImage = styled(CardMedia)({
+    width: '100%',
+    height: '160px',
     position: 'relative',
     overflow: 'hidden',
+    display: 'block',
+    backgroundColor: '#f5f5f5',
+    flex: 'none',
     '& img': {
       width: '100%',
       height: '100%',
       objectFit: 'cover',
-      transition: 'transform 0.3s ease',
+      objectPosition: 'center',
+      transition: 'transform 0.4s ease',
+      display: 'block',
+      verticalAlign: 'top',
     },
-    '&:hover img': {
-      transform: 'scale(1.05)',
-    },
-    [theme.breakpoints.down('md')]: {
-      flex: '0 0 200px',
-      minHeight: '200px',
-    },
-  }));
-
-  const CarouselButton = styled(Button)(({ theme }) => ({
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    zIndex: 10,
-    minWidth: '48px',
-    width: '48px',
-    height: '48px',
-    borderRadius: '50%',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    backdropFilter: 'blur(10px)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-    color: '#1a202c',
-    '&:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      transform: 'translateY(-50%) scale(1.1)',
-    },
-    '&.prev': {
-      left: '16px',
-    },
-    '&.next': {
-      right: '16px',
-    },
-    [theme.breakpoints.down('md')]: {
-      display: 'none',
-    },
-  }));
+  });
 
 
   const formatDate = (dateString) => {
@@ -432,89 +326,92 @@ export default function HomePage({ user, onCreateFormClick }) {
             </Box>
           )}
 
-          {/* 記事カルーセル */}
+          {/* 記事一覧（横スクロール） */}
           {!articlesLoading && !articlesError && articles && articles.length > 0 && (
-            <CarouselContainer>
-              <div className="embla" ref={emblaRef}>
-                <div className="embla__container">
-                  {articles.map((article) => (
-                    <div className="embla__slide" key={article.id}>
-                      <CarouselSlide>
-                        <SlideContent>
-                          <Box sx={{ mb: 3 }}>
-                            <CategoryChip
-                              label={article.category_name}
-                              categorycolor={article.category_color}
-                              size="small"
-                              sx={{ mb: 2 }}
-                            />
-                            <Typography 
-                              variant="h4" 
-                              component="h2" 
-                              sx={{ 
-                                fontWeight: 700,
-                                mb: 2,
-                                lineHeight: 1.3,
-                                color: '#1a202c',
-                                fontSize: { xs: '1.75rem', md: '2.25rem' }
-                              }}
-                            >
-                              {article.title}
-                            </Typography>
-                            <Typography 
-                              variant="body1" 
-                              sx={{ 
-                                color: 'text.secondary',
-                                mb: 3,
-                                lineHeight: 1.6,
-                                display: '-webkit-box',
-                                WebkitLineClamp: 3,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              {article.excerpt}
-                            </Typography>
-                          </Box>
-                          
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 'auto' }}>
-                            <StatsChip 
-                              label={`${article.read_time_minutes}分で読了`}
-                              size="small"
-                            />
-                            <Typography 
-                              variant="caption" 
-                              sx={{ 
-                                color: 'text.secondary',
-                                fontSize: '0.875rem'
-                              }}
-                            >
-                              {formatDate(article.published_at)}
-                            </Typography>
-                          </Box>
-                        </SlideContent>
-                        
-                        <SlideImage>
-                          <img
-                            src={article.thumbnail_url}
-                            alt={article.title}
-                            loading="lazy"
-                          />
-                        </SlideImage>
-                      </CarouselSlide>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* ナビゲーションボタン */}
-              <CarouselButton className="prev" onClick={scrollToPrev}>
-                <ArrowBackIos fontSize="small" />
-              </CarouselButton>
-              <CarouselButton className="next" onClick={scrollToNext}>
-                <ArrowForwardIos fontSize="small" />
-              </CarouselButton>
-            </CarouselContainer>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                overflowX: 'auto',
+                overflowY: 'hidden',
+                pb: 2,
+                '&::-webkit-scrollbar': {
+                  height: 6,
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                  borderRadius: 3,
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  borderRadius: 3,
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                  },
+                },
+              }}
+            >
+              {articles.map((article, index) => (
+                <Box
+                  key={article.id}
+                  sx={{
+                    flex: '0 0 auto',
+                    animation: `${fadeInUp} 0.3s ease-out ${index * 0.1}s both`,
+                  }}
+                >
+                  <ArticleCard>
+                    <ArticleImage
+                      className="article-image"
+                      component="img"
+                      image={article.thumbnail_url}
+                      alt={article.title}
+                    />
+                    <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                      <Box sx={{ mb: 2 }}>
+                        <CategoryChip
+                          label={article.category_name}
+                          categorycolor={article.category_color}
+                          size="small"
+                          sx={{ mb: 1 }}
+                        />
+                        <StatsChip 
+                          label={`${article.read_time_minutes}分で読了`}
+                          size="small"
+                        />
+                      </Box>
+                      
+                      <Typography 
+                        variant="h6" 
+                        component="h3" 
+                        sx={{ 
+                          fontWeight: 600,
+                          mb: 1,
+                          lineHeight: 1.3,
+                          fontSize: '1rem',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {article.title}
+                      </Typography>
+                      
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          color: 'text.secondary',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        {formatDate(article.published_at)}
+                      </Typography>
+                    </CardContent>
+                  </ArticleCard>
+                </Box>
+              ))}
+            </Box>
           )}
 
           {/* 記事が0件の場合 */}
