@@ -617,7 +617,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                 <TableContainer 
                   component={Paper} 
                   sx={{ 
-                    borderRadius: 4,
+                    borderRadius: 1.5,
                     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
                     border: '1px solid rgba(0, 0, 0, 0.06)',
                     overflow: 'hidden'
@@ -720,7 +720,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                                   fontWeight: 600,
                                   fontSize: '0.75rem',
                                   height: 28,
-                                  borderRadius: 14,
+                                  borderRadius: 6,
                                   border: `1px solid ${formattedForm.status === '公開中' 
                                     ? 'rgba(76, 175, 80, 0.2)' 
                                     : 'rgba(255, 152, 0, 0.2)'}`,
@@ -852,7 +852,7 @@ export default function HomePage({ user, onCreateFormClick }) {
             onClose={handleMenuClose}
             PaperProps={{
               sx: {
-                borderRadius: 2,
+                borderRadius: 1,
                 boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
                 border: '1px solid rgba(0, 0, 0, 0.06)',
                 mt: 1
