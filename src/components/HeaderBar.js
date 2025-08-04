@@ -240,9 +240,27 @@ const HeaderBar = ({
       return;
     }
     
-    // エラーがある場合は公開を阻止し、モダンなダイアログで表示
+    // エラーがある場合は公開を阻止し、エラー解決を促すメッセージを表示
     if (errorCount > 0) {
-      setShowPublishDialog(true);
+      toast.error('エラーを解決してから公開が可能です', {
+        duration: 4000,
+        position: 'bottom-center',
+        style: {
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+          borderRadius: '12px',
+          color: '#374151',
+          fontSize: '14px',
+          fontWeight: '500',
+          padding: '12px 20px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        },
+        iconTheme: {
+          primary: '#ef4444',
+          secondary: '#ffffff',
+        },
+      });
       return;
     }
     
