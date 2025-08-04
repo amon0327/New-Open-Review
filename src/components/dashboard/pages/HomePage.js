@@ -130,19 +130,21 @@ export default function HomePage({ user, onCreateFormClick }) {
     }
 
     setIsCreatingForm(true);
+    toast.loading('新しいフォームを作成しています...', { id: 'creating-form' });
+    
     try {
       const result = await FormDataService.createNewForm(user.id);
       
       if (result.success) {
-        // フォーム作成成功時は通知なし
+        toast.success('フォームが作成されました！', { id: 'creating-form' });
         // フォーム作成画面に遷移（formIdを渡す）
         onCreateFormClick(result.data.reviewFormId);
       } else {
-        toast.error(result.error || 'フォームの作成に失敗しました');
+        toast.error(result.error || 'フォームの作成に失敗しました', { id: 'creating-form' });
       }
     } catch (error) {
       console.error('Form creation error:', error);
-      toast.error('フォームの作成中にエラーが発生しました');
+      toast.error('フォームの作成中にエラーが発生しました', { id: 'creating-form' });
     } finally {
       setIsCreatingForm(false);
     }

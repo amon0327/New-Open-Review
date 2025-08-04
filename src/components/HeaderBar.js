@@ -73,7 +73,9 @@ const HeaderBar = ({
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   // 公開確認ダイアログの状態
   const [showPublishDialog, setShowPublishDialog] = useState(false);
-  const [isCheckingErrors, setIsCheckingErrors] = useState(false);
+  const [showErrorCheckDialog, setShowErrorCheckDialog] = useState(false);
+  const [errorCheckProgress, setErrorCheckProgress] = useState(0);
+  const [errorCheckItems, setErrorCheckItems] = useState([]);
   // エラー・警告ポップオーバーの状態
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
@@ -253,34 +255,46 @@ const HeaderBar = ({
     
     // エラーがない場合は最終チェックを実行
     console.log('✅ エラーがないため最終チェックを実行します');
-    setIsCheckingErrors(true);
     
-    // エラーチェック中のアラート表示
-    toast.loading('エラーをチェック中...', {
-      id: 'error-check',
-      duration: 2000,
-      position: 'bottom-center',
-      style: {
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(10px)',
-        border: '1px solid rgba(59, 130, 246, 0.2)',
-        borderRadius: '12px',
-        color: '#374151',
-        fontSize: '14px',
-        fontWeight: '500',
-        padding: '12px 20px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-      },
-    });
+    // エラーチェック項目を定義
+    const checkItems = [
+      { id: 1, name: 'プロジェクトタイトル', status: 'pending' },
+      { id: 2, name: '質問設定', status: 'pending' },
+      { id: 3, name: 'ページ設定', status: 'pending' },
+      { id: 4, name: 'ログイン画面', status: 'pending' },
+      { id: 5, name: '完了画面', status: 'pending' },
+      { id: 6, name: '全体設定', status: 'pending' }
+    ];
     
-    // 2秒間チェック処理をシミュレート
-    setTimeout(() => {
-      setIsCheckingErrors(false);
-      toast.dismiss('error-check');
+    setErrorCheckItems(checkItems);
+    setErrorCheckProgress(0);
+    setShowErrorCheckDialog(true);
+    
+    // エラーチェック処理をシミュレート
+    let currentProgress = 0;
+    const checkInterval = setInterval(() => {
+      currentProgress += 1;
+      setErrorCheckProgress(currentProgress);
       
-      // チェック完了後、確認ダイアログを表示
-      setShowPublishDialog(true);
-    }, 2000);
+      // 各項目を順次チェック完了にする
+      setErrorCheckItems(prev => 
+        prev.map(item => 
+          item.id <= currentProgress 
+            ? { ...item, status: 'completed' }
+            : item
+        )
+      );
+      
+      if (currentProgress >= checkItems.length) {
+        clearInterval(checkInterval);
+        
+        // チェック完了後、少し待ってから確認ダイアログを表示
+        setTimeout(() => {
+          setShowErrorCheckDialog(false);
+          setShowPublishDialog(true);
+        }, 800);
+      }
+    }, 400);
   };
 
   const handlePublishConfirm = () => {
@@ -556,6 +570,189 @@ const HeaderBar = ({
         onClose={() => setShowPreviewDialog(false)}
         formId={formId}
       />
+
+      {/* エラーチェックダイアログ */}
+      <Dialog
+        open={showErrorCheckDialog}
+        maxWidth="sm"
+        fullWidth
+        disableEscapeKeyDown
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            backdropFilter: 'blur(20px)',
+            border: '2px solid transparent',
+            backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%), linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+            backgroundOrigin: 'border-box',
+            backgroundClip: 'content-box, border-box',
+            boxShadow: '0 24px 64px rgba(0, 0, 0, 0.15)',
+            overflow: 'hidden'
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(8px)'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <Box
+            sx={{
+              textAlign: 'center',
+              py: 6,
+              px: 4,
+              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 50%, rgba(255, 107, 107, 0.1) 100%)',
+              color: '#374151',
+              position: 'relative',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 50%, rgba(255, 107, 107, 0.05) 100%)',
+                zIndex: -1
+              }
+            }}
+          >
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 50%, rgba(255, 107, 107, 0.2) 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 4,
+                fontSize: '2.5rem',
+                boxShadow: '0 8px 24px rgba(102, 126, 234, 0.15)'
+              }}
+            >
+              🔍
+            </Box>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                mb: 2,
+                fontSize: '1.5rem',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textShadow: 'none'
+              }}
+            >
+              エラーチェック中...
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                color: '#6b7280',
+                fontSize: '1rem',
+                lineHeight: 1.6,
+                fontWeight: 500,
+                mb: 4
+              }}
+            >
+              フォームの設定を確認しています
+            </Typography>
+
+            {/* チェック項目リスト */}
+            <Box sx={{ textAlign: 'left', maxWidth: 400, mx: 'auto' }}>
+              {errorCheckItems.map((item) => (
+                <Box
+                  key={item.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    py: 1.5,
+                    px: 3,
+                    mb: 1,
+                    borderRadius: '12px',
+                    background: item.status === 'completed' 
+                      ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%)'
+                      : 'rgba(249, 250, 251, 0.8)',
+                    border: item.status === 'completed' 
+                      ? '1px solid rgba(34, 197, 94, 0.2)'
+                      : '1px solid rgba(229, 231, 235, 0.5)',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      mr: 3,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: item.status === 'completed' 
+                        ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                        : 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)',
+                      color: item.status === 'completed' ? 'white' : '#9ca3af',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {item.status === 'completed' ? '✓' : item.id}
+                  </Box>
+                  <Typography
+                    sx={{
+                      color: item.status === 'completed' ? '#059669' : '#6b7280',
+                      fontWeight: item.status === 'completed' ? 600 : 500,
+                      fontSize: '0.95rem'
+                    }}
+                  >
+                    {item.name}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+
+            {/* プログレスバー */}
+            <Box sx={{ mt: 4, px: 2 }}>
+              <Box
+                sx={{
+                  width: '100%',
+                  height: 8,
+                  borderRadius: '4px',
+                  background: 'rgba(229, 231, 235, 0.5)',
+                  overflow: 'hidden',
+                  position: 'relative'
+                }}
+              >
+                <Box
+                  sx={{
+                    height: '100%',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                    borderRadius: '4px',
+                    width: `${(errorCheckProgress / errorCheckItems.length) * 100}%`,
+                    transition: 'width 0.3s ease'
+                  }}
+                />
+              </Box>
+              <Typography
+                sx={{
+                  textAlign: 'center',
+                  mt: 2,
+                  color: '#6b7280',
+                  fontSize: '0.9rem',
+                  fontWeight: 500
+                }}
+              >
+                {errorCheckProgress} / {errorCheckItems.length} 項目完了
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
 
       {/* 公開確認ダイアログ */}
       <Dialog
