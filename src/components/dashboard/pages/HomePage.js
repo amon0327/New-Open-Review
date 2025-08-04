@@ -486,7 +486,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                   fontSize: '1.75rem'
                 }}
               >
-                マイフォーム
+                レビューフォーム一覧
               </Typography>
               <Typography
                 variant="body2"
