@@ -58,6 +58,7 @@ class ArticleDataService {
       // データを適切な形式に変換
       const formattedData = postsData?.map(post => ({
         id: post.id,
+        slug: post.slug,
         title: post.title || '記事タイトル',
         excerpt: post.excerpt || '記事の概要が表示されます',
         thumbnail_url: post.featured_image_url || 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600&h=316&fit=crop',

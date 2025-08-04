@@ -207,11 +207,14 @@ export default function HomePage({ user, onCreateFormClick }) {
     background: '#ffffff',
     position: 'relative',
     '&:hover': {
-      transform: 'translateY(-8px)',
-      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
+      transform: 'translateY(-8px) scale(1.02)',
+      boxShadow: '0 16px 50px rgba(94, 23, 235, 0.2)',
       '& .article-image': {
         transform: 'scale(1.05)',
       },
+    },
+    '&:active': {
+      transform: 'translateY(-4px) scale(1.01)',
     },
   }));
 
@@ -238,6 +241,24 @@ export default function HomePage({ user, onCreateFormClick }) {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+  };
+
+  // 記事クリック時の処理
+  const handleArticleClick = (article) => {
+    // openreview-landingサイトの記事URLを生成
+    // 実際の記事サイトのURLに合わせて調整
+    let articleUrl;
+    
+    if (article.slug) {
+      // slugがある場合はslugを使用
+      articleUrl = `https://openreview.blog/blog/${article.slug}`;
+    } else {
+      // slugがない場合はIDを使用
+      articleUrl = `https://openreview.blog/blog/${article.id}`;
+    }
+    
+    // 新しいタブで記事を開く
+    window.open(articleUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -359,7 +380,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                     animation: `${fadeInUp} 0.3s ease-out ${index * 0.1}s both`,
                   }}
                 >
-                  <ArticleCard>
+                  <ArticleCard onClick={() => handleArticleClick(article)}>
                     <ArticleImage
                       className="article-image"
                       component="img"
