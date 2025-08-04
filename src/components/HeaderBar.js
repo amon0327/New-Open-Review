@@ -568,7 +568,10 @@ const HeaderBar = ({
             borderRadius: '16px',
             background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
             backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.2)',
+            border: '2px solid transparent',
+            backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%), linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+            backgroundOrigin: 'border-box',
+            backgroundClip: 'content-box, border-box',
             boxShadow: '0 24px 64px rgba(0, 0, 0, 0.15)',
             overflow: 'hidden'
           }
@@ -586,9 +589,20 @@ const HeaderBar = ({
               textAlign: 'center',
               py: 6,
               px: 4,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              mb: 4
+              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 50%, rgba(255, 107, 107, 0.1) 100%)',
+              color: '#374151',
+              mb: 4,
+              position: 'relative',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 50%, rgba(255, 107, 107, 0.05) 100%)',
+                zIndex: -1
+              }
             }}
           >
             <Box
@@ -596,13 +610,14 @@ const HeaderBar = ({
                 width: 80,
                 height: 80,
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.2)',
+                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 50%, rgba(255, 107, 107, 0.2) 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mx: 'auto',
                 mb: 3,
-                fontSize: '2.5rem'
+                fontSize: '2.5rem',
+                boxShadow: '0 8px 24px rgba(102, 126, 234, 0.15)'
               }}
             >
               🚀
@@ -613,7 +628,11 @@ const HeaderBar = ({
                 fontWeight: 700,
                 mb: 2,
                 fontSize: '1.75rem',
-                textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                textShadow: 'none'
               }}
             >
               フォームを公開しますか？
@@ -621,9 +640,10 @@ const HeaderBar = ({
             <Typography
               variant="body1"
               sx={{
-                opacity: 0.9,
+                color: '#6b7280',
                 fontSize: '1rem',
-                lineHeight: 1.6
+                lineHeight: 1.6,
+                fontWeight: 500
               }}
             >
               エラーチェックが完了しました。<br />
