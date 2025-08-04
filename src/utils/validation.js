@@ -7,12 +7,13 @@
  * @returns {Object} { errors: Array, warnings: Array }
  */
 export const validateForm = (formData) => {
-  console.log('🔍 validateForm が呼び出されました');
+  console.log('🔍 DEBUG: validateForm が呼び出されました');
   const errors = [];
   const warnings = [];
   
   // デバッグ用：受け取ったformDataの内容を確認
-  console.log('📋 Validation formData:', formData);
+  console.log('🔍 DEBUG: Validation formData:', formData);
+  console.log('🔍 DEBUG: formData keys:', Object.keys(formData || {}));
   
   const {
     projectTitle,
@@ -30,7 +31,7 @@ export const validateForm = (formData) => {
     completionBackground
   } = formData;
   
-  console.log('Validation data extracted:', {
+  console.log('🔍 DEBUG: Validation data extracted:', {
     projectTitle,
     questionsLength: questions.length,
     pagesLength: pages.length,
@@ -44,9 +45,12 @@ export const validateForm = (formData) => {
   });
 
   // ===== エラー検証 (必須項目) =====
+  console.log('🔍 DEBUG: エラー検証開始');
   
   // 1. プロジェクト名の検証
+  console.log('🔍 DEBUG: プロジェクト名検証 - projectTitle:', projectTitle);
   if (!projectTitle || projectTitle.trim() === '' || projectTitle === 'OpenReview フォーム') {
+    console.log('🔍 DEBUG: プロジェクト名エラーを追加');
     errors.push({
       id: 'missing-project-title',
       message: 'プロジェクト名が設定されていません',
@@ -389,12 +393,11 @@ export const validateForm = (formData) => {
 
 
 
-  console.log('🏁 検証完了:', {
-    errorCount: errors.length,
-    warningCount: warnings.length,
-    errors: errors.map(e => ({ id: e.id, message: e.message })),
-    warnings: warnings.map(w => ({ id: w.id, message: w.message }))
-  });
+  console.log('🔍 DEBUG: 検証完了 - エラー件数:', errors.length);
+  console.log('🔍 DEBUG: 検証完了 - 警告件数:', warnings.length);
+  console.log('🔍 DEBUG: 検証完了 - エラー詳細:', errors.map(e => ({ id: e.id, message: e.message })));
+  console.log('🔍 DEBUG: 検証完了 - 警告詳細:', warnings.map(w => ({ id: w.id, message: w.message })));
+  console.log('🔍 DEBUG: 戻り値オブジェクト:', { errors, warnings });
   
   return { errors, warnings };
 };

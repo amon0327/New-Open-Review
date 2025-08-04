@@ -42,6 +42,12 @@ const PublishSettings = ({
   const [validationResults, setValidationResults] = useState({ errors: [], warnings: [] });
   const errorCount = validationResults.errors.length;
 
+  // レンダリング時の状態をデバッグログに出力
+  console.log('🔍 PublishSettings - DEBUG: レンダリング時の状態');
+  console.log('🔍 PublishSettings - DEBUG: validationResults:', validationResults);
+  console.log('🔍 PublishSettings - DEBUG: errorCount:', errorCount);
+  console.log('🔍 PublishSettings - DEBUG: isPublished:', isPublished);
+
   // フォームデータが変更されるたびに検証を実行
   useEffect(() => {
     const validationData = {
@@ -49,23 +55,57 @@ const PublishSettings = ({
       ...formData
     };
     
-    console.log('📝 PublishSettings - フォーム検証実行:', validationData);
+    console.log('🔍 PublishSettings - DEBUG: フォーム検証実行');
+    console.log('🔍 PublishSettings - DEBUG: projectTitle:', projectTitle);
+    console.log('🔍 PublishSettings - DEBUG: formData:', formData);
+    console.log('🔍 PublishSettings - DEBUG: validationData:', validationData);
+    
     const results = validateForm(validationData);
-    console.log('📝 PublishSettings - 検証結果:', results);
+    
+    console.log('🔍 PublishSettings - DEBUG: 検証結果 raw:', results);
+    console.log('🔍 PublishSettings - DEBUG: エラー配列:', results.errors);
+    console.log('🔍 PublishSettings - DEBUG: エラー件数:', results.errors?.length || 0);
+    console.log('🔍 PublishSettings - DEBUG: 警告配列:', results.warnings);
+    console.log('🔍 PublishSettings - DEBUG: 警告件数:', results.warnings?.length || 0);
+    
+    if (results.errors && results.errors.length > 0) {
+      console.log('🔍 PublishSettings - DEBUG: エラー詳細:');
+      results.errors.forEach((error, index) => {
+        console.log(`🔍 PublishSettings - DEBUG: エラー${index + 1}:`, {
+          id: error.id,
+          message: error.message,
+          location: error.location,
+          type: error.type,
+          fullError: error
+        });
+      });
+    }
     
     setValidationResults(results);
   }, [projectTitle, formData]);
 
   const handlePublishClick = async () => {
-    console.log('📝 PublishSettings - 公開ボタンがクリックされました');
+    console.log('🔍 PublishSettings - DEBUG: 公開ボタンがクリックされました');
+    console.log('🔍 PublishSettings - DEBUG: isPublished:', isPublished);
+    console.log('🔍 PublishSettings - DEBUG: validationResults:', validationResults);
+    console.log('🔍 PublishSettings - DEBUG: errorCount:', errorCount);
+    console.log('🔍 PublishSettings - DEBUG: validationResults.errors:', validationResults.errors);
+    console.log('🔍 PublishSettings - DEBUG: validationResults.errors.length:', validationResults.errors?.length);
     
     // すでに公開済みの場合は何もしない
     if (isPublished) {
+      console.log('🔍 PublishSettings - DEBUG: すでに公開済みのためリターン');
       return;
     }
     
     // エラーがある場合は公開を阻止し、エラー解決を促すメッセージを表示
+    console.log('🔍 PublishSettings - DEBUG: エラーチェック開始 - errorCount > 0 ?', errorCount > 0);
     if (errorCount > 0) {
+      console.log('🔍 PublishSettings - DEBUG: エラーがあるため公開を阻止');
+      console.log('🔍 PublishSettings - DEBUG: 現在のエラー:');
+      validationResults.errors.forEach((error, index) => {
+        console.log(`🔍 PublishSettings - DEBUG: エラー${index + 1}:`, error);
+      });
       toast.error('エラーを解決してから公開が可能です', {
         duration: 4000,
         position: 'bottom-center',
