@@ -481,15 +481,16 @@ const PublishDialog = ({
             )}
           </Box>
 
-          {/* ボタンエリア */}
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 2,
-              justifyContent: 'center',
-              pt: 2
-            }}
-          >
+          {/* ボタンエリア - エラーチェック中は非表示 */}
+          {!isErrorChecking && (
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                justifyContent: 'center',
+                pt: 2
+              }}
+            >
             <Button
               onClick={onClose}
               variant="outlined"
@@ -539,7 +540,8 @@ const PublishDialog = ({
             >
               {isErrorChecking ? 'チェック中...' : (errorCount > 0 ? 'エラーを解決' : '公開する')}
             </Button>
-          </Box>
+            </Box>
+          )}
         </Box>
       </DialogContent>
     </Dialog>
