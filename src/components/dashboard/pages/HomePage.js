@@ -1,7 +1,40 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Box, Typography, Button, Card, CardContent, CardMedia, Chip, Grid, Container, CircularProgress, Avatar } from '@mui/material';
-import { Add, Description, Visibility, Edit, MoreVert } from '@mui/icons-material';
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  Card, 
+  CardContent, 
+  CardMedia, 
+  Chip, 
+  Grid, 
+  Container, 
+  CircularProgress, 
+  Avatar,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Menu,
+  MenuItem,
+  Tooltip
+} from '@mui/material';
+import { 
+  Add, 
+  Description, 
+  Visibility, 
+  Edit, 
+  MoreVert, 
+  Delete,
+  Share,
+  Analytics,
+  ContentCopy
+} from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
 import FormDataService from '../../../services/FormDataService';
 
@@ -13,6 +46,8 @@ export default function HomePage({ user, onCreateFormClick }) {
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedForm, setSelectedForm] = useState(null);
 
   // マウスドラッグスクロール機能
   const handleMouseDown = (e) => {
@@ -74,6 +109,17 @@ export default function HomePage({ user, onCreateFormClick }) {
     fetchForms();
   }, [user?.id]);
 
+  // メニューハンドラー
+  const handleMenuClick = (event, form) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedForm(form);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedForm(null);
+  };
+
   // フォームデータの変換
   const formatFormData = (form) => ({
     id: form.id,
@@ -83,7 +129,8 @@ export default function HomePage({ user, onCreateFormClick }) {
     responses: 0, // TODO: 実際の回答数を取得
     lastModified: new Date(form.updated_at).toISOString().split('T')[0],
     category: 'レビュー',
-    themeColor: form.review_form_settings?.[0]?.theme_color || '#5e17eb'
+    themeColor: form.review_form_settings?.[0]?.theme_color || '#5e17eb',
+    createdAt: new Date(form.created_at).toLocaleDateString('ja-JP')
   });
 
   // アニメーション定義
@@ -513,25 +560,12 @@ export default function HomePage({ user, onCreateFormClick }) {
             </Box>
           )}
 
-          {/* フォーム一覧グリッド */}
+          {/* フォーム一覧テーブル */}
           {!loading && !error && (
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: {
-                  xs: '1fr',
-                  sm: 'repeat(2, 1fr)',
-                  md: 'repeat(3, 1fr)',
-                  lg: 'repeat(4, 1fr)',
-                  xl: 'repeat(5, 1fr)'
-                },
-                gap: 3,
-              }}
-            >
+            <>
               {forms.length === 0 ? (
                 // 空の状態
                 <Box sx={{ 
-                  gridColumn: '1 / -1',
                   textAlign: 'center',
                   py: 8,
                   px: 4,
@@ -580,219 +614,264 @@ export default function HomePage({ user, onCreateFormClick }) {
                   </Button>
                 </Box>
               ) : (
-                forms.map((form) => {
-                  const formattedForm = formatFormData(form);
-                  return (
-                    <Card
-                      key={form.id}
-                      sx={{
-                        borderRadius: 4,
-                        border: 'none',
-                        background: 'linear-gradient(145deg, #ffffff 0%, #fefefe 100%)',
-                        boxShadow: '0 2px 20px rgba(0, 0, 0, 0.06)',
-                        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                        cursor: 'pointer',
-                        position: 'relative',
-                        overflow: 'visible',
-                        '&:hover': {
-                          transform: 'translateY(-8px) scale(1.02)',
-                          boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12)',
-                          '& .form-actions': {
-                            opacity: 1,
-                            transform: 'translateY(0)',
-                          }
-                        },
-                        '&:before': {
-                          content: '""',
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: 4,
-                          background: `linear-gradient(90deg, ${formattedForm.themeColor} 0%, ${formattedForm.themeColor}cc 100%)`,
-                          borderRadius: '16px 16px 0 0',
-                        }
-                      }}
-                    >
-                      <CardContent sx={{ p: 3, pb: 2 }}>
-                        {/* ヘッダー部分 */}
-                        <Box sx={{ 
-                          display: 'flex', 
-                          justifyContent: 'space-between', 
-                          alignItems: 'flex-start',
-                          mb: 2.5
-                        }}>
-                          <Box sx={{ flex: 1 }}>
-                            <Chip
-                              label={formattedForm.status}
-                              size="small"
-                              sx={{
-                                backgroundColor: formattedForm.status === '公開中' 
-                                  ? 'rgba(76, 175, 80, 0.1)' 
-                                  : 'rgba(255, 152, 0, 0.1)',
-                                color: formattedForm.status === '公開中' 
-                                  ? '#388e3c' 
-                                  : '#f57c00',
-                                fontWeight: 600,
-                                fontSize: '0.7rem',
-                                height: 24,
-                                borderRadius: 3,
-                                border: `1px solid ${formattedForm.status === '公開中' 
-                                  ? 'rgba(76, 175, 80, 0.2)' 
-                                  : 'rgba(255, 152, 0, 0.2)'}`,
-                              }}
-                            />
-                          </Box>
-                          <Avatar
-                            sx={{
-                              width: 32,
-                              height: 32,
-                              background: `linear-gradient(135deg, ${formattedForm.themeColor} 0%, ${formattedForm.themeColor}aa 100%)`,
-                              fontSize: '0.75rem',
-                              fontWeight: 600
-                            }}
-                          >
-                            {formattedForm.title.charAt(0)}
-                          </Avatar>
-                        </Box>
-
-                        {/* タイトル */}
-                        <Typography
-                          variant="h6"
-                          component="h3"
-                          sx={{
+                <TableContainer 
+                  component={Paper} 
+                  sx={{ 
+                    borderRadius: 4,
+                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                    border: '1px solid rgba(0, 0, 0, 0.06)',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <Table sx={{ minWidth: 650 }}>
+                    <TableHead>
+                      <TableRow 
+                        sx={{ 
+                          backgroundColor: '#f8fafc',
+                          '& .MuiTableCell-head': {
                             fontWeight: 700,
-                            mb: 1.5,
-                            fontSize: '1.1rem',
-                            lineHeight: 1.3,
-                            color: '#1a202c',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            minHeight: '2.6rem',
-                          }}
-                        >
-                          {formattedForm.title}
-                        </Typography>
-
-                        {/* 統計情報 */}
-                        <Box sx={{ 
-                          display: 'flex', 
-                          justifyContent: 'space-between', 
-                          alignItems: 'center',
-                          mb: 2,
-                          py: 1.5,
-                          px: 2,
-                          backgroundColor: 'rgba(248, 249, 250, 0.8)',
-                          borderRadius: 2,
-                        }}>
-                          <Box sx={{ textAlign: 'center' }}>
-                            <Typography
-                              variant="h6"
-                              sx={{
-                                fontWeight: 700,
-                                color: formattedForm.themeColor,
-                                fontSize: '1.25rem',
-                                lineHeight: 1,
-                              }}
-                            >
-                              {formattedForm.responses}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                color: 'text.secondary',
-                                fontSize: '0.7rem',
-                                fontWeight: 500,
-                              }}
-                            >
-                              回答
-                            </Typography>
-                          </Box>
-                          <Box sx={{ textAlign: 'center' }}>
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                color: 'text.secondary',
-                                fontSize: '0.75rem',
-                                fontWeight: 500,
-                              }}
-                            >
-                              {new Date(formattedForm.lastModified).toLocaleDateString('ja-JP', {
-                                month: 'short',
-                                day: 'numeric'
-                              })}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                color: 'text.secondary',
-                                fontSize: '0.7rem',
-                                fontWeight: 500,
-                              }}
-                            >
-                              更新
-                            </Typography>
-                          </Box>
-                        </Box>
-
-                        {/* アクション部分 */}
-                        <Box 
-                          className="form-actions"
-                          sx={{ 
-                            display: 'flex', 
-                            gap: 1,
-                            opacity: 0,
-                            transform: 'translateY(10px)',
-                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                          }}
-                        >
-                          <Button
-                            size="small"
-                            startIcon={<Edit sx={{ fontSize: 16 }} />}
+                            fontSize: '0.875rem',
+                            color: '#374151',
+                            borderBottom: '2px solid #e5e7eb',
+                            py: 2.5
+                          }
+                        }}
+                      >
+                        <TableCell>フォーム名</TableCell>
+                        <TableCell align="center">ステータス</TableCell>
+                        <TableCell align="center">回答数</TableCell>
+                        <TableCell align="center">作成日</TableCell>
+                        <TableCell align="center">更新日</TableCell>
+                        <TableCell align="center">アクション</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {forms.map((form) => {
+                        const formattedForm = formatFormData(form);
+                        return (
+                          <TableRow
+                            key={form.id}
                             sx={{
-                              flex: 1,
-                              borderRadius: 2,
-                              textTransform: 'none',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              color: formattedForm.themeColor,
-                              backgroundColor: `${formattedForm.themeColor}15`,
                               '&:hover': {
-                                backgroundColor: `${formattedForm.themeColor}25`,
-                              }
+                                backgroundColor: 'rgba(94, 23, 235, 0.02)',
+                                '& .action-buttons': {
+                                  opacity: 1,
+                                }
+                              },
+                              '&:last-child td, &:last-child th': { 
+                                border: 0 
+                              },
+                              transition: 'all 0.2s ease',
+                              borderBottom: '1px solid rgba(0, 0, 0, 0.04)'
                             }}
                           >
-                            編集
-                          </Button>
-                          <Button
-                            size="small"
-                            startIcon={<Visibility sx={{ fontSize: 16 }} />}
-                            sx={{
-                              flex: 1,
-                              borderRadius: 2,
-                              textTransform: 'none',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              color: 'text.secondary',
-                              backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                              '&:hover': {
-                                backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                              }
-                            }}
-                          >
-                            プレビュー
-                          </Button>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  );
-                })
+                            {/* フォーム名 */}
+                            <TableCell sx={{ py: 2.5 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Avatar
+                                  sx={{
+                                    width: 40,
+                                    height: 40,
+                                    background: `linear-gradient(135deg, ${formattedForm.themeColor} 0%, ${formattedForm.themeColor}aa 100%)`,
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600
+                                  }}
+                                >
+                                  {formattedForm.title.charAt(0)}
+                                </Avatar>
+                                <Box>
+                                  <Typography
+                                    variant="body1"
+                                    sx={{
+                                      fontWeight: 600,
+                                      color: '#1a202c',
+                                      fontSize: '0.95rem',
+                                      lineHeight: 1.2,
+                                      mb: 0.5
+                                    }}
+                                  >
+                                    {formattedForm.title}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      color: 'text.secondary',
+                                      fontSize: '0.75rem'
+                                    }}
+                                  >
+                                    {formattedForm.description}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </TableCell>
+
+                            {/* ステータス */}
+                            <TableCell align="center">
+                              <Chip
+                                label={formattedForm.status}
+                                size="small"
+                                sx={{
+                                  backgroundColor: formattedForm.status === '公開中' 
+                                    ? 'rgba(76, 175, 80, 0.12)' 
+                                    : 'rgba(255, 152, 0, 0.12)',
+                                  color: formattedForm.status === '公開中' 
+                                    ? '#2e7d32' 
+                                    : '#ed6c02',
+                                  fontWeight: 600,
+                                  fontSize: '0.75rem',
+                                  height: 28,
+                                  borderRadius: 14,
+                                  border: `1px solid ${formattedForm.status === '公開中' 
+                                    ? 'rgba(76, 175, 80, 0.2)' 
+                                    : 'rgba(255, 152, 0, 0.2)'}`,
+                                }}
+                              />
+                            </TableCell>
+
+                            {/* 回答数 */}
+                            <TableCell align="center">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontWeight: 600,
+                                  color: formattedForm.themeColor,
+                                  fontSize: '1rem'
+                                }}
+                              >
+                                {formattedForm.responses}
+                              </Typography>
+                            </TableCell>
+
+                            {/* 作成日 */}
+                            <TableCell align="center">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: 'text.secondary',
+                                  fontSize: '0.875rem'
+                                }}
+                              >
+                                {formattedForm.createdAt}
+                              </Typography>
+                            </TableCell>
+
+                            {/* 更新日 */}
+                            <TableCell align="center">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: 'text.secondary',
+                                  fontSize: '0.875rem'
+                                }}
+                              >
+                                {new Date(formattedForm.lastModified).toLocaleDateString('ja-JP')}
+                              </Typography>
+                            </TableCell>
+
+                            {/* アクション */}
+                            <TableCell align="center">
+                              <Box 
+                                className="action-buttons"
+                                sx={{ 
+                                  display: 'flex', 
+                                  gap: 0.5, 
+                                  justifyContent: 'center',
+                                  opacity: 0.7,
+                                  transition: 'opacity 0.2s ease'
+                                }}
+                              >
+                                <Tooltip title="編集">
+                                  <IconButton
+                                    size="small"
+                                    sx={{
+                                      color: formattedForm.themeColor,
+                                      '&:hover': {
+                                        backgroundColor: `${formattedForm.themeColor}15`,
+                                      }
+                                    }}
+                                  >
+                                    <Edit sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="プレビュー">
+                                  <IconButton
+                                    size="small"
+                                    sx={{
+                                      color: '#64748b',
+                                      '&:hover': {
+                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                                      }
+                                    }}
+                                  >
+                                    <Visibility sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="分析">
+                                  <IconButton
+                                    size="small"
+                                    sx={{
+                                      color: '#059669',
+                                      '&:hover': {
+                                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                                      }
+                                    }}
+                                  >
+                                    <Analytics sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="その他">
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => handleMenuClick(e, form)}
+                                    sx={{
+                                      color: '#64748b',
+                                      '&:hover': {
+                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                                      }
+                                    }}
+                                  >
+                                    <MoreVert sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               )}
-            </Box>
+            </>
           )}
+
+          {/* アクションメニュー */}
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleMenuClose}
+            PaperProps={{
+              sx: {
+                borderRadius: 2,
+                boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+                border: '1px solid rgba(0, 0, 0, 0.06)',
+                mt: 1
+              }
+            }}
+          >
+            <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
+              <Share sx={{ mr: 1.5, fontSize: 18, color: '#059669' }} />
+              共有
+            </MenuItem>
+            <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
+              <ContentCopy sx={{ mr: 1.5, fontSize: 18, color: '#0ea5e9' }} />
+              複製
+            </MenuItem>
+            <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
+              <Delete sx={{ mr: 1.5, fontSize: 18, color: '#ef4444' }} />
+              削除
+            </MenuItem>
+          </Menu>
         </Container>
       </Box>
     </motion.div>
