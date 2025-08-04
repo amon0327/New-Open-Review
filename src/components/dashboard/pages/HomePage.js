@@ -1,21 +1,37 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Box, Typography, Button, Card, CardContent, IconButton } from '@mui/material';
-import { Add, ChevronLeft, ChevronRight } from '@mui/icons-material';
+import { Box, Typography, Button, Card, CardContent } from '@mui/material';
+import { Add } from '@mui/icons-material';
 
 export default function HomePage({ user, onCreateFormClick }) {
   const scrollRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
 
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
-    }
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+    scrollRef.current.style.cursor = 'grabbing';
   };
 
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
-    }
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    scrollRef.current.style.cursor = 'grab';
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+    scrollRef.current.style.cursor = 'grab';
   };
 
   // サンプル記事データ
@@ -124,9 +140,6 @@ export default function HomePage({ user, onCreateFormClick }) {
           {/* セクションタイトル */}
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
               mb: 3,
               px: 2
             }}
@@ -141,35 +154,15 @@ export default function HomePage({ user, onCreateFormClick }) {
             >
               OpenReviewの記事一覧
             </Typography>
-            
-            {/* スライダーコントロール */}
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <IconButton
-                onClick={scrollLeft}
-                sx={{
-                  bgcolor: 'rgba(255, 255, 255, 0.9)',
-                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-                }}
-              >
-                <ChevronLeft />
-              </IconButton>
-              <IconButton
-                onClick={scrollRight}
-                sx={{
-                  bgcolor: 'rgba(255, 255, 255, 0.9)',
-                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 1)' },
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
-                }}
-              >
-                <ChevronRight />
-              </IconButton>
-            </Box>
           </Box>
 
           {/* スライダーカード */}
           <Box
             ref={scrollRef}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
             sx={{
               display: 'flex',
               gap: 3,
@@ -180,7 +173,9 @@ export default function HomePage({ user, onCreateFormClick }) {
               },
               pb: 2,
               pl: 2,
-              pr: 0
+              pr: 0,
+              cursor: 'grab',
+              userSelect: 'none'
             }}
           >
             {articles.map((article, index) => (
@@ -191,12 +186,13 @@ export default function HomePage({ user, onCreateFormClick }) {
                   height: 180,
                   borderRadius: 0,
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
+                  cursor: isDragging ? 'grabbing' : 'pointer',
+                  transition: isDragging ? 'none' : 'all 0.3s ease',
                   marginRight: index === articles.length - 1 ? 2 : 0,
+                  pointerEvents: isDragging ? 'none' : 'auto',
                   '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)'
+                    transform: isDragging ? 'none' : 'translateY(-4px)',
+                    boxShadow: isDragging ? '0 4px 12px rgba(0, 0, 0, 0.1)' : '0 8px 20px rgba(0, 0, 0, 0.15)'
                   }
                 }}
               >
