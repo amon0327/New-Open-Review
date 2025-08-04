@@ -947,6 +947,17 @@ const QuestionSettingsMenu = ({
     return availableTabs.some(tab => tab.value === selectedTab);
   };
 
+  // selectedPageが変更された時にタブの有効性をチェック
+  useEffect(() => {
+    if (!isCurrentTabAvailable()) {
+      const availableTabs = getAvailableTabs();
+      if (availableTabs.length > 0) {
+        // デフォルトで最初の利用可能なタブに設定
+        setSelectedTab(availableTabs[0].value);
+      }
+    }
+  }, [selectedPage]); // selectedPageが変更された時に実行
+
   // ドラッグ&ドロップハンドラー
   const handleDragStart = (e, question, index) => {
     setDraggedItem({ question, index });
