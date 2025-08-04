@@ -721,175 +721,249 @@ const HeaderBar = ({
                     レビューフォーム チェック中...
                   </Typography>
 
-                  {/* コンテナのような要素の抽象的表現 */}
+                  {/* 大型コンテナの循環チェック表現 */}
                   <Box
                     sx={{
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 1.5,
+                      gap: 2,
                       width: '100%',
-                      maxWidth: 300,
-                      mb: 2
+                      maxWidth: 320,
+                      mb: 3
                     }}
                   >
-                    {/* モダンなコンテナ風の要素 */}
-                    {Array.from({ length: 5 }, (_, index) => (
+                    {/* 循環チェック用の大型コンテナ */}
+                    {Array.from({ length: 4 }, (_, index) => (
                       <Box
                         key={index}
                         sx={{
                           width: '100%',
-                          height: 18,
-                          borderRadius: 12,
-                          border: '1.5px solid rgba(0, 0, 0, 0.08)',
-                          background: 'rgba(255, 255, 255, 0.7)',
-                          backdropFilter: 'blur(10px)',
+                          height: 32,
+                          borderRadius: 16,
+                          border: '2px solid rgba(0, 0, 0, 0.08)',
+                          background: 'rgba(255, 255, 255, 0.8)',
+                          backdropFilter: 'blur(12px)',
                           position: 'relative',
                           overflow: 'hidden',
-                          animation: `modernCheck 3.5s ease-in-out infinite ${index * 0.6}s`,
-                          '@keyframes modernCheck': {
+                          animation: `cycleCheck 4s ease-in-out infinite ${index * 1}s`,
+                          '@keyframes cycleCheck': {
                             '0%': { 
                               borderColor: 'rgba(0, 0, 0, 0.08)',
-                              background: 'rgba(255, 255, 255, 0.7)',
+                              background: 'rgba(255, 255, 255, 0.8)',
                               transform: 'scale(1)',
-                              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+                              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
                             },
-                            '25%': { 
-                              borderColor: 'rgba(0, 0, 0, 0.15)',
-                              background: 'rgba(248, 249, 250, 0.9)',
-                              transform: 'scale(1.01)',
-                              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)'
+                            '20%': { 
+                              borderColor: 'rgba(0, 0, 0, 0.2)',
+                              background: 'rgba(248, 249, 250, 0.95)',
+                              transform: 'scale(1.02)',
+                              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)'
                             },
-                            '50%': { 
-                              borderColor: 'rgba(0, 0, 0, 0.25)',
+                            '40%': { 
+                              borderColor: 'rgba(0, 0, 0, 0.35)',
                               background: 'rgba(241, 245, 249, 0.95)',
-                              boxShadow: '0 6px 24px rgba(0, 0, 0, 0.12)'
+                              transform: 'scale(1.04)',
+                              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.16)'
                             },
-                            '75%': { 
-                              borderColor: 'rgba(0, 0, 0, 0.4)',
+                            '60%': { 
+                              borderColor: 'rgba(0, 0, 0, 0.5)',
                               background: 'rgba(226, 232, 240, 0.95)',
-                              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+                              transform: 'scale(1.02)',
+                              boxShadow: '0 8px 28px rgba(0, 0, 0, 0.14)'
+                            },
+                            '80%': { 
+                              borderColor: 'rgba(0, 0, 0, 0.6)',
+                              background: 'rgba(203, 213, 225, 0.9)',
+                              transform: 'scale(1)',
+                              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'
                             },
                             '100%': { 
-                              borderColor: 'rgba(0, 0, 0, 0.5)',
-                              background: 'rgba(203, 213, 225, 0.9)',
+                              borderColor: 'rgba(0, 0, 0, 0.08)',
+                              background: 'rgba(255, 255, 255, 0.8)',
                               transform: 'scale(1)',
                               boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)'
                             }
                           }
                         }}
                       >
-                        {/* コンテナ内部のコンテンツライン */}
-                        <Box
+                        {/* コンテナラベル */}
+                        <Typography
+                          variant="caption"
                           sx={{
                             position: 'absolute',
-                            left: 8,
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            width: `${50 + index * 10}%`,
-                            height: 1.5,
-                            borderRadius: 1,
-                            background: 'rgba(0, 0, 0, 0.1)',
-                            animation: `contentProgress 3.5s ease-in-out infinite ${index * 0.6 + 0.4}s`,
-                            '@keyframes contentProgress': {
-                              '0%': { 
-                                background: 'rgba(0, 0, 0, 0.1)',
-                                width: `${30 + index * 5}%`,
-                                opacity: 0.3
-                              },
-                              '30%': { 
-                                background: 'rgba(0, 0, 0, 0.2)',
-                                width: `${40 + index * 7}%`,
-                                opacity: 0.6
-                              },
-                              '70%': { 
-                                background: 'rgba(0, 0, 0, 0.4)',
-                                width: `${50 + index * 10}%`,
-                                opacity: 0.8
-                              },
-                              '100%': { 
-                                background: 'rgba(0, 0, 0, 0.6)',
-                                width: `${50 + index * 10}%`,
-                                opacity: 1
-                              }
+                            left: 12,
+                            top: 4,
+                            fontSize: '0.65rem',
+                            color: 'rgba(0, 0, 0, 0.5)',
+                            fontWeight: 600,
+                            letterSpacing: '0.5px',
+                            textTransform: 'uppercase',
+                            animation: `labelFade 4s ease-in-out infinite ${index * 1}s`,
+                            '@keyframes labelFade': {
+                              '0%, 15%': { opacity: 0.3 },
+                              '20%, 80%': { opacity: 0.8 },
+                              '85%, 100%': { opacity: 0.3 }
                             }
                           }}
-                        />
-                        
-                        {/* モダンなチェックインジケーター */}
+                        >
+                          Container {index + 1}
+                        </Typography>
+
+                        {/* 進捗表示バー */}
                         <Box
                           sx={{
                             position: 'absolute',
-                            right: 8,
+                            left: 12,
+                            bottom: 8,
+                            right: 50,
+                            height: 3,
+                            borderRadius: 2,
+                            background: 'rgba(0, 0, 0, 0.08)',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              height: '100%',
+                              width: '0%',
+                              background: 'linear-gradient(90deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 100%)',
+                              borderRadius: 2,
+                              animation: `progressFill 4s ease-in-out infinite ${index * 1}s`,
+                              '@keyframes progressFill': {
+                                '0%': { width: '0%' },
+                                '20%': { width: '25%' },
+                                '40%': { width: '60%' },
+                                '60%': { width: '85%' },
+                                '80%': { width: '100%' },
+                                '100%': { width: '0%' }
+                              }
+                            }}
+                          />
+                        </Box>
+
+                        {/* チェック状態インジケーター */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            right: 12,
                             top: '50%',
                             transform: 'translateY(-50%)',
-                            width: 10,
-                            height: 10,
+                            width: 20,
+                            height: 20,
                             borderRadius: '50%',
-                            border: '1.5px solid rgba(0, 0, 0, 0.15)',
+                            border: '2px solid rgba(0, 0, 0, 0.15)',
                             background: 'rgba(255, 255, 255, 0.9)',
-                            opacity: 0.4,
-                            animation: `checkIndicator 3.5s ease-in-out infinite ${index * 0.6 + 2.2}s`,
-                            '@keyframes checkIndicator': {
-                              '0%, 60%': { 
-                                opacity: 0.4,
-                                transform: 'translateY(-50%) scale(0.8)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            animation: `statusIndicator 4s ease-in-out infinite ${index * 1}s`,
+                            '@keyframes statusIndicator': {
+                              '0%, 15%': { 
                                 borderColor: 'rgba(0, 0, 0, 0.15)',
                                 background: 'rgba(255, 255, 255, 0.9)',
+                                transform: 'translateY(-50%) scale(1)',
                                 boxShadow: 'none'
                               },
-                              '80%': { 
-                                opacity: 1,
+                              '20%': { 
+                                borderColor: 'rgba(0, 0, 0, 0.3)',
+                                background: 'rgba(248, 249, 250, 0.95)',
                                 transform: 'translateY(-50%) scale(1.1)',
-                                borderColor: 'rgba(0, 0, 0, 0.6)',
-                                background: 'rgba(0, 0, 0, 0.1)',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
                               },
-                              '100%': { 
-                                opacity: 1,
-                                transform: 'translateY(-50%) scale(1)',
+                              '60%': { 
                                 borderColor: 'rgba(0, 0, 0, 0.6)',
-                                background: 'rgba(0, 0, 0, 0.1)',
-                                boxShadow: '0 1px 4px rgba(0, 0, 0, 0.1)'
+                                background: 'rgba(226, 232, 240, 0.95)',
+                                transform: 'translateY(-50%) scale(1.2)',
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                              },
+                              '80%': { 
+                                borderColor: 'rgba(0, 0, 0, 0.7)',
+                                background: 'rgba(203, 213, 225, 0.9)',
+                                transform: 'translateY(-50%) scale(1)',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                              },
+                              '85%, 100%': { 
+                                borderColor: 'rgba(0, 0, 0, 0.15)',
+                                background: 'rgba(255, 255, 255, 0.9)',
+                                transform: 'translateY(-50%) scale(1)',
+                                boxShadow: 'none'
                               }
                             }
                           }}
                         >
-                          {/* シンプルなチェックマーク */}
+                          {/* 回転するローディング要素 */}
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              border: '1.5px solid transparent',
+                              borderTop: '1.5px solid rgba(0, 0, 0, 0.4)',
+                              borderRadius: '50%',
+                              opacity: 0,
+                              animation: `loadingSpin 4s ease-in-out infinite ${index * 1}s`,
+                              '@keyframes loadingSpin': {
+                                '0%, 15%': { 
+                                  opacity: 0,
+                                  transform: 'rotate(0deg)'
+                                },
+                                '20%': { 
+                                  opacity: 1,
+                                  transform: 'rotate(90deg)'
+                                },
+                                '40%': { 
+                                  opacity: 1,
+                                  transform: 'rotate(270deg)'
+                                },
+                                '60%': { 
+                                  opacity: 1,
+                                  transform: 'rotate(450deg)'
+                                },
+                                '75%': { 
+                                  opacity: 0,
+                                  transform: 'rotate(540deg)'
+                                },
+                                '80%, 100%': { 
+                                  opacity: 0,
+                                  transform: 'rotate(540deg)'
+                                }
+                              }
+                            }}
+                          />
+                          
+                          {/* チェックマーク */}
                           <Box
                             sx={{
                               position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              transform: 'translate(-50%, -50%)',
-                              width: 5,
-                              height: 3,
+                              width: 8,
+                              height: 5,
                               opacity: 0,
-                              animation: `checkSymbol 3.5s ease-in-out infinite ${index * 0.6 + 2.5}s`,
-                              '@keyframes checkSymbol': {
-                                '0%, 70%': { opacity: 0 },
-                                '85%, 100%': { opacity: 1 }
+                              animation: `checkComplete 4s ease-in-out infinite ${index * 1 + 0.6}s`,
+                              '@keyframes checkComplete': {
+                                '0%, 60%': { opacity: 0 },
+                                '75%, 85%': { opacity: 1 },
+                                '90%, 100%': { opacity: 0 }
                               },
                               '&::before': {
                                 content: '""',
                                 position: 'absolute',
                                 left: 0,
-                                top: 1.5,
-                                width: 2,
-                                height: 0.8,
+                                top: 2.5,
+                                width: 3,
+                                height: 1.2,
                                 background: 'rgba(0, 0, 0, 0.7)',
-                                borderRadius: '0.4px',
+                                borderRadius: '0.6px',
                                 transform: 'rotate(45deg)',
                                 transformOrigin: 'left bottom'
                               },
                               '&::after': {
                                 content: '""',
                                 position: 'absolute',
-                                left: 1.2,
-                                top: 0.5,
-                                width: 3.5,
-                                height: 0.8,
+                                left: 2,
+                                top: 1,
+                                width: 5,
+                                height: 1.2,
                                 background: 'rgba(0, 0, 0, 0.7)',
-                                borderRadius: '0.4px',
+                                borderRadius: '0.6px',
                                 transform: 'rotate(-45deg)',
                                 transformOrigin: 'left bottom'
                               }
