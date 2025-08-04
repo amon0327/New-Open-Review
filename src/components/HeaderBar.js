@@ -228,28 +228,9 @@ const HeaderBar = ({
   const handlePublishClick = async () => {
     console.log('🚀 公開ボタンがクリックされました');
     
-    // エラーがある場合は公開を阻止し、エラー解決を促すメッセージを表示
+    // エラーがある場合は公開を阻止し、モダンなダイアログで表示
     if (errorCount > 0) {
-      // react-hot-toastで中央下にエラーメッセージを表示
-      toast.error('エラーを解決してから公開が可能です', {
-        duration: 4000,
-        position: 'bottom-center',
-        style: {
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(239, 68, 68, 0.2)',
-          borderRadius: '12px',
-          color: '#374151',
-          fontSize: '14px',
-          fontWeight: '500',
-          padding: '12px 20px',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-        },
-        iconTheme: {
-          primary: '#ef4444',
-          secondary: '#ffffff',
-        },
-      });
+      setShowPublishDialog(true);
       return;
     }
     
@@ -571,7 +552,7 @@ const HeaderBar = ({
         formId={formId}
       />
 
-      {/* エラーチェックダイアログ */}
+      {/* エラーチェックダイアログ - モダンなデザイン */}
       <Dialog
         open={showErrorCheckDialog}
         maxWidth="sm"
@@ -579,21 +560,32 @@ const HeaderBar = ({
         disableEscapeKeyDown
         PaperProps={{
           sx: {
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
-            backdropFilter: 'blur(20px)',
-            border: '2px solid transparent',
-            backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%), linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+            borderRadius: '24px',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)',
+            backdropFilter: 'blur(24px)',
+            border: '3px solid transparent',
+            backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%), linear-gradient(135deg, #667eea 0%, #764ba2 25%, #ff6b6b 75%, #feca57 100%)',
             backgroundOrigin: 'border-box',
             backgroundClip: 'content-box, border-box',
-            boxShadow: '0 24px 64px rgba(0, 0, 0, 0.15)',
-            overflow: 'hidden'
+            boxShadow: '0 32px 80px rgba(0, 0, 0, 0.2), 0 8px 32px rgba(102, 126, 234, 0.15)',
+            overflow: 'hidden',
+            animation: 'dialogSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            '@keyframes dialogSlideIn': {
+              '0%': {
+                transform: 'scale(0.8) translateY(20px)',
+                opacity: 0
+              },
+              '100%': {
+                transform: 'scale(1) translateY(0)',
+                opacity: 1
+              }
+            }
           }
         }}
         BackdropProps={{
           sx: {
-            backgroundColor: 'rgba(0, 0, 0, 0.4)',
-            backdropFilter: 'blur(8px)'
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(16px)'
           }
         }}
       >
@@ -601,9 +593,9 @@ const HeaderBar = ({
           <Box
             sx={{
               textAlign: 'center',
-              py: 6,
-              px: 4,
-              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 50%, rgba(255, 107, 107, 0.1) 100%)',
+              py: 8,
+              px: 5,
+              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.06) 0%, rgba(118, 75, 162, 0.06) 25%, rgba(255, 107, 107, 0.06) 75%, rgba(254, 202, 87, 0.06) 100%)',
               color: '#374151',
               position: 'relative',
               '&::before': {
@@ -613,81 +605,133 @@ const HeaderBar = ({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 50%, rgba(255, 107, 107, 0.05) 100%)',
+                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.02) 25%, rgba(255, 107, 107, 0.02) 75%, rgba(254, 202, 87, 0.02) 100%)',
                 zIndex: -1
               }
             }}
           >
+            {/* 洗練されたアニメーションアイコン */}
             <Box
               sx={{
-                width: 80,
-                height: 80,
+                width: 120,
+                height: 120,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 50%, rgba(255, 107, 107, 0.2) 100%)',
+                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 25%, rgba(255, 107, 107, 0.12) 75%, rgba(254, 202, 87, 0.12) 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mx: 'auto',
-                mb: 4,
-                fontSize: '2.5rem',
-                boxShadow: '0 8px 24px rgba(102, 126, 234, 0.15)'
+                mb: 5,
+                fontSize: '3.5rem',
+                boxShadow: '0 20px 60px rgba(102, 126, 234, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+                position: 'relative',
+                animation: 'breathe 3s ease-in-out infinite',
+                '@keyframes breathe': {
+                  '0%, 100%': { 
+                    transform: 'scale(1)',
+                    boxShadow: '0 20px 60px rgba(102, 126, 234, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+                  },
+                  '50%': { 
+                    transform: 'scale(1.08)',
+                    boxShadow: '0 24px 72px rgba(102, 126, 234, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.15)'
+                  }
+                },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: -4,
+                  left: -4,
+                  right: -4,
+                  bottom: -4,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #ff6b6b 75%, #feca57 100%)',
+                  zIndex: -1,
+                  opacity: 0.3,
+                  animation: 'rotate 8s linear infinite',
+                  '@keyframes rotate': {
+                    '0%': { transform: 'rotate(0deg)' },
+                    '100%': { transform: 'rotate(360deg)' }
+                  }
+                }
               }}
             >
               🔍
             </Box>
+            
             <Typography
-              variant="h4"
+              variant="h3"
               sx={{
-                fontWeight: 700,
-                mb: 2,
-                fontSize: '1.5rem',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                fontWeight: 800,
+                mb: 3,
+                fontSize: '2rem',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #ff6b6b 75%, #feca57 100%)',
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                textShadow: 'none'
+                textShadow: 'none',
+                letterSpacing: '-0.02em'
               }}
             >
               エラーチェック中...
             </Typography>
+            
             <Typography
               variant="body1"
               sx={{
-                color: '#6b7280',
-                fontSize: '1rem',
-                lineHeight: 1.6,
+                color: '#64748b',
+                fontSize: '1.15rem',
+                lineHeight: 1.7,
                 fontWeight: 500,
-                mb: 4
+                mb: 6,
+                maxWidth: 360,
+                mx: 'auto'
               }}
             >
-              フォームの設定を確認しています
+              フォームの設定を丁寧に確認しています
             </Typography>
 
-            {/* チェック項目リスト */}
-            <Box sx={{ textAlign: 'left', maxWidth: 400, mx: 'auto' }}>
-              {errorCheckItems.map((item) => (
+            {/* 洗練されたチェック項目リスト */}
+            <Box sx={{ textAlign: 'left', maxWidth: 440, mx: 'auto', mb: 6 }}>
+              {errorCheckItems.map((item, index) => (
                 <Box
                   key={item.id}
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    py: 1.5,
-                    px: 3,
-                    mb: 1,
-                    borderRadius: '12px',
+                    py: 2,
+                    px: 4,
+                    mb: 1.5,
+                    borderRadius: '16px',
                     background: item.status === 'completed' 
-                      ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%)'
-                      : 'rgba(249, 250, 251, 0.8)',
+                      ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.04) 100%)'
+                      : 'rgba(248, 250, 252, 0.8)',
                     border: item.status === 'completed' 
-                      ? '1px solid rgba(34, 197, 94, 0.2)'
-                      : '1px solid rgba(229, 231, 235, 0.5)',
-                    transition: 'all 0.3s ease'
+                      ? '2px solid rgba(34, 197, 94, 0.2)'
+                      : '2px solid rgba(226, 232, 240, 0.6)',
+                    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    transform: item.status === 'completed' ? 'translateX(0)' : 'translateX(-8px)',
+                    animation: item.status === 'completed' 
+                      ? `checkComplete 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) ${index * 0.1}s forwards`
+                      : 'none',
+                    '@keyframes checkComplete': {
+                      '0%': {
+                        transform: 'translateX(-8px) scale(0.95)',
+                        opacity: 0.7
+                      },
+                      '60%': {
+                        transform: 'translateX(4px) scale(1.02)'
+                      },
+                      '100%': {
+                        transform: 'translateX(0) scale(1)',
+                        opacity: 1
+                      }
+                    }
                   }}
                 >
                   <Box
                     sx={{
-                      width: 24,
-                      height: 24,
+                      width: 32,
+                      height: 32,
                       borderRadius: '50%',
                       mr: 3,
                       display: 'flex',
@@ -695,19 +739,24 @@ const HeaderBar = ({
                       justifyContent: 'center',
                       background: item.status === 'completed' 
                         ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
-                        : 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)',
-                      color: item.status === 'completed' ? 'white' : '#9ca3af',
-                      fontSize: '0.8rem',
-                      fontWeight: 'bold'
+                        : 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)',
+                      color: item.status === 'completed' ? 'white' : '#94a3b8',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold',
+                      boxShadow: item.status === 'completed' 
+                        ? '0 4px 12px rgba(34, 197, 94, 0.3)'
+                        : '0 2px 8px rgba(148, 163, 184, 0.15)',
+                      transition: 'all 0.3s ease'
                     }}
                   >
                     {item.status === 'completed' ? '✓' : item.id}
                   </Box>
                   <Typography
                     sx={{
-                      color: item.status === 'completed' ? '#059669' : '#6b7280',
+                      color: item.status === 'completed' ? '#059669' : '#64748b',
                       fontWeight: item.status === 'completed' ? 600 : 500,
-                      fontSize: '0.95rem'
+                      fontSize: '1rem',
+                      letterSpacing: '-0.01em'
                     }}
                   >
                     {item.name}
@@ -716,35 +765,53 @@ const HeaderBar = ({
               ))}
             </Box>
 
-            {/* プログレスバー */}
-            <Box sx={{ mt: 4, px: 2 }}>
+            {/* 美しいプログレスバー */}
+            <Box sx={{ px: 3 }}>
               <Box
                 sx={{
                   width: '100%',
-                  height: 8,
-                  borderRadius: '4px',
-                  background: 'rgba(229, 231, 235, 0.5)',
+                  height: 12,
+                  borderRadius: '6px',
+                  background: 'rgba(226, 232, 240, 0.6)',
                   overflow: 'hidden',
-                  position: 'relative'
+                  position: 'relative',
+                  boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.05)'
                 }}
               >
                 <Box
                   sx={{
                     height: '100%',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
-                    borderRadius: '4px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #ff6b6b 75%, #feca57 100%)',
+                    borderRadius: '6px',
                     width: `${(errorCheckProgress / errorCheckItems.length) * 100}%`,
-                    transition: 'width 0.3s ease'
+                    transition: 'width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    position: 'relative',
+                    boxShadow: '0 2px 8px rgba(102, 126, 234, 0.4)',
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)',
+                      animation: 'shimmer 2s infinite linear',
+                      '@keyframes shimmer': {
+                        '0%': { transform: 'translateX(-100%)' },
+                        '100%': { transform: 'translateX(100%)' }
+                      }
+                    }
                   }}
                 />
               </Box>
               <Typography
                 sx={{
                   textAlign: 'center',
-                  mt: 2,
-                  color: '#6b7280',
-                  fontSize: '0.9rem',
-                  fontWeight: 500
+                  mt: 3,
+                  color: '#64748b',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  letterSpacing: '-0.01em'
                 }}
               >
                 {errorCheckProgress} / {errorCheckItems.length} 項目完了
@@ -754,7 +821,7 @@ const HeaderBar = ({
         </DialogContent>
       </Dialog>
 
-      {/* 公開確認ダイアログ */}
+      {/* 公開確認・エラー通知共通ダイアログ */}
       <Dialog
         open={showPublishDialog}
         onClose={handlePublishCancel}
@@ -762,21 +829,26 @@ const HeaderBar = ({
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
-            backdropFilter: 'blur(20px)',
+            borderRadius: '20px',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)',
+            backdropFilter: 'blur(24px)',
             border: '2px solid transparent',
-            backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%), linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+            backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%), ' +
+                            (errorCount > 0 
+                              ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
+                              : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)'),
             backgroundOrigin: 'border-box',
             backgroundClip: 'content-box, border-box',
-            boxShadow: '0 24px 64px rgba(0, 0, 0, 0.15)',
+            boxShadow: errorCount > 0 
+              ? '0 32px 80px rgba(239, 68, 68, 0.25)' 
+              : '0 32px 80px rgba(102, 126, 234, 0.25)',
             overflow: 'hidden'
           }
         }}
         BackdropProps={{
           sx: {
-            backgroundColor: 'rgba(0, 0, 0, 0.3)',
-            backdropFilter: 'blur(8px)'
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(12px)'
           }
         }}
       >
@@ -786,7 +858,9 @@ const HeaderBar = ({
               textAlign: 'center',
               py: 6,
               px: 4,
-              background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 50%, rgba(255, 107, 107, 0.1) 100%)',
+              background: errorCount > 0 
+                ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.08) 50%, rgba(185, 28, 28, 0.08) 100%)'
+                : 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
               color: '#374151',
               mb: 4,
               position: 'relative',
@@ -797,55 +871,97 @@ const HeaderBar = ({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 50%, rgba(255, 107, 107, 0.05) 100%)',
+                background: errorCount > 0 
+                  ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.03) 0%, rgba(220, 38, 38, 0.03) 50%, rgba(185, 28, 28, 0.03) 100%)'
+                  : 'linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 50%, rgba(255, 107, 107, 0.03) 100%)',
                 zIndex: -1
               }
             }}
           >
             <Box
               sx={{
-                width: 80,
-                height: 80,
+                width: 88,
+                height: 88,
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 50%, rgba(255, 107, 107, 0.2) 100%)',
+                background: errorCount > 0
+                  ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 50%, rgba(185, 28, 28, 0.15) 100%)'
+                  : 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.15) 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 mx: 'auto',
-                mb: 3,
-                fontSize: '2.5rem',
-                boxShadow: '0 8px 24px rgba(102, 126, 234, 0.15)'
+                mb: 4,
+                fontSize: '2.8rem',
+                boxShadow: errorCount > 0
+                  ? '0 12px 32px rgba(239, 68, 68, 0.2)'
+                  : '0 12px 32px rgba(102, 126, 234, 0.2)',
+                animation: 'pulse 2s ease-in-out infinite',
+                '@keyframes pulse': {
+                  '0%, 100%': { transform: 'scale(1)' },
+                  '50%': { transform: 'scale(1.05)' }
+                }
               }}
             >
-              🚀
+              {errorCount > 0 ? '⚠️' : '🚀'}
             </Box>
             <Typography
               variant="h4"
               sx={{
                 fontWeight: 700,
                 mb: 2,
-                fontSize: '1.75rem',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                fontSize: '1.8rem',
+                background: errorCount > 0
+                  ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
+                  : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 textShadow: 'none'
               }}
             >
-              フォームを公開しますか？
+              {errorCount > 0 ? 'エラーの解決が必要です' : 'フォームを公開しますか？'}
             </Typography>
             <Typography
               variant="body1"
               sx={{
                 color: '#6b7280',
-                fontSize: '1rem',
+                fontSize: '1.1rem',
                 lineHeight: 1.6,
-                fontWeight: 500
+                fontWeight: 500,
+                mb: errorCount > 0 ? 2 : 0
               }}
             >
-              エラーチェックが完了しました。<br />
-              フォームを公開して利用可能にします。
+              {errorCount > 0 
+                ? `${errorCount}件のエラーがあります。\nエラーを解決してから公開してください。`
+                : 'エラーチェックが完了しました。\nフォームを公開して利用可能にします。'
+              }
             </Typography>
+            
+            {/* エラーがある場合の追加メッセージ */}
+            {errorCount > 0 && (
+              <Box
+                sx={{
+                  mt: 3,
+                  p: 3,
+                  borderRadius: '12px',
+                  background: 'rgba(239, 68, 68, 0.05)',
+                  border: '1px solid rgba(239, 68, 68, 0.15)'
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: '#ef4444',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    textAlign: 'left'
+                  }}
+                >
+                  💡 エラーを確認するには：<br />
+                  ヘッダーの赤いエラーカウンターをクリックしてください
+                </Typography>
+              </Box>
+            )}
           </Box>
 
           <Box sx={{ px: 4, pb: 4 }}>
@@ -861,43 +977,48 @@ const HeaderBar = ({
                 variant="outlined"
                 sx={{
                   minWidth: 120,
-                  height: 48,
-                  borderRadius: '24px',
+                  height: 52,
+                  borderRadius: '26px',
                   border: '2px solid #e5e7eb',
                   color: '#6b7280',
                   fontSize: '1rem',
                   fontWeight: 600,
                   textTransform: 'none',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
                   '&:hover': {
                     border: '2px solid #d1d5db',
-                    backgroundColor: '#f9fafb'
+                    backgroundColor: '#f9fafb',
+                    boxShadow: '0 6px 16px rgba(0, 0, 0, 0.08)',
+                    transform: 'translateY(-1px)'
                   }
                 }}
               >
-                キャンセル
+                {errorCount > 0 ? '閉じる' : 'キャンセル'}
               </Button>
-              <Button
-                onClick={handlePublishConfirm}
-                variant="contained"
-                sx={{
-                  minWidth: 120,
-                  height: 48,
-                  borderRadius: '24px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
-                    boxShadow: '0 12px 32px rgba(102, 126, 234, 0.5)',
-                    transform: 'translateY(-2px)'
-                  }
-                }}
-              >
-                公開する
-              </Button>
+              {errorCount === 0 && (
+                <Button
+                  onClick={handlePublishConfirm}
+                  variant="contained"
+                  sx={{
+                    minWidth: 120,
+                    height: 52,
+                    borderRadius: '26px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
+                      boxShadow: '0 12px 32px rgba(102, 126, 234, 0.5)',
+                      transform: 'translateY(-2px)'
+                    }
+                  }}
+                >
+                  公開する
+                </Button>
+              )}
             </Box>
           </Box>
         </DialogContent>
