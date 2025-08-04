@@ -86,6 +86,19 @@ const PreviewCompletion = ({
   const isDetailHint = detailText === 'テキストを入力...';
   const isButtonHint = displayButtonText === 'テキストを入力...';
 
+  // ハイライト条件をデバッグ
+  const isTitleHighlighted = selectedElement === 'completion-title' || (completionErrorHighlight && completionErrorHighlight.fieldType === 'title');
+  const isDetailHighlighted = selectedElement === 'completion-detail' || (completionErrorHighlight && completionErrorHighlight.fieldType === 'detail');
+  
+  console.log('🔴 PreviewCompletion - ハイライト条件:', {
+    selectedElement,
+    completionErrorHighlight,
+    isTitleHighlighted,
+    isDetailHighlighted,
+    titleText,
+    isTitleHint
+  });
+
   const handleButtonClick = () => {
     // プレビュー用なので何もしない
   };
@@ -223,7 +236,7 @@ const PreviewCompletion = ({
               zIndex: 2,
               transition: 'all 0.3s ease',
               fontStyle: isTitleHint ? 'italic' : 'normal',
-              '&::after': (selectedElement === 'completion-title' || (completionErrorHighlight && completionErrorHighlight.fieldType === 'title')) ? {
+              '&::after': isTitleHighlighted ? {
                 content: '""',
                 position: 'absolute',
                 top: -8,

@@ -440,6 +440,9 @@ const HeaderBar = ({
             <Rocket />
           </IconButton>
         </Tooltip>
+        
+        {/* スペース確保用の空要素 */}
+        <Box sx={{ width: 48 }} />
       </Box>
 
       {/* プレビューURLダイアログ */}

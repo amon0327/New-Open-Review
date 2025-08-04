@@ -221,7 +221,7 @@ const PreviewLogin = ({
                 zIndex: 2,
                 transition: 'all 0.3s ease',
                 fontStyle: isTitleHint ? 'italic' : 'normal',
-                '&::after': (selectedElement === 'login-title' || (loginErrorHighlight && loginErrorHighlight.fieldType === 'title')) ? {
+                '&::after': isTitleHighlighted ? {
                   content: '""',
                   position: 'absolute',
                   top: -8,
@@ -261,7 +261,7 @@ const PreviewLogin = ({
                 zIndex: 2,
                 transition: 'all 0.3s ease',
                 fontStyle: isDetailHint ? 'italic' : 'normal',
-                '&::after': (selectedElement === 'login-detail' || (loginErrorHighlight && loginErrorHighlight.fieldType === 'detail')) ? {
+                '&::after': isDetailHighlighted ? {
                   content: '""',
                   position: 'absolute',
                   top: -8,
