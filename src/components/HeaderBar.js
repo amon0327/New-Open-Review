@@ -452,7 +452,7 @@ const HeaderBar = ({
         </Tooltip>
         
         {/* スペース確保用の空要素 */}
-        <Box sx={{ width: 24 }} />
+        <Box sx={{ width: 18 }} />
       </Box>
 
       {/* プレビューURLダイアログ */}

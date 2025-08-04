@@ -18,12 +18,12 @@ export default function HomePage({ user, onCreateFormClick }) {
     }
   `;
 
-  // ArticleCard スタイル（openreview-landingから完全コピー）
+  // ArticleCard スタイル（4列レイアウト用に縮小）
   const ArticleCard = styled(Card)(({ theme }) => ({
-    height: '400px !important',
-    minHeight: '400px !important',
-    maxHeight: '400px !important',
-    maxWidth: '350px',
+    height: '320px !important',
+    minHeight: '320px !important',
+    maxHeight: '320px !important',
+    maxWidth: '280px',
     width: '100%',
     margin: '0 auto',
     display: 'flex !important',
@@ -48,9 +48,9 @@ export default function HomePage({ user, onCreateFormClick }) {
       flex: 'none !important',
       flexShrink: '0 !important',
       flexGrow: '0 !important',
-      height: '200px !important',
-      minHeight: '200px !important',
-      maxHeight: '200px !important',
+      height: '160px !important',
+      minHeight: '160px !important',
+      maxHeight: '160px !important',
     },
     // CardContentのパディングと高さを固定
     '& .MuiCardContent-root': {
@@ -59,16 +59,16 @@ export default function HomePage({ user, onCreateFormClick }) {
       flex: '1 1 auto !important',
       display: 'flex !important',
       flexDirection: 'column !important',
-      height: '200px !important',
-      minHeight: '200px !important',
-      maxHeight: '200px !important',
+      height: '160px !important',
+      minHeight: '160px !important',
+      maxHeight: '160px !important',
       overflow: 'hidden !important',
     },
   }));
 
   const ArticleImage = styled(CardMedia)({
     width: '100% !important',
-    height: '200px !important',
+    height: '160px !important',
     position: 'relative',
     overflow: 'hidden',
     display: 'block !important',
@@ -260,15 +260,15 @@ export default function HomePage({ user, onCreateFormClick }) {
           </Typography>
 
           {/* PC版グリッドレイアウト */}
-          <Grid container spacing={3} justifyContent="flex-start">
+          <Grid container spacing={2} justifyContent="flex-start">
             {articles.map((article, index) => (
               <Grid 
                 item 
                 xs={12}    // 1列（スマートフォン）
                 sm={6}     // 2列（タブレット）
-                md={4}     // 3列（PC - 960px以上）
-                lg={4}     // 3列（デスクトップ - 1280px以上）
-                xl={4}     // 3列（大画面 - 1920px以上）
+                md={3}     // 4列（PC - 960px以上）
+                lg={3}     // 4列（デスクトップ - 1280px以上）
+                xl={3}     // 4列（大画面 - 1920px以上）
                 key={article.id}
                 sx={{
                   animation: `${fadeInUp} 0.3s ease-out ${index * 0.05}s both`,
