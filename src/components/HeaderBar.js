@@ -102,6 +102,7 @@ const HeaderBar = ({
 
   const handleErrorItemClick = (error) => {
     // エラー項目がクリックされた時の処理
+    console.log('🔴 HeaderBar - エラー項目がクリックされました:', error);
     setErrorAnchorEl(null); // ポップオーバーを閉じる
     
     // ページエラーの場合は特別処理
@@ -116,10 +117,13 @@ const HeaderBar = ({
     }
     // ログイン画面エラーの場合は特別処理
     else if (error.action === 'navigateToLoginScreen') {
+      console.log('🔴 HeaderBar - ログイン画面エラー処理開始:', { errorId: error.id, fieldType: error.fieldType });
       if (onNavigateToLoginScreen) {
+        console.log('🔴 HeaderBar - ログイン画面に遷移中...');
         onNavigateToLoginScreen(error.fieldType);
       }
       if (onShowLoginError) {
+        console.log('🔴 HeaderBar - ログインエラーハイライト設定中...');
         onShowLoginError(error.id, error.fieldType);
       }
     }

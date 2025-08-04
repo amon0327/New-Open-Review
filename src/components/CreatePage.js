@@ -1792,9 +1792,14 @@ export default function CreatePage({ onBackClick, user, formId }) {
           }}
           onNavigateToLoginScreen={(fieldType) => {
             // ログイン画面に遷移
+            console.log('🔴 CreatePage - ログイン画面遷移処理開始:', { fieldType });
             const loginPage = pages.find(p => p.id === 'login');
+            console.log('🔴 CreatePage - ログインページ検索結果:', loginPage);
             if (loginPage) {
+              console.log('🔴 CreatePage - ログインページに遷移中...');
               setSelectedPage(loginPage);
+            } else {
+              console.error('🔴 CreatePage - ログインページが見つかりません!');
             }
           }}
           onShowLoginError={(errorId, fieldType) => {

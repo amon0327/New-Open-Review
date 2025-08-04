@@ -72,7 +72,7 @@ export default function HomePage({ user, onCreateFormClick }) {
           flexDirection: 'column',
           alignItems: 'center',
           pt: 8,
-          px: 4,
+          px: 0,
           overflow: 'hidden'
         }}
       >
@@ -118,8 +118,7 @@ export default function HomePage({ user, onCreateFormClick }) {
         {/* 記事一覧セクション */}
         <Box
           sx={{
-            width: '100%',
-            maxWidth: '1200px'
+            width: '100%'
           }}
         >
           {/* セクションタイトル */}
