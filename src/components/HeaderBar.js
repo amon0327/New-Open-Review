@@ -27,7 +27,9 @@ import {
   WarningAmber,
   CheckCircle,
   Close,
-  CheckCircleOutline
+  CheckCircleOutline,
+  Public,
+  CloudDone
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 import PreviewUrlDialog from './PreviewUrlDialog';
@@ -76,6 +78,10 @@ const HeaderBar = ({
   const [errorCheckProgress, setErrorCheckProgress] = useState(0);
   const [errorCheckItems, setErrorCheckItems] = useState([]);
   const [isErrorChecking, setIsErrorChecking] = useState(false);
+  // 公開済みアラートの状態
+  const [showPublishedAlert, setShowPublishedAlert] = useState(false);
+  // 公開状態（propsから受け取るか、独自に管理）
+  const [isPublished, setIsPublished] = useState(false);
   // エラー・警告ポップオーバーの状態
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
@@ -228,6 +234,12 @@ const HeaderBar = ({
   const handlePublishClick = async () => {
     console.log('🚀 公開ボタンがクリックされました');
     
+    // すでに公開済みの場合は公開済みアラートを表示
+    if (isPublished) {
+      setShowPublishedAlert(true);
+      return;
+    }
+    
     // エラーがある場合は公開を阻止し、モダンなダイアログで表示
     if (errorCount > 0) {
       setShowPublishDialog(true);
@@ -313,6 +325,7 @@ const HeaderBar = ({
       console.log('✅ フォーム公開完了:', data);
       
       setShowPublishDialog(false);
+      setIsPublished(true); // 公開状態を更新
       
       // 成功トースト
       toast.success('フォームを公開しました', {
@@ -588,12 +601,22 @@ const HeaderBar = ({
           </IconButton>
         </Tooltip>
         
-        <Tooltip title="公開">
+        <Tooltip title={isPublished ? "公開中" : "公開"}>
           <IconButton 
             onClick={handlePublishClick}
-            sx={iconButtonStyles.secondary}
+            sx={{
+              ...iconButtonStyles.secondary,
+              ...(isPublished && {
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                border: '1px solid rgba(34, 197, 94, 0.2)',
+                '&:hover': {
+                  backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                  transform: 'translateY(-1px)',
+                }
+              })
+            }}
           >
-            <Rocket />
+            {isPublished ? <CloudDone sx={{ color: '#22c55e' }} /> : <Rocket />}
           </IconButton>
         </Tooltip>
         
@@ -1244,6 +1267,159 @@ const HeaderBar = ({
                 )}
               </Box>
             )}
+          </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* 公開済みアラートダイアログ */}
+      <Dialog
+        open={showPublishedAlert}
+        onClose={() => setShowPublishedAlert(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '20px',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%)',
+            backdropFilter: 'blur(24px)',
+            border: '2px solid transparent',
+            backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%), ' +
+                            'linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%)',
+            backgroundOrigin: 'border-box',
+            backgroundClip: 'content-box, border-box',
+            boxShadow: '0 32px 80px rgba(34, 197, 94, 0.25)',
+            overflow: 'hidden'
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(12px)'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <Box
+            sx={{
+              textAlign: 'center',
+              py: 6,
+              px: 4,
+              background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(22, 163, 74, 0.08) 50%, rgba(21, 128, 61, 0.08) 100%)',
+              color: '#374151',
+              mb: 0,
+              minHeight: 300,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              position: 'relative',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.03) 0%, rgba(22, 163, 74, 0.03) 50%, rgba(21, 128, 61, 0.03) 100%)',
+                zIndex: -1
+              }
+            }}
+          >
+            {/* メインコンテンツエリア */}
+            <Box sx={{ 
+              flex: 1, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center',
+              alignItems: 'center',
+              textAlign: 'center'
+            }}>
+              {/* 公開中アイコン */}
+              <Box
+                sx={{
+                  width: 88,
+                  height: 88,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(22, 163, 74, 0.15) 50%, rgba(21, 128, 61, 0.15) 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 32px auto',
+                  fontSize: '2.8rem',
+                  boxShadow: '0 12px 32px rgba(34, 197, 94, 0.2)',
+                  animation: 'pulse 2s ease-in-out infinite',
+                  '@keyframes pulse': {
+                    '0%, 100%': { transform: 'scale(1)' },
+                    '50%': { transform: 'scale(1.05)' }
+                  }
+                }}
+              >
+                <CloudDone sx={{ fontSize: '2.8rem', color: '#22c55e' }} />
+              </Box>
+
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 700,
+                  mb: 2,
+                  fontSize: '1.8rem',
+                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 50%, #15803d 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  textShadow: 'none'
+                }}
+              >
+                フォーム公開中
+              </Typography>
+              
+              <Typography
+                variant="body1"
+                sx={{
+                  color: '#6b7280',
+                  fontSize: '1.1rem',
+                  lineHeight: 1.6,
+                  fontWeight: 500,
+                  mb: 2
+                }}
+              >
+                このフォームはすでに公開されており、
+                <br />
+                ユーザーが回答できる状態です。
+              </Typography>
+            </Box>
+
+            {/* ボタンエリア */}
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                justifyContent: 'center',
+                pt: 2
+              }}
+            >
+              <Button
+                onClick={() => setShowPublishedAlert(false)}
+                variant="contained"
+                sx={{
+                  minWidth: 120,
+                  height: 52,
+                  borderRadius: '26px',
+                  background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                  color: 'white',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  boxShadow: '0 8px 24px rgba(34, 197, 94, 0.4)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
+                    boxShadow: '0 12px 32px rgba(34, 197, 94, 0.5)',
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+              >
+                確認
+              </Button>
+            </Box>
           </Box>
         </DialogContent>
       </Dialog>
