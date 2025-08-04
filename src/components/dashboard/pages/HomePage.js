@@ -245,7 +245,7 @@ export default function HomePage({ user, onCreateFormClick }) {
         </Button>
 
         {/* 記事一覧セクション */}
-        <Container maxWidth="lg" sx={{ mt: 6 }}>
+        <Container maxWidth="lg" sx={{ mt: 3 }}>
           {/* セクションタイトル */}
           <Typography
             variant="h6"
