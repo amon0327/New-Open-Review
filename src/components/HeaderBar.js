@@ -13,6 +13,9 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  Dialog,
+  DialogContent,
+  Button,
   Divider,
   Chip
 } from '@mui/material';
@@ -68,6 +71,9 @@ const HeaderBar = ({
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
   // プレビューダイアログの状態
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  // 公開確認ダイアログの状態
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [isCheckingErrors, setIsCheckingErrors] = useState(false);
   // エラー・警告ポップオーバーの状態
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
@@ -217,7 +223,7 @@ const HeaderBar = ({
     setShowPreviewDialog(true);
   };
 
-  const handlePublishClick = () => {
+  const handlePublishClick = async () => {
     console.log('🚀 公開ボタンがクリックされました');
     
     // エラーがある場合は公開を阻止し、エラー解決を促すメッセージを表示
@@ -245,12 +251,62 @@ const HeaderBar = ({
       return;
     }
     
+    // エラーがない場合は最終チェックを実行
+    console.log('✅ エラーがないため最終チェックを実行します');
+    setIsCheckingErrors(true);
+    
+    // エラーチェック中のアラート表示
+    toast.loading('エラーをチェック中...', {
+      id: 'error-check',
+      duration: 2000,
+      position: 'bottom-center',
+      style: {
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(59, 130, 246, 0.2)',
+        borderRadius: '12px',
+        color: '#374151',
+        fontSize: '14px',
+        fontWeight: '500',
+        padding: '12px 20px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+      },
+    });
+    
+    // 2秒間チェック処理をシミュレート
+    setTimeout(() => {
+      setIsCheckingErrors(false);
+      toast.dismiss('error-check');
+      
+      // チェック完了後、確認ダイアログを表示
+      setShowPublishDialog(true);
+    }, 2000);
+  };
+
+  const handlePublishConfirm = () => {
     console.log('✅ 公開処理を実行します');
-    // TODO: 公開処理を実装
+    setShowPublishDialog(false);
+    
+    // 公開処理を実装
     toast.success('フォームを公開しました', {
       duration: 3000,
       position: 'bottom-center',
+      style: {
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(34, 197, 94, 0.2)',
+        borderRadius: '12px',
+        color: '#374151',
+        fontSize: '14px',
+        fontWeight: '500',
+        padding: '12px 20px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+      },
     });
+  };
+
+  const handlePublishCancel = () => {
+    setShowPublishDialog(false);
   };
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
@@ -501,6 +557,134 @@ const HeaderBar = ({
         formId={formId}
       />
 
+      {/* 公開確認ダイアログ */}
+      <Dialog
+        open={showPublishDialog}
+        onClose={handlePublishCancel}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '16px',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            boxShadow: '0 24px 64px rgba(0, 0, 0, 0.15)',
+            overflow: 'hidden'
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(8px)'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <Box
+            sx={{
+              textAlign: 'center',
+              py: 6,
+              px: 4,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              mb: 4
+            }}
+          >
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+                mb: 3,
+                fontSize: '2.5rem'
+              }}
+            >
+              🚀
+            </Box>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                mb: 2,
+                fontSize: '1.75rem',
+                textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+              }}
+            >
+              フォームを公開しますか？
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                opacity: 0.9,
+                fontSize: '1rem',
+                lineHeight: 1.6
+              }}
+            >
+              エラーチェックが完了しました。<br />
+              フォームを公開して利用可能にします。
+            </Typography>
+          </Box>
+
+          <Box sx={{ px: 4, pb: 4 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                justifyContent: 'center'
+              }}
+            >
+              <Button
+                onClick={handlePublishCancel}
+                variant="outlined"
+                sx={{
+                  minWidth: 120,
+                  height: 48,
+                  borderRadius: '24px',
+                  border: '2px solid #e5e7eb',
+                  color: '#6b7280',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  '&:hover': {
+                    border: '2px solid #d1d5db',
+                    backgroundColor: '#f9fafb'
+                  }
+                }}
+              >
+                キャンセル
+              </Button>
+              <Button
+                onClick={handlePublishConfirm}
+                variant="contained"
+                sx={{
+                  minWidth: 120,
+                  height: 48,
+                  borderRadius: '24px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
+                    boxShadow: '0 12px 32px rgba(102, 126, 234, 0.5)',
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+              >
+                公開する
+              </Button>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
 
       {/* エラー詳細ポップオーバー */}
       <Popover

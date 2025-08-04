@@ -37,6 +37,7 @@ import {
 } from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
 import FormDataService from '../../../services/FormDataService';
+import { toast } from 'react-hot-toast';
 
 export default function HomePage({ user, onCreateFormClick }) {
   const scrollContainerRef = useRef(null);
@@ -48,6 +49,7 @@ export default function HomePage({ user, onCreateFormClick }) {
   const [error, setError] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedForm, setSelectedForm] = useState(null);
+  const [isCreatingForm, setIsCreatingForm] = useState(false);
 
   // マウスドラッグスクロール機能
   const handleMouseDown = (e) => {
@@ -118,6 +120,32 @@ export default function HomePage({ user, onCreateFormClick }) {
   const handleMenuClose = () => {
     setAnchorEl(null);
     setSelectedForm(null);
+  };
+
+  // 新規フォーム作成（ナビゲーションバーと同じ機能）
+  const handleCreateForm = async () => {
+    if (!user) {
+      toast.error('ユーザー情報が取得できません');
+      return;
+    }
+
+    setIsCreatingForm(true);
+    try {
+      const result = await FormDataService.createNewForm(user.id);
+      
+      if (result.success) {
+        // フォーム作成成功時は通知なし
+        // フォーム作成画面に遷移（formIdを渡す）
+        onCreateFormClick(result.data.reviewFormId);
+      } else {
+        toast.error(result.error || 'フォームの作成に失敗しました');
+      }
+    } catch (error) {
+      console.error('Form creation error:', error);
+      toast.error('フォームの作成中にエラーが発生しました');
+    } finally {
+      setIsCreatingForm(false);
+    }
   };
 
   // フォームデータの変換
@@ -507,8 +535,9 @@ export default function HomePage({ user, onCreateFormClick }) {
             </Box>
             <Button
               variant="contained"
-              startIcon={<Add />}
-              onClick={onCreateFormClick}
+              startIcon={isCreatingForm ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Add />}
+              onClick={handleCreateForm}
+              disabled={isCreatingForm}
               sx={{
                 background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
                 borderRadius: 3,
@@ -521,10 +550,15 @@ export default function HomePage({ user, onCreateFormClick }) {
                   background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
                   transform: 'translateY(-2px)',
                   boxShadow: '0 8px 30px rgba(94, 23, 235, 0.4)',
+                },
+                '&.Mui-disabled': {
+                  opacity: 0.7,
+                  background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                  color: 'white'
                 }
               }}
             >
-              新規作成
+              {isCreatingForm ? '作成中...' : '新規作成'}
             </Button>
           </Box>
 
@@ -599,8 +633,9 @@ export default function HomePage({ user, onCreateFormClick }) {
                   </Typography>
                   <Button
                     variant="contained"
-                    startIcon={<Add />}
-                    onClick={onCreateFormClick}
+                    startIcon={isCreatingForm ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Add />}
+                    onClick={handleCreateForm}
+                    disabled={isCreatingForm}
                     sx={{
                       background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
                       borderRadius: 2,
@@ -608,9 +643,14 @@ export default function HomePage({ user, onCreateFormClick }) {
                       py: 1,
                       textTransform: 'none',
                       fontWeight: 600,
+                      '&.Mui-disabled': {
+                        opacity: 0.7,
+                        background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                        color: 'white'
+                      }
                     }}
                   >
-                    最初のフォームを作成
+                    {isCreatingForm ? '作成中...' : '最初のフォームを作成'}
                   </Button>
                 </Box>
               ) : (
