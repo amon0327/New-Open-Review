@@ -37,6 +37,7 @@ import {
 } from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
 import FormDataService from '../../../services/FormDataService';
+import ArticleDataService from '../../../services/ArticleDataService';
 import { toast } from 'react-hot-toast';
 
 export default function HomePage({ user, onCreateFormClick }) {
@@ -50,6 +51,9 @@ export default function HomePage({ user, onCreateFormClick }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedForm, setSelectedForm] = useState(null);
   const [isCreatingForm, setIsCreatingForm] = useState(false);
+  const [articles, setArticles] = useState([]);
+  const [articlesLoading, setArticlesLoading] = useState(true);
+  const [articlesError, setArticlesError] = useState(null);
 
   // マウスドラッグスクロール機能
   const handleMouseDown = (e) => {
@@ -110,6 +114,29 @@ export default function HomePage({ user, onCreateFormClick }) {
 
     fetchForms();
   }, [user?.id]);
+
+  // 記事一覧を取得
+  useEffect(() => {
+    const fetchArticles = async () => {
+      setArticlesLoading(true);
+      try {
+        const result = await ArticleDataService.getPublishedArticles(5);
+        if (result.success) {
+          setArticles(result.data);
+        } else {
+          setArticlesError(result.error);
+          console.error('記事取得エラー:', result.error);
+        }
+      } catch (err) {
+        setArticlesError('記事の取得に失敗しました');
+        console.error('記事取得中にエラー:', err);
+      } finally {
+        setArticlesLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, []);
 
   // メニューハンドラー
   const handleMenuClick = (event, form) => {
@@ -269,69 +296,6 @@ export default function HomePage({ user, onCreateFormClick }) {
     },
   }));
 
-  // サンプル記事データ（openreview-landing形式に更新）
-  const articles = [
-    {
-      id: 1,
-      title: "レビューフォームの効果的な活用方法",
-      excerpt: "チームの生産性を向上させるレビューフォームの設計と運用について、実践的な導入方法と効果を詳しく解説します。",
-      thumbnail_url: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=600&h=316&fit=crop",
-      category: "technology",
-      category_name: "テクノロジー",
-      category_color: "#3dcc65",
-      keywords: ["React", "JavaScript", "開発", "フロントエンド"],
-      read_time_minutes: 5,
-      published_at: "2024-08-01T10:00:00+09:00"
-    },
-    {
-      id: 2,
-      title: "OpenReviewで始める360度フィードバック",
-      excerpt: "多角的な視点でのフィードバック収集の手法とその効果について、具体的な実装方法を交えて紹介します。",
-      thumbnail_url: "https://images.unsplash.com/photo-1560472355-536de3962603?w=600&h=316&fit=crop",
-      category: "business",
-      category_name: "ビジネス",
-      category_color: "#32b7f0",
-      keywords: ["DX", "戦略", "組織改革", "マネジメント"],
-      read_time_minutes: 4,
-      published_at: "2024-07-28T14:30:00+09:00"
-    },
-    {
-      id: 3,
-      title: "リモートワークでのパフォーマンス評価",
-      excerpt: "分散チームでの効果的な評価システムの構築方法と、リモート環境での適切な評価指標をご紹介します。",
-      thumbnail_url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=316&fit=crop",
-      category: "research",
-      category_name: "リサーチ",
-      category_color: "#8c5eee",
-      keywords: ["リモートワーク", "評価", "マネジメント"],
-      read_time_minutes: 6,
-      published_at: "2024-07-25T09:15:00+09:00"
-    },
-    {
-      id: 4,
-      title: "フィードバック文化の醸成",
-      excerpt: "組織全体でのフィードバック文化を根付かせるための実践的なアプローチと成功事例を詳しく解説します。",
-      thumbnail_url: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=316&fit=crop",
-      category: "case-study",
-      category_name: "ケーススタディ",
-      category_color: "#ff9900",
-      keywords: ["組織文化", "フィードバック", "チームビルディング"],
-      read_time_minutes: 7,
-      published_at: "2024-07-22T16:45:00+09:00"
-    },
-    {
-      id: 5,
-      title: "データドリブンな人材育成",
-      excerpt: "レビューデータを活用した効果的な人材育成戦略について、具体的な分析手法と実装方法を解説します。",
-      thumbnail_url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=316&fit=crop",
-      category: "technology",
-      category_name: "テクノロジー", 
-      category_color: "#3dcc65",
-      keywords: ["データ分析", "人材育成", "HR Tech", "AI"],
-      read_time_minutes: 8,
-      published_at: "2024-07-19T11:20:00+09:00"
-    }
-  ];
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -392,31 +356,64 @@ export default function HomePage({ user, onCreateFormClick }) {
             </Box>
           </Box>
 
+          {/* ローディング状態 */}
+          {articlesLoading && (
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              minHeight: '320px' 
+            }}>
+              <CircularProgress 
+                sx={{ 
+                  color: '#5e17eb',
+                  '& .MuiCircularProgress-circle': {
+                    strokeLinecap: 'round',
+                  }
+                }} 
+              />
+            </Box>
+          )}
+
+          {/* エラー状態 */}
+          {articlesError && (
+            <Box sx={{ 
+              textAlign: 'center', 
+              py: 6,
+              color: 'text.secondary'
+            }}>
+              <Typography variant="body1">
+                記事の読み込みに失敗しました: {articlesError}
+              </Typography>
+            </Box>
+          )}
+
           {/* 横スクロール可能なレイアウト */}
-          <Box
-            ref={scrollContainerRef}
-            onMouseDown={handleMouseDown}
-            onMouseLeave={handleMouseLeave}
-            onMouseUp={handleMouseUp}
-            onMouseMove={handleMouseMove}
-            sx={{
-              display: 'flex',
-              gap: 2,
-              overflowX: 'hidden',
-              overflowY: 'hidden',
-              pb: 2,
-              cursor: 'grab',
-              userSelect: 'none',
-              '&::-webkit-scrollbar': {
-                display: 'none',
-              },
-              '&': {
-                msOverflowStyle: 'none',
-                scrollbarWidth: 'none',
-              },
-            }}
-          >
-            {articles.map((article, index) => (
+          {!articlesLoading && !articlesError && (
+            <Box
+              ref={scrollContainerRef}
+              onMouseDown={handleMouseDown}
+              onMouseLeave={handleMouseLeave}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
+              sx={{
+                display: 'flex',
+                gap: 2,
+                overflowX: 'hidden',
+                overflowY: 'hidden',
+                pb: 2,
+                cursor: 'grab',
+                userSelect: 'none',
+                '&::-webkit-scrollbar': {
+                  display: 'none',
+                },
+                '&': {
+                  msOverflowStyle: 'none',
+                  scrollbarWidth: 'none',
+                },
+              }}
+            >
+              {articles.map((article, index) => (
               <Box
                 key={article.id}
                 sx={{
@@ -518,8 +515,9 @@ export default function HomePage({ user, onCreateFormClick }) {
                   </CardContent>
                 </ArticleCard>
               </Box>
-            ))}
-          </Box>
+              ))}
+            </Box>
+          )}
         </Container>
 
         {/* フォーム一覧セクション */}

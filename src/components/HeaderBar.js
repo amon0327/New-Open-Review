@@ -613,31 +613,7 @@ const HeaderBar = ({
               }
             }}
           >
-            <Box
-              sx={{
-                width: 88,
-                height: 88,
-                borderRadius: '50%',
-                background: errorCount > 0
-                  ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 50%, rgba(185, 28, 28, 0.15) 100%)'
-                  : 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.15) 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: 4,
-                fontSize: '2.8rem',
-                boxShadow: errorCount > 0
-                  ? '0 12px 32px rgba(239, 68, 68, 0.2)'
-                  : '0 12px 32px rgba(102, 126, 234, 0.2)',
-                animation: 'pulse 2s ease-in-out infinite',
-                '@keyframes pulse': {
-                  '0%, 100%': { transform: 'scale(1)' },
-                  '50%': { transform: 'scale(1.05)' }
-                }
-              }}
-            >
-              {/* メインコンテンツエリア */}
+            {/* メインコンテンツエリア */}
             <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
               <Box
                 sx={{
