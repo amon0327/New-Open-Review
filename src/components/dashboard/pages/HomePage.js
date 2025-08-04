@@ -5,6 +5,40 @@ import { Add } from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
 
 export default function HomePage({ user, onCreateFormClick }) {
+  const scrollContainerRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  // マウスドラッグスクロール機能
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+    scrollContainerRef.current.style.cursor = 'grabbing';
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
 
   // アニメーション定義
   const fadeInUp = keyframes`
@@ -261,25 +295,25 @@ export default function HomePage({ user, onCreateFormClick }) {
 
           {/* 横スクロール可能なレイアウト */}
           <Box
+            ref={scrollContainerRef}
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
             sx={{
               display: 'flex',
               gap: 2,
               overflowX: 'auto',
               overflowY: 'hidden',
               pb: 2,
+              cursor: 'grab',
+              userSelect: 'none',
               '&::-webkit-scrollbar': {
-                height: 8,
+                display: 'none',
               },
-              '&::-webkit-scrollbar-track': {
-                backgroundColor: 'rgba(0,0,0,0.1)',
-                borderRadius: 4,
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'rgba(94, 23, 235, 0.3)',
-                borderRadius: 4,
-                '&:hover': {
-                  backgroundColor: 'rgba(94, 23, 235, 0.5)',
-                },
+              '&': {
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
               },
             }}
           >
