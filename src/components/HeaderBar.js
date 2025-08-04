@@ -973,10 +973,17 @@ const HeaderBar = ({
                               width: 8,
                               height: 5,
                               opacity: 0,
-                              animation: `checkComplete 4s ease-in-out infinite ${index * 1 + 0.6}s`,
+                              animation: `checkComplete 4s ease-in-out infinite ${index < 3 ? index * 1 : 2.5}s`,
                               '@keyframes checkComplete': {
-                                '0%, 80%': { opacity: 0 },
-                                '90%, 100%': { opacity: 1 }
+                                '0%, 75%': { opacity: 0 },
+                                '85%': { 
+                                  opacity: 1,
+                                  transform: 'scale(1.2)'
+                                },
+                                '90%, 100%': { 
+                                  opacity: 1,
+                                  transform: 'scale(1)'
+                                }
                               },
                               '&::before': {
                                 content: '""',
@@ -1104,30 +1111,80 @@ const HeaderBar = ({
                   pt: 2
                 }}
               >
-                {errorCount === 0 && (
+                {errorCount > 0 ? (
+                  // エラーがある場合は閉じるボタンのみ
                   <Button
-                    onClick={handlePublishConfirm}
-                    variant="contained"
+                    onClick={handlePublishCancel}
+                    variant="outlined"
                     sx={{
                       minWidth: 120,
                       height: 52,
                       borderRadius: '26px',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      color: 'white',
+                      border: '2px solid rgba(239, 68, 68, 0.3)',
+                      color: '#ef4444',
                       fontSize: '1rem',
                       fontWeight: 600,
                       textTransform: 'none',
-                      boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+                      backgroundColor: 'rgba(239, 68, 68, 0.05)',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
-                        boxShadow: '0 12px 32px rgba(102, 126, 234, 0.5)',
-                        transform: 'translateY(-2px)'
-                    }
-                  }}
-                >
-                  公開する
-                </Button>
-              )}
+                        border: '2px solid rgba(239, 68, 68, 0.4)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        transform: 'translateY(-1px)'
+                      }
+                    }}
+                  >
+                    閉じる
+                  </Button>
+                ) : (
+                  // エラーがない場合はキャンセルと公開ボタン
+                  <>
+                    <Button
+                      onClick={handlePublishCancel}
+                      variant="outlined"
+                      sx={{
+                        minWidth: 120,
+                        height: 52,
+                        borderRadius: '26px',
+                        border: '2px solid rgba(107, 114, 128, 0.3)',
+                        color: '#6b7280',
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        '&:hover': {
+                          border: '2px solid rgba(107, 114, 128, 0.4)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                          transform: 'translateY(-1px)'
+                        }
+                      }}
+                    >
+                      キャンセル
+                    </Button>
+                    <Button
+                      onClick={handlePublishConfirm}
+                      variant="contained"
+                      sx={{
+                        minWidth: 120,
+                        height: 52,
+                        borderRadius: '26px',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
+                          boxShadow: '0 12px 32px rgba(102, 126, 234, 0.5)',
+                          transform: 'translateY(-2px)'
+                        }
+                      }}
+                    >
+                      公開する
+                    </Button>
+                  </>
+                )}
               </Box>
             )}
           </Box>
