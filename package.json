@@ -11,6 +11,8 @@
     "@mui/system": "^5.14.20",
     "@mui/x-data-grid": "^6.18.2",
     "@supabase/supabase-js": "^2.52.1",
+    "embla-carousel-autoplay": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "framer-motion": "^10.16.5",
     "lucide-react": "^0.530.0",
     "qrcode": "^1.5.4",

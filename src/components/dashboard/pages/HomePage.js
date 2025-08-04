@@ -1,5 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import EmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 import { 
   Box, 
   Typography, 
@@ -33,7 +35,9 @@ import {
   Delete,
   Share,
   Analytics,
-  ContentCopy
+  ContentCopy,
+  ArrowBackIos,
+  ArrowForwardIos
 } from '@mui/icons-material';
 import { styled, keyframes } from '@mui/material/styles';
 import FormDataService from '../../../services/FormDataService';
@@ -41,10 +45,6 @@ import ArticleDataService from '../../../services/ArticleDataService';
 import { toast } from 'react-hot-toast';
 
 export default function HomePage({ user, onCreateFormClick }) {
-  const scrollContainerRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,43 +54,20 @@ export default function HomePage({ user, onCreateFormClick }) {
   const [articles, setArticles] = useState([]);
   const [articlesLoading, setArticlesLoading] = useState(true);
   const [articlesError, setArticlesError] = useState(null);
+  
+  // カルーセル用の状態
+  const [emblaRef, emblaApi] = EmblaCarousel(
+    { 
+      loop: true,
+      dragFree: false,
+      containScroll: false,
+      align: 'center',
+      slidesToScroll: 1,
+      skipSnaps: false
+    },
+    [Autoplay({ delay: 5000, stopOnInteraction: false })]
+  );
 
-  // マウスドラッグスクロール機能
-  const handleMouseDown = (e) => {
-    // カードのクリックイベントを防止
-    e.preventDefault();
-    setIsDragging(true);
-    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
-    setScrollLeft(scrollContainerRef.current.scrollLeft);
-    scrollContainerRef.current.style.cursor = 'grabbing';
-    // スクロール機能を無効化
-    scrollContainerRef.current.style.overflow = 'hidden';
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.style.cursor = 'grab';
-      scrollContainerRef.current.style.overflow = 'auto';
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.style.cursor = 'grab';
-      // スクロール機能を再度無効化（ドラッグのみでスクロール）
-      scrollContainerRef.current.style.overflow = 'hidden';
-    }
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
-  };
 
   // フォーム一覧を取得
   useEffect(() => {
@@ -137,6 +114,15 @@ export default function HomePage({ user, onCreateFormClick }) {
 
     fetchArticles();
   }, []);
+
+  // カルーセルナビゲーション関数
+  const scrollToPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollToNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
   // メニューハンドラー
   const handleMenuClick = (event, form) => {
@@ -202,73 +188,6 @@ export default function HomePage({ user, onCreateFormClick }) {
     }
   `;
 
-  // ArticleCard スタイル（4列レイアウト用に縮小）
-  const ArticleCard = styled(Card)(({ theme }) => ({
-    height: '320px !important',
-    minHeight: '320px !important',
-    maxHeight: '320px !important',
-    maxWidth: '280px',
-    width: '100%',
-    margin: '0 auto',
-    display: 'flex !important',
-    flexDirection: 'column !important',
-    borderRadius: 12,
-    border: 'none',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    cursor: 'pointer',
-    overflow: 'hidden !important',
-    background: '#ffffff',
-    position: 'relative',
-    '&:hover': {
-      transform: 'translateY(-8px)',
-      boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
-      '& .article-image': {
-        transform: 'scale(1.05)',
-      },
-    },
-    // 画像領域を固定
-    '& .MuiCardMedia-root': {
-      flex: 'none !important',
-      flexShrink: '0 !important',
-      flexGrow: '0 !important',
-      height: '160px !important',
-      minHeight: '160px !important',
-      maxHeight: '160px !important',
-    },
-    // CardContentのパディングと高さを固定
-    '& .MuiCardContent-root': {
-      padding: '16px !important',
-      paddingTop: '12px !important',
-      flex: '1 1 auto !important',
-      display: 'flex !important',
-      flexDirection: 'column !important',
-      height: '160px !important',
-      minHeight: '160px !important',
-      maxHeight: '160px !important',
-      overflow: 'hidden !important',
-    },
-  }));
-
-  const ArticleImage = styled(CardMedia)({
-    width: '100% !important',
-    height: '160px !important',
-    position: 'relative',
-    overflow: 'hidden',
-    display: 'block !important',
-    backgroundColor: '#f5f5f5',
-    flex: 'none !important',
-    flexShrink: '0 !important',
-    '& img': {
-      width: '100% !important',
-      height: '100% !important',
-      objectFit: 'cover !important',
-      objectPosition: 'center !important',
-      transition: 'transform 0.4s ease',
-      display: 'block !important',
-      verticalAlign: 'top !important',
-    },
-  });
 
   const CategoryChip = styled(Chip)(({ theme, categorycolor }) => ({
     backgroundColor: categorycolor || theme.palette.primary.main,
@@ -293,6 +212,103 @@ export default function HomePage({ user, onCreateFormClick }) {
     borderRadius: 10,
     '& .MuiChip-icon': {
       fontSize: 14,
+    },
+  }));
+
+  // カルーセル用スタイル
+  const CarouselContainer = styled(Box)(({ theme }) => ({
+    position: 'relative',
+    width: '100%',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    '& .embla': {
+      overflow: 'hidden',
+      borderRadius: '16px',
+      boxShadow: '0 8px 40px rgba(0, 0, 0, 0.12)',
+    },
+    '& .embla__container': {
+      display: 'flex',
+    },
+    '& .embla__slide': {
+      flex: '0 0 100%',
+      minWidth: 0,
+    },
+  }));
+
+  const CarouselSlide = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    alignItems: 'stretch',
+    backgroundColor: '#ffffff',
+    minHeight: '400px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'scale(1.02)',
+    },
+    [theme.breakpoints.down('md')]: {
+      flexDirection: 'column',
+      minHeight: '500px',
+    },
+  }));
+
+  const SlideContent = styled(Box)(({ theme }) => ({
+    flex: '0 0 35%',
+    padding: '48px 40px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+    [theme.breakpoints.down('md')]: {
+      flex: '1',
+      padding: '32px 24px',
+    },
+  }));
+
+  const SlideImage = styled(Box)(({ theme }) => ({
+    flex: '0 0 65%',
+    position: 'relative',
+    overflow: 'hidden',
+    '& img': {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      transition: 'transform 0.3s ease',
+    },
+    '&:hover img': {
+      transform: 'scale(1.05)',
+    },
+    [theme.breakpoints.down('md')]: {
+      flex: '0 0 200px',
+      minHeight: '200px',
+    },
+  }));
+
+  const CarouselButton = styled(Button)(({ theme }) => ({
+    position: 'absolute',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    zIndex: 10,
+    minWidth: '48px',
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+    color: '#1a202c',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      transform: 'translateY(-50%) scale(1.1)',
+    },
+    '&.prev': {
+      left: '16px',
+    },
+    '&.next': {
+      right: '16px',
+    },
+    [theme.breakpoints.down('md')]: {
+      display: 'none',
     },
   }));
 
@@ -362,7 +378,7 @@ export default function HomePage({ user, onCreateFormClick }) {
               display: 'flex', 
               justifyContent: 'center', 
               alignItems: 'center',
-              minHeight: '320px' 
+              minHeight: '400px' 
             }}>
               <CircularProgress 
                 sx={{ 
@@ -388,134 +404,124 @@ export default function HomePage({ user, onCreateFormClick }) {
             </Box>
           )}
 
-          {/* 横スクロール可能なレイアウト */}
-          {!articlesLoading && !articlesError && (
-            <Box
-              ref={scrollContainerRef}
-              onMouseDown={handleMouseDown}
-              onMouseLeave={handleMouseLeave}
-              onMouseUp={handleMouseUp}
-              onMouseMove={handleMouseMove}
-              sx={{
-                display: 'flex',
-                gap: 2,
-                overflowX: 'hidden',
-                overflowY: 'hidden',
-                pb: 2,
-                cursor: 'grab',
-                userSelect: 'none',
-                '&::-webkit-scrollbar': {
-                  display: 'none',
-                },
-                '&': {
-                  msOverflowStyle: 'none',
-                  scrollbarWidth: 'none',
-                },
-              }}
-            >
-              {articles.map((article, index) => (
-              <Box
-                key={article.id}
-                sx={{
-                  flex: '0 0 auto',
-                  animation: `${fadeInUp} 0.3s ease-out ${index * 0.05}s both`,
+          {/* 記事カルーセル */}
+          {!articlesLoading && !articlesError && articles.length > 0 && (
+            <CarouselContainer>
+              <div className="embla" ref={emblaRef}>
+                <div className="embla__container">
+                  {articles.map((article) => (
+                    <div className="embla__slide" key={article.id}>
+                      <CarouselSlide>
+                        <SlideContent>
+                          <Box sx={{ mb: 3 }}>
+                            <CategoryChip
+                              label={article.category_name}
+                              categorycolor={article.category_color}
+                              size="small"
+                              sx={{ mb: 2 }}
+                            />
+                            <Typography 
+                              variant="h4" 
+                              component="h2" 
+                              sx={{ 
+                                fontWeight: 700,
+                                mb: 2,
+                                lineHeight: 1.3,
+                                color: '#1a202c',
+                                fontSize: { xs: '1.75rem', md: '2.25rem' }
+                              }}
+                            >
+                              {article.title}
+                            </Typography>
+                            <Typography 
+                              variant="body1" 
+                              sx={{ 
+                                color: 'text.secondary',
+                                mb: 3,
+                                lineHeight: 1.6,
+                                display: '-webkit-box',
+                                WebkitLineClamp: 3,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {article.excerpt}
+                            </Typography>
+                          </Box>
+                          
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 'auto' }}>
+                            <StatsChip 
+                              label={`${article.read_time_minutes}分で読了`}
+                              size="small"
+                            />
+                            <Typography 
+                              variant="caption" 
+                              sx={{ 
+                                color: 'text.secondary',
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              {formatDate(article.published_at)}
+                            </Typography>
+                          </Box>
+                        </SlideContent>
+                        
+                        <SlideImage>
+                          <img
+                            src={article.thumbnail_url}
+                            alt={article.title}
+                            loading="lazy"
+                          />
+                        </SlideImage>
+                      </CarouselSlide>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* ナビゲーションボタン */}
+              <CarouselButton className="prev" onClick={scrollToPrev}>
+                <ArrowBackIos fontSize="small" />
+              </CarouselButton>
+              <CarouselButton className="next" onClick={scrollToNext}>
+                <ArrowForwardIos fontSize="small" />
+              </CarouselButton>
+            </CarouselContainer>
+          )}
+
+          {/* 記事が0件の場合 */}
+          {!articlesLoading && !articlesError && articles.length === 0 && (
+            <Box sx={{ 
+              textAlign: 'center', 
+              py: 8,
+              px: 4,
+              backgroundColor: 'rgba(248, 249, 250, 0.8)',
+              borderRadius: 4,
+              border: '2px dashed rgba(0, 0, 0, 0.1)'
+            }}>
+              <Description sx={{ 
+                fontSize: 64, 
+                color: 'text.disabled',
+                mb: 2 
+              }} />
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 600, 
+                  color: 'text.secondary',
+                  mb: 1 
                 }}
               >
-                <ArticleCard>
-                  <ArticleImage
-                    className="article-image"
-                    component="img"
-                    image={article.thumbnail_url}
-                    alt={article.title}
-                  />
-                  <CardContent sx={{ flexGrow: 1, p: 3, paddingTop: '0 !important' }}>
-                    <Box sx={{ 
-                      mb: 2, 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center' 
-                    }}>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <CategoryChip
-                          label={article.category_name}
-                          categorycolor={article.category_color}
-                          size="small"
-                        />
-                        <StatsChip 
-                          label={`${article.read_time_minutes}分で読了`}
-                          size="small"
-                        />
-                      </Box>
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          fontSize: '0.7rem',
-                          fontWeight: 500,
-                          color: 'text.secondary',
-                          letterSpacing: '0.025em',
-                        }}
-                      >
-                        {formatDate(article.published_at)}
-                      </Typography>
-                    </Box>
-                    
-                    <Typography 
-                      variant="h6" 
-                      component="h3" 
-                      sx={{ 
-                        fontWeight: 600,
-                        mb: 0.5,
-                        lineHeight: 1.3,
-                        height: '2.8rem',
-                        fontSize: '1.1rem',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      {article.title}
-                    </Typography>
-                    
-                    <Box sx={{ 
-                      display: 'flex', 
-                      flexWrap: 'wrap', 
-                      gap: 0.8,
-                      mt: 1,
-                      height: '1.5rem',
-                      overflow: 'hidden'
-                    }}>
-                      {article.keywords.slice(0, 4).map((keyword, keywordIndex) => (
-                        <Typography
-                          key={keywordIndex}
-                          variant="caption"
-                          sx={{
-                            color: 'text.secondary',
-                            fontSize: '0.75rem',
-                            fontWeight: 500,
-                            opacity: 0.7,
-                            lineHeight: 1.5,
-                            whiteSpace: 'nowrap',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 1,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            '&:hover': {
-                              opacity: 1,
-                              color: 'primary.main',
-                            }
-                          }}
-                        >
-                          #{keyword}
-                        </Typography>
-                      ))}
-                    </Box>
-                  </CardContent>
-                </ArticleCard>
-              </Box>
-              ))}
+                記事がありません
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'text.secondary' 
+                }}
+              >
+                記事が公開されるまでお待ちください
+              </Typography>
             </Box>
           )}
         </Container>
