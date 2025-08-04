@@ -594,6 +594,10 @@ const HeaderBar = ({
                 : 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
               color: '#374151',
               mb: 4,
+              minHeight: 280, // 固定高さを設定
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
               position: 'relative',
               '&::before': {
                 content: '""',
@@ -670,56 +674,106 @@ const HeaderBar = ({
               }
             </Typography>
             
-            {/* エラーチェック中の抽象的なUI */}
+            {/* エラーチェック中のモダンな抽象UI */}
             {isErrorChecking && (
-              <Box sx={{ mb: 4 }}>
-                {/* 抽象的なローディング表現 */}
+              <Box sx={{ mb: 0 }}>
+                {/* モダンな幾何学模様のローディング */}
                 <Box 
                   sx={{ 
                     display: 'flex', 
                     justifyContent: 'center', 
                     alignItems: 'center',
-                    mb: 3,
-                    height: 40
+                    mb: 4,
+                    height: 60,
+                    position: 'relative'
                   }}
                 >
-                  {/* 複数の点でローディングを表現 */}
-                  {[0, 1, 2].map((index) => (
+                  {/* 回転する幾何学形状 */}
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      position: 'relative',
+                      animation: 'spin 2s linear infinite',
+                      '@keyframes spin': {
+                        '0%': { transform: 'rotate(0deg)' },
+                        '100%': { transform: 'rotate(360deg)' }
+                      }
+                    }}
+                  >
+                    {/* 外側のリング */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        width: '100%',
+                        height: '100%',
+                        border: '2px solid transparent',
+                        borderTop: '2px solid',
+                        borderImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1',
+                        borderRadius: '50%',
+                        animation: 'spinReverse 1.5s linear infinite',
+                        '@keyframes spinReverse': {
+                          '0%': { transform: 'rotate(0deg)' },
+                          '100%': { transform: 'rotate(-360deg)' }
+                        }
+                      }}
+                    />
+                    {/* 内側の点 */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        animation: 'pulse 1s ease-in-out infinite',
+                        '@keyframes pulse': {
+                          '0%, 100%': { opacity: 0.4, transform: 'translate(-50%, -50%) scale(0.8)' },
+                          '50%': { opacity: 1, transform: 'translate(-50%, -50%) scale(1.2)' }
+                        }
+                      }}
+                    />
+                  </Box>
+                  
+                  {/* 周りの装飾点 */}
+                  {[0, 1, 2, 3].map((index) => (
                     <Box
                       key={index}
                       sx={{
-                        width: 8,
-                        height: 8,
+                        position: 'absolute',
+                        width: 3,
+                        height: 3,
                         borderRadius: '50%',
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        mx: 0.5,
-                        animation: `pulse 1.5s ease-in-out ${index * 0.2}s infinite`,
-                        '@keyframes pulse': {
-                          '0%, 100%': {
-                            opacity: 0.3,
-                            transform: 'scale(0.8)'
-                          },
-                          '50%': {
-                            opacity: 1,
-                            transform: 'scale(1.2)'
-                          }
+                        opacity: 0.6,
+                        transform: `rotate(${index * 90}deg) translateY(-30px)`,
+                        transformOrigin: '0 30px',
+                        animation: `orbit 3s linear infinite ${index * 0.75}s`,
+                        '@keyframes orbit': {
+                          '0%': { opacity: 0.3 },
+                          '50%': { opacity: 1 },
+                          '100%': { opacity: 0.3 }
                         }
                       }}
                     />
                   ))}
                 </Box>
                 
-                {/* 抽象的な進捗表示 */}
+                {/* モダンな進捗表示 */}
                 <Typography
                   sx={{
                     textAlign: 'center',
                     color: '#64748b',
-                    fontSize: '0.85rem',
-                    fontWeight: 400,
-                    opacity: 0.8
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    opacity: 0.9,
+                    letterSpacing: '0.5px'
                   }}
                 >
-                  検証中...
+                  検証中
                 </Typography>
               </Box>
             )}
