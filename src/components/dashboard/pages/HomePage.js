@@ -360,19 +360,37 @@ export default function HomePage({ user, onCreateFormClick }) {
       >
 
         {/* 記事一覧セクション */}
-        <Container maxWidth="lg" sx={{ mt: 1 }}>
-          {/* セクションタイトル */}
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 600,
-              color: '#1a202c',
-              textAlign: 'left',
-              mb: 2
-            }}
-          >
-            OpenReviewの記事一覧
-          </Typography>
+        <Container maxWidth="xl" sx={{ mt: 1, mb: 6 }}>
+          {/* セクションヘッダー */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            mb: 4 
+          }}>
+            <Box>
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 700,
+                  color: '#1a202c',
+                  mb: 0.5,
+                  fontSize: '1.75rem'
+                }}
+              >
+                記事一覧
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                  fontSize: '0.875rem'
+                }}
+              >
+                OpenReview Blogの記事の一覧
+              </Typography>
+            </Box>
+          </Box>
 
           {/* 横スクロール可能なレイアウト */}
           <Box
@@ -505,7 +523,7 @@ export default function HomePage({ user, onCreateFormClick }) {
         </Container>
 
         {/* フォーム一覧セクション */}
-        <Container maxWidth="xl" sx={{ mt: 6, mb: 6 }}>
+        <Container maxWidth="xl" sx={{ mt: 4, mb: 6 }}>
           {/* セクションヘッダー */}
           <Box sx={{ 
             display: 'flex', 
