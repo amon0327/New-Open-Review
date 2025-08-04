@@ -273,10 +273,7 @@ export default function HomePage({ user, onCreateFormClick }) {
         sx={{
           width: '100%',
           minHeight: '100vh',
-          background: `
-            linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 1) 60%),
-            linear-gradient(90deg, rgba(94, 23, 235, 0.2) 0%, rgba(102, 126, 234, 0.2) 100%)
-          `,
+          backgroundColor: '#ffffff',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
