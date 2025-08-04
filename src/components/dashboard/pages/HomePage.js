@@ -119,8 +119,7 @@ export default function HomePage({ user, onCreateFormClick }) {
         <Box
           sx={{
             width: '100%',
-            maxWidth: '1200px',
-            px: 2
+            maxWidth: '1200px'
           }}
         >
           {/* セクションタイトル */}
@@ -129,7 +128,8 @@ export default function HomePage({ user, onCreateFormClick }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              mb: 3
+              mb: 3,
+              px: 2
             }}
           >
             <Typography
@@ -179,10 +179,12 @@ export default function HomePage({ user, onCreateFormClick }) {
               '&::-webkit-scrollbar': {
                 display: 'none'
               },
-              pb: 2
+              pb: 2,
+              pl: 2,
+              pr: 0
             }}
           >
-            {articles.map((article) => (
+            {articles.map((article, index) => (
               <Card
                 key={article.id}
                 sx={{
@@ -192,6 +194,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
+                  marginRight: index === articles.length - 1 ? 2 : 0,
                   '&:hover': {
                     transform: 'translateY(-4px)',
                     boxShadow: '0 8px 20px rgba(0, 0, 0, 0.15)'
