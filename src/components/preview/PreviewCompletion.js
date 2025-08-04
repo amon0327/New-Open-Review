@@ -276,7 +276,7 @@ const PreviewCompletion = ({
               zIndex: 2,
               transition: 'all 0.3s ease',
               fontStyle: isDetailHint ? 'italic' : 'normal',
-              '&::after': (selectedElement === 'completion-detail' || (completionErrorHighlight && completionErrorHighlight.fieldType === 'detail')) ? {
+              '&::after': isDetailHighlighted ? {
                 content: '""',
                 position: 'absolute',
                 top: -8,
