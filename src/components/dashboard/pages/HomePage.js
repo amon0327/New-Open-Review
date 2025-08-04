@@ -782,10 +782,31 @@ export default function HomePage({ user, onCreateFormClick }) {
                                   display: 'flex', 
                                   gap: 0.5, 
                                   justifyContent: 'center',
+                                  alignItems: 'center',
                                   opacity: 0.7,
                                   transition: 'opacity 0.2s ease'
                                 }}
                               >
+                                {/* その他アイコンを左側に配置 */}
+                                <Tooltip title="その他">
+                                  <IconButton
+                                    size="small"
+                                    onClick={(e) => handleMenuClick(e, form)}
+                                    sx={{
+                                      color: '#64748b',
+                                      '&:hover': {
+                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                                      }
+                                    }}
+                                  >
+                                    <MoreVert sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Tooltip>
+                                
+                                {/* スペーサー */}
+                                <Box sx={{ width: 16 }} />
+                                
+                                {/* 主要アクション */}
                                 <Tooltip title="編集">
                                   <IconButton
                                     size="small"
@@ -824,20 +845,6 @@ export default function HomePage({ user, onCreateFormClick }) {
                                     }}
                                   >
                                     <Analytics sx={{ fontSize: 18 }} />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="その他">
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => handleMenuClick(e, form)}
-                                    sx={{
-                                      color: '#64748b',
-                                      '&:hover': {
-                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
-                                      }
-                                    }}
-                                  >
-                                    <MoreVert sx={{ fontSize: 18 }} />
                                   </IconButton>
                                 </Tooltip>
                               </Box>
