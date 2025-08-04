@@ -721,66 +721,154 @@ const HeaderBar = ({
                     レビューフォーム チェック中...
                   </Typography>
 
-                  {/* フォーム要素の抽象的表現 */}
+                  {/* コンテナのような要素の抽象的表現 */}
                   <Box
                     sx={{
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 1,
+                      gap: 1.5,
                       width: '100%',
-                      maxWidth: 280,
+                      maxWidth: 300,
                       mb: 2
                     }}
                   >
-                    {/* フォーム項目を表現する抽象バー */}
-                    {Array.from({ length: 6 }, (_, index) => (
+                    {/* コンテナ風の要素 */}
+                    {Array.from({ length: 5 }, (_, index) => (
                       <Box
                         key={index}
                         sx={{
-                          width: `${85 - index * 8}%`,
-                          height: 6,
-                          borderRadius: 3,
-                          background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)',
+                          width: '100%',
+                          height: 16,
+                          borderRadius: 8,
+                          border: '2px solid #e5e7eb',
+                          background: 'rgba(255, 255, 255, 0.5)',
                           position: 'relative',
                           overflow: 'hidden',
-                          animation: `formCheck 2.5s ease-in-out infinite ${index * 0.4}s`,
-                          '@keyframes formCheck': {
+                          animation: `containerCheck 3s ease-in-out infinite ${index * 0.5}s`,
+                          '@keyframes containerCheck': {
                             '0%': { 
-                              background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)',
+                              borderColor: '#e5e7eb',
+                              background: 'rgba(255, 255, 255, 0.5)',
+                              transform: 'scale(1)'
                             },
-                            '30%': { 
-                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                              transform: 'scaleX(1.02)'
+                            '20%': { 
+                              borderColor: '#667eea',
+                              background: 'rgba(102, 126, 234, 0.1)',
+                              transform: 'scale(1.02)'
+                            },
+                            '40%': { 
+                              borderColor: '#667eea',
+                              background: 'rgba(102, 126, 234, 0.15)',
+                              boxShadow: '0 4px 12px rgba(102, 126, 234, 0.2)'
                             },
                             '70%': { 
-                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-                              transform: 'scaleX(1)'
+                              borderColor: '#22c55e',
+                              background: 'rgba(34, 197, 94, 0.1)',
+                              boxShadow: '0 2px 8px rgba(34, 197, 94, 0.2)'
                             },
                             '100%': { 
-                              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+                              borderColor: '#22c55e',
+                              background: 'rgba(34, 197, 94, 0.08)',
+                              transform: 'scale(1)'
                             }
                           }
                         }}
                       >
-                        {/* チェック完了インジケーター */}
+                        {/* コンテナ内部の要素表現 */}
                         <Box
                           sx={{
                             position: 'absolute',
-                            right: 4,
+                            left: 6,
                             top: '50%',
                             transform: 'translateY(-50%)',
-                            width: 3,
-                            height: 3,
-                            borderRadius: '50%',
-                            background: '#ffffff',
-                            opacity: 0,
-                            animation: `checkComplete 2.5s ease-in-out infinite ${index * 0.4 + 1.2}s`,
-                            '@keyframes checkComplete': {
-                              '0%, 50%': { opacity: 0, transform: 'translateY(-50%) scale(0.5)' },
-                              '70%, 100%': { opacity: 1, transform: 'translateY(-50%) scale(1)' }
+                            width: `${60 + index * 8}%`,
+                            height: 2,
+                            borderRadius: 1,
+                            background: '#d1d5db',
+                            animation: `contentFill 3s ease-in-out infinite ${index * 0.5 + 0.3}s`,
+                            '@keyframes contentFill': {
+                              '0%': { 
+                                background: '#d1d5db',
+                                width: `${30 + index * 5}%`,
+                              },
+                              '40%': { 
+                                background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+                                width: `${60 + index * 8}%`,
+                              },
+                              '100%': { 
+                                background: 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)',
+                                width: `${60 + index * 8}%`,
+                              }
                             }
                           }}
                         />
+                        
+                        {/* チェックマーク（コンテナ確認完了） */}
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            right: 6,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            background: '#22c55e',
+                            opacity: 0,
+                            animation: `checkMark 3s ease-in-out infinite ${index * 0.5 + 2}s`,
+                            '@keyframes checkMark': {
+                              '0%, 60%': { 
+                                opacity: 0, 
+                                transform: 'translateY(-50%) scale(0.3)',
+                                background: '#d1d5db'
+                              },
+                              '80%': { 
+                                opacity: 1, 
+                                transform: 'translateY(-50%) scale(1.2)',
+                                background: '#22c55e'
+                              },
+                              '100%': { 
+                                opacity: 1, 
+                                transform: 'translateY(-50%) scale(1)',
+                                background: '#22c55e'
+                              }
+                            }
+                          }}
+                        >
+                          {/* チェックマーク内部の✓ */}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: 4,
+                              height: 2,
+                              '&::before': {
+                                content: '""',
+                                position: 'absolute',
+                                left: 0,
+                                top: 1,
+                                width: 2,
+                                height: 1,
+                                background: '#ffffff',
+                                borderRadius: '0.5px',
+                                transform: 'rotate(45deg)',
+                              },
+                              '&::after': {
+                                content: '""',
+                                position: 'absolute',
+                                left: 1,
+                                top: 0,
+                                width: 3,
+                                height: 1,
+                                background: '#ffffff',
+                                borderRadius: '0.5px',
+                                transform: 'rotate(-45deg)',
+                              }
+                            }}
+                          />
+                        </Box>
                       </Box>
                     ))}
                   </Box>
