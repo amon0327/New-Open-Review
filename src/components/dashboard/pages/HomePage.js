@@ -895,28 +895,6 @@ export default function HomePage({ user, onCreateFormClick }) {
                                   transition: 'opacity 0.2s ease'
                                 }}
                               >
-                                <PreviewHandler 
-                                  formId={formattedForm.id}
-                                  formData={{}} // 詳細データは内部で取得
-                                  projectTitle={formattedForm.title}
-                                >
-                                  {({ onPreviewClick }) => (
-                                    <Tooltip title="プレビュー">
-                                      <IconButton
-                                        size="small"
-                                        onClick={onPreviewClick}
-                                        sx={{
-                                          color: '#64748b',
-                                          '&:hover': {
-                                            backgroundColor: 'rgba(100, 116, 139, 0.1)',
-                                          }
-                                        }}
-                                      >
-                                        <Visibility sx={{ fontSize: 18 }} />
-                                      </IconButton>
-                                    </Tooltip>
-                                  )}
-                                </PreviewHandler>
                                 <Tooltip title="その他">
                                   <IconButton
                                     size="small"
@@ -969,6 +947,24 @@ export default function HomePage({ user, onCreateFormClick }) {
               <Edit sx={{ mr: 1.5, fontSize: 18, color: '#5e17eb' }} />
               編集
             </MenuItem>
+            <PreviewHandler 
+              formId={selectedForm?.id}
+              formData={{}}
+              projectTitle={selectedForm?.title}
+            >
+              {({ onPreviewClick }) => (
+                <MenuItem 
+                  onClick={() => {
+                    handleMenuClose();
+                    onPreviewClick();
+                  }} 
+                  sx={{ py: 1, px: 2 }}
+                >
+                  <Visibility sx={{ mr: 1.5, fontSize: 18, color: '#64748b' }} />
+                  プレビュー
+                </MenuItem>
+              )}
+            </PreviewHandler>
             <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
               <Analytics sx={{ mr: 1.5, fontSize: 18, color: '#059669' }} />
               分析
