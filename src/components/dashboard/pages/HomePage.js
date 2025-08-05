@@ -911,7 +911,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                                 </Tooltip>
                                 <PreviewHandler 
                                   formId={formattedForm.id}
-                                  formData={{}} // 詳細データは必要な場合のみ取得
+                                  formData={{}} // 詳細データは内部で取得
                                   projectTitle={formattedForm.title}
                                 >
                                   {({ onPreviewClick }) => (
