@@ -242,8 +242,12 @@ function App() {
   };
 
   const handleCreateClick = (formId) => {
+    console.log('🔍 App.js - handleCreateClickが呼ばれました');
+    console.log('🔍 App.js - 受け取ったformId:', formId);
     setCurrentFormId(formId);
+    console.log('🔍 App.js - currentFormIdを設定:', formId);
     setCurrentView('create');
+    console.log('🔍 App.js - currentViewをcreateに設定');
   };
 
   const handleBackToDashboard = () => {

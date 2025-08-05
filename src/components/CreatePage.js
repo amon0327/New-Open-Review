@@ -140,6 +140,10 @@ const executeWithAnimation = (setSortingAnimation, operation, delay = 100, anima
 };
 
 export default function CreatePage({ onBackClick, user, formId }) {
+  console.log('🔍 CreatePage - コンポーネントがレンダリングされました');
+  console.log('🔍 CreatePage - 受け取ったformId:', formId);
+  console.log('🔍 CreatePage - user:', user);
+  
   // カスタムフックから状態を取得
   const {
     selectedTool, setSelectedTool,
@@ -235,16 +239,24 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // プロジェクトタイトル読み込み
   useEffect(() => {
+    console.log('🔍 CreatePage - プロジェクトタイトル読み込みuseEffect実行');
+    console.log('🔍 CreatePage - formId:', formId);
+    
     const loadProjectTitle = async () => {
       if (formId) {
+        console.log('🔍 CreatePage - プロジェクトタイトル読み込み開始:', formId);
         try {
           const result = await FormDataService.getProjectTitle(formId);
+          console.log('🔍 CreatePage - プロジェクトタイトル読み込み結果:', result);
           if (result.success) {
+            console.log('🔍 CreatePage - プロジェクトタイトル設定:', result.data);
             setProjectTitle(result.data);
           }
         } catch (error) {
           console.error('Project title loading error:', error);
         }
+      } else {
+        console.log('🔍 CreatePage - formIdがないため、プロジェクトタイトル読み込みをスキップ');
       }
     };
 

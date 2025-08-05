@@ -917,8 +917,12 @@ export default function HomePage({ user, onCreateFormClick }) {
           >
             <MenuItem 
               onClick={() => {
+                console.log('🔍 HomePage - 編集ボタンがクリックされました');
+                console.log('🔍 HomePage - selectedForm:', selectedForm);
+                console.log('🔍 HomePage - selectedForm.id:', selectedForm?.id);
                 handleMenuClose();
                 if (selectedForm) {
+                  console.log('🔍 HomePage - onCreateFormClickを呼び出し中:', selectedForm.id);
                   onCreateFormClick(selectedForm.id);
                 }
               }} 
