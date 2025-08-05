@@ -40,7 +40,6 @@ import {
 import { styled, keyframes } from '@mui/material/styles';
 import FormDataService from '../../../services/FormDataService';
 import ArticleDataService from '../../../services/ArticleDataService';
-import PreviewHandler from '../../PreviewHandler';
 import { toast } from 'react-hot-toast';
 
 export default function HomePage({ user, onCreateFormClick }) {
@@ -947,24 +946,6 @@ export default function HomePage({ user, onCreateFormClick }) {
               <Edit sx={{ mr: 1.5, fontSize: 18, color: '#5e17eb' }} />
               編集
             </MenuItem>
-            <PreviewHandler 
-              formId={selectedForm?.id}
-              formData={{}}
-              projectTitle={selectedForm?.title}
-            >
-              {({ onPreviewClick }) => (
-                <MenuItem 
-                  onClick={() => {
-                    handleMenuClose();
-                    onPreviewClick();
-                  }} 
-                  sx={{ py: 1, px: 2 }}
-                >
-                  <Visibility sx={{ mr: 1.5, fontSize: 18, color: '#64748b' }} />
-                  プレビュー
-                </MenuItem>
-              )}
-            </PreviewHandler>
             <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
               <Analytics sx={{ mr: 1.5, fontSize: 18, color: '#059669' }} />
               分析
