@@ -40,6 +40,7 @@ import {
 import { styled, keyframes } from '@mui/material/styles';
 import FormDataService from '../../../services/FormDataService';
 import ArticleDataService from '../../../services/ArticleDataService';
+import PreviewHandler from '../../PreviewHandler';
 import { toast } from 'react-hot-toast';
 
 export default function HomePage({ user, onCreateFormClick }) {
@@ -908,19 +909,28 @@ export default function HomePage({ user, onCreateFormClick }) {
                                     <Edit sx={{ fontSize: 18 }} />
                                   </IconButton>
                                 </Tooltip>
-                                <Tooltip title="プレビュー">
-                                  <IconButton
-                                    size="small"
-                                    sx={{
-                                      color: '#64748b',
-                                      '&:hover': {
-                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
-                                      }
-                                    }}
-                                  >
-                                    <Visibility sx={{ fontSize: 18 }} />
-                                  </IconButton>
-                                </Tooltip>
+                                <PreviewHandler 
+                                  formId={formattedForm.id}
+                                  formData={{}} // 詳細データは必要な場合のみ取得
+                                  projectTitle={formattedForm.title}
+                                >
+                                  {({ onPreviewClick }) => (
+                                    <Tooltip title="プレビュー">
+                                      <IconButton
+                                        size="small"
+                                        onClick={onPreviewClick}
+                                        sx={{
+                                          color: '#64748b',
+                                          '&:hover': {
+                                            backgroundColor: 'rgba(100, 116, 139, 0.1)',
+                                          }
+                                        }}
+                                      >
+                                        <Visibility sx={{ fontSize: 18 }} />
+                                      </IconButton>
+                                    </Tooltip>
+                                  )}
+                                </PreviewHandler>
                                 <Tooltip title="分析">
                                   <IconButton
                                     size="small"
