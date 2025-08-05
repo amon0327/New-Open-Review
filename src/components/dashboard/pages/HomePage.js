@@ -57,6 +57,12 @@ export default function HomePage({ user, onCreateFormClick }) {
   const [sortField, setSortField] = useState('updated_at'); // デフォルトは更新日
   const [sortDirection, setSortDirection] = useState('desc'); // デフォルトは降順（最新順）
 
+  // ドラッグスクロール用の状態
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const scrollContainerRef = useRef(null);
+
 
   // フォーム一覧を取得
   useEffect(() => {
@@ -271,8 +277,42 @@ export default function HomePage({ user, onCreateFormClick }) {
     return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
   };
 
+  // ドラッグスクロール用の関数
+  const handleMouseDown = (e) => {
+    if (!scrollContainerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
+    setScrollLeft(scrollContainerRef.current.scrollLeft);
+    scrollContainerRef.current.style.cursor = 'grabbing';
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.style.cursor = 'grab';
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging || !scrollContainerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainerRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // スクロール速度調整
+    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
+  };
+
   // 記事クリック時の処理
   const handleArticleClick = (article) => {
+    // ドラッグ中はクリックを無効化
+    if (isDragging) return;
+    
     // openreview.jpサイトの記事URLを生成
     let articleUrl;
     
@@ -377,26 +417,24 @@ export default function HomePage({ user, onCreateFormClick }) {
           {/* 記事一覧（横スクロール） */}
           {!articlesLoading && !articlesError && articles && articles.length > 0 && (
             <Box
+              ref={scrollContainerRef}
+              onMouseDown={handleMouseDown}
+              onMouseLeave={handleMouseLeave}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
               sx={{
                 display: 'flex',
                 gap: 2,
                 overflowX: 'auto',
                 overflowY: 'hidden',
                 pb: 2,
+                cursor: 'grab',
+                userSelect: 'none',
                 '&::-webkit-scrollbar': {
-                  height: 6,
+                  display: 'none',
                 },
-                '&::-webkit-scrollbar-track': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                  borderRadius: 3,
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                  borderRadius: 3,
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                  },
-                },
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
               }}
             >
               {articles.map((article, index) => (
