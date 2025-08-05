@@ -40,6 +40,7 @@ import {
 import { styled, keyframes } from '@mui/material/styles';
 import FormDataService from '../../../services/FormDataService';
 import ArticleDataService from '../../../services/ArticleDataService';
+import FormCreator from '../../FormCreator';
 import { toast } from 'react-hot-toast';
 
 export default function HomePage({ user, onCreateFormClick }) {
@@ -48,7 +49,6 @@ export default function HomePage({ user, onCreateFormClick }) {
   const [error, setError] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedForm, setSelectedForm] = useState(null);
-  const [isCreatingForm, setIsCreatingForm] = useState(false);
   const [articles, setArticles] = useState([]);
   const [articlesLoading, setArticlesLoading] = useState(true);
   const [articlesError, setArticlesError] = useState(null);
@@ -116,33 +116,6 @@ export default function HomePage({ user, onCreateFormClick }) {
     setSelectedForm(null);
   };
 
-  // 新規フォーム作成（ナビゲーションバーと同じ機能）
-  const handleCreateForm = async () => {
-    if (!user) {
-      toast.error('ユーザー情報が取得できません');
-      return;
-    }
-
-    setIsCreatingForm(true);
-    toast.loading('新しいフォームを作成しています...', { id: 'creating-form' });
-    
-    try {
-      const result = await FormDataService.createNewForm(user.id);
-      
-      if (result.success) {
-        toast.success('フォームが作成されました！', { id: 'creating-form' });
-        // フォーム作成画面に遷移（formIdを渡す）
-        onCreateFormClick(result.data.reviewFormId);
-      } else {
-        toast.error(result.error || 'フォームの作成に失敗しました', { id: 'creating-form' });
-      }
-    } catch (error) {
-      console.error('Form creation error:', error);
-      toast.error('フォームの作成中にエラーが発生しました', { id: 'creating-form' });
-    } finally {
-      setIsCreatingForm(false);
-    }
-  };
 
   // ソートハンドラー
   const handleSort = (field) => {
@@ -557,33 +530,37 @@ export default function HomePage({ user, onCreateFormClick }) {
                 作成したレビューフォームを管理
               </Typography>
             </Box>
-            <Button
-              variant="contained"
-              startIcon={isCreatingForm ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Add />}
-              onClick={handleCreateForm}
-              disabled={isCreatingForm}
-              sx={{
-                background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                borderRadius: 3,
-                px: 3,
-                py: 1.5,
-                textTransform: 'none',
-                fontWeight: 600,
-                boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 30px rgba(94, 23, 235, 0.4)',
-                },
-                '&.Mui-disabled': {
-                  opacity: 0.7,
-                  background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                  color: 'white'
-                }
-              }}
-            >
-              {isCreatingForm ? '作成中...' : '新規作成'}
-            </Button>
+            <FormCreator user={user} onCreateFormClick={onCreateFormClick}>
+              {({ onCreateForm, isCreatingForm }) => (
+                <Button
+                  variant="contained"
+                  startIcon={isCreatingForm ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Add />}
+                  onClick={onCreateForm}
+                  disabled={isCreatingForm}
+                  sx={{
+                    background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                    borderRadius: 3,
+                    px: 3,
+                    py: 1.5,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 8px 30px rgba(94, 23, 235, 0.4)',
+                    },
+                    '&.Mui-disabled': {
+                      opacity: 0.7,
+                      background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                      color: 'white'
+                    }
+                  }}
+                >
+                  {isCreatingForm ? '作成中...' : '新規作成'}
+                </Button>
+              )}
+            </FormCreator>
           </Box>
 
           {/* ローディング状態 */}
@@ -655,27 +632,31 @@ export default function HomePage({ user, onCreateFormClick }) {
                   >
                     新しいレビューフォームを作成してみましょう
                   </Typography>
-                  <Button
-                    variant="contained"
-                    startIcon={isCreatingForm ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Add />}
-                    onClick={handleCreateForm}
-                    disabled={isCreatingForm}
-                    sx={{
-                      background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                      borderRadius: 2,
-                      px: 3,
-                      py: 1,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      '&.Mui-disabled': {
-                        opacity: 0.7,
-                        background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                        color: 'white'
-                      }
-                    }}
-                  >
-                    {isCreatingForm ? '作成中...' : '最初のフォームを作成'}
-                  </Button>
+                  <FormCreator user={user} onCreateFormClick={onCreateFormClick}>
+                    {({ onCreateForm, isCreatingForm }) => (
+                      <Button
+                        variant="contained"
+                        startIcon={isCreatingForm ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Add />}
+                        onClick={onCreateForm}
+                        disabled={isCreatingForm}
+                        sx={{
+                          background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                          borderRadius: 2,
+                          px: 3,
+                          py: 1,
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          '&.Mui-disabled': {
+                            opacity: 0.7,
+                            background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                            color: 'white'
+                          }
+                        }}
+                      >
+                        {isCreatingForm ? '作成中...' : '最初のフォームを作成'}
+                      </Button>
+                    )}
+                  </FormCreator>
                 </Box>
               ) : (
                 <TableContainer 

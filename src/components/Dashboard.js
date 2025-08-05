@@ -27,8 +27,7 @@ import {
   Notifications,
   AccountCircle
 } from '@mui/icons-material';
-import FormDataService from '../services/FormDataService';
-import { toast } from 'react-hot-toast';
+import FormCreator from './FormCreator';
 
 // 分離したページコンポーネントをインポート
 import HomePage from './dashboard/pages/HomePage';
@@ -47,7 +46,6 @@ const navigationItems = [
 
 export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [activeTab, setActiveTab] = useState(0);
-  const [isCreatingForm, setIsCreatingForm] = useState(false);
 
   const renderContent = () => {
     const ActiveComponent = navigationItems[activeTab].component;
@@ -59,112 +57,91 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     return <ActiveComponent />;
   };
 
-  const handleCreateForm = async () => {
-    if (!user) {
-      toast.error('ユーザー情報が取得できません');
-      return;
-    }
-
-    setIsCreatingForm(true);
-    try {
-      const result = await FormDataService.createNewForm(user.id);
-      
-      if (result.success) {
-        // フォーム作成成功時は通知なし
-        // フォーム作成画面に遷移（formIdを渡す）
-        onCreateClick(result.data.reviewFormId);
-      } else {
-        toast.error(result.error || 'フォームの作成に失敗しました');
-      }
-    } catch (error) {
-      console.error('Form creation error:', error);
-      toast.error('フォームの作成中にエラーが発生しました');
-    } finally {
-      setIsCreatingForm(false);
-    }
-  };
-
-  const handleNavClick = (index) => {
+  const handleNavClick = (index, onCreateForm) => {
     if (navigationItems[index].text === 'Create') {
-      handleCreateForm();
+      if (onCreateForm) {
+        onCreateForm();
+      }
     } else {
       setActiveTab(index);
     }
   };
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
-      {/* モダンなローディング表示 */}
-      <Backdrop
-        sx={{
-          color: '#fff',
-          zIndex: 9999,
-          background: 'rgba(94, 23, 235, 0.1)',
-          backdropFilter: 'blur(10px)'
-        }}
-        open={isCreatingForm}
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-        >
-          <Card
+    <FormCreator user={user} onCreateFormClick={onCreateClick}>
+      {({ onCreateForm, isCreatingForm }) => (
+        <Box sx={{ display: 'flex', height: '100vh' }}>
+          {/* モダンなローディング表示 */}
+          <Backdrop
             sx={{
-              minWidth: 300,
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
-              borderRadius: 3,
-              position: 'relative',
-              overflow: 'hidden'
+              color: '#fff',
+              zIndex: 9999,
+              background: 'rgba(94, 23, 235, 0.1)',
+              backdropFilter: 'blur(10px)'
             }}
+            open={isCreatingForm}
           >
-            <CardContent sx={{ textAlign: 'center', p: 4 }}>
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                style={{ display: 'inline-block', marginBottom: 16 }}
-              >
-                <CircularProgress
-                  size={50}
-                  thickness={4}
-                  sx={{
-                    color: '#5e17eb',
-                    '& .MuiCircularProgress-circle': {
-                      strokeLinecap: 'round',
-                    }
-                  }}
-                />
-              </motion.div>
-              <Typography
-                variant="h6"
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              <Card
                 sx={{
-                  fontWeight: 600,
-                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  mb: 1
+                  minWidth: 300,
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
+                  borderRadius: 3,
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}
               >
-                フォームを作成中...
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: '#64748b',
-                  fontWeight: 400
-                }}
-              >
-                新しいレビューフォームを準備しています
-              </Typography>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </Backdrop>
+                <CardContent sx={{ textAlign: 'center', p: 4 }}>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    style={{ display: 'inline-block', marginBottom: 16 }}
+                  >
+                    <CircularProgress
+                      size={50}
+                      thickness={4}
+                      sx={{
+                        color: '#5e17eb',
+                        '& .MuiCircularProgress-circle': {
+                          strokeLinecap: 'round',
+                        }
+                      }}
+                    />
+                  </motion.div>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 600,
+                      background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      mb: 1
+                    }}
+                  >
+                    フォームを作成中...
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#64748b',
+                      fontWeight: 400
+                    }}
+                  >
+                    新しいレビューフォームを準備しています
+                  </Typography>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </Backdrop>
 
       {/* Sidebar */}
       <Drawer
@@ -208,7 +185,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           {navigationItems.map((item, index) => (
             <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
               <ListItemButton
-                onClick={() => handleNavClick(index)}
+                onClick={() => handleNavClick(index, onCreateForm)}
                 disabled={item.text === 'Create' && isCreatingForm}
                 sx={{
                   py: 1.5,
@@ -349,6 +326,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           </AnimatePresence>
         </Box>
       </Box>
-    </Box>
+        </Box>
+      )}
+    </FormCreator>
   );
 }
