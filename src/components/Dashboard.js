@@ -182,47 +182,52 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
 
         {/* Navigation Items */}
         <List sx={{ px: 2, py: 3 }}>
-          {navigationItems.map((item, index) => (
-            <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
-              <ListItemButton
-                onClick={() => handleNavClick(index, onCreateForm)}
-                disabled={item.text === 'Create' && isCreatingForm}
-                sx={{
-                  py: 1.5,
-                  px: 2,
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  backgroundColor: activeTab === index ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  },
-                  '&.Mui-disabled': {
-                    opacity: 0.6
-                  },
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                <ListItemIcon
+          {navigationItems.map((item, index) => {
+            const isCreateButton = item.text === 'Create';
+            const isCreateButtonDisabled = isCreateButton && isCreatingForm;
+            
+            return (
+              <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
+                <ListItemButton
+                  onClick={() => handleNavClick(index, onCreateForm)}
+                  disabled={isCreateButtonDisabled}
                   sx={{
-                    color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)',
-                    minWidth: 40
+                    py: 1.5,
+                    px: 2,
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    backgroundColor: activeTab === index ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    },
+                    '&.Mui-disabled': {
+                      opacity: 0.6
+                    },
+                    transition: 'all 0.3s ease'
                   }}
                 >
-                  {item.text === 'Create' && isCreatingForm ? (
-                    <CircularProgress size={20} sx={{ color: 'rgba(255, 255, 255, 0.8)' }} />
-                  ) : (
-                    item.icon
-                  )}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontWeight: activeTab === index ? 600 : 400,
-                    color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)'
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
+                  <ListItemIcon
+                    sx={{
+                      color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)',
+                      minWidth: 40
+                    }}
+                  >
+                    {isCreateButton && isCreatingForm ? (
+                      <CircularProgress size={20} sx={{ color: 'rgba(255, 255, 255, 0.8)' }} />
+                    ) : (
+                      item.icon
+                    )}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontWeight: activeTab === index ? 600 : 400,
+                      color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)'
+                    }}
+                  />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
 
         {/* User Profile Section */}
