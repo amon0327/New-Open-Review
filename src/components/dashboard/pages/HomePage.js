@@ -895,20 +895,6 @@ export default function HomePage({ user, onCreateFormClick }) {
                                   transition: 'opacity 0.2s ease'
                                 }}
                               >
-                                <Tooltip title="編集">
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => onCreateFormClick(formattedForm.id)}
-                                    sx={{
-                                      color: formattedForm.themeColor,
-                                      '&:hover': {
-                                        backgroundColor: `${formattedForm.themeColor}15`,
-                                      }
-                                    }}
-                                  >
-                                    <Edit sx={{ fontSize: 18 }} />
-                                  </IconButton>
-                                </Tooltip>
                                 <PreviewHandler 
                                   formId={formattedForm.id}
                                   formData={{}} // 詳細データは内部で取得
@@ -931,19 +917,6 @@ export default function HomePage({ user, onCreateFormClick }) {
                                     </Tooltip>
                                   )}
                                 </PreviewHandler>
-                                <Tooltip title="分析">
-                                  <IconButton
-                                    size="small"
-                                    sx={{
-                                      color: '#059669',
-                                      '&:hover': {
-                                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                                      }
-                                    }}
-                                  >
-                                    <Analytics sx={{ fontSize: 18 }} />
-                                  </IconButton>
-                                </Tooltip>
                                 <Tooltip title="その他">
                                   <IconButton
                                     size="small"
@@ -984,12 +957,28 @@ export default function HomePage({ user, onCreateFormClick }) {
               }
             }}
           >
+            <MenuItem 
+              onClick={() => {
+                handleMenuClose();
+                if (selectedForm) {
+                  onCreateFormClick(selectedForm.id);
+                }
+              }} 
+              sx={{ py: 1, px: 2 }}
+            >
+              <Edit sx={{ mr: 1.5, fontSize: 18, color: '#5e17eb' }} />
+              編集
+            </MenuItem>
             <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
-              <Share sx={{ mr: 1.5, fontSize: 18, color: '#059669' }} />
+              <Analytics sx={{ mr: 1.5, fontSize: 18, color: '#059669' }} />
+              分析
+            </MenuItem>
+            <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
+              <Share sx={{ mr: 1.5, fontSize: 18, color: '#0ea5e9' }} />
               共有
             </MenuItem>
             <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
-              <ContentCopy sx={{ mr: 1.5, fontSize: 18, color: '#0ea5e9' }} />
+              <ContentCopy sx={{ mr: 1.5, fontSize: 18, color: '#6b7280' }} />
               複製
             </MenuItem>
             <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
