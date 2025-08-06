@@ -287,7 +287,8 @@ export default function ChatPanel() {
           py: 0.5,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-start'
+          justifyContent: 'flex-start',
+          background: 'transparent'
         }}>
           <Box
             onClick={() => setIsDataMode(!isDataMode)}
