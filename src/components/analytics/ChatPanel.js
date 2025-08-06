@@ -282,55 +282,67 @@ export default function ChatPanel() {
 
         {/* Data Mode Toggle */}
         <Box sx={{ 
-          p: 1.5, 
+          px: 1.5, 
+          py: 1,
           borderTop: '1px solid rgba(99, 102, 241, 0.1)', 
           borderBottom: '1px solid rgba(99, 102, 241, 0.1)',
-          background: 'rgba(255, 255, 255, 0.3)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
+          background: 'rgba(255, 255, 255, 0.3)'
         }}>
-          <Box sx={{ 
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            px: 2,
-            py: 1,
-            borderRadius: 2,
-            bgcolor: 'rgba(99, 102, 241, 0.08)',
-            border: '1px solid rgba(99, 102, 241, 0.15)'
-          }}>
-            <DataUsage sx={{ fontSize: 18, color: isDataMode ? '#6366f1' : '#64748b' }} />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isDataMode}
-                  onChange={(e) => setIsDataMode(e.target.checked)}
-                  size="small"
-                  sx={{
-                    '& .MuiSwitch-switchBase.Mui-checked': {
-                      color: '#6366f1',
-                      '&:hover': {
-                        backgroundColor: 'rgba(99, 102, 241, 0.08)'
-                      }
-                    },
-                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                      backgroundColor: '#6366f1'
-                    }
-                  }}
-                />
+          <Box
+            onClick={() => setIsDataMode(!isDataMode)}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              px: 1.5,
+              py: 0.75,
+              borderRadius: 1.5,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
+              border: isDataMode ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid transparent',
+              '&:hover': {
+                bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.05)',
+                transform: 'translateY(-1px)'
               }
-              label={
-                <Typography sx={{ 
-                  fontSize: '0.85rem', 
-                  fontWeight: 600,
-                  color: isDataMode ? '#6366f1' : '#64748b'
-                }}>
-                  選択データについて質問
-                </Typography>
-              }
-              sx={{ m: 0 }}
+            }}
+          >
+            <Box
+              sx={{
+                width: 16,
+                height: 16,
+                borderRadius: '50%',
+                border: `2px solid ${isDataMode ? '#6366f1' : '#94a3b8'}`,
+                bgcolor: isDataMode ? '#6366f1' : 'transparent',
+                position: 'relative',
+                transition: 'all 0.2s ease',
+                '&::after': isDataMode ? {
+                  content: '""',
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: 4,
+                  height: 4,
+                  borderRadius: '50%',
+                  bgcolor: 'white',
+                  transform: 'translate(-50%, -50%)'
+                } : {}
+              }}
             />
+            <DataUsage sx={{ 
+              fontSize: 16, 
+              color: isDataMode ? '#6366f1' : '#64748b',
+              transition: 'color 0.2s ease'
+            }} />
+            <Typography sx={{ 
+              fontSize: '0.8rem', 
+              fontWeight: isDataMode ? 600 : 500,
+              color: isDataMode ? '#6366f1' : '#64748b',
+              transition: 'all 0.2s ease',
+              userSelect: 'none'
+            }}>
+              選択データについて質問
+            </Typography>
           </Box>
         </Box>
 
