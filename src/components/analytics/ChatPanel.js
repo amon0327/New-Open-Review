@@ -5,40 +5,37 @@ import {
   Typography,
   TextField,
   IconButton,
-  Avatar,
-  Paper,
   Stack,
-  Fab
+  Chip
 } from '@mui/material';
 import {
   Send,
   AutoAwesome,
-  Insights,
-  Timeline,
+  TrendingUp,
+  Speed,
   Psychology,
-  Clear,
-  Minimize
+  SmartToy,
+  Person
 } from '@mui/icons-material';
-
-const quickPrompts = [
-  { icon: <Timeline />, text: "データトレンドを分析", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
-  { icon: <Insights />, text: "異常値を検出", gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" },
-  { icon: <Psychology />, text: "予測分析を実行", gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" }
-];
 
 export default function ChatPanel() {
   const [messages, setMessages] = useState([
     {
       id: 1,
       type: 'ai',
-      content: 'こんにちは！私はあなたの分析パートナーです。データから洞察を見つけるお手伝いをします。',
+      content: 'データ分析をお手伝いします',
       timestamp: new Date(Date.now() - 60000)
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
   const messagesEndRef = useRef(null);
+
+  const quickActions = [
+    { icon: TrendingUp, label: 'トレンド', color: '#6366f1' },
+    { icon: Speed, label: '異常検知', color: '#8b5cf6' },
+    { icon: Psychology, label: '予測', color: '#06b6d4' }
+  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -77,16 +74,15 @@ export default function ChatPanel() {
 
   const generateAIResponse = (question) => {
     const responses = [
-      `分析を実行しました。データパターンから興味深い洞察が得られています。具体的にどの部分を深掘りしますか？`,
-      `データを調査した結果、いくつかの重要な傾向を発見しました。詳細な分析結果をお見せできます。`,
-      `優れた質問ですね。現在のデータセットから改善の機会を特定しました。次のステップについて相談しましょう。`,
-      `分析完了です。重要な指標とアクションアイテムを整理しました。どの観点から確認していきますか？`
+      `分析結果: ${question}について重要なパターンを発見しました。`,
+      `データ処理完了。${question}に関する洞察をまとめました。`,
+      `${question}の分析が完了。次のアクションを提案します。`
     ];
     return responses[Math.floor(Math.random() * responses.length)];
   };
 
-  const handleQuickPrompt = (prompt) => {
-    setInputValue(prompt);
+  const handleQuickAction = (label) => {
+    setInputValue(`${label}を分析して`);
   };
 
   const formatTime = (timestamp) => {
@@ -96,200 +92,79 @@ export default function ChatPanel() {
     });
   };
 
-  if (!isExpanded) {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Fab
-          onClick={() => setIsExpanded(true)}
-          sx={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            width: 64,
-            height: 64,
-            '&:hover': {
-              background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-              transform: 'scale(1.1)'
-            }
-          }}
-        >
-          <AutoAwesome sx={{ fontSize: 28 }} />
-        </Fab>
-      </motion.div>
-    );
-  }
-
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3 }}
+      style={{ width: 360, height: '100%', marginLeft: 8 }}
     >
-      <Paper
-        elevation={0}
+      <Box
         sx={{
-          width: 420,
           height: '100%',
-          ml: 2,
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(0, 0, 0, 0.08)',
-          borderRadius: 4,
+          bgcolor: '#000',
+          borderRadius: 2,
           overflow: 'hidden',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          border: '1px solid #1a1a1a'
         }}
       >
         {/* Header */}
-        <Box
-          sx={{
-            p: 4,
-            borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}
-        >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 2,
-              background: 'linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe)'
-            }}
-          />
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box
-                sx={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 3,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%)',
-                    borderRadius: 'inherit'
-                  }
-                }}
-              >
-                <AutoAwesome sx={{ color: 'white', fontSize: 24, position: 'relative' }} />
-              </Box>
-              <Box>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: '1.25rem',
-                    color: '#0f172a',
-                    mb: 0.5
-                  }}
-                >
-                  AI アシスタント
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: '#64748b',
-                    fontSize: '0.875rem'
-                  }}
-                >
-                  データ分析をサポート
-                </Typography>
-              </Box>
-            </Box>
-            <IconButton
-              onClick={() => setIsExpanded(false)}
-              sx={{
-                bgcolor: 'rgba(0, 0, 0, 0.04)',
-                width: 36,
-                height: 36,
-                '&:hover': {
-                  bgcolor: 'rgba(0, 0, 0, 0.08)'
-                }
-              }}
-            >
-              <Minimize sx={{ fontSize: 18, color: '#64748b' }} />
-            </IconButton>
-          </Box>
+        <Box sx={{ 
+          p: 1.5,
+          borderBottom: '1px solid #1a1a1a',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          bgcolor: '#0a0a0a'
+        }}>
+          <Box sx={{ 
+            width: 8, 
+            height: 8, 
+            borderRadius: '50%', 
+            bgcolor: '#6366f1',
+            animation: 'pulse 2s ease-in-out infinite',
+            '@keyframes pulse': {
+              '0%, 100%': { opacity: 1 },
+              '50%': { opacity: 0.4 }
+            }
+          }} />
+          <Typography sx={{ 
+            color: '#fff', 
+            fontSize: '0.9rem', 
+            fontWeight: 600,
+            flex: 1
+          }}>
+            AI Assistant
+          </Typography>
         </Box>
 
-        {/* Quick Prompts */}
-        <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.06)' }}>
-          <Stack spacing={1.5}>
-            {quickPrompts.map((prompt, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Paper
-                  elevation={0}
-                  onClick={() => handleQuickPrompt(prompt.text)}
+        {/* Quick Actions */}
+        <Box sx={{ p: 1, borderBottom: '1px solid #1a1a1a' }}>
+          <Stack direction="row" spacing={0.5}>
+            {quickActions.map((action, index) => {
+              const IconComponent = action.icon;
+              return (
+                <Chip
+                  key={index}
+                  icon={<IconComponent sx={{ fontSize: 16 }} />}
+                  label={action.label}
+                  size="small"
+                  onClick={() => handleQuickAction(action.label)}
                   sx={{
-                    p: 2.5,
-                    background: prompt.gradient,
-                    borderRadius: 3,
-                    cursor: 'pointer',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    transition: 'all 0.2s ease',
+                    bgcolor: `${action.color}15`,
+                    color: action.color,
+                    border: `1px solid ${action.color}30`,
+                    fontSize: '0.75rem',
+                    height: 24,
                     '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)'
-                    },
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%)',
-                      borderRadius: 'inherit'
+                      bgcolor: `${action.color}25`
                     }
                   }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, position: 'relative' }}>
-                    <Box
-                      sx={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 2,
-                        bgcolor: 'rgba(255, 255, 255, 0.2)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      {React.cloneElement(prompt.icon, { sx: { color: 'white', fontSize: 18 } })}
-                    </Box>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: 'white',
-                        fontWeight: 600,
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      {prompt.text}
-                    </Typography>
-                  </Box>
-                </Paper>
-              </motion.div>
-            ))}
+                />
+              );
+            })}
           </Stack>
         </Box>
 
@@ -298,23 +173,16 @@ export default function ChatPanel() {
           sx={{
             flexGrow: 1,
             overflowY: 'auto',
-            p: 3,
+            p: 1,
             display: 'flex',
             flexDirection: 'column',
-            gap: 2,
-            '&::-webkit-scrollbar': {
-              width: 6
-            },
-            '&::-webkit-scrollbar-track': {
-              bgcolor: 'rgba(0, 0, 0, 0.04)',
-              borderRadius: 3
-            },
-            '&::-webkit-scrollbar-thumb': {
-              bgcolor: 'rgba(0, 0, 0, 0.12)',
-              borderRadius: 3,
-              '&:hover': {
-                bgcolor: 'rgba(0, 0, 0, 0.2)'
-              }
+            gap: 0.5,
+            '&::-webkit-scrollbar': { width: 2 },
+            '&::-webkit-scrollbar-track': { bgcolor: '#1a1a1a' },
+            '&::-webkit-scrollbar-thumb': { 
+              bgcolor: '#333', 
+              borderRadius: 1,
+              '&:hover': { bgcolor: '#555' }
             }
           }}
         >
@@ -322,82 +190,69 @@ export default function ChatPanel() {
             {messages.map((message) => (
               <motion.div
                 key={message.id}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
               >
                 <Box
                   sx={{
                     display: 'flex',
-                    gap: 2,
+                    gap: 0.75,
                     alignItems: 'flex-start',
                     flexDirection: message.type === 'user' ? 'row-reverse' : 'row'
                   }}
                 >
-                  <Avatar
+                  <Box
                     sx={{
-                      width: 36,
-                      height: 36,
-                      ...(message.type === 'ai' ? {
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                      } : {
-                        bgcolor: '#0f172a'
-                      })
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      bgcolor: message.type === 'ai' ? '#6366f1' : '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      mt: 0.25
                     }}
                   >
                     {message.type === 'ai' ? (
-                      <AutoAwesome sx={{ fontSize: 18 }} />
+                      <SmartToy sx={{ fontSize: 12, color: '#fff' }} />
                     ) : (
-                      <Box
-                        sx={{
-                          width: 18,
-                          height: 18,
-                          borderRadius: '50%',
-                          bgcolor: 'white'
-                        }}
-                      />
+                      <Person sx={{ fontSize: 12, color: '#000' }} />
                     )}
-                  </Avatar>
-                  <Paper
-                    elevation={0}
+                  </Box>
+                  <Box
                     sx={{
                       maxWidth: '80%',
-                      p: 2.5,
-                      borderRadius: message.type === 'user' ? '20px 20px 6px 20px' : '20px 20px 20px 6px',
-                      ...(message.type === 'ai' ? {
-                        bgcolor: '#f8fafc',
-                        border: '1px solid rgba(0, 0, 0, 0.08)',
-                        color: '#0f172a'
-                      } : {
-                        bgcolor: '#0f172a',
-                        color: 'white'
-                      })
+                      px: 1.25,
+                      py: 0.75,
+                      borderRadius: 1.5,
+                      bgcolor: message.type === 'ai' ? '#1a1a1a' : '#6366f1',
+                      border: message.type === 'ai' ? '1px solid #333' : 'none'
                     }}
                   >
                     <Typography
-                      variant="body2"
                       sx={{
-                        fontSize: '0.9rem',
-                        lineHeight: 1.6,
+                        fontSize: '0.8rem',
+                        lineHeight: 1.4,
+                        color: '#fff',
                         whiteSpace: 'pre-wrap'
                       }}
                     >
                       {message.content}
                     </Typography>
                     <Typography
-                      variant="caption"
                       sx={{
-                        display: 'block',
-                        mt: 1,
-                        opacity: 0.7,
-                        fontSize: '0.75rem',
+                        fontSize: '0.65rem',
+                        color: '#666',
+                        mt: 0.25,
                         textAlign: message.type === 'user' ? 'right' : 'left'
                       }}
                     >
                       {formatTime(message.timestamp)}
                     </Typography>
-                  </Paper>
+                  </Box>
                 </Box>
               </motion.div>
             ))}
@@ -407,49 +262,54 @@ export default function ChatPanel() {
           <AnimatePresence>
             {isTyping && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
               >
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-                  <Avatar
+                <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'flex-start' }}>
+                  <Box
                     sx={{
-                      width: 36,
-                      height: 36,
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      bgcolor: '#6366f1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mt: 0.25
                     }}
                   >
-                    <AutoAwesome sx={{ fontSize: 18 }} />
-                  </Avatar>
-                  <Paper
-                    elevation={0}
+                    <SmartToy sx={{ fontSize: 12, color: '#fff' }} />
+                  </Box>
+                  <Box
                     sx={{
-                      p: 2.5,
-                      borderRadius: '20px 20px 20px 6px',
-                      bgcolor: '#f8fafc',
-                      border: '1px solid rgba(0, 0, 0, 0.08)'
+                      px: 1.25,
+                      py: 0.75,
+                      borderRadius: 1.5,
+                      bgcolor: '#1a1a1a',
+                      border: '1px solid #333'
                     }}
                   >
-                    <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center' }}>
+                    <Stack direction="row" spacing={0.25} alignItems="center">
                       {[0, 0.2, 0.4].map((delay, index) => (
                         <Box
                           key={index}
                           sx={{
-                            width: 8,
-                            height: 8,
+                            width: 4,
+                            height: 4,
                             borderRadius: '50%',
-                            bgcolor: '#94a3b8',
+                            bgcolor: '#666',
                             animation: 'typing 1.4s ease-in-out infinite',
                             animationDelay: `${delay}s`,
                             '@keyframes typing': {
-                              '0%, 60%, 100%': { opacity: 0.3, transform: 'scale(1)' },
-                              '30%': { opacity: 1, transform: 'scale(1.2)' }
+                              '0%, 60%, 100%': { opacity: 0.3 },
+                              '30%': { opacity: 1 }
                             }
                           }}
                         />
                       ))}
-                    </Box>
-                  </Paper>
+                    </Stack>
+                  </Box>
                 </Box>
               </motion.div>
             )}
@@ -458,18 +318,16 @@ export default function ChatPanel() {
         </Box>
 
         {/* Input Area */}
-        <Box
-          sx={{
-            p: 3,
-            borderTop: '1px solid rgba(0, 0, 0, 0.06)',
-            background: 'rgba(248, 250, 252, 0.8)'
-          }}
-        >
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+        <Box sx={{ 
+          p: 1, 
+          borderTop: '1px solid #1a1a1a',
+          bgcolor: '#0a0a0a'
+        }}>
+          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-end' }}>
             <TextField
               fullWidth
               multiline
-              maxRows={3}
+              maxRows={2}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={(e) => {
@@ -478,22 +336,27 @@ export default function ChatPanel() {
                   handleSend();
                 }
               }}
-              placeholder="メッセージを入力..."
+              placeholder="質問を入力..."
               variant="outlined"
+              size="small"
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 3,
-                  bgcolor: 'white',
-                  fontSize: '0.9rem',
+                  borderRadius: 1.5,
+                  bgcolor: '#1a1a1a',
+                  color: '#fff',
+                  fontSize: '0.8rem',
                   '& fieldset': {
-                    borderColor: 'rgba(0, 0, 0, 0.12)'
+                    borderColor: '#333'
                   },
                   '&:hover fieldset': {
-                    borderColor: 'rgba(0, 0, 0, 0.2)'
+                    borderColor: '#555'
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#667eea',
-                    borderWidth: 2
+                    borderColor: '#6366f1'
+                  },
+                  '& input::placeholder': {
+                    color: '#666',
+                    opacity: 1
                   }
                 }
               }}
@@ -501,27 +364,27 @@ export default function ChatPanel() {
             <IconButton
               onClick={handleSend}
               disabled={!inputValue.trim() || isTyping}
+              size="small"
               sx={{
-                width: 48,
-                height: 48,
-                bgcolor: inputValue.trim() ? '#667eea' : 'rgba(0, 0, 0, 0.08)',
-                color: inputValue.trim() ? 'white' : 'rgba(0, 0, 0, 0.4)',
-                borderRadius: 3,
+                width: 32,
+                height: 32,
+                bgcolor: inputValue.trim() ? '#6366f1' : '#1a1a1a',
+                color: inputValue.trim() ? '#fff' : '#666',
+                borderRadius: 1.5,
                 '&:hover': {
-                  bgcolor: inputValue.trim() ? '#5a67d8' : 'rgba(0, 0, 0, 0.12)',
-                  transform: 'translateY(-1px)'
+                  bgcolor: inputValue.trim() ? '#5046e5' : '#333'
                 },
                 '&.Mui-disabled': {
-                  bgcolor: 'rgba(0, 0, 0, 0.04)',
-                  color: 'rgba(0, 0, 0, 0.2)'
+                  bgcolor: '#1a1a1a',
+                  color: '#333'
                 }
               }}
             >
-              <Send sx={{ fontSize: 20 }} />
+              <Send sx={{ fontSize: 16 }} />
             </IconButton>
           </Box>
         </Box>
-      </Paper>
+      </Box>
     </motion.div>
   );
 }
