@@ -113,19 +113,16 @@ export default function AnalyticsPage() {
         maxWidth={false}
         disableGutters
         sx={{
-          height: '100vh',
           width: '100%',
           m: 0,
           p: 0,
-          bgcolor: '#f5f5f5',
-          overflow: 'hidden'
+          bgcolor: '#f5f5f5'
         }}
       >
         {/* メインコンテンツエリア */}
         <Box
           sx={{
             width: '100%',
-            height: '100%',
             pt: 3,
             pl: 3,
             pr: 3,
@@ -134,7 +131,6 @@ export default function AnalyticsPage() {
             flexDirection: 'column',
             gap: 3,
             bgcolor: '#f8fafc',
-            overflow: 'hidden',
             minWidth: 0
           }}
         >
