@@ -64,7 +64,7 @@ export default function AnalyticsPage() {
               {/* 左上のContainer */}
               <Box
                 sx={{
-                  flex: 1,
+                  flex: 2,
                   bgcolor: '#ffffff',
                   borderRadius: 2,
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
