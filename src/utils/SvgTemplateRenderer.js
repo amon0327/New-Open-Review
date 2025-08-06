@@ -13,14 +13,20 @@ export class SvgTemplateRenderer {
    * @param {string} templatePath - テンプレートファイルのパス
    * @returns {Promise<string>} SVGテンプレート文字列
    */
-  async loadTemplate(templatePath) {
+  async loadTemplate(templatePath = 'default') {
     if (this.templateCache.has(templatePath)) {
       return this.templateCache.get(templatePath);
     }
 
     try {
-      // publicフォルダからの相対パスに変更
-      const publicPath = '/src/assets/templates/design-template.svg';
+      // テンプレートタイプに基づいてパスを決定
+      let publicPath;
+      if (templatePath === 'poster' || templatePath === 'form-poster') {
+        publicPath = '/src/assets/templates/form-poster-template.svg';
+      } else {
+        publicPath = '/src/assets/templates/design-template.svg';
+      }
+      
       const response = await fetch(publicPath);
       
       if (!response.ok) {
@@ -33,16 +39,41 @@ export class SvgTemplateRenderer {
     } catch (error) {
       console.error('SVGテンプレートの読み込みに失敗:', error);
       // フォールバック: インラインSVGテンプレートを使用
-      return this.getFallbackTemplate();
+      return this.getFallbackTemplate(templatePath);
     }
   }
 
   /**
    * フォールバック用のインラインSVGテンプレート
+   * @param {string} templateType - テンプレートタイプ
    * @returns {string} フォールバックSVGテンプレート
    */
-  getFallbackTemplate() {
-    return `<?xml version="1.0" encoding="UTF-8"?>
+  getFallbackTemplate(templateType = 'default') {
+    if (templateType === 'poster' || templateType === 'form-poster') {
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2149" height="1299" viewBox="0 0 2149 1299" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:{{PRIMARY_COLOR}};stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:{{SECONDARY_COLOR}};stop-opacity:0.8" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="2149" height="1299" fill="url(#bg)"/>
+  <rect x="150" y="200" width="1850" height="900" rx="40" fill="rgba(255,255,255,0.95)"/>
+  
+  <image x="250" y="300" width="300" height="150" href="{{LOGO_IMAGE}}" opacity="{{LOGO_OPACITY}}"/>
+  <text x="700" y="350" font-family="system-ui" font-size="{{TITLE_SIZE}}" font-weight="bold" fill="#2d3748">{{MAIN_TITLE}}</text>
+  <text x="700" y="450" font-family="system-ui" font-size="{{SUB_TITLE_SIZE}}" fill="#4a5568" opacity="{{SUB_TITLE_OPACITY}}">{{SUB_TITLE}}</text>
+  
+  <rect x="1410" y="360" width="480" height="480" rx="25" fill="#fff" stroke="{{PRIMARY_COLOR}}" stroke-width="4"/>
+  <image x="1450" y="400" width="400" height="400" href="{{QR_CODE_DATA}}"/>
+  <text x="1650" y="920" font-family="system-ui" font-size="48" font-weight="600" fill="#2d3748" text-anchor="middle">{{QR_TEXT}}</text>
+  
+  <text x="250" y="950" font-family="system-ui" font-size="{{DESC_SIZE}}" fill="#718096" opacity="{{DESC_OPACITY}}">{{DESCRIPTION}}</text>
+</svg>`;
+    } else {
+      return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="2149" height="1299" viewBox="0 0 2149 1299" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -64,6 +95,7 @@ export class SvgTemplateRenderer {
   
   <image x="80" y="60" width="300" height="150" href="{{LOGO_IMAGE}}" opacity="{{LOGO_OPACITY}}"/>
 </svg>`;
+    }
   }
 
   /**
@@ -165,7 +197,7 @@ export class SvgTemplateRenderer {
       LOGO_IMAGE: '',
       LOGO_OPACITY: '0',
       
-      // テキスト
+      // 基本テキスト（旧テンプレート用）
       MAIN_TEXT: 'アンケートにご協力ください',
       SUB_TEXT: '',
       TEXT_SIZE: '120',
@@ -173,6 +205,17 @@ export class SvgTemplateRenderer {
       TEXT_COLOR: '#374151',
       SUB_TEXT_COLOR: '#6b7280',
       SUB_TEXT_OPACITY: '1',
+      
+      // ポスターテンプレート用
+      MAIN_TITLE: 'アンケートにご協力ください',
+      SUB_TITLE: 'あなたのご意見をお聞かせください',
+      TITLE_SIZE: '96',
+      SUB_TITLE_SIZE: '64',
+      SUB_TITLE_OPACITY: '1',
+      QR_TEXT: 'QRコードでアクセス',
+      DESCRIPTION: '所要時間：約5分　匿名回答可能',
+      DESC_SIZE: '48',
+      DESC_OPACITY: '1',
       
       // 装飾
       DECORATION_OPACITY: '1'
@@ -274,7 +317,8 @@ export class SvgTemplateRenderer {
   async generateAndDownload(config) {
     try {
       // 1. SVGテンプレート読み込み
-      const template = await this.loadTemplate('/src/assets/templates/design-template.svg');
+      const templateType = config.template || 'default';
+      const template = await this.loadTemplate(templateType);
       
       // 2. QRコード生成
       const qrCodeDataUrl = await this.generateQRCodeDataUrl(config.qrText || '');
@@ -282,14 +326,30 @@ export class SvgTemplateRenderer {
       // 3. 各種画像の準備
       const variables = {
         QR_CODE_DATA: qrCodeDataUrl,
+        PRIMARY_COLOR: config.primaryColor || '#5e17eb',
+        SECONDARY_COLOR: config.secondaryColor || '#764ba2',
+        
+        // 基本テンプレート用
         MAIN_TEXT: config.mainText || 'アンケートにご協力ください',
         SUB_TEXT: config.subText || '',
-        TEXT_SIZE: config.textSize || '100',
-        SUB_TEXT_SIZE: config.subTextSize || '60',
+        TEXT_SIZE: config.textSize || '120',
+        SUB_TEXT_SIZE: config.subTextSize || '80',
         TEXT_COLOR: config.textColor || '#374151',
         SUB_TEXT_COLOR: config.subTextColor || '#6b7280',
         SUB_TEXT_OPACITY: config.subText ? '1' : '0',
-        DECORATION_OPACITY: config.showDecorations ? '1' : '0.5'
+        
+        // ポスターテンプレート用
+        MAIN_TITLE: config.mainTitle || config.mainText || 'アンケートにご協力ください',
+        SUB_TITLE: config.subTitle || config.subText || 'あなたのご意見をお聞かせください',
+        TITLE_SIZE: config.titleSize || '96',
+        SUB_TITLE_SIZE: config.subTitleSize || '64',
+        SUB_TITLE_OPACITY: config.subTitle || config.subText ? '1' : '0',
+        QR_TEXT: config.qrText || 'QRコードでアクセス',
+        DESCRIPTION: config.description || '所要時間：約5分　匿名回答可能',
+        DESC_SIZE: config.descSize || '48',
+        DESC_OPACITY: config.description ? '1' : '0',
+        
+        DECORATION_OPACITY: config.showDecorations ? '1' : '0.8'
       };
 
       // 4. ロゴ画像の処理

@@ -372,29 +372,30 @@ const PublishSettings = ({
     
     // プロジェクト固有の設定
     return {
+      template: 'poster', // 新しいポスターテンプレートを使用
       qrText: formUrl,
-      mainText: 'アンケートにご協力ください',
-      subText: `${projectTitle} フォーム`,
-      filename: `${projectTitle || 'form'}-design`,
+      filename: `${projectTitle || 'form'}-poster`,
       
       // カラーテーマ
       primaryColor: primaryColor,
       secondaryColor: secondaryColor,
-      backgroundColor: `linear-gradient(135deg, ${primaryColor}15, ${secondaryColor}15)`,
-      textColor: '#374151',
-      subTextColor: '#6b7280',
       
-      // サイズ設定
-      textSize: '120',
-      subTextSize: '80',
+      // ポスター用テキスト設定
+      mainTitle: 'アンケートにご協力ください',
+      subTitle: `${projectTitle} への回答をお願いします`,
+      titleSize: '96',
+      subTitleSize: '64',
+      qrText: 'QRコードでアクセス',
+      description: '所要時間：約5分　匿名回答可能',
+      descSize: '48',
       
       // ロゴ設定
       logoImage: logoImage,
       
       // デザイン設定
       showDecorations: true,
-      borderColor: primaryColor,
-      accentColor: secondaryColor
+      textColor: '#2d3748',
+      subTextColor: '#4a5568'
     };
   };
 
@@ -638,33 +639,124 @@ const PublishSettings = ({
                       aspectRatio: '9.1/5.5',
                       border: '2px solid #e2e8f0',
                       borderRadius: 2,
-                      backgroundColor: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '15px',
+                      background: `linear-gradient(135deg, ${formData?.formSettings?.primaryColor || '#5e17eb'}15, ${formData?.formSettings?.secondaryColor || '#764ba2'}15)`,
+                      position: 'relative',
                       marginBottom: '16px',
                       overflow: 'hidden'
                     }}
                   >
-                    {/* プレビュー内のQRコード */}
-                    <Box sx={{ marginRight: '20px', flexShrink: 0 }}>
-                      <QRCode
-                        value={formUrl}
-                        size={60}
-                      />
-                    </Box>
-                    {/* プレビュー内のテキスト */}
-                    <Typography
-                      variant="body2"
+                    {/* 白い背景コンテナ */}
+                    <Box
                       sx={{
-                        fontWeight: 600,
-                        color: '#374151',
-                        fontSize: '12px',
-                        lineHeight: 1.2
+                        position: 'absolute',
+                        top: '15%',
+                        left: '8%',
+                        right: '8%',
+                        bottom: '15%',
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        borderRadius: '8px',
+                        padding: '10px',
+                        display: 'flex',
+                        flexDirection: 'column'
                       }}
                     >
-                      アンケートに<br />ご協力ください
-                    </Typography>
+                      {/* ロゴエリア（左上） */}
+                      {(formData?.headerImage?.logo || formData?.logoImage) && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: '8px',
+                            left: '8px',
+                            width: '40px',
+                            height: '20px',
+                            backgroundColor: '#f8f9fa',
+                            border: '1px solid #e9ecef',
+                            borderRadius: '4px',
+                            fontSize: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#6c757d'
+                          }}
+                        >
+                          LOGO
+                        </Box>
+                      )}
+                      
+                      {/* メインタイトル */}
+                      <Typography
+                        sx={{
+                          fontSize: '10px',
+                          fontWeight: 'bold',
+                          color: '#2d3748',
+                          marginTop: '25px',
+                          marginBottom: '4px',
+                          lineHeight: 1.2
+                        }}
+                      >
+                        アンケートにご協力ください
+                      </Typography>
+                      
+                      {/* サブタイトル */}
+                      <Typography
+                        sx={{
+                          fontSize: '7px',
+                          color: '#4a5568',
+                          marginBottom: '8px',
+                          lineHeight: 1.2
+                        }}
+                      >
+                        {projectTitle} への回答をお願いします
+                      </Typography>
+                      
+                      {/* QRコード（右側） */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '15px',
+                          right: '15px',
+                          width: '45px',
+                          height: '45px',
+                          border: `2px solid ${formData?.formSettings?.primaryColor || '#5e17eb'}`,
+                          borderRadius: '6px',
+                          backgroundColor: '#ffffff',
+                          padding: '4px'
+                        }}
+                      >
+                        <QRCode
+                          value={formUrl}
+                          size={35}
+                        />
+                      </Box>
+                      
+                      {/* QRコード説明 */}
+                      <Typography
+                        sx={{
+                          position: 'absolute',
+                          bottom: '15px',
+                          right: '8px',
+                          fontSize: '6px',
+                          fontWeight: 600,
+                          color: '#2d3748',
+                          textAlign: 'center'
+                        }}
+                      >
+                        QRコードでアクセス
+                      </Typography>
+                      
+                      {/* 説明文 */}
+                      <Typography
+                        sx={{
+                          position: 'absolute',
+                          bottom: '8px',
+                          left: '8px',
+                          fontSize: '6px',
+                          color: '#718096'
+                        }}
+                      >
+                        所要時間：約5分　匿名回答可能
+                      </Typography>
+                    </Box>
                   </Box>
                   
                   {/* サイズ情報 */}
