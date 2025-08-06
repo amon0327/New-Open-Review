@@ -26,44 +26,29 @@ export default function AnalyticsPage() {
           sx={{
             width: '100%',
             height: '100%',
-            p: '24px 24px 24px 0',
+            pt: 3,
+            pl: 3,
+            pr: 3,
+            pb: 3,
             display: 'flex',
+            flexDirection: 'column',
             gap: 3,
             bgcolor: '#f8fafc'
           }}
         >
-          {/* 左側のContainer */}
+          {/* 上部横並びrow */}
           <Box
             sx={{
-              flex: 1,
-              height: '100%',
-              bgcolor: '#ffffff',
-              borderRadius: 2,
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-              border: '1px solid rgba(0, 0, 0, 0.05)',
-              p: 3,
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              gap: 3,
+              height: '50%'
             }}
           >
-            左側コンテンツ
-          </Box>
-
-          {/* 右側のContainer */}
-          <Box
-            sx={{
-              flex: 1,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 3
-            }}
-          >
-            {/* 右上のContainer */}
+            {/* 左側のContainer */}
             <Box
               sx={{
                 flex: 1,
+                height: '100%',
                 bgcolor: '#ffffff',
                 borderRadius: 2,
                 boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
@@ -74,24 +59,53 @@ export default function AnalyticsPage() {
                 justifyContent: 'center'
               }}
             >
-              右上コンテンツ
+              左側コンテンツ
             </Box>
 
-            {/* 右下のContainer */}
+            {/* 右側のContainer */}
             <Box
               sx={{
                 flex: 1,
-                bgcolor: '#ffffff',
-                borderRadius: 2,
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                border: '1px solid rgba(0, 0, 0, 0.05)',
-                p: 3,
+                height: '100%',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                flexDirection: 'column',
+                gap: 3,
+                pr: 2
               }}
             >
-              右下コンテンツ
+              {/* 右上のContainer */}
+              <Box
+                sx={{
+                  flex: 1,
+                  bgcolor: '#ffffff',
+                  borderRadius: 2,
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                  border: '1px solid rgba(0, 0, 0, 0.05)',
+                  p: 3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                右上コンテンツ
+              </Box>
+
+              {/* 右下のContainer */}
+              <Box
+                sx={{
+                  flex: 1,
+                  bgcolor: '#ffffff',
+                  borderRadius: 2,
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                  border: '1px solid rgba(0, 0, 0, 0.05)',
+                  p: 3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                右下コンテンツ
+              </Box>
             </Box>
           </Box>
         </Box>
