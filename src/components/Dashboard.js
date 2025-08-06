@@ -36,6 +36,7 @@ import AnalyticsPage from './dashboard/pages/AnalyticsPage';
 import SettingsPage from './dashboard/pages/SettingsPage';
 
 const drawerWidth = 280;
+const collapsedDrawerWidth = 72;
 
 const navigationItems = [
   { text: 'Home', icon: <Home />, component: HomePage },
@@ -46,6 +47,7 @@ const navigationItems = [
 
 export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [activeTab, setActiveTab] = useState(0);
+  const [isNavCollapsed, setIsNavCollapsed] = useState(false);
 
   const renderContent = () => {
     const ActiveComponent = navigationItems[activeTab].component;
@@ -53,6 +55,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
       return <ActiveComponent user={user} onLogout={onLogout} />;
     } else if (navigationItems[activeTab].text === 'Home') {
       return <ActiveComponent user={user} onCreateFormClick={onCreateClick} />;
+    } else if (navigationItems[activeTab].text === 'Analytics') {
+      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} />;
     }
     return <ActiveComponent />;
   };
@@ -147,41 +151,65 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
       <Drawer
         variant="permanent"
         sx={{
-          width: drawerWidth,
+          width: isNavCollapsed ? collapsedDrawerWidth : drawerWidth,
           flexShrink: 0,
+          transition: 'width 0.3s ease',
           '& .MuiDrawer-paper': {
-            width: drawerWidth,
+            width: isNavCollapsed ? collapsedDrawerWidth : drawerWidth,
             boxSizing: 'border-box',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             border: 'none',
             boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)',
-            borderRadius: 0
+            borderRadius: 0,
+            transition: 'width 0.3s ease',
+            overflow: 'hidden'
           },
         }}
       >
         {/* Logo Section */}
         <Box
           sx={{
-            p: 3,
+            p: isNavCollapsed ? 1.5 : 3,
             display: 'flex',
             alignItems: 'center',
+            justifyContent: isNavCollapsed ? 'center' : 'flex-start',
             gap: 2,
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            transition: 'all 0.3s ease'
           }}
         >
-          <img
-            src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png"
-            alt="OpenReview"
-            style={{
-              height: '40px',
-              width: 'auto',
-              objectFit: 'contain'
-            }}
-          />
+          {isNavCollapsed ? (
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '1.5rem'
+              }}
+            >
+              O
+            </Box>
+          ) : (
+            <img
+              src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png"
+              alt="OpenReview"
+              style={{
+                height: '40px',
+                width: 'auto',
+                objectFit: 'contain'
+              }}
+            />
+          )}
         </Box>
 
         {/* Navigation Items */}
-        <List sx={{ px: 2, py: 3 }}>
+        <List sx={{ px: isNavCollapsed ? 1 : 2, py: 3 }}>
           {navigationItems.map((item, index) => {
             const isCreateButton = item.text === 'Create';
             const isCreateButtonDisabled = isCreateButton && isCreatingForm;
@@ -193,9 +221,11 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   disabled={isCreateButtonDisabled}
                   sx={{
                     py: 1.5,
-                    px: 2,
+                    px: isNavCollapsed ? 1 : 2,
                     color: 'rgba(255, 255, 255, 0.8)',
                     backgroundColor: activeTab === index ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                    justifyContent: isNavCollapsed ? 'center' : 'flex-start',
+                    borderRadius: isNavCollapsed ? '50%' : 1,
                     '&:hover': {
                       backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     },
@@ -208,7 +238,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   <ListItemIcon
                     sx={{
                       color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)',
-                      minWidth: 40
+                      minWidth: isNavCollapsed ? 'unset' : 40,
+                      justifyContent: 'center'
                     }}
                   >
                     {isCreateButton && isCreatingForm ? (
@@ -217,13 +248,15 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                       item.icon
                     )}
                   </ListItemIcon>
-                  <ListItemText
-                    primary={item.text}
-                    primaryTypographyProps={{
-                      fontWeight: activeTab === index ? 600 : 400,
-                      color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)'
-                    }}
-                  />
+                  {!isNavCollapsed && (
+                    <ListItemText
+                      primary={item.text}
+                      primaryTypographyProps={{
+                        fontWeight: activeTab === index ? 600 : 400,
+                        color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)'
+                      }}
+                    />
+                  )}
                 </ListItemButton>
               </ListItem>
             );
@@ -234,7 +267,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         <Box
           sx={{
             mt: 'auto',
-            p: 3,
+            p: isNavCollapsed ? 1.5 : 3,
             borderTop: '1px solid rgba(255, 255, 255, 0.1)'
           }}
         >
@@ -242,29 +275,34 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 2,
-              p: 2,
+              justifyContent: isNavCollapsed ? 'center' : 'flex-start',
+              gap: isNavCollapsed ? 0 : 2,
+              p: isNavCollapsed ? 1 : 2,
               background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)'
+              backdropFilter: 'blur(10px)',
+              borderRadius: isNavCollapsed ? '50%' : 1,
+              transition: 'all 0.3s ease'
             }}
           >
             <Avatar sx={{ width: 40, height: 40 }}>
               <AccountCircle />
             </Avatar>
-            <Box>
-              <Typography
-                variant="body2"
-                sx={{ color: 'white', fontWeight: 600 }}
-              >
-                田中太郎
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
-              >
-                admin@company.com
-              </Typography>
-            </Box>
+            {!isNavCollapsed && (
+              <Box>
+                <Typography
+                  variant="body2"
+                  sx={{ color: 'white', fontWeight: 600 }}
+                >
+                  田中太郎
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                >
+                  admin@company.com
+                </Typography>
+              </Box>
+            )}
           </Box>
         </Box>
       </Drawer>

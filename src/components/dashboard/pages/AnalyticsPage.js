@@ -53,12 +53,26 @@ import {
   Close
 } from '@mui/icons-material';
 
-export default function AnalyticsPage() {
+export default function AnalyticsPage({ onNavCollapse }) {
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState({});
   const [showFilters, setShowFilters] = useState(false);
   const [analysisMode, setAnalysisMode] = useState('single'); // 'single' or 'comparison'
+
+  // Analyticsページが開かれた際にナビゲーションを縮小
+  React.useEffect(() => {
+    if (onNavCollapse) {
+      onNavCollapse(true);
+    }
+    
+    // クリーンアップ: ページを離れる際にナビゲーションを元に戻す
+    return () => {
+      if (onNavCollapse) {
+        onNavCollapse(false);
+      }
+    };
+  }, [onNavCollapse]);
 
   // コンパクトな質問データベース
   const questionsDatabase = [
