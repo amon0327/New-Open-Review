@@ -313,12 +313,13 @@ export default function AnalyticsPage() {
           <Paper
             elevation={2}
             sx={{
-              flex: 1,
               width: '100%',
+              minHeight: '600px',
               borderRadius: 3,
               overflow: 'hidden',
               background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              border: '1px solid rgba(0, 0, 0, 0.05)'
+              border: '1px solid rgba(0, 0, 0, 0.05)',
+              mb: 3
             }}
           >
             {/* ヘッダー部分 */}
@@ -389,7 +390,7 @@ export default function AnalyticsPage() {
                 {/* 属性フィルター */}
                 <Grid item xs={12}>
                   <Card variant="outlined" sx={{ mb: 2 }}>
-                    <CardContent sx={{ pb: '16px !important' }}>
+                    <CardContent sx={{ pb: '16px !important', minHeight: 'auto' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                         <FilterList color="primary" />
                         <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -419,8 +420,8 @@ export default function AnalyticsPage() {
 
                 {/* グラフエリア */}
                 <Grid item xs={12} lg={8}>
-                  <Card variant="outlined" sx={{ height: '400px' }}>
-                    <CardContent sx={{ height: '100%' }}>
+                  <Card variant="outlined" sx={{ minHeight: '500px', height: 'auto' }}>
+                    <CardContent>
                       <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                         {questionData[selectedQuestion]?.title}
                       </Typography>
@@ -428,13 +429,15 @@ export default function AnalyticsPage() {
                       {/* グラフプレースホルダー */}
                       <Box
                         sx={{
-                          height: 'calc(100% - 40px)',
+                          minHeight: '400px',
+                          height: 'auto',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           bgcolor: '#f8fafc',
                           borderRadius: 2,
-                          border: '2px dashed #e2e8f0'
+                          border: '2px dashed #e2e8f0',
+                          p: 3
                         }}
                       >
                         <Box sx={{ textAlign: 'center' }}>
@@ -455,7 +458,7 @@ export default function AnalyticsPage() {
 
                 {/* 分析・傾向エリア */}
                 <Grid item xs={12} lg={4}>
-                  <Card variant="outlined" sx={{ height: '400px' }}>
+                  <Card variant="outlined" sx={{ minHeight: '500px', height: 'auto' }}>
                     <CardContent>
                       <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                         データ分析・傾向
