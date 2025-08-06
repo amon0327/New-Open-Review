@@ -49,24 +49,85 @@ export default function AnalyticsPage() {
               overflow: 'hidden'
             }}
           >
-            {/* 左側のContainer */}
+            {/* 左側エリア全体 */}
             <Box
               sx={{
                 flex: 1,
                 height: '100%',
-                bgcolor: '#ffffff',
-                borderRadius: 2,
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                border: '1px solid rgba(0, 0, 0, 0.05)',
-                p: 3,
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: 'column',
+                gap: 3,
                 minWidth: 0,
                 overflow: 'hidden'
               }}
             >
-              左側コンテンツ
+              {/* 左上のContainer */}
+              <Box
+                sx={{
+                  flex: 1,
+                  bgcolor: '#ffffff',
+                  borderRadius: 2,
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                  border: '1px solid rgba(0, 0, 0, 0.05)',
+                  p: 3,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minWidth: 0,
+                  overflow: 'hidden'
+                }}
+              >
+                左上コンテンツ
+              </Box>
+
+              {/* 左下横並びContainer */}
+              <Box
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  gap: 2,
+                  minWidth: 0,
+                  overflow: 'hidden'
+                }}
+              >
+                {/* 左下左のContainer */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    bgcolor: '#ffffff',
+                    borderRadius: 2,
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid rgba(0, 0, 0, 0.05)',
+                    p: 3,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: 0,
+                    overflow: 'hidden'
+                  }}
+                >
+                  左下左コンテンツ
+                </Box>
+
+                {/* 左下右のContainer */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    bgcolor: '#ffffff',
+                    borderRadius: 2,
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid rgba(0, 0, 0, 0.05)',
+                    p: 3,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: 0,
+                    overflow: 'hidden'
+                  }}
+                >
+                  左下右コンテンツ
+                </Box>
+              </Box>
             </Box>
 
             {/* 右側のContainer */}
