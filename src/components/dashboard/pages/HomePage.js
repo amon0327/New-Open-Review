@@ -281,6 +281,9 @@ export default function HomePage({ user, onCreateFormClick }) {
   // ドラッグスクロール用の関数
   const handleMouseDown = (e) => {
     if (!scrollContainerRef.current) return;
+    // 記事カードのクリックを妨げないように、記事カード内の要素はスキップ
+    if (e.target.closest('.MuiCard-root')) return;
+    
     setIsDragging(true);
     setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
     setScrollLeft(scrollContainerRef.current.scrollLeft);
@@ -316,8 +319,13 @@ export default function HomePage({ user, onCreateFormClick }) {
 
   // 記事クリック時の処理
   const handleArticleClick = (article) => {
+    console.log('🔍 handleArticleClick が呼ばれました');
+    console.log('🔍 isDragging:', isDragging, 'dragDistance:', dragDistance);
+    console.log('🔍 article:', article);
+    
     // 実際のドラッグ（5px以上移動）の場合のみクリックを無効化
     if (isDragging && dragDistance > 5) {
+      console.log('🚫 ドラッグ中のためクリックを無効化');
       return;
     }
     
@@ -332,10 +340,20 @@ export default function HomePage({ user, onCreateFormClick }) {
       articleUrl = `https://openreview.jp/blog/${article.id}`;
     }
     
-    console.log('記事クリック:', article.title, 'URL:', articleUrl);
+    console.log('✅ 記事クリック:', article.title);
+    console.log('🔗 URL:', articleUrl);
+    console.log('🌐 window.openを実行中...');
     
     // 新しいタブで記事を開く
-    window.open(articleUrl, '_blank', 'noopener,noreferrer');
+    try {
+      const newWindow = window.open(articleUrl, '_blank', 'noopener,noreferrer');
+      console.log('🎯 window.open結果:', newWindow);
+      if (!newWindow) {
+        console.error('❌ ポップアップがブロックされました');
+      }
+    } catch (error) {
+      console.error('❌ window.open実行エラー:', error);
+    }
   };
 
   return (
@@ -455,7 +473,15 @@ export default function HomePage({ user, onCreateFormClick }) {
                     animation: `${fadeInUp} 0.3s ease-out ${index * 0.1}s both`,
                   }}
                 >
-                  <ArticleCard onClick={() => handleArticleClick(article)}>
+                  <ArticleCard 
+                    onClick={(e) => {
+                      console.log('🎯 ArticleCard onClick発火');
+                      console.log('🎯 event:', e);
+                      console.log('🎯 記事:', article.title);
+                      e.stopPropagation();
+                      handleArticleClick(article);
+                    }}
+                  >
                     <ArticleImage
                       className="article-image"
                       component="img"
