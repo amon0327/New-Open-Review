@@ -327,8 +327,7 @@ export default function ChatPanel() {
         {/* Input Area */}
         <Box sx={{ 
           p: 1,
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(250,245,255,0.95) 100%)',
-          backdropFilter: 'blur(10px)'
+          background: 'transparent'
         }}>
           <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-end' }}>
             <TextField
