@@ -104,20 +104,22 @@ export default function ChatPanel() {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: '#000',
+          background: 'linear-gradient(135deg, #fafbff 0%, #f5f7ff 50%, #f0f4ff 100%)',
           borderRadius: 2,
           overflow: 'hidden',
-          border: '1px solid #1a1a1a'
+          border: '1px solid rgba(99, 102, 241, 0.1)',
+          boxShadow: '0 4px 20px rgba(99, 102, 241, 0.08)'
         }}
       >
         {/* Header */}
         <Box sx={{ 
           p: 1.5,
-          borderBottom: '1px solid #1a1a1a',
+          borderBottom: '1px solid rgba(99, 102, 241, 0.1)',
           display: 'flex',
           alignItems: 'center',
           gap: 1.5,
-          bgcolor: '#0a0a0a'
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(249,250,255,0.9) 100%)',
+          backdropFilter: 'blur(10px)'
         }}>
           <Box sx={{ 
             width: 8, 
@@ -131,7 +133,7 @@ export default function ChatPanel() {
             }
           }} />
           <Typography sx={{ 
-            color: '#fff', 
+            color: '#1e293b', 
             fontSize: '0.9rem', 
             fontWeight: 600,
             flex: 1
@@ -141,7 +143,7 @@ export default function ChatPanel() {
         </Box>
 
         {/* Quick Actions */}
-        <Box sx={{ p: 1, borderBottom: '1px solid #1a1a1a' }}>
+        <Box sx={{ p: 1, borderBottom: '1px solid rgba(99, 102, 241, 0.1)' }}>
           <Stack direction="row" spacing={0.5}>
             {quickActions.map((action, index) => {
               const IconComponent = action.icon;
@@ -153,13 +155,15 @@ export default function ChatPanel() {
                   size="small"
                   onClick={() => handleQuickAction(action.label)}
                   sx={{
-                    bgcolor: `${action.color}15`,
+                    bgcolor: `${action.color}08`,
                     color: action.color,
-                    border: `1px solid ${action.color}30`,
+                    border: `1px solid ${action.color}20`,
                     fontSize: '0.75rem',
                     height: 24,
                     '&:hover': {
-                      bgcolor: `${action.color}25`
+                      bgcolor: `${action.color}15`,
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 2px 8px rgba(99, 102, 241, 0.15)'
                     }
                   }}
                 />
@@ -178,11 +182,11 @@ export default function ChatPanel() {
             flexDirection: 'column',
             gap: 0.5,
             '&::-webkit-scrollbar': { width: 2 },
-            '&::-webkit-scrollbar-track': { bgcolor: '#1a1a1a' },
+            '&::-webkit-scrollbar-track': { bgcolor: 'rgba(99, 102, 241, 0.05)' },
             '&::-webkit-scrollbar-thumb': { 
-              bgcolor: '#333', 
+              bgcolor: 'rgba(99, 102, 241, 0.3)', 
               borderRadius: 1,
-              '&:hover': { bgcolor: '#555' }
+              '&:hover': { bgcolor: 'rgba(99, 102, 241, 0.5)' }
             }
           }}
         >
@@ -208,18 +212,21 @@ export default function ChatPanel() {
                       width: 20,
                       height: 20,
                       borderRadius: '50%',
-                      bgcolor: message.type === 'ai' ? '#6366f1' : '#fff',
+                      bgcolor: message.type === 'ai' ? '#6366f1' : '#1e293b',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
-                      mt: 0.25
+                      mt: 0.25,
+                      boxShadow: message.type === 'ai' 
+                        ? '0 2px 8px rgba(99, 102, 241, 0.3)' 
+                        : '0 2px 8px rgba(30, 41, 59, 0.3)'
                     }}
                   >
                     {message.type === 'ai' ? (
                       <SmartToy sx={{ fontSize: 12, color: '#fff' }} />
                     ) : (
-                      <Person sx={{ fontSize: 12, color: '#000' }} />
+                      <Person sx={{ fontSize: 12, color: '#fff' }} />
                     )}
                   </Box>
                   <Box
@@ -228,15 +235,23 @@ export default function ChatPanel() {
                       px: 1.25,
                       py: 0.75,
                       borderRadius: 1.5,
-                      bgcolor: message.type === 'ai' ? '#1a1a1a' : '#6366f1',
-                      border: message.type === 'ai' ? '1px solid #333' : 'none'
+                      bgcolor: message.type === 'ai' 
+                        ? 'rgba(255, 255, 255, 0.8)' 
+                        : '#6366f1',
+                      border: message.type === 'ai' 
+                        ? '1px solid rgba(99, 102, 241, 0.15)' 
+                        : 'none',
+                      boxShadow: message.type === 'ai' 
+                        ? '0 2px 8px rgba(99, 102, 241, 0.08)' 
+                        : '0 2px 8px rgba(99, 102, 241, 0.3)',
+                      backdropFilter: message.type === 'ai' ? 'blur(10px)' : 'none'
                     }}
                   >
                     <Typography
                       sx={{
                         fontSize: '0.8rem',
                         lineHeight: 1.4,
-                        color: '#fff',
+                        color: message.type === 'ai' ? '#1e293b' : '#fff',
                         whiteSpace: 'pre-wrap'
                       }}
                     >
@@ -245,7 +260,7 @@ export default function ChatPanel() {
                     <Typography
                       sx={{
                         fontSize: '0.65rem',
-                        color: '#666',
+                        color: message.type === 'ai' ? '#64748b' : 'rgba(255, 255, 255, 0.7)',
                         mt: 0.25,
                         textAlign: message.type === 'user' ? 'right' : 'left'
                       }}
@@ -276,7 +291,8 @@ export default function ChatPanel() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      mt: 0.25
+                      mt: 0.25,
+                      boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
                     }}
                   >
                     <SmartToy sx={{ fontSize: 12, color: '#fff' }} />
@@ -286,8 +302,10 @@ export default function ChatPanel() {
                       px: 1.25,
                       py: 0.75,
                       borderRadius: 1.5,
-                      bgcolor: '#1a1a1a',
-                      border: '1px solid #333'
+                      bgcolor: 'rgba(255, 255, 255, 0.8)',
+                      border: '1px solid rgba(99, 102, 241, 0.15)',
+                      boxShadow: '0 2px 8px rgba(99, 102, 241, 0.08)',
+                      backdropFilter: 'blur(10px)'
                     }}
                   >
                     <Stack direction="row" spacing={0.25} alignItems="center">
@@ -298,7 +316,7 @@ export default function ChatPanel() {
                             width: 4,
                             height: 4,
                             borderRadius: '50%',
-                            bgcolor: '#666',
+                            bgcolor: '#6366f1',
                             animation: 'typing 1.4s ease-in-out infinite',
                             animationDelay: `${delay}s`,
                             '@keyframes typing': {
@@ -320,8 +338,9 @@ export default function ChatPanel() {
         {/* Input Area */}
         <Box sx={{ 
           p: 1, 
-          borderTop: '1px solid #1a1a1a',
-          bgcolor: '#0a0a0a'
+          borderTop: '1px solid rgba(99, 102, 241, 0.1)',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(249,250,255,0.9) 100%)',
+          backdropFilter: 'blur(10px)'
         }}>
           <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-end' }}>
             <TextField
@@ -342,20 +361,21 @@ export default function ChatPanel() {
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 1.5,
-                  bgcolor: '#1a1a1a',
-                  color: '#fff',
+                  bgcolor: 'rgba(255, 255, 255, 0.9)',
+                  color: '#1e293b',
                   fontSize: '0.8rem',
                   '& fieldset': {
-                    borderColor: '#333'
+                    borderColor: 'rgba(99, 102, 241, 0.2)'
                   },
                   '&:hover fieldset': {
-                    borderColor: '#555'
+                    borderColor: 'rgba(99, 102, 241, 0.4)'
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#6366f1'
+                    borderColor: '#6366f1',
+                    boxShadow: '0 0 0 2px rgba(99, 102, 241, 0.1)'
                   },
                   '& input::placeholder': {
-                    color: '#666',
+                    color: '#64748b',
                     opacity: 1
                   }
                 }
@@ -368,15 +388,17 @@ export default function ChatPanel() {
               sx={{
                 width: 32,
                 height: 32,
-                bgcolor: inputValue.trim() ? '#6366f1' : '#1a1a1a',
-                color: inputValue.trim() ? '#fff' : '#666',
+                bgcolor: inputValue.trim() ? '#6366f1' : 'rgba(99, 102, 241, 0.1)',
+                color: inputValue.trim() ? '#fff' : '#64748b',
                 borderRadius: 1.5,
+                boxShadow: inputValue.trim() ? '0 2px 8px rgba(99, 102, 241, 0.3)' : 'none',
                 '&:hover': {
-                  bgcolor: inputValue.trim() ? '#5046e5' : '#333'
+                  bgcolor: inputValue.trim() ? '#5046e5' : 'rgba(99, 102, 241, 0.2)',
+                  transform: 'translateY(-1px)'
                 },
                 '&.Mui-disabled': {
-                  bgcolor: '#1a1a1a',
-                  color: '#333'
+                  bgcolor: 'rgba(99, 102, 241, 0.05)',
+                  color: '#94a3b8'
                 }
               }}
             >
