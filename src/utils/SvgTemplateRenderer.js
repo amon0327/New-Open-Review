@@ -120,9 +120,9 @@ export class SvgTemplateRenderer {
       // QRコード
       QR_CODE_DATA: '',
       
-      // 背景
-      BACKGROUND_IMAGE: '',
-      BACKGROUND_FILL: 'url(#defaultBg)',
+      // カラーテーマ
+      PRIMARY_COLOR: '#5e17eb',
+      SECONDARY_COLOR: '#764ba2',
       
       // ロゴ
       LOGO_IMAGE: '',
@@ -131,18 +131,14 @@ export class SvgTemplateRenderer {
       // テキスト
       MAIN_TEXT: 'アンケートにご協力ください',
       SUB_TEXT: '',
-      TEXT_SIZE: '100',
-      SUB_TEXT_SIZE: '60',
+      TEXT_SIZE: '120',
+      SUB_TEXT_SIZE: '80',
       TEXT_COLOR: '#374151',
       SUB_TEXT_COLOR: '#6b7280',
-      SUB_TEXT_OPACITY: '0',
+      SUB_TEXT_OPACITY: '1',
       
       // 装飾
-      DECORATION_OPACITY: '1',
-      BORDER_COLOR: '#e2e8f0',
-      BORDER_WIDTH: '0',
-      BORDER_DASH: 'none',
-      BORDER_OPACITY: '0'
+      DECORATION_OPACITY: '1'
     };
 
     const finalVariables = { ...defaults, ...variables };

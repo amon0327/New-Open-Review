@@ -248,79 +248,63 @@ const PublishSettings = ({
     }
   };
 
-  // デザイン画像のダウンロード（9.1cm x 5.5cm = 超高解像度 2149px x 1299px at 600 DPI）
-  const downloadDesignImage = () => {
-    const svg = document.getElementById('qr-code');
-    if (svg) {
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
-      img.onload = () => {
-        // 9.1cm x 5.5cm サイズ（600 DPIで超高解像度計算）
-        const cmToPx = 600 / 2.54; // 1cm = 約236px at 600 DPI
-        canvas.width = Math.round(9.1 * cmToPx); // 約2149px
-        canvas.height = Math.round(5.5 * cmToPx); // 約1299px
-        
-        // 高品質レンダリング設定
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.textRenderingOptimization = 'optimizeQuality';
-        
-        // 背景を白で塗りつぶし
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // QRコードサイズを調整（高解像度に対応）
-        const qrSize = Math.round(canvas.height * 0.7); // 高さの70%
-        const qrX = Math.round(canvas.width * 0.05); // 左から5%
-        const qrY = (canvas.height - qrSize) / 2; // 垂直中央
-        
-        // QRコードを描画（高解像度でリサイズして配置）
-        ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
-        
-        // テキストを右側に配置（高解像度フォント）
-        const textX = qrX + qrSize + Math.round(canvas.width * 0.08); // QRコードの右側から8%
-        const textY = canvas.height / 2;
-        
-        ctx.fillStyle = '#374151';
-        ctx.font = `bold ${Math.round(canvas.height * 0.12)}px system-ui, -apple-system, sans-serif`; // 高さの12%のフォントサイズ
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('アンケートにご協力ください', textX, textY);
-        
-        // ダウンロード
-        const pngFile = canvas.toDataURL('image/png');
-        const downloadLink = document.createElement('a');
-        downloadLink.download = `${projectTitle || 'form'}-design.png`;
-        downloadLink.href = pngFile;
-        downloadLink.click();
-      };
-      
-      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+  // デザイン画像のダウンロード（SVGベース）
+  const downloadDesignImage = async () => {
+    try {
+      const projectConfig = getProjectDesignConfig();
+      await svgRenderer.generateAndDownload(projectConfig);
       toast.success('デザイン画像をダウンロードしました！');
+    } catch (error) {
+      console.error('デザインのダウンロードに失敗:', error);
+      toast.error('デザインのダウンロードに失敗しました');
     }
+  };
+
+  // プロジェクト情報を取得してデザインに適用
+  const getProjectDesignConfig = () => {
+    // フォームデータからテーマカラー情報を取得
+    const primaryColor = formData?.formSettings?.primaryColor || '#5e17eb';
+    const secondaryColor = formData?.formSettings?.secondaryColor || '#764ba2';
+    
+    // ロゴ画像情報を取得
+    const logoImage = formData?.headerImage?.logo || formData?.logoImage;
+    
+    // プロジェクト固有の設定
+    return {
+      qrText: formUrl,
+      mainText: 'アンケートにご協力ください',
+      subText: `${projectTitle} フォーム`,
+      filename: `${projectTitle || 'form'}-design`,
+      
+      // カラーテーマ
+      primaryColor: primaryColor,
+      secondaryColor: secondaryColor,
+      backgroundColor: `linear-gradient(135deg, ${primaryColor}15, ${secondaryColor}15)`,
+      textColor: '#374151',
+      subTextColor: '#6b7280',
+      
+      // サイズ設定
+      textSize: '120',
+      subTextSize: '80',
+      
+      // ロゴ設定
+      logoImage: logoImage,
+      
+      // デザイン設定
+      showDecorations: true,
+      borderColor: primaryColor,
+      accentColor: secondaryColor
+    };
   };
 
   // SVGベースの高度なデザインダウンロード
   const downloadAdvancedDesign = async (customOptions = {}) => {
     try {
-      const config = {
-        qrText: formUrl,
-        mainText: 'アンケートにご協力ください',
-        subText: '',
-        filename: `${projectTitle || 'form'}-advanced-design`,
-        textColor: '#374151',
-        subTextColor: '#6b7280',
-        textSize: '100',
-        subTextSize: '60',
-        showDecorations: true,
-        ...customOptions
-      };
+      const projectConfig = getProjectDesignConfig();
+      const config = { ...projectConfig, ...customOptions };
 
       await svgRenderer.generateAndDownload(config);
-      toast.success('高品質デザイン画像をダウンロードしました！');
+      toast.success('プロジェクトデザイン画像をダウンロードしました！');
     } catch (error) {
       console.error('SVGデザインのダウンロードに失敗:', error);
       toast.error('デザインのダウンロードに失敗しました');

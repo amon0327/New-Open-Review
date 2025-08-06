@@ -1,74 +1,131 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="2149" height="1299" viewBox="0 0 2149 1299" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <!-- 背景 -->
   <defs>
-    <!-- 背景画像用のパターン定義 -->
-    <pattern id="backgroundImage" patternUnits="userSpaceOnUse" width="2149" height="1299">
-      <image id="bgImage" x="0" y="0" width="2149" height="1299" href="{{BACKGROUND_IMAGE}}" opacity="0.1"/>
-    </pattern>
-    
-    <!-- グラデーション背景（デフォルト） -->
-    <linearGradient id="defaultBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    <!-- プライマリーグラデーション -->
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:{{PRIMARY_COLOR}};stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:{{SECONDARY_COLOR}};stop-opacity:0.15" />
     </linearGradient>
+    
+    <!-- アクセントグラデーション -->
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:{{PRIMARY_COLOR}};stop-opacity:1" />
+      <stop offset="100%" style="stop-color:{{SECONDARY_COLOR}};stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- シャドウフィルター -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="{{PRIMARY_COLOR}}" flood-opacity="0.15"/>
+    </filter>
+    
+    <!-- QRコード用シャドウ -->
+    <filter id="qrShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
   </defs>
   
-  <!-- 背景矩形 -->
-  <rect width="2149" height="1299" fill="{{BACKGROUND_FILL}}" stroke="none"/>
+  <!-- 背景 -->
+  <rect width="2149" height="1299" fill="#ffffff" stroke="none"/>
+  <rect width="2149" height="1299" fill="url(#primaryGradient)" stroke="none"/>
   
-  <!-- ロゴ画像エリア（右上） -->
-  <g id="logoArea" transform="translate(1800, 50)">
-    <image id="logoImage" x="0" y="0" width="300" height="150" href="{{LOGO_IMAGE}}" opacity="{{LOGO_OPACITY}}"/>
+  <!-- 装飾要素 - 背景パターン -->
+  <g opacity="0.03">
+    <circle cx="300" cy="200" r="120" fill="{{PRIMARY_COLOR}}"/>
+    <circle cx="1800" cy="1100" r="100" fill="{{SECONDARY_COLOR}}"/>
+    <circle cx="2000" cy="300" r="80" fill="{{PRIMARY_COLOR}}"/>
+    <circle cx="150" cy="1000" r="60" fill="{{SECONDARY_COLOR}}"/>
   </g>
   
-  <!-- QRコードエリア（左側中央） -->
-  <g id="qrArea" transform="translate(107, 240)">
-    <!-- QRコード背景（白い円角矩形） -->
-    <rect x="-20" y="-20" width="950" height="950" rx="40" ry="40" fill="#ffffff" stroke="#e2e8f0" stroke-width="4" opacity="0.95"/>
-    <!-- QRコード画像 -->
-    <image id="qrCode" x="0" y="0" width="910" height="910" href="{{QR_CODE_DATA}}"/>
-  </g>
-  
-  <!-- テキストエリア（右側） -->
-  <g id="textArea" transform="translate(1200, 650)">
-    <!-- メインテキスト -->
-    <text id="mainText" x="0" y="0" 
-          font-family="system-ui, -apple-system, sans-serif" 
-          font-size="{{TEXT_SIZE}}" 
-          font-weight="bold" 
-          fill="{{TEXT_COLOR}}" 
-          text-anchor="start" 
-          dominant-baseline="central">
-      {{MAIN_TEXT}}
-    </text>
+  <!-- メインコンテンツエリア -->
+  <g id="mainContent">
     
-    <!-- サブテキスト（オプション） -->
-    <text id="subText" x="0" y="120" 
-          font-family="system-ui, -apple-system, sans-serif" 
-          font-size="{{SUB_TEXT_SIZE}}" 
-          font-weight="normal" 
-          fill="{{SUB_TEXT_COLOR}}" 
-          text-anchor="start" 
-          dominant-baseline="central"
-          opacity="{{SUB_TEXT_OPACITY}}">
-      {{SUB_TEXT}}
-    </text>
+    <!-- ロゴエリア（左上） -->
+    <g id="logoArea" transform="translate(80, 60)">
+      <rect x="-20" y="-20" width="340" height="190" rx="20" fill="white" opacity="0.8" filter="url(#shadow)"/>
+      <image id="logoImage" x="0" y="0" width="300" height="150" href="{{LOGO_IMAGE}}" opacity="{{LOGO_OPACITY}}"/>
+    </g>
+    
+    <!-- アクセントライン -->
+    <rect x="80" y="300" width="300" height="8" rx="4" fill="url(#accentGradient)"/>
+    
+    <!-- QRコードエリア（中央左） -->
+    <g id="qrArea" transform="translate(150, 400)">
+      <!-- QRコード背景 -->
+      <rect x="-30" y="-30" width="460" height="460" rx="30" fill="white" 
+            filter="url(#qrShadow)" stroke="{{PRIMARY_COLOR}}" stroke-width="2" opacity="0.95"/>
+      <!-- QRコード -->
+      <image id="qrCode" x="0" y="0" width="400" height="400" href="{{QR_CODE_DATA}}"/>
+    </g>
+    
+    <!-- メインテキストエリア（右側） -->
+    <g id="textArea" transform="translate(700, 500)">
+      <!-- 背景装飾 -->
+      <rect x="-40" y="-60" width="1200" height="300" rx="25" fill="white" opacity="0.7" filter="url(#shadow)"/>
+      
+      <!-- メインテキスト -->
+      <text id="mainText" x="0" y="0" 
+            font-family="'Noto Sans JP', system-ui, -apple-system, sans-serif" 
+            font-size="{{TEXT_SIZE}}" 
+            font-weight="bold" 
+            fill="{{TEXT_COLOR}}" 
+            text-anchor="start" 
+            dominant-baseline="central">
+        {{MAIN_TEXT}}
+      </text>
+      
+      <!-- サブテキスト -->
+      <text id="subText" x="0" y="100" 
+            font-family="'Noto Sans JP', system-ui, -apple-system, sans-serif" 
+            font-size="{{SUB_TEXT_SIZE}}" 
+            font-weight="normal" 
+            fill="{{SUB_TEXT_COLOR}}" 
+            text-anchor="start" 
+            dominant-baseline="central"
+            opacity="{{SUB_TEXT_OPACITY}}">
+        {{SUB_TEXT}}
+      </text>
+      
+      <!-- アクセント装飾 -->
+      <rect x="0" y="140" width="200" height="4" rx="2" fill="url(#accentGradient)" opacity="{{SUB_TEXT_OPACITY}}"/>
+    </g>
+    
+    <!-- QRコード説明テキスト -->
+    <g id="qrDescription" transform="translate(150, 900)">
+      <text x="200" y="0" 
+            font-family="'Noto Sans JP', system-ui, -apple-system, sans-serif" 
+            font-size="60" 
+            font-weight="500" 
+            fill="{{TEXT_COLOR}}" 
+            text-anchor="middle" 
+            dominant-baseline="central"
+            opacity="0.8">
+        QRコードでアクセス
+      </text>
+    </g>
+    
   </g>
   
-  <!-- 装飾要素（オプション） -->
-  <g id="decorations" opacity="{{DECORATION_OPACITY}}">
-    <!-- 装飾的な背景パターン -->
-    <circle cx="2000" cy="200" r="100" fill="#5e17eb" opacity="0.05"/>
-    <circle cx="100" cy="1100" r="80" fill="#764ba2" opacity="0.05"/>
-    
-    <!-- 境界線装飾 -->
-    <rect x="50" y="50" width="2049" height="1199" 
-          fill="none" 
-          stroke="{{BORDER_COLOR}}" 
-          stroke-width="{{BORDER_WIDTH}}" 
-          stroke-dasharray="{{BORDER_DASH}}" 
-          rx="20" ry="20" 
-          opacity="{{BORDER_OPACITY}}"/>
+  <!-- 装飾ライン（下部） -->
+  <g opacity="0.3">
+    <rect x="0" y="1250" width="2149" height="8" fill="url(#accentGradient)"/>
+    <rect x="0" y="1270" width="2149" height="4" fill="{{PRIMARY_COLOR}}" opacity="0.5"/>
   </g>
+  
+  <!-- 追加装飾要素 -->
+  <g id="decorativeElements" opacity="{{DECORATION_OPACITY}}">
+    <!-- 角の装飾 -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="100" height="100" rx="50" fill="{{PRIMARY_COLOR}}" opacity="0.05"/>
+    </g>
+    <g transform="translate(2049, 0)">
+      <rect x="0" y="0" width="100" height="100" rx="50" fill="{{SECONDARY_COLOR}}" opacity="0.05"/>
+    </g>
+    <g transform="translate(0, 1199)">
+      <rect x="0" y="0" width="100" height="100" rx="50" fill="{{SECONDARY_COLOR}}" opacity="0.05"/>
+    </g>
+    <g transform="translate(2049, 1199)">
+      <rect x="0" y="0" width="100" height="100" rx="50" fill="{{PRIMARY_COLOR}}" opacity="0.05"/>
+    </g>
+  </g>
+  
 </svg>
