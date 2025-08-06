@@ -44,7 +44,7 @@ export default function AnalyticsPage() {
             sx={{
               display: 'flex',
               gap: 3,
-              height: '50%',
+              flex: 1,
               minWidth: 0,
               overflow: 'hidden'
             }}
@@ -115,6 +115,26 @@ export default function AnalyticsPage() {
                 右下コンテンツ
               </Box>
             </Box>
+          </Box>
+
+          {/* 下部横幅最大のContainer */}
+          <Box
+            sx={{
+              flex: 1,
+              width: '100%',
+              bgcolor: '#ffffff',
+              borderRadius: 2,
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+              border: '1px solid rgba(0, 0, 0, 0.05)',
+              p: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: 0,
+              overflow: 'hidden'
+            }}
+          >
+            下部コンテンツ
           </Box>
         </Box>
       </Container>
