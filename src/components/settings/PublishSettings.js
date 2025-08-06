@@ -230,19 +230,40 @@ const PublishSettings = ({
       const img = new Image();
       
       img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
+        // キャンバスサイズを設定（QRコード + テキストスペース）
+        const padding = 40;
+        const textHeight = 60;
+        canvas.width = img.width + (padding * 2);
+        canvas.height = img.height + textHeight + (padding * 2);
         
+        // 背景を白で塗りつぶし
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // QRコードを中央に配置
+        const qrX = (canvas.width - img.width) / 2;
+        const qrY = padding;
+        ctx.drawImage(img, qrX, qrY);
+        
+        // テキストを描画
+        ctx.fillStyle = '#374151';
+        ctx.font = 'bold 18px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        const textY = qrY + img.height + (textHeight / 2);
+        ctx.fillText('アンケートにご協力ください', canvas.width / 2, textY);
+        
+        // ダウンロード
         const pngFile = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
-        downloadLink.download = `${projectTitle || 'form'}-qr.png`;
+        downloadLink.download = `${projectTitle || 'form'}-qr-poster.png`;
         downloadLink.href = pngFile;
         downloadLink.click();
       };
       
       img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
-      toast.success('QRコードをダウンロードしました！');
+      toast.success('QRコードポスターをダウンロードしました！');
     }
   };
 
@@ -410,7 +431,10 @@ const PublishSettings = ({
                     borderRadius: 2,
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',
-                    textAlign: 'center'
+                    textAlign: 'left',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start'
                   }}
                 >
                   <QRCode
@@ -436,7 +460,7 @@ const PublishSettings = ({
                         }
                       }}
                     >
-                      ダウンロード
+                      ポスター画像をダウンロード
                     </Button>
                   </Box>
                 </Box>
