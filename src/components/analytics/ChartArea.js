@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Box,
   Typography,
   Button,
   IconButton,
-  Fade,
   TextField,
   InputAdornment
 } from '@mui/material';
@@ -13,8 +12,6 @@ import {
   AutoGraph,
   Compare,
   Tune,
-  Chat,
-  ChevronRight,
   Send,
   SmartToy,
   FlashOn,
@@ -51,7 +48,6 @@ export default function ChartArea({
   showFilters,
   setShowFilters
 }) {
-  const [showChatPanel, setShowChatPanel] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
   const [chatMessages, setChatMessages] = useState([
     {
@@ -66,7 +62,7 @@ export default function ChartArea({
       <Box sx={{ flexGrow: 1, display: 'flex', position: 'relative' }}>
         <Box
           sx={{
-            flex: showChatPanel ? 1 : 1,
+            flex: 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -139,49 +135,14 @@ export default function ChartArea({
             }}
           />
 
-          {/* Chatボタン - 右下に固定配置 */}
-          <IconButton
-            onClick={() => setShowChatPanel(!showChatPanel)}
-            sx={{
-              position: 'absolute',
-              bottom: 16,
-              right: 16,
-              width: 56,
-              height: 56,
-              bgcolor: showChatPanel ? '#64748b' : '#6366f1',
-              color: 'white',
-              boxShadow: showChatPanel 
-                ? '0 4px 20px rgba(100, 116, 139, 0.4)' 
-                : '0 4px 20px rgba(99, 102, 241, 0.4)',
-              '&:hover': {
-                bgcolor: showChatPanel ? '#475569' : '#5046e5',
-                transform: 'translateY(-2px)',
-                boxShadow: showChatPanel 
-                  ? '0 8px 30px rgba(100, 116, 139, 0.6)' 
-                  : '0 8px 30px rgba(99, 102, 241, 0.6)',
-              },
-              transition: 'all 0.3s ease',
-              zIndex: 10
-            }}
-          >
-            {showChatPanel ? (
-              <ChevronRight sx={{ fontSize: 24 }} />
-            ) : (
-              <Chat sx={{ fontSize: 24 }} />
-            )}
-          </IconButton>
         </Box>
 
         {/* Chat Panel */}
-        <AnimatePresence>
-          {showChatPanel && (
-            <motion.div
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 380, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-              style={{ overflow: 'hidden' }}
-            >
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+        >
               <Box
                 sx={{
                   width: 380,
@@ -613,8 +574,6 @@ export default function ChartArea({
                 </Box>
               </Box>
             </motion.div>
-          )}
-        </AnimatePresence>
       </Box>
     );
   }
@@ -623,7 +582,7 @@ export default function ChartArea({
     <Box sx={{ flexGrow: 1, display: 'flex', position: 'relative' }}>
       <Box
         sx={{
-          flex: showChatPanel ? 1 : 1,
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
           bgcolor: '#ffffff',
@@ -730,63 +689,29 @@ export default function ChartArea({
           </Box>
         </Box>
 
-        {/* Chatボタン - 右下に固定配置 */}
-        <IconButton
-          onClick={() => setShowChatPanel(!showChatPanel)}
-          sx={{
-            position: 'absolute',
-            bottom: 16,
-            right: 16,
-            width: 56,
-            height: 56,
-            bgcolor: showChatPanel ? '#64748b' : '#6366f1',
-            color: 'white',
-            boxShadow: showChatPanel 
-              ? '0 4px 20px rgba(100, 116, 139, 0.4)' 
-              : '0 4px 20px rgba(99, 102, 241, 0.4)',
-            '&:hover': {
-              bgcolor: showChatPanel ? '#475569' : '#5046e5',
-              transform: 'translateY(-2px)',
-              boxShadow: showChatPanel 
-                ? '0 8px 30px rgba(100, 116, 139, 0.6)' 
-                : '0 8px 30px rgba(99, 102, 241, 0.6)',
-            },
-            transition: 'all 0.3s ease',
-            zIndex: 10
-          }}
-        >
-          {showChatPanel ? (
-            <ChevronRight sx={{ fontSize: 24 }} />
-          ) : (
-            <Chat sx={{ fontSize: 24 }} />
-          )}
-        </IconButton>
       </Box>
 
       {/* Chat Panel */}
-      <AnimatePresence>
-        {showChatPanel && (
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 380, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            style={{ overflow: 'hidden' }}
-          >
-            <Box
-              sx={{
-                width: 380,
-                height: '100%',
-                bgcolor: '#fefefe',
-                borderRadius: 1.5,
-                border: '1px solid #e1e5e9',
-                ml: 1.5,
-                display: 'flex',
-                flexDirection: 'column',
-                boxShadow: '0 8px 40px rgba(0, 0, 0, 0.08)',
-                overflow: 'hidden'
-              }}
-            >
+      <Box
+        sx={{
+          width: 380,
+          height: '100%',
+          ml: 1.5
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            bgcolor: '#fefefe',
+            borderRadius: 1.5,
+            border: '1px solid #e1e5e9',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: '0 8px 40px rgba(0, 0, 0, 0.08)',
+            overflow: 'hidden'
+          }}
+        >
               {/* Ultra-modern Header */}
               <Box
                 sx={{
@@ -1025,10 +950,8 @@ export default function ChartArea({
                   </Box>
                 </Box>
               </Box>
-            </Box>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </Box>
+      </Box>
     </Box>
   );
 }
