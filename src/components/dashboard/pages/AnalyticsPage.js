@@ -324,15 +324,15 @@ export default function AnalyticsPage() {
               <Box
                 sx={{
                   mb: 2,
-                  p: 3,
+                  p: 2,
                   bgcolor: '#ffffff',
                   border: '1px solid #e5e7eb',
-                  borderRadius: 1.5,
+                  borderRadius: 1,
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
                 }}
               >
                 {/* ヘッダー */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box
                       sx={{
@@ -398,60 +398,59 @@ export default function AnalyticsPage() {
                   )}
                 </Box>
                 
-                {/* フィルター要素 */}
+                {/* フィルター要素 - 横並びレイアウト */}
                 <Box 
                   sx={{ 
                     display: 'flex',
-                    flexDirection: 'column',
-                    gap: 2.5
+                    gap: 3,
+                    flexWrap: 'wrap',
+                    alignItems: 'flex-start'
                   }}
                 >
                   {selectedQuestions.map((question) => {
                     const filterConfig = generateFilterOptions(question);
                     
                     return (
-                      <Box key={question.id}>
-                        {/* 質問タイトル */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                      <Box 
+                        key={question.id}
+                        sx={{
+                          flex: '1 1 300px',
+                          minWidth: 300,
+                          maxWidth: 400
+                        }}
+                      >
+                        {/* コンパクトな質問タイトル */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                           <Box
                             sx={{
                               bgcolor: `${categoryColors[question.category]}20`,
                               color: categoryColors[question.category],
-                              borderRadius: 0.75,
-                              p: 0.5,
+                              borderRadius: 0.5,
+                              p: 0.25,
                               display: 'flex',
-                              fontSize: '16px'
+                              fontSize: '14px'
                             }}
                           >
                             {question.icon}
                           </Box>
                           <Box>
                             <Typography 
-                              variant="subtitle1" 
+                              variant="subtitle2" 
                               sx={{ 
                                 fontWeight: 600,
                                 color: '#111827',
-                                fontSize: '0.875rem',
+                                fontSize: '0.813rem',
                                 lineHeight: 1.2
                               }}
                             >
                               {question.title}
-                            </Typography>
-                            <Typography 
-                              variant="caption" 
-                              sx={{ 
-                                color: '#6b7280',
-                                fontSize: '0.75rem'
-                              }}
-                            >
-                              {question.type.replace('_', ' ')} • {question.responseCount.toLocaleString()} responses
                             </Typography>
                           </Box>
                         </Box>
                         
                         {/* Range フィルター */}
                         {filterConfig.type === 'range' && (
-                          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                             {filterConfig.options.map((option) => (
                               <Button
                                 key={option.value}
@@ -462,10 +461,10 @@ export default function AnalyticsPage() {
                                   textTransform: 'none',
                                   fontWeight: 500,
                                   minWidth: 'auto',
-                                  px: 2.5,
-                                  py: 0.75,
-                                  fontSize: '0.75rem',
-                                  height: 32,
+                                  px: 1.5,
+                                  py: 0.5,
+                                  fontSize: '0.688rem',
+                                  height: 28,
                                   borderRadius: 1,
                                   bgcolor: activeFilters[question.id]?.value === option.value ? categoryColors[question.category] : 'transparent',
                                   color: activeFilters[question.id]?.value === option.value ? 'white' : '#374151',
@@ -486,15 +485,15 @@ export default function AnalyticsPage() {
 
                         {/* Select フィルター */}
                         {filterConfig.type === 'select' && (
-                          <FormControl size="small" sx={{ maxWidth: 300 }}>
+                          <FormControl size="small" fullWidth>
                             <Select
                               value={activeFilters[question.id]?.value || ''}
                               onChange={(e) => updateFilter(question.id, 'select', e.target.value)}
                               displayEmpty
                               sx={{
-                                height: 40,
-                                fontSize: '0.813rem',
-                                borderRadius: 1,
+                                height: 36,
+                                fontSize: '0.75rem',
+                                borderRadius: 0.75,
                                 bgcolor: 'white',
                                 '& .MuiOutlinedInput-notchedOutline': {
                                   borderColor: '#e5e7eb',
@@ -507,7 +506,7 @@ export default function AnalyticsPage() {
                                   borderWidth: '2px'
                                 },
                                 '& .MuiSelect-select': {
-                                  py: 1.25
+                                  py: 0.75
                                 }
                               }}
                             >
@@ -526,7 +525,7 @@ export default function AnalyticsPage() {
                         {/* Text フィルター */}
                         {filterConfig.type === 'text' && (
                           <TextField
-                            sx={{ maxWidth: 400 }}
+                            fullWidth
                             placeholder={filterConfig.placeholder}
                             value={activeFilters[question.id]?.value || ''}
                             onChange={(e) => updateFilter(question.id, 'text', e.target.value)}
@@ -535,9 +534,9 @@ export default function AnalyticsPage() {
                             }}
                             sx={{
                               '& .MuiOutlinedInput-root': {
-                                height: 40,
-                                fontSize: '0.813rem',
-                                borderRadius: 1,
+                                height: 36,
+                                fontSize: '0.75rem',
+                                borderRadius: 0.75,
                                 bgcolor: 'white',
                                 '& fieldset': {
                                   borderColor: '#e5e7eb',
