@@ -504,98 +504,126 @@ export default function AnalyticsPage() {
             </Box>
           </Box>
 
-          {/* スマートなAdvanced Analytics UI */}
+          {/* ITスタートアップ風 Clean Analytics UI */}
           <Box 
             sx={{ 
               width: '100%',
-              background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
-              borderRadius: 4,
-              border: '1px solid rgba(0, 0, 0, 0.06)',
-              overflow: 'hidden',
-              mb: 3
+              bgcolor: '#ffffff',
+              border: '1px solid #e5e7eb',
+              borderRadius: 1,
+              overflow: 'hidden'
             }}
           >
-            {/* ヘッダー：よりスマートでミニマル */}
+            {/* ミニマルヘッダー */}
             <Box
               sx={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                p: 3,
+                borderBottom: '1px solid #e5e7eb',
+                px: 6,
+                py: 4,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between'
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box
-                  sx={{
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    borderRadius: 2,
-                    p: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    backdropFilter: 'blur(10px)'
+              <Box>
+                <Typography 
+                  variant="h4" 
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: '#111827',
+                    mb: 0.5,
+                    fontSize: '1.875rem',
+                    lineHeight: 1.2
                   }}
                 >
-                  <Insights sx={{ fontSize: 20, color: 'white' }} />
-                </Box>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: 'white' }}>
-                  Smart Analytics
+                  Analytics Dashboard
+                </Typography>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    color: '#6b7280',
+                    fontSize: '1rem',
+                    fontWeight: 400
+                  }}
+                >
+                  Deep dive into survey data with advanced filtering
                 </Typography>
               </Box>
               
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                 {selectedQuestions.length > 0 && (
                   <Button
                     startIcon={<Tune />}
                     onClick={() => setShowFilters(!showFilters)}
                     variant={showFilters ? 'contained' : 'outlined'}
-                    size="small"
                     sx={{
-                      color: showFilters ? '#667eea' : 'white',
-                      borderColor: 'rgba(255, 255, 255, 0.5)',
-                      bgcolor: showFilters ? 'white' : 'transparent',
+                      textTransform: 'none',
+                      fontWeight: 500,
+                      borderRadius: 1.5,
+                      px: 3,
+                      py: 1,
+                      fontSize: '0.875rem',
+                      bgcolor: showFilters ? '#111827' : 'transparent',
+                      color: showFilters ? 'white' : '#374151',
+                      borderColor: '#d1d5db',
                       '&:hover': {
-                        bgcolor: showFilters ? '#f8fafc' : 'rgba(255, 255, 255, 0.1)'
+                        bgcolor: showFilters ? '#1f2937' : '#f9fafb',
+                        borderColor: '#9ca3af'
                       }
                     }}
                   >
-                    フィルター
+                    Filters
                   </Button>
                 )}
-                <Chip
-                  label={selectedQuestions.length > 1 ? '比較分析' : selectedQuestions.length === 1 ? '単体分析' : 'スタンバイ'}
-                  size="small"
+                <Box
                   sx={{
-                    bgcolor: 'rgba(255, 255, 255, 0.2)',
-                    color: 'white',
-                    fontWeight: 600
+                    px: 3,
+                    py: 1,
+                    bgcolor: selectedQuestions.length > 0 ? '#f0f9ff' : '#f9fafb',
+                    color: selectedQuestions.length > 0 ? '#0369a1' : '#6b7280',
+                    borderRadius: 1.5,
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    border: '1px solid',
+                    borderColor: selectedQuestions.length > 0 ? '#bae6fd' : '#e5e7eb'
                   }}
-                />
+                >
+                  {selectedQuestions.length > 1 ? 'Comparison Mode' : 
+                   selectedQuestions.length === 1 ? 'Single Analysis' : 'Ready'}
+                </Box>
               </Box>
             </Box>
 
-            {/* 動的フィルターパネル */}
+            {/* クリーンなフィルターパネル */}
             <AnimatePresence>
               {showFilters && selectedQuestions.length > 0 && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.2, ease: 'easeOut' }}
                 >
                   <Box
                     sx={{
-                      p: 3,
-                      background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
-                      borderBottom: '1px solid rgba(0, 0, 0, 0.08)'
+                      px: 6,
+                      py: 4,
+                      bgcolor: '#fafafa',
+                      borderBottom: '1px solid #e5e7eb'
                     }}
                   >
-                    <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <FilterList color="primary" />
-                      質問フィルター
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        mb: 3,
+                        fontSize: '1.125rem',
+                        fontWeight: 600,
+                        color: '#111827'
+                      }}
+                    >
+                      Advanced Filters
                     </Typography>
                     
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {selectedQuestions.map((question) => {
                         const filterConfig = generateFilterOptions(question);
                         
@@ -603,54 +631,79 @@ export default function AnalyticsPage() {
                           <Box 
                             key={question.id}
                             sx={{
-                              p: 3,
-                              border: `1px solid ${categoryColors[question.category]}30`,
-                              borderRadius: 2,
-                              background: `linear-gradient(135deg, ${categoryColors[question.category]}05 0%, white 100%)`
+                              p: 4,
+                              bgcolor: 'white',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: 1.5
                             }}
                           >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                              <Box
-                                sx={{
-                                  bgcolor: `${categoryColors[question.category]}20`,
-                                  color: categoryColors[question.category],
-                                  borderRadius: 1,
-                                  p: 1,
-                                  display: 'flex'
+                            <Box sx={{ mb: 3 }}>
+                              <Typography 
+                                variant="subtitle1" 
+                                sx={{ 
+                                  fontWeight: 600,
+                                  color: '#111827',
+                                  mb: 0.5
                                 }}
                               >
-                                {getChartIcon(question.chartType)}
-                              </Box>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                                 {question.title}
+                              </Typography>
+                              <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                  color: '#6b7280',
+                                  fontSize: '0.875rem'
+                                }}
+                              >
+                                {question.responseCount.toLocaleString()} responses • {question.type.replace('_', ' ')}
                               </Typography>
                             </Box>
 
-                            {/* 質問タイプ別フィルター */}
+                            {/* クリーンなフィルターUI */}
                             {filterConfig.type === 'range' && (
                               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                                 {filterConfig.options.map((option) => (
-                                  <Chip
+                                  <Button
                                     key={option.value}
-                                    label={option.label}
                                     onClick={() => updateFilter(question.id, 'range', option.value)}
-                                    color={activeFilters[question.id]?.value === option.value ? 'primary' : 'default'}
-                                    variant={activeFilters[question.id]?.value === option.value ? 'filled' : 'outlined'}
+                                    variant={activeFilters[question.id]?.value === option.value ? 'contained' : 'outlined'}
                                     size="small"
-                                  />
+                                    sx={{
+                                      textTransform: 'none',
+                                      fontWeight: 500,
+                                      borderRadius: 1,
+                                      px: 2,
+                                      py: 0.75,
+                                      fontSize: '0.813rem',
+                                      bgcolor: activeFilters[question.id]?.value === option.value ? '#111827' : 'transparent',
+                                      color: activeFilters[question.id]?.value === option.value ? 'white' : '#374151',
+                                      borderColor: '#d1d5db',
+                                      '&:hover': {
+                                        bgcolor: activeFilters[question.id]?.value === option.value ? '#1f2937' : '#f9fafb',
+                                        borderColor: '#9ca3af'
+                                      }
+                                    }}
+                                  >
+                                    {option.label}
+                                  </Button>
                                 ))}
                               </Box>
                             )}
 
                             {filterConfig.type === 'select' && (
-                              <FormControl fullWidth size="small">
-                                <InputLabel>選択肢を選択</InputLabel>
+                              <FormControl size="small" sx={{ minWidth: 240 }}>
                                 <Select
                                   value={activeFilters[question.id]?.value || ''}
                                   onChange={(e) => updateFilter(question.id, 'select', e.target.value)}
-                                  label="選択肢を選択"
+                                  displayEmpty
+                                  sx={{
+                                    borderRadius: 1,
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: '#d1d5db'
+                                    }
+                                  }}
                                 >
-                                  <MenuItem value="">すべて</MenuItem>
+                                  <MenuItem value="">All options</MenuItem>
                                   {filterConfig.options.map((option) => (
                                     <MenuItem key={option.value} value={option.value}>
                                       {option.label}
@@ -661,13 +714,12 @@ export default function AnalyticsPage() {
                             )}
 
                             {filterConfig.type === 'multiselect' && (
-                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                              <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
                                 {filterConfig.options.map((option) => {
                                   const isSelected = activeFilters[question.id]?.value?.includes?.(option.value);
                                   return (
-                                    <Chip
+                                    <Button
                                       key={option.value}
-                                      label={option.label}
                                       onClick={() => {
                                         const currentValues = activeFilters[question.id]?.value || [];
                                         const newValues = isSelected 
@@ -675,10 +727,26 @@ export default function AnalyticsPage() {
                                           : [...currentValues, option.value];
                                         updateFilter(question.id, 'multiselect', newValues);
                                       }}
-                                      color={isSelected ? 'primary' : 'default'}
-                                      variant={isSelected ? 'filled' : 'outlined'}
+                                      variant={isSelected ? 'contained' : 'outlined'}
                                       size="small"
-                                    />
+                                      sx={{
+                                        textTransform: 'none',
+                                        fontWeight: 500,
+                                        borderRadius: 1,
+                                        px: 2,
+                                        py: 0.75,
+                                        fontSize: '0.813rem',
+                                        bgcolor: isSelected ? '#111827' : 'transparent',
+                                        color: isSelected ? 'white' : '#374151',
+                                        borderColor: '#d1d5db',
+                                        '&:hover': {
+                                          bgcolor: isSelected ? '#1f2937' : '#f9fafb',
+                                          borderColor: '#9ca3af'
+                                        }
+                                      }}
+                                    >
+                                      {option.label}
+                                    </Button>
                                   );
                                 })}
                               </Box>
@@ -686,12 +754,16 @@ export default function AnalyticsPage() {
 
                             {filterConfig.type === 'text_search' && (
                               <Box sx={{ display: 'flex', gap: 2 }}>
-                                <FormControl size="small" sx={{ minWidth: 150 }}>
-                                  <InputLabel>検索タイプ</InputLabel>
+                                <FormControl size="small" sx={{ minWidth: 160 }}>
                                   <Select
                                     value={activeFilters[question.id]?.type || 'contains'}
                                     onChange={(e) => updateFilter(question.id, e.target.value, activeFilters[question.id]?.value || '')}
-                                    label="検索タイプ"
+                                    sx={{
+                                      borderRadius: 1,
+                                      '& .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: '#d1d5db'
+                                      }
+                                    }}
                                   >
                                     {filterConfig.options.map((option) => (
                                       <MenuItem key={option.value} value={option.value}>
@@ -702,10 +774,18 @@ export default function AnalyticsPage() {
                                 </FormControl>
                                 <TextField
                                   size="small"
-                                  placeholder="検索テキスト..."
+                                  placeholder="Search text..."
                                   value={activeFilters[question.id]?.value || ''}
                                   onChange={(e) => updateFilter(question.id, activeFilters[question.id]?.type || 'contains', e.target.value)}
-                                  sx={{ flexGrow: 1 }}
+                                  sx={{ 
+                                    flexGrow: 1,
+                                    '& .MuiOutlinedInput-root': {
+                                      borderRadius: 1,
+                                      '& fieldset': {
+                                        borderColor: '#d1d5db'
+                                      }
+                                    }
+                                  }}
                                 />
                               </Box>
                             )}
@@ -719,62 +799,108 @@ export default function AnalyticsPage() {
             </AnimatePresence>
 
             {/* メインコンテンツ */}
-            <Box sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', gap: 3, minHeight: '600px' }}>
-                {/* 左側：質問選択エリア - よりスマート */}
-                <Box sx={{ width: '320px', flexShrink: 0 }}>
-                  <Box sx={{ mb: 3 }}>
+            <Box sx={{ px: 6, py: 6 }}>
+              <Box sx={{ display: 'flex', gap: 8 }}>
+                {/* 左側：質問選択エリア */}
+                <Box sx={{ width: '360px', flexShrink: 0 }}>
+                  <Box sx={{ mb: 4 }}>
                     <TextField
                       fullWidth
                       variant="outlined"
-                      placeholder="質問を検索..."
+                      placeholder="Search questions..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      size="small"
                       InputProps={{
-                        startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
+                        startAdornment: <Search sx={{ color: '#9ca3af', mr: 1.5, fontSize: 20 }} />,
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 1.5,
+                          backgroundColor: '#fafafa',
+                          '& fieldset': {
+                            borderColor: '#e5e7eb'
+                          },
+                          '&:hover fieldset': {
+                            borderColor: '#d1d5db'
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: '#111827',
+                            borderWidth: '1px'
+                          }
+                        }
                       }}
                     />
                   </Box>
 
                   {/* 選択された質問の表示 */}
                   {selectedQuestions.length > 0 && (
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                        選択中 ({selectedQuestions.length}/2)
+                    <Box sx={{ mb: 4 }}>
+                      <Typography 
+                        variant="subtitle1" 
+                        sx={{ 
+                          mb: 2, 
+                          fontWeight: 600,
+                          color: '#111827',
+                          fontSize: '1rem'
+                        }}
+                      >
+                        Selected Questions ({selectedQuestions.length}/2)
                       </Typography>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                         {selectedQuestions.map((question, index) => (
                           <Box
                             key={question.id}
                             sx={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: 2,
-                              p: 2,
-                              background: `linear-gradient(135deg, ${categoryColors[question.category]}10 0%, white 100%)`,
-                              border: `1px solid ${categoryColors[question.category]}30`,
-                              borderRadius: 2
+                              gap: 3,
+                              p: 3,
+                              bgcolor: '#f8fafc',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: 1.5
                             }}
                           >
                             <Box
                               sx={{
-                                bgcolor: `${categoryColors[question.category]}20`,
-                                color: categoryColors[question.category],
+                                width: 32,
+                                height: 32,
+                                bgcolor: '#111827',
+                                color: 'white',
                                 borderRadius: 1,
-                                p: 0.5,
-                                display: 'flex'
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                               }}
                             >
-                              {getChartIcon(question.chartType)}
+                              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700 }}>
+                                {index + 1}
+                              </Typography>
                             </Box>
-                            <Typography variant="body2" sx={{ flexGrow: 1, fontWeight: 500 }}>
-                              {question.title}
-                            </Typography>
+                            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                              <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                  fontWeight: 600,
+                                  color: '#111827',
+                                  mb: 0.5
+                                }}
+                              >
+                                {question.title}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                                {question.responseCount.toLocaleString()} responses
+                              </Typography>
+                            </Box>
                             <IconButton
                               size="small"
                               onClick={() => handleQuestionSelect(question)}
-                              sx={{ color: categoryColors[question.category] }}
+                              sx={{ 
+                                color: '#9ca3af',
+                                '&:hover': { 
+                                  bgcolor: '#f3f4f6',
+                                  color: '#6b7280'
+                                }
+                              }}
                             >
                               <Clear fontSize="small" />
                             </IconButton>
@@ -784,75 +910,107 @@ export default function AnalyticsPage() {
                     </Box>
                   )}
 
-                  {/* 質問リスト - よりコンパクト */}
-                  <Box sx={{ height: selectedQuestions.length > 0 ? '400px' : '500px', overflowY: 'auto' }}>
-                    <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
-                      質問一覧 ({filteredQuestions.length})
+                  {/* 質問リスト */}
+                  <Box>
+                    <Typography 
+                      variant="subtitle1" 
+                      sx={{ 
+                        mb: 3, 
+                        fontWeight: 600,
+                        color: '#111827',
+                        fontSize: '1rem'
+                      }}
+                    >
+                      All Questions ({filteredQuestions.length})
                     </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                      {filteredQuestions.map((question) => {
-                        const isSelected = selectedQuestions.find(q => q.id === question.id);
-                        const isDisabled = !isSelected && selectedQuestions.length >= 2;
-                        
-                        return (
-                          <Box
-                            key={question.id}
-                            onClick={() => !isDisabled && handleQuestionSelect(question)}
-                            sx={{
-                              p: 2,
-                              borderRadius: 2,
-                              border: isSelected 
-                                ? `2px solid ${categoryColors[question.category]}` 
-                                : '1px solid rgba(0, 0, 0, 0.08)',
-                              background: isSelected 
-                                ? `linear-gradient(135deg, ${categoryColors[question.category]}15 0%, white 100%)`
-                                : 'white',
-                              cursor: isDisabled ? 'not-allowed' : 'pointer',
-                              opacity: isDisabled ? 0.5 : 1,
-                              transition: 'all 0.2s ease',
-                              '&:hover': {
-                                transform: isDisabled ? 'none' : 'translateY(-1px)',
-                                boxShadow: isDisabled ? 'none' : '0 4px 12px rgba(0, 0, 0, 0.1)'
-                              }
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              <Box
-                                sx={{
-                                  bgcolor: `${categoryColors[question.category]}20`,
-                                  color: categoryColors[question.category],
-                                  borderRadius: 1,
-                                  p: 0.5,
-                                  display: 'flex'
+                    <Box 
+                      sx={{ 
+                        height: selectedQuestions.length > 0 ? '400px' : '500px',
+                        overflowY: 'auto',
+                        pr: 1,
+                        '&::-webkit-scrollbar': {
+                          width: '6px'
+                        },
+                        '&::-webkit-scrollbar-track': {
+                          background: '#f1f5f9'
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                          background: '#cbd5e1',
+                          borderRadius: '3px'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {filteredQuestions.map((question) => {
+                          const isSelected = selectedQuestions.find(q => q.id === question.id);
+                          const isDisabled = !isSelected && selectedQuestions.length >= 2;
+                          
+                          return (
+                            <Box
+                              key={question.id}
+                              onClick={() => !isDisabled && handleQuestionSelect(question)}
+                              sx={{
+                                p: 3,
+                                borderRadius: 1.5,
+                                border: isSelected 
+                                  ? '2px solid #111827' 
+                                  : '1px solid #e5e7eb',
+                                bgcolor: isSelected ? '#f8fafc' : 'white',
+                                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                opacity: isDisabled ? 0.4 : 1,
+                                transition: 'all 0.15s ease',
+                                '&:hover': {
+                                  transform: isDisabled ? 'none' : 'translateY(-1px)',
+                                  boxShadow: isDisabled ? 'none' : '0 4px 12px rgba(0, 0, 0, 0.08)',
+                                  borderColor: isDisabled ? '#e5e7eb' : '#d1d5db'
+                                }
+                              }}
+                            >
+                              <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                  fontWeight: 600,
+                                  mb: 1,
+                                  color: isSelected ? '#111827' : '#374151',
+                                  fontSize: '0.875rem'
                                 }}
                               >
-                                {getChartIcon(question.chartType)}
-                              </Box>
-                              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                                {question.title}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                 <Typography 
-                                  variant="body2" 
+                                  variant="caption" 
                                   sx={{ 
-                                    fontWeight: 600,
-                                    mb: 0.5,
-                                    color: isSelected ? categoryColors[question.category] : 'text.primary'
+                                    color: '#6b7280',
+                                    fontSize: '0.75rem'
                                   }}
                                 >
-                                  {question.title}
+                                  {question.responseCount.toLocaleString()} responses
                                 </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Typography variant="caption" color="text.secondary">
-                                    {question.responseCount.toLocaleString()}件
-                                  </Typography>
-                                  <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: categoryColors[question.category] }} />
-                                  <Typography variant="caption" color="text.secondary">
-                                    {question.category}
-                                  </Typography>
-                                </Box>
+                                <Typography 
+                                  variant="caption" 
+                                  sx={{ 
+                                    color: '#9ca3af',
+                                    fontSize: '0.75rem'
+                                  }}
+                                >
+                                  •
+                                </Typography>
+                                <Typography 
+                                  variant="caption" 
+                                  sx={{ 
+                                    color: '#6b7280',
+                                    fontSize: '0.75rem',
+                                    textTransform: 'capitalize'
+                                  }}
+                                >
+                                  {question.type.replace('_', ' ')}
+                                </Typography>
                               </Box>
                             </Box>
-                          </Box>
-                        );
-                      })}
+                          );
+                        })}
+                      </Box>
                     </Box>
                   </Box>
                 </Box>
@@ -873,17 +1031,32 @@ export default function AnalyticsPage() {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
-                            border: '2px dashed #e2e8f0',
-                            borderRadius: 3
+                            backgroundColor: '#fafafa',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: 2
                           }}
                         >
                           <Box sx={{ textAlign: 'center', p: 4 }}>
-                            <AutoGraph sx={{ fontSize: 64, color: '#cbd5e0', mb: 2 }} />
-                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                            <AutoGraph sx={{ fontSize: 64, color: '#9ca3af', mb: 2 }} />
+                            <Typography 
+                              variant="h6" 
+                              sx={{ 
+                                fontWeight: 600, 
+                                mb: 1,
+                                color: '#111827',
+                                fontSize: '1.125rem'
+                              }}
+                            >
                               質問を選択してください
                             </Typography>
-                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                            <Typography 
+                              variant="body2" 
+                              sx={{ 
+                                mb: 3,
+                                color: '#6b7280',
+                                fontSize: '0.875rem'
+                              }}
+                            >
                               1つまたは2つの質問を選んでデータ分析を開始
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -904,9 +1077,9 @@ export default function AnalyticsPage() {
                         <Box
                           sx={{
                             height: '100%',
-                            background: 'white',
-                            borderRadius: 3,
-                            border: '1px solid rgba(0, 0, 0, 0.08)',
+                            backgroundColor: '#ffffff',
+                            borderRadius: 2,
+                            border: '1px solid #e5e7eb',
                             p: 4
                           }}
                         >
@@ -926,18 +1099,38 @@ export default function AnalyticsPage() {
                                   {getChartIcon(selectedQuestions[0].chartType)}
                                 </Box>
                                 <Box>
-                                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                  <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                      fontWeight: 600,
+                                      color: '#111827',
+                                      fontSize: '1.125rem'
+                                    }}
+                                  >
                                     {selectedQuestions[0].title}
                                   </Typography>
-                                  <Typography variant="body2" color="text.secondary">
+                                  <Typography 
+                                    variant="body2" 
+                                    sx={{
+                                      color: '#6b7280',
+                                      fontSize: '0.875rem'
+                                    }}
+                                  >
                                     {selectedQuestions[0].responseCount.toLocaleString()}件の回答
                                   </Typography>
                                 </Box>
                               </>
                             ) : (
                               <>
-                                <Compare sx={{ fontSize: 28, color: '#667eea' }} />
-                                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                <Compare sx={{ fontSize: 28, color: '#6366f1' }} />
+                                <Typography 
+                                  variant="h6" 
+                                  sx={{ 
+                                    fontWeight: 600,
+                                    color: '#111827',
+                                    fontSize: '1.125rem'
+                                  }}
+                                >
                                   比較・クロス分析
                                 </Typography>
                               </>
@@ -951,10 +1144,10 @@ export default function AnalyticsPage() {
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
+                              backgroundColor: '#f9fafb',
                               border: selectedQuestions.length === 1 
-                                ? `2px dashed ${categoryColors[selectedQuestions[0].category]}40`
-                                : '2px dashed #667eea40',
+                                ? `1px dashed ${categoryColors[selectedQuestions[0].category]}80`
+                                : '1px dashed #6366f180',
                               borderRadius: 2
                             }}
                           >
@@ -962,19 +1155,42 @@ export default function AnalyticsPage() {
                               {selectedQuestions.length === 1 ? (
                                 <>
                                   {getChartIcon(selectedQuestions[0].chartType)}
-                                  <Typography variant="h6" sx={{ mt: 1, color: categoryColors[selectedQuestions[0].category] }}>
+                                  <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                      mt: 1, 
+                                      color: categoryColors[selectedQuestions[0].category],
+                                      fontSize: '1rem',
+                                      fontWeight: 600
+                                    }}
+                                  >
                                     {selectedQuestions[0].chartType.toUpperCase().replace('_', ' ')}
                                   </Typography>
                                 </>
                               ) : (
                                 <>
-                                  <AutoGraph sx={{ fontSize: 48, color: '#667eea' }} />
-                                  <Typography variant="h6" sx={{ mt: 1, color: '#667eea' }}>
+                                  <AutoGraph sx={{ fontSize: 48, color: '#6366f1' }} />
+                                  <Typography 
+                                    variant="h6" 
+                                    sx={{ 
+                                      mt: 1, 
+                                      color: '#6366f1',
+                                      fontSize: '1rem',
+                                      fontWeight: 600
+                                    }}
+                                  >
                                     クロス集計グラフ
                                   </Typography>
                                 </>
                               )}
-                              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                              <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                  mt: 1,
+                                  color: '#6b7280',
+                                  fontSize: '0.875rem'
+                                }}
+                              >
                                 Chart.js / Recharts 統合予定
                               </Typography>
                             </Box>
