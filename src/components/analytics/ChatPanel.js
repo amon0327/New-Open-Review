@@ -92,7 +92,7 @@ export default function ChatPanel() {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #fce7f3 100%)',
+          background: 'transparent',
           borderRadius: 2,
           overflow: 'hidden',
           border: '1px solid rgba(99, 102, 241, 0.1)',
