@@ -44,7 +44,7 @@ export default function AnalyticsPage() {
             sx={{
               display: 'flex',
               gap: 3,
-              flex: 2,
+              flex: 3,
               minWidth: 0,
               overflow: 'hidden'
             }}
