@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
                   overflow: 'hidden'
                 }}
               >
-                左上コンテンツ
+                生成AIレポート
               </Box>
 
               {/* 左下横並びContainer */}
@@ -106,7 +106,7 @@ export default function AnalyticsPage() {
                     overflow: 'hidden'
                   }}
                 >
-                  左下左コンテンツ
+                  直近の特徴的なデータグラフや図
                 </Box>
 
                 {/* 左下右のContainer */}
@@ -125,7 +125,7 @@ export default function AnalyticsPage() {
                     overflow: 'hidden'
                   }}
                 >
-                  左下右コンテンツ
+                  直近の特徴的なデータグラフや図
                 </Box>
               </Box>
             </Box>
@@ -168,7 +168,7 @@ export default function AnalyticsPage() {
                     overflow: 'hidden'
                   }}
                 >
-                  右上左コンテンツ
+                  回答率（直近1週間）
                 </Box>
 
                 {/* 右上右のContainer */}
@@ -187,7 +187,7 @@ export default function AnalyticsPage() {
                     overflow: 'hidden'
                   }}
                 >
-                  右上右コンテンツ
+                  回答者数推移（直近1週間）
                 </Box>
               </Box>
 
@@ -205,7 +205,7 @@ export default function AnalyticsPage() {
                   justifyContent: 'center'
                 }}
               >
-                右下コンテンツ
+                最新の回答者リスト
               </Box>
             </Box>
           </Box>
