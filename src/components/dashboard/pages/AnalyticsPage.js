@@ -398,35 +398,21 @@ export default function AnalyticsPage() {
                   )}
                 </Box>
                 
-                {/* フィルターグリッド */}
+                {/* フィルター要素 */}
                 <Box 
                   sx={{ 
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                    gap: 3,
-                    alignItems: 'start'
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2.5
                   }}
                 >
                   {selectedQuestions.map((question) => {
                     const filterConfig = generateFilterOptions(question);
                     
                     return (
-                      <Box 
-                        key={question.id} 
-                        sx={{
-                          p: 2.5,
-                          bgcolor: '#f9fafb',
-                          borderRadius: 1,
-                          border: '1px solid #f0f0f0',
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            borderColor: '#e5e7eb',
-                            bgcolor: '#f5f5f5'
-                          }
-                        }}
-                      >
+                      <Box key={question.id}>
                         {/* 質問タイトル */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
                           <Box
                             sx={{
                               bgcolor: `${categoryColors[question.category]}20`,
@@ -434,18 +420,18 @@ export default function AnalyticsPage() {
                               borderRadius: 0.75,
                               p: 0.5,
                               display: 'flex',
-                              fontSize: '14px'
+                              fontSize: '16px'
                             }}
                           >
                             {question.icon}
                           </Box>
                           <Box>
                             <Typography 
-                              variant="subtitle2" 
+                              variant="subtitle1" 
                               sx={{ 
                                 fontWeight: 600,
                                 color: '#111827',
-                                fontSize: '0.813rem',
+                                fontSize: '0.875rem',
                                 lineHeight: 1.2
                               }}
                             >
@@ -455,17 +441,17 @@ export default function AnalyticsPage() {
                               variant="caption" 
                               sx={{ 
                                 color: '#6b7280',
-                                fontSize: '0.688rem'
+                                fontSize: '0.75rem'
                               }}
                             >
-                              {question.type.replace('_', ' ')}
+                              {question.type.replace('_', ' ')} • {question.responseCount.toLocaleString()} responses
                             </Typography>
                           </Box>
                         </Box>
                         
                         {/* Range フィルター */}
                         {filterConfig.type === 'range' && (
-                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
                             {filterConfig.options.map((option) => (
                               <Button
                                 key={option.value}
@@ -476,11 +462,11 @@ export default function AnalyticsPage() {
                                   textTransform: 'none',
                                   fontWeight: 500,
                                   minWidth: 'auto',
-                                  px: 2,
-                                  py: 0.5,
+                                  px: 2.5,
+                                  py: 0.75,
                                   fontSize: '0.75rem',
-                                  height: 28,
-                                  borderRadius: 0.75,
+                                  height: 32,
+                                  borderRadius: 1,
                                   bgcolor: activeFilters[question.id]?.value === option.value ? categoryColors[question.category] : 'transparent',
                                   color: activeFilters[question.id]?.value === option.value ? 'white' : '#374151',
                                   borderColor: activeFilters[question.id]?.value === option.value ? categoryColors[question.category] : '#d1d5db',
@@ -500,15 +486,15 @@ export default function AnalyticsPage() {
 
                         {/* Select フィルター */}
                         {filterConfig.type === 'select' && (
-                          <FormControl size="small" fullWidth>
+                          <FormControl size="small" sx={{ maxWidth: 300 }}>
                             <Select
                               value={activeFilters[question.id]?.value || ''}
                               onChange={(e) => updateFilter(question.id, 'select', e.target.value)}
                               displayEmpty
                               sx={{
-                                height: 36,
-                                fontSize: '0.75rem',
-                                borderRadius: 0.75,
+                                height: 40,
+                                fontSize: '0.813rem',
+                                borderRadius: 1,
                                 bgcolor: 'white',
                                 '& .MuiOutlinedInput-notchedOutline': {
                                   borderColor: '#e5e7eb',
@@ -521,7 +507,7 @@ export default function AnalyticsPage() {
                                   borderWidth: '2px'
                                 },
                                 '& .MuiSelect-select': {
-                                  py: 1
+                                  py: 1.25
                                 }
                               }}
                             >
@@ -540,7 +526,7 @@ export default function AnalyticsPage() {
                         {/* Text フィルター */}
                         {filterConfig.type === 'text' && (
                           <TextField
-                            fullWidth
+                            sx={{ maxWidth: 400 }}
                             placeholder={filterConfig.placeholder}
                             value={activeFilters[question.id]?.value || ''}
                             onChange={(e) => updateFilter(question.id, 'text', e.target.value)}
@@ -549,9 +535,9 @@ export default function AnalyticsPage() {
                             }}
                             sx={{
                               '& .MuiOutlinedInput-root': {
-                                height: 36,
-                                fontSize: '0.75rem',
-                                borderRadius: 0.75,
+                                height: 40,
+                                fontSize: '0.813rem',
+                                borderRadius: 1,
                                 bgcolor: 'white',
                                 '& fieldset': {
                                   borderColor: '#e5e7eb',
