@@ -139,7 +139,6 @@ export default function ChatPanel() {
             display: 'flex',
             flexDirection: 'column',
             gap: 0.5,
-            background: 'transparent',
             '&::-webkit-scrollbar': { width: 2 },
             '&::-webkit-scrollbar-track': { bgcolor: 'rgba(99, 102, 241, 0.05)' },
             '&::-webkit-scrollbar-thumb': { 
@@ -302,7 +301,7 @@ export default function ChatPanel() {
               borderRadius: 1.5,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
-              bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+              bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.1)' : 'rgba(100, 116, 139, 0.05)',
               border: isDataMode ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid rgba(100, 116, 139, 0.1)',
               '&:hover': {
                 bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.15)' : 'rgba(100, 116, 139, 0.1)',
