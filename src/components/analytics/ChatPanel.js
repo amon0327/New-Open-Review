@@ -49,220 +49,142 @@ export default function ChatPanel() {
   };
 
   const quickActions = [
-    { icon: '📊', title: 'Show Trends', query: 'Show me the latest data trends' },
-    { icon: '🔍', title: 'Deep Analysis', query: 'Perform a deep analysis of the data' },
-    { icon: '📈', title: 'Performance', query: 'How is the performance trending?' },
-    { icon: '🎯', title: 'Key Metrics', query: 'What are the key metrics I should focus on?' }
+    { label: 'Trends', query: 'Show me the trends' },
+    { label: 'Compare', query: 'Compare segments' },
+    { label: 'Patterns', query: 'Find patterns' },
+    { label: 'Export', query: 'Export data' }
   ];
 
   if (!hasStartedChat) {
     return (
       <Box
         sx={{
-          width: 340,
+          width: 320,
           height: '100%',
-          ml: 1,
+          ml: 0.5,
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: '#fafbfc',
-          border: '1px solid #e2e8f0',
-          borderRadius: '8px',
-          overflow: 'hidden'
+          bgcolor: '#fff',
+          position: 'relative'
         }}
       >
-        {/* Compact Header */}
-        <Box
-          sx={{
-            px: 1.5,
-            py: 1,
-            bgcolor: 'white',
-            borderBottom: '1px solid #f1f5f9',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1
-          }}
-        >
-          <Box
-            sx={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              bgcolor: '#10b981'
-            }}
-          />
-          <Typography
-            sx={{
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              color: '#1a202c'
-            }}
-          >
-            AI Assistant
-          </Typography>
-        </Box>
-
-        {/* Welcome Screen */}
-        <Box
-          sx={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            px: 2,
-            py: 3
-          }}
-        >
-          <Box sx={{ textAlign: 'center', mb: 3 }}>
+        {/* Borderless Content */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', py: 3, px: 2 }}>
+          
+          {/* Status */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 4, opacity: 0.4 }}>
             <Box
               sx={{
-                width: 48,
-                height: 48,
-                borderRadius: '12px',
-                bgcolor: 'rgba(94, 23, 235, 0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: 2
+                width: 4,
+                height: 4,
+                borderRadius: '50%',
+                bgcolor: '#22c55e'
               }}
-            >
-              <Typography sx={{ fontSize: '1.5rem' }}>🤖</Typography>
-            </Box>
+            />
             <Typography
               sx={{
-                fontSize: '1rem',
-                fontWeight: 700,
-                color: '#1a202c',
-                mb: 0.5
+                fontSize: '0.65rem',
+                color: '#000',
+                fontWeight: 500,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase'
               }}
             >
-              Ready to analyze
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: '0.8rem',
-                color: '#64748b',
-                lineHeight: 1.4
-              }}
-            >
-              Ask me anything about your data
+              Ready
             </Typography>
           </Box>
 
-          {/* Quick Actions Grid */}
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: 1,
-              mb: 3
-            }}
-          >
-            {quickActions.map((action, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
+          {/* Main Content */}
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <Typography
+              sx={{
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                color: '#000',
+                mb: 1,
+                letterSpacing: '-0.02em'
+              }}
+            >
+              What would you like to know?
+            </Typography>
+
+            {/* Actions */}
+            <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              {quickActions.map((action, index) => (
                 <Box
+                  key={index}
                   onClick={() => {
                     setChatMessage(action.query);
-                    setIsActive(true);
+                    handleSendMessage();
                   }}
                   sx={{
-                    p: 1.5,
-                    bgcolor: 'white',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
+                    py: 1,
+                    px: 1.5,
                     cursor: 'pointer',
-                    textAlign: 'center',
+                    borderRadius: '4px',
+                    fontSize: '0.85rem',
+                    color: '#666',
+                    fontWeight: 500,
                     '&:hover': {
-                      borderColor: '#5e17eb',
-                      boxShadow: '0 2px 8px rgba(94, 23, 235, 0.1)'
+                      bgcolor: '#f8f8f8',
+                      color: '#000'
                     },
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.15s ease'
                   }}
                 >
-                  <Typography sx={{ fontSize: '1.2rem', mb: 0.5 }}>
-                    {action.icon}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '0.7rem',
-                      fontWeight: 600,
-                      color: '#374151',
-                      lineHeight: 1.2
-                    }}
-                  >
-                    {action.title}
-                  </Typography>
+                  {action.label}
                 </Box>
-              </motion.div>
-            ))}
+              ))}
+            </Box>
           </Box>
-        </Box>
 
-        {/* Input Area */}
-        <Box
-          sx={{
-            p: 1.5,
-            bgcolor: 'white',
-            borderTop: '1px solid #f1f5f9'
-          }}
-        >
-          <TextField
-            fullWidth
-            placeholder="Ask about your data..."
-            value={chatMessage}
-            onChange={handleInputChange}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            variant="outlined"
-            size="small"
-            InputProps={{
-              endAdornment: (
-                <motion.div
-                  animate={{ 
-                    scale: isActive ? 1 : 0.8,
-                    opacity: isActive ? 1 : 0.5
-                  }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <IconButton
-                    onClick={handleSendMessage}
-                    disabled={!chatMessage.trim()}
-                    size="small"
-                    sx={{
-                      bgcolor: isActive ? '#5e17eb' : '#f1f5f9',
-                      color: isActive ? 'white' : '#94a3b8',
-                      width: 28,
-                      height: 28,
-                      '&:hover': {
-                        bgcolor: isActive ? '#4c0db8' : '#e2e8f0'
-                      }
-                    }}
-                  >
-                    <Send sx={{ fontSize: 14 }} />
-                  </IconButton>
-                </motion.div>
-              )
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                bgcolor: '#fafbfc',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                '& fieldset': { 
-                  borderColor: '#e2e8f0'
-                },
-                '&:hover fieldset': { 
-                  borderColor: '#cbd5e1'
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#5e17eb'
-                }
-              }
-            }}
-          />
+          {/* Bottom Input */}
+          <Box sx={{ mt: 'auto' }}>
+            <Box
+              sx={{
+                position: 'relative',
+                borderTop: '1px solid #eee',
+                pt: 2
+              }}
+            >
+              <TextField
+                fullWidth
+                placeholder="Ask anything..."
+                value={chatMessage}
+                onChange={handleInputChange}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                variant="standard"
+                InputProps={{
+                  disableUnderline: true,
+                  endAdornment: chatMessage.trim() && (
+                    <IconButton
+                      onClick={handleSendMessage}
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        bgcolor: '#000',
+                        color: '#fff',
+                        '&:hover': { bgcolor: '#333' }
+                      }}
+                    >
+                      <Send sx={{ fontSize: 12 }} />
+                    </IconButton>
+                  )
+                }}
+                sx={{
+                  '& .MuiInputBase-input': {
+                    fontSize: '0.9rem',
+                    color: '#000',
+                    fontWeight: 400,
+                    '&::placeholder': {
+                      color: '#999',
+                      opacity: 1
+                    }
+                  }
+                }}
+              />
+            </Box>
+          </Box>
         </Box>
       </Box>
     );
@@ -271,176 +193,102 @@ export default function ChatPanel() {
   return (
     <Box
       sx={{
-        width: 340,
+        width: 320,
         height: '100%',
-        ml: 1,
+        ml: 0.5,
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: 'white',
-        border: '1px solid #e2e8f0',
-        borderRadius: '8px',
-        overflow: 'hidden'
+        bgcolor: '#fff',
+        position: 'relative'
       }}
     >
-      {/* Minimal Header */}
-      <Box
-        sx={{
-          px: 1.5,
-          py: 1,
-          bgcolor: '#5e17eb',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box
-            sx={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              bgcolor: '#10b981'
-            }}
-          />
-          <Typography
-            sx={{
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              color: 'white'
-            }}
-          >
-            AI Assistant
-          </Typography>
-        </Box>
-        <Typography
-          sx={{
-            fontSize: '0.7rem',
-            color: 'rgba(255, 255, 255, 0.8)'
-          }}
-        >
-          Active
-        </Typography>
-      </Box>
-
-      {/* Compact Message Display */}
+      {/* Clean Messages */}
       <Box
         sx={{
           flex: 1,
-          px: 1.5,
-          py: 1,
+          px: 2,
+          py: 2,
           overflowY: 'auto',
-          '&::-webkit-scrollbar': { width: 2 },
-          '&::-webkit-scrollbar-thumb': {
-            bgcolor: '#e2e8f0',
-            borderRadius: 1
-          }
+          '&::-webkit-scrollbar': { display: 'none' }
         }}
       >
         {chatMessages.map((message, index) => (
-          <motion.div
+          <Box
             key={message.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
+            sx={{
+              mb: 2,
+              display: 'flex',
+              justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start'
+            }}
           >
             <Box
               sx={{
-                mb: 1.5,
-                display: 'flex',
-                justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start'
+                maxWidth: '75%',
+                py: 1,
+                px: 1.5,
+                borderRadius: message.type === 'user' ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
+                bgcolor: message.type === 'user' ? '#000' : '#f5f5f5',
+                color: message.type === 'user' ? '#fff' : '#000'
               }}
             >
-              <Box
+              <Typography
                 sx={{
-                  maxWidth: '80%',
-                  px: 1.25,
-                  py: 0.75,
-                  borderRadius: message.type === 'user' 
-                    ? '12px 12px 2px 12px' 
-                    : '12px 12px 12px 2px',
-                  bgcolor: message.type === 'user' ? '#5e17eb' : '#f8fafc',
-                  border: message.type === 'user' ? 'none' : '1px solid #e2e8f0',
-                  boxShadow: message.type === 'user' 
-                    ? '0 2px 8px rgba(94, 23, 235, 0.2)' 
-                    : '0 1px 2px rgba(0, 0, 0, 0.05)'
+                  fontSize: '0.85rem',
+                  lineHeight: 1.4,
+                  fontWeight: 400
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: '0.8rem',
-                    lineHeight: 1.4,
-                    color: message.type === 'user' ? 'white' : '#1a202c',
-                    fontWeight: 500
-                  }}
-                >
-                  {message.content}
-                </Typography>
-              </Box>
+                {message.content}
+              </Typography>
             </Box>
-          </motion.div>
+          </Box>
         ))}
       </Box>
 
-      {/* Compact Input */}
+      {/* Bottom Input */}
       <Box
         sx={{
-          px: 1.5,
-          py: 1,
-          borderTop: '1px solid #f1f5f9',
-          bgcolor: '#fafbfc'
+          px: 2,
+          pb: 2,
+          borderTop: '1px solid #f0f0f0',
+          pt: 1.5
         }}
       >
         <TextField
           fullWidth
-          placeholder="Type a message..."
+          placeholder="Message..."
           value={chatMessage}
           onChange={handleInputChange}
           onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-          variant="outlined"
-          size="small"
+          variant="standard"
           multiline
-          maxRows={3}
+          maxRows={4}
           InputProps={{
-            endAdornment: (
-              <motion.div
-                animate={{ 
-                  scale: isActive ? 1 : 0.8,
-                  opacity: isActive ? 1 : 0.5
+            disableUnderline: true,
+            endAdornment: chatMessage.trim() && (
+              <IconButton
+                onClick={handleSendMessage}
+                sx={{
+                  width: 24,
+                  height: 24,
+                  bgcolor: '#000',
+                  color: '#fff',
+                  '&:hover': { bgcolor: '#333' },
+                  ml: 1
                 }}
-                transition={{ duration: 0.2 }}
               >
-                <IconButton
-                  onClick={handleSendMessage}
-                  disabled={!chatMessage.trim()}
-                  size="small"
-                  sx={{
-                    bgcolor: isActive ? '#5e17eb' : '#f1f5f9',
-                    color: isActive ? 'white' : '#94a3b8',
-                    width: 28,
-                    height: 28,
-                    '&:hover': {
-                      bgcolor: isActive ? '#4c0db8' : '#e2e8f0'
-                    }
-                  }}
-                >
-                  <Send sx={{ fontSize: 14 }} />
-                </IconButton>
-              </motion.div>
+                <Send sx={{ fontSize: 12 }} />
+              </IconButton>
             )
           }}
           sx={{
-            '& .MuiOutlinedInput-root': {
-              bgcolor: 'white',
-              borderRadius: '8px',
-              fontSize: '0.8rem',
-              '& fieldset': { 
-                borderColor: '#e2e8f0'
-              },
-              '&:hover fieldset': { 
-                borderColor: '#cbd5e1'
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#5e17eb'
+            '& .MuiInputBase-input': {
+              fontSize: '0.9rem',
+              color: '#000',
+              fontWeight: 400,
+              '&::placeholder': {
+                color: '#999',
+                opacity: 1
               }
             }
           }}
