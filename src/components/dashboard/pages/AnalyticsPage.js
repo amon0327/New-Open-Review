@@ -52,7 +52,7 @@ export default function AnalyticsPage() {
             {/* 左側エリア全体 */}
             <Box
               sx={{
-                flex: 1,
+                flex: 1.5,
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
