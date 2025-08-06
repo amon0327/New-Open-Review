@@ -169,13 +169,14 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         {/* Logo Section */}
         <Box
           sx={{
-            p: isNavCollapsed ? 1.5 : 3,
+            p: 3,
             display: 'flex',
             alignItems: 'center',
             justifyContent: isNavCollapsed ? 'center' : 'flex-start',
             gap: 2,
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
+            minHeight: 88
           }}
         >
           {isNavCollapsed ? (
