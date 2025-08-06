@@ -6,7 +6,9 @@ import {
   TextField,
   IconButton,
   Stack,
-  Chip
+  Chip,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import {
   Send,
@@ -28,7 +30,7 @@ export default function ChatPanel() {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [questionMode, setQuestionMode] = useState('general');
+  const [isDataMode, setIsDataMode] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -75,20 +77,6 @@ export default function ChatPanel() {
     return responses[Math.floor(Math.random() * responses.length)];
   };
 
-  const questionModes = [
-    { 
-      id: 'general', 
-      label: '一般的な質問', 
-      icon: <HelpOutline />, 
-      description: 'AIに自由に質問'
-    },
-    { 
-      id: 'data', 
-      label: '選択データについて', 
-      icon: <DataUsage />, 
-      description: '現在のデータを分析'
-    }
-  ];
 
 
   return (
@@ -292,68 +280,57 @@ export default function ChatPanel() {
           <div ref={messagesEndRef} />
         </Box>
 
-        {/* Question Mode Switch */}
+        {/* Data Mode Toggle */}
         <Box sx={{ 
           p: 1.5, 
           borderTop: '1px solid rgba(99, 102, 241, 0.1)', 
           borderBottom: '1px solid rgba(99, 102, 241, 0.1)',
-          background: 'rgba(255, 255, 255, 0.3)'
+          background: 'rgba(255, 255, 255, 0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
         }}>
           <Box sx={{ 
             display: 'flex',
-            bgcolor: 'rgba(99, 102, 241, 0.08)',
+            alignItems: 'center',
+            gap: 1.5,
+            px: 2,
+            py: 1,
             borderRadius: 2,
-            p: 0.25,
-            position: 'relative'
+            bgcolor: 'rgba(99, 102, 241, 0.08)',
+            border: '1px solid rgba(99, 102, 241, 0.15)'
           }}>
-            {questionModes.map((mode, index) => (
-              <Box
-                key={mode.id}
-                onClick={() => setQuestionMode(mode.id)}
-                sx={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.75,
-                  px: 1.5,
-                  py: 1,
-                  borderRadius: 1.5,
-                  cursor: 'pointer',
-                  position: 'relative',
-                  zIndex: 2,
-                  transition: 'all 0.2s ease',
-                  bgcolor: questionMode === mode.id ? 'rgba(255, 255, 255, 0.9)' : 'transparent',
-                  color: questionMode === mode.id ? '#6366f1' : '#64748b',
-                  boxShadow: questionMode === mode.id ? '0 2px 8px rgba(99, 102, 241, 0.15)' : 'none',
-                  '&:hover': {
-                    bgcolor: questionMode === mode.id ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.5)'
-                  }
-                }}
-              >
-                {React.cloneElement(mode.icon, { sx: { fontSize: 16 } })}
-                <Box sx={{ textAlign: 'left' }}>
-                  <Typography
-                    sx={{
-                      fontSize: '0.8rem',
-                      fontWeight: questionMode === mode.id ? 600 : 500,
-                      lineHeight: 1.2,
-                      mb: 0.25
-                    }}
-                  >
-                    {mode.label}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '0.65rem',
-                      opacity: 0.7,
-                      lineHeight: 1.1
-                    }}
-                  >
-                    {mode.description}
-                  </Typography>
-                </Box>
-              </Box>
-            ))}
+            <DataUsage sx={{ fontSize: 18, color: isDataMode ? '#6366f1' : '#64748b' }} />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isDataMode}
+                  onChange={(e) => setIsDataMode(e.target.checked)}
+                  size="small"
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#6366f1',
+                      '&:hover': {
+                        backgroundColor: 'rgba(99, 102, 241, 0.08)'
+                      }
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#6366f1'
+                    }
+                  }}
+                />
+              }
+              label={
+                <Typography sx={{ 
+                  fontSize: '0.85rem', 
+                  fontWeight: 600,
+                  color: isDataMode ? '#6366f1' : '#64748b'
+                }}>
+                  選択データについて質問
+                </Typography>
+              }
+              sx={{ m: 0 }}
+            />
           </Box>
         </Box>
 
@@ -376,7 +353,7 @@ export default function ChatPanel() {
                   handleSend();
                 }
               }}
-              placeholder={questionMode === 'data' ? "選択中のデータについて質問..." : "AIに質問を入力..."}
+              placeholder={isDataMode ? "選択中のデータについて質問..." : "AIに質問を入力..."}
               variant="outlined"
               size="small"
               sx={{
