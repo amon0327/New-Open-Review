@@ -145,7 +145,7 @@ export default function AnalyticsPage() {
               {/* 右上のContainer（横2つに分割） */}
               <Box
                 sx={{
-                  flex: 1,
+                  flex: 0.5,
                   display: 'flex',
                   gap: 2,
                   minWidth: 0,
