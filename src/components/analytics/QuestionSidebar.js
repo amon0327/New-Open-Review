@@ -21,9 +21,7 @@ export default function QuestionSidebar({
   searchTerm,
   setSearchTerm,
   selectedQuestions,
-  setSelectedQuestions,
-  analysisMode,
-  setAnalysisMode
+  setSelectedQuestions
 }) {
   // 検索フィルタリング
   const filteredQuestions = questionsDatabase.filter(question =>
@@ -46,13 +44,6 @@ export default function QuestionSidebar({
     });
   };
 
-  // 分析モード切替
-  const handleModeChange = (mode) => {
-    setAnalysisMode(mode);
-    if (mode === 'single') {
-      setSelectedQuestions(prev => prev.slice(0, 1));
-    }
-  };
 
   return (
     <Box
@@ -91,56 +82,6 @@ export default function QuestionSidebar({
         />
       </Box>
 
-      {/* 分析モード選択 */}
-      <Box sx={{ p: 1.5, borderBottom: '1px solid #e5e7eb' }}>
-        <Typography variant="caption" sx={{ color: '#6b7280', fontWeight: 600, mb: 1, display: 'block' }}>
-          分析モード
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Button
-            variant={analysisMode === 'single' ? 'contained' : 'outlined'}
-            size="small"
-            onClick={() => handleModeChange('single')}
-            sx={{
-              textTransform: 'none',
-              fontSize: '0.75rem',
-              fontWeight: 500,
-              minWidth: 'auto',
-              px: 1.5,
-              py: 0.5,
-              height: 26,
-              borderRadius: 1,
-              flex: 1,
-              bgcolor: analysisMode === 'single' ? '#6366f1' : 'transparent',
-              color: analysisMode === 'single' ? 'white' : '#64748b',
-              borderColor: '#e5e7eb'
-            }}
-          >
-            単体分析
-          </Button>
-          <Button
-            variant={analysisMode === 'comparison' ? 'contained' : 'outlined'}
-            size="small"
-            onClick={() => handleModeChange('comparison')}
-            sx={{
-              textTransform: 'none',
-              fontSize: '0.75rem',
-              fontWeight: 500,
-              minWidth: 'auto',
-              px: 1.5,
-              py: 0.5,
-              height: 26,
-              borderRadius: 1,
-              flex: 1,
-              bgcolor: analysisMode === 'comparison' ? '#6366f1' : 'transparent',
-              color: analysisMode === 'comparison' ? 'white' : '#64748b',
-              borderColor: '#e5e7eb'
-            }}
-          >
-            比較分析
-          </Button>
-        </Box>
-      </Box>
 
       {/* 選択済み質問 */}
       {selectedQuestions.length > 0 && (
@@ -234,8 +175,8 @@ export default function QuestionSidebar({
                     cursor: canSelect ? 'pointer' : 'not-allowed',
                     opacity: isDisabled ? 0.4 : 1,
                     border: isSelected ? `2px solid ${categoryColors[question.category]}` : '1px solid #e5e7eb',
-                    bgcolor: isSelected ? `${categoryColors[question.category]}10` : '#ffffff',
-                    boxShadow: isSelected ? `0 2px 8px ${categoryColors[question.category]}30` : '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    bgcolor: '#ffffff',
+                    boxShadow: isSelected ? `0 4px 16px ${categoryColors[question.category]}40` : '0 1px 3px rgba(0, 0, 0, 0.05)',
                     transition: 'all 0.2s ease',
                     '&:hover': canSelect ? {
                       boxShadow: `0 4px 12px ${categoryColors[question.category]}40`,
@@ -309,24 +250,6 @@ export default function QuestionSidebar({
                         {question.chartType} • {question.type}
                       </Typography>
                     </Box>
-                    {canSelect && (
-                      <Box
-                        sx={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: '50%',
-                          border: isSelected ? 'none' : '2px solid #d1d5db',
-                          bgcolor: isSelected ? categoryColors[question.category] : 'transparent',
-                          color: 'white',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flex: 'none'
-                        }}
-                      >
-                        {isSelected && <Add sx={{ fontSize: 14 }} />}
-                      </Box>
-                    )}
                   </Box>
                 </Card>
               </motion.div>

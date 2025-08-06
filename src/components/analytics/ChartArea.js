@@ -17,8 +17,7 @@ export default function ChartArea({
   activeFilters,
   setActiveFilters,
   showFilters,
-  setShowFilters,
-  analysisMode
+  setShowFilters
 }) {
   if (selectedQuestions.length === 0) {
     return (
@@ -121,79 +120,46 @@ export default function ChartArea({
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {analysisMode === 'single' ? (
-            <>
-              <Box
-                sx={{
-                  bgcolor: 'rgba(59, 130, 246, 0.1)',
-                  color: '#3b82f6',
-                  borderRadius: 1.5,
-                  p: 1,
-                  display: 'flex'
-                }}
-              >
-                <AutoGraph sx={{ fontSize: 28 }} />
-              </Box>
-              <Box sx={{ flexGrow: 1, ml: 2 }}>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    fontWeight: 700,
-                    color: '#1e293b',
-                    fontSize: '1.1rem',
-                    mb: 0.25
-                  }}
-                >
-                  単体分析
-                </Typography>
-                <Typography 
-                  variant="body2" 
-                  sx={{
-                    color: '#64748b',
-                    fontSize: '0.875rem'
-                  }}
-                >
-                  {selectedQuestions[0]?.title}
-                </Typography>
-              </Box>
-            </>
-          ) : (
-            <>
-              <Box
-                sx={{
-                  bgcolor: 'rgba(99, 102, 241, 0.1)',
-                  color: '#6366f1',
-                  borderRadius: 1.5,
-                  p: 1,
-                  display: 'flex'
-                }}
-              >
-                <Compare sx={{ fontSize: 28 }} />
-              </Box>
-              <Box sx={{ flexGrow: 1, ml: 2 }}>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    fontWeight: 700,
-                    color: '#1e293b',
-                    fontSize: '1.1rem',
-                    mb: 0.25
-                  }}
-                >
-                  比較・クロス分析
-                </Typography>
-                <Typography 
-                  variant="body2" 
-                  sx={{
-                    color: '#64748b',
-                    fontSize: '0.875rem'
-                  }}
-                >
-                  {selectedQuestions.length}つの質問を比較分析
-                </Typography>
-              </Box>
-            </>
-          )}
+          <Box
+            sx={{
+              bgcolor: selectedQuestions.length === 1 ? 'rgba(59, 130, 246, 0.1)' : 'rgba(99, 102, 241, 0.1)',
+              color: selectedQuestions.length === 1 ? '#3b82f6' : '#6366f1',
+              borderRadius: 1.5,
+              p: 1,
+              display: 'flex'
+            }}
+          >
+            {selectedQuestions.length === 1 ? (
+              <AutoGraph sx={{ fontSize: 28 }} />
+            ) : (
+              <Compare sx={{ fontSize: 28 }} />
+            )}
+          </Box>
+          <Box sx={{ flexGrow: 1, ml: 2 }}>
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                fontWeight: 700,
+                color: '#1e293b',
+                fontSize: '1.1rem',
+                mb: 0.25
+              }}
+            >
+              {selectedQuestions.length === 1 ? '単体分析' : '比較・クロス分析'}
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{
+                color: '#64748b',
+                fontSize: '0.875rem'
+              }}
+            >
+              {selectedQuestions.length === 1 
+                ? selectedQuestions[0]?.title 
+                : `${selectedQuestions.length}つの質問を比較分析`
+              }
+            </Typography>
+          </Box>
           
           <Button
             startIcon={<Tune />}

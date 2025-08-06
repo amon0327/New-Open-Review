@@ -9,7 +9,6 @@ export default function AnalyticsPage({ onNavCollapse }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState({});
   const [showFilters, setShowFilters] = useState(false);
-  const [analysisMode, setAnalysisMode] = useState('single'); // 'single' or 'comparison'
 
   // Analyticsページが開かれた際にナビゲーションを縮小
   React.useEffect(() => {
@@ -47,8 +46,6 @@ export default function AnalyticsPage({ onNavCollapse }) {
             setSearchTerm={setSearchTerm}
             selectedQuestions={selectedQuestions}
             setSelectedQuestions={setSelectedQuestions}
-            analysisMode={analysisMode}
-            setAnalysisMode={setAnalysisMode}
           />
 
           {/* チャート表示エリア */}
@@ -58,7 +55,6 @@ export default function AnalyticsPage({ onNavCollapse }) {
             setActiveFilters={setActiveFilters}
             showFilters={showFilters}
             setShowFilters={setShowFilters}
-            analysisMode={analysisMode}
           />
         </Box>
       </Box>
