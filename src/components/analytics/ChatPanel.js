@@ -98,7 +98,7 @@ export default function ChatPanel() {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          background: 'linear-gradient(135deg, #f1f3ff 0%, #e8ecff 50%, #dce4ff 100%)',
+          background: 'linear-gradient(135deg, #e8ecff 0%, #dce4ff 50%, #cbd5ff 100%)',
           borderRadius: 2,
           overflow: 'hidden',
           border: '1px solid rgba(99, 102, 241, 0.1)',
@@ -112,7 +112,7 @@ export default function ChatPanel() {
           display: 'flex',
           alignItems: 'center',
           gap: 1.5,
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(241,243,255,0.95) 100%)',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(232,236,255,0.98) 100%)',
           backdropFilter: 'blur(10px)'
         }}>
           <Box sx={{ 
@@ -320,7 +320,7 @@ export default function ChatPanel() {
         {/* Input Area */}
         <Box sx={{ 
           p: 1,
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(241,243,255,0.95) 100%)',
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(232,236,255,0.98) 100%)',
           backdropFilter: 'blur(10px)'
         }}>
           <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-end' }}>
