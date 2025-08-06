@@ -247,7 +247,7 @@ const PublishSettings = ({
     }
   };
 
-  // デザイン画像のダウンロード（9.1cm x 5.5cm = 約344px x 208px at 96 DPI）
+  // デザイン画像のダウンロード（9.1cm x 5.5cm = 高解像度 1080px x 653px at 300 DPI）
   const downloadDesignImage = () => {
     const svg = document.getElementById('qr-code');
     if (svg) {
@@ -257,29 +257,29 @@ const PublishSettings = ({
       const img = new Image();
       
       img.onload = () => {
-        // 9.1cm x 5.5cm サイズ（96 DPIで計算）
-        const cmToPx = 96 / 2.54; // 1cm = 約37.8px at 96 DPI
-        canvas.width = Math.round(9.1 * cmToPx); // 約344px
-        canvas.height = Math.round(5.5 * cmToPx); // 約208px
+        // 9.1cm x 5.5cm サイズ（300 DPIで高解像度計算）
+        const cmToPx = 300 / 2.54; // 1cm = 約118px at 300 DPI
+        canvas.width = Math.round(9.1 * cmToPx); // 約1074px
+        canvas.height = Math.round(5.5 * cmToPx); // 約650px
         
         // 背景を白で塗りつぶし
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // QRコードサイズを調整（デザイン内に収まるように）
-        const qrSize = Math.min(canvas.height * 0.7, 120); // 高さの70%または120pxの小さい方
-        const qrX = 20; // 左から20px
+        // QRコードサイズを調整（高解像度に対応）
+        const qrSize = Math.round(canvas.height * 0.7); // 高さの70%
+        const qrX = Math.round(canvas.width * 0.05); // 左から5%
         const qrY = (canvas.height - qrSize) / 2; // 垂直中央
         
-        // QRコードを描画（リサイズして配置）
+        // QRコードを描画（高解像度でリサイズして配置）
         ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
         
-        // テキストを右側に配置
-        const textX = qrX + qrSize + 30; // QRコードの右側から30px
+        // テキストを右側に配置（高解像度フォント）
+        const textX = qrX + qrSize + Math.round(canvas.width * 0.08); // QRコードの右側から8%
         const textY = canvas.height / 2;
         
         ctx.fillStyle = '#374151';
-        ctx.font = 'bold 20px system-ui, -apple-system, sans-serif';
+        ctx.font = `bold ${Math.round(canvas.height * 0.12)}px system-ui, -apple-system, sans-serif`; // 高さの12%のフォントサイズ
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.fillText('アンケートにご協力ください', textX, textY);
