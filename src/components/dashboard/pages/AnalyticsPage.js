@@ -15,10 +15,11 @@ export default function AnalyticsPage() {
         disableGutters
         sx={{
           height: '100vh',
-          width: '100vw',
+          width: '100%',
           m: 0,
           p: 0,
-          bgcolor: '#f5f5f5'
+          bgcolor: '#f5f5f5',
+          overflow: 'hidden'
         }}
       >
         {/* メインコンテンツエリア */}
@@ -33,7 +34,9 @@ export default function AnalyticsPage() {
             display: 'flex',
             flexDirection: 'column',
             gap: 3,
-            bgcolor: '#f8fafc'
+            bgcolor: '#f8fafc',
+            overflow: 'hidden',
+            minWidth: 0
           }}
         >
           {/* 上部横並びrow */}
@@ -41,7 +44,9 @@ export default function AnalyticsPage() {
             sx={{
               display: 'flex',
               gap: 3,
-              height: '50%'
+              height: '50%',
+              minWidth: 0,
+              overflow: 'hidden'
             }}
           >
             {/* 左側のContainer */}
@@ -56,7 +61,9 @@ export default function AnalyticsPage() {
                 p: 3,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                minWidth: 0,
+                overflow: 'hidden'
               }}
             >
               左側コンテンツ
@@ -69,7 +76,9 @@ export default function AnalyticsPage() {
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 3
+                gap: 3,
+                minWidth: 0,
+                overflow: 'hidden'
               }}
             >
               {/* 右上のContainer */}
