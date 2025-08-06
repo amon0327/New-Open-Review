@@ -16,7 +16,8 @@ import {
   SmartToy,
   Person,
   HelpOutline,
-  DataUsage
+  DataUsage,
+  Analytics
 } from '@mui/icons-material';
 
 export default function ChatPanel() {
@@ -280,13 +281,14 @@ export default function ChatPanel() {
           <div ref={messagesEndRef} />
         </Box>
 
-        {/* Data Mode Toggle */}
+        {/* Data Analysis Actions */}
         <Box sx={{ 
           px: 1, 
           py: 0.5,
           display: 'flex',
           alignItems: 'center',
-          gap: 0.5
+          gap: 1.5,
+          justifyContent: 'center'
         }}>
           <Box
             onClick={() => setIsDataMode(!isDataMode)}
@@ -314,7 +316,7 @@ export default function ChatPanel() {
               color: isDataMode ? '#6366f1' : '#64748b',
               userSelect: 'none'
             }}>
-              データ分析
+              データ質問
             </Typography>
           </Box>
           {isDataMode && (
@@ -334,6 +336,39 @@ export default function ChatPanel() {
               />
             </motion.div>
           )}
+          
+          <Box
+            onClick={() => {
+              console.log('Analyze selected data');
+            }}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              px: 1,
+              py: 0.5,
+              borderRadius: 1,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+              opacity: 0.6,
+              '&:hover': {
+                opacity: 1,
+                transform: 'translateY(-0.5px)'
+              }
+            }}
+          >
+            <Analytics sx={{ 
+              fontSize: 14, 
+              color: '#64748b'
+            }} />
+            <Typography sx={{ 
+              fontSize: '0.75rem', 
+              color: '#64748b',
+              userSelect: 'none'
+            }}>
+              分析実行
+            </Typography>
+          </Box>
         </Box>
 
         {/* Input Area */}
