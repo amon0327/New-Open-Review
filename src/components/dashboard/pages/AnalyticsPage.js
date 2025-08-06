@@ -320,225 +320,664 @@ export default function AnalyticsPage({ onNavCollapse }) {
     <AnimatePresence>
       {isChatOpen && (
         <motion.div
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: 400, opacity: 1 }}
-          exit={{ width: 0, opacity: 0 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          initial={{ width: 0, opacity: 0, scale: 0.9 }}
+          animate={{ width: 420, opacity: 1, scale: 1 }}
+          exit={{ width: 0, opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
           style={{ overflow: 'hidden' }}
         >
           <Box
             sx={{
-              width: 400,
+              width: 420,
               height: '100%',
-              bgcolor: '#ffffff',
-              borderRadius: 1,
-              border: '1px solid #e5e7eb',
+              position: 'relative',
+              borderRadius: '24px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(40px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               display: 'flex',
               flexDirection: 'column',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'radial-gradient(circle at 50% 0%, rgba(102, 126, 234, 0.1) 0%, transparent 50%)',
+                pointerEvents: 'none'
+              }
             }}
           >
-            {/* チャットヘッダー */}
+            {/* モダンなチャットヘッダー */}
             <Box
               sx={{
-                p: 3,
-                borderBottom: '1px solid #e5e7eb',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                borderRadius: '4px 4px 0 0'
+                p: 4,
+                position: 'relative',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 50%, rgba(94, 23, 235, 0.8) 100%)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '24px 24px 0 0',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.05) 100%)',
+                  pointerEvents: 'none'
+                }
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {/* 背景装飾 */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: -20,
+                  right: -20,
+                  width: 100,
+                  height: 100,
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
+                  animation: 'rotate 20s linear infinite',
+                  '@keyframes rotate': {
+                    from: { transform: 'rotate(0deg)' },
+                    to: { transform: 'rotate(360deg)' }
+                  }
+                }}
+              />
+              
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, position: 'relative', zIndex: 1 }}>
                 <Box
                   sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    background: 'rgba(255, 255, 255, 0.2)',
+                    width: 56,
+                    height: 56,
+                    borderRadius: '16px',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(20px)',
+                    border: '2px solid rgba(255, 255, 255, 0.2)',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    position: 'relative',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      inset: 0,
+                      borderRadius: '16px',
+                      padding: '2px',
+                      background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.1))',
+                      mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                      maskComposite: 'exclude'
+                    }
                   }}
                 >
-                  <SmartToy sx={{ color: 'white', fontSize: 20 }} />
+                  <SmartToy 
+                    sx={{ 
+                      color: 'white', 
+                      fontSize: 32,
+                      filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))'
+                    }} 
+                  />
                 </Box>
+                
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography
-                    variant="h6"
                     sx={{
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      mb: 0.5
+                      background: 'linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.9) 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      fontWeight: 700,
+                      fontSize: '1.25rem',
+                      mb: 0.5,
+                      letterSpacing: '-0.5px',
+                      textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                     }}
                   >
-                    Analytics AI Assistant
+                    Analytics AI
                   </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: 'rgba(255, 255, 255, 0.8)',
-                      fontSize: '0.75rem'
-                    }}
-                  >
-                    データ分析をサポート
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      sx={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        boxShadow: '0 0 12px rgba(16, 185, 129, 0.6)',
+                        animation: 'pulse 2s infinite',
+                        '@keyframes pulse': {
+                          '0%': { opacity: 1, transform: 'scale(1)' },
+                          '50%': { opacity: 0.5, transform: 'scale(1.2)' },
+                          '100%': { opacity: 1, transform: 'scale(1)' }
+                        }
+                      }}
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        fontSize: '0.8rem',
+                        fontWeight: 500,
+                        letterSpacing: '0.5px'
+                      }}
+                    >
+                      オンライン • データ分析サポート中
+                    </Typography>
+                  </Box>
                 </Box>
+                
                 <IconButton
                   onClick={() => setIsChatOpen(false)}
-                  sx={{ color: 'white', p: 1 }}
+                  sx={{
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    bgcolor: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    width: 44,
+                    height: 44,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.2)',
+                      transform: 'scale(1.05)',
+                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+                    }
+                  }}
                 >
-                  <Close />
+                  <Close sx={{ fontSize: 20 }} />
                 </IconButton>
               </Box>
             </Box>
 
-            {/* チャットメッセージ */}
+            {/* モダンなチャットメッセージエリア */}
             <Box
               sx={{
                 flexGrow: 1,
-                p: 2,
+                p: 3,
                 overflow: 'auto',
-                bgcolor: '#f9fafb',
-                '&::-webkit-scrollbar': { width: 4 },
-                '&::-webkit-scrollbar-track': { bgcolor: '#f1f5f9' },
-                '&::-webkit-scrollbar-thumb': { bgcolor: '#cbd5e1', borderRadius: 2 }
+                background: 'linear-gradient(180deg, rgba(248, 250, 252, 0.4) 0%, rgba(241, 245, 249, 0.6) 100%)',
+                backdropFilter: 'blur(20px)',
+                position: 'relative',
+                '&::-webkit-scrollbar': { width: 6 },
+                '&::-webkit-scrollbar-track': { 
+                  bgcolor: 'rgba(241, 245, 249, 0.3)',
+                  borderRadius: 10
+                },
+                '&::-webkit-scrollbar-thumb': { 
+                  bgcolor: 'rgba(156, 163, 175, 0.5)',
+                  borderRadius: 10,
+                  '&:hover': {
+                    bgcolor: 'rgba(156, 163, 175, 0.7)'
+                  }
+                },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: '20%',
+                  width: '60%',
+                  height: '1px',
+                  background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)'
+                }
               }}
             >
-              {chatMessages.map((message) => (
+              {chatMessages.map((message, index) => (
                 <motion.div
                   key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ 
+                    duration: 0.4, 
+                    delay: index * 0.1,
+                    ease: "easeOut"
+                  }}
                 >
                   <Box
                     sx={{
                       display: 'flex',
                       justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
-                      mb: 2
+                      mb: 3,
+                      alignItems: 'flex-end'
                     }}
                   >
-                    <Box
-                      sx={{
-                        maxWidth: '80%',
-                        p: 2,
-                        borderRadius: 2,
-                        bgcolor: message.type === 'user' ? '#6366f1' : '#ffffff',
-                        color: message.type === 'user' ? 'white' : '#374151',
-                        border: message.type === 'ai' ? '1px solid #e5e7eb' : 'none',
-                        boxShadow: message.type === 'ai' ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'none'
-                      }}
-                    >
-                      <Typography
-                        variant="body2"
+                    {message.type === 'ai' && (
+                      <Box
                         sx={{
-                          fontSize: '0.875rem',
-                          lineHeight: 1.5
+                          width: 36,
+                          height: 36,
+                          borderRadius: '12px',
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mr: 2,
+                          mb: 0.5,
+                          boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
+                          border: '2px solid rgba(255, 255, 255, 0.2)'
                         }}
                       >
-                        {message.content}
+                        <SmartToy sx={{ color: 'white', fontSize: 18 }} />
+                      </Box>
+                    )}
+                    
+                    <Box
+                      sx={{
+                        maxWidth: '75%',
+                        position: 'relative'
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          p: 3,
+                          borderRadius: message.type === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+                          background: message.type === 'user' 
+                            ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+                            : 'rgba(255, 255, 255, 0.9)',
+                          color: message.type === 'user' ? 'white' : '#1f2937',
+                          backdropFilter: 'blur(20px)',
+                          border: message.type === 'ai' ? '1px solid rgba(255, 255, 255, 0.3)' : 'none',
+                          boxShadow: message.type === 'user'
+                            ? '0 8px 32px rgba(99, 102, 241, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                            : '0 4px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            transform: 'translateY(-1px)',
+                            boxShadow: message.type === 'user'
+                              ? '0 12px 40px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                              : '0 6px 24px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5)'
+                          }
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '0.95rem',
+                            lineHeight: 1.6,
+                            fontWeight: message.type === 'user' ? 500 : 400,
+                            letterSpacing: '0.2px',
+                            textShadow: message.type === 'user' ? '0 1px 2px rgba(0, 0, 0, 0.1)' : 'none'
+                          }}
+                        >
+                          {message.content}
+                        </Typography>
+                      </Box>
+                      
+                      {/* タイムスタンプ */}
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          display: 'block',
+                          mt: 0.5,
+                          px: 1,
+                          color: 'rgba(107, 114, 128, 0.8)',
+                          fontSize: '0.7rem',
+                          textAlign: message.type === 'user' ? 'right' : 'left'
+                        }}
+                      >
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </Typography>
                     </Box>
+
+                    {message.type === 'user' && (
+                      <Box
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: '12px',
+                          background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          ml: 2,
+                          mb: 0.5,
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                          border: '2px solid rgba(255, 255, 255, 0.8)'
+                        }}
+                      >
+                        <Typography sx={{ fontSize: '1rem', fontWeight: 600 }}>👤</Typography>
+                      </Box>
+                    )}
                   </Box>
                 </motion.div>
               ))}
             </Box>
 
-            {/* チャット入力 */}
+            {/* モダンなチャット入力エリア */}
             <Box
               sx={{
-                p: 2,
-                borderTop: '1px solid #e5e7eb',
-                bgcolor: '#ffffff'
+                p: 4,
+                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                background: 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: 'blur(40px)',
+                borderRadius: '0 0 24px 24px',
+                position: 'relative',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: '10%',
+                  width: '80%',
+                  height: '1px',
+                  background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent)'
+                }
               }}
             >
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <TextField
-                  fullWidth
-                  placeholder="データについて質問してください..."
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleChatSend()}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      fontSize: '0.875rem',
-                      borderRadius: 1.5,
-                      '& fieldset': {
-                        borderColor: '#d1d5db',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#9ca3af',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#6366f1',
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+                <Box sx={{ flexGrow: 1, position: 'relative' }}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    maxRows={4}
+                    placeholder="AIにデータ分析について質問してみてください..."
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleChatSend();
                       }
-                    }
-                  }}
-                />
-                <IconButton
-                  onClick={handleChatSend}
-                  disabled={!chatInput.trim()}
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontSize: '0.95rem',
+                        borderRadius: '20px',
+                        padding: '12px 20px',
+                        background: 'rgba(255, 255, 255, 0.9)',
+                        backdropFilter: 'blur(20px)',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+                        transition: 'all 0.3s ease',
+                        '& fieldset': {
+                          border: 'none'
+                        },
+                        '&:hover': {
+                          border: '2px solid rgba(99, 102, 241, 0.3)',
+                          boxShadow: '0 6px 24px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+                          transform: 'translateY(-1px)'
+                        },
+                        '&.Mui-focused': {
+                          border: '2px solid rgba(99, 102, 241, 0.5)',
+                          boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5)',
+                          transform: 'translateY(-2px)'
+                        },
+                        '& .MuiOutlinedInput-input': {
+                          padding: '0',
+                          fontWeight: 500,
+                          letterSpacing: '0.2px',
+                          color: '#1f2937',
+                          '&::placeholder': {
+                            color: 'rgba(107, 114, 128, 0.7)',
+                            opacity: 1,
+                            fontSize: '0.9rem'
+                          }
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+                
+                <Box sx={{ position: 'relative' }}>
+                  <IconButton
+                    onClick={handleChatSend}
+                    disabled={!chatInput.trim()}
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      background: chatInput.trim() 
+                        ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+                        : 'rgba(229, 231, 235, 0.8)',
+                      color: chatInput.trim() ? 'white' : 'rgba(156, 163, 175, 0.8)',
+                      backdropFilter: 'blur(20px)',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      boxShadow: chatInput.trim()
+                        ? '0 8px 32px rgba(99, 102, 241, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                        : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&:hover': chatInput.trim() ? {
+                        background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)',
+                        transform: 'scale(1.05) translateY(-1px)',
+                        boxShadow: '0 12px 40px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                      } : {},
+                      '&:active': chatInput.trim() ? {
+                        transform: 'scale(0.95)'
+                      } : {},
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: '-100%',
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+                        animation: chatInput.trim() ? 'shimmer 2s infinite' : 'none',
+                        '@keyframes shimmer': {
+                          '0%': { left: '-100%' },
+                          '100%': { left: '100%' }
+                        }
+                      }
+                    }}
+                  >
+                    <Send 
+                      sx={{ 
+                        fontSize: 24,
+                        filter: chatInput.trim() ? 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))' : 'none'
+                      }} 
+                    />
+                  </IconButton>
+                  
+                  {/* 送信可能インジケーター */}
+                  {chatInput.trim() && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: -2,
+                        right: -2,
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        border: '2px solid white',
+                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.4)',
+                        animation: 'pulse 1.5s infinite',
+                        '@keyframes pulse': {
+                          '0%': { transform: 'scale(1)', opacity: 1 },
+                          '50%': { transform: 'scale(1.2)', opacity: 0.8 },
+                          '100%': { transform: 'scale(1)', opacity: 1 }
+                        }
+                      }}
+                    />
+                  )}
+                </Box>
+              </Box>
+              
+              {/* 使用ヒント */}
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <Typography
+                  variant="caption"
                   sx={{
-                    bgcolor: '#6366f1',
-                    color: 'white',
-                    '&:hover': {
-                      bgcolor: '#5046e5'
-                    },
-                    '&:disabled': {
-                      bgcolor: '#e5e7eb',
-                      color: '#9ca3af'
-                    }
+                    color: 'rgba(107, 114, 128, 0.7)',
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    letterSpacing: '0.5px'
                   }}
                 >
-                  <Send sx={{ fontSize: 16 }} />
-                </IconButton>
+                  Enter で送信 • Shift+Enter で改行
+                </Typography>
               </Box>
             </Box>
           </Box>
         </motion.div>
       )}
       
-      {/* チャットトグルボタン */}
+      {/* モダンなチャットトグルボタン */}
       {!isChatOpen && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           <Box
             onClick={() => setIsChatOpen(true)}
             sx={{
-              width: 60,
+              width: 80,
               height: '100%',
-              bgcolor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: 1,
+              position: 'relative',
+              cursor: 'pointer',
+              overflow: 'hidden',
+              borderRadius: '16px 0 0 16px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #5e17eb 100%)',
+              boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: 'pointer',
-              border: '1px solid #e5e7eb',
-              transition: 'all 0.3s ease',
+              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               '&:hover': {
-                transform: 'translateX(-2px)',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                transform: 'translateX(-8px) scale(1.02)',
+                boxShadow: '0 16px 48px rgba(94, 23, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                background: 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #6366f1 100%)',
+                '&::before': {
+                  opacity: 1
+                }
+              },
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%)',
+                opacity: 0,
+                transition: 'opacity 0.3s ease'
               }
             }}
           >
-            <Chat sx={{ color: 'white', fontSize: 24, mb: 1 }} />
-            <Typography
-              variant="caption"
+            {/* アニメーションする背景パーティクル */}
+            <Box
               sx={{
-                color: 'white',
-                fontWeight: 600,
-                fontSize: '0.75rem',
-                writingMode: 'vertical-rl',
-                textOrientation: 'mixed'
+                position: 'absolute',
+                top: '20%',
+                left: '20%',
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.6)',
+                animation: 'float 3s ease-in-out infinite',
+                '@keyframes float': {
+                  '0%, 100%': { transform: 'translateY(0) scale(1)', opacity: 0.6 },
+                  '50%': { transform: 'translateY(-10px) scale(1.2)', opacity: 1 }
+                }
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '60%',
+                right: '15%',
+                width: '4px',
+                height: '4px',
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.4)',
+                animation: 'float 2s ease-in-out infinite 0.5s',
+                '@keyframes float': {
+                  '0%, 100%': { transform: 'translateY(0) scale(1)', opacity: 0.4 },
+                  '50%': { transform: 'translateY(-8px) scale(1.5)', opacity: 0.8 }
+                }
+              }}
+            />
+
+            {/* メインアイコン */}
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: '12px',
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mb: 2,
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: '-100%',
+                  width: '100%',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+                  animation: 'shimmer 2s infinite',
+                  '@keyframes shimmer': {
+                    '0%': { left: '-100%' },
+                    '100%': { left: '100%' }
+                  }
+                }
               }}
             >
-              AI Chat
-            </Typography>
+              <SmartToy 
+                sx={{ 
+                  color: 'white', 
+                  fontSize: 28,
+                  filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
+                }} 
+              />
+            </Box>
+
+            {/* テキストラベル */}
+            <Box
+              sx={{
+                writingMode: 'vertical-rl',
+                textOrientation: 'mixed',
+                background: 'linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                letterSpacing: '0.5px',
+                textShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                position: 'relative'
+              }}
+            >
+              AI CHAT
+            </Box>
+
+            {/* 通知バッジ */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                width: 12,
+                height: 12,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                border: '2px solid white',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.4)',
+                animation: 'pulse 2s infinite',
+                '@keyframes pulse': {
+                  '0%': { transform: 'scale(1)', opacity: 1 },
+                  '50%': { transform: 'scale(1.2)', opacity: 0.7 },
+                  '100%': { transform: 'scale(1)', opacity: 1 }
+                }
+              }}
+            />
           </Box>
         </motion.div>
       )}
