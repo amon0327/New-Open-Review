@@ -595,44 +595,24 @@ const PublishSettings = ({
                   </Typography>
 
                   {/* ダウンロードボタン */}
-                  <Stack direction="row" spacing={1}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<Download />}
-                      onClick={downloadDesignImage}
-                      sx={{
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        borderColor: '#e2e8f0',
-                        color: '#64748b',
-                        '&:hover': {
-                          borderColor: '#3b82f6',
-                          backgroundColor: 'rgba(59, 130, 246, 0.05)'
-                        }
-                      }}
-                    >
-                      標準版
-                    </Button>
-                    
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<Download />}
-                      onClick={() => downloadAdvancedDesign()}
-                      sx={{
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                        color: '#ffffff',
-                        '&:hover': {
-                          background: 'linear-gradient(45deg, #4c0db5 30%, #5f3a85 90%)'
-                        }
-                      }}
-                    >
-                      高品質SVG版
-                    </Button>
-                  </Stack>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<Download />}
+                    onClick={downloadDesignImage}
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      borderColor: '#e2e8f0',
+                      color: '#64748b',
+                      '&:hover': {
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)'
+                      }
+                    }}
+                  >
+                    デザインをダウンロード
+                  </Button>
                 </Box>
               </Box>
             </>
