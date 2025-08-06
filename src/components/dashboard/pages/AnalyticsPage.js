@@ -711,7 +711,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
                                         background: 'rgba(255, 255, 255, 0.8)',
                                         backdropFilter: 'blur(10px)',
                                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                                        minHeight: 80,
+                                        minHeight: 120,
                                         height: '100%',
                                         display: 'flex',
                                         flexDirection: 'column'
