@@ -192,30 +192,6 @@ export default function ChartArea({
           </Box>
           
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              startIcon={<Tune />}
-              onClick={() => setShowFilters(!showFilters)}
-              variant={showFilters ? "contained" : "outlined"}
-              size="small"
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                px: 2,
-                py: 0.75,
-                bgcolor: showFilters ? '#6366f1' : 'transparent',
-                color: showFilters ? 'white' : '#64748b',
-                borderColor: showFilters ? '#6366f1' : '#e2e8f0',
-                '&:hover': {
-                  bgcolor: showFilters ? '#5046e5' : '#f1f5f9',
-                  borderColor: showFilters ? '#5046e5' : '#cbd5e1'
-                }
-              }}
-            >
-              フィルター
-            </Button>
-            
             {Object.keys(activeFilters).length > 0 && (
               <Button
                 startIcon={<Close sx={{ fontSize: 14 }} />}
@@ -242,6 +218,30 @@ export default function ChartArea({
                 全てクリア
               </Button>
             )}
+            
+            <Button
+              startIcon={<Tune />}
+              onClick={() => setShowFilters(!showFilters)}
+              variant={showFilters ? "contained" : "outlined"}
+              size="small"
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                px: 2,
+                py: 0.75,
+                bgcolor: showFilters ? '#6366f1' : 'transparent',
+                color: showFilters ? 'white' : '#64748b',
+                borderColor: showFilters ? '#6366f1' : '#e2e8f0',
+                '&:hover': {
+                  bgcolor: showFilters ? '#5046e5' : '#f1f5f9',
+                  borderColor: showFilters ? '#5046e5' : '#cbd5e1'
+                }
+              }}
+            >
+              フィルター
+            </Button>
           </Box>
         </Box>
       </Box>
