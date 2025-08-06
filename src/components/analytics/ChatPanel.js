@@ -113,21 +113,23 @@ export default function ChatPanel() {
         <Paper
           elevation={0}
           sx={{
-            width: 380,
+            width: 360,
             height: '100%',
-            ml: 1.5,
+            ml: 1,
             display: 'flex',
             flexDirection: 'column',
-            background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
-            borderRadius: 3,
-            border: '1px solid #e2e8f0',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 30%, #e2e8f0 100%)',
+            borderRadius: 2.5,
+            border: '1px solid rgba(226, 232, 240, 0.6)',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            boxShadow: '0 2px 20px rgba(148, 163, 184, 0.15)',
+            backdropFilter: 'blur(10px)'
           }}
         >
           {/* ヘーダー */}
-          <Box sx={{ p: 3, pb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <Box sx={{ p: 2.5, pb: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
               <motion.div
                 animate={{ 
                   boxShadow: ['0 0 0 0 rgba(99, 102, 241, 0.4)', '0 0 0 8px rgba(99, 102, 241, 0)', '0 0 0 0 rgba(99, 102, 241, 0.4)'],
@@ -136,13 +138,14 @@ export default function ChatPanel() {
               >
                 <Avatar
                   sx={{
-                    width: 36,
-                    height: 36,
+                    width: 32,
+                    height: 32,
                     background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                    color: 'white'
+                    color: 'white',
+                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
                   }}
                 >
-                  <SmartToy sx={{ fontSize: 20 }} />
+                  <SmartToy sx={{ fontSize: 18 }} />
                 </Avatar>
               </motion.div>
               <Box>
@@ -151,7 +154,7 @@ export default function ChatPanel() {
                   sx={{ 
                     fontWeight: 700,
                     color: '#1e293b',
-                    fontSize: '1.1rem'
+                    fontSize: '1rem'
                   }}
                 >
                   AI Analytics Assistant
@@ -162,7 +165,8 @@ export default function ChatPanel() {
                     variant="caption" 
                     sx={{ 
                       color: '#64748b',
-                      fontWeight: 500
+                      fontWeight: 500,
+                      fontSize: '0.75rem'
                     }}
                   >
                     オンライン・準備完了
@@ -174,9 +178,9 @@ export default function ChatPanel() {
             <Typography 
               sx={{
                 color: '#475569',
-                fontSize: '0.95rem',
-                lineHeight: 1.6,
-                mb: 3
+                fontSize: '0.875rem',
+                lineHeight: 1.5,
+                mb: 2.5
               }}
             >
               データの洞察を発見し、トレンドを分析します。
@@ -185,7 +189,7 @@ export default function ChatPanel() {
           </Box>
 
           {/* クイックアクション */}
-          <Box sx={{ px: 3, pb: 2 }}>
+          <Box sx={{ px: 2.5, pb: 1.5 }}>
             <Typography 
               variant="subtitle2" 
               sx={{ 
@@ -199,7 +203,7 @@ export default function ChatPanel() {
             >
               よく使われる分析
             </Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
               {quickSuggestions.map((suggestion, index) => (
                 <motion.div
                   key={index}
@@ -211,32 +215,34 @@ export default function ChatPanel() {
                     onClick={() => handleSuggestionClick(suggestion.query)}
                     elevation={0}
                     sx={{
-                      p: 2,
+                      p: 1.5,
                       cursor: 'pointer',
-                      background: 'rgba(255, 255, 255, 0.8)',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: 2,
+                      background: 'rgba(255, 255, 255, 0.85)',
+                      border: '1px solid rgba(226, 232, 240, 0.8)',
+                      borderRadius: 1.5,
                       transition: 'all 0.2s ease',
+                      backdropFilter: 'blur(5px)',
                       '&:hover': {
-                        background: 'rgba(99, 102, 241, 0.04)',
+                        background: 'rgba(99, 102, 241, 0.06)',
                         borderColor: '#c7d2fe',
-                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.15)'
+                        boxShadow: '0 3px 10px rgba(99, 102, 241, 0.2)',
+                        transform: 'translateY(-1px)'
                       }
                     }}
                   >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Box 
                         sx={{ 
                           color: '#6366f1',
                           display: 'flex',
-                          '& svg': { fontSize: 18 }
+                          '& svg': { fontSize: 16 }
                         }}
                       >
                         {suggestion.icon}
                       </Box>
                       <Typography 
                         sx={{ 
-                          fontSize: '0.85rem',
+                          fontSize: '0.8rem',
                           fontWeight: 600,
                           color: '#374151'
                         }}
@@ -251,18 +257,19 @@ export default function ChatPanel() {
           </Box>
 
           {/* 入力フィールド */}
-          <Box sx={{ p: 3, pt: 2, mt: 'auto' }}>
+          <Box sx={{ p: 2.5, pt: 1.5, mt: 'auto' }}>
             <Paper
               elevation={0}
               sx={{
                 p: 1.5,
-                background: 'rgba(255, 255, 255, 0.9)',
-                border: '2px solid #e2e8f0',
-                borderRadius: 2.5,
+                background: 'rgba(255, 255, 255, 0.95)',
+                border: '2px solid rgba(226, 232, 240, 0.8)',
+                borderRadius: 2,
                 transition: 'all 0.2s ease',
+                backdropFilter: 'blur(10px)',
                 '&:focus-within': {
                   borderColor: '#6366f1',
-                  boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.1)',
+                  boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.15)',
                   background: '#ffffff'
                 }
               }}
@@ -326,12 +333,24 @@ export default function ChatPanel() {
           <Box
             sx={{
               position: 'absolute',
-              top: -50,
-              right: -50,
-              width: 100,
-              height: 100,
+              top: -30,
+              right: -30,
+              width: 80,
+              height: 80,
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%)',
+              zIndex: 0
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: -40,
+              left: -40,
+              width: 120,
+              height: 120,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05) 0%, transparent 60%)',
               zIndex: 0
             }}
           />
@@ -350,30 +369,32 @@ export default function ChatPanel() {
       <Paper
         elevation={0}
         sx={{
-          width: 380,
+          width: 360,
           height: '100%',
-          ml: 1.5,
+          ml: 1,
           display: 'flex',
           flexDirection: 'column',
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
-          borderRadius: 3,
-          border: '1px solid #e2e8f0',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 30%, #e2e8f0 100%)',
+          borderRadius: 2.5,
+          border: '1px solid rgba(226, 232, 240, 0.6)',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          boxShadow: '0 2px 20px rgba(148, 163, 184, 0.15)',
+          backdropFilter: 'blur(10px)'
         }}
       >
         {/* ヘーダー */}
         <Box 
           sx={{ 
-            p: 2.5,
-            pb: 2,
-            borderBottom: '1px solid #f1f5f9',
-            background: 'rgba(255, 255, 255, 0.8)',
+            p: 2,
+            pb: 1.5,
+            borderBottom: '1px solid rgba(241, 245, 249, 0.8)',
+            background: 'rgba(255, 255, 255, 0.85)',
             backdropFilter: 'blur(10px)'
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <Badge
                 badgeContent=" "
                 sx={{
@@ -388,12 +409,13 @@ export default function ChatPanel() {
               >
                 <Avatar
                   sx={{
-                    width: 32,
-                    height: 32,
-                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
+                    width: 30,
+                    height: 30,
+                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
                   }}
                 >
-                  <SmartToy sx={{ fontSize: 18 }} />
+                  <SmartToy sx={{ fontSize: 16 }} />
                 </Avatar>
               </Badge>
               <Box>
@@ -402,7 +424,7 @@ export default function ChatPanel() {
                   sx={{ 
                     fontWeight: 700,
                     color: '#1e293b',
-                    fontSize: '0.95rem'
+                    fontSize: '0.9rem'
                   }}
                 >
                   AI Assistant
@@ -411,7 +433,7 @@ export default function ChatPanel() {
                   variant="caption" 
                   sx={{ 
                     color: '#64748b',
-                    fontSize: '0.75rem'
+                    fontSize: '0.7rem'
                   }}
                 >
                   {isTyping ? 'タイピング中...' : 'オンライン'}
@@ -442,10 +464,10 @@ export default function ChatPanel() {
                 <Box
                   sx={{
                     flex: 1,
-                    px: 2.5,
-                    py: 2,
+                    px: 2,
+                    py: 1.5,
                     overflowY: 'auto',
-                    '&::-webkit-scrollbar': { width: 4 },
+                    '&::-webkit-scrollbar': { width: 3 },
                     '&::-webkit-scrollbar-track': { background: 'transparent' },
                     '&::-webkit-scrollbar-thumb': {
                       background: 'rgba(148, 163, 184, 0.3)',
@@ -463,48 +485,49 @@ export default function ChatPanel() {
                       >
                         <Box
                           sx={{
-                            mb: 2.5,
+                            mb: 2,
                             display: 'flex',
                             justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
                             alignItems: 'flex-end',
-                            gap: 1
+                            gap: 0.75
                           }}
                         >
                           {message.type === 'assistant' && (
                             <Avatar
                               sx={{
-                                width: 24,
-                                height: 24,
+                                width: 20,
+                                height: 20,
                                 background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                                mb: 0.5
+                                mb: 0.3
                               }}
                             >
-                              <AutoAwesome sx={{ fontSize: 12 }} />
+                              <AutoAwesome sx={{ fontSize: 10 }} />
                             </Avatar>
                           )}
                           <Paper
                             elevation={0}
                             sx={{
-                              maxWidth: '85%',
-                              px: 2,
-                              py: 1.5,
+                              maxWidth: '88%',
+                              px: 1.75,
+                              py: 1.25,
                               borderRadius: message.type === 'user' 
-                                ? '20px 20px 6px 20px' 
-                                : '20px 20px 20px 6px',
+                                ? '18px 18px 4px 18px' 
+                                : '18px 18px 18px 4px',
                               background: message.type === 'user' 
                                 ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
-                                : 'rgba(255, 255, 255, 0.9)',
+                                : 'rgba(255, 255, 255, 0.95)',
                               color: message.type === 'user' ? 'white' : '#374151',
-                              border: message.type === 'assistant' ? '1px solid #e2e8f0' : 'none',
+                              border: message.type === 'assistant' ? '1px solid rgba(226, 232, 240, 0.8)' : 'none',
                               boxShadow: message.type === 'user' 
-                                ? '0 4px 12px rgba(99, 102, 241, 0.3)' 
-                                : '0 2px 8px rgba(0, 0, 0, 0.08)'
+                                ? '0 3px 10px rgba(99, 102, 241, 0.3)' 
+                                : '0 2px 6px rgba(0, 0, 0, 0.06)',
+                              backdropFilter: message.type === 'assistant' ? 'blur(8px)' : 'none'
                             }}
                           >
                             <Typography
                               sx={{
-                                fontSize: '0.9rem',
-                                lineHeight: 1.5,
+                                fontSize: '0.85rem',
+                                lineHeight: 1.4,
                                 fontWeight: message.type === 'user' ? 500 : 400,
                                 whiteSpace: 'pre-line'
                               }}
@@ -515,8 +538,8 @@ export default function ChatPanel() {
                               variant="caption"
                               sx={{
                                 display: 'block',
-                                mt: 0.5,
-                                fontSize: '0.7rem',
+                                mt: 0.3,
+                                fontSize: '0.65rem',
                                 color: message.type === 'user' 
                                   ? 'rgba(255, 255, 255, 0.7)' 
                                   : '#94a3b8',
@@ -543,31 +566,32 @@ export default function ChatPanel() {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 0.75, mb: 1.5 }}>
                           <Avatar
                             sx={{
-                              width: 24,
-                              height: 24,
+                              width: 20,
+                              height: 20,
                               background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
                             }}
                           >
-                            <Psychology sx={{ fontSize: 12 }} />
+                            <Psychology sx={{ fontSize: 10 }} />
                           </Avatar>
                           <Paper
                             elevation={0}
                             sx={{
-                              px: 2,
-                              py: 1.5,
-                              borderRadius: '20px 20px 20px 6px',
-                              background: 'rgba(255, 255, 255, 0.9)',
-                              border: '1px solid #e2e8f0'
+                              px: 1.75,
+                              py: 1.25,
+                              borderRadius: '18px 18px 18px 4px',
+                              background: 'rgba(255, 255, 255, 0.95)',
+                              border: '1px solid rgba(226, 232, 240, 0.8)',
+                              backdropFilter: 'blur(8px)'
                             }}
                           >
                             <motion.div
                               animate={{ opacity: [0.5, 1, 0.5] }}
                               transition={{ duration: 1.5, repeat: Infinity }}
                             >
-                              <Typography sx={{ fontSize: '0.9rem', color: '#64748b' }}>
+                              <Typography sx={{ fontSize: '0.85rem', color: '#64748b' }}>
                                 分析中...
                               </Typography>
                             </motion.div>
@@ -581,7 +605,7 @@ export default function ChatPanel() {
                 </Box>
 
                 {/* 入力エリア */}
-                <Box sx={{ p: 2.5, pt: 1.5 }}>
+                <Box sx={{ p: 2, pt: 1 }}>
                   {/* 提案チップ */}
                   <AnimatePresence>
                     {showSuggestions && chatMessages.length > 0 && (
@@ -591,7 +615,7 @@ export default function ChatPanel() {
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        <Box sx={{ mb: 1.5, display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                           {['詳細分析', '比較グラフ', 'エクスポート'].map((suggestion, index) => (
                             <Chip
                               key={index}
@@ -600,12 +624,15 @@ export default function ChatPanel() {
                               variant="outlined"
                               onClick={() => handleSuggestionClick(`${suggestion}をお願いします`)}
                               sx={{
-                                fontSize: '0.75rem',
-                                height: 28,
-                                borderColor: '#e2e8f0',
+                                fontSize: '0.7rem',
+                                height: 24,
+                                borderColor: 'rgba(226, 232, 240, 0.8)',
+                                background: 'rgba(255, 255, 255, 0.6)',
+                                backdropFilter: 'blur(5px)',
                                 '&:hover': {
                                   borderColor: '#6366f1',
-                                  backgroundColor: 'rgba(99, 102, 241, 0.04)'
+                                  backgroundColor: 'rgba(99, 102, 241, 0.06)',
+                                  transform: 'translateY(-1px)'
                                 }
                               }}
                             />
@@ -618,14 +645,15 @@ export default function ChatPanel() {
                   <Paper
                     elevation={0}
                     sx={{
-                      p: 1.5,
-                      background: 'rgba(255, 255, 255, 0.9)',
-                      border: '2px solid #e2e8f0',
-                      borderRadius: 2.5,
+                      p: 1.25,
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      border: '2px solid rgba(226, 232, 240, 0.8)',
+                      borderRadius: 2,
                       transition: 'all 0.2s ease',
+                      backdropFilter: 'blur(10px)',
                       '&:focus-within': {
                         borderColor: '#6366f1',
-                        boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.1)',
+                        boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.15)',
                         background: '#ffffff'
                       }
                     }}
@@ -644,10 +672,10 @@ export default function ChatPanel() {
                         InputProps={{ disableUnderline: true }}
                         sx={{
                           '& .MuiInputBase-input': {
-                            fontSize: '0.9rem',
+                            fontSize: '0.85rem',
                             color: '#1e293b',
                             fontWeight: 400,
-                            lineHeight: 1.5,
+                            lineHeight: 1.4,
                             '&::placeholder': {
                               color: '#94a3b8',
                               opacity: 1
@@ -663,22 +691,22 @@ export default function ChatPanel() {
                           onClick={handleSendMessage}
                           disabled={!chatMessage.trim() || isTyping}
                           sx={{
-                            width: 36,
-                            height: 36,
+                            width: 32,
+                            height: 32,
                             background: chatMessage.trim() && !isTyping
                               ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' 
-                              : '#f1f5f9',
+                              : 'rgba(241, 245, 249, 0.8)',
                             color: chatMessage.trim() && !isTyping ? 'white' : '#94a3b8',
                             '&:hover': {
                               background: chatMessage.trim() && !isTyping
                                 ? 'linear-gradient(135deg, #5046e5 0%, #7c3aed 100%)' 
-                                : '#e2e8f0',
+                                : 'rgba(226, 232, 240, 0.8)',
                               transform: chatMessage.trim() && !isTyping ? 'scale(1.05)' : 'none'
                             },
                             transition: 'all 0.2s ease'
                           }}
                         >
-                          <Send sx={{ fontSize: 16 }} />
+                          <Send sx={{ fontSize: 14 }} />
                         </IconButton>
                       </motion.div>
                     </Box>
