@@ -710,7 +710,11 @@ export default function AnalyticsPage({ onNavCollapse }) {
                                         borderRadius: 2,
                                         background: 'rgba(255, 255, 255, 0.8)',
                                         backdropFilter: 'blur(10px)',
-                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                                        minHeight: 120,
+                                        height: '100%',
+                                        display: 'flex',
+                                        flexDirection: 'column'
                                       }}
                                     >
                                       {/* コンパクトな質問ヘッダー */}
@@ -736,7 +740,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
                                       </Box>
 
                                       {/* コンパクトなフィルター要素 */}
-                                      <Box>
+                                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                         {/* Range フィルター */}
                                         {filterConfig.type === 'range' && (
                                           <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
