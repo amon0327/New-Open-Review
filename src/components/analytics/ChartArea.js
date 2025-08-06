@@ -11,7 +11,8 @@ import {
   AutoGraph,
   Compare,
   Tune,
-  Chat
+  Chat,
+  Close
 } from '@mui/icons-material';
 import FilterPanel from './FilterPanel';
 
@@ -110,19 +111,27 @@ export default function ChartArea({
               right: 16,
               width: 56,
               height: 56,
-              bgcolor: '#6366f1',
+              bgcolor: showChatPanel ? '#ef4444' : '#6366f1',
               color: 'white',
-              boxShadow: '0 4px 20px rgba(99, 102, 241, 0.4)',
+              boxShadow: showChatPanel 
+                ? '0 4px 20px rgba(239, 68, 68, 0.4)' 
+                : '0 4px 20px rgba(99, 102, 241, 0.4)',
               '&:hover': {
-                bgcolor: '#5046e5',
+                bgcolor: showChatPanel ? '#dc2626' : '#5046e5',
                 transform: 'translateY(-2px)',
-                boxShadow: '0 8px 30px rgba(99, 102, 241, 0.6)',
+                boxShadow: showChatPanel 
+                  ? '0 8px 30px rgba(239, 68, 68, 0.6)' 
+                  : '0 8px 30px rgba(99, 102, 241, 0.6)',
               },
               transition: 'all 0.3s ease',
               zIndex: 10
             }}
           >
-            <Chat sx={{ fontSize: 24 }} />
+            {showChatPanel ? (
+              <Close sx={{ fontSize: 24 }} />
+            ) : (
+              <Chat sx={{ fontSize: 24 }} />
+            )}
           </IconButton>
         </Box>
 
@@ -320,19 +329,27 @@ export default function ChartArea({
             right: 16,
             width: 56,
             height: 56,
-            bgcolor: '#6366f1',
+            bgcolor: showChatPanel ? '#ef4444' : '#6366f1',
             color: 'white',
-            boxShadow: '0 4px 20px rgba(99, 102, 241, 0.4)',
+            boxShadow: showChatPanel 
+              ? '0 4px 20px rgba(239, 68, 68, 0.4)' 
+              : '0 4px 20px rgba(99, 102, 241, 0.4)',
             '&:hover': {
-              bgcolor: '#5046e5',
+              bgcolor: showChatPanel ? '#dc2626' : '#5046e5',
               transform: 'translateY(-2px)',
-              boxShadow: '0 8px 30px rgba(99, 102, 241, 0.6)',
+              boxShadow: showChatPanel 
+                ? '0 8px 30px rgba(239, 68, 68, 0.6)' 
+                : '0 8px 30px rgba(99, 102, 241, 0.6)',
             },
             transition: 'all 0.3s ease',
             zIndex: 10
           }}
         >
-          <Chat sx={{ fontSize: 24 }} />
+          {showChatPanel ? (
+            <Close sx={{ fontSize: 24 }} />
+          ) : (
+            <Chat sx={{ fontSize: 24 }} />
+          )}
         </IconButton>
       </Box>
 
