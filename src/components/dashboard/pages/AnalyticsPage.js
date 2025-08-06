@@ -26,7 +26,7 @@ export default function AnalyticsPage() {
           sx={{
             width: '100%',
             height: '100%',
-            p: 3,
+            p: '24px 24px 24px 0',
             display: 'flex',
             gap: 3,
             bgcolor: '#f8fafc'
