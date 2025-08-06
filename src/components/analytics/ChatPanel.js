@@ -64,162 +64,103 @@ export default function ChatPanel() {
           ml: 1,
           display: 'flex',
           flexDirection: 'column',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: '16px',
+          bgcolor: 'white',
+          borderRadius: '12px',
           overflow: 'hidden',
           position: 'relative',
-          boxShadow: '0 20px 40px rgba(102, 126, 234, 0.3)',
-          border: '1px solid rgba(255, 255, 255, 0.1)'
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+          border: '1px solid #e5e7eb',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '200px',
+            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%)',
+            zIndex: 0
+          }
         }}
       >
-        {/* Animated Background */}
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-            opacity: 0.9,
-            zIndex: 0
-          }}
-        />
-        
-        {/* Floating Particles */}
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{
-              x: Math.random() * 340,
-              y: Math.random() * 400,
-              opacity: 0
-            }}
-            animate={{
-              x: Math.random() * 340,
-              y: Math.random() * 400,
-              opacity: [0, 0.3, 0]
-            }}
-            transition={{
-              duration: 8 + Math.random() * 4,
-              repeat: Infinity,
-              delay: Math.random() * 3
-            }}
-            style={{
-              position: 'absolute',
-              width: 2,
-              height: 2,
-              borderRadius: '50%',
-              backgroundColor: 'rgba(255, 255, 255, 0.6)',
-              zIndex: 1
-            }}
-          />
-        ))}
-
-        <Box sx={{ position: 'relative', zIndex: 2, flex: 1, display: 'flex', flexDirection: 'column', p: 3 }}>
+        <Box sx={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'column', p: 2.5 }}>
           
-          {/* Header with Status */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box
+          {/* Clean Header */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+            <Box
+              sx={{
+                width: 28,
+                height: 28,
+                borderRadius: '8px',
+                bgcolor: '#6366f1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Typography sx={{ fontSize: '0.9rem', color: 'white' }}>🤖</Typography>
+            </Box>
+            <Box>
+              <Typography
                 sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '10px',
-                  background: 'rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(10px)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px solid rgba(255, 255, 255, 0.3)'
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  color: '#111827',
+                  letterSpacing: '-0.01em'
                 }}
               >
-                <Typography sx={{ fontSize: '1rem', color: 'white' }}>✨</Typography>
-              </Box>
-              <Box>
-                <Typography
-                  sx={{
-                    fontSize: '0.95rem',
-                    fontWeight: 700,
-                    color: 'white',
-                    letterSpacing: '-0.02em'
-                  }}
-                >
-                  AI Analytics
-                </Typography>
-                <Typography
-                  sx={{
-                    fontSize: '0.7rem',
-                    color: 'rgba(255, 255, 255, 0.8)',
-                    fontWeight: 500
-                  }}
-                >
-                  Neural Engine Ready
-                </Typography>
-              </Box>
-            </Box>
-            
-            <motion.div
-              animate={{
-                scale: [1, 1.1, 1],
-                boxShadow: [
-                  '0 0 10px rgba(34, 197, 94, 0.5)',
-                  '0 0 20px rgba(34, 197, 94, 0.8)',
-                  '0 0 10px rgba(34, 197, 94, 0.5)'
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Box
+                AI Assistant
+              </Typography>
+              <Typography
                 sx={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  bgcolor: '#22c55e',
-                  boxShadow: '0 0 15px rgba(34, 197, 94, 0.6)'
+                  fontSize: '0.7rem',
+                  color: '#6b7280',
+                  fontWeight: 500
                 }}
-              />
-            </motion.div>
+              >
+                Ready to help
+              </Typography>
+            </Box>
           </Box>
 
           {/* Welcome Message */}
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Box sx={{ mb: 3 }}>
             <Typography
               sx={{
-                fontSize: '1.4rem',
-                fontWeight: 800,
-                color: 'white',
-                mb: 1,
-                letterSpacing: '-0.03em',
-                textShadow: '0 2px 10px rgba(0, 0, 0, 0.2)'
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                color: '#111827',
+                mb: 0.5,
+                letterSpacing: '-0.02em'
               }}
             >
-              Ready to unlock insights?
+              What can I help you with?
             </Typography>
             <Typography
               sx={{
-                fontSize: '0.9rem',
-                color: 'rgba(255, 255, 255, 0.85)',
-                fontWeight: 500,
+                fontSize: '0.85rem',
+                color: '#6b7280',
+                fontWeight: 400,
                 lineHeight: 1.5
               }}
             >
-              Ask me anything about your data and I'll provide intelligent analysis
+              Ask me anything about your data
             </Typography>
           </Box>
 
-          {/* Smart Action Cards */}
+          {/* Quick Actions */}
           <Box
             sx={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
-              gap: 1.5,
-              mb: 4
+              gap: 1,
+              mb: 3
             }}
           >
             {quickActions.map((action, index) => (
               <motion.div
                 key={index}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.2 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Box
                   onClick={() => {
@@ -227,28 +168,24 @@ export default function ChatPanel() {
                     handleSendMessage();
                   }}
                   sx={{
-                    p: 2,
-                    background: 'rgba(255, 255, 255, 0.15)',
-                    backdropFilter: 'blur(20px)',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    p: 1.5,
+                    bgcolor: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
                     cursor: 'pointer',
                     textAlign: 'center',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
                     '&:hover': {
-                      background: 'rgba(255, 255, 255, 0.25)',
-                      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)'
+                      bgcolor: '#f1f5f9',
+                      borderColor: '#d1d5db'
                     },
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                    transition: 'all 0.15s ease'
                   }}
                 >
                   <Typography
                     sx={{
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
-                      color: 'white',
-                      letterSpacing: '0.02em',
-                      textShadow: '0 1px 3px rgba(0, 0, 0, 0.2)'
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      color: '#374151'
                     }}
                   >
                     {action.label}
@@ -258,78 +195,59 @@ export default function ChatPanel() {
             ))}
           </Box>
 
-          {/* Premium Input */}
+          {/* Compact Input */}
           <Box sx={{ mt: 'auto' }}>
             <Box
               sx={{
-                position: 'relative',
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(20px)',
-                borderRadius: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                p: 1.5,
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                p: 1,
+                bgcolor: '#f9fafb',
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                '&:focus-within': {
+                  borderColor: '#6366f1',
+                  boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.1)'
+                }
               }}
             >
               <TextField
                 fullWidth
-                placeholder="What insights do you need?"
+                placeholder="Ask anything..."
                 value={chatMessage}
                 onChange={handleInputChange}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 variant="standard"
-                InputProps={{
-                  disableUnderline: true,
-                  endAdornment: (
-                    <motion.div
-                      animate={{
-                        scale: chatMessage.trim() ? 1 : 0.8,
-                        opacity: chatMessage.trim() ? 1 : 0.5
-                      }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <IconButton
-                        onClick={handleSendMessage}
-                        disabled={!chatMessage.trim()}
-                        sx={{
-                          width: 36,
-                          height: 36,
-                          background: chatMessage.trim()
-                            ? 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%)'
-                            : 'rgba(255, 255, 255, 0.3)',
-                          color: chatMessage.trim() ? '#667eea' : 'rgba(255, 255, 255, 0.6)',
-                          backdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
-                          boxShadow: chatMessage.trim()
-                            ? '0 4px 15px rgba(255, 255, 255, 0.3)'
-                            : 'none',
-                          '&:hover': {
-                            background: chatMessage.trim()
-                              ? 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)'
-                              : 'rgba(255, 255, 255, 0.4)',
-                            transform: 'scale(1.05)'
-                          },
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        <Send sx={{ fontSize: 16 }} />
-                      </IconButton>
-                    </motion.div>
-                  )
-                }}
+                InputProps={{ disableUnderline: true }}
                 sx={{
                   '& .MuiInputBase-input': {
-                    fontSize: '0.95rem',
-                    color: 'white',
-                    fontWeight: 500,
+                    fontSize: '0.85rem',
+                    color: '#111827',
+                    fontWeight: 400,
+                    py: 0.5,
                     '&::placeholder': {
-                      color: 'rgba(255, 255, 255, 0.7)',
-                      opacity: 1,
-                      fontWeight: 400
+                      color: '#9ca3af',
+                      opacity: 1
                     }
                   }
                 }}
               />
+              {chatMessage.trim() && (
+                <IconButton
+                  onClick={handleSendMessage}
+                  size="small"
+                  sx={{
+                    width: 28,
+                    height: 28,
+                    bgcolor: '#6366f1',
+                    color: 'white',
+                    '&:hover': { bgcolor: '#5046e5' }
+                  }}
+                >
+                  <Send sx={{ fontSize: 14 }} />
+                </IconButton>
+              )}
             </Box>
           </Box>
         </Box>
@@ -345,105 +263,83 @@ export default function ChatPanel() {
         ml: 1,
         display: 'flex',
         flexDirection: 'column',
-        background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-        borderRadius: '16px',
+        bgcolor: 'white',
+        borderRadius: '12px',
         overflow: 'hidden',
         position: 'relative',
-        boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25)',
-        border: '1px solid rgba(255, 255, 255, 0.1)'
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+        border: '1px solid #e5e7eb',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '60px',
+          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%)',
+          zIndex: 0
+        }
       }}
     >
-      {/* Neural Header */}
+      {/* Minimal Header */}
       <Box
         sx={{
-          p: 2,
-          background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          position: 'relative'
+          px: 2,
+          py: 1.5,
+          borderBottom: '1px solid #f3f4f6',
+          position: 'relative',
+          zIndex: 1
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 24,
+              height: 24,
+              borderRadius: '6px',
+              bgcolor: '#6366f1',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <Typography sx={{ fontSize: '0.8rem', color: 'white' }}>🤖</Typography>
+          </Box>
+          <Box>
+            <Typography
               sx={{
-                width: 28,
-                height: 28,
-                borderRadius: '8px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                color: '#111827',
+                letterSpacing: '-0.01em'
               }}
             >
-              <Typography sx={{ fontSize: '0.9rem', color: 'white' }}>🧠</Typography>
-            </Box>
-            <Box>
-              <Typography
-                sx={{
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  color: 'white',
-                  letterSpacing: '-0.01em'
-                }}
-              >
-                Neural Chat
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: '0.65rem',
-                  color: 'rgba(255, 255, 255, 0.6)',
-                  fontWeight: 500
-                }}
-              >
-                Processing insights
-              </Typography>
-            </Box>
+              Assistant
+            </Typography>
           </Box>
-          
-          <motion.div
-            animate={{
-              opacity: [0.5, 1, 0.5],
-              scale: [1, 1.1, 1]
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <Box
-              sx={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                bgcolor: '#00ff87',
-                boxShadow: '0 0 12px rgba(0, 255, 135, 0.8)'
-              }}
-            />
-          </motion.div>
         </Box>
       </Box>
 
-      {/* Messages Area with Glow */}
+      {/* Clean Messages */}
       <Box
         sx={{
           flex: 1,
           px: 2,
           py: 1.5,
           overflowY: 'auto',
-          position: 'relative',
-          '&::-webkit-scrollbar': { width: 3 },
-          '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
+          '&::-webkit-scrollbar': { width: 2 },
           '&::-webkit-scrollbar-thumb': {
-            bgcolor: 'rgba(102, 126, 234, 0.5)',
-            borderRadius: 2
+            bgcolor: '#e5e7eb',
+            borderRadius: 1
           }
         }}
       >
         {chatMessages.map((message, index) => (
           <motion.div
             key={message.id}
-            initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
           >
             <Box
               sx={{
@@ -458,139 +354,101 @@ export default function ChatPanel() {
                   px: 1.5,
                   py: 1,
                   borderRadius: message.type === 'user' 
-                    ? '18px 18px 4px 18px' 
-                    : '18px 18px 18px 4px',
-                  background: message.type === 'user'
-                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                    : 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(20px)',
-                  border: message.type === 'user' 
-                    ? 'none'
-                    : '1px solid rgba(255, 255, 255, 0.1)',
-                  boxShadow: message.type === 'user'
-                    ? '0 8px 25px rgba(102, 126, 234, 0.4)'
-                    : '0 4px 15px rgba(255, 255, 255, 0.1)',
-                  position: 'relative'
+                    ? '16px 16px 4px 16px' 
+                    : '16px 16px 16px 4px',
+                  bgcolor: message.type === 'user' ? '#6366f1' : '#f8fafc',
+                  color: message.type === 'user' ? 'white' : '#374151',
+                  border: message.type === 'user' ? 'none' : '1px solid #e5e7eb'
                 }}
               >
                 <Typography
                   sx={{
                     fontSize: '0.85rem',
                     lineHeight: 1.5,
-                    color: 'white',
                     fontWeight: 500
                   }}
                 >
                   {message.content}
                 </Typography>
-                
-                {/* Glow effect for user messages */}
-                {message.type === 'user' && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      inset: 0,
-                      borderRadius: 'inherit',
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%)',
-                      pointerEvents: 'none'
-                    }}
-                  />
-                )}
               </Box>
             </Box>
           </motion.div>
         ))}
       </Box>
 
-      {/* Futuristic Input */}
+      {/* Streamlined Input */}
       <Box
         sx={{
-          p: 2,
-          background: 'rgba(0, 0, 0, 0.3)',
-          backdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)'
+          px: 2,
+          py: 1.5,
+          borderTop: '1px solid #f3f4f6'
         }}
       >
         <Box
           sx={{
-            position: 'relative',
-            background: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(20px)',
-            borderRadius: '20px',
-            border: isActive ? '2px solid rgba(102, 126, 234, 0.5)' : '1px solid rgba(255, 255, 255, 0.1)',
-            p: 1.5,
-            boxShadow: isActive ? '0 0 20px rgba(102, 126, 234, 0.3)' : 'none',
-            transition: 'all 0.3s ease'
+            display: 'flex',
+            alignItems: 'flex-end',
+            gap: 0.75,
+            p: 0.75,
+            bgcolor: '#f9fafb',
+            borderRadius: '8px',
+            border: '1px solid #e5e7eb',
+            '&:focus-within': {
+              borderColor: '#6366f1',
+              boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.1)'
+            },
+            transition: 'all 0.15s ease'
           }}
         >
           <TextField
             fullWidth
-            placeholder="Ask anything about your data..."
+            placeholder="Message..."
             value={chatMessage}
             onChange={handleInputChange}
             onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
             variant="standard"
             multiline
-            maxRows={4}
-            InputProps={{
-              disableUnderline: true,
-              endAdornment: (
-                <motion.div
-                  animate={{
-                    scale: chatMessage.trim() ? 1 : 0.8,
-                    rotate: chatMessage.trim() ? 0 : -45
-                  }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <IconButton
-                    onClick={handleSendMessage}
-                    disabled={!chatMessage.trim()}
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      background: chatMessage.trim()
-                        ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                        : 'rgba(255, 255, 255, 0.1)',
-                      color: 'white',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      boxShadow: chatMessage.trim()
-                        ? '0 4px 20px rgba(102, 126, 234, 0.5)'
-                        : 'none',
-                      '&:hover': {
-                        background: chatMessage.trim()
-                          ? 'linear-gradient(135deg, #5a67d8 0%, #6366f1 100%)'
-                          : 'rgba(255, 255, 255, 0.2)',
-                        transform: 'scale(1.1)',
-                        boxShadow: chatMessage.trim()
-                          ? '0 6px 30px rgba(102, 126, 234, 0.6)'
-                          : '0 2px 10px rgba(255, 255, 255, 0.2)'
-                      },
-                      '&.Mui-disabled': {
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        color: 'rgba(255, 255, 255, 0.3)'
-                      },
-                      transition: 'all 0.3s ease'
-                    }}
-                  >
-                    <Send sx={{ fontSize: 16 }} />
-                  </IconButton>
-                </motion.div>
-              )
-            }}
+            maxRows={3}
+            InputProps={{ disableUnderline: true }}
             sx={{
               '& .MuiInputBase-input': {
-                fontSize: '0.9rem',
-                color: 'white',
-                fontWeight: 500,
+                fontSize: '0.85rem',
+                color: '#111827',
+                fontWeight: 400,
+                py: 0.25,
+                lineHeight: 1.4,
                 '&::placeholder': {
-                  color: 'rgba(255, 255, 255, 0.5)',
-                  opacity: 1,
-                  fontWeight: 400
+                  color: '#9ca3af',
+                  opacity: 1
                 }
               }
             }}
           />
+          {chatMessage.trim() && (
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.15 }}
+            >
+              <IconButton
+                onClick={handleSendMessage}
+                size="small"
+                sx={{
+                  width: 24,
+                  height: 24,
+                  bgcolor: '#6366f1',
+                  color: 'white',
+                  '&:hover': { 
+                    bgcolor: '#5046e5',
+                    transform: 'scale(1.05)'
+                  },
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <Send sx={{ fontSize: 12 }} />
+              </IconButton>
+            </motion.div>
+          )}
         </Box>
       </Box>
     </Box>
