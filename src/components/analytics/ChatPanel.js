@@ -282,68 +282,58 @@ export default function ChatPanel() {
 
         {/* Data Mode Toggle */}
         <Box sx={{ 
-          px: 1.5, 
-          py: 1,
-          borderTop: '1px solid rgba(99, 102, 241, 0.1)', 
-          borderBottom: '1px solid rgba(99, 102, 241, 0.1)',
-          background: 'rgba(255, 255, 255, 0.3)'
+          px: 1, 
+          py: 0.5,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5
         }}>
           <Box
             onClick={() => setIsDataMode(!isDataMode)}
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 1,
-              px: 1.5,
-              py: 0.75,
-              borderRadius: 1.5,
+              gap: 0.75,
+              px: 1,
+              py: 0.5,
+              borderRadius: 1,
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
-              border: isDataMode ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid transparent',
+              transition: 'opacity 0.15s ease',
+              opacity: isDataMode ? 1 : 0.6,
               '&:hover': {
-                bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.05)',
-                transform: 'translateY(-1px)'
+                opacity: 1
               }
             }}
           >
-            <Box
-              sx={{
-                width: 16,
-                height: 16,
-                borderRadius: '50%',
-                border: `2px solid ${isDataMode ? '#6366f1' : '#94a3b8'}`,
-                bgcolor: isDataMode ? '#6366f1' : 'transparent',
-                position: 'relative',
-                transition: 'all 0.2s ease',
-                '&::after': isDataMode ? {
-                  content: '""',
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: 4,
-                  height: 4,
-                  borderRadius: '50%',
-                  bgcolor: 'white',
-                  transform: 'translate(-50%, -50%)'
-                } : {}
-              }}
-            />
             <DataUsage sx={{ 
-              fontSize: 16, 
-              color: isDataMode ? '#6366f1' : '#64748b',
-              transition: 'color 0.2s ease'
+              fontSize: 14, 
+              color: isDataMode ? '#6366f1' : '#64748b'
             }} />
             <Typography sx={{ 
-              fontSize: '0.8rem', 
-              fontWeight: isDataMode ? 600 : 500,
+              fontSize: '0.75rem', 
               color: isDataMode ? '#6366f1' : '#64748b',
-              transition: 'all 0.2s ease',
               userSelect: 'none'
             }}>
-              選択データについて質問
+              データ分析
             </Typography>
           </Box>
+          {isDataMode && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Box
+                sx={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  bgcolor: '#6366f1',
+                  ml: 'auto'
+                }}
+              />
+            </motion.div>
+          )}
         </Box>
 
         {/* Input Area */}
