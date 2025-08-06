@@ -12,7 +12,7 @@ import {
   Compare,
   Tune,
   Chat,
-  Close
+  ChevronRight
 } from '@mui/icons-material';
 import FilterPanel from './FilterPanel';
 
@@ -111,16 +111,16 @@ export default function ChartArea({
               right: 16,
               width: 56,
               height: 56,
-              bgcolor: showChatPanel ? '#ef4444' : '#6366f1',
+              bgcolor: showChatPanel ? '#64748b' : '#6366f1',
               color: 'white',
               boxShadow: showChatPanel 
-                ? '0 4px 20px rgba(239, 68, 68, 0.4)' 
+                ? '0 4px 20px rgba(100, 116, 139, 0.4)' 
                 : '0 4px 20px rgba(99, 102, 241, 0.4)',
               '&:hover': {
-                bgcolor: showChatPanel ? '#dc2626' : '#5046e5',
+                bgcolor: showChatPanel ? '#475569' : '#5046e5',
                 transform: 'translateY(-2px)',
                 boxShadow: showChatPanel 
-                  ? '0 8px 30px rgba(239, 68, 68, 0.6)' 
+                  ? '0 8px 30px rgba(100, 116, 139, 0.6)' 
                   : '0 8px 30px rgba(99, 102, 241, 0.6)',
               },
               transition: 'all 0.3s ease',
@@ -128,7 +128,7 @@ export default function ChartArea({
             }}
           >
             {showChatPanel ? (
-              <Close sx={{ fontSize: 24 }} />
+              <ChevronRight sx={{ fontSize: 24 }} />
             ) : (
               <Chat sx={{ fontSize: 24 }} />
             )}
@@ -329,16 +329,16 @@ export default function ChartArea({
             right: 16,
             width: 56,
             height: 56,
-            bgcolor: showChatPanel ? '#ef4444' : '#6366f1',
+            bgcolor: showChatPanel ? '#64748b' : '#6366f1',
             color: 'white',
             boxShadow: showChatPanel 
-              ? '0 4px 20px rgba(239, 68, 68, 0.4)' 
+              ? '0 4px 20px rgba(100, 116, 139, 0.4)' 
               : '0 4px 20px rgba(99, 102, 241, 0.4)',
             '&:hover': {
-              bgcolor: showChatPanel ? '#dc2626' : '#5046e5',
+              bgcolor: showChatPanel ? '#475569' : '#5046e5',
               transform: 'translateY(-2px)',
               boxShadow: showChatPanel 
-                ? '0 8px 30px rgba(239, 68, 68, 0.6)' 
+                ? '0 8px 30px rgba(100, 116, 139, 0.6)' 
                 : '0 8px 30px rgba(99, 102, 241, 0.6)',
             },
             transition: 'all 0.3s ease',
@@ -346,7 +346,7 @@ export default function ChartArea({
           }}
         >
           {showChatPanel ? (
-            <Close sx={{ fontSize: 24 }} />
+            <ChevronRight sx={{ fontSize: 24 }} />
           ) : (
             <Chat sx={{ fontSize: 24 }} />
           )}
