@@ -272,7 +272,13 @@ export default function AnalyticsPage({ onNavCollapse }) {
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
     >
-      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', p: 1 }}>
+      <Box sx={{ 
+        height: 'calc(100vh - 64px)', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        p: 1,
+        overflow: 'hidden'
+      }}>
 
 
         {/* メインコンテンツ */}
