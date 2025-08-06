@@ -248,22 +248,35 @@ const PublishSettings = ({
     }
   };
 
-  // デザイン画像のダウンロード（SVGベース + フォールバック）
+  // デザイン画像のダウンロード（外部テンプレート使用）
   const downloadDesignImage = async () => {
     try {
-      const projectConfig = getProjectDesignConfig();
-      await svgRenderer.generateAndDownload(projectConfig);
-      toast.success('デザイン画像をダウンロードしました！');
-    } catch (error) {
-      console.error('SVGデザインのダウンロードに失敗:', error);
-      console.log('フォールバック: Canvas版を試行中...');
+      // 指定されたSupabase SVGテンプレートURL
+      const externalSvgUrl = 'https://ngayxdzippnqkzufqxhr.supabase.co/storage/v1/object/public/home-page-asset/asset/test.png';
       
-      // フォールバック: Canvas版でダウンロード
+      console.log('外部テンプレートを使用してデザインを生成中...');
+      await downloadExternalDesign(externalSvgUrl);
+      
+    } catch (error) {
+      console.error('外部SVGデザインのダウンロードに失敗:', error);
+      console.log('フォールバック: 内蔵テンプレートを使用中...');
+      
+      // フォールバック1: 内蔵SVGテンプレート
       try {
-        await downloadDesignImageCanvas();
-      } catch (fallbackError) {
-        console.error('フォールバックも失敗:', fallbackError);
-        toast.error('デザインのダウンロードに失敗しました。後でもう一度お試しください。');
+        const projectConfig = getProjectDesignConfig();
+        await svgRenderer.generateAndDownload(projectConfig);
+        toast.success('デザイン画像をダウンロードしました！');
+      } catch (svgError) {
+        console.error('SVGテンプレートも失敗:', svgError);
+        console.log('フォールバック: Canvas版を試行中...');
+        
+        // フォールバック2: Canvas版でダウンロード
+        try {
+          await downloadDesignImageCanvas();
+        } catch (fallbackError) {
+          console.error('全てのフォールバックが失敗:', fallbackError);
+          toast.error('デザインのダウンロードに失敗しました。後でもう一度お試しください。');
+        }
       }
     }
   };
@@ -410,6 +423,60 @@ const PublishSettings = ({
     } catch (error) {
       console.error('SVGデザインのダウンロードに失敗:', error);
       toast.error('デザインのダウンロードに失敗しました');
+    }
+  };
+
+  // 外部SVGテンプレートを使用したデザインダウンロード
+  const downloadExternalDesign = async (svgUrl) => {
+    try {
+      const projectConfig = getProjectDesignConfig();
+      
+      // 外部SVGテンプレートを読み込み
+      const template = await svgRenderer.loadExternalSvgTemplate(svgUrl);
+      
+      // プロジェクト設定でプレースホルダーを置換
+      const qrCodeDataUrl = await svgRenderer.generateQRCodeDataUrl(projectConfig.qrText);
+      
+      const variables = {
+        QR_CODE_DATA: qrCodeDataUrl,
+        PRIMARY_COLOR: projectConfig.primaryColor,
+        SECONDARY_COLOR: projectConfig.secondaryColor,
+        MAIN_TITLE: projectConfig.mainTitle,
+        SUB_TITLE: projectConfig.subTitle,
+        TITLE_SIZE: projectConfig.titleSize,
+        SUB_TITLE_SIZE: projectConfig.subTitleSize,
+        SUB_TITLE_OPACITY: '1',
+        QR_TEXT: projectConfig.qrText || 'QRコードでアクセス',
+        DESCRIPTION: projectConfig.description,
+        DESC_SIZE: projectConfig.descSize,
+        DESC_OPACITY: '1',
+        LOGO_IMAGE: '',
+        LOGO_OPACITY: '0'
+      };
+
+      // ロゴ画像の処理
+      if (projectConfig.logoImage) {
+        const logoDataUrl = await svgRenderer.convertImageToDataUrl(projectConfig.logoImage, 280, 120);
+        variables.LOGO_IMAGE = logoDataUrl;
+        variables.LOGO_OPACITY = '1';
+      }
+
+      // SVG生成とダウンロード
+      const finalSvg = svgRenderer.replacePlaceholders(template, variables);
+      const pngBlob = await svgRenderer.svgToPng(finalSvg, 1);
+      const url = URL.createObjectURL(pngBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${projectTitle || 'form'}-external-design.png`;
+      link.click();
+      
+      URL.revokeObjectURL(url);
+      toast.success('外部テンプレートデザインをダウンロードしました！');
+      
+    } catch (error) {
+      console.error('外部SVGデザインのダウンロードに失敗:', error);
+      toast.error('外部テンプレートの処理に失敗しました');
     }
   };
 

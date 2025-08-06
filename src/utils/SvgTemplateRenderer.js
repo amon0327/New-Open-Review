@@ -6,6 +6,141 @@ import QRCode from 'qrcode';
 export class SvgTemplateRenderer {
   constructor() {
     this.templateCache = new Map();
+    this.supabaseTemplateCache = new Map();
+  }
+
+  /**
+   * Supabaseから外部SVGテンプレートを取得
+   * @param {string} url - SupabaseストレージのSVG URL
+   * @returns {Promise<string>} SVGテンプレート文字列
+   */
+  async loadExternalSvgTemplate(url) {
+    if (this.supabaseTemplateCache.has(url)) {
+      return this.supabaseTemplateCache.get(url);
+    }
+
+    try {
+      console.log('外部SVGテンプレートを読み込み中:', url);
+      
+      // プロキシ経由または直接取得を試行
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Accept': 'image/svg+xml, text/plain, */*'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const svgContent = await response.text();
+      
+      // SVGの有効性をチェック
+      if (!svgContent.includes('<svg')) {
+        throw new Error('有効なSVGファイルではありません');
+      }
+
+      this.supabaseTemplateCache.set(url, svgContent);
+      console.log('外部SVGテンプレートの読み込み成功');
+      return svgContent;
+      
+    } catch (error) {
+      console.error('外部SVGテンプレートの読み込みに失敗:', error);
+      
+      // フォールバック: 指定画像に似たテンプレートを生成
+      return this.generateFormPosterTemplate();
+    }
+  }
+
+  /**
+   * 指定画像に基づいたポスターテンプレートを生成
+   * @returns {string} SVGテンプレート文字列
+   */
+  generateFormPosterTemplate() {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2149" height="1299" viewBox="0 0 2149 1299" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mainBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:{{PRIMARY_COLOR}};stop-opacity:0.9" />
+      <stop offset="50%" style="stop-color:{{SECONDARY_COLOR}};stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:{{PRIMARY_COLOR}};stop-opacity:0.85" />
+    </linearGradient>
+    
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="2149" height="1299" fill="url(#mainBg)"/>
+  
+  <!-- メインコンテンツコンテナ -->
+  <rect x="100" y="150" width="1949" height="999" rx="30" 
+        fill="rgba(255, 255, 255, 0.95)" 
+        filter="url(#shadow)"/>
+  
+  <!-- ロゴエリア（左上） -->
+  <rect x="180" y="230" width="320" height="160" rx="15" 
+        fill="rgba(255, 255, 255, 0.9)" 
+        stroke="rgba(0,0,0,0.08)" 
+        stroke-width="2"/>
+  <image x="200" y="250" width="280" height="120" 
+         href="{{LOGO_IMAGE}}" 
+         opacity="{{LOGO_OPACITY}}"/>
+  
+  <!-- メインタイトル -->
+  <text x="600" y="350" 
+        font-family="'Noto Sans JP', system-ui, sans-serif" 
+        font-size="{{TITLE_SIZE}}" 
+        font-weight="bold" 
+        fill="#1a202c">
+    {{MAIN_TITLE}}
+  </text>
+  
+  <!-- サブタイトル -->
+  <text x="600" y="450" 
+        font-family="'Noto Sans JP', system-ui, sans-serif" 
+        font-size="{{SUB_TITLE_SIZE}}" 
+        fill="#2d3748" 
+        opacity="{{SUB_TITLE_OPACITY}}">
+    {{SUB_TITLE}}
+  </text>
+  
+  <!-- QRコードエリア（右側） -->
+  <rect x="1450" y="300" width="500" height="500" rx="25" 
+        fill="#ffffff" 
+        stroke="{{PRIMARY_COLOR}}" 
+        stroke-width="6" 
+        filter="url(#shadow)"/>
+  <image x="1500" y="350" width="400" height="400" 
+         href="{{QR_CODE_DATA}}"/>
+  
+  <!-- QRコード説明 -->
+  <text x="1700" y="880" 
+        font-family="'Noto Sans JP', system-ui, sans-serif" 
+        font-size="52" 
+        font-weight="600" 
+        fill="#1a202c" 
+        text-anchor="middle">
+    {{QR_TEXT}}
+  </text>
+  
+  <!-- 説明テキスト -->
+  <text x="200" y="1000" 
+        font-family="'Noto Sans JP', system-ui, sans-serif" 
+        font-size="{{DESC_SIZE}}" 
+        fill="#4a5568" 
+        opacity="{{DESC_OPACITY}}">
+    {{DESCRIPTION}}
+  </text>
+  
+  <!-- アクセントライン -->
+  <rect x="180" y="280" width="400" height="6" rx="3" 
+        fill="{{PRIMARY_COLOR}}" opacity="0.6"/>
+        
+</svg>`;
   }
 
   /**
@@ -22,9 +157,9 @@ export class SvgTemplateRenderer {
       // テンプレートタイプに基づいてパスを決定
       let publicPath;
       if (templatePath === 'poster' || templatePath === 'form-poster') {
-        publicPath = '/src/assets/templates/form-poster-template.svg';
+        publicPath = '/assets/templates/form-poster-template.svg';
       } else {
-        publicPath = '/src/assets/templates/design-template.svg';
+        publicPath = '/assets/templates/design-template.svg';
       }
       
       const response = await fetch(publicPath);
