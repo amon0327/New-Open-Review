@@ -669,181 +669,226 @@ export default function AnalyticsPage({ onNavCollapse }) {
                             sx={{
                               borderTop: '1px solid #f1f5f9',
                               background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                              p: 3
+                              maxHeight: 240,
+                              overflow: 'auto',
+                              '&::-webkit-scrollbar': { width: 6 },
+                              '&::-webkit-scrollbar-track': { 
+                                bgcolor: 'rgba(241, 245, 249, 0.5)',
+                                borderRadius: 3
+                              },
+                              '&::-webkit-scrollbar-thumb': { 
+                                bgcolor: 'rgba(203, 213, 225, 0.8)',
+                                borderRadius: 3,
+                                '&:hover': {
+                                  bgcolor: 'rgba(148, 163, 184, 0.9)'
+                                }
+                              }
                             }}
                           >
-                            {selectedQuestions.map((question, index) => {
-                              const filterConfig = generateFilterOptions(question);
-                              
-                              return (
-                                <motion.div
-                                  key={question.id}
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ delay: index * 0.1 }}
-                                >
-                                  <Box sx={{ mb: index < selectedQuestions.length - 1 ? 3 : 0 }}>
-                                    {/* 質問ヘッダー */}
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                      <Box
-                                        sx={{
-                                          width: 8,
-                                          height: 8,
-                                          borderRadius: '50%',
-                                          bgcolor: categoryColors[question.category]
-                                        }}
-                                      />
-                                      <Typography
-                                        variant="h6"
-                                        sx={{
-                                          fontWeight: 600,
-                                          color: '#1e293b',
-                                          fontSize: '0.95rem'
-                                        }}
-                                      >
-                                        {question.title}
-                                      </Typography>
-                                    </Box>
+                            <Box 
+                              sx={{ 
+                                p: 2,
+                                display: 'grid',
+                                gridTemplateColumns: selectedQuestions.length === 2 ? '1fr 1fr' : '1fr',
+                                gap: 2
+                              }}
+                            >
+                              {selectedQuestions.map((question, index) => {
+                                const filterConfig = generateFilterOptions(question);
+                                
+                                return (
+                                  <motion.div
+                                    key={question.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        p: 2,
+                                        border: '1px solid #e2e8f0',
+                                        borderRadius: 2,
+                                        background: 'rgba(255, 255, 255, 0.8)',
+                                        backdropFilter: 'blur(10px)',
+                                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                                      }}
+                                    >
+                                      {/* コンパクトな質問ヘッダー */}
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                                        <Box
+                                          sx={{
+                                            width: 6,
+                                            height: 6,
+                                            borderRadius: '50%',
+                                            bgcolor: categoryColors[question.category]
+                                          }}
+                                        />
+                                        <Typography
+                                          sx={{
+                                            fontWeight: 600,
+                                            color: '#1e293b',
+                                            fontSize: '0.85rem',
+                                            lineHeight: 1.3
+                                          }}
+                                        >
+                                          {question.title}
+                                        </Typography>
+                                      </Box>
 
-                                    {/* フィルター要素 */}
-                                    <Box sx={{ pl: 2.5 }}>
-                                      {/* Range フィルター */}
-                                      {filterConfig.type === 'range' && (
-                                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                                          {filterConfig.options.map((option) => (
-                                            <Button
-                                              key={option.value}
-                                              onClick={() => updateFilter(question.id, 'range', option.value)}
-                                              variant={activeFilters[question.id]?.value === option.value ? 'contained' : 'outlined'}
-                                              size="small"
+                                      {/* コンパクトなフィルター要素 */}
+                                      <Box>
+                                        {/* Range フィルター */}
+                                        {filterConfig.type === 'range' && (
+                                          <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+                                            {filterConfig.options.map((option) => (
+                                              <Button
+                                                key={option.value}
+                                                onClick={() => updateFilter(question.id, 'range', option.value)}
+                                                variant={activeFilters[question.id]?.value === option.value ? 'contained' : 'outlined'}
+                                                size="small"
+                                                sx={{
+                                                  textTransform: 'none',
+                                                  fontWeight: 500,
+                                                  minWidth: 'auto',
+                                                  px: 1.5,
+                                                  py: 0.5,
+                                                  fontSize: '0.75rem',
+                                                  height: 28,
+                                                  borderRadius: 1.5,
+                                                  bgcolor: activeFilters[question.id]?.value === option.value 
+                                                    ? categoryColors[question.category] 
+                                                    : 'transparent',
+                                                  color: activeFilters[question.id]?.value === option.value 
+                                                    ? 'white' 
+                                                    : '#64748b',
+                                                  borderColor: activeFilters[question.id]?.value === option.value 
+                                                    ? categoryColors[question.category] 
+                                                    : '#e2e8f0',
+                                                  transition: 'all 0.2s ease',
+                                                  '&:hover': {
+                                                    transform: 'translateY(-1px)',
+                                                    boxShadow: `0 4px 12px ${categoryColors[question.category]}30`
+                                                  }
+                                                }}
+                                              >
+                                                {option.label}
+                                              </Button>
+                                            ))}
+                                          </Box>
+                                        )}
+
+                                        {/* Select フィルター */}
+                                        {filterConfig.type === 'select' && (
+                                          <FormControl size="small" fullWidth>
+                                            <Select
+                                              value={activeFilters[question.id]?.value || ''}
+                                              onChange={(e) => updateFilter(question.id, 'select', e.target.value)}
+                                              displayEmpty
                                               sx={{
-                                                textTransform: 'none',
-                                                fontWeight: 500,
-                                                minWidth: 'auto',
-                                                px: 2,
-                                                py: 1,
+                                                height: 36,
+                                                borderRadius: 1.5,
                                                 fontSize: '0.8rem',
-                                                borderRadius: 2,
-                                                bgcolor: activeFilters[question.id]?.value === option.value 
-                                                  ? categoryColors[question.category] 
-                                                  : 'transparent',
-                                                color: activeFilters[question.id]?.value === option.value 
-                                                  ? 'white' 
-                                                  : '#64748b',
-                                                borderColor: activeFilters[question.id]?.value === option.value 
-                                                  ? categoryColors[question.category] 
-                                                  : '#e2e8f0',
-                                                transition: 'all 0.2s ease',
-                                                '&:hover': {
-                                                  transform: 'translateY(-1px)',
-                                                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                                                '& .MuiOutlinedInput-notchedOutline': {
+                                                  borderColor: '#e2e8f0',
+                                                },
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                  borderColor: categoryColors[question.category],
+                                                },
+                                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                  borderColor: categoryColors[question.category],
+                                                  borderWidth: '2px'
                                                 }
                                               }}
                                             >
-                                              {option.label}
-                                            </Button>
-                                          ))}
-                                        </Box>
-                                      )}
-
-                                      {/* Select フィルター */}
-                                      {filterConfig.type === 'select' && (
-                                        <FormControl size="small" sx={{ minWidth: 200 }}>
-                                          <Select
-                                            value={activeFilters[question.id]?.value || ''}
-                                            onChange={(e) => updateFilter(question.id, 'select', e.target.value)}
-                                            displayEmpty
-                                            sx={{
-                                              borderRadius: 2,
-                                              fontSize: '0.875rem',
-                                              '& .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: '#e2e8f0',
-                                              },
-                                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: categoryColors[question.category],
-                                              },
-                                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                borderColor: categoryColors[question.category],
-                                                borderWidth: '2px'
-                                              }
-                                            }}
-                                          >
-                                            <MenuItem value="">
-                                              <Typography sx={{ fontSize: '0.875rem', color: '#94a3b8' }}>
-                                                すべて選択
-                                              </Typography>
-                                            </MenuItem>
-                                            {filterConfig.options.map((option) => (
-                                              <MenuItem key={option.value} value={option.value}>
-                                                <Typography sx={{ fontSize: '0.875rem' }}>
-                                                  {option.label}
+                                              <MenuItem value="">
+                                                <Typography sx={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                                                  すべて選択
                                                 </Typography>
                                               </MenuItem>
-                                            ))}
-                                          </Select>
-                                        </FormControl>
-                                      )}
+                                              {filterConfig.options.map((option) => (
+                                                <MenuItem key={option.value} value={option.value}>
+                                                  <Typography sx={{ fontSize: '0.8rem' }}>
+                                                    {option.label}
+                                                  </Typography>
+                                                </MenuItem>
+                                              ))}
+                                            </Select>
+                                          </FormControl>
+                                        )}
 
-                                      {/* Text フィルター */}
-                                      {filterConfig.type === 'text' && (
-                                        <TextField
-                                          placeholder={filterConfig.placeholder}
-                                          value={activeFilters[question.id]?.value || ''}
-                                          onChange={(e) => updateFilter(question.id, 'text', e.target.value)}
-                                          size="small"
-                                          InputProps={{
-                                            startAdornment: (
-                                              <Search sx={{ color: '#94a3b8', fontSize: 18, mr: 1 }} />
-                                            )
-                                          }}
-                                          sx={{
-                                            minWidth: 300,
-                                            '& .MuiOutlinedInput-root': {
-                                              borderRadius: 2,
-                                              fontSize: '0.875rem',
-                                              '& fieldset': {
-                                                borderColor: '#e2e8f0',
-                                              },
-                                              '&:hover fieldset': {
-                                                borderColor: categoryColors[question.category],
-                                              },
-                                              '&.Mui-focused fieldset': {
-                                                borderColor: categoryColors[question.category],
-                                                borderWidth: '2px'
+                                        {/* Text フィルター */}
+                                        {filterConfig.type === 'text' && (
+                                          <TextField
+                                            fullWidth
+                                            placeholder={filterConfig.placeholder}
+                                            value={activeFilters[question.id]?.value || ''}
+                                            onChange={(e) => updateFilter(question.id, 'text', e.target.value)}
+                                            size="small"
+                                            InputProps={{
+                                              startAdornment: (
+                                                <Search sx={{ color: '#94a3b8', fontSize: 16, mr: 0.5 }} />
+                                              )
+                                            }}
+                                            sx={{
+                                              '& .MuiOutlinedInput-root': {
+                                                height: 36,
+                                                borderRadius: 1.5,
+                                                fontSize: '0.8rem',
+                                                '& fieldset': {
+                                                  borderColor: '#e2e8f0',
+                                                },
+                                                '&:hover fieldset': {
+                                                  borderColor: categoryColors[question.category],
+                                                },
+                                                '&.Mui-focused fieldset': {
+                                                  borderColor: categoryColors[question.category],
+                                                  borderWidth: '2px'
+                                                }
                                               }
-                                            }
-                                          }}
-                                        />
-                                      )}
+                                            }}
+                                          />
+                                        )}
+                                      </Box>
                                     </Box>
-                                  </Box>
-                                </motion.div>
-                              );
-                            })}
+                                  </motion.div>
+                                );
+                              })}
+                            </Box>
 
                             {/* フィルタークリアボタン */}
                             {Object.keys(activeFilters).length > 0 && (
-                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, pt: 2, borderTop: '1px solid #f1f5f9' }}>
+                              <Box 
+                                sx={{ 
+                                  display: 'flex', 
+                                  justifyContent: 'center', 
+                                  p: 1.5, 
+                                  borderTop: '1px solid #f1f5f9',
+                                  background: 'rgba(248, 250, 252, 0.8)'
+                                }}
+                              >
                                 <Button
-                                  startIcon={<Close />}
+                                  startIcon={<Close sx={{ fontSize: 14 }} />}
                                   onClick={() => setActiveFilters({})}
                                   variant="outlined"
                                   size="small"
                                   sx={{
                                     textTransform: 'none',
-                                    fontSize: '0.8rem',
+                                    fontSize: '0.75rem',
                                     fontWeight: 500,
-                                    borderRadius: 2,
+                                    height: 28,
+                                    px: 2,
+                                    borderRadius: 1.5,
                                     color: '#ef4444',
                                     borderColor: '#fecaca',
                                     bgcolor: '#fef2f2',
                                     '&:hover': {
                                       bgcolor: '#fee2e2',
-                                      borderColor: '#f87171'
+                                      borderColor: '#f87171',
+                                      transform: 'translateY(-1px)'
                                     }
                                   }}
                                 >
-                                  フィルタークリア
+                                  すべてクリア
                                 </Button>
                               </Box>
                             )}
