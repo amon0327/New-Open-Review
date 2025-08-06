@@ -69,8 +69,7 @@ export default function AnalyticsPage() {
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 3,
-                pr: 2
+                gap: 3
               }}
             >
               {/* 右上のContainer */}
