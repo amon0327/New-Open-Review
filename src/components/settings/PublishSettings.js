@@ -461,10 +461,10 @@ const PublishSettings = ({
                     borderRadius: 2,
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',
-                    textAlign: 'left',
+                    textAlign: 'center',
                     display: 'inline-flex',
                     flexDirection: 'column',
-                    alignItems: 'flex-start',
+                    alignItems: 'center',
                     width: 'fit-content'
                   }}
                 >
