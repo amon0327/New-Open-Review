@@ -349,7 +349,8 @@ export default function ChatPanel() {
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 1.5,
-                  bgcolor: 'rgba(255, 255, 255, 0.9)',
+                  bgcolor: 'rgba(255, 255, 255, 0.4)',
+                  backdropFilter: 'blur(10px)',
                   color: '#1e293b',
                   fontSize: '0.8rem',
                   '& fieldset': {
