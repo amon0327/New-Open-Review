@@ -92,7 +92,7 @@ export default function ChatPanel() {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          background: 'transparent',
+          background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #fce7f3 100%)',
           borderRadius: 2,
           overflow: 'hidden',
           border: '1px solid rgba(99, 102, 241, 0.1)',
@@ -302,7 +302,7 @@ export default function ChatPanel() {
               borderRadius: 1.5,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
-              bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.1)' : 'rgba(100, 116, 139, 0.05)',
+              bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
               border: isDataMode ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid rgba(100, 116, 139, 0.1)',
               '&:hover': {
                 bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.15)' : 'rgba(100, 116, 139, 0.1)',
