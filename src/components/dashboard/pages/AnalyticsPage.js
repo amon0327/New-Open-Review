@@ -143,7 +143,7 @@ export default function AnalyticsPage() {
             sx={{
               display: 'flex',
               gap: 3,
-              flex: 3,
+              height: '500px',
               minWidth: 0,
               overflow: 'hidden'
             }}
