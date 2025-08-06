@@ -314,7 +314,6 @@ export default function AnalyticsPage() {
             elevation={2}
             sx={{
               width: '100%',
-              minHeight: '600px',
               borderRadius: 3,
               overflow: 'hidden',
               background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
@@ -390,7 +389,7 @@ export default function AnalyticsPage() {
                 {/* 属性フィルター */}
                 <Grid item xs={12}>
                   <Card variant="outlined" sx={{ mb: 2 }}>
-                    <CardContent sx={{ pb: '16px !important', minHeight: 'auto' }}>
+                    <CardContent sx={{ pb: '16px !important' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                         <FilterList color="primary" />
                         <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -420,7 +419,7 @@ export default function AnalyticsPage() {
 
                 {/* グラフエリア */}
                 <Grid item xs={12} lg={8}>
-                  <Card variant="outlined" sx={{ minHeight: '500px', height: 'auto' }}>
+                  <Card variant="outlined">
                     <CardContent>
                       <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                         {questionData[selectedQuestion]?.title}
@@ -429,8 +428,7 @@ export default function AnalyticsPage() {
                       {/* グラフプレースホルダー */}
                       <Box
                         sx={{
-                          minHeight: '400px',
-                          height: 'auto',
+                          minHeight: '300px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -458,7 +456,7 @@ export default function AnalyticsPage() {
 
                 {/* 分析・傾向エリア */}
                 <Grid item xs={12} lg={4}>
-                  <Card variant="outlined" sx={{ minHeight: '500px', height: 'auto' }}>
+                  <Card variant="outlined">
                     <CardContent>
                       <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
                         データ分析・傾向
