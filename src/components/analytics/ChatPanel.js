@@ -26,12 +26,14 @@ export default function ChatPanel() {
       id: 1,
       type: 'ai',
       content: 'データ分析をお手伝いします',
-      timestamp: new Date(Date.now() - 60000)
+      timestamp: new Date(Date.now() - 60000),
+      isTyping: false
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isDataMode, setIsDataMode] = useState(false);
+  const [typingMessageId, setTypingMessageId] = useState(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -42,6 +44,27 @@ export default function ChatPanel() {
     scrollToBottom();
   }, [messages]);
 
+  // タイピングアニメーション関数
+  const typeMessage = (messageId, fullText, callback) => {
+    let currentIndex = 0;
+    const typingSpeed = 30; // ミリ秒
+
+    const typeInterval = setInterval(() => {
+      if (currentIndex <= fullText.length) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, content: fullText.slice(0, currentIndex), isTyping: currentIndex < fullText.length }
+            : msg
+        ));
+        currentIndex++;
+      } else {
+        clearInterval(typeInterval);
+        setTypingMessageId(null);
+        if (callback) callback();
+      }
+    }, typingSpeed);
+  };
+
   const handleSend = async () => {
     if (!inputValue.trim()) return;
 
@@ -49,7 +72,8 @@ export default function ChatPanel() {
       id: Date.now(),
       type: 'user',
       content: inputValue,
-      timestamp: new Date()
+      timestamp: new Date(),
+      isTyping: false
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -58,14 +82,25 @@ export default function ChatPanel() {
 
     // AIの応答をシミュレート
     setTimeout(() => {
+      const aiMessageId = Date.now() + 1;
+      const fullResponse = generateAIResponse(inputValue);
+      
       const aiResponse = {
-        id: Date.now() + 1,
+        id: aiMessageId,
         type: 'ai',
-        content: generateAIResponse(inputValue),
-        timestamp: new Date()
+        content: '',
+        timestamp: new Date(),
+        isTyping: true
       };
+      
       setMessages(prev => [...prev, aiResponse]);
       setIsTyping(false);
+      setTypingMessageId(aiMessageId);
+      
+      // タイピングアニメーションを開始
+      setTimeout(() => {
+        typeMessage(aiMessageId, fullResponse);
+      }, 300);
     }, 1500 + Math.random() * 1000);
   };
 
@@ -208,10 +243,28 @@ export default function ChatPanel() {
                         fontSize: '0.8rem',
                         lineHeight: 1.4,
                         color: message.type === 'ai' ? '#1e293b' : '#fff',
-                        whiteSpace: 'pre-wrap'
+                        whiteSpace: 'pre-wrap',
+                        position: 'relative'
                       }}
                     >
                       {message.content}
+                      {message.type === 'ai' && message.isTyping && (
+                        <Box
+                          component="span"
+                          sx={{
+                            display: 'inline-block',
+                            width: '2px',
+                            height: '1em',
+                            bgcolor: '#6366f1',
+                            ml: 0.5,
+                            animation: 'blink 1s infinite',
+                            '@keyframes blink': {
+                              '0%, 50%': { opacity: 1 },
+                              '51%, 100%': { opacity: 0 }
+                            }
+                          }}
+                        />
+                      )}
                     </Typography>
                   </Box>
                 </Box>
