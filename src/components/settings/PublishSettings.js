@@ -680,7 +680,20 @@ const PublishSettings = ({
                 </Box>
               </Box>
 
-              {/* デザインセクション */}
+              {/* TODO: デザインセクション - 後で実装予定 
+                  機能:
+                  - 外部SVGテンプレートを使用したポスターデザイン生成
+                  - プロジェクトのQRコード・ロゴ・テーマカラーの動的適用
+                  - 9.1cm × 5.5cm サイズのプレビュー・ダウンロード機能
+                  - Supabase連携による高品質デザインテンプレート取得
+                  
+                  実装済み関数:
+                  - downloadDesignImage(): 外部テンプレートダウンロード
+                  - downloadExternalDesign(): SVG処理・編集
+                  - getProjectDesignConfig(): プロジェクト設定取得
+              */}
+              {/* デザインセクション - 一時的にコメントアウト */}
+              {/* 
               <Box>
                 <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#374151' }}>
                   デザイン
@@ -698,7 +711,6 @@ const PublishSettings = ({
                     width: 'fit-content'
                   }}
                 >
-                  {/* デザインプレビュー */}
                   <Box
                     sx={{
                       width: '100%',
@@ -712,7 +724,6 @@ const PublishSettings = ({
                       overflow: 'hidden'
                     }}
                   >
-                    {/* 白い背景コンテナ */}
                     <Box
                       sx={{
                         position: 'absolute',
@@ -727,7 +738,6 @@ const PublishSettings = ({
                         flexDirection: 'column'
                       }}
                     >
-                      {/* ロゴエリア（左上） */}
                       {(formData?.headerImage?.logo || formData?.logoImage) && (
                         <Box
                           sx={{
@@ -750,7 +760,6 @@ const PublishSettings = ({
                         </Box>
                       )}
                       
-                      {/* メインタイトル */}
                       <Typography
                         sx={{
                           fontSize: '10px',
@@ -764,7 +773,6 @@ const PublishSettings = ({
                         アンケートにご協力ください
                       </Typography>
                       
-                      {/* サブタイトル */}
                       <Typography
                         sx={{
                           fontSize: '7px',
@@ -776,7 +784,6 @@ const PublishSettings = ({
                         {projectTitle} への回答をお願いします
                       </Typography>
                       
-                      {/* QRコード（右側） */}
                       <Box
                         sx={{
                           position: 'absolute',
@@ -796,7 +803,6 @@ const PublishSettings = ({
                         />
                       </Box>
                       
-                      {/* QRコード説明 */}
                       <Typography
                         sx={{
                           position: 'absolute',
@@ -811,7 +817,6 @@ const PublishSettings = ({
                         QRコードでアクセス
                       </Typography>
                       
-                      {/* 説明文 */}
                       <Typography
                         sx={{
                           position: 'absolute',
@@ -826,7 +831,6 @@ const PublishSettings = ({
                     </Box>
                   </Box>
                   
-                  {/* サイズ情報 */}
                   <Typography
                     variant="caption"
                     sx={{
@@ -838,7 +842,6 @@ const PublishSettings = ({
                     サイズ: 9.1cm × 5.5cm
                   </Typography>
 
-                  {/* ダウンロードボタン */}
                   <Button
                     variant="outlined"
                     size="small"
@@ -859,6 +862,7 @@ const PublishSettings = ({
                   </Button>
                 </Box>
               </Box>
+              */}
             </>
           )}
         </Stack>
