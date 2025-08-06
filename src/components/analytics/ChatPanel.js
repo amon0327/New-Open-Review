@@ -13,312 +13,393 @@ import {
 
 export default function ChatPanel() {
   const [chatMessage, setChatMessage] = useState('');
+  const [isCommandMode, setIsCommandMode] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     {
       id: 1,
-      type: 'assistant',
-      content: 'Hi! I\'m here to help analyze your data. What would you like to explore?',
+      type: 'system',
+      content: '◉ ready',
       timestamp: new Date()
     }
   ]);
 
+  const handleInputChange = (e) => {
+    setChatMessage(e.target.value);
+    setIsCommandMode(e.target.value.startsWith('/'));
+  };
+
   return (
     <Box
       sx={{
-        width: 340,
+        width: 280,
         height: '100%',
-        ml: 1,
+        position: 'relative',
+        bgcolor: 'transparent',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: '#ffffff',
-        border: '1px solid #e5e7eb',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: '10%',
+          left: 0,
+          width: 1,
+          height: '80%',
+          background: 'linear-gradient(to bottom, transparent, #e4e4e7, transparent)',
+          opacity: 0.5
+        }
       }}
     >
-      {/* Modern Header */}
+      {/* Floating Status */}
       <Box
         sx={{
-          px: 1.5,
-          py: 1.25,
-          borderBottom: '1px solid #f3f4f6',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1.5,
-          bgcolor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)'
+          position: 'absolute',
+          top: 24,
+          right: 24,
+          zIndex: 10
         }}
       >
-        <Box
-          sx={{
-            width: 28,
-            height: 28,
-            borderRadius: '8px',
-            bgcolor: 'rgba(255, 255, 255, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backdropFilter: 'blur(10px)'
+        <motion.div
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.7, 1, 0.7]
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
           }}
         >
-          <Typography
+          <Box
             sx={{
-              fontSize: '1rem',
-              fontWeight: 700,
-              color: 'white'
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              bgcolor: '#10b981',
+              boxShadow: '0 0 20px rgba(16, 185, 129, 0.6)'
             }}
-          >
-            AI
-          </Typography>
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <Typography
-            sx={{
-              color: 'white',
-              fontSize: '0.9rem',
-              fontWeight: 700,
-              letterSpacing: '-0.01em'
-            }}
-          >
-            Analytics Assistant
-          </Typography>
-          <Typography
-            sx={{
-              color: 'rgba(255, 255, 255, 0.8)',
-              fontSize: '0.75rem',
-              fontWeight: 500
-            }}
-          >
-            Ready to help
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            bgcolor: '#10b981',
-            boxShadow: '0 0 12px rgba(16, 185, 129, 0.8)'
-          }}
-        />
+          />
+        </motion.div>
       </Box>
 
-      {/* Messages Area */}
+      {/* Terminal-style Messages */}
       <Box
         sx={{
           flex: 1,
+          px: 3,
+          pt: 8,
+          pb: 2,
+          position: 'relative',
           overflowY: 'auto',
-          px: 1.5,
-          py: 1,
-          '&::-webkit-scrollbar': { width: 3 },
-          '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
-          '&::-webkit-scrollbar-thumb': {
-            bgcolor: '#d1d5db',
-            borderRadius: 1.5,
-            '&:hover': { bgcolor: '#9ca3af' }
-          }
+          '&::-webkit-scrollbar': { display: 'none' },
+          fontFamily: '"JetBrains Mono", "Fira Code", monospace'
         }}
       >
-        {chatMessages.map((message) => (
+        {chatMessages.map((message, index) => (
           <motion.div
             key={message.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0, y: 20, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{
+              duration: 0.6,
+              delay: index * 0.2,
+              ease: [0.16, 1, 0.3, 1]
+            }}
           >
-            <Box
-              sx={{
-                mb: 1.5,
-                display: 'flex',
-                justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start'
-              }}
-            >
+            {message.type === 'system' ? (
               <Box
                 sx={{
-                  maxWidth: '85%',
-                  px: 1.5,
-                  py: 1,
-                  borderRadius: message.type === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                  bgcolor: message.type === 'user' 
-                    ? 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)'
-                    : '#f8fafc',
-                  border: message.type === 'user' ? 'none' : '1px solid #e2e8f0',
-                  boxShadow: message.type === 'user' 
-                    ? '0 2px 8px rgba(79, 70, 229, 0.3)'
-                    : '0 1px 3px rgba(0, 0, 0, 0.1)'
+                  mb: 6,
+                  textAlign: 'left',
+                  position: 'relative'
                 }}
               >
                 <Typography
                   sx={{
+                    fontSize: '0.8rem',
+                    fontFamily: 'inherit',
+                    color: '#71717a',
+                    letterSpacing: '0.05em',
+                    fontWeight: 400
+                  }}
+                >
+                  {message.content}
+                </Typography>
+                
+                {/* Cursor blink effect for system messages */}
+                <motion.span
+                  animate={{ opacity: [1, 0, 1] }}
+                  transition={{
+                    duration: 1.2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  style={{
+                    display: 'inline-block',
+                    width: '2px',
+                    height: '1em',
+                    backgroundColor: '#71717a',
+                    marginLeft: '4px',
+                    verticalAlign: 'text-top'
+                  }}
+                />
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  mb: 5,
+                  position: 'relative',
+                  pl: message.type === 'user' ? 2 : 0
+                }}
+              >
+                {/* Command prefix */}
+                <Typography
+                  component="span"
+                  sx={{
+                    fontSize: '0.8rem',
+                    fontFamily: 'inherit',
+                    color: message.type === 'user' ? '#3b82f6' : '#f59e0b',
+                    letterSpacing: '0.02em',
+                    fontWeight: 500,
+                    opacity: 0.8
+                  }}
+                >
+                  {message.type === 'user' ? '$ ' : '→ '}
+                </Typography>
+                
+                {/* Message content */}
+                <Typography
+                  component="span"
+                  sx={{
                     fontSize: '0.85rem',
-                    lineHeight: 1.5,
-                    color: message.type === 'user' ? 'white' : '#374151',
-                    fontWeight: 500
+                    fontFamily: 'inherit',
+                    color: '#18181b',
+                    letterSpacing: '0.01em',
+                    fontWeight: 400,
+                    lineHeight: 1.6
                   }}
                 >
                   {message.content}
                 </Typography>
               </Box>
-            </Box>
+            )}
           </motion.div>
         ))}
       </Box>
 
-      {/* Smart Suggestions */}
-      <Box
-        sx={{
-          px: 1.5,
-          py: 1,
-          borderTop: '1px solid #f3f4f6',
-          bgcolor: '#fafbfc'
+      {/* Floating Command Palette */}
+      <motion.div
+        initial={{ opacity: 0, y: 10, filter: 'blur(8px)' }}
+        animate={{ 
+          opacity: isCommandMode ? 1 : 0,
+          y: isCommandMode ? 0 : 10,
+          filter: isCommandMode ? 'blur(0px)' : 'blur(8px)'
+        }}
+        transition={{ 
+          duration: 0.3,
+          ease: [0.16, 1, 0.3, 1]
+        }}
+        style={{
+          position: 'absolute',
+          bottom: 100,
+          left: 24,
+          right: 24,
+          pointerEvents: isCommandMode ? 'auto' : 'none',
+          zIndex: 20
         }}
       >
-        <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            bgcolor: 'rgba(255, 255, 255, 0.8)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '12px',
+            p: 1.5,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+            fontFamily: '"JetBrains Mono", monospace'
+          }}
+        >
           {[
-            { label: '📊 Show trends', query: 'Show me the latest trends in the data' },
-            { label: '🔍 Compare', query: 'Compare different data segments' },
-            { label: '💡 Insights', query: 'Generate key insights from this data' }
-          ].map((suggestion, index) => (
+            { cmd: 'trends', desc: 'Show data trends' },
+            { cmd: 'compare', desc: 'Compare segments' },
+            { cmd: 'insights', desc: 'Generate insights' },
+            { cmd: 'export', desc: 'Export results' }
+          ].map((item, index) => (
             <motion.div
-              key={index}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              key={item.cmd}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05, duration: 0.2 }}
             >
               <Box
-                onClick={() => setChatMessage(suggestion.query)}
+                onClick={() => setChatMessage(`/${item.cmd} `)}
                 sx={{
-                  px: 1.25,
-                  py: 0.5,
-                  bgcolor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  px: 1,
+                  py: 0.75,
+                  mb: index < 3 ? 0.5 : 0,
                   cursor: 'pointer',
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                  borderRadius: '6px',
                   '&:hover': {
-                    bgcolor: '#f9fafb',
-                    borderColor: '#d1d5db',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                    bgcolor: 'rgba(0, 0, 0, 0.05)'
                   },
-                  transition: 'all 0.15s ease'
+                  transition: 'background-color 0.15s ease'
                 }}
               >
                 <Typography
                   sx={{
                     fontSize: '0.75rem',
-                    color: '#4b5563',
+                    fontFamily: 'inherit',
+                    color: '#3b82f6',
                     fontWeight: 600,
-                    letterSpacing: '0.01em'
+                    minWidth: '4rem'
                   }}
                 >
-                  {suggestion.label}
+                  /{item.cmd}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: '0.7rem',
+                    color: '#71717a',
+                    fontWeight: 400
+                  }}
+                >
+                  {item.desc}
                 </Typography>
               </Box>
             </motion.div>
           ))}
         </Box>
-      </Box>
+      </motion.div>
 
-      {/* Input Area */}
+      {/* Terminal Input */}
       <Box
         sx={{
-          p: 1.5,
-          bgcolor: 'white',
-          borderTop: '1px solid #f3f4f6'
+          position: 'relative',
+          px: 3,
+          pb: 4,
+          pt: 2
         }}
       >
-        <Box sx={{ position: 'relative' }}>
+        {/* Input prompt */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 1,
+            fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+            position: 'relative'
+          }}
+        >
+          {/* Terminal prompt */}
+          <Typography
+            sx={{
+              fontSize: '0.85rem',
+              color: '#3b82f6',
+              fontWeight: 500,
+              fontFamily: 'inherit',
+              mt: 0.125,
+              opacity: 0.8,
+              letterSpacing: '0.02em'
+            }}
+          >
+            $
+          </Typography>
+          
+          {/* Invisible input field */}
           <TextField
             fullWidth
-            placeholder="Type your question..."
-            value={chatMessage}
-            onChange={(e) => setChatMessage(e.target.value)}
-            variant="outlined"
-            size="small"
             multiline
-            maxRows={4}
+            maxRows={8}
+            placeholder="ask anything or type / for commands"
+            value={chatMessage}
+            onChange={handleInputChange}
+            variant="standard"
             InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <IconButton
-                      edge="end"
-                      size="small"
-                      disabled={!chatMessage.trim()}
-                      sx={{
-                        width: 32,
-                        height: 32,
-                        bgcolor: chatMessage.trim() 
-                          ? 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)'
-                          : '#f3f4f6',
-                        color: chatMessage.trim() ? 'white' : '#9ca3af',
-                        boxShadow: chatMessage.trim() 
-                          ? '0 2px 8px rgba(79, 70, 229, 0.3)'
-                          : 'none',
-                        '&:hover': {
-                          bgcolor: chatMessage.trim() 
-                            ? 'linear-gradient(135deg, #4338ca 0%, #6d28d9 100%)'
-                            : '#f3f4f6',
-                          boxShadow: chatMessage.trim() 
-                            ? '0 4px 12px rgba(79, 70, 229, 0.4)'
-                            : 'none'
-                        },
-                        '&.Mui-disabled': {
-                          bgcolor: '#f3f4f6',
-                          color: '#9ca3af'
-                        },
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <Send sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </motion.div>
-                </InputAdornment>
-              )
+              disableUnderline: true,
+              sx: {
+                '&::before': { display: 'none' },
+                '&::after': { display: 'none' }
+              }
             }}
             sx={{
-              '& .MuiOutlinedInput-root': {
-                bgcolor: '#fafbfc',
-                borderRadius: '12px',
-                fontSize: '0.875rem',
-                '& fieldset': { 
-                  borderColor: '#e5e7eb',
-                  borderWidth: '1px'
-                },
-                '&:hover fieldset': { 
-                  borderColor: '#d1d5db'
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#4f46e5',
-                  borderWidth: '2px'
-                },
+              '& .MuiInputBase-root': {
+                fontSize: '0.85rem',
+                fontFamily: 'inherit',
+                lineHeight: 1.6,
+                color: '#18181b',
+                fontWeight: 400,
                 '& .MuiInputBase-input': {
-                  color: '#374151',
-                  fontWeight: 500,
+                  padding: 0,
                   '&::placeholder': {
-                    color: '#9ca3af',
-                    opacity: 1,
-                    fontWeight: 400
+                    color: '#a1a1aa',
+                    opacity: 0.6,
+                    fontStyle: 'italic'
                   }
                 }
               }
             }}
           />
         </Box>
-        <Typography
-          sx={{
-            fontSize: '0.7rem',
-            color: '#9ca3af',
-            textAlign: 'center',
-            mt: 0.75,
-            fontWeight: 500
+        
+        {/* Glowing cursor effect */}
+        <motion.div
+          animate={{
+            opacity: [0.5, 1, 0.5],
+            scale: [0.8, 1, 0.8]
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{
+            position: 'absolute',
+            right: 24,
+            bottom: 20,
+            width: 2,
+            height: 14,
+            backgroundColor: '#3b82f6',
+            borderRadius: 1,
+            display: chatMessage.trim() ? 'none' : 'block'
+          }}
+        />
+        
+        {/* Send on Enter hint */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: chatMessage.trim() ? 0.5 : 0 }}
+          transition={{ duration: 0.2 }}
+          style={{
+            position: 'absolute',
+            right: 24,
+            bottom: 12,
+            fontSize: '0.65rem',
+            color: '#a1a1aa',
+            fontFamily: '"JetBrains Mono", monospace',
+            letterSpacing: '0.02em'
           }}
         >
-          AI can make mistakes. Verify important information.
-        </Typography>
+          ⏎ to send
+        </motion.div>
+        
+        {/* Subtle glow effect when typing */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ 
+            opacity: chatMessage.trim() ? 0.1 : 0,
+            scale: chatMessage.trim() ? 1 : 0.8
+          }}
+          transition={{ duration: 0.3 }}
+          style={{
+            position: 'absolute',
+            inset: 8,
+            background: 'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
+            borderRadius: 12,
+            pointerEvents: 'none'
+          }}
+        />
       </Box>
     </Box>
   );
