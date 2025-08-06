@@ -243,28 +243,10 @@ export default function ChatPanel() {
                         fontSize: '0.8rem',
                         lineHeight: 1.4,
                         color: message.type === 'ai' ? '#1e293b' : '#fff',
-                        whiteSpace: 'pre-wrap',
-                        position: 'relative'
+                        whiteSpace: 'pre-wrap'
                       }}
                     >
                       {message.content}
-                      {message.type === 'ai' && message.isTyping && (
-                        <Box
-                          component="span"
-                          sx={{
-                            display: 'inline-block',
-                            width: '2px',
-                            height: '1em',
-                            bgcolor: '#6366f1',
-                            ml: 0.5,
-                            animation: 'blink 1s infinite',
-                            '@keyframes blink': {
-                              '0%, 50%': { opacity: 1 },
-                              '51%, 100%': { opacity: 0 }
-                            }
-                          }}
-                        />
-                      )}
                     </Typography>
                   </Box>
                 </Box>
