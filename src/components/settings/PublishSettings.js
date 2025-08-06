@@ -462,9 +462,10 @@ const PublishSettings = ({
                     backgroundColor: '#f8fafc',
                     border: '1px solid #e2e8f0',
                     textAlign: 'left',
-                    display: 'flex',
+                    display: 'inline-flex',
                     flexDirection: 'column',
-                    alignItems: 'flex-start'
+                    alignItems: 'flex-start',
+                    width: 'fit-content'
                   }}
                 >
                   <QRCode
