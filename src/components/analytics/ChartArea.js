@@ -283,51 +283,6 @@ export default function ChartArea({
                   </Box>
                 </Box>
 
-                {/* Quick Actions Bar */}
-                <Box
-                  sx={{
-                    p: 1,
-                    bgcolor: '#f8fafc',
-                    borderBottom: '1px solid #e2e8f0'
-                  }}
-                >
-                  <Box sx={{ display: 'flex', gap: 0.75 }}>
-                    {[
-                      { icon: <TrendingUpIcon />, label: 'Insights', color: '#3b82f6' },
-                      { icon: <InsightsOutlined />, label: 'Compare', color: '#8b5cf6' },
-                      { icon: <FlashOn />, label: 'Quick', color: '#f59e0b' }
-                    ].map((action, index) => (
-                      <Box
-                        key={index}
-                        sx={{
-                          flex: 1,
-                          py: 0.75,
-                          px: 1,
-                          borderRadius: 1,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          bgcolor: 'white',
-                          border: '1px solid #e5e7eb',
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            transform: 'translateY(-1px)',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                            borderColor: action.color
-                          }
-                        }}
-                      >
-                        <Box sx={{ color: action.color }}>
-                          {React.cloneElement(action.icon, { sx: { fontSize: 14 } })}
-                        </Box>
-                        <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, color: '#374151' }}>
-                          {action.label}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                </Box>
 
                 {/* Chat Messages */}
                 <Box
@@ -418,64 +373,241 @@ export default function ChartArea({
                     ))}
                   </Box>
 
-                  {/* Message Input */}
+                  {/* Smart Input Area with Quick Actions */}
                   <Box
                     sx={{
                       p: 1.5,
-                      borderTop: '1px solid #e5e7eb',
-                      bgcolor: '#fafbfc'
+                      background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
+                      position: 'relative',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: 1,
+                        background: 'linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.2) 50%, transparent 100%)'
+                      }
                     }}
                   >
-                    <Box sx={{ position: 'relative' }}>
-                      <TextField
-                        fullWidth
-                        placeholder="Ask about your data..."
-                        value={chatMessage}
-                        onChange={(e) => setChatMessage(e.target.value)}
-                        variant="outlined"
-                        size="small"
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                edge="end"
-                                size="small"
-                                disabled={!chatMessage.trim()}
-                                sx={{
-                                  bgcolor: chatMessage.trim() ? '#667eea' : '#e5e7eb',
-                                  color: 'white',
-                                  width: 28,
-                                  height: 28,
-                                  '&:hover': {
-                                    bgcolor: chatMessage.trim() ? '#5a67d8' : '#e5e7eb',
-                                    transform: chatMessage.trim() ? 'scale(1.05)' : 'none'
-                                  },
-                                  transition: 'all 0.2s ease',
-                                  '&.Mui-disabled': {
-                                    bgcolor: '#e5e7eb',
-                                    color: '#9ca3af'
+                    {/* Quick Actions Pills */}
+                    <Box sx={{ mb: 1.5 }}>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        {[
+                          { 
+                            icon: <TrendingUpIcon />, 
+                            label: 'Generate Insights', 
+                            gradient: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                            shadow: 'rgba(59, 130, 246, 0.3)'
+                          },
+                          { 
+                            icon: <InsightsOutlined />, 
+                            label: 'Compare Data', 
+                            gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                            shadow: 'rgba(139, 92, 246, 0.3)'
+                          },
+                          { 
+                            icon: <FlashOn />, 
+                            label: 'Quick Analysis', 
+                            gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                            shadow: 'rgba(245, 158, 11, 0.3)'
+                          }
+                        ].map((action, index) => (
+                          <motion.div
+                            key={index}
+                            whileHover={{ scale: 1.02, y: -1 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <Box
+                              onClick={() => setChatMessage(action.label)}
+                              sx={{
+                                py: 0.75,
+                                px: 1.5,
+                                borderRadius: 2.5,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.75,
+                                background: action.gradient,
+                                color: 'white',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                letterSpacing: '0.02em',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                boxShadow: `0 2px 8px ${action.shadow}`,
+                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                '&::before': {
+                                  content: '""',
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: -100,
+                                  width: '100%',
+                                  height: '100%',
+                                  background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
+                                  transition: 'left 0.6s ease',
+                                },
+                                '&:hover': {
+                                  transform: 'translateY(-2px)',
+                                  boxShadow: `0 6px 20px ${action.shadow}`,
+                                  '&::before': {
+                                    left: '100%',
                                   }
-                                }}
-                              >
-                                <Send sx={{ fontSize: 14 }} />
-                              </IconButton>
-                            </InputAdornment>
-                          )
-                        }}
+                                }
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', zIndex: 1 }}>
+                                {React.cloneElement(action.icon, { sx: { fontSize: 16 } })}
+                              </Box>
+                              <Typography sx={{ 
+                                fontSize: '0.75rem', 
+                                fontWeight: 700,
+                                zIndex: 1,
+                                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                              }}>
+                                {action.label.replace(' ', '\u00A0')}
+                              </Typography>
+                            </Box>
+                          </motion.div>
+                        ))}
+                      </Box>
+                    </Box>
+
+                    {/* Advanced Message Input */}
+                    <Box sx={{ position: 'relative' }}>
+                      <Box
                         sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 1.5,
-                            bgcolor: 'white',
-                            fontSize: '0.85rem',
-                            '& fieldset': { borderColor: '#d1d5db' },
-                            '&:hover fieldset': { borderColor: '#667eea' },
-                            '&.Mui-focused fieldset': {
-                              borderColor: '#667eea',
-                              borderWidth: '2px'
-                            }
+                          position: 'relative',
+                          '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            inset: -1,
+                            borderRadius: 2.5,
+                            padding: 1,
+                            background: chatMessage.trim() 
+                              ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                              : 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)',
+                            mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                            maskComposite: 'xor',
+                            transition: 'all 0.3s ease',
+                            opacity: chatMessage.trim() ? 1 : 0.5
                           }
                         }}
-                      />
+                      >
+                        <TextField
+                          fullWidth
+                          placeholder="✨ Ask me anything about your data..."
+                          value={chatMessage}
+                          onChange={(e) => setChatMessage(e.target.value)}
+                          variant="outlined"
+                          multiline
+                          maxRows={3}
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <motion.div
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
+                                >
+                                  <IconButton
+                                    edge="end"
+                                    size="small"
+                                    disabled={!chatMessage.trim()}
+                                    sx={{
+                                      width: 36,
+                                      height: 36,
+                                      background: chatMessage.trim() 
+                                        ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                                        : '#f3f4f6',
+                                      color: 'white',
+                                      boxShadow: chatMessage.trim() 
+                                        ? '0 4px 12px rgba(102, 126, 234, 0.4)'
+                                        : 'none',
+                                      '&:hover': {
+                                        background: chatMessage.trim() 
+                                          ? 'linear-gradient(135deg, #5a67d8 0%, #6366f1 100%)'
+                                          : '#f3f4f6',
+                                        transform: 'translateY(-1px)',
+                                        boxShadow: chatMessage.trim() 
+                                          ? '0 6px 20px rgba(102, 126, 234, 0.5)'
+                                          : 'none',
+                                      },
+                                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                      '&.Mui-disabled': {
+                                        background: '#f3f4f6',
+                                        color: '#9ca3af'
+                                      }
+                                    }}
+                                  >
+                                    <Send sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </motion.div>
+                              </InputAdornment>
+                            )
+                          }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2.5,
+                              bgcolor: 'rgba(255, 255, 255, 0.9)',
+                              backdropFilter: 'blur(10px)',
+                              fontSize: '0.9rem',
+                              fontWeight: 500,
+                              minHeight: 48,
+                              '& fieldset': { 
+                                border: 'none'
+                              },
+                              '&:hover fieldset': { 
+                                border: 'none'
+                              },
+                              '&.Mui-focused fieldset': {
+                                border: 'none'
+                              },
+                              '& .MuiInputBase-input': {
+                                '&::placeholder': {
+                                  color: '#9ca3af',
+                                  fontWeight: 500,
+                                  opacity: 1
+                                }
+                              }
+                            }
+                          }}
+                        />
+                      </Box>
+                    </Box>
+
+                    {/* Typing Indicator */}
+                    <Box
+                      sx={{
+                        mt: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        opacity: chatMessage.trim() ? 1 : 0,
+                        transition: 'opacity 0.3s ease'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Box
+                          sx={{
+                            width: 4,
+                            height: 4,
+                            borderRadius: '50%',
+                            bgcolor: '#667eea',
+                            animation: 'pulse 1.5s infinite'
+                          }}
+                        />
+                        <Typography
+                          sx={{
+                            fontSize: '0.7rem',
+                            color: '#6b7280',
+                            fontWeight: 500,
+                            fontStyle: 'italic'
+                          }}
+                        >
+                          AI is ready to help
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
                 </Box>
@@ -742,51 +874,6 @@ export default function ChartArea({
                 </Box>
               </Box>
 
-              {/* Quick Actions Bar */}
-              <Box
-                sx={{
-                  p: 1,
-                  bgcolor: '#f8fafc',
-                  borderBottom: '1px solid #e2e8f0'
-                }}
-              >
-                <Box sx={{ display: 'flex', gap: 0.75 }}>
-                  {[
-                    { icon: <TrendingUpIcon />, label: 'Insights', color: '#3b82f6' },
-                    { icon: <InsightsOutlined />, label: 'Compare', color: '#8b5cf6' },
-                    { icon: <FlashOn />, label: 'Quick', color: '#f59e0b' }
-                  ].map((action, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        flex: 1,
-                        py: 0.75,
-                        px: 1,
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        bgcolor: 'white',
-                        border: '1px solid #e5e7eb',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          transform: 'translateY(-1px)',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                          borderColor: action.color
-                        }
-                      }}
-                    >
-                      <Box sx={{ color: action.color }}>
-                        {React.cloneElement(action.icon, { sx: { fontSize: 14 } })}
-                      </Box>
-                      <Typography sx={{ fontSize: '0.7rem', fontWeight: 600, color: '#374151' }}>
-                        {action.label}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
 
               {/* Chat Messages */}
               <Box
