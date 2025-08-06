@@ -50,7 +50,12 @@ import {
   AutoGraph,
   Compare,
   Tune,
-  Close
+  Close,
+  Chat,
+  Send,
+  SmartToy,
+  ChevronLeft,
+  ChevronRight
 } from '@mui/icons-material';
 
 export default function AnalyticsPage({ onNavCollapse }) {
@@ -59,6 +64,16 @@ export default function AnalyticsPage({ onNavCollapse }) {
   const [activeFilters, setActiveFilters] = useState({});
   const [showFilters, setShowFilters] = useState(false);
   const [analysisMode, setAnalysisMode] = useState('single'); // 'single' or 'comparison'
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([
+    {
+      id: 1,
+      type: 'ai',
+      content: 'こんにちは！データ分析についてサポートいたします。質問や分析結果について何でもお聞きください。',
+      timestamp: new Date()
+    }
+  ]);
+  const [chatInput, setChatInput] = useState('');
 
   // Analyticsページが開かれた際にナビゲーションを縮小
   React.useEffect(() => {
@@ -73,6 +88,44 @@ export default function AnalyticsPage({ onNavCollapse }) {
       }
     };
   }, [onNavCollapse]);
+
+  // チャット送信関数
+  const handleChatSend = () => {
+    if (!chatInput.trim()) return;
+
+    const userMessage = {
+      id: Date.now(),
+      type: 'user',
+      content: chatInput,
+      timestamp: new Date()
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput('');
+
+    // AI返答をシミュレート
+    setTimeout(() => {
+      const aiResponse = {
+        id: Date.now() + 1,
+        type: 'ai',
+        content: generateAIResponse(chatInput, selectedQuestions),
+        timestamp: new Date()
+      };
+      setChatMessages(prev => [...prev, aiResponse]);
+    }, 1000);
+  };
+
+  // AI返答生成（シミュレーション）
+  const generateAIResponse = (input, questions) => {
+    const responses = [
+      "選択されたデータから興味深いパターンが見えますね。詳しく分析してみましょう。",
+      "このデータセットについて、どの指標を重点的に見たいでしょうか？",
+      "回答数から判断すると、統計的に有意な結果が得られそうです。",
+      "比較分析を行うことで、より深い洞察が得られるかもしれません。",
+      "データの傾向から、顧客満足度の改善ポイントが見えてきます。"
+    ];
+    return responses[Math.floor(Math.random() * responses.length)];
+  };
 
   // コンパクトな質問データベース
   const questionsDatabase = [
@@ -260,6 +313,236 @@ export default function AnalyticsPage({ onNavCollapse }) {
   const filteredQuestions = questionsDatabase.filter(question =>
     question.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     question.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // AIChat コンポーネント
+  const AIChat = () => (
+    <AnimatePresence>
+      {isChatOpen && (
+        <motion.div
+          initial={{ width: 0, opacity: 0 }}
+          animate={{ width: 400, opacity: 1 }}
+          exit={{ width: 0, opacity: 0 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          style={{ overflow: 'hidden' }}
+        >
+          <Box
+            sx={{
+              width: 400,
+              height: '100%',
+              bgcolor: '#ffffff',
+              borderRadius: 1,
+              border: '1px solid #e5e7eb',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            {/* チャットヘッダー */}
+            <Box
+              sx={{
+                p: 3,
+                borderBottom: '1px solid #e5e7eb',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '4px 4px 0 0'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <SmartToy sx={{ color: 'white', fontSize: 20 }} />
+                </Box>
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      mb: 0.5
+                    }}
+                  >
+                    Analytics AI Assistant
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      fontSize: '0.75rem'
+                    }}
+                  >
+                    データ分析をサポート
+                  </Typography>
+                </Box>
+                <IconButton
+                  onClick={() => setIsChatOpen(false)}
+                  sx={{ color: 'white', p: 1 }}
+                >
+                  <Close />
+                </IconButton>
+              </Box>
+            </Box>
+
+            {/* チャットメッセージ */}
+            <Box
+              sx={{
+                flexGrow: 1,
+                p: 2,
+                overflow: 'auto',
+                bgcolor: '#f9fafb',
+                '&::-webkit-scrollbar': { width: 4 },
+                '&::-webkit-scrollbar-track': { bgcolor: '#f1f5f9' },
+                '&::-webkit-scrollbar-thumb': { bgcolor: '#cbd5e1', borderRadius: 2 }
+              }}
+            >
+              {chatMessages.map((message) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
+                      mb: 2
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        maxWidth: '80%',
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: message.type === 'user' ? '#6366f1' : '#ffffff',
+                        color: message.type === 'user' ? 'white' : '#374151',
+                        border: message.type === 'ai' ? '1px solid #e5e7eb' : 'none',
+                        boxShadow: message.type === 'ai' ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'none'
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontSize: '0.875rem',
+                          lineHeight: 1.5
+                        }}
+                      >
+                        {message.content}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </motion.div>
+              ))}
+            </Box>
+
+            {/* チャット入力 */}
+            <Box
+              sx={{
+                p: 2,
+                borderTop: '1px solid #e5e7eb',
+                bgcolor: '#ffffff'
+              }}
+            >
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField
+                  fullWidth
+                  placeholder="データについて質問してください..."
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleChatSend()}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      fontSize: '0.875rem',
+                      borderRadius: 1.5,
+                      '& fieldset': {
+                        borderColor: '#d1d5db',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#9ca3af',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#6366f1',
+                      }
+                    }
+                  }}
+                />
+                <IconButton
+                  onClick={handleChatSend}
+                  disabled={!chatInput.trim()}
+                  sx={{
+                    bgcolor: '#6366f1',
+                    color: 'white',
+                    '&:hover': {
+                      bgcolor: '#5046e5'
+                    },
+                    '&:disabled': {
+                      bgcolor: '#e5e7eb',
+                      color: '#9ca3af'
+                    }
+                  }}
+                >
+                  <Send sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Box>
+            </Box>
+          </Box>
+        </motion.div>
+      )}
+      
+      {/* チャットトグルボタン */}
+      {!isChatOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Box
+            onClick={() => setIsChatOpen(true)}
+            sx={{
+              width: 60,
+              height: '100%',
+              bgcolor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              border: '1px solid #e5e7eb',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateX(-2px)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+              }
+            }}
+          >
+            <Chat sx={{ color: 'white', fontSize: 24, mb: 1 }} />
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                writingMode: 'vertical-rl',
+                textOrientation: 'mixed'
+              }}
+            >
+              AI Chat
+            </Typography>
+          </Box>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 
   return (
@@ -577,18 +860,20 @@ export default function AnalyticsPage({ onNavCollapse }) {
 
         {/* メインコンテンツ */}
         <Box sx={{ flexGrow: 1, display: 'flex', gap: 2, minHeight: 0 }}>
-          {/* 質問選択サイドバー */}
-          <Box
-            sx={{
-              width: 320,
-              bgcolor: '#ffffff',
-              borderRadius: 1,
-              border: '1px solid #e5e7eb',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden'
-            }}
-          >
+          {/* 左側: Analytics コンテンツ */}
+          <Box sx={{ flexGrow: 1, display: 'flex', gap: 2, minHeight: 0 }}>
+            {/* 質問選択サイドバー */}
+            <Box
+              sx={{
+                width: 320,
+                bgcolor: '#ffffff',
+                borderRadius: 1,
+                border: '1px solid #e5e7eb',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden'
+              }}
+            >
             {/* 検索 */}
             <Box sx={{ p: 2, borderBottom: '1px solid #e5e7eb' }}>
               <TextField
@@ -922,7 +1207,11 @@ export default function AnalyticsPage({ onNavCollapse }) {
                 </motion.div>
               )}
             </AnimatePresence>
+            </Box>
           </Box>
+
+          {/* 右側: AIチャット */}
+          <AIChat />
         </Box>
       </Box>
     </motion.div>
