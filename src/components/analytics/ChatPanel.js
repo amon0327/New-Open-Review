@@ -16,7 +16,7 @@ import {
   SmartToy,
   Person,
   HelpOutline,
-  DataUsage,
+  BarChart,
   Analytics
 } from '@mui/icons-material';
 
@@ -287,8 +287,7 @@ export default function ChatPanel() {
           py: 0.5,
           display: 'flex',
           alignItems: 'center',
-          gap: 1.5,
-          justifyContent: 'center'
+          justifyContent: 'flex-start'
         }}>
           <Box
             onClick={() => setIsDataMode(!isDataMode)}
@@ -296,77 +295,31 @@ export default function ChatPanel() {
               display: 'flex',
               alignItems: 'center',
               gap: 0.75,
-              px: 1,
-              py: 0.5,
-              borderRadius: 1,
+              px: 1.5,
+              py: 0.75,
+              borderRadius: 1.5,
               cursor: 'pointer',
-              transition: 'opacity 0.15s ease',
-              opacity: isDataMode ? 1 : 0.6,
+              transition: 'all 0.15s ease',
+              bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.1)' : 'rgba(100, 116, 139, 0.05)',
+              border: isDataMode ? '1px solid rgba(99, 102, 241, 0.2)' : '1px solid rgba(100, 116, 139, 0.1)',
               '&:hover': {
-                opacity: 1
+                bgcolor: isDataMode ? 'rgba(99, 102, 241, 0.15)' : 'rgba(100, 116, 139, 0.1)',
+                transform: 'translateY(-1px)',
+                boxShadow: isDataMode ? '0 2px 8px rgba(99, 102, 241, 0.15)' : '0 2px 8px rgba(100, 116, 139, 0.1)'
               }
             }}
           >
-            <DataUsage sx={{ 
+            <BarChart sx={{ 
               fontSize: 14, 
               color: isDataMode ? '#6366f1' : '#64748b'
             }} />
             <Typography sx={{ 
               fontSize: '0.75rem', 
+              fontWeight: isDataMode ? 600 : 500,
               color: isDataMode ? '#6366f1' : '#64748b',
               userSelect: 'none'
             }}>
               データ質問
-            </Typography>
-          </Box>
-          {isDataMode && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Box
-                sx={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  bgcolor: '#6366f1',
-                  ml: 'auto'
-                }}
-              />
-            </motion.div>
-          )}
-          
-          <Box
-            onClick={() => {
-              console.log('Analyze selected data');
-            }}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.75,
-              px: 1,
-              py: 0.5,
-              borderRadius: 1,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              opacity: 0.6,
-              '&:hover': {
-                opacity: 1,
-                transform: 'translateY(-0.5px)'
-              }
-            }}
-          >
-            <Analytics sx={{ 
-              fontSize: 14, 
-              color: '#64748b'
-            }} />
-            <Typography sx={{ 
-              fontSize: '0.75rem', 
-              color: '#64748b',
-              userSelect: 'none'
-            }}>
-              分析実行
             </Typography>
           </Box>
         </Box>
