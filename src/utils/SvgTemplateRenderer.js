@@ -19,14 +19,51 @@ export class SvgTemplateRenderer {
     }
 
     try {
-      const response = await fetch(templatePath);
+      // publicフォルダからの相対パスに変更
+      const publicPath = '/src/assets/templates/design-template.svg';
+      const response = await fetch(publicPath);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const template = await response.text();
       this.templateCache.set(templatePath, template);
       return template;
     } catch (error) {
       console.error('SVGテンプレートの読み込みに失敗:', error);
-      throw error;
+      // フォールバック: インラインSVGテンプレートを使用
+      return this.getFallbackTemplate();
     }
+  }
+
+  /**
+   * フォールバック用のインラインSVGテンプレート
+   * @returns {string} フォールバックSVGテンプレート
+   */
+  getFallbackTemplate() {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2149" height="1299" viewBox="0 0 2149 1299" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:{{PRIMARY_COLOR}};stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:{{SECONDARY_COLOR}};stop-opacity:0.15" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="2149" height="1299" fill="#ffffff"/>
+  <rect width="2149" height="1299" fill="url(#bg)"/>
+  
+  <g transform="translate(150, 400)">
+    <rect x="-30" y="-30" width="460" height="460" rx="30" fill="white" stroke="{{PRIMARY_COLOR}}" stroke-width="2"/>
+    <image x="0" y="0" width="400" height="400" href="{{QR_CODE_DATA}}"/>
+  </g>
+  
+  <text x="700" y="500" font-family="system-ui" font-size="{{TEXT_SIZE}}" font-weight="bold" fill="{{TEXT_COLOR}}">{{MAIN_TEXT}}</text>
+  <text x="700" y="600" font-family="system-ui" font-size="{{SUB_TEXT_SIZE}}" fill="{{SUB_TEXT_COLOR}}" opacity="{{SUB_TEXT_OPACITY}}">{{SUB_TEXT}}</text>
+  
+  <image x="80" y="60" width="300" height="150" href="{{LOGO_IMAGE}}" opacity="{{LOGO_OPACITY}}"/>
+</svg>`;
   }
 
   /**
@@ -160,33 +197,72 @@ export class SvgTemplateRenderer {
    */
   async svgToPng(svgString, scale = 1) {
     return new Promise((resolve, reject) => {
-      const img = new Image();
-      
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+      try {
+        const img = new Image();
         
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // デフォルトサイズを設定
+            const width = img.naturalWidth || img.width || 2149;
+            const height = img.naturalHeight || img.height || 1299;
+            
+            canvas.width = width * scale;
+            canvas.height = height * scale;
+            
+            // 高品質設定
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
+            // 背景を白で塗りつぶし
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (scale !== 1) {
+              ctx.scale(scale, scale);
+            }
+            
+            ctx.drawImage(img, 0, 0);
+            
+            canvas.toBlob((blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Canvasからのブロブ変換に失敗しました'));
+              }
+            }, 'image/png', 1.0);
+            
+          } catch (canvasError) {
+            console.error('Canvas処理エラー:', canvasError);
+            reject(new Error(`Canvas描画に失敗: ${canvasError.message}`));
+          }
+        };
         
-        // 高品質設定
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
+        img.onerror = (error) => {
+          console.error('SVG画像読み込みエラー:', error);
+          reject(new Error('SVG画像の読み込みに失敗しました'));
+        };
         
-        if (scale !== 1) {
-          ctx.scale(scale, scale);
+        // SVGの有効性チェック
+        if (!svgString || !svgString.includes('<svg')) {
+          throw new Error('無効なSVG文字列です');
         }
         
-        ctx.drawImage(img, 0, 0);
+        // Data URLとして設定
+        const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+        img.src = svgDataUrl;
         
-        canvas.toBlob(resolve, 'image/png');
-      };
-      
-      img.onerror = () => reject(new Error('SVGの変換に失敗しました'));
-      
-      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
-      img.src = url;
+        // タイムアウト設定
+        setTimeout(() => {
+          reject(new Error('SVG変換がタイムアウトしました'));
+        }, 30000);
+        
+      } catch (error) {
+        console.error('SVG変換処理エラー:', error);
+        reject(error);
+      }
     });
   }
 

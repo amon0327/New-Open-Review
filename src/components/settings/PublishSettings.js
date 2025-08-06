@@ -248,16 +248,117 @@ const PublishSettings = ({
     }
   };
 
-  // デザイン画像のダウンロード（SVGベース）
+  // デザイン画像のダウンロード（SVGベース + フォールバック）
   const downloadDesignImage = async () => {
     try {
       const projectConfig = getProjectDesignConfig();
       await svgRenderer.generateAndDownload(projectConfig);
       toast.success('デザイン画像をダウンロードしました！');
     } catch (error) {
-      console.error('デザインのダウンロードに失敗:', error);
-      toast.error('デザインのダウンロードに失敗しました');
+      console.error('SVGデザインのダウンロードに失敗:', error);
+      console.log('フォールバック: Canvas版を試行中...');
+      
+      // フォールバック: Canvas版でダウンロード
+      try {
+        await downloadDesignImageCanvas();
+      } catch (fallbackError) {
+        console.error('フォールバックも失敗:', fallbackError);
+        toast.error('デザインのダウンロードに失敗しました。後でもう一度お試しください。');
+      }
     }
+  };
+
+  // フォールバック用のCanvas版デザインダウンロード
+  const downloadDesignImageCanvas = async () => {
+    const svg = document.getElementById('qr-code');
+    if (!svg) {
+      throw new Error('QRコードが見つかりません');
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+          try {
+            // プロジェクト設定を取得
+            const projectConfig = getProjectDesignConfig();
+            
+            // 9.1cm x 5.5cm サイズ（600 DPIで超高解像度計算）
+            const cmToPx = 600 / 2.54;
+            canvas.width = Math.round(9.1 * cmToPx);
+            canvas.height = Math.round(5.5 * cmToPx);
+            
+            // 高品質レンダリング設定
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
+            // 背景グラデーション
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, projectConfig.primaryColor + '15');
+            gradient.addColorStop(1, projectConfig.secondaryColor + '15');
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // QRコードを配置
+            const qrSize = Math.round(canvas.height * 0.6);
+            const qrX = Math.round(canvas.width * 0.08);
+            const qrY = (canvas.height - qrSize) / 2;
+            
+            // QRコード背景
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
+            ctx.strokeStyle = projectConfig.primaryColor;
+            ctx.lineWidth = 4;
+            ctx.strokeRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40);
+            
+            ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+            
+            // テキストを配置
+            const textX = qrX + qrSize + Math.round(canvas.width * 0.05);
+            const textY = canvas.height / 2;
+            
+            ctx.fillStyle = projectConfig.textColor;
+            ctx.font = `bold ${Math.round(canvas.height * 0.08)}px system-ui, -apple-system, sans-serif`;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(projectConfig.mainText, textX, textY - 40);
+            
+            // サブテキスト
+            if (projectConfig.subText) {
+              ctx.font = `normal ${Math.round(canvas.height * 0.05)}px system-ui, -apple-system, sans-serif`;
+              ctx.fillStyle = projectConfig.subTextColor;
+              ctx.fillText(projectConfig.subText, textX, textY + 20);
+            }
+            
+            // ダウンロード
+            const pngFile = canvas.toDataURL('image/png');
+            const downloadLink = document.createElement('a');
+            downloadLink.download = `${projectTitle || 'form'}-design.png`;
+            downloadLink.href = pngFile;
+            downloadLink.click();
+            
+            toast.success('デザイン画像をダウンロードしました！');
+            resolve();
+            
+          } catch (canvasError) {
+            reject(canvasError);
+          }
+        };
+        
+        img.onerror = () => reject(new Error('QRコード画像の読み込みに失敗'));
+        img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+        
+      } catch (error) {
+        reject(error);
+      }
+    });
   };
 
   // プロジェクト情報を取得してデザインに適用
