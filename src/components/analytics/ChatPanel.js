@@ -85,12 +85,6 @@ export default function ChatPanel() {
     setInputValue(`${label}を分析して`);
   };
 
-  const formatTime = (timestamp) => {
-    return timestamp.toLocaleTimeString('ja-JP', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
 
   return (
     <motion.div
@@ -177,28 +171,24 @@ export default function ChatPanel() {
                     flexDirection: message.type === 'user' ? 'row-reverse' : 'row'
                   }}
                 >
-                  <Box
-                    sx={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      bgcolor: message.type === 'ai' ? '#6366f1' : '#1e293b',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      mt: 0.25,
-                      boxShadow: message.type === 'ai' 
-                        ? '0 2px 8px rgba(99, 102, 241, 0.3)' 
-                        : '0 2px 8px rgba(30, 41, 59, 0.3)'
-                    }}
-                  >
-                    {message.type === 'ai' ? (
+                  {message.type === 'ai' && (
+                    <Box
+                      sx={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        bgcolor: '#6366f1',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        mt: 0.25,
+                        boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)'
+                      }}
+                    >
                       <SmartToy sx={{ fontSize: 12, color: '#fff' }} />
-                    ) : (
-                      <Person sx={{ fontSize: 12, color: '#fff' }} />
-                    )}
-                  </Box>
+                    </Box>
+                  )}
                   <Box
                     sx={{
                       maxWidth: '80%',
@@ -214,7 +204,9 @@ export default function ChatPanel() {
                       boxShadow: message.type === 'ai' 
                         ? '0 2px 8px rgba(99, 102, 241, 0.08)' 
                         : '0 2px 8px rgba(99, 102, 241, 0.3)',
-                      backdropFilter: message.type === 'ai' ? 'blur(10px)' : 'none'
+                      backdropFilter: message.type === 'ai' ? 'blur(10px)' : 'none',
+                      ml: message.type === 'user' ? 'auto' : 0,
+                      mr: message.type === 'ai' ? 'auto' : 0
                     }}
                   >
                     <Typography
@@ -226,16 +218,6 @@ export default function ChatPanel() {
                       }}
                     >
                       {message.content}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: '0.65rem',
-                        color: message.type === 'ai' ? '#64748b' : 'rgba(255, 255, 255, 0.7)',
-                        mt: 0.25,
-                        textAlign: message.type === 'user' ? 'right' : 'left'
-                      }}
-                    >
-                      {formatTime(message.timestamp)}
                     </Typography>
                   </Box>
                 </Box>
