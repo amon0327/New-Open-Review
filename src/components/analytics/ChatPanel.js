@@ -330,7 +330,7 @@ export default function ChatPanel() {
           p: 1,
           background: 'transparent'
         }}>
-          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-end' }}>
+          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-end', background: 'transparent' }}>
             <TextField
               fullWidth
               multiline
