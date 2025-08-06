@@ -225,7 +225,9 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                     color: 'rgba(255, 255, 255, 0.8)',
                     backgroundColor: activeTab === index ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                     justifyContent: isNavCollapsed ? 'center' : 'flex-start',
-                    borderRadius: isNavCollapsed ? '50%' : 1,
+                    borderRadius: isNavCollapsed ? 1.5 : 1,
+                    minHeight: 48,
+                    alignItems: 'center',
                     '&:hover': {
                       backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     },
@@ -238,8 +240,11 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   <ListItemIcon
                     sx={{
                       color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)',
-                      minWidth: isNavCollapsed ? 'unset' : 40,
-                      justifyContent: 'center'
+                      minWidth: isNavCollapsed ? 24 : 40,
+                      justifyContent: 'center',
+                      display: 'flex',
+                      alignItems: 'center',
+                      height: 24
                     }}
                   >
                     {isCreateButton && isCreatingForm ? (
