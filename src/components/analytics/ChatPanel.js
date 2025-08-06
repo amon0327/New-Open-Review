@@ -139,6 +139,7 @@ export default function ChatPanel() {
             display: 'flex',
             flexDirection: 'column',
             gap: 0.5,
+            background: 'transparent',
             '&::-webkit-scrollbar': { width: 2 },
             '&::-webkit-scrollbar-track': { bgcolor: 'rgba(99, 102, 241, 0.05)' },
             '&::-webkit-scrollbar-thumb': { 
