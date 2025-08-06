@@ -328,9 +328,21 @@ export default function ChatPanel() {
         {/* Input Area */}
         <Box sx={{ 
           p: 1,
-          background: 'transparent'
+          background: 'transparent',
+          bgcolor: 'transparent',
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'transparent',
+            zIndex: 0
+          }
         }}>
-          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-end', background: 'transparent' }}>
+          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'flex-end', background: 'transparent', position: 'relative', zIndex: 1 }}>
             <TextField
               fullWidth
               multiline
