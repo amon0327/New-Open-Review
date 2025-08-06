@@ -11,11 +11,10 @@ import {
 import {
   Send,
   AutoAwesome,
-  TrendingUp,
-  Speed,
-  Psychology,
   SmartToy,
-  Person
+  Person,
+  HelpOutline,
+  DataUsage
 } from '@mui/icons-material';
 
 export default function ChatPanel() {
@@ -29,13 +28,8 @@ export default function ChatPanel() {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [questionMode, setQuestionMode] = useState('general');
   const messagesEndRef = useRef(null);
-
-  const quickActions = [
-    { icon: TrendingUp, label: 'トレンド', color: '#6366f1' },
-    { icon: Speed, label: '異常検知', color: '#8b5cf6' },
-    { icon: Psychology, label: '予測', color: '#06b6d4' }
-  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -81,9 +75,20 @@ export default function ChatPanel() {
     return responses[Math.floor(Math.random() * responses.length)];
   };
 
-  const handleQuickAction = (label) => {
-    setInputValue(`${label}を分析して`);
-  };
+  const questionModes = [
+    { 
+      id: 'general', 
+      label: '一般的な質問', 
+      icon: <HelpOutline />, 
+      description: 'AIに自由に質問'
+    },
+    { 
+      id: 'data', 
+      label: '選択データについて', 
+      icon: <DataUsage />, 
+      description: '現在のデータを分析'
+    }
+  ];
 
 
   return (
@@ -287,34 +292,69 @@ export default function ChatPanel() {
           <div ref={messagesEndRef} />
         </Box>
 
-        {/* Quick Actions */}
-        <Box sx={{ p: 1, borderTop: '1px solid rgba(99, 102, 241, 0.1)', borderBottom: '1px solid rgba(99, 102, 241, 0.1)' }}>
-          <Stack direction="row" spacing={0.5}>
-            {quickActions.map((action, index) => {
-              const IconComponent = action.icon;
-              return (
-                <Chip
-                  key={index}
-                  icon={<IconComponent sx={{ fontSize: 16 }} />}
-                  label={action.label}
-                  size="small"
-                  onClick={() => handleQuickAction(action.label)}
-                  sx={{
-                    bgcolor: `${action.color}08`,
-                    color: action.color,
-                    border: `1px solid ${action.color}20`,
-                    fontSize: '0.75rem',
-                    height: 24,
-                    '&:hover': {
-                      bgcolor: `${action.color}15`,
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 2px 8px rgba(99, 102, 241, 0.15)'
-                    }
-                  }}
-                />
-              );
-            })}
-          </Stack>
+        {/* Question Mode Switch */}
+        <Box sx={{ 
+          p: 1.5, 
+          borderTop: '1px solid rgba(99, 102, 241, 0.1)', 
+          borderBottom: '1px solid rgba(99, 102, 241, 0.1)',
+          background: 'rgba(255, 255, 255, 0.3)'
+        }}>
+          <Box sx={{ 
+            display: 'flex',
+            bgcolor: 'rgba(99, 102, 241, 0.08)',
+            borderRadius: 2,
+            p: 0.25,
+            position: 'relative'
+          }}>
+            {questionModes.map((mode, index) => (
+              <Box
+                key={mode.id}
+                onClick={() => setQuestionMode(mode.id)}
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  px: 1.5,
+                  py: 1,
+                  borderRadius: 1.5,
+                  cursor: 'pointer',
+                  position: 'relative',
+                  zIndex: 2,
+                  transition: 'all 0.2s ease',
+                  bgcolor: questionMode === mode.id ? 'rgba(255, 255, 255, 0.9)' : 'transparent',
+                  color: questionMode === mode.id ? '#6366f1' : '#64748b',
+                  boxShadow: questionMode === mode.id ? '0 2px 8px rgba(99, 102, 241, 0.15)' : 'none',
+                  '&:hover': {
+                    bgcolor: questionMode === mode.id ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.5)'
+                  }
+                }}
+              >
+                {React.cloneElement(mode.icon, { sx: { fontSize: 16 } })}
+                <Box sx={{ textAlign: 'left' }}>
+                  <Typography
+                    sx={{
+                      fontSize: '0.8rem',
+                      fontWeight: questionMode === mode.id ? 600 : 500,
+                      lineHeight: 1.2,
+                      mb: 0.25
+                    }}
+                  >
+                    {mode.label}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '0.65rem',
+                      opacity: 0.7,
+                      lineHeight: 1.1
+                    }}
+                  >
+                    {mode.description}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
+          </Box>
         </Box>
 
         {/* Input Area */}
@@ -336,7 +376,7 @@ export default function ChatPanel() {
                   handleSend();
                 }
               }}
-              placeholder="質問を入力..."
+              placeholder={questionMode === 'data' ? "選択中のデータについて質問..." : "AIに質問を入力..."}
               variant="outlined"
               size="small"
               sx={{
