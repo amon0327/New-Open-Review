@@ -221,6 +221,7 @@ const PublishSettings = ({
     toast.success('URLをコピーしました！');
   };
 
+  // QRコード単体のダウンロード
   const downloadQR = () => {
     const svg = document.getElementById('qr-code');
     if (svg) {
@@ -230,40 +231,69 @@ const PublishSettings = ({
       const img = new Image();
       
       img.onload = () => {
-        // キャンバスサイズを設定（QRコード + テキストスペース）
-        const padding = 40;
-        const textHeight = 60;
-        canvas.width = img.width + (padding * 2);
-        canvas.height = img.height + textHeight + (padding * 2);
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
         
-        // 背景を白で塗りつぶし
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // QRコードを中央に配置
-        const qrX = (canvas.width - img.width) / 2;
-        const qrY = padding;
-        ctx.drawImage(img, qrX, qrY);
-        
-        // テキストを描画
-        ctx.fillStyle = '#374151';
-        ctx.font = 'bold 18px system-ui, -apple-system, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        const textY = qrY + img.height + (textHeight / 2);
-        ctx.fillText('アンケートにご協力ください', canvas.width / 2, textY);
-        
-        // ダウンロード
         const pngFile = canvas.toDataURL('image/png');
         const downloadLink = document.createElement('a');
-        downloadLink.download = `${projectTitle || 'form'}-qr-poster.png`;
+        downloadLink.download = `${projectTitle || 'form'}-qr.png`;
         downloadLink.href = pngFile;
         downloadLink.click();
       };
       
       img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
-      toast.success('QRコードポスターをダウンロードしました！');
+      toast.success('QRコードをダウンロードしました！');
+    }
+  };
+
+  // デザイン画像のダウンロード（9.1cm x 5.5cm = 約344px x 208px at 96 DPI）
+  const downloadDesignImage = () => {
+    const svg = document.getElementById('qr-code');
+    if (svg) {
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // 9.1cm x 5.5cm サイズ（96 DPIで計算）
+        const cmToPx = 96 / 2.54; // 1cm = 約37.8px at 96 DPI
+        canvas.width = Math.round(9.1 * cmToPx); // 約344px
+        canvas.height = Math.round(5.5 * cmToPx); // 約208px
+        
+        // 背景を白で塗りつぶし
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // QRコードサイズを調整（デザイン内に収まるように）
+        const qrSize = Math.min(canvas.height * 0.7, 120); // 高さの70%または120pxの小さい方
+        const qrX = 20; // 左から20px
+        const qrY = (canvas.height - qrSize) / 2; // 垂直中央
+        
+        // QRコードを描画（リサイズして配置）
+        ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+        
+        // テキストを右側に配置
+        const textX = qrX + qrSize + 30; // QRコードの右側から30px
+        const textY = canvas.height / 2;
+        
+        ctx.fillStyle = '#374151';
+        ctx.font = 'bold 20px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('アンケートにご協力ください', textX, textY);
+        
+        // ダウンロード
+        const pngFile = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `${projectTitle || 'form'}-design.png`;
+        downloadLink.href = pngFile;
+        downloadLink.click();
+      };
+      
+      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+      toast.success('デザイン画像をダウンロードしました！');
     }
   };
 
@@ -460,9 +490,97 @@ const PublishSettings = ({
                         }
                       }}
                     >
-                      ポスター画像をダウンロード
+                      ダウンロード
                     </Button>
                   </Box>
+                </Box>
+              </Box>
+
+              {/* デザインセクション */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#374151' }}>
+                  デザイン
+                </Typography>
+                <Box
+                  sx={{
+                    p: 3,
+                    borderRadius: 2,
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    textAlign: 'left',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start'
+                  }}
+                >
+                  {/* デザインプレビュー */}
+                  <Box
+                    sx={{
+                      width: '100%',
+                      maxWidth: 300,
+                      aspectRatio: '9.1/5.5',
+                      border: '2px solid #e2e8f0',
+                      borderRadius: 2,
+                      backgroundColor: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '15px',
+                      marginBottom: '16px',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {/* プレビュー内のQRコード */}
+                    <Box sx={{ marginRight: '20px', flexShrink: 0 }}>
+                      <QRCode
+                        value={formUrl}
+                        size={60}
+                      />
+                    </Box>
+                    {/* プレビュー内のテキスト */}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 600,
+                        color: '#374151',
+                        fontSize: '12px',
+                        lineHeight: 1.2
+                      }}
+                    >
+                      アンケートに<br />ご協力ください
+                    </Typography>
+                  </Box>
+                  
+                  {/* サイズ情報 */}
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: '#64748b',
+                      marginBottom: '12px',
+                      fontSize: '11px'
+                    }}
+                  >
+                    サイズ: 9.1cm × 5.5cm
+                  </Typography>
+
+                  {/* ダウンロードボタン */}
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<Download />}
+                    onClick={downloadDesignImage}
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      borderColor: '#e2e8f0',
+                      color: '#64748b',
+                      '&:hover': {
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.05)'
+                      }
+                    }}
+                  >
+                    デザインをダウンロード
+                  </Button>
                 </Box>
               </Box>
             </>
