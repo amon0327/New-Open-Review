@@ -8,7 +8,8 @@ import {
 import {
   AutoGraph,
   Compare,
-  Tune
+  Tune,
+  Close
 } from '@mui/icons-material';
 import FilterPanel from './FilterPanel';
 import ChatPanel from './ChatPanel';
@@ -190,29 +191,58 @@ export default function ChartArea({
             </Typography>
           </Box>
           
-          <Button
-            startIcon={<Tune />}
-            onClick={() => setShowFilters(!showFilters)}
-            variant={showFilters ? "contained" : "outlined"}
-            size="small"
-            sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              px: 2,
-              py: 0.75,
-              bgcolor: showFilters ? '#6366f1' : 'transparent',
-              color: showFilters ? 'white' : '#64748b',
-              borderColor: showFilters ? '#6366f1' : '#e2e8f0',
-              '&:hover': {
-                bgcolor: showFilters ? '#5046e5' : '#f1f5f9',
-                borderColor: showFilters ? '#5046e5' : '#cbd5e1'
-              }
-            }}
-          >
-            フィルター
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              startIcon={<Tune />}
+              onClick={() => setShowFilters(!showFilters)}
+              variant={showFilters ? "contained" : "outlined"}
+              size="small"
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                px: 2,
+                py: 0.75,
+                bgcolor: showFilters ? '#6366f1' : 'transparent',
+                color: showFilters ? 'white' : '#64748b',
+                borderColor: showFilters ? '#6366f1' : '#e2e8f0',
+                '&:hover': {
+                  bgcolor: showFilters ? '#5046e5' : '#f1f5f9',
+                  borderColor: showFilters ? '#5046e5' : '#cbd5e1'
+                }
+              }}
+            >
+              フィルター
+            </Button>
+            
+            {Object.keys(activeFilters).length > 0 && (
+              <Button
+                startIcon={<Close sx={{ fontSize: 14 }} />}
+                onClick={() => setActiveFilters({})}
+                variant="outlined"
+                size="small"
+                sx={{
+                  textTransform: 'none',
+                  fontSize: '0.75rem',
+                  fontWeight: 500,
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: 2,
+                  color: '#ef4444',
+                  borderColor: '#fecaca',
+                  bgcolor: 'transparent',
+                  '&:hover': {
+                    bgcolor: '#fef2f2',
+                    borderColor: '#f87171',
+                    transform: 'translateY(-1px)'
+                  }
+                }}
+              >
+                全てクリア
+              </Button>
+            )}
+          </Box>
         </Box>
       </Box>
 

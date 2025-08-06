@@ -234,43 +234,6 @@ export default function FilterPanel({
               })}
             </Box>
 
-            {/* フィルタークリアボタン */}
-            {Object.keys(activeFilters).length > 0 && (
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  p: 1.5, 
-                  borderTop: '1px solid #f1f5f9',
-                  background: 'rgba(248, 250, 252, 0.8)'
-                }}
-              >
-                <Button
-                  startIcon={<Close sx={{ fontSize: 14 }} />}
-                  onClick={() => setActiveFilters({})}
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    textTransform: 'none',
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    height: 28,
-                    px: 2,
-                    borderRadius: 1.5,
-                    color: '#ef4444',
-                    borderColor: '#fecaca',
-                    bgcolor: '#fef2f2',
-                    '&:hover': {
-                      bgcolor: '#fee2e2',
-                      borderColor: '#f87171',
-                      transform: 'translateY(-1px)'
-                    }
-                  }}
-                >
-                  すべてクリア
-                </Button>
-              </Box>
-            )}
           </Box>
         </motion.div>
       )}
