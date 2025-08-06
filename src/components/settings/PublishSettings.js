@@ -247,7 +247,7 @@ const PublishSettings = ({
     }
   };
 
-  // デザイン画像のダウンロード（9.1cm x 5.5cm = 高解像度 1080px x 653px at 300 DPI）
+  // デザイン画像のダウンロード（9.1cm x 5.5cm = 超高解像度 2149px x 1299px at 600 DPI）
   const downloadDesignImage = () => {
     const svg = document.getElementById('qr-code');
     if (svg) {
@@ -257,10 +257,15 @@ const PublishSettings = ({
       const img = new Image();
       
       img.onload = () => {
-        // 9.1cm x 5.5cm サイズ（300 DPIで高解像度計算）
-        const cmToPx = 300 / 2.54; // 1cm = 約118px at 300 DPI
-        canvas.width = Math.round(9.1 * cmToPx); // 約1074px
-        canvas.height = Math.round(5.5 * cmToPx); // 約650px
+        // 9.1cm x 5.5cm サイズ（600 DPIで超高解像度計算）
+        const cmToPx = 600 / 2.54; // 1cm = 約236px at 600 DPI
+        canvas.width = Math.round(9.1 * cmToPx); // 約2149px
+        canvas.height = Math.round(5.5 * cmToPx); // 約1299px
+        
+        // 高品質レンダリング設定
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.textRenderingOptimization = 'optimizeQuality';
         
         // 背景を白で塗りつぶし
         ctx.fillStyle = '#ffffff';
