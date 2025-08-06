@@ -85,7 +85,15 @@ export default function QuestionSidebar({
 
 
       {/* 質問リスト */}
-      <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+      <Box sx={{ 
+        flexGrow: 1, 
+        overflow: 'auto',
+        '&::-webkit-scrollbar': {
+          display: 'none'
+        },
+        scrollbarWidth: 'none',
+        '-ms-overflow-style': 'none'
+      }}>
         <Box sx={{ p: 1 }}>
           {filteredQuestions.map((question, index) => {
             const isSelected = selectedQuestions.find(q => q.id === question.id);
