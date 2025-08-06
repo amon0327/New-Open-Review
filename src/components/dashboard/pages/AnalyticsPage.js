@@ -49,7 +49,8 @@ import {
   Insights,
   AutoGraph,
   Compare,
-  Tune
+  Tune,
+  Close
 } from '@mui/icons-material';
 
 export default function AnalyticsPage() {
@@ -329,6 +330,37 @@ export default function AnalyticsPage() {
                   borderRadius: 1
                 }}
               >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      fontWeight: 600,
+                      color: '#111827',
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Active Filters
+                  </Typography>
+                  {Object.keys(activeFilters).length > 0 && (
+                    <Button
+                      startIcon={<Close />}
+                      onClick={() => setActiveFilters({})}
+                      size="small"
+                      sx={{
+                        textTransform: 'none',
+                        fontSize: '0.75rem',
+                        color: '#6b7280',
+                        minWidth: 'auto',
+                        '&:hover': {
+                          bgcolor: '#f3f4f6'
+                        }
+                      }}
+                    >
+                      Clear All
+                    </Button>
+                  )}
+                </Box>
+                
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   {selectedQuestions.map((question) => {
                     const filterConfig = generateFilterOptions(question);
@@ -346,6 +378,7 @@ export default function AnalyticsPage() {
                           {question.title}
                         </Typography>
                         
+                        {/* Range フィルター */}
                         {filterConfig.type === 'range' && (
                           <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                             {filterConfig.options.map((option) => (
@@ -362,13 +395,81 @@ export default function AnalyticsPage() {
                                   py: 0.25,
                                   fontSize: '0.688rem',
                                   height: 24,
-                                  borderRadius: 0.5
+                                  borderRadius: 0.5,
+                                  bgcolor: activeFilters[question.id]?.value === option.value ? '#111827' : 'transparent',
+                                  color: activeFilters[question.id]?.value === option.value ? 'white' : '#374151',
+                                  borderColor: '#d1d5db',
+                                  '&:hover': {
+                                    bgcolor: activeFilters[question.id]?.value === option.value ? '#1f2937' : '#f9fafb',
+                                    borderColor: '#9ca3af'
+                                  }
                                 }}
                               >
                                 {option.label}
                               </Button>
                             ))}
                           </Box>
+                        )}
+
+                        {/* Select フィルター */}
+                        {filterConfig.type === 'select' && (
+                          <FormControl size="small" sx={{ minWidth: 200, mt: 1 }}>
+                            <Select
+                              value={activeFilters[question.id]?.value || ''}
+                              onChange={(e) => updateFilter(question.id, 'select', e.target.value)}
+                              displayEmpty
+                              sx={{
+                                height: 32,
+                                fontSize: '0.75rem',
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#d1d5db',
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#9ca3af',
+                                },
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#6366f1',
+                                  borderWidth: '1px'
+                                }
+                              }}
+                            >
+                              <MenuItem value="">
+                                <Typography sx={{ fontSize: '0.75rem', color: '#6b7280' }}>すべて</Typography>
+                              </MenuItem>
+                              {filterConfig.options.map((option) => (
+                                <MenuItem key={option.value} value={option.value}>
+                                  <Typography sx={{ fontSize: '0.75rem' }}>{option.label}</Typography>
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        )}
+
+                        {/* Text フィルター */}
+                        {filterConfig.type === 'text' && (
+                          <TextField
+                            fullWidth
+                            placeholder={filterConfig.placeholder}
+                            value={activeFilters[question.id]?.value || ''}
+                            onChange={(e) => updateFilter(question.id, 'text', e.target.value)}
+                            sx={{
+                              mt: 1,
+                              '& .MuiOutlinedInput-root': {
+                                height: 32,
+                                fontSize: '0.75rem',
+                                '& fieldset': {
+                                  borderColor: '#d1d5db',
+                                },
+                                '&:hover fieldset': {
+                                  borderColor: '#9ca3af',
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: '#6366f1',
+                                  borderWidth: '1px'
+                                }
+                              }
+                            }}
+                          />
                         )}
                       </Box>
                     );
