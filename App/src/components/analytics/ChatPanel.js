@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { claudeApiService } from '../../services/claudeApi';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Box,
@@ -25,7 +26,7 @@ export default function ChatPanel() {
     {
       id: 1,
       type: 'ai',
-      content: 'データ分析をお手伝いします',
+      content: 'こんにちは！データ分析や質問にお答えします。何かお手伝いできることはありますか？',
       timestamp: new Date(Date.now() - 60000),
       isTyping: false
     }
@@ -77,13 +78,24 @@ export default function ChatPanel() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    // AIの応答をシミュレート
-    setTimeout(() => {
+    try {
+      // 会話履歴を作成
+      const conversationHistory = messages
+        .filter(msg => msg.type && msg.content && !msg.isTyping)
+        .map(msg => ({
+          role: msg.type === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        }));
+
+      // Claude APIを呼び出し
+      const response = await claudeApiService.sendMessage(currentInput, conversationHistory);
+      
       const aiMessageId = Date.now() + 1;
-      const fullResponse = generateAIResponse(inputValue);
+      const fullResponse = response.message;
       
       const aiResponse = {
         id: aiMessageId,
@@ -101,17 +113,24 @@ export default function ChatPanel() {
       setTimeout(() => {
         typeMessage(aiMessageId, fullResponse);
       }, 300);
-    }, 1500 + Math.random() * 1000);
+
+    } catch (error) {
+      console.error('Claude API Error:', error);
+      setIsTyping(false);
+      
+      const errorMessageId = Date.now() + 1;
+      const errorMessage = {
+        id: errorMessageId,
+        type: 'ai',
+        content: `エラーが発生しました: ${error.message}`,
+        timestamp: new Date(),
+        isTyping: false
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
-  const generateAIResponse = (question) => {
-    const responses = [
-      `分析結果: ${question}について重要なパターンを発見しました。`,
-      `データ処理完了。${question}に関する洞察をまとめました。`,
-      `${question}の分析が完了。次のアクションを提案します。`
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
 
 
 
