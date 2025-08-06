@@ -55,7 +55,8 @@ import {
 export default function AnalyticsPage() {
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({});
+  const [activeFilters, setActiveFilters] = useState({});
+  const [showFilters, setShowFilters] = useState(false);
   const [analysisMode, setAnalysisMode] = useState('single'); // 'single' or 'comparison'
 
   // 詳細な質問データベース
@@ -232,9 +233,67 @@ export default function AnalyticsPage() {
   const handleQuestionSelect = (question) => {
     if (selectedQuestions.find(q => q.id === question.id)) {
       setSelectedQuestions(selectedQuestions.filter(q => q.id !== question.id));
+      // 質問削除時にフィルターもクリア
+      const newFilters = { ...activeFilters };
+      delete newFilters[question.id];
+      setActiveFilters(newFilters);
     } else if (selectedQuestions.length < 2) {
       setSelectedQuestions([...selectedQuestions, question]);
+      setShowFilters(true);
     }
+  };
+
+  // フィルター関数の生成
+  const generateFilterOptions = (question) => {
+    switch (question.type) {
+      case 'scale':
+        return {
+          type: 'range',
+          options: [
+            { value: '>=4', label: '4以上（高評価）' },
+            { value: '>=3', label: '3以上（普通以上）' },
+            { value: '<=2', label: '2以下（低評価）' },
+            { value: '==5', label: '最高評価のみ' },
+            { value: '==1', label: '最低評価のみ' }
+          ]
+        };
+      case 'single_choice':
+        return {
+          type: 'select',
+          options: question.data.labels.map((label, index) => ({
+            value: index,
+            label: label
+          }))
+        };
+      case 'multiple_choice':
+        return {
+          type: 'multiselect',
+          options: question.data.labels.map((label, index) => ({
+            value: index,
+            label: label
+          }))
+        };
+      case 'text':
+        return {
+          type: 'text_search',
+          options: [
+            { value: 'contains', label: 'テキストを含む' },
+            { value: 'not_contains', label: 'テキストを含まない' },
+            { value: 'starts_with', label: '〜で始まる' },
+            { value: 'ends_with', label: '〜で終わる' }
+          ]
+        };
+      default:
+        return { type: 'none', options: [] };
+    }
+  };
+
+  // フィルター更新
+  const updateFilter = (questionId, filterType, value) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      [questionId]: { type: filterType, value }
+    }));
   };
 
   // フィルター済み質問リスト
@@ -445,492 +504,489 @@ export default function AnalyticsPage() {
             </Box>
           </Box>
 
-          {/* 新しい高度な質問分析システム */}
-          <Paper
-            elevation={3}
-            sx={{
+          {/* スマートなAdvanced Analytics UI */}
+          <Box 
+            sx={{ 
               width: '100%',
-              borderRadius: 4,
-              overflow: 'hidden',
               background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              backdropFilter: 'blur(10px)',
+              borderRadius: 4,
+              border: '1px solid rgba(0, 0, 0, 0.06)',
+              overflow: 'hidden',
               mb: 3
             }}
           >
-            {/* プレミアムヘッダー */}
+            {/* ヘッダー：よりスマートでミニマル */}
             <Box
               sx={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-                color: 'white',
-                p: 4,
-                position: 'relative',
-                overflow: 'hidden'
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                p: 3,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
               }}
             >
-              <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Box
                   sx={{
-                    position: 'absolute',
-                    top: '-50%',
-                    left: '-50%',
-                    width: '200%',
-                    height: '200%',
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px)',
-                    backgroundSize: '30px 30px',
-                    animation: 'float 6s ease-in-out infinite'
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    borderRadius: 2,
+                    p: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  <Insights sx={{ fontSize: 20, color: 'white' }} />
+                </Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: 'white' }}>
+                  Smart Analytics
+                </Typography>
+              </Box>
+              
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                {selectedQuestions.length > 0 && (
+                  <Button
+                    startIcon={<Tune />}
+                    onClick={() => setShowFilters(!showFilters)}
+                    variant={showFilters ? 'contained' : 'outlined'}
+                    size="small"
+                    sx={{
+                      color: showFilters ? '#667eea' : 'white',
+                      borderColor: 'rgba(255, 255, 255, 0.5)',
+                      bgcolor: showFilters ? 'white' : 'transparent',
+                      '&:hover': {
+                        bgcolor: showFilters ? '#f8fafc' : 'rgba(255, 255, 255, 0.1)'
+                      }
+                    }}
+                  >
+                    フィルター
+                  </Button>
+                )}
+                <Chip
+                  label={selectedQuestions.length > 1 ? '比較分析' : selectedQuestions.length === 1 ? '単体分析' : 'スタンバイ'}
+                  size="small"
+                  sx={{
+                    bgcolor: 'rgba(255, 255, 255, 0.2)',
+                    color: 'white',
+                    fontWeight: 600
                   }}
                 />
               </Box>
-              
-              <Box sx={{ position: 'relative', zIndex: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: 'rgba(255, 255, 255, 0.2)',
-                        width: 48,
-                        height: 48,
-                        backdropFilter: 'blur(10px)'
-                      }}
-                    >
-                      <Insights sx={{ fontSize: 24 }} />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
-                        Advanced Analytics
-                      </Typography>
-                      <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                        質問を選択してデータを深掘り分析
-                      </Typography>
+            </Box>
+
+            {/* 動的フィルターパネル */}
+            <AnimatePresence>
+              {showFilters && selectedQuestions.length > 0 && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Box
+                    sx={{
+                      p: 3,
+                      background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
+                      borderBottom: '1px solid rgba(0, 0, 0, 0.08)'
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <FilterList color="primary" />
+                      質問フィルター
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {selectedQuestions.map((question) => {
+                        const filterConfig = generateFilterOptions(question);
+                        
+                        return (
+                          <Box 
+                            key={question.id}
+                            sx={{
+                              p: 3,
+                              border: `1px solid ${categoryColors[question.category]}30`,
+                              borderRadius: 2,
+                              background: `linear-gradient(135deg, ${categoryColors[question.category]}05 0%, white 100%)`
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                              <Box
+                                sx={{
+                                  bgcolor: `${categoryColors[question.category]}20`,
+                                  color: categoryColors[question.category],
+                                  borderRadius: 1,
+                                  p: 1,
+                                  display: 'flex'
+                                }}
+                              >
+                                {getChartIcon(question.chartType)}
+                              </Box>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                {question.title}
+                              </Typography>
+                            </Box>
+
+                            {/* 質問タイプ別フィルター */}
+                            {filterConfig.type === 'range' && (
+                              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                                {filterConfig.options.map((option) => (
+                                  <Chip
+                                    key={option.value}
+                                    label={option.label}
+                                    onClick={() => updateFilter(question.id, 'range', option.value)}
+                                    color={activeFilters[question.id]?.value === option.value ? 'primary' : 'default'}
+                                    variant={activeFilters[question.id]?.value === option.value ? 'filled' : 'outlined'}
+                                    size="small"
+                                  />
+                                ))}
+                              </Box>
+                            )}
+
+                            {filterConfig.type === 'select' && (
+                              <FormControl fullWidth size="small">
+                                <InputLabel>選択肢を選択</InputLabel>
+                                <Select
+                                  value={activeFilters[question.id]?.value || ''}
+                                  onChange={(e) => updateFilter(question.id, 'select', e.target.value)}
+                                  label="選択肢を選択"
+                                >
+                                  <MenuItem value="">すべて</MenuItem>
+                                  {filterConfig.options.map((option) => (
+                                    <MenuItem key={option.value} value={option.value}>
+                                      {option.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            )}
+
+                            {filterConfig.type === 'multiselect' && (
+                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                {filterConfig.options.map((option) => {
+                                  const isSelected = activeFilters[question.id]?.value?.includes?.(option.value);
+                                  return (
+                                    <Chip
+                                      key={option.value}
+                                      label={option.label}
+                                      onClick={() => {
+                                        const currentValues = activeFilters[question.id]?.value || [];
+                                        const newValues = isSelected 
+                                          ? currentValues.filter(v => v !== option.value)
+                                          : [...currentValues, option.value];
+                                        updateFilter(question.id, 'multiselect', newValues);
+                                      }}
+                                      color={isSelected ? 'primary' : 'default'}
+                                      variant={isSelected ? 'filled' : 'outlined'}
+                                      size="small"
+                                    />
+                                  );
+                                })}
+                              </Box>
+                            )}
+
+                            {filterConfig.type === 'text_search' && (
+                              <Box sx={{ display: 'flex', gap: 2 }}>
+                                <FormControl size="small" sx={{ minWidth: 150 }}>
+                                  <InputLabel>検索タイプ</InputLabel>
+                                  <Select
+                                    value={activeFilters[question.id]?.type || 'contains'}
+                                    onChange={(e) => updateFilter(question.id, e.target.value, activeFilters[question.id]?.value || '')}
+                                    label="検索タイプ"
+                                  >
+                                    {filterConfig.options.map((option) => (
+                                      <MenuItem key={option.value} value={option.value}>
+                                        {option.label}
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+                                </FormControl>
+                                <TextField
+                                  size="small"
+                                  placeholder="検索テキスト..."
+                                  value={activeFilters[question.id]?.value || ''}
+                                  onChange={(e) => updateFilter(question.id, activeFilters[question.id]?.type || 'contains', e.target.value)}
+                                  sx={{ flexGrow: 1 }}
+                                />
+                              </Box>
+                            )}
+                          </Box>
+                        );
+                      })}
                     </Box>
                   </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Chip
-                      icon={<Analytics />}
-                      label={`${questionsDatabase.length}個の質問`}
-                      sx={{
-                        bgcolor: 'rgba(255, 255, 255, 0.15)',
-                        color: 'white',
-                        fontWeight: 600,
-                        backdropFilter: 'blur(10px)'
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* メインコンテンツ */}
+            <Box sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', gap: 3, minHeight: '600px' }}>
+                {/* 左側：質問選択エリア - よりスマート */}
+                <Box sx={{ width: '320px', flexShrink: 0 }}>
+                  <Box sx={{ mb: 3 }}>
+                    <TextField
+                      fullWidth
+                      variant="outlined"
+                      placeholder="質問を検索..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      size="small"
+                      InputProps={{
+                        startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
                       }}
                     />
-                    <Chip
-                      icon={<Compare />}
-                      label={selectedQuestions.length > 1 ? '比較分析モード' : '単体分析モード'}
-                      color={selectedQuestions.length > 1 ? 'secondary' : 'default'}
-                      sx={{
-                        bgcolor: selectedQuestions.length > 1 ? 'rgba(240, 147, 251, 0.8)' : 'rgba(255, 255, 255, 0.15)',
-                        color: 'white',
-                        fontWeight: 600,
-                        backdropFilter: 'blur(10px)'
-                      }}
-                    />
+                  </Box>
+
+                  {/* 選択された質問の表示 */}
+                  {selectedQuestions.length > 0 && (
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+                        選択中 ({selectedQuestions.length}/2)
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {selectedQuestions.map((question, index) => (
+                          <Box
+                            key={question.id}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 2,
+                              p: 2,
+                              background: `linear-gradient(135deg, ${categoryColors[question.category]}10 0%, white 100%)`,
+                              border: `1px solid ${categoryColors[question.category]}30`,
+                              borderRadius: 2
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                bgcolor: `${categoryColors[question.category]}20`,
+                                color: categoryColors[question.category],
+                                borderRadius: 1,
+                                p: 0.5,
+                                display: 'flex'
+                              }}
+                            >
+                              {getChartIcon(question.chartType)}
+                            </Box>
+                            <Typography variant="body2" sx={{ flexGrow: 1, fontWeight: 500 }}>
+                              {question.title}
+                            </Typography>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleQuestionSelect(question)}
+                              sx={{ color: categoryColors[question.category] }}
+                            >
+                              <Clear fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* 質問リスト - よりコンパクト */}
+                  <Box sx={{ height: selectedQuestions.length > 0 ? '400px' : '500px', overflowY: 'auto' }}>
+                    <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
+                      質問一覧 ({filteredQuestions.length})
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {filteredQuestions.map((question) => {
+                        const isSelected = selectedQuestions.find(q => q.id === question.id);
+                        const isDisabled = !isSelected && selectedQuestions.length >= 2;
+                        
+                        return (
+                          <Box
+                            key={question.id}
+                            onClick={() => !isDisabled && handleQuestionSelect(question)}
+                            sx={{
+                              p: 2,
+                              borderRadius: 2,
+                              border: isSelected 
+                                ? `2px solid ${categoryColors[question.category]}` 
+                                : '1px solid rgba(0, 0, 0, 0.08)',
+                              background: isSelected 
+                                ? `linear-gradient(135deg, ${categoryColors[question.category]}15 0%, white 100%)`
+                                : 'white',
+                              cursor: isDisabled ? 'not-allowed' : 'pointer',
+                              opacity: isDisabled ? 0.5 : 1,
+                              transition: 'all 0.2s ease',
+                              '&:hover': {
+                                transform: isDisabled ? 'none' : 'translateY(-1px)',
+                                boxShadow: isDisabled ? 'none' : '0 4px 12px rgba(0, 0, 0, 0.1)'
+                              }
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              <Box
+                                sx={{
+                                  bgcolor: `${categoryColors[question.category]}20`,
+                                  color: categoryColors[question.category],
+                                  borderRadius: 1,
+                                  p: 0.5,
+                                  display: 'flex'
+                                }}
+                              >
+                                {getChartIcon(question.chartType)}
+                              </Box>
+                              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                                <Typography 
+                                  variant="body2" 
+                                  sx={{ 
+                                    fontWeight: 600,
+                                    mb: 0.5,
+                                    color: isSelected ? categoryColors[question.category] : 'text.primary'
+                                  }}
+                                >
+                                  {question.title}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {question.responseCount.toLocaleString()}件
+                                  </Typography>
+                                  <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: categoryColors[question.category] }} />
+                                  <Typography variant="caption" color="text.secondary">
+                                    {question.category}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </Box>
+                          </Box>
+                        );
+                      })}
+                    </Box>
                   </Box>
                 </Box>
 
-                {/* 選択された質問の表示 */}
-                <AnimatePresence>
-                  {selectedQuestions.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          gap: 2,
-                          mt: 3,
-                          p: 2,
-                          bgcolor: 'rgba(255, 255, 255, 0.1)',
-                          borderRadius: 2,
-                          backdropFilter: 'blur(10px)'
-                        }}
-                      >
-                        {selectedQuestions.map((question, index) => (
-                          <Chip
-                            key={question.id}
-                            icon={getChartIcon(question.chartType)}
-                            label={`${index + 1}. ${question.title}`}
-                            onDelete={() => handleQuestionSelect(question)}
-                            deleteIcon={<Clear />}
-                            sx={{
-                              bgcolor: 'rgba(255, 255, 255, 0.9)',
-                              color: categoryColors[question.category],
-                              fontWeight: 600,
-                              '& .MuiChip-deleteIcon': {
-                                color: 'rgba(255, 255, 255, 0.7)',
-                                '&:hover': {
-                                  color: 'white'
-                                }
-                              }
-                            }}
-                          />
-                        ))}
-                        {selectedQuestions.length < 2 && (
-                          <Chip
-                            icon={<Add />}
-                            label={selectedQuestions.length === 0 ? "質問を選択" : "比較する質問を追加"}
-                            variant="outlined"
-                            sx={{
-                              borderColor: 'rgba(255, 255, 255, 0.5)',
-                              color: 'rgba(255, 255, 255, 0.8)',
-                              '&:hover': {
-                                bgcolor: 'rgba(255, 255, 255, 0.1)'
-                              }
-                            }}
-                          />
-                        )}
-                      </Box>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Box>
-            </Box>
-
-            {/* メインコンテンツエリア */}
-            <Box sx={{ p: 4 }}>
-              <Grid container spacing={4}>
-                {/* 質問選択サイドバー */}
-                <Grid item xs={12} lg={4}>
-                  <Card 
-                    elevation={2}
-                    sx={{ 
-                      height: '600px',
-                      borderRadius: 3,
-                      border: '1px solid rgba(0, 0, 0, 0.08)',
-                      background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
-                    }}
-                  >
-                    <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                        <Search color="primary" />
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          質問を選択
-                        </Typography>
-                        <Badge
-                          badgeContent={selectedQuestions.length}
-                          color="primary"
-                          sx={{ ml: 'auto' }}
-                        >
-                          <Chip
-                            label={`${filteredQuestions.length}個`}
-                            size="small"
-                            color="default"
-                            variant="outlined"
-                          />
-                        </Badge>
-                      </Box>
-
-                      {/* 検索バー */}
-                      <TextField
-                        fullWidth
-                        variant="outlined"
-                        placeholder="質問を検索..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        InputProps={{
-                          startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />
-                        }}
-                        sx={{ mb: 3 }}
-                      />
-
-                      {/* 質問リスト */}
-                      <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 1 }}>
-                        <AnimatePresence>
-                          {filteredQuestions.map((question, index) => {
-                            const isSelected = selectedQuestions.find(q => q.id === question.id);
-                            const isDisabled = !isSelected && selectedQuestions.length >= 2;
-                            
-                            return (
-                              <motion.div
-                                key={question.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ delay: index * 0.05 }}
-                              >
-                                <Card
-                                  sx={{
-                                    mb: 2,
-                                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                    borderRadius: 2,
-                                    border: isSelected 
-                                      ? `2px solid ${categoryColors[question.category]}` 
-                                      : '1px solid rgba(0, 0, 0, 0.08)',
-                                    opacity: isDisabled ? 0.5 : 1,
-                                    background: isSelected 
-                                      ? `linear-gradient(135deg, ${categoryColors[question.category]}15 0%, ${categoryColors[question.category]}08 100%)`
-                                      : 'white',
-                                    transition: 'all 0.2s ease-in-out',
-                                    '&:hover': {
-                                      transform: isDisabled ? 'none' : 'translateY(-2px)',
-                                      boxShadow: isDisabled ? 'none' : `0 8px 25px ${categoryColors[question.category]}20`
-                                    }
-                                  }}
-                                  onClick={() => !isDisabled && handleQuestionSelect(question)}
-                                >
-                                  <CardContent sx={{ p: 2 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                                      <Avatar
-                                        sx={{
-                                          bgcolor: `${categoryColors[question.category]}20`,
-                                          color: categoryColors[question.category],
-                                          width: 40,
-                                          height: 40
-                                        }}
-                                      >
-                                        {getChartIcon(question.chartType)}
-                                      </Avatar>
-                                      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                                        <Typography 
-                                          variant="subtitle2" 
-                                          sx={{ 
-                                            fontWeight: 600,
-                                            mb: 0.5,
-                                            color: isSelected ? categoryColors[question.category] : 'text.primary'
-                                          }}
-                                        >
-                                          {question.title}
-                                        </Typography>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                                          <Chip
-                                            size="small"
-                                            label={question.category}
-                                            sx={{
-                                              fontSize: '0.7rem',
-                                              height: 20,
-                                              bgcolor: `${categoryColors[question.category]}15`,
-                                              color: categoryColors[question.category],
-                                              fontWeight: 500
-                                            }}
-                                          />
-                                          <Typography variant="caption" color="text.secondary">
-                                            {question.responseCount.toLocaleString()}件
-                                          </Typography>
-                                        </Box>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                          {getQuestionIcon(question.type)}
-                                          <Typography variant="caption" color="text.secondary">
-                                            {question.type.replace('_', ' ')}
-                                          </Typography>
-                                        </Box>
-                                      </Box>
-                                      {isSelected && (
-                                        <IconButton
-                                          size="small"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleQuestionSelect(question);
-                                          }}
-                                          sx={{ color: categoryColors[question.category] }}
-                                        >
-                                          <Clear fontSize="small" />
-                                        </IconButton>
-                                      )}
-                                    </Box>
-                                  </CardContent>
-                                </Card>
-                              </motion.div>
-                            );
-                          })}
-                        </AnimatePresence>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                {/* 分析結果エリア */}
-                <Grid item xs={12} lg={8}>
+                {/* 右側：分析結果エリア */}
+                <Box sx={{ flexGrow: 1 }}>
                   <AnimatePresence mode="wait">
                     {selectedQuestions.length === 0 ? (
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        style={{ height: '100%' }}
                       >
-                        <Card
+                        <Box
                           sx={{
-                            height: '600px',
+                            height: '100%',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            borderRadius: 3,
                             background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
-                            border: '2px dashed #e2e8f0'
+                            border: '2px dashed #e2e8f0',
+                            borderRadius: 3
                           }}
                         >
                           <Box sx={{ textAlign: 'center', p: 4 }}>
-                            <AutoGraph sx={{ fontSize: 80, color: '#cbd5e0', mb: 3 }} />
-                            <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: 'text.primary' }}>
-                              分析を始めましょう
+                            <AutoGraph sx={{ fontSize: 64, color: '#cbd5e0', mb: 2 }} />
+                            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                              質問を選択してください
                             </Typography>
-                            <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 400 }}>
-                              左側から1つまたは2つの質問を選択して、詳細なデータ分析と可視化を開始してください
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                              1つまたは2つの質問を選んでデータ分析を開始
                             </Typography>
-                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-                              <Chip icon={<Poll />} label="単一質問分析" variant="outlined" />
-                              <Chip icon={<Compare />} label="比較・クロス分析" variant="outlined" />
-                              <Chip icon={<Tune />} label="高度なフィルタリング" variant="outlined" />
+                            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+                              <Chip icon={<Poll />} label="単体分析" size="small" variant="outlined" />
+                              <Chip icon={<Compare />} label="比較分析" size="small" variant="outlined" />
+                              <Chip icon={<Tune />} label="フィルタリング" size="small" variant="outlined" />
                             </Box>
                           </Box>
-                        </Card>
+                        </Box>
                       </motion.div>
                     ) : (
                       <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.4 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
                       >
-                        <Card
-                          elevation={2}
+                        <Box
                           sx={{
-                            minHeight: '600px',
+                            height: '100%',
+                            background: 'white',
                             borderRadius: 3,
                             border: '1px solid rgba(0, 0, 0, 0.08)',
-                            background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+                            p: 4
                           }}
                         >
-                          <CardContent sx={{ p: 4 }}>
+                          {/* 分析結果のヘッダー */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                             {selectedQuestions.length === 1 ? (
-                              // 単一質問分析
-                              <Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-                                  <Avatar
-                                    sx={{
-                                      bgcolor: `${categoryColors[selectedQuestions[0].category]}20`,
-                                      color: categoryColors[selectedQuestions[0].category],
-                                      width: 48,
-                                      height: 48
-                                    }}
-                                  >
-                                    {getChartIcon(selectedQuestions[0].chartType)}
-                                  </Avatar>
-                                  <Box>
-                                    <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
-                                      {selectedQuestions[0].title}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                      {selectedQuestions[0].responseCount.toLocaleString()}件の回答 • {selectedQuestions[0].type.replace('_', ' ')}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-
-                                {/* グラフプレースホルダー */}
-                                <Card
-                                  variant="outlined"
+                              <>
+                                <Box
                                   sx={{
-                                    minHeight: '400px',
+                                    bgcolor: `${categoryColors[selectedQuestions[0].category]}20`,
+                                    color: categoryColors[selectedQuestions[0].category],
                                     borderRadius: 2,
-                                    border: `2px dashed ${categoryColors[selectedQuestions[0].category]}40`
+                                    p: 1,
+                                    display: 'flex'
                                   }}
                                 >
-                                  <CardContent sx={{ p: 4, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Box sx={{ textAlign: 'center' }}>
-                                      {getChartIcon(selectedQuestions[0].chartType)}
-                                      <Typography variant="h6" sx={{ mt: 2, color: categoryColors[selectedQuestions[0].category] }}>
-                                        {selectedQuestions[0].chartType.toUpperCase().replace('_', ' ')} グラフ
-                                      </Typography>
-                                      <Typography variant="body2" color="text.secondary">
-                                        Chart.js / Recharts 実装予定
-                                      </Typography>
-                                    </Box>
-                                  </CardContent>
-                                </Card>
-                              </Box>
-                            ) : (
-                              // 比較分析
-                              <Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-                                  <Compare sx={{ fontSize: 32, color: '#667eea' }} />
-                                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                                    比較・クロス分析
+                                  {getChartIcon(selectedQuestions[0].chartType)}
+                                </Box>
+                                <Box>
+                                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                    {selectedQuestions[0].title}
+                                  </Typography>
+                                  <Typography variant="body2" color="text.secondary">
+                                    {selectedQuestions[0].responseCount.toLocaleString()}件の回答
                                   </Typography>
                                 </Box>
-
-                                <Grid container spacing={3}>
-                                  {selectedQuestions.map((question, index) => (
-                                    <Grid item xs={12} md={6} key={question.id}>
-                                      <Card
-                                        variant="outlined"
-                                        sx={{
-                                          minHeight: '300px',
-                                          borderRadius: 2,
-                                          border: `2px dashed ${categoryColors[question.category]}40`
-                                        }}
-                                      >
-                                        <CardContent sx={{ p: 3 }}>
-                                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                                            <Avatar
-                                              sx={{
-                                                bgcolor: `${categoryColors[question.category]}20`,
-                                                color: categoryColors[question.category],
-                                                width: 40,
-                                                height: 40
-                                              }}
-                                            >
-                                              {getChartIcon(question.chartType)}
-                                            </Avatar>
-                                            <Box>
-                                              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                                                {question.title}
-                                              </Typography>
-                                              <Typography variant="caption" color="text.secondary">
-                                                {question.responseCount.toLocaleString()}件
-                                              </Typography>
-                                            </Box>
-                                          </Box>
-
-                                          <Box sx={{ textAlign: 'center', py: 4 }}>
-                                            {getChartIcon(question.chartType)}
-                                            <Typography variant="body2" sx={{ mt: 1, color: categoryColors[question.category] }}>
-                                              {question.chartType.replace('_', ' ')}
-                                            </Typography>
-                                          </Box>
-                                        </CardContent>
-                                      </Card>
-                                    </Grid>
-                                  ))}
-
-                                  {/* クロス分析結果 */}
-                                  <Grid item xs={12}>
-                                    <Card
-                                      variant="outlined"
-                                      sx={{
-                                        minHeight: '200px',
-                                        borderRadius: 2,
-                                        border: '2px dashed #667eea40',
-                                        background: 'linear-gradient(135deg, #667eea10 0%, #764ba210 100%)'
-                                      }}
-                                    >
-                                      <CardContent sx={{ p: 4, textAlign: 'center' }}>
-                                        <AutoGraph sx={{ fontSize: 48, color: '#667eea', mb: 2 }} />
-                                        <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                                          クロス分析結果
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                          2つの質問の相関関係と組み合わせ分析
-                                        </Typography>
-                                      </CardContent>
-                                    </Card>
-                                  </Grid>
-                                </Grid>
-                              </Box>
+                              </>
+                            ) : (
+                              <>
+                                <Compare sx={{ fontSize: 28, color: '#667eea' }} />
+                                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                  比較・クロス分析
+                                </Typography>
+                              </>
                             )}
-                          </CardContent>
-                        </Card>
+                          </Box>
+
+                          {/* グラフエリア */}
+                          <Box
+                            sx={{
+                              height: '400px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)',
+                              border: selectedQuestions.length === 1 
+                                ? `2px dashed ${categoryColors[selectedQuestions[0].category]}40`
+                                : '2px dashed #667eea40',
+                              borderRadius: 2
+                            }}
+                          >
+                            <Box sx={{ textAlign: 'center' }}>
+                              {selectedQuestions.length === 1 ? (
+                                <>
+                                  {getChartIcon(selectedQuestions[0].chartType)}
+                                  <Typography variant="h6" sx={{ mt: 1, color: categoryColors[selectedQuestions[0].category] }}>
+                                    {selectedQuestions[0].chartType.toUpperCase().replace('_', ' ')}
+                                  </Typography>
+                                </>
+                              ) : (
+                                <>
+                                  <AutoGraph sx={{ fontSize: 48, color: '#667eea' }} />
+                                  <Typography variant="h6" sx={{ mt: 1, color: '#667eea' }}>
+                                    クロス集計グラフ
+                                  </Typography>
+                                </>
+                              )}
+                              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                Chart.js / Recharts 統合予定
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
             </Box>
-          </Paper>
+          </Box>
         </Box>
       </Container>
     </motion.div>
