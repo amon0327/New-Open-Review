@@ -61,6 +61,7 @@ export default function HomePage({ user, onCreateFormClick }) {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
+  const [dragDistance, setDragDistance] = useState(0); // ドラッグ距離を追跡
   const scrollContainerRef = useRef(null);
 
 
@@ -283,11 +284,13 @@ export default function HomePage({ user, onCreateFormClick }) {
     setIsDragging(true);
     setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
     setScrollLeft(scrollContainerRef.current.scrollLeft);
+    setDragDistance(0); // ドラッグ距離をリセット
     scrollContainerRef.current.style.cursor = 'grabbing';
   };
 
   const handleMouseLeave = () => {
     setIsDragging(false);
+    setDragDistance(0);
     if (scrollContainerRef.current) {
       scrollContainerRef.current.style.cursor = 'grab';
     }
@@ -295,6 +298,7 @@ export default function HomePage({ user, onCreateFormClick }) {
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    setDragDistance(0);
     if (scrollContainerRef.current) {
       scrollContainerRef.current.style.cursor = 'grab';
     }
@@ -305,13 +309,17 @@ export default function HomePage({ user, onCreateFormClick }) {
     e.preventDefault();
     const x = e.pageX - scrollContainerRef.current.offsetLeft;
     const walk = (x - startX) * 2; // スクロール速度調整
+    const currentDragDistance = Math.abs(walk);
+    setDragDistance(currentDragDistance);
     scrollContainerRef.current.scrollLeft = scrollLeft - walk;
   };
 
   // 記事クリック時の処理
   const handleArticleClick = (article) => {
-    // ドラッグ中はクリックを無効化
-    if (isDragging) return;
+    // 実際のドラッグ（5px以上移動）の場合のみクリックを無効化
+    if (isDragging && dragDistance > 5) {
+      return;
+    }
     
     // openreview.jpサイトの記事URLを生成
     let articleUrl;
@@ -323,6 +331,8 @@ export default function HomePage({ user, onCreateFormClick }) {
       // slugがない場合はIDを使用
       articleUrl = `https://openreview.jp/blog/${article.id}`;
     }
+    
+    console.log('記事クリック:', article.title, 'URL:', articleUrl);
     
     // 新しいタブで記事を開く
     window.open(articleUrl, '_blank', 'noopener,noreferrer');
