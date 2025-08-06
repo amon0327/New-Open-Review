@@ -570,7 +570,8 @@ export default function AnalyticsPage({ onNavCollapse }) {
                             {/* フィルターボタンをヘッダーに統合 */}
                             <Button
                               startIcon={<Tune />}
-                              variant="outlined"
+                              onClick={() => setShowFilters(!showFilters)}
+                              variant={showFilters ? "contained" : "outlined"}
                               size="small"
                               sx={{
                                 borderRadius: 2,
@@ -578,7 +579,14 @@ export default function AnalyticsPage({ onNavCollapse }) {
                                 fontSize: '0.8rem',
                                 fontWeight: 600,
                                 px: 2,
-                                py: 0.75
+                                py: 0.75,
+                                bgcolor: showFilters ? '#6366f1' : 'transparent',
+                                color: showFilters ? 'white' : '#64748b',
+                                borderColor: showFilters ? '#6366f1' : '#e2e8f0',
+                                '&:hover': {
+                                  bgcolor: showFilters ? '#5046e5' : '#f1f5f9',
+                                  borderColor: showFilters ? '#5046e5' : '#cbd5e1'
+                                }
                               }}
                             >
                               フィルター
@@ -622,7 +630,8 @@ export default function AnalyticsPage({ onNavCollapse }) {
                             
                             <Button
                               startIcon={<Tune />}
-                              variant="outlined"
+                              onClick={() => setShowFilters(!showFilters)}
+                              variant={showFilters ? "contained" : "outlined"}
                               size="small"
                               sx={{
                                 borderRadius: 2,
@@ -630,7 +639,14 @@ export default function AnalyticsPage({ onNavCollapse }) {
                                 fontSize: '0.8rem',
                                 fontWeight: 600,
                                 px: 2,
-                                py: 0.75
+                                py: 0.75,
+                                bgcolor: showFilters ? '#6366f1' : 'transparent',
+                                color: showFilters ? 'white' : '#64748b',
+                                borderColor: showFilters ? '#6366f1' : '#e2e8f0',
+                                '&:hover': {
+                                  bgcolor: showFilters ? '#5046e5' : '#f1f5f9',
+                                  borderColor: showFilters ? '#5046e5' : '#cbd5e1'
+                                }
                               }}
                             >
                               フィルター
@@ -639,6 +655,202 @@ export default function AnalyticsPage({ onNavCollapse }) {
                         )}
                       </Box>
                     </Box>
+
+                    {/* スマートフィルターパネル */}
+                    <AnimatePresence>
+                      {showFilters && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        >
+                          <Box
+                            sx={{
+                              borderTop: '1px solid #f1f5f9',
+                              background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                              p: 3
+                            }}
+                          >
+                            {selectedQuestions.map((question, index) => {
+                              const filterConfig = generateFilterOptions(question);
+                              
+                              return (
+                                <motion.div
+                                  key={question.id}
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ delay: index * 0.1 }}
+                                >
+                                  <Box sx={{ mb: index < selectedQuestions.length - 1 ? 3 : 0 }}>
+                                    {/* 質問ヘッダー */}
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                                      <Box
+                                        sx={{
+                                          width: 8,
+                                          height: 8,
+                                          borderRadius: '50%',
+                                          bgcolor: categoryColors[question.category]
+                                        }}
+                                      />
+                                      <Typography
+                                        variant="h6"
+                                        sx={{
+                                          fontWeight: 600,
+                                          color: '#1e293b',
+                                          fontSize: '0.95rem'
+                                        }}
+                                      >
+                                        {question.title}
+                                      </Typography>
+                                    </Box>
+
+                                    {/* フィルター要素 */}
+                                    <Box sx={{ pl: 2.5 }}>
+                                      {/* Range フィルター */}
+                                      {filterConfig.type === 'range' && (
+                                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                          {filterConfig.options.map((option) => (
+                                            <Button
+                                              key={option.value}
+                                              onClick={() => updateFilter(question.id, 'range', option.value)}
+                                              variant={activeFilters[question.id]?.value === option.value ? 'contained' : 'outlined'}
+                                              size="small"
+                                              sx={{
+                                                textTransform: 'none',
+                                                fontWeight: 500,
+                                                minWidth: 'auto',
+                                                px: 2,
+                                                py: 1,
+                                                fontSize: '0.8rem',
+                                                borderRadius: 2,
+                                                bgcolor: activeFilters[question.id]?.value === option.value 
+                                                  ? categoryColors[question.category] 
+                                                  : 'transparent',
+                                                color: activeFilters[question.id]?.value === option.value 
+                                                  ? 'white' 
+                                                  : '#64748b',
+                                                borderColor: activeFilters[question.id]?.value === option.value 
+                                                  ? categoryColors[question.category] 
+                                                  : '#e2e8f0',
+                                                transition: 'all 0.2s ease',
+                                                '&:hover': {
+                                                  transform: 'translateY(-1px)',
+                                                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                                                }
+                                              }}
+                                            >
+                                              {option.label}
+                                            </Button>
+                                          ))}
+                                        </Box>
+                                      )}
+
+                                      {/* Select フィルター */}
+                                      {filterConfig.type === 'select' && (
+                                        <FormControl size="small" sx={{ minWidth: 200 }}>
+                                          <Select
+                                            value={activeFilters[question.id]?.value || ''}
+                                            onChange={(e) => updateFilter(question.id, 'select', e.target.value)}
+                                            displayEmpty
+                                            sx={{
+                                              borderRadius: 2,
+                                              fontSize: '0.875rem',
+                                              '& .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: '#e2e8f0',
+                                              },
+                                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: categoryColors[question.category],
+                                              },
+                                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: categoryColors[question.category],
+                                                borderWidth: '2px'
+                                              }
+                                            }}
+                                          >
+                                            <MenuItem value="">
+                                              <Typography sx={{ fontSize: '0.875rem', color: '#94a3b8' }}>
+                                                すべて選択
+                                              </Typography>
+                                            </MenuItem>
+                                            {filterConfig.options.map((option) => (
+                                              <MenuItem key={option.value} value={option.value}>
+                                                <Typography sx={{ fontSize: '0.875rem' }}>
+                                                  {option.label}
+                                                </Typography>
+                                              </MenuItem>
+                                            ))}
+                                          </Select>
+                                        </FormControl>
+                                      )}
+
+                                      {/* Text フィルター */}
+                                      {filterConfig.type === 'text' && (
+                                        <TextField
+                                          placeholder={filterConfig.placeholder}
+                                          value={activeFilters[question.id]?.value || ''}
+                                          onChange={(e) => updateFilter(question.id, 'text', e.target.value)}
+                                          size="small"
+                                          InputProps={{
+                                            startAdornment: (
+                                              <Search sx={{ color: '#94a3b8', fontSize: 18, mr: 1 }} />
+                                            )
+                                          }}
+                                          sx={{
+                                            minWidth: 300,
+                                            '& .MuiOutlinedInput-root': {
+                                              borderRadius: 2,
+                                              fontSize: '0.875rem',
+                                              '& fieldset': {
+                                                borderColor: '#e2e8f0',
+                                              },
+                                              '&:hover fieldset': {
+                                                borderColor: categoryColors[question.category],
+                                              },
+                                              '&.Mui-focused fieldset': {
+                                                borderColor: categoryColors[question.category],
+                                                borderWidth: '2px'
+                                              }
+                                            }
+                                          }}
+                                        />
+                                      )}
+                                    </Box>
+                                  </Box>
+                                </motion.div>
+                              );
+                            })}
+
+                            {/* フィルタークリアボタン */}
+                            {Object.keys(activeFilters).length > 0 && (
+                              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, pt: 2, borderTop: '1px solid #f1f5f9' }}>
+                                <Button
+                                  startIcon={<Close />}
+                                  onClick={() => setActiveFilters({})}
+                                  variant="outlined"
+                                  size="small"
+                                  sx={{
+                                    textTransform: 'none',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 500,
+                                    borderRadius: 2,
+                                    color: '#ef4444',
+                                    borderColor: '#fecaca',
+                                    bgcolor: '#fef2f2',
+                                    '&:hover': {
+                                      bgcolor: '#fee2e2',
+                                      borderColor: '#f87171'
+                                    }
+                                  }}
+                                >
+                                  フィルタークリア
+                                </Button>
+                              </Box>
+                            )}
+                          </Box>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* モダンなグラフエリア */}
                     <Box
