@@ -83,7 +83,7 @@ export default function AnalyticsPage() {
               {/* 左下横並びContainer */}
               <Box
                 sx={{
-                  flex: 1,
+                  flex: 2,
                   display: 'flex',
                   gap: 2,
                   minWidth: 0,
