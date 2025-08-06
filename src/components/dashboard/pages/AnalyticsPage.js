@@ -268,9 +268,8 @@ export default function AnalyticsPage({ onNavCollapse }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      style={{ height: '100%', overflow: 'hidden' }}
     >
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 2, overflow: 'hidden' }}>
+      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', p: 2 }}>
         {/* コンパクトヘッダー */}
         <Box sx={{ mb: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -625,7 +624,6 @@ export default function AnalyticsPage({ onNavCollapse }) {
               sx={{ 
                 flexGrow: 1, 
                 overflow: 'auto',
-                maxHeight: 'calc(100vh - 240px)',
                 '&::-webkit-scrollbar': { width: 4 },
                 '&::-webkit-scrollbar-track': { bgcolor: '#f1f5f9' },
                 '&::-webkit-scrollbar-thumb': { bgcolor: '#cbd5e1', borderRadius: 2 }
