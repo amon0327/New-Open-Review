@@ -67,7 +67,7 @@ const LeftNavigationBar = ({
           flexDirection: 'column',
           gap: 2,
           width: '100%',
-          px: 1
+          alignItems: 'center'
         }}
       >
         {leftNavigationItems.map((item, index) => (
@@ -78,8 +78,8 @@ const LeftNavigationBar = ({
                 color: isItemActive(item) ? 'white' : 'rgba(255, 255, 255, 0.7)',
                 backgroundColor: isItemActive(item) ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
                 borderRadius: 2,
-                width: 48,
-                height: 48,
+                width: 56,
+                height: 56,
                 // ロゴの後に大きなマージンを追加
                 marginBottom: item.isLogo ? 3 : 0,
                 '&:hover': {
@@ -97,8 +97,8 @@ const LeftNavigationBar = ({
                   src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"
                   alt="OpenReview Logo"
                   sx={{
-                    width: 48,
-                    height: 48,
+                    width: 40,
+                    height: 40,
                     objectFit: 'contain'
                   }}
                   onError={(e) => {
@@ -106,8 +106,8 @@ const LeftNavigationBar = ({
                     e.target.style.display = 'none';
                     e.target.parentNode.innerHTML = `
                       <div style="
-                        width: 48px; 
-                        height: 48px; 
+                        width: 40px; 
+                        height: 40px; 
                         border-radius: 4px; 
                         background: rgba(255, 255, 255, 0.2); 
                         display: flex; 
@@ -122,7 +122,7 @@ const LeftNavigationBar = ({
                   }}
                 />
               ) : (
-                React.cloneElement(item.icon, { sx: { fontSize: '1.8rem' } })
+                React.cloneElement(item.icon, { sx: { fontSize: '2rem' } })
               )}
             </IconButton>
           </Tooltip>
