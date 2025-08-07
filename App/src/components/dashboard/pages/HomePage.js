@@ -775,7 +775,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             fontSize: '0.875rem',
                             color: '#374151',
                             borderBottom: '2px solid #e5e7eb',
-                            py: 1.5
+                            py: 2
                           }
                         }}
                       >
@@ -885,7 +885,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             }}
                           >
                             {/* チェックボックス */}
-                            <TableCell sx={{ py: 1.5 }}>
+                            <TableCell sx={{ py: 2 }}>
                               <Checkbox
                                 size="small"
                                 checked={selectedForms.has(formattedForm.id)}
@@ -895,7 +895,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* フォーム名 */}
-                            <TableCell sx={{ py: 1.5 }}>
+                            <TableCell sx={{ py: 2 }}>
                               <Box>
                                 <Typography
                                   variant="body1"
@@ -913,7 +913,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* ステータス */}
-                            <TableCell align="center" sx={{ py: 1.5 }}>
+                            <TableCell align="center" sx={{ py: 2 }}>
                               <Chip
                                 label={formattedForm.status}
                                 size="small"
@@ -936,7 +936,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* 質問数 */}
-                            <TableCell align="center" sx={{ py: 1.5 }}>
+                            <TableCell align="center" sx={{ py: 2 }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -950,7 +950,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* 回答数 */}
-                            <TableCell align="center" sx={{ py: 1.5 }}>
+                            <TableCell align="center" sx={{ py: 2 }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -964,7 +964,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* 作成日 */}
-                            <TableCell align="center" sx={{ py: 1.5 }}>
+                            <TableCell align="center" sx={{ py: 2 }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -977,7 +977,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* 更新日 */}
-                            <TableCell align="center" sx={{ py: 1.5 }}>
+                            <TableCell align="center" sx={{ py: 2 }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -990,7 +990,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* アクション */}
-                            <TableCell align="center" sx={{ py: 1.5 }}>
+                            <TableCell align="center" sx={{ py: 2 }}>
                               <Box 
                                 className="action-buttons"
                                 sx={{ 
