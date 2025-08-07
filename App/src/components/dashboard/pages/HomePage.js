@@ -781,6 +781,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                       >
                         <TableCell>
                           <Checkbox
+                            size="small"
                             checked={selectedForms.size === sortedForms.length && sortedForms.length > 0}
                             indeterminate={selectedForms.size > 0 && selectedForms.size < sortedForms.length}
                             onChange={handleSelectAll}
@@ -886,6 +887,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             {/* チェックボックス */}
                             <TableCell sx={{ py: 1.5 }}>
                               <Checkbox
+                                size="small"
                                 checked={selectedForms.has(formattedForm.id)}
                                 onChange={() => handleSelectForm(formattedForm.id)}
                                 sx={{ p: 0.5 }}
