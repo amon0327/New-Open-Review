@@ -895,28 +895,27 @@ export default function HomePage({ user, onCreateFormClick }) {
                             {/* フォーム名 */}
                             <TableCell sx={{ py: 2.5 }}>
                               <Box>
-                                  <Typography
-                                    variant="body1"
-                                    sx={{
-                                      fontWeight: 600,
-                                      color: '#1a202c',
-                                      fontSize: '0.95rem',
-                                      lineHeight: 1.2,
-                                      mb: 0.5
-                                    }}
-                                  >
-                                    {formattedForm.title}
-                                  </Typography>
-                                  <Typography
-                                    variant="caption"
-                                    sx={{
-                                      color: 'text.secondary',
-                                      fontSize: '0.75rem'
-                                    }}
-                                  >
-                                    {formattedForm.description}
-                                  </Typography>
-                                </Box>
+                                <Typography
+                                  variant="body1"
+                                  sx={{
+                                    fontWeight: 600,
+                                    color: '#1a202c',
+                                    fontSize: '0.95rem',
+                                    lineHeight: 1.2,
+                                    mb: 0.5
+                                  }}
+                                >
+                                  {formattedForm.title}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: 'text.secondary',
+                                    fontSize: '0.75rem'
+                                  }}
+                                >
+                                  {formattedForm.description}
+                                </Typography>
                               </Box>
                             </TableCell>
 
