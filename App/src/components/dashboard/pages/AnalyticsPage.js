@@ -44,17 +44,18 @@ export default function AnalyticsPage({ onNavCollapse }) {
       {/* テストモード切り替えスイッチ - 最上位レイヤー */}
       <Box sx={{ 
         position: 'fixed',
-        top: 20,
-        right: 20,
+        bottom: 30,
+        left: '50%',
+        transform: 'translateX(-50%)',
         zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
-        gap: 1,
+        gap: 1.5,
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(15px)',
-        borderRadius: 4,
-        padding: '8px 16px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        borderRadius: 6,
+        padding: '12px 20px',
+        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
         border: '1px solid rgba(255, 255, 255, 0.2)',
         transition: 'all 0.3s ease'
       }}>
