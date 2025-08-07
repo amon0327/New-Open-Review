@@ -177,7 +177,7 @@ export class FormDataService {
   }
 
   /**
-   * ユーザーのフォーム一覧を取得
+   * ユーザーのフォーム一覧を取得（質問数も含む）
    * @param {string} userId - ユーザーID
    * @returns {Promise<Object>} フォーム一覧
    */
@@ -190,6 +190,9 @@ export class FormDataService {
           review_form_settings (
             theme_color,
             is_dark_mode
+          ),
+          review_questions (
+            id
           )
         `)
         .eq('business_users', userId)

@@ -143,6 +143,7 @@ export default function HomePage({ user, onCreateFormClick }) {
     description: 'レビューフォーム',
     status: form.is_published ? '公開中' : '下書き',
     responses: 0, // TODO: 実際の回答数を取得
+    questionCount: form.review_questions ? form.review_questions.length : 0, // 質問数を追加
     lastModified: new Date(form.updated_at).toISOString().split('T')[0],
     category: 'レビュー',
     themeColor: form.review_form_settings?.[0]?.theme_color || '#5e17eb',
@@ -765,6 +766,24 @@ export default function HomePage({ user, onCreateFormClick }) {
                             '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.05)' },
                             userSelect: 'none'
                           }}
+                          onClick={() => handleSort('questionCount')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                            質問数
+                            {sortField === 'questionCount' && (
+                              sortDirection === 'desc' ? 
+                                <KeyboardArrowDown sx={{ fontSize: 16 }} /> : 
+                                <KeyboardArrowUp sx={{ fontSize: 16 }} />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell 
+                          align="center"
+                          sx={{ 
+                            cursor: 'pointer',
+                            '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.05)' },
+                            userSelect: 'none'
+                          }}
                           onClick={() => handleSort('responses')}
                         >
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
@@ -895,6 +914,20 @@ export default function HomePage({ user, onCreateFormClick }) {
                                     : 'rgba(255, 152, 0, 0.2)'}`,
                                 }}
                               />
+                            </TableCell>
+
+                            {/* 質問数 */}
+                            <TableCell align="center">
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontWeight: 600,
+                                  color: '#6b7280',
+                                  fontSize: '0.95rem'
+                                }}
+                              >
+                                {formattedForm.questionCount}
+                              </Typography>
                             </TableCell>
 
                             {/* 回答数 */}
