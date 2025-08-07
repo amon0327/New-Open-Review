@@ -527,63 +527,66 @@ const PublishSettings = ({
         <Stack spacing={3}>
           {/* 公開ボタン */}
           <Box>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
-                フォームを公開する
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.875rem' }}>
-                ボタンを押すとフォームが一般公開されます
-              </Typography>
-            </Box>
-            
-            {isPublished ? (
-              // 公開済みの場合は状態表示
-              <Box
-                sx={{
-                  p: 2.5,
-                  borderRadius: 2,
-                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                  border: '1px solid rgba(16, 185, 129, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5
-                }}
-              >
-                <CheckCircle sx={{ color: '#10b981', fontSize: '1.25rem' }} />
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#065f46' }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+              {/* 左側にボタンを配置 */}
+              {isPublished ? (
+                // 公開済みの場合は状態表示
+                <Box
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 2,
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    border: '1px solid rgba(16, 185, 129, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    minWidth: 'fit-content',
+                    flexShrink: 0
+                  }}
+                >
+                  <CheckCircle sx={{ color: '#10b981', fontSize: '1.1rem' }} />
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#065f46', fontSize: '0.875rem' }}>
                     公開済み
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#047857', fontSize: '0.875rem' }}>
-                    フォームにアクセス可能です
-                  </Typography>
                 </Box>
+              ) : (
+                // 未公開の場合は公開ボタン
+                <Button
+                  variant="contained"
+                  onClick={handlePublishClick}
+                  sx={{
+                    height: 40,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                    minWidth: 'fit-content',
+                    flexShrink: 0,
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
+                      boxShadow: '0 6px 16px rgba(102, 126, 234, 0.4)',
+                      transform: 'translateY(-1px)'
+                    },
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  フォームを公開する
+                </Button>
+              )}
+              
+              {/* 右側にテキストを配置 */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
+                  フォームを公開する
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.875rem' }}>
+                  ボタンを押すとフォームが一般公開されます
+                </Typography>
               </Box>
-            ) : (
-              // 未公開の場合は公開ボタン
-              <Button
-                variant="contained"
-                onClick={handlePublishClick}
-                sx={{
-                  height: 48,
-                  borderRadius: 2,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  textTransform: 'none',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
-                    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.4)',
-                    transform: 'translateY(-1px)'
-                  },
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                フォームを公開する
-              </Button>
-            )}
+            </Box>
           </Box>
 
           {isPublished && (

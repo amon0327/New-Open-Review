@@ -1,12 +1,11 @@
 // Claude APIとの通信を担当するサービスクラス
-// フロントエンド側でのセキュアなAPI呼び出し
+// セキュアな認証付きAPI呼び出し実装
+import { supabase } from '../lib/supabase';
 
 class ClaudeApiService {
   constructor() {
-    // 本番環境とローカル環境でのAPI URLの切り替え
-    this.baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://openreview-server-jicrq0f8n-yuto-mochizukis-projects.vercel.app/api'
-      : 'https://openreview-server-jicrq0f8n-yuto-mochizukis-projects.vercel.app/api';
+    // Supabase Edge Functions経由でClaude APIを呼び出し
+    this.baseUrl = 'https://otfreskkeaenahqziriz.supabase.co/functions/v1';
     
     // デフォルトのリクエスト設定
     this.defaultConfig = {
@@ -34,19 +33,39 @@ class ClaudeApiService {
         throw new Error('メッセージが長すぎます（最大4000文字）');
       }
 
+      // Supabaseセッション取得
+      const { data: { session } } = await supabase.auth.getSession();
+
       // リクエストボディの構築
       const requestBody = {
         message: message.trim(),
-        conversationHistory: conversationHistory.slice(-10) // 最新10件のみ
+        conversationHistory: this.formatConversationHistory(conversationHistory)
       };
+
+      // セキュアな認証ヘッダーの構築
+      const headers = {
+        ...this.defaultConfig.headers
+      };
+
+      // 認証トークンがある場合は優先的に使用
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      
+      // Supabase APIキーを環境変数から取得
+      const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+      if (!supabaseAnonKey) {
+        throw new Error('環境変数が設定されていません: REACT_APP_SUPABASE_ANON_KEY');
+      }
+      headers['apikey'] = supabaseAnonKey;
 
       // フェッチリクエストの実行
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.defaultConfig.timeout);
 
-      const response = await fetch(`${this.baseUrl}/chat`, {
+      const response = await fetch(`${this.baseUrl}/claude-api`, {
         method: 'POST',
-        headers: this.defaultConfig.headers,
+        headers: headers,
         body: JSON.stringify(requestBody),
         signal: controller.signal
       });
@@ -57,15 +76,26 @@ class ClaudeApiService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         
+        // エラーメッセージの処理
+        const errorMessage = errorData.message || errorData.error || 'APIエラーが発生しました';
+        
         switch (response.status) {
           case 400:
-            throw new Error(errorData.error || '無効なリクエストです');
+            throw new Error(errorMessage);
+          case 401:
+            throw new Error('認証エラーです。ログインし直してください');
           case 429:
-            throw new Error('リクエストが多すぎます。しばらく待ってから再試行してください');
+            const isAuth = session?.access_token;
+            const limitMsg = isAuth 
+              ? 'リクエスト制限に達しました（認証済み：1分間に20回まで）'
+              : 'リクエスト制限に達しました（未認証：1分間に5回まで）。ログインすると制限が緩和されます';
+            throw new Error(limitMsg);
           case 500:
+          case 502:
+          case 503:
             throw new Error('サーバーエラーが発生しました。しばらく待ってから再試行してください');
           default:
-            throw new Error(`APIエラー: ${response.status}`);
+            throw new Error(`APIエラー (${response.status}): ${errorMessage}`);
         }
       }
 
@@ -80,7 +110,8 @@ class ClaudeApiService {
       return {
         message: data.response,
         usage: data.usage || { input_tokens: 0, output_tokens: 0 },
-        timestamp: new Date().toISOString()
+        metadata: data.metadata || {},
+        timestamp: data.metadata?.timestamp || new Date().toISOString()
       };
 
     } catch (error) {
@@ -101,11 +132,17 @@ class ClaudeApiService {
    * @returns {Array} Claude API用の形式に変換されたメッセージ配列
    */
   formatConversationHistory(messages) {
+    if (!Array.isArray(messages)) {
+      return [];
+    }
+    
     return messages
-      .filter(msg => msg.role && msg.content)
+      .filter(msg => msg && typeof msg === 'object' && msg.role && msg.content)
       .map(msg => ({
         role: msg.role === 'user' ? 'user' : 'assistant',
-        content: typeof msg.content === 'string' ? msg.content.trim() : ''
+        content: typeof msg.content === 'string' 
+          ? msg.content.trim().substring(0, 2000) // 長すぎるメッセージをカット
+          : ''
       }))
       .filter(msg => msg.content.length > 0)
       .slice(-10); // 最新10件のみ保持
@@ -117,15 +154,56 @@ class ClaudeApiService {
    */
   async checkConnection() {
     try {
-      const response = await fetch(`${this.baseUrl}/health`, {
-        method: 'GET',
-        timeout: 5000
-      });
-      return response.ok;
+      // 軽量なテストメッセージでAPI接続をチェック
+      await this.sendMessage('接続テスト', []);
+      return true;
     } catch (error) {
       console.warn('Claude API connection check failed:', error);
       return false;
     }
+  }
+
+  /**
+   * 現在の認証状態を取得
+   * @returns {Promise<Object>} 認証情報
+   */
+  async getAuthStatus() {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('認証状態の取得に失敗:', error);
+        return { authenticated: false, error: error.message };
+      }
+      
+      return {
+        authenticated: !!session,
+        user: session?.user || null,
+        expiresAt: session?.expires_at || null
+      };
+    } catch (error) {
+      console.error('認証状態チェックエラー:', error);
+      return { authenticated: false, error: error.message };
+    }
+  }
+
+  /**
+   * レート制限情報を取得
+   * @returns {Object} レート制限情報
+   */
+  getRateLimitInfo() {
+    return {
+      anonymous: {
+        requests: 5,
+        window: '1分間',
+        message: '未認証ユーザーは1分間に5回までリクエスト可能です'
+      },
+      authenticated: {
+        requests: 20,
+        window: '1分間', 
+        message: '認証済みユーザーは1分間に20回までリクエスト可能です'
+      }
+    };
   }
 }
 

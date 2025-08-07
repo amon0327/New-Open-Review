@@ -1,8 +1,27 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Supabase設定
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://otfreskkeaenahqziriz.supabase.co'
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90ZnJlc2trZWFlbmFocXppcml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyMzI2OTIsImV4cCI6MjA1MTgwODY5Mn0.dBn1hTc0gJQTnQHyT_1mCqmQsC2ue0hVz0T2VZ7jK9E'
+// 環境変数の取得と検証
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+// 環境変数の存在確認
+if (!supabaseUrl) {
+  throw new Error('環境変数 REACT_APP_SUPABASE_URL が設定されていません。.env.local ファイルを確認してください。');
+}
+
+if (!supabaseAnonKey) {
+  throw new Error('環境変数 REACT_APP_SUPABASE_ANON_KEY が設定されていません。.env.local ファイルを確認してください。');
+}
+
+// APIキーの基本的なフォーマット検証
+if (!supabaseUrl.startsWith('https://') || !supabaseUrl.includes('.supabase.co')) {
+  throw new Error('無効な Supabase URL フォーマットです');
+}
+
+if (!supabaseAnonKey.startsWith('eyJ') || supabaseAnonKey.length < 100) {
+  throw new Error('無効な Supabase Anon Key フォーマットです');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
