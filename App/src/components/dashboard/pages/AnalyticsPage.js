@@ -105,26 +105,6 @@ export default function AnalyticsPage({ onNavCollapse }) {
             }} />
           </Box>
           
-          {isTestMode && (
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                  borderRadius: 8,
-                  padding: '2px 8px',
-                }}
-              >
-                ON
-              </Typography>
-            </motion.div>
-          )}
         </Box>
       </Box>
 
