@@ -248,10 +248,16 @@ export default function SettingsPage({ user, onLogout }) {
     >
       <Box
         sx={{
-          height: 'calc(100vh - 120px)',
+          minHeight: '100vh',
+          width: '100vw',
           overflow: 'auto',
           background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-          p: 3
+          p: 3,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0
         }}
       >
 
