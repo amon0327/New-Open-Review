@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Box, Button, Chip } from '@mui/material';
+import { Box, Chip, Switch, Typography } from '@mui/material';
 import QuestionSidebar from '../../analytics/QuestionSidebar';
 import ChartArea from '../../analytics/ChartArea';
 
@@ -41,33 +41,76 @@ export default function AnalyticsPage({ onNavCollapse }) {
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
     >
-      {/* テストモード状態表示 - 最上位レイヤー */}
-      {isTestMode && (
-        <Box sx={{ 
-          position: 'fixed',
-          top: 80,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 9999,
-          display: 'flex', 
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}>
-          <Chip 
-            label="テストモード中" 
-            color="warning"
-            size="small"
-            sx={{ 
-              fontWeight: 600,
-              backgroundColor: 'rgba(255, 152, 0, 0.95)',
-              color: 'white',
-              backdropFilter: 'blur(10px)',
-              boxShadow: '0 4px 20px rgba(255, 152, 0, 0.3)',
-              border: '1px solid rgba(255, 152, 0, 0.3)'
-            }}
-          />
-        </Box>
-      )}
+      {/* テストモード切り替えスイッチ - 最上位レイヤー */}
+      <Box sx={{ 
+        position: 'fixed',
+        top: 20,
+        right: 20,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(15px)',
+        borderRadius: 4,
+        padding: '8px 16px',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        transition: 'all 0.3s ease'
+      }}>
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            fontWeight: 600,
+            color: isTestMode ? '#ed6c02' : '#64748b',
+            fontSize: '0.875rem',
+            transition: 'color 0.3s ease'
+          }}
+        >
+          テストモード
+        </Typography>
+        <Switch
+          checked={isTestMode}
+          onChange={handleTestModeToggle}
+          sx={{
+            '& .MuiSwitch-switchBase': {
+              '&.Mui-checked': {
+                color: '#fff',
+                '& + .MuiSwitch-track': {
+                  backgroundColor: '#ff9800',
+                  opacity: 1,
+                },
+              },
+            },
+            '& .MuiSwitch-track': {
+              backgroundColor: '#e2e8f0',
+              opacity: 1,
+            },
+          }}
+        />
+        {isTestMode && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+          >
+            <Chip 
+              label="ON" 
+              size="small"
+              sx={{ 
+                backgroundColor: '#ff9800',
+                color: 'white',
+                fontWeight: 700,
+                fontSize: '0.7rem',
+                height: 20,
+                '& .MuiChip-label': {
+                  px: 1
+                }
+              }}
+            />
+          </motion.div>
+        )}
+      </Box>
 
       <Box sx={{ 
         height: 'calc(100vh - 64px)', 
@@ -98,34 +141,6 @@ export default function AnalyticsPage({ onNavCollapse }) {
           />
         </Box>
 
-        {/* テストモードボタン - 下部中央 */}
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          pt: 2, 
-          pb: 1 
-        }}>
-          <Button
-            variant={isTestMode ? "contained" : "outlined"}
-            color={isTestMode ? "warning" : "primary"}
-            onClick={handleTestModeToggle}
-            sx={{
-              minWidth: 200,
-              borderRadius: 3,
-              fontWeight: 600,
-              textTransform: 'none',
-              '&:hover': {
-                transform: 'translateY(-1px)',
-                boxShadow: isTestMode 
-                  ? '0 6px 20px rgba(255, 152, 0, 0.3)'
-                  : '0 6px 20px rgba(94, 23, 235, 0.3)'
-              },
-              transition: 'all 0.2s ease'
-            }}
-          >
-            {isTestMode ? 'テストモードを終了' : 'テストモードを開始'}
-          </Button>
-        </Box>
       </Box>
     </motion.div>
   );
