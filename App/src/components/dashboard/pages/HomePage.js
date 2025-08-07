@@ -22,7 +22,12 @@ import {
   Menu,
   MenuItem,
   Tooltip,
-  Checkbox
+  Checkbox,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText
 } from '@mui/material';
 import { 
   Add, 
@@ -59,6 +64,8 @@ export default function HomePage({ user, onCreateFormClick }) {
 
   // フォーム選択関連の状態
   const [selectedForms, setSelectedForms] = useState(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // ドラッグスクロール用の状態
   const [isDragging, setIsDragging] = useState(false);
@@ -156,6 +163,46 @@ export default function HomePage({ user, onCreateFormClick }) {
     } else {
       setSelectedForms(new Set(sortedForms.map(form => form.id)));
     }
+  };
+
+  // 削除関連のハンドラー
+  const handleBulkDelete = () => {
+    if (selectedForms.size === 0) return;
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      const deletePromises = Array.from(selectedForms).map(formId => 
+        FormDataService.deleteForm(formId, user.id)
+      );
+      
+      const results = await Promise.all(deletePromises);
+      const failedDeletes = results.filter(result => !result.success);
+      
+      if (failedDeletes.length === 0) {
+        toast.success(`${selectedForms.size}件のフォームを削除しました`);
+        // フォーム一覧を再取得
+        const result = await FormDataService.getUserForms(user.id);
+        if (result.success) {
+          setForms(result.data);
+        }
+        setSelectedForms(new Set());
+      } else {
+        toast.error(`${failedDeletes.length}件のフォーム削除に失敗しました`);
+      }
+    } catch (error) {
+      toast.error('削除処理中にエラーが発生しました');
+      console.error('Bulk delete error:', error);
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
   };
 
   // フォームデータの変換
@@ -627,37 +674,66 @@ export default function HomePage({ user, onCreateFormClick }) {
                 作成したレビューフォームを管理
               </Typography>
             </Box>
-            <FormCreator user={user} onCreateFormClick={onCreateFormClick}>
-              {({ onCreateForm, isCreatingForm }) => (
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              {selectedForms.size > 0 && (
                 <Button
-                  variant="contained"
-                  startIcon={isCreatingForm ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Add />}
-                  onClick={onCreateForm}
-                  disabled={isCreatingForm}
+                  variant="outlined"
+                  startIcon={isDeleting ? <CircularProgress size={16} /> : <Delete />}
+                  onClick={handleBulkDelete}
+                  disabled={isDeleting}
                   sx={{
-                    background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                    borderColor: '#ef4444',
+                    color: '#ef4444',
                     borderRadius: 3,
-                    px: 3,
+                    px: 2.5,
                     py: 1.5,
                     textTransform: 'none',
                     fontWeight: 600,
-                    boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 8px 30px rgba(94, 23, 235, 0.4)',
+                      backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                      borderColor: '#dc2626',
+                      color: '#dc2626',
                     },
                     '&.Mui-disabled': {
                       opacity: 0.7,
-                      background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                      color: 'white'
                     }
                   }}
                 >
-                  {isCreatingForm ? '作成中...' : '新規作成'}
+                  {isDeleting ? '削除中...' : `選択した${selectedForms.size}件を削除`}
                 </Button>
               )}
-            </FormCreator>
+              <FormCreator user={user} onCreateFormClick={onCreateFormClick}>
+                {({ onCreateForm, isCreatingForm }) => (
+                  <Button
+                    variant="contained"
+                    startIcon={isCreatingForm ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Add />}
+                    onClick={onCreateForm}
+                    disabled={isCreatingForm}
+                    sx={{
+                      background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                      borderRadius: 3,
+                      px: 3,
+                      py: 1.5,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 8px 30px rgba(94, 23, 235, 0.4)',
+                      },
+                      '&.Mui-disabled': {
+                        opacity: 0.7,
+                        background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                        color: 'white'
+                      }
+                    }}
+                  >
+                    {isCreatingForm ? '作成中...' : '新規作成'}
+                  </Button>
+                )}
+              </FormCreator>
+            </Box>
           </Box>
 
           {/* ローディング状態 */}
@@ -1074,6 +1150,81 @@ export default function HomePage({ user, onCreateFormClick }) {
               削除
             </MenuItem>
           </Menu>
+
+          {/* 削除確認ダイアログ */}
+          <Dialog
+            open={deleteDialogOpen}
+            onClose={handleDeleteCancel}
+            PaperProps={{
+              sx: {
+                borderRadius: 3,
+                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
+                maxWidth: 480
+              }
+            }}
+          >
+            <DialogTitle sx={{ 
+              fontWeight: 700, 
+              fontSize: '1.25rem',
+              color: '#1a202c',
+              pb: 1
+            }}>
+              フォームの削除確認
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText sx={{ 
+                color: '#6b7280',
+                fontSize: '0.95rem',
+                lineHeight: 1.6
+              }}>
+                選択した<strong>{selectedForms.size}件</strong>のレビューフォームを削除しますか？
+                <br />
+                この操作は取り消すことができません。
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+              <Button
+                onClick={handleDeleteCancel}
+                sx={{
+                  color: '#6b7280',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+                  '&:hover': {
+                    backgroundColor: 'rgba(107, 114, 128, 0.08)'
+                  }
+                }}
+              >
+                キャンセル
+              </Button>
+              <Button
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                startIcon={isDeleting ? <CircularProgress size={16} /> : <Delete />}
+                sx={{
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+                  '&:hover': {
+                    backgroundColor: '#dc2626'
+                  },
+                  '&.Mui-disabled': {
+                    backgroundColor: '#ef4444',
+                    opacity: 0.7,
+                    color: 'white'
+                  }
+                }}
+              >
+                {isDeleting ? '削除中...' : '削除する'}
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Container>
       </Box>
     </motion.div>

@@ -1,0 +1,15 @@
+{
+  "name": "openreviewapp-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenReviewApp Server - Vercel Serverless Functions",
+  "main": "api/chat.js",
+  "dependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "deploy": "vercel --prod",
+    "dev": "vercel dev"
+  }
+}
