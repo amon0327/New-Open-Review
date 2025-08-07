@@ -11,7 +11,6 @@ import {
   Grid, 
   Container, 
   CircularProgress, 
-  Avatar,
   Table,
   TableBody,
   TableCell,
@@ -895,19 +894,7 @@ export default function HomePage({ user, onCreateFormClick }) {
 
                             {/* フォーム名 */}
                             <TableCell sx={{ py: 2.5 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Avatar
-                                  sx={{
-                                    width: 40,
-                                    height: 40,
-                                    background: `linear-gradient(135deg, ${formattedForm.themeColor} 0%, ${formattedForm.themeColor}aa 100%)`,
-                                    fontSize: '0.875rem',
-                                    fontWeight: 600
-                                  }}
-                                >
-                                  {formattedForm.title.charAt(0)}
-                                </Avatar>
-                                <Box>
+                              <Box>
                                   <Typography
                                     variant="body1"
                                     sx={{
