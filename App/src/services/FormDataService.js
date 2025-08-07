@@ -150,16 +150,100 @@ export class FormDataService {
    */
   static async deleteForm(formId) {
     try {
-      // Supabaseの外部キー制約により、関連データは自動削除される想定
-      const { error } = await supabase
+      console.log(`Starting deletion process for form: ${formId}`);
+
+      // 1. フォームに関連する質問IDを取得
+      const { data: questions, error: questionsSelectError } = await supabase
+        .from('review_questions')
+        .select('id')
+        .eq('review_fome_id', formId);
+
+      if (questionsSelectError) {
+        console.warn('質問取得エラー:', questionsSelectError.message);
+      }
+
+      // 2. 質問のオプションデータを削除
+      if (questions && questions.length > 0) {
+        const questionIds = questions.map(q => q.id);
+
+        const { error: choicesError } = await supabase
+          .from('question_option_choices')
+          .delete()
+          .in('review_questions_id', questionIds);
+
+        if (choicesError) {
+          console.warn('選択肢削除エラー:', choicesError.message);
+        }
+
+        const { error: scaleError } = await supabase
+          .from('question_option_linear_scale')
+          .delete()
+          .in('review_questions_id', questionIds);
+
+        if (scaleError) {
+          console.warn('スケール削除エラー:', scaleError.message);
+        }
+      }
+
+      // 3. 質問を削除
+      const { error: questionsError } = await supabase
+        .from('review_questions')
+        .delete()
+        .eq('review_fome_id', formId);
+
+      if (questionsError) {
+        console.warn('質問削除エラー:', questionsError.message);
+      }
+
+      // 4. 各種画面設定を削除
+      const settingsTables = [
+        'login_screen_settings',
+        'question_screen_settings', 
+        'completion_screen_settings'
+      ];
+
+      for (const table of settingsTables) {
+        const { error } = await supabase
+          .from(table)
+          .delete()
+          .eq('review_forms_id', formId);
+        
+        if (error) {
+          console.warn(`${table}削除エラー:`, error.message);
+        }
+      }
+
+      // 5. フォーム設定を削除
+      const { error: settingsError } = await supabase
+        .from('review_form_settings')
+        .delete()
+        .eq('review_form_id', formId);
+
+      if (settingsError) {
+        console.warn('フォーム設定削除エラー:', settingsError.message);
+      }
+
+      // 6. フォームページを削除
+      const { error: pagesError } = await supabase
+        .from('review_form_pages')
+        .delete()
+        .eq('review_forms_id', formId);
+
+      if (pagesError) {
+        console.warn('ページ削除エラー:', pagesError.message);
+      }
+
+      // 7. 最後にメインフォームを削除
+      const { error: formError } = await supabase
         .from('review_forms')
         .delete()
         .eq('id', formId);
 
-      if (error) {
-        throw new Error(`フォーム削除エラー: ${error.message}`);
+      if (formError) {
+        throw new Error(`フォーム削除エラー: ${formError.message}`);
       }
 
+      console.log(`Form ${formId} deleted successfully`);
       return {
         success: true,
         data: null,

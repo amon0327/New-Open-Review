@@ -175,7 +175,7 @@ export default function HomePage({ user, onCreateFormClick }) {
     setIsDeleting(true);
     try {
       const deletePromises = Array.from(selectedForms).map(formId => 
-        FormDataService.deleteForm(formId, user.id)
+        FormDataService.deleteForm(formId)
       );
       
       const results = await Promise.all(deletePromises);
@@ -191,6 +191,7 @@ export default function HomePage({ user, onCreateFormClick }) {
         setSelectedForms(new Set());
       } else {
         toast.error(`${failedDeletes.length}件のフォーム削除に失敗しました`);
+        console.error('Failed deletes:', failedDeletes);
       }
     } catch (error) {
       toast.error('削除処理中にエラーが発生しました');
