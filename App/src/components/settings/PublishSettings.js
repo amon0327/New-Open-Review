@@ -528,7 +528,17 @@ const PublishSettings = ({
           {/* 公開ボタン */}
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
-              {/* 左側にボタンを配置 */}
+              {/* 左側にテキストを配置 */}
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
+                  フォームを公開する
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.875rem' }}>
+                  ボタンを押すとフォームが一般公開されます
+                </Typography>
+              </Box>
+              
+              {/* 右側にボタンを配置 */}
               {isPublished ? (
                 // 公開済みの場合は状態表示
                 <Box
@@ -576,16 +586,6 @@ const PublishSettings = ({
                   フォームを公開する
                 </Button>
               )}
-              
-              {/* 右側にテキストを配置 */}
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
-                  フォームを公開する
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.875rem' }}>
-                  ボタンを押すとフォームが一般公開されます
-                </Typography>
-              </Box>
             </Box>
           </Box>
 
