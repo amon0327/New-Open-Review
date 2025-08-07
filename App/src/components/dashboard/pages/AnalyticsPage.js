@@ -41,6 +41,34 @@ export default function AnalyticsPage({ onNavCollapse }) {
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
     >
+      {/* テストモード状態表示 - 最上位レイヤー */}
+      {isTestMode && (
+        <Box sx={{ 
+          position: 'fixed',
+          top: 80,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          display: 'flex', 
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <Chip 
+            label="テストモード中" 
+            color="warning"
+            size="small"
+            sx={{ 
+              fontWeight: 600,
+              backgroundColor: 'rgba(255, 152, 0, 0.95)',
+              color: 'white',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 4px 20px rgba(255, 152, 0, 0.3)',
+              border: '1px solid rgba(255, 152, 0, 0.3)'
+            }}
+          />
+        </Box>
+      )}
+
       <Box sx={{ 
         height: 'calc(100vh - 64px)', 
         display: 'flex', 
@@ -48,27 +76,6 @@ export default function AnalyticsPage({ onNavCollapse }) {
         p: 1,
         overflow: 'hidden'
       }}>
-        {/* テストモード状態表示 */}
-        {isTestMode && (
-          <Box sx={{ 
-            mb: 1, 
-            display: 'flex', 
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
-            <Chip 
-              label="テストモード中" 
-              color="warning"
-              size="small"
-              sx={{ 
-                fontWeight: 600,
-                backgroundColor: 'rgba(255, 152, 0, 0.1)',
-                color: '#ed6c02'
-              }}
-            />
-          </Box>
-        )}
-
         {/* メインコンテンツ */}
         <Box sx={{ flexGrow: 1, display: 'flex', gap: 1.5, minHeight: 0 }}>
           {/* 質問選択サイドバー */}
