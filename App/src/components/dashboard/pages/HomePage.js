@@ -907,15 +907,6 @@ export default function HomePage({ user, onCreateFormClick }) {
                                 >
                                   {formattedForm.title}
                                 </Typography>
-                                <Typography
-                                  variant="caption"
-                                  sx={{
-                                    color: 'text.secondary',
-                                    fontSize: '0.75rem'
-                                  }}
-                                >
-                                  {formattedForm.description}
-                                </Typography>
                               </Box>
                             </TableCell>
 
