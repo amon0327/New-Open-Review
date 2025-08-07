@@ -22,7 +22,8 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Tooltip
+  Tooltip,
+  Checkbox
 } from '@mui/material';
 import { 
   Add, 
@@ -56,6 +57,9 @@ export default function HomePage({ user, onCreateFormClick }) {
   // ソート関連の状態
   const [sortField, setSortField] = useState('updated_at'); // デフォルトは更新日
   const [sortDirection, setSortDirection] = useState('desc'); // デフォルトは降順（最新順）
+
+  // フォーム選択関連の状態
+  const [selectedForms, setSelectedForms] = useState(new Set());
 
   // ドラッグスクロール用の状態
   const [isDragging, setIsDragging] = useState(false);
@@ -133,6 +137,25 @@ export default function HomePage({ user, onCreateFormClick }) {
       // 違うフィールドをクリックした場合は新しいフィールドを設定し、降順から開始
       setSortField(field);
       setSortDirection('desc');
+    }
+  };
+
+  // チェックボックス関連のハンドラー
+  const handleSelectForm = (formId) => {
+    const newSelected = new Set(selectedForms);
+    if (newSelected.has(formId)) {
+      newSelected.delete(formId);
+    } else {
+      newSelected.add(formId);
+    }
+    setSelectedForms(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedForms.size === sortedForms.length) {
+      setSelectedForms(new Set());
+    } else {
+      setSelectedForms(new Set(sortedForms.map(form => form.id)));
     }
   };
 
@@ -757,6 +780,14 @@ export default function HomePage({ user, onCreateFormClick }) {
                           }
                         }}
                       >
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedForms.size === sortedForms.length && sortedForms.length > 0}
+                            indeterminate={selectedForms.size > 0 && selectedForms.size < sortedForms.length}
+                            onChange={handleSelectAll}
+                            sx={{ p: 0.5 }}
+                          />
+                        </TableCell>
                         <TableCell>フォーム名</TableCell>
                         <TableCell align="center">ステータス</TableCell>
                         <TableCell 
@@ -853,6 +884,15 @@ export default function HomePage({ user, onCreateFormClick }) {
                               borderBottom: '1px solid rgba(0, 0, 0, 0.04)'
                             }}
                           >
+                            {/* チェックボックス */}
+                            <TableCell sx={{ py: 2.5 }}>
+                              <Checkbox
+                                checked={selectedForms.has(formattedForm.id)}
+                                onChange={() => handleSelectForm(formattedForm.id)}
+                                sx={{ p: 0.5 }}
+                              />
+                            </TableCell>
+
                             {/* フォーム名 */}
                             <TableCell sx={{ py: 2.5 }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
