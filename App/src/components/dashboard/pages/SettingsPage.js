@@ -248,7 +248,7 @@ export default function SettingsPage({ user, onLogout }) {
     >
       <Box
         sx={{
-          height: 'calc(100vh - 120px)',
+          minHeight: '100vh',
           overflow: 'auto',
           background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
           p: 3
