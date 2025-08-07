@@ -254,28 +254,6 @@ export default function SettingsPage({ user, onLogout }) {
           p: 3
         }}
       >
-        {/* ヘッダー */}
-        <Box sx={{ mb: 4 }}>
-          <Typography 
-            variant="h4" 
-            sx={{ 
-              fontWeight: 700, 
-              color: '#1a202c',
-              mb: 1
-            }}
-          >
-            アカウント設定
-          </Typography>
-          <Typography 
-            variant="body1" 
-            sx={{ 
-              color: '#64748b',
-              fontSize: '1.1rem'
-            }}
-          >
-            プロフィール情報とアカウント設定を管理
-          </Typography>
-        </Box>
 
         {/* メッセージ表示 */}
         {message.text && (
