@@ -270,9 +270,9 @@ export default function SettingsPage({ user, onLogout }) {
           </Alert>
         )}
 
-        <Grid container spacing={3}>
-          {/* プロフィール情報 */}
-          <Grid item xs={12} lg={8}>
+        {/* プロフィール情報 */}
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12}>
             <Card
               sx={{
                 borderRadius: 2,
@@ -548,13 +548,12 @@ export default function SettingsPage({ user, onLogout }) {
               </CardContent>
             </Card>
           </Grid>
+        </Grid>
 
-          {/* サイドカラム */}
-          <Grid item xs={12} lg={4}>
-            <Box sx={{ position: 'sticky', top: 20, height: 'fit-content' }}>
-              <Grid container spacing={3} sx={{ alignItems: 'stretch' }}>
-                {/* 料金プラン */}
-                <Grid item xs={12} sm={6} lg={12}>
+        {/* 料金プランとセッション */}
+        <Grid container spacing={3}>
+          {/* 料金プラン */}
+          <Grid item xs={12} md={6}>
                   <Card
                     sx={{
                       borderRadius: 2,
@@ -640,8 +639,10 @@ export default function SettingsPage({ user, onLogout }) {
                   </Card>
                 </Grid>
 
-                {/* ログアウト */}
-                <Grid item xs={12} sm={6} lg={12}>
+          </Grid>
+
+          {/* セッション */}
+          <Grid item xs={12} md={6}>
                   <Card
                     sx={{
                       borderRadius: 2,
@@ -713,9 +714,6 @@ export default function SettingsPage({ user, onLogout }) {
                       </Box>
                     </CardContent>
                   </Card>
-                </Grid>
-              </Grid>
-            </Box>
           </Grid>
         </Grid>
       </Box>
