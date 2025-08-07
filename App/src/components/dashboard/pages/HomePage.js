@@ -759,7 +759,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                 <TableContainer 
                   component={Paper} 
                   sx={{ 
-                    borderRadius: 1.5,
+                    borderRadius: 0.5,
                     boxShadow: 'none',
                     border: '1px solid rgba(0, 0, 0, 0.06)',
                     overflow: 'hidden'
@@ -775,7 +775,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             fontSize: '0.875rem',
                             color: '#374151',
                             borderBottom: '2px solid #e5e7eb',
-                            py: 2.5
+                            py: 1.5
                           }
                         }}
                       >
@@ -884,7 +884,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             }}
                           >
                             {/* チェックボックス */}
-                            <TableCell sx={{ py: 2.5 }}>
+                            <TableCell sx={{ py: 1.5 }}>
                               <Checkbox
                                 checked={selectedForms.has(formattedForm.id)}
                                 onChange={() => handleSelectForm(formattedForm.id)}
@@ -893,7 +893,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* フォーム名 */}
-                            <TableCell sx={{ py: 2.5 }}>
+                            <TableCell sx={{ py: 1.5 }}>
                               <Box>
                                 <Typography
                                   variant="body1"
@@ -920,7 +920,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* ステータス */}
-                            <TableCell align="center">
+                            <TableCell align="center" sx={{ py: 1.5 }}>
                               <Chip
                                 label={formattedForm.status}
                                 size="small"
@@ -943,7 +943,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* 質問数 */}
-                            <TableCell align="center">
+                            <TableCell align="center" sx={{ py: 1.5 }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -957,7 +957,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* 回答数 */}
-                            <TableCell align="center">
+                            <TableCell align="center" sx={{ py: 1.5 }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -971,7 +971,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* 作成日 */}
-                            <TableCell align="center">
+                            <TableCell align="center" sx={{ py: 1.5 }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -984,7 +984,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* 更新日 */}
-                            <TableCell align="center">
+                            <TableCell align="center" sx={{ py: 1.5 }}>
                               <Typography
                                 variant="body2"
                                 sx={{
@@ -997,7 +997,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                             </TableCell>
 
                             {/* アクション */}
-                            <TableCell align="center">
+                            <TableCell align="center" sx={{ py: 1.5 }}>
                               <Box 
                                 className="action-buttons"
                                 sx={{ 
