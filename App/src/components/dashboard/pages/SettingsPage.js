@@ -554,18 +554,18 @@ export default function SettingsPage({ user, onLogout }) {
         <Grid container spacing={3}>
           {/* 料金プラン */}
           <Grid item xs={12} md={6}>
-                  <Card
-                    sx={{
-                      borderRadius: 2,
-                      border: 'none',
-                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      backdropFilter: 'blur(20px)',
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column'
-                    }}
-                  >
+            <Card
+              sx={{
+                borderRadius: 2,
+                border: 'none',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+            >
                     <CardContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                         <Box
@@ -634,86 +634,84 @@ export default function SettingsPage({ user, onLogout }) {
                         >
                           プランを確認・変更
                         </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
+                </Box>
+              </CardContent>
+            </Card>
           </Grid>
 
           {/* セッション */}
           <Grid item xs={12} md={6}>
-                  <Card
+            <Card
+              sx={{
+                borderRadius: 2,
+                border: 'none',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column'
+              }}
+            >
+              <CardContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                  <Box
                     sx={{
+                      width: 40,
+                      height: 40,
                       borderRadius: 2,
-                      border: 'none',
-                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      backdropFilter: 'blur(20px)',
-                      height: '100%',
+                      background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
                       display: 'flex',
-                      flexDirection: 'column'
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
                     }}
                   >
-                    <CardContent sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                        <Box
-                          sx={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 2,
-                            background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0
-                          }}
-                        >
-                          <ExitToApp sx={{ color: 'white', fontSize: 20 }} />
-                        </Box>
-                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a202c' }}>
-                          セッション
-                        </Typography>
-                      </Box>
-                      
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: '#64748b',
-                          mb: 3,
-                          lineHeight: 1.6
-                        }}
-                      >
-                        セッションを終了してログアウトします
-                      </Typography>
-                      
-                      <Box sx={{ mt: 'auto' }}>
-                        <Button
-                          variant="contained"
-                          color="error"
-                          fullWidth
-                          startIcon={<ExitToApp />}
-                          onClick={handleLogout}
-                          sx={{
-                            borderRadius: 3,
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            py: 1.2,
-                            height: '44px',
-                            background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
-                            boxShadow: '0 4px 20px rgba(255, 107, 107, 0.3)',
-                            '&:hover': {
-                              boxShadow: '0 8px 25px rgba(255, 107, 107, 0.4)',
-                              transform: 'translateY(-2px)'
-                            },
-                            transition: 'all 0.3s ease'
-                          }}
-                        >
-                          ログアウト
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
+                    <ExitToApp sx={{ color: 'white', fontSize: 20 }} />
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a202c' }}>
+                    セッション
+                  </Typography>
+                </Box>
+                
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: '#64748b',
+                    mb: 3,
+                    lineHeight: 1.6
+                  }}
+                >
+                  セッションを終了してログアウトします
+                </Typography>
+                
+                <Box sx={{ mt: 'auto' }}>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    fullWidth
+                    startIcon={<ExitToApp />}
+                    onClick={handleLogout}
+                    sx={{
+                      borderRadius: 3,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      py: 1.2,
+                      height: '44px',
+                      background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
+                      boxShadow: '0 4px 20px rgba(255, 107, 107, 0.3)',
+                      '&:hover': {
+                        boxShadow: '0 8px 25px rgba(255, 107, 107, 0.4)',
+                        transform: 'translateY(-2px)'
+                      },
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    ログアウト
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Box>
