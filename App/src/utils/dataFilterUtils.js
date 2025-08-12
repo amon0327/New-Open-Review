@@ -99,6 +99,36 @@ export const applyRangeFilter = (data, rangeValue, targetField = 'value') => {
 };
 
 /**
+ * 複数選択フィルターを適用（選択された複数値のいずれかに一致する項目を抽出）
+ * @param {Array} data - フィルター対象のデータ配列
+ * @param {Array} selectedValues - 選択された値の配列
+ * @param {string} targetField - フィルター対象のフィールド名
+ * @returns {Array} フィルター済みデータ
+ */
+export const applyMultiSelectFilter = (data, selectedValues, targetField = 'selected_choices') => {
+  if (!selectedValues || !Array.isArray(selectedValues) || selectedValues.length === 0) {
+    return data;
+  }
+
+  return data.filter(item => {
+    const fieldValue = item[targetField];
+    if (!fieldValue) return false;
+    
+    // 配列の場合は選択値のいずれかが含まれているかチェック
+    if (Array.isArray(fieldValue)) {
+      return selectedValues.some(selectedValue => 
+        fieldValue.some(val => String(val) === String(selectedValue))
+      );
+    }
+    
+    // 単一値の場合は選択値のいずれかと一致するかチェック
+    return selectedValues.some(selectedValue => 
+      String(fieldValue) === String(selectedValue)
+    );
+  });
+};
+
+/**
  * 複数のフィルターを組み合わせて適用
  * @param {Array} originalData - 元のデータ配列
  * @param {Object} filters - フィルター条件オブジェクト
@@ -128,6 +158,11 @@ export const applyCombinedFilters = (originalData, filters, question) => {
       case 'select':
         // 選択肢フィルター（回答値で絞り込み）
         filteredData = applySelectFilter(filteredData, value, 'selected_choice');
+        break;
+
+      case 'multi-select':
+        // 複数選択フィルター（選択された複数値のいずれかで絞り込み）
+        filteredData = applyMultiSelectFilter(filteredData, value, 'selected_choices');
         break;
 
       case 'range':
@@ -189,6 +224,19 @@ export const generateFilterDescription = (filters, questions) => {
         break;
       case 'select':
         desc = `"${value}"を選択`;
+        break;
+      case 'multi-select':
+        if (Array.isArray(value)) {
+          if (value.length === 1) {
+            desc = `"${value[0]}"を選択`;
+          } else if (value.length <= 3) {
+            desc = `"${value.join('", "')}"のいずれかを選択`;
+          } else {
+            desc = `${value.length}個の選択肢で絞り込み`;
+          }
+        } else {
+          desc = `"${value}"を選択`;
+        }
         break;
       case 'range':
         if (value.includes('+')) {

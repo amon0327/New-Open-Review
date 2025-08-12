@@ -5,7 +5,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Box, CircularProgress } from '@mui/material';
 import { Toaster } from 'react-hot-toast';
 
-import { supabase } from './lib/supabase';
+import { supabase } from './supabaseClient';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import CreatePage from './components/CreatePage';

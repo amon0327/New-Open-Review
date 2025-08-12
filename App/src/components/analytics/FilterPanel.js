@@ -8,7 +8,9 @@ import {
   Select,
   MenuItem,
   FormControl,
-  Chip
+  Chip,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import {
   Search,
@@ -245,6 +247,103 @@ export default function FilterPanel({
                               ))}
                             </Select>
                           </FormControl>
+                        )}
+
+                        {/* Multi-Select フィルター（複数選択） */}
+                        {filterConfig.type === 'multi-select' && (
+                          <Box>
+                            <Box sx={{ 
+                              maxHeight: 150, 
+                              overflow: 'auto',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: 1.5,
+                              bgcolor: activeFilters[question.id]?.value?.length > 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
+                              p: 0.5
+                            }}>
+                              {filterConfig.options.map((option) => {
+                                const currentValues = activeFilters[question.id]?.value || [];
+                                const isChecked = currentValues.includes(option.value);
+                                
+                                return (
+                                  <FormControlLabel
+                                    key={option.value}
+                                    control={
+                                      <Checkbox
+                                        checked={isChecked}
+                                        onChange={(e) => {
+                                          const currentValues = activeFilters[question.id]?.value || [];
+                                          let newValues;
+                                          
+                                          if (e.target.checked) {
+                                            newValues = [...currentValues, option.value];
+                                          } else {
+                                            newValues = currentValues.filter(v => v !== option.value);
+                                          }
+                                          
+                                          if (newValues.length === 0) {
+                                            clearFilter(question.id);
+                                          } else {
+                                            applyFilterInstantly(question.id, 'multi-select', newValues);
+                                          }
+                                        }}
+                                        size="small"
+                                        sx={{
+                                          color: categoryColors[question.category],
+                                          '&.Mui-checked': {
+                                            color: categoryColors[question.category]
+                                          }
+                                        }}
+                                      />
+                                    }
+                                    label={
+                                      <Typography sx={{ fontSize: '0.75rem' }}>
+                                        {option.label}
+                                      </Typography>
+                                    }
+                                    sx={{ 
+                                      width: '100%', 
+                                      m: 0, 
+                                      py: 0.25,
+                                      '& .MuiFormControlLabel-label': {
+                                        fontSize: '0.75rem'
+                                      }
+                                    }}
+                                  />
+                                );
+                              })}
+                            </Box>
+                            
+                            {/* 選択中の項目表示 */}
+                            {activeFilters[question.id]?.value?.length > 0 && (
+                              <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                {activeFilters[question.id].value.map((value, index) => (
+                                  <Chip
+                                    key={index}
+                                    label={value}
+                                    size="small"
+                                    onDelete={() => {
+                                      const currentValues = activeFilters[question.id].value;
+                                      const newValues = currentValues.filter(v => v !== value);
+                                      if (newValues.length === 0) {
+                                        clearFilter(question.id);
+                                      } else {
+                                        applyFilterInstantly(question.id, 'multi-select', newValues);
+                                      }
+                                    }}
+                                    sx={{
+                                      bgcolor: 'rgba(99, 102, 241, 0.1)',
+                                      color: '#4338ca',
+                                      fontSize: '0.65rem',
+                                      '& .MuiChip-deleteIcon': {
+                                        color: '#4338ca',
+                                        fontSize: 14
+                                      }
+                                    }}
+                                  />
+                                ))}
+                              </Box>
+                            )}
+                          </Box>
                         )}
 
                         {/* Text フィルター */}
