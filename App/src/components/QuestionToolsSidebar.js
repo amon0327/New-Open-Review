@@ -257,12 +257,16 @@ const QuestionToolsSidebar = ({
                                 width: 32,
                                 height: 32,
                                 borderRadius: 1,
-                                background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                                background: `linear-gradient(135deg, ${
+                                  ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][tempIndex % 7]
+                                } 0%, ${
+                                  ['#764ba2', '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][tempIndex % 7]
+                                } 100%)`,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 flexShrink: 0,
-                                boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
                               }}
                             >
                               {React.cloneElement(
