@@ -400,12 +400,17 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                 borderRadius: 2,
                 background: isExpanded 
                   ? 'rgba(255, 255, 255, 0.2)' 
-                  : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                  : `linear-gradient(135deg, ${
+                      ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][(typeId - 1) % 7]
+                    } 0%, ${
+                      ['#764ba2', '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][(typeId - 1) % 7]
+                    } 100%)`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: isExpanded ? 'white' : 'white',
-                flexShrink: 0
+                flexShrink: 0,
+                boxShadow: isExpanded ? 'none' : '0 4px 12px rgba(0, 0, 0, 0.15)'
               }}
             >
               {getQuestionTypeIcon(typeId)}
