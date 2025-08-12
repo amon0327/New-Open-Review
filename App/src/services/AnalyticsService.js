@@ -1,39 +1,55 @@
 import { supabase } from '../supabaseClient';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
-// ========= テストモード関連インポート（削除予定） =========
-import { TestModeAnalyticsService } from './TestModeAnalyticsService';
-// ========================================================
+import { getDatabaseConfig, TABLE_NAMES } from '../config/databaseConfig';
 
 export class AnalyticsService {
   // 基本統計データ取得
   static async getBasicStats(userId, isTestMode = false) {
     try {
-      // ========= テストモード分岐（削除予定） =========
-      if (isTestMode) {
-        return await TestModeAnalyticsService.getBasicStats();
-      }
-      // ============================================
+      const config = getDatabaseConfig(isTestMode); // テストモード削除時: getDatabaseConfig()
 
-      // 本番モード（既存の処理）
+      let formsQuery, submissionsQuery, questionsQuery;
+
+      if (isTestMode) {
+        // ========= テストモード用クエリ（削除予定） =========
+        [formsQuery, submissionsQuery, questionsQuery] = [
+          supabase
+            .from(config.REVIEW_FORMS)
+            .select('id')
+            .eq('is_deleted', false),
+          
+          supabase
+            .from(config.REVIEW_FORM_SUBMISSIONS)
+            .select('id, created_at'),
+          
+          supabase
+            .from(config.REVIEW_QUESTIONS)
+            .select('id, review_fome_id')
+        ];
+        // ================================================
+      } else {
+        // 本番モード用クエリ（削除不要）
+        [formsQuery, submissionsQuery, questionsQuery] = [
+          supabase
+            .from(config.REVIEW_FORMS)
+            .select('id')
+            .eq('business_users', userId)
+            .eq('is_deleted', false),
+          
+          supabase
+            .from(config.REVIEW_FORM_SUBMISSIONS)
+            .select('id, created_at, review_forms!inner(business_users)')
+            .eq('review_forms.business_users', userId),
+          
+          supabase
+            .from(config.REVIEW_QUESTIONS)
+            .select('id, review_fome_id, review_forms!inner(business_users)')
+            .eq('review_forms.business_users', userId)
+        ];
+      }
+
       const [formsResult, submissionsResult, questionsResult] = await Promise.all([
-        // 総フォーム数
-        supabase
-          .from('review_forms')
-          .select('id')
-          .eq('business_users', userId)
-          .eq('is_deleted', false),
-        
-        // 総回答数
-        supabase
-          .from('review_form_submissions')
-          .select('id, created_at, review_forms!inner(business_users)')
-          .eq('review_forms.business_users', userId),
-        
-        // 総質問数
-        supabase
-          .from('review_questions')
-          .select('id, review_fome_id, review_forms!inner(business_users)')
-          .eq('review_forms.business_users', userId)
+        formsQuery, submissionsQuery, questionsQuery
       ]);
 
       return {
@@ -53,22 +69,31 @@ export class AnalyticsService {
   // 時系列データ取得（過去30日間の回答数推移）
   static async getTimeSeriesData(userId, days = 30, isTestMode = false) {
     try {
-      // ========= テストモード分岐（削除予定） =========
-      if (isTestMode) {
-        return await TestModeAnalyticsService.getTimeSeriesData(days);
-      }
-      // ============================================
-
+      const config = getDatabaseConfig(isTestMode); // テストモード削除時: getDatabaseConfig()
       const endDate = new Date();
       const startDate = subDays(endDate, days);
       
-      // 本番モード（既存の処理）
-      const { data: submissions } = await supabase
-        .from('review_form_submissions')
-        .select('created_at, review_forms!inner(business_users)')
-        .eq('review_forms.business_users', userId)
-        .gte('created_at', startDate.toISOString())
-        .order('created_at', { ascending: true });
+      let submissionsQuery;
+      
+      if (isTestMode) {
+        // ========= テストモード用クエリ（削除予定） =========
+        submissionsQuery = supabase
+          .from(config.REVIEW_FORM_SUBMISSIONS)
+          .select('created_at')
+          .gte('created_at', startDate.toISOString())
+          .order('created_at', { ascending: true });
+        // ================================================
+      } else {
+        // 本番モード用クエリ（削除不要）
+        submissionsQuery = supabase
+          .from(config.REVIEW_FORM_SUBMISSIONS)
+          .select('created_at, review_forms!inner(business_users)')
+          .eq('review_forms.business_users', userId)
+          .gte('created_at', startDate.toISOString())
+          .order('created_at', { ascending: true });
+      }
+
+      const { data: submissions } = await submissionsQuery;
 
       // 日付別にグループ化
       const dailyData = {};
