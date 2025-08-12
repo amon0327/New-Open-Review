@@ -15,7 +15,10 @@ import {
   Add,
   Remove,
   Clear,
-  QuizOutlined
+  QuizOutlined,
+  TextFields,
+  PieChart,
+  BarChart
 } from '@mui/icons-material';
 import { questionsDatabase, categoryColors } from '../../data/questionsDatabase';
 import { getQuestionsForAnalytics, getQuestionAnalyticsStats } from '../../services/QuestionService';
@@ -66,8 +69,8 @@ export default function QuestionSidebar({
                   responses: stats.responses,
                   avgRating: stats.avgRating,
                   responseCount: stats.responses,
-                  chartType: getChartTypeForQuestion(question.typeId),
-                  icon: <QuizOutlined />
+                  chartType: getChartTypeForQuestion(question.typeId, question.isRequired),
+                  icon: getIconForQuestion(question.typeId, question.isRequired)
                 };
               } catch (statsError) {
                 console.error(`質問ID ${question.id} の統計取得エラー:`, statsError);
@@ -76,8 +79,8 @@ export default function QuestionSidebar({
                   responses: 0,
                   avgRating: 0,
                   responseCount: 0,
-                  chartType: getChartTypeForQuestion(question.typeId),
-                  icon: <QuizOutlined />
+                  chartType: getChartTypeForQuestion(question.typeId, question.isRequired),
+                  icon: getIconForQuestion(question.typeId, question.isRequired)
                 };
               }
             })
@@ -110,19 +113,23 @@ export default function QuestionSidebar({
   );
 
   // 質問タイプからチャートタイプを決定（共通処理・削除不要）
-  const getChartTypeForQuestion = (questionTypeId) => {
-    switch (questionTypeId) {
-      case 7: // リニアスケール
-        return '評価グラフ';
-      case 3:
-      case 4: // 選択肢
-        return '円グラフ';
-      case 1:
-      case 2: // テキスト
-        return 'ワードクラウド';
-      default:
-        return '棒グラフ';
+  const getChartTypeForQuestion = (questionTypeId, isRequired = true) => {
+    if (questionTypeId === 1 || questionTypeId === 2) {
+      return 'ワードクラウド';
+    } else if ([3, 4, 5, 6, 7, 8].includes(questionTypeId)) {
+      return isRequired ? '円グラフ' : '棒グラフ';
     }
+    return '棒グラフ';
+  };
+
+  // 質問タイプからアイコンを決定（共通処理・削除不要）
+  const getIconForQuestion = (questionTypeId, isRequired = true) => {
+    if (questionTypeId === 1 || questionTypeId === 2) {
+      return <TextFields />;
+    } else if ([3, 4, 5, 6, 7, 8].includes(questionTypeId)) {
+      return isRequired ? <PieChart /> : <BarChart />;
+    }
+    return <BarChart />;
   };
 
   // 質問の選択・解除（共通処理・削除不要）
