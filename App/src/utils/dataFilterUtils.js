@@ -129,6 +129,48 @@ export const applyMultiSelectFilter = (data, selectedValues, targetField = 'sele
 };
 
 /**
+ * 統一された選択肢フィルターを適用（数値・文字列・配列すべて対応）
+ * @param {Array} data - フィルター対象のデータ配列
+ * @param {Array|string} selectedValues - 選択された値（配列または単一値）
+ * @param {string} targetField - フィルター対象のフィールド名
+ * @returns {Array} フィルター済みデータ
+ */
+export const applyChoicesFilter = (data, selectedValues, targetField = 'selected_choice') => {
+  // 選択値がない場合はフィルターしない
+  if (!selectedValues) return data;
+  
+  // 単一値を配列に変換して統一処理
+  const valuesArray = Array.isArray(selectedValues) ? selectedValues : [selectedValues];
+  if (valuesArray.length === 0) return data;
+
+  return data.filter(item => {
+    const fieldValue = item[targetField];
+    if (fieldValue === null || fieldValue === undefined) return false;
+    
+    // 数値の場合（スケール値など）
+    if (typeof fieldValue === 'number' || !isNaN(fieldValue)) {
+      return valuesArray.some(selectedValue => {
+        const numValue = typeof fieldValue === 'number' ? fieldValue : parseFloat(fieldValue);
+        const selectedNum = typeof selectedValue === 'number' ? selectedValue : parseFloat(selectedValue);
+        return numValue === selectedNum;
+      });
+    }
+    
+    // 配列の場合（複数選択回答など）
+    if (Array.isArray(fieldValue)) {
+      return valuesArray.some(selectedValue => 
+        fieldValue.some(val => String(val) === String(selectedValue))
+      );
+    }
+    
+    // 文字列の場合（単一選択回答など）
+    return valuesArray.some(selectedValue => 
+      String(fieldValue) === String(selectedValue)
+    );
+  });
+};
+
+/**
  * 複数のフィルターを組み合わせて適用
  * @param {Array} originalData - 元のデータ配列
  * @param {Object} filters - フィルター条件オブジェクト
@@ -163,6 +205,11 @@ export const applyCombinedFilters = (originalData, filters, question) => {
       case 'multi-select':
         // 複数選択フィルター（選択された複数値のいずれかで絞り込み）
         filteredData = applyMultiSelectFilter(filteredData, value, 'selected_choices');
+        break;
+
+      case 'choices':
+        // 統一された選択肢フィルター（複数選択・数値・文字列すべて対応）
+        filteredData = applyChoicesFilter(filteredData, value, 'selected_choice');
         break;
 
       case 'range':
@@ -233,6 +280,19 @@ export const generateFilterDescription = (filters, questions) => {
             desc = `"${value.join('", "')}"のいずれかを選択`;
           } else {
             desc = `${value.length}個の選択肢で絞り込み`;
+          }
+        } else {
+          desc = `"${value}"を選択`;
+        }
+        break;
+      case 'choices':
+        if (Array.isArray(value)) {
+          if (value.length === 1) {
+            desc = `"${value[0]}"を選択`;
+          } else if (value.length <= 3) {
+            desc = `"${value.join('", "')}"を選択`;
+          } else {
+            desc = `${value.length}個を選択`;
           }
         } else {
           desc = `"${value}"を選択`;
