@@ -243,12 +243,12 @@ export default function QuestionSidebar({
                     p: 1.5,
                     cursor: canSelect ? 'pointer' : 'not-allowed',
                     opacity: isDisabled ? 0.4 : 1,
-                    border: isSelected ? `2px solid ${question.categoryColor || categoryColors[question.category] || '#6B7280'}` : '1px solid #e5e7eb',
+                    border: isSelected ? `2px solid ${question.iconColor || question.categoryColor || categoryColors[question.category] || '#6B7280'}` : '1px solid #e5e7eb',
                     bgcolor: '#ffffff',
-                    boxShadow: isSelected ? `0 4px 16px ${question.categoryColor || categoryColors[question.category] || '#6B7280'}40` : '0 1px 3px rgba(0, 0, 0, 0.05)',
+                    boxShadow: isSelected ? `0 4px 16px ${question.iconColor || question.categoryColor || categoryColors[question.category] || '#6B7280'}40` : '0 1px 3px rgba(0, 0, 0, 0.05)',
                     transition: 'all 0.2s ease',
                     '&:hover': canSelect ? {
-                      boxShadow: `0 4px 12px ${question.categoryColor || categoryColors[question.category] || '#6B7280'}40`,
+                      boxShadow: `0 4px 12px ${question.iconColor || question.categoryColor || categoryColors[question.category] || '#6B7280'}40`,
                       transform: 'translateY(-1px)'
                     } : {}
                   }}
