@@ -1,10 +1,42 @@
 import { supabase } from '../supabaseClient';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { TEST_DATABASE_SCHEMA, TEST_MODE_QUERIES } from '../constants/testDatabaseSchema';
 
 export class AnalyticsService {
-  // 基本統計データ取得
-  static async getBasicStats(userId) {
+  // 基本統計データ取得（テストモード対応）
+  static async getBasicStats(userId, isTestMode = false) {
     try {
+      if (isTestMode) {
+        // テストモード時はテスト用テーブルから取得
+        const [formsResult, submissionsResult, questionsResult] = await Promise.all([
+          // テスト用総フォーム数
+          supabase
+            .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_FORMS)
+            .select('id')
+            .eq('is_deleted', false),
+          
+          // テスト用総回答数
+          supabase
+            .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_FORM_SUBMISSIONS)
+            .select('id, created_at'),
+          
+          // テスト用総質問数
+          supabase
+            .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_QUESTIONS)
+            .select('id, review_fome_id')
+        ]);
+
+        return {
+          totalForms: formsResult.data?.length || 0,
+          totalSubmissions: submissionsResult.data?.length || 0,
+          totalQuestions: questionsResult.data?.length || 0,
+          avgQuestionsPerForm: questionsResult.data?.length > 0 && formsResult.data?.length > 0 
+            ? Math.round((questionsResult.data.length / formsResult.data.length) * 10) / 10 
+            : 0
+        };
+      }
+
+      // 本番モード（既存の処理）
       const [formsResult, submissionsResult, questionsResult] = await Promise.all([
         // 総フォーム数
         supabase
@@ -40,18 +72,32 @@ export class AnalyticsService {
     }
   }
 
-  // 時系列データ取得（過去30日間の回答数推移）
-  static async getTimeSeriesData(userId, days = 30) {
+  // 時系列データ取得（過去30日間の回答数推移）（テストモード対応）
+  static async getTimeSeriesData(userId, days = 30, isTestMode = false) {
     try {
       const endDate = new Date();
       const startDate = subDays(endDate, days);
       
-      const { data: submissions } = await supabase
-        .from('review_form_submissions')
-        .select('created_at, review_forms!inner(business_users)')
-        .eq('review_forms.business_users', userId)
-        .gte('created_at', startDate.toISOString())
-        .order('created_at', { ascending: true });
+      let submissions;
+      
+      if (isTestMode) {
+        // テストモード時はテスト用テーブルから取得
+        const { data } = await supabase
+          .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_FORM_SUBMISSIONS)
+          .select('created_at')
+          .gte('created_at', startDate.toISOString())
+          .order('created_at', { ascending: true });
+        submissions = data;
+      } else {
+        // 本番モード（既存の処理）
+        const { data } = await supabase
+          .from('review_form_submissions')
+          .select('created_at, review_forms!inner(business_users)')
+          .eq('review_forms.business_users', userId)
+          .gte('created_at', startDate.toISOString())
+          .order('created_at', { ascending: true });
+        submissions = data;
+      }
 
       // 日付別にグループ化
       const dailyData = {};

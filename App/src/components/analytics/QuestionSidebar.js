@@ -21,7 +21,8 @@ export default function QuestionSidebar({
   searchTerm,
   setSearchTerm,
   selectedQuestions,
-  setSelectedQuestions
+  setSelectedQuestions,
+  isTestMode = false
 }) {
   // 検索フィルタリング
   const filteredQuestions = questionsDatabase.filter(question =>

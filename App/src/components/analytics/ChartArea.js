@@ -39,7 +39,8 @@ export default function ChartArea({
   activeFilters,
   setActiveFilters,
   showFilters,
-  setShowFilters
+  setShowFilters,
+  isTestMode = false
 }) {
   if (selectedQuestions.length === 0) {
     return (
