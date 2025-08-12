@@ -97,7 +97,7 @@ const HeaderBar = ({
   const { errors, warnings } = validateForm(validationData);
 
   const errorCount = errors.length;
-  const warningCount = warnings.length;
+  const warningCount = 0;
 
   const handleErrorClick = (event) => {
     setErrorAnchorEl(event.currentTarget);
