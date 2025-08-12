@@ -115,7 +115,7 @@ export default function QuestionSidebar({
   // 質問タイプからチャートタイプを決定（共通処理・削除不要）
   const getChartTypeForQuestion = (questionTypeId, isRequired = true) => {
     if (questionTypeId === 1 || questionTypeId === 2) {
-      return 'ワードクラウド';
+      return 'テキスト';
     } else if ([3, 4, 5, 6, 7, 8].includes(questionTypeId)) {
       return isRequired ? '円グラフ' : '棒グラフ';
     }
