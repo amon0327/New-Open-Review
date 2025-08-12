@@ -22,7 +22,9 @@ export default function QuestionSidebar({
   setSearchTerm,
   selectedQuestions,
   setSelectedQuestions,
+  // ========= テストモードparam（削除予定） =========
   isTestMode = false
+  // ==============================================
 }) {
   // 検索フィルタリング
   const filteredQuestions = questionsDatabase.filter(question =>

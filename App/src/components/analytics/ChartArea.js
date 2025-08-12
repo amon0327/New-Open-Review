@@ -40,7 +40,9 @@ export default function ChartArea({
   setActiveFilters,
   showFilters,
   setShowFilters,
+  // ========= テストモードparam（削除予定） =========
   isTestMode = false
+  // ==============================================
 }) {
   if (selectedQuestions.length === 0) {
     return (

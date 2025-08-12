@@ -9,9 +9,11 @@ export default function AnalyticsPage({ onNavCollapse }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilters, setActiveFilters] = useState({});
   const [showFilters, setShowFilters] = useState(false);
+  
+  // ========= テストモード関連state（削除予定） =========
   const [isTestMode, setIsTestMode] = useState(false);
 
-  // テストモード切り替えハンドラー
+  // テストモード切り替えハンドラー（削除予定）
   const handleTestModeToggle = () => {
     setIsTestMode(!isTestMode);
     // テストモードに入る際は選択された質問をクリア
@@ -19,6 +21,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
       setSelectedQuestions([]);
     }
   };
+  // =================================================
 
   // Analyticsページが開かれた際にナビゲーションを縮小
   React.useEffect(() => {
@@ -41,7 +44,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
     >
-      {/* テストモード切り替えスイッチ - 最上位レイヤー */}
+      {/* ========= テストモード切り替えUI（削除予定） ========= */}
       <Box sx={{ 
         position: 'fixed',
         bottom: 30,
@@ -107,6 +110,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
           
         </Box>
       </Box>
+      {/* ================================================== */}
 
       <Box sx={{ 
         height: 'calc(100vh - 64px)', 
@@ -123,7 +127,9 @@ export default function AnalyticsPage({ onNavCollapse }) {
             setSearchTerm={setSearchTerm}
             selectedQuestions={selectedQuestions}
             setSelectedQuestions={setSelectedQuestions}
+            {/* ========= テストモードprops（削除予定） ========= */}
             isTestMode={isTestMode}
+            {/* ============================================== */}
           />
 
           {/* チャート表示エリア */}
@@ -133,7 +139,9 @@ export default function AnalyticsPage({ onNavCollapse }) {
             setActiveFilters={setActiveFilters}
             showFilters={showFilters}
             setShowFilters={setShowFilters}
+            {/* ========= テストモードprops（削除予定） ========= */}
             isTestMode={isTestMode}
+            {/* ============================================== */}
           />
         </Box>
 

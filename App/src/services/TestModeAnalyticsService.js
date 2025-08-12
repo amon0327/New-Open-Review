@@ -1,39 +1,32 @@
+// ========================================
+// テストモード専用サービス
+// このファイルは将来的に削除される予定です
+// ========================================
+
 import { supabase } from '../supabaseClient';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
-// ========= テストモード関連インポート（削除予定） =========
-import { TestModeAnalyticsService } from './TestModeAnalyticsService';
-// ========================================================
+import { TEST_DATABASE_SCHEMA } from '../constants/testDatabaseSchema';
 
-export class AnalyticsService {
-  // 基本統計データ取得
-  static async getBasicStats(userId, isTestMode = false) {
+export class TestModeAnalyticsService {
+  // テストモード用基本統計データ取得
+  static async getBasicStats() {
     try {
-      // ========= テストモード分岐（削除予定） =========
-      if (isTestMode) {
-        return await TestModeAnalyticsService.getBasicStats();
-      }
-      // ============================================
-
-      // 本番モード（既存の処理）
       const [formsResult, submissionsResult, questionsResult] = await Promise.all([
-        // 総フォーム数
+        // テスト用総フォーム数
         supabase
-          .from('review_forms')
+          .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_FORMS)
           .select('id')
-          .eq('business_users', userId)
           .eq('is_deleted', false),
         
-        // 総回答数
+        // テスト用総回答数
         supabase
-          .from('review_form_submissions')
-          .select('id, created_at, review_forms!inner(business_users)')
-          .eq('review_forms.business_users', userId),
+          .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_FORM_SUBMISSIONS)
+          .select('id, created_at'),
         
-        // 総質問数
+        // テスト用総質問数
         supabase
-          .from('review_questions')
-          .select('id, review_fome_id, review_forms!inner(business_users)')
-          .eq('review_forms.business_users', userId)
+          .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_QUESTIONS)
+          .select('id, review_fome_id')
       ]);
 
       return {
@@ -45,28 +38,20 @@ export class AnalyticsService {
           : 0
       };
     } catch (error) {
-      console.error('基本統計データ取得エラー:', error);
+      console.error('テストモード基本統計データ取得エラー:', error);
       return { totalForms: 0, totalSubmissions: 0, totalQuestions: 0, avgQuestionsPerForm: 0 };
     }
   }
 
-  // 時系列データ取得（過去30日間の回答数推移）
-  static async getTimeSeriesData(userId, days = 30, isTestMode = false) {
+  // テストモード用時系列データ取得
+  static async getTimeSeriesData(days = 30) {
     try {
-      // ========= テストモード分岐（削除予定） =========
-      if (isTestMode) {
-        return await TestModeAnalyticsService.getTimeSeriesData(days);
-      }
-      // ============================================
-
       const endDate = new Date();
       const startDate = subDays(endDate, days);
       
-      // 本番モード（既存の処理）
       const { data: submissions } = await supabase
-        .from('review_form_submissions')
-        .select('created_at, review_forms!inner(business_users)')
-        .eq('review_forms.business_users', userId)
+        .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_FORM_SUBMISSIONS)
+        .select('created_at')
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: true });
 
@@ -90,22 +75,20 @@ export class AnalyticsService {
 
       return Object.values(dailyData);
     } catch (error) {
-      console.error('時系列データ取得エラー:', error);
+      console.error('テストモード時系列データ取得エラー:', error);
       return [];
     }
   }
 
-  // 質問カテゴリ別分析
-  static async getCategoryAnalysis(userId) {
+  // テストモード用質問カテゴリ別分析
+  static async getCategoryAnalysis() {
     try {
       const { data: questions } = await supabase
-        .from('review_questions')
+        .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_QUESTIONS)
         .select(`
           id,
-          question_categories!inner(id, japanese_name),
-          review_forms!inner(business_users)
-        `)
-        .eq('review_forms.business_users', userId);
+          question_categories!inner(id, japanese_name)
+        `);
 
       const categoryStats = {};
       
@@ -125,25 +108,24 @@ export class AnalyticsService {
 
       return categoryArray;
     } catch (error) {
-      console.error('カテゴリ分析データ取得エラー:', error);
+      console.error('テストモードカテゴリ分析データ取得エラー:', error);
       return [];
     }
   }
 
-  // フォーム別パフォーマンス分析
-  static async getFormPerformance(userId) {
+  // テストモード用フォーム別パフォーマンス分析
+  static async getFormPerformance() {
     try {
       const { data: forms } = await supabase
-        .from('review_forms')
+        .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_FORMS)
         .select(`
           id,
           title,
           created_at,
           is_published,
-          review_form_submissions(count),
-          review_questions(count)
+          ${TEST_DATABASE_SCHEMA.TEST_REVIEW_FORM_SUBMISSIONS}(count),
+          ${TEST_DATABASE_SCHEMA.TEST_REVIEW_QUESTIONS}(count)
         `)
-        .eq('business_users', userId)
         .eq('is_deleted', false)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -151,31 +133,29 @@ export class AnalyticsService {
       return forms?.map(form => ({
         id: form.id,
         name: form.title || '名称未設定',
-        submissions: form.review_form_submissions?.[0]?.count || 0,
-        questions: form.review_questions?.[0]?.count || 0,
+        submissions: form[TEST_DATABASE_SCHEMA.TEST_REVIEW_FORM_SUBMISSIONS]?.[0]?.count || 0,
+        questions: form[TEST_DATABASE_SCHEMA.TEST_REVIEW_QUESTIONS]?.[0]?.count || 0,
         status: form.is_published ? 'published' : 'draft',
         createdAt: form.created_at,
-        responseRate: form.review_questions?.[0]?.count > 0 
-          ? Math.round((form.review_form_submissions?.[0]?.count || 0) / (form.review_questions?.[0]?.count || 1) * 100)
+        responseRate: form[TEST_DATABASE_SCHEMA.TEST_REVIEW_QUESTIONS]?.[0]?.count > 0 
+          ? Math.round((form[TEST_DATABASE_SCHEMA.TEST_REVIEW_FORM_SUBMISSIONS]?.[0]?.count || 0) / (form[TEST_DATABASE_SCHEMA.TEST_REVIEW_QUESTIONS]?.[0]?.count || 1) * 100)
           : 0
       })) || [];
     } catch (error) {
-      console.error('フォームパフォーマンス取得エラー:', error);
+      console.error('テストモードフォームパフォーマンス取得エラー:', error);
       return [];
     }
   }
 
-  // 質問タイプ別分析
-  static async getQuestionTypeAnalysis(userId) {
+  // テストモード用質問タイプ別分析
+  static async getQuestionTypeAnalysis() {
     try {
       const { data: questions } = await supabase
-        .from('review_questions')
+        .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_QUESTIONS)
         .select(`
           id,
-          question_types!inner(id, japanese),
-          review_forms!inner(business_users)
-        `)
-        .eq('review_forms.business_users', userId);
+          question_types!inner(id, japanese)
+        `);
 
       const typeStats = {};
       
@@ -189,13 +169,13 @@ export class AnalyticsService {
 
       return Object.values(typeStats).sort((a, b) => b.value - a.value);
     } catch (error) {
-      console.error('質問タイプ分析データ取得エラー:', error);
+      console.error('テストモード質問タイプ分析データ取得エラー:', error);
       return [];
     }
   }
 
-  // リアルタイム統計（今日のデータ）
-  static async getTodayStats(userId) {
+  // テストモード用リアルタイム統計
+  static async getTodayStats() {
     try {
       const today = new Date();
       const startOfToday = startOfDay(today);
@@ -203,16 +183,14 @@ export class AnalyticsService {
 
       const [submissionsResult, formsResult] = await Promise.all([
         supabase
-          .from('review_form_submissions')
-          .select('id, review_forms!inner(business_users)')
-          .eq('review_forms.business_users', userId)
+          .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_FORM_SUBMISSIONS)
+          .select('id')
           .gte('created_at', startOfToday.toISOString())
           .lte('created_at', endOfToday.toISOString()),
         
         supabase
-          .from('review_forms')
+          .from(TEST_DATABASE_SCHEMA.TEST_REVIEW_FORMS)
           .select('id')
-          .eq('business_users', userId)
           .eq('is_published', true)
           .eq('is_deleted', false)
       ]);
@@ -226,25 +204,22 @@ export class AnalyticsService {
         avgSubmissionsPerForm: publishedForms > 0 ? Math.round((todaySubmissions / publishedForms) * 10) / 10 : 0
       };
     } catch (error) {
-      console.error('今日の統計データ取得エラー:', error);
+      console.error('テストモード今日の統計データ取得エラー:', error);
       return { todaySubmissions: 0, publishedForms: 0, avgSubmissionsPerForm: 0 };
     }
   }
 
-  // 回答の質分析（リニアスケール回答の平均など）
-  static async getResponseQualityAnalysis(userId) {
+  // テストモード用回答の質分析
+  static async getResponseQualityAnalysis() {
     try {
       const { data: linearResponses } = await supabase
-        .from('question_answer_option_linear_scale')
+        .from(TEST_DATABASE_SCHEMA.TEST_QUESTION_ANSWER_OPTION_LINEAR_SCALE)
         .select(`
           answer_number,
-          review_question_answers!inner(
-            review_questions!inner(
-              review_forms!inner(business_users)
-            )
+          ${TEST_DATABASE_SCHEMA.TEST_REVIEW_QUESTION_ANSWERS}!inner(
+            ${TEST_DATABASE_SCHEMA.TEST_REVIEW_QUESTIONS}!inner(id)
           )
-        `)
-        .eq('review_question_answers.review_questions.review_forms.business_users', userId);
+        `);
 
       if (!linearResponses || linearResponses.length === 0) {
         return { averageRating: 0, totalRatings: 0, distribution: [] };
@@ -268,7 +243,7 @@ export class AnalyticsService {
         distribution
       };
     } catch (error) {
-      console.error('回答質分析データ取得エラー:', error);
+      console.error('テストモード回答質分析データ取得エラー:', error);
       return { averageRating: 0, totalRatings: 0, distribution: [] };
     }
   }
