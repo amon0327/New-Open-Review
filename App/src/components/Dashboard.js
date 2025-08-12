@@ -180,22 +180,16 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           }}
         >
           {isNavCollapsed ? (
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontWeight: 'bold',
-                fontSize: '1.5rem'
+            <img
+              src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"
+              alt="OpenReview"
+              style={{
+                width: '40px',
+                height: '40px',
+                objectFit: 'contain',
+                borderRadius: '50%'
               }}
-            >
-              O
-            </Box>
+            />
           ) : (
             <img
               src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png"
