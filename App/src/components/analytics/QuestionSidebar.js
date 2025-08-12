@@ -70,7 +70,8 @@ export default function QuestionSidebar({
                   avgRating: stats.avgRating,
                   responseCount: stats.responses,
                   chartType: getChartTypeForQuestion(question.typeId, question.isRequired),
-                  icon: getIconForQuestion(question.typeId, question.isRequired)
+                  icon: getIconForQuestion(question.typeId, question.isRequired),
+                  iconColor: getIconColorForQuestion(question.typeId, question.isRequired)
                 };
               } catch (statsError) {
                 console.error(`質問ID ${question.id} の統計取得エラー:`, statsError);
