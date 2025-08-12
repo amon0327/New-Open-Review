@@ -1,18 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Box,
   Typography,
-  Button
+  Button,
+  Chip
 } from '@mui/material';
 import {
   AutoGraph,
   Compare,
   Tune,
-  Close
+  Close,
+  FilterList
 } from '@mui/icons-material';
 import FilterPanel from './FilterPanel';
 import ChatPanel from './ChatPanel';
+import { applyCombinedFilters, calculateFilterStats, generateFilterDescription } from '../../utils/dataFilterUtils';
 
 // CSS アニメーション用のスタイル定義
 const globalStyles = `
@@ -180,20 +183,50 @@ export default function ChartArea({
             >
               {selectedQuestions.length === 1 ? '単体分析' : '比較・クロス分析'}
             </Typography>
-            <Typography 
-              variant="body2" 
-              sx={{
-                color: '#64748b',
-                fontSize: '0.875rem'
-              }}
-            >
-              {selectedQuestions.length === 1 
-                ? selectedQuestions[0]?.title 
-                : selectedQuestions.length === 2
-                  ? `${selectedQuestions[0]?.title} / ${selectedQuestions[1]?.title}`
-                  : `${selectedQuestions.length}つの質問を比較分析`
-              }
-            </Typography>
+            {selectedQuestions.length === 1 ? (
+              <Typography 
+                variant="body2" 
+                sx={{
+                  color: '#64748b',
+                  fontSize: '0.875rem'
+                }}
+              >
+                {selectedQuestions[0]?.title}
+              </Typography>
+            ) : selectedQuestions.length === 2 ? (
+              <Box>
+                <Typography 
+                  variant="body2" 
+                  sx={{
+                    color: '#64748b',
+                    fontSize: '0.875rem',
+                    lineHeight: 1.2
+                  }}
+                >
+                  {selectedQuestions[0]?.title}
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{
+                    color: '#64748b',
+                    fontSize: '0.875rem',
+                    lineHeight: 1.2
+                  }}
+                >
+                  {selectedQuestions[1]?.title}
+                </Typography>
+              </Box>
+            ) : (
+              <Typography 
+                variant="body2" 
+                sx={{
+                  color: '#64748b',
+                  fontSize: '0.875rem'
+                }}
+              >
+                {`${selectedQuestions.length}つの質問を比較分析`}
+              </Typography>
+            )}
           </Box>
           
           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -261,14 +294,83 @@ export default function ChartArea({
       />
 
         {/* チャート表示エリア */}
-        <Box sx={{ flexGrow: 1, p: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Box sx={{ textAlign: 'center', color: '#64748b' }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-              チャートエリア
-            </Typography>
-            <Typography variant="body2">
-              ここにグラフが表示されます
-            </Typography>
+        <Box sx={{ flexGrow: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
+          {/* フィルター状況の表示 */}
+          {Object.keys(activeFilters).length > 0 && (
+            <Box sx={{ mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <FilterList sx={{ fontSize: 18, color: '#6366f1' }} />
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151' }}>
+                  フィルター適用中
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {selectedQuestions.map(question => {
+                  const filter = activeFilters[question.id];
+                  if (!filter || !filter.value) return null;
+                  
+                  return (
+                    <Chip
+                      key={question.id}
+                      label={`${question.title}: ${generateFilterDescription({ [question.id]: filter }, [question])}`}
+                      onDelete={() => {
+                        const newFilters = { ...activeFilters };
+                        delete newFilters[question.id];
+                        setActiveFilters(newFilters);
+                      }}
+                      size="small"
+                      variant="outlined"
+                      sx={{
+                        bgcolor: 'rgba(99, 102, 241, 0.1)',
+                        borderColor: '#c7d2fe',
+                        color: '#4338ca',
+                        '& .MuiChip-deleteIcon': {
+                          color: '#4338ca'
+                        }
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+            </Box>
+          )}
+
+          {/* チャート表示部分 */}
+          <Box sx={{ 
+            flexGrow: 1, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            bgcolor: Object.keys(activeFilters).length > 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
+            borderRadius: 2,
+            border: Object.keys(activeFilters).length > 0 ? '1px dashed #c7d2fe' : 'none',
+            transition: 'all 0.3s ease'
+          }}>
+            <Box sx={{ textAlign: 'center', color: '#64748b' }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                {Object.keys(activeFilters).length > 0 ? 'フィルター済みデータ' : 'チャートエリア'}
+              </Typography>
+              <Typography variant="body2">
+                {Object.keys(activeFilters).length > 0 
+                  ? 'フィルター条件に基づいたグラフが表示されます' 
+                  : 'ここにグラフが表示されます'
+                }
+              </Typography>
+              {Object.keys(activeFilters).length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="caption" sx={{ 
+                    bgcolor: 'rgba(99, 102, 241, 0.1)', 
+                    px: 2, 
+                    py: 0.5, 
+                    borderRadius: 1,
+                    color: '#4338ca',
+                    fontWeight: 500
+                  }}>
+                    フィルター結果: {selectedQuestions.length} 質問中 {Object.keys(activeFilters).length} 質問にフィルター適用
+                  </Typography>
+                </Box>
+              )}
+            </Box>
           </Box>
         </Box>
 

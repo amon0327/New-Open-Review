@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Box,
@@ -7,14 +7,17 @@ import {
   TextField,
   Select,
   MenuItem,
-  FormControl
+  FormControl,
+  Chip
 } from '@mui/material';
 import {
   Search,
-  Close
+  Close,
+  Check
 } from '@mui/icons-material';
 import { categoryColors } from '../../data/questionsDatabase';
 import { generateFilterOptions } from '../../utils/filterUtils';
+import { applyCombinedFilters } from '../../utils/dataFilterUtils';
 
 export default function FilterPanel({
   selectedQuestions,
@@ -23,12 +26,44 @@ export default function FilterPanel({
   showFilters,
   setShowFilters
 }) {
-  // フィルター更新
-  const updateFilter = (questionId, type, value) => {
-    setActiveFilters(prev => ({
+  const [tempFilters, setTempFilters] = useState({});
+
+  // 初期化: activeFiltersの値をtempFiltersにコピー
+  useEffect(() => {
+    setTempFilters({ ...activeFilters });
+  }, [activeFilters, showFilters]);
+
+  // フィルター更新（一時的）
+  const updateTempFilter = (questionId, type, value) => {
+    setTempFilters(prev => ({
       ...prev,
       [questionId]: { type, value }
     }));
+  };
+
+  // フィルター削除（一時的）
+  const removeTempFilter = (questionId) => {
+    const newTempFilters = { ...tempFilters };
+    delete newTempFilters[questionId];
+    setTempFilters(newTempFilters);
+  };
+
+  // フィルターを即座に適用（リアルタイム）
+  const applyFilterInstantly = (questionId, type, value) => {
+    const newFilters = {
+      ...activeFilters,
+      [questionId]: { type, value }
+    };
+    setActiveFilters(newFilters);
+    setTempFilters(newFilters);
+  };
+
+  // フィルターをクリア
+  const clearFilter = (questionId) => {
+    const newFilters = { ...activeFilters };
+    delete newFilters[questionId];
+    setActiveFilters(newFilters);
+    setTempFilters(newFilters);
   };
 
   return (
@@ -109,40 +144,53 @@ export default function FilterPanel({
                         {/* Range フィルター */}
                         {filterConfig.type === 'range' && (
                           <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
-                            {filterConfig.options.map((option) => (
-                              <Button
-                                key={option.value}
-                                onClick={() => updateFilter(question.id, 'range', option.value)}
-                                variant={activeFilters[question.id]?.value === option.value ? 'contained' : 'outlined'}
-                                size="small"
-                                sx={{
-                                  textTransform: 'none',
-                                  fontWeight: 500,
-                                  minWidth: 'auto',
-                                  px: 1.5,
-                                  py: 0.5,
-                                  fontSize: '0.75rem',
-                                  height: 28,
-                                  borderRadius: 1.5,
-                                  bgcolor: activeFilters[question.id]?.value === option.value 
-                                    ? categoryColors[question.category] 
-                                    : 'transparent',
-                                  color: activeFilters[question.id]?.value === option.value 
-                                    ? 'white' 
-                                    : '#64748b',
-                                  borderColor: activeFilters[question.id]?.value === option.value 
-                                    ? categoryColors[question.category] 
-                                    : '#e2e8f0',
-                                  transition: 'all 0.2s ease',
-                                  '&:hover': {
-                                    transform: 'translateY(-1px)',
-                                    boxShadow: `0 4px 12px ${categoryColors[question.category]}30`
-                                  }
-                                }}
-                              >
-                                {option.label}
-                              </Button>
-                            ))}
+                            {filterConfig.options.map((option) => {
+                              const isActive = activeFilters[question.id]?.value === option.value;
+                              return (
+                                <Button
+                                  key={option.value}
+                                  onClick={() => {
+                                    if (isActive) {
+                                      clearFilter(question.id);
+                                    } else {
+                                      applyFilterInstantly(question.id, 'range', option.value);
+                                    }
+                                  }}
+                                  variant={isActive ? 'contained' : 'outlined'}
+                                  size="small"
+                                  startIcon={isActive ? <Check sx={{ fontSize: 14 }} /> : null}
+                                  sx={{
+                                    textTransform: 'none',
+                                    fontWeight: 500,
+                                    minWidth: 'auto',
+                                    px: 1.5,
+                                    py: 0.5,
+                                    fontSize: '0.75rem',
+                                    height: 28,
+                                    borderRadius: 1.5,
+                                    bgcolor: isActive 
+                                      ? categoryColors[question.category] 
+                                      : 'transparent',
+                                    color: isActive 
+                                      ? 'white' 
+                                      : '#64748b',
+                                    borderColor: isActive 
+                                      ? categoryColors[question.category] 
+                                      : '#e2e8f0',
+                                    transition: 'all 0.2s ease',
+                                    '&:hover': {
+                                      transform: 'translateY(-1px)',
+                                      boxShadow: `0 4px 12px ${categoryColors[question.category]}30`,
+                                      bgcolor: isActive 
+                                        ? categoryColors[question.category] 
+                                        : 'rgba(99, 102, 241, 0.05)'
+                                    }
+                                  }}
+                                >
+                                  {option.label}
+                                </Button>
+                              );
+                            })}
                           </Box>
                         )}
 
@@ -151,14 +199,23 @@ export default function FilterPanel({
                           <FormControl size="small" fullWidth>
                             <Select
                               value={activeFilters[question.id]?.value || ''}
-                              onChange={(e) => updateFilter(question.id, 'select', e.target.value)}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                if (value === '') {
+                                  clearFilter(question.id);
+                                } else {
+                                  applyFilterInstantly(question.id, 'select', value);
+                                }
+                              }}
                               displayEmpty
                               sx={{
                                 height: 36,
                                 borderRadius: 1.5,
                                 fontSize: '0.8rem',
+                                bgcolor: activeFilters[question.id]?.value ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
                                 '& .MuiOutlinedInput-notchedOutline': {
-                                  borderColor: '#e2e8f0',
+                                  borderColor: activeFilters[question.id]?.value ? categoryColors[question.category] : '#e2e8f0',
+                                  borderWidth: activeFilters[question.id]?.value ? '2px' : '1px'
                                 },
                                 '&:hover .MuiOutlinedInput-notchedOutline': {
                                   borderColor: categoryColors[question.category],
@@ -171,14 +228,19 @@ export default function FilterPanel({
                             >
                               <MenuItem value="">
                                 <Typography sx={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                                  すべて選択
+                                  すべて表示
                                 </Typography>
                               </MenuItem>
                               {filterConfig.options.map((option) => (
                                 <MenuItem key={option.value} value={option.value}>
-                                  <Typography sx={{ fontSize: '0.8rem' }}>
-                                    {option.label}
-                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                    <Typography sx={{ fontSize: '0.8rem' }}>
+                                      {option.label}
+                                    </Typography>
+                                    {activeFilters[question.id]?.value === option.value && (
+                                      <Check sx={{ fontSize: 16, color: categoryColors[question.category] }} />
+                                    )}
+                                  </Box>
                                 </MenuItem>
                               ))}
                             </Select>
@@ -187,35 +249,81 @@ export default function FilterPanel({
 
                         {/* Text フィルター */}
                         {filterConfig.type === 'text' && (
-                          <TextField
-                            fullWidth
-                            placeholder={filterConfig.placeholder}
-                            value={activeFilters[question.id]?.value || ''}
-                            onChange={(e) => updateFilter(question.id, 'text', e.target.value)}
-                            size="small"
-                            InputProps={{
-                              startAdornment: (
-                                <Search sx={{ color: '#94a3b8', fontSize: 16, mr: 0.5 }} />
-                              )
-                            }}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                height: 36,
-                                borderRadius: 1.5,
-                                fontSize: '0.8rem',
-                                '& fieldset': {
-                                  borderColor: '#e2e8f0',
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: categoryColors[question.category],
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: categoryColors[question.category],
-                                  borderWidth: '2px'
+                          <Box>
+                            <TextField
+                              fullWidth
+                              placeholder={filterConfig.placeholder}
+                              value={tempFilters[question.id]?.value || ''}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                updateTempFilter(question.id, 'text', value);
+                                
+                                // リアルタイム検索（300ms のデバウンス）
+                                setTimeout(() => {
+                                  if (value === '' || value.length >= 1) {
+                                    if (value === '') {
+                                      clearFilter(question.id);
+                                    } else {
+                                      applyFilterInstantly(question.id, 'text', value);
+                                    }
+                                  }
+                                }, 300);
+                              }}
+                              size="small"
+                              InputProps={{
+                                startAdornment: (
+                                  <Search sx={{ color: '#94a3b8', fontSize: 16, mr: 0.5 }} />
+                                ),
+                                endAdornment: activeFilters[question.id]?.value && (
+                                  <Button
+                                    onClick={() => clearFilter(question.id)}
+                                    sx={{ minWidth: 'auto', p: 0.5 }}
+                                  >
+                                    <Close sx={{ fontSize: 16, color: '#94a3b8' }} />
+                                  </Button>
+                                )
+                              }}
+                              sx={{
+                                '& .MuiOutlinedInput-root': {
+                                  height: 36,
+                                  borderRadius: 1.5,
+                                  fontSize: '0.8rem',
+                                  bgcolor: activeFilters[question.id]?.value ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
+                                  '& fieldset': {
+                                    borderColor: activeFilters[question.id]?.value ? categoryColors[question.category] : '#e2e8f0',
+                                    borderWidth: activeFilters[question.id]?.value ? '2px' : '1px'
+                                  },
+                                  '&:hover fieldset': {
+                                    borderColor: categoryColors[question.category],
+                                  },
+                                  '&.Mui-focused fieldset': {
+                                    borderColor: categoryColors[question.category],
+                                    borderWidth: '2px'
+                                  }
                                 }
-                              }
-                            }}
-                          />
+                              }}
+                            />
+                            
+                            {/* 検索中のフィードバック */}
+                            {activeFilters[question.id]?.value && (
+                              <Box sx={{ mt: 1 }}>
+                                <Chip
+                                  label={`"${activeFilters[question.id].value}" で検索中`}
+                                  size="small"
+                                  onDelete={() => clearFilter(question.id)}
+                                  sx={{
+                                    bgcolor: 'rgba(99, 102, 241, 0.1)',
+                                    color: '#4338ca',
+                                    fontSize: '0.7rem',
+                                    '& .MuiChip-deleteIcon': {
+                                      color: '#4338ca',
+                                      fontSize: 14
+                                    }
+                                  }}
+                                />
+                              </Box>
+                            )}
+                          </Box>
                         )}
                       </Box>
                     </Box>

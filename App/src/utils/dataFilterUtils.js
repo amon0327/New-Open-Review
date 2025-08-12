@@ -1,0 +1,210 @@
+// データフィルタリングユーティリティ
+
+/**
+ * テキストフィルターを適用（部分一致検索）
+ * @param {Array} data - フィルター対象のデータ配列
+ * @param {string} searchText - 検索テキスト
+ * @param {string} targetField - 検索対象のフィールド名
+ * @returns {Array} フィルター済みデータ
+ */
+export const applyTextFilter = (data, searchText, targetField = 'text') => {
+  if (!searchText || searchText.trim() === '') {
+    return data;
+  }
+
+  const normalizedSearch = searchText.toLowerCase().trim();
+  
+  return data.filter(item => {
+    const fieldValue = item[targetField];
+    if (!fieldValue) return false;
+    
+    // 文字列の場合は直接検索
+    if (typeof fieldValue === 'string') {
+      return fieldValue.toLowerCase().includes(normalizedSearch);
+    }
+    
+    // 配列の場合は各要素を検索
+    if (Array.isArray(fieldValue)) {
+      return fieldValue.some(val => 
+        String(val).toLowerCase().includes(normalizedSearch)
+      );
+    }
+    
+    // その他の型は文字列に変換して検索
+    return String(fieldValue).toLowerCase().includes(normalizedSearch);
+  });
+};
+
+/**
+ * 選択肢フィルターを適用（完全一致での絞り込み）
+ * @param {Array} data - フィルター対象のデータ配列
+ * @param {string} selectedValue - 選択された値
+ * @param {string} targetField - フィルター対象のフィールド名
+ * @returns {Array} フィルター済みデータ
+ */
+export const applySelectFilter = (data, selectedValue, targetField = 'category') => {
+  if (!selectedValue || selectedValue === '') {
+    return data;
+  }
+
+  return data.filter(item => {
+    const fieldValue = item[targetField];
+    if (!fieldValue) return false;
+    
+    // 配列の場合は選択値が含まれているかチェック
+    if (Array.isArray(fieldValue)) {
+      return fieldValue.includes(selectedValue);
+    }
+    
+    // 文字列の場合は完全一致
+    return String(fieldValue) === String(selectedValue);
+  });
+};
+
+/**
+ * 範囲フィルターを適用（数値範囲での絞り込み）
+ * @param {Array} data - フィルター対象のデータ配列
+ * @param {string} rangeValue - 範囲条件（例: "5+", "4+", "2-"）
+ * @param {string} targetField - フィルター対象のフィールド名
+ * @returns {Array} フィルター済みデータ
+ */
+export const applyRangeFilter = (data, rangeValue, targetField = 'value') => {
+  if (!rangeValue) {
+    return data;
+  }
+
+  return data.filter(item => {
+    const fieldValue = parseFloat(item[targetField]);
+    if (isNaN(fieldValue)) return false;
+
+    // 範囲条件の解析
+    if (rangeValue.includes('+')) {
+      // "5+" の場合は5以上
+      const minValue = parseFloat(rangeValue.replace('+', ''));
+      return fieldValue >= minValue;
+    } else if (rangeValue.includes('-')) {
+      // "2-" の場合は2以下
+      const maxValue = parseFloat(rangeValue.replace('-', ''));
+      return fieldValue <= maxValue;
+    } else if (rangeValue.includes('~')) {
+      // "3~5" の場合は3以上5以下
+      const [min, max] = rangeValue.split('~').map(v => parseFloat(v.trim()));
+      return fieldValue >= min && fieldValue <= max;
+    } else {
+      // 完全一致
+      const exactValue = parseFloat(rangeValue);
+      return fieldValue === exactValue;
+    }
+  });
+};
+
+/**
+ * 複数のフィルターを組み合わせて適用
+ * @param {Array} originalData - 元のデータ配列
+ * @param {Object} filters - フィルター条件オブジェクト
+ * @param {Object} question - 質問オブジェクト（フィルター設定用）
+ * @returns {Array} フィルター済みデータ
+ */
+export const applyCombinedFilters = (originalData, filters, question) => {
+  if (!filters || Object.keys(filters).length === 0) {
+    return originalData;
+  }
+
+  let filteredData = [...originalData];
+
+  // 各フィルター条件を順次適用
+  Object.entries(filters).forEach(([questionId, filterConfig]) => {
+    if (questionId !== question.id) return;
+
+    const { type, value } = filterConfig;
+    if (!value) return;
+
+    switch (type) {
+      case 'text':
+        // テキスト検索（回答内容で検索）
+        filteredData = applyTextFilter(filteredData, value, 'response_text');
+        break;
+
+      case 'select':
+        // 選択肢フィルター（回答値で絞り込み）
+        filteredData = applySelectFilter(filteredData, value, 'selected_choice');
+        break;
+
+      case 'range':
+        // 範囲フィルター（スケール値で絞り込み）
+        filteredData = applyRangeFilter(filteredData, value, 'scale_value');
+        break;
+
+      default:
+        break;
+    }
+  });
+
+  return filteredData;
+};
+
+/**
+ * フィルター結果の統計情報を計算
+ * @param {Array} originalData - 元のデータ
+ * @param {Array} filteredData - フィルター後のデータ
+ * @returns {Object} 統計情報
+ */
+export const calculateFilterStats = (originalData, filteredData) => {
+  const totalCount = originalData.length;
+  const filteredCount = filteredData.length;
+  const filterRatio = totalCount > 0 ? (filteredCount / totalCount) * 100 : 0;
+
+  return {
+    totalCount,
+    filteredCount,
+    filterRatio: Math.round(filterRatio * 10) / 10, // 小数点第1位まで
+    isFiltered: filteredCount !== totalCount
+  };
+};
+
+/**
+ * フィルター条件のテキスト表示を生成
+ * @param {Object} filters - フィルター条件
+ * @param {Array} questions - 質問配列
+ * @returns {string} フィルター条件の説明文
+ */
+export const generateFilterDescription = (filters, questions) => {
+  if (!filters || Object.keys(filters).length === 0) {
+    return 'フィルターなし';
+  }
+
+  const descriptions = [];
+
+  Object.entries(filters).forEach(([questionId, filterConfig]) => {
+    const question = questions.find(q => q.id === questionId);
+    if (!question) return;
+
+    const { type, value } = filterConfig;
+    if (!value) return;
+
+    let desc = '';
+    switch (type) {
+      case 'text':
+        desc = `"${value}"を含む回答`;
+        break;
+      case 'select':
+        desc = `"${value}"を選択`;
+        break;
+      case 'range':
+        if (value.includes('+')) {
+          desc = `${value.replace('+', '')}点以上`;
+        } else if (value.includes('-')) {
+          desc = `${value.replace('-', '')}点以下`;
+        } else {
+          desc = `${value}点`;
+        }
+        break;
+      default:
+        desc = value;
+    }
+
+    descriptions.push(desc);
+  });
+
+  return descriptions.join(', ');
+};
