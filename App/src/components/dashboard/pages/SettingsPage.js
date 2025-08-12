@@ -12,10 +12,6 @@ import {
   Grid,
   Alert,
   CircularProgress,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Divider,
   TextField
 } from '@mui/material';
@@ -36,9 +32,7 @@ export default function SettingsPage({ user, onLogout }) {
     company_name: '',
     email: user?.email || '',
     profile_image: null,
-    business_category: ''
   });
-  const [businessCategories, setBusinessCategories] = useState([]);
   const [currentPlan, setCurrentPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,7 +43,6 @@ export default function SettingsPage({ user, onLogout }) {
   useEffect(() => {
     if (user) {
       fetchUserProfile();
-      fetchBusinessCategories();
       fetchCurrentPlan();
     }
   }, [user]);
@@ -72,7 +65,6 @@ export default function SettingsPage({ user, onLogout }) {
           company_name: data.company_name || '',
           email: data.email || user.email,
           profile_image: data.profile_image || null,
-          business_category: data.business_categories || ''
         });
       }
     } catch (error) {
@@ -83,19 +75,6 @@ export default function SettingsPage({ user, onLogout }) {
     }
   };
 
-  const fetchBusinessCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('business_categories')
-        .select('*')
-        .order('japanese');
-
-      if (error) throw error;
-      setBusinessCategories(data || []);
-    } catch (error) {
-      console.error('業種カテゴリ取得エラー:', error);
-    }
-  };
 
   const fetchCurrentPlan = async () => {
     try {
@@ -191,7 +170,6 @@ export default function SettingsPage({ user, onLogout }) {
       await updateProfile({
         name: userProfile.name,
         company_name: userProfile.company_name,
-        business_categories: userProfile.business_category
       });
 
       setMessage({ type: 'success', text: 'プロフィールを更新しました' });
@@ -437,33 +415,6 @@ export default function SettingsPage({ user, onLogout }) {
                               )
                             }}
                           />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <FormControl fullWidth>
-                            <InputLabel sx={{ color: '#64748b' }}>業種</InputLabel>
-                            <Select
-                              value={userProfile.business_category}
-                              onChange={(e) => handleInputChange('business_category', e.target.value)}
-                              label="業種"
-                              sx={{
-                                borderRadius: 3,
-                                backgroundColor: '#f8fafc',
-                                height: '56px',
-                                '&:hover': {
-                                  backgroundColor: '#f1f5f9',
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: 'white',
-                                }
-                              }}
-                            >
-                              {businessCategories.map((category) => (
-                                <MenuItem key={category.id} value={category.id}>
-                                  {category.japanese}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                           <TextField

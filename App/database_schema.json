@@ -961,36 +961,6 @@
   },
   {
     "table_schema": "public",
-    "table_name": "business_categories",
-    "columns": [
-      {
-        "column": "id",
-        "nullable": "NO",
-        "data_type": "bigint",
-        "default_value": null
-      },
-      {
-        "column": "created_at",
-        "nullable": "NO",
-        "data_type": "timestamp with time zone",
-        "default_value": "now()"
-      },
-      {
-        "column": "name",
-        "nullable": "YES",
-        "data_type": "text",
-        "default_value": null
-      },
-      {
-        "column": "japanese",
-        "nullable": "YES",
-        "data_type": "text",
-        "default_value": null
-      }
-    ]
-  },
-  {
-    "table_schema": "public",
     "table_name": "business_users",
     "columns": [
       {
@@ -1029,12 +999,6 @@
         "data_type": "text",
         "default_value": null
       },
-      {
-        "column": "business_categories",
-        "nullable": "YES",
-        "data_type": "bigint",
-        "default_value": null
-      }
     ]
   },
   {
