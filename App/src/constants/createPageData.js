@@ -17,7 +17,8 @@ import {
   Notifications,
   CloudSync,
   ViewColumn,
-  ViewList
+  ViewList,
+  Palette
 } from '@mui/icons-material';
 
 // 左ナビゲーションアイテムの定義
@@ -190,7 +191,7 @@ export const settingsCategories = [
     id: 'forms',
     title: 'フォーム設定',
     description: 'フォームのデフォルト設定',
-    icon: <Description />,
+    icon: <Palette />,
     settings: [
       { id: 'theme-color', label: 'テーマカラー', value: '#5e17eb', type: 'color-picker' },
       { id: 'theme', label: 'デフォルトテーマ', value: 'モダン', type: 'select' },

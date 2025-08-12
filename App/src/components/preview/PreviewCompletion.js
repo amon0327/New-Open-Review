@@ -32,6 +32,8 @@ const PreviewCompletion = ({
 }) => {
   const [completionData, setCompletionData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [previousButtonEnabled, setPreviousButtonEnabled] = useState(null);
 
   const isMobile = previewMode === 'mobile';
 
@@ -71,6 +73,31 @@ const PreviewCompletion = ({
     fetchCompletionData();
   }, [formId]);
 
+  // 初回ロード状態を管理
+  useEffect(() => {
+    if (!loading) {
+      // 初回ロード完了後、少し遅延してフラグをfalseにする
+      const timer = setTimeout(() => {
+        setIsInitialLoad(false);
+      }, 1000); // 1秒後に初回ロード完了とみなす
+
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
+
+  // ボタンの表示状態変化を監視
+  const buttonEnabled = completionScreenSettings.is_button_1_enabled !== undefined 
+    ? completionScreenSettings.is_button_1_enabled 
+    : (completionData?.completionSettings?.is_button_1_enabled ?? true);
+
+  useEffect(() => {
+    if (previousButtonEnabled !== null && previousButtonEnabled !== buttonEnabled) {
+      // ボタンの表示/非表示が変更された場合は初回ロードフラグをfalseにする
+      setIsInitialLoad(false);
+    }
+    setPreviousButtonEnabled(buttonEnabled);
+  }, [buttonEnabled, previousButtonEnabled]);
+
   // デフォルト値とSupabaseデータ、propsから受け取ったデータの統合
   const themeColor = formSettings.theme_color || propThemeColor || (completionData?.formSettings?.theme_color) || '#5e17eb';
   const backgroundImage = completionScreenSettings.background_image_url || completionBackgroundImage || (completionData?.completionSettings?.background_image_url) || 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg';
@@ -82,10 +109,7 @@ const PreviewCompletion = ({
     ? completionScreenSettings.detail_text 
     : (completionDetailText || (completionData?.completionSettings?.detail_text) || 'テキストを入力...');
 
-  // ボタン設定（1つのボタンのみ使用）
-  const buttonEnabled = completionScreenSettings.is_button_1_enabled !== undefined 
-    ? completionScreenSettings.is_button_1_enabled 
-    : (completionData?.completionSettings?.is_button_1_enabled ?? true);
+  // ボタン設定（上記で定義済み）
   const displayButtonText = completionScreenSettings.button_text_1 || buttonText || (completionData?.completionSettings?.button_text_1) || 'テキストを入力...';
   const displayButtonUrl = completionScreenSettings.button_url_1 || buttonUrl || (completionData?.completionSettings?.button_url_1) || '#';
 
@@ -329,7 +353,7 @@ const PreviewCompletion = ({
                 boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25)',
                 backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
-                animation: 'fadeInUp 0.8s ease-out 0.8s both',
+                animation: isInitialLoad ? 'fadeInUp 0.8s ease-out 0.8s both' : 'none',
                 cursor: 'pointer',
                 position: 'relative',
                 zIndex: 2,
