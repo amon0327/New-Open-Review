@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Box,
@@ -7,15 +7,18 @@ import {
   Card,
   Badge,
   Button,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import {
   Search,
   Add,
   Remove,
-  Clear
+  Clear,
+  QuizOutlined
 } from '@mui/icons-material';
 import { questionsDatabase, categoryColors } from '../../data/questionsDatabase';
+import { getQuestionsForAnalytics, getQuestionAnalyticsStats } from '../../services/QuestionService';
 
 export default function QuestionSidebar({
   searchTerm,
@@ -26,13 +29,83 @@ export default function QuestionSidebar({
   isTestMode = false
   // ==============================================
 }) {
-  // 検索フィルタリング
-  const filteredQuestions = questionsDatabase.filter(question =>
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // 質問データ取得
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // ========= テストモード分岐（削除予定） =========
+        if (isTestMode) {
+          // テストモード時はSupabaseから取得
+          const questionsData = await getQuestionsForAnalytics(null, true);
+          
+          // 統計データを追加取得
+          const questionsWithStats = await Promise.all(
+            questionsData.map(async (question) => {
+              const stats = await getQuestionAnalyticsStats(question.id, true);
+              return {
+                ...question,
+                responses: stats.responses,
+                avgRating: stats.avgRating,
+                responseCount: stats.responses,
+                chartType: getChartTypeForQuestion(question.typeId),
+                icon: <QuizOutlined />
+              };
+            })
+          );
+          
+          setQuestions(questionsWithStats);
+        } else {
+          // 本番モード時はダミーデータを使用（削除不要）
+          const filteredQuestions = questionsDatabase.filter(question =>
+            question.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            question.category.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+          setQuestions(filteredQuestions);
+        }
+        // ============================================
+      } catch (err) {
+        console.error('質問データ取得エラー:', err);
+        setError('質問データの取得に失敗しました');
+        // フォールバック: ダミーデータを使用
+        setQuestions(questionsDatabase);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [isTestMode, searchTerm]);
+
+  // 検索フィルタリング（共通処理・削除不要）
+  const filteredQuestions = questions.filter(question =>
     question.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     question.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // 質問の選択・解除
+  // 質問タイプからチャートタイプを決定（共通処理・削除不要）
+  const getChartTypeForQuestion = (questionTypeId) => {
+    switch (questionTypeId) {
+      case 7: // リニアスケール
+        return '評価グラフ';
+      case 3:
+      case 4: // 選択肢
+        return '円グラフ';
+      case 1:
+      case 2: // テキスト
+        return 'ワードクラウド';
+      default:
+        return '棒グラフ';
+    }
+  };
+
+  // 質問の選択・解除（共通処理・削除不要）
   const toggleQuestion = (question) => {
     setSelectedQuestions(prev => {
       const exists = prev.find(q => q.id === question.id);
@@ -98,7 +171,21 @@ export default function QuestionSidebar({
         '-ms-overflow-style': 'none'
       }}>
         <Box sx={{ p: 1 }}>
-          {filteredQuestions.map((question, index) => {
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress size={24} />
+            </Box>
+          )}
+
+          {error && (
+            <Box sx={{ textAlign: 'center', py: 4, color: '#ef4444' }}>
+              <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+                {error}
+              </Typography>
+            </Box>
+          )}
+
+          {!loading && !error && filteredQuestions.map((question, index) => {
             const isSelected = selectedQuestions.find(q => q.id === question.id);
             const canSelect = selectedQuestions.length < 2 || isSelected;
             const isDisabled = !canSelect && !isSelected;
@@ -199,10 +286,10 @@ export default function QuestionSidebar({
             );
           })}
 
-          {filteredQuestions.length === 0 && (
+          {!loading && !error && filteredQuestions.length === 0 && (
             <Box sx={{ textAlign: 'center', py: 4, color: '#9ca3af' }}>
               <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                検索結果がありません
+                {isTestMode ? 'テストデータに質問がありません' : '検索結果がありません'}
               </Typography>
             </Box>
           )}

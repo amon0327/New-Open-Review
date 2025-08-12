@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { getDatabaseConfig, TABLE_NAMES } from '../config/databaseConfig';
 
 // 排他制御用のマップ（質問IDごとにロックを管理）
 const choiceUpdateLocks = new Map();
@@ -885,5 +886,148 @@ export const getQuestionsWithOptions = async (reviewFormId, reviewFormPagesId) =
   } catch (error) {
     console.error('Error fetching questions with options:', error);
     return [];
+  }
+};
+
+// Analytics用質問一覧取得（テストモード対応）
+export const getQuestionsForAnalytics = async (userId, isTestMode = false) => {
+  try {
+    const config = getDatabaseConfig(isTestMode); // テストモード削除時: getDatabaseConfig()
+
+    let questionsQuery;
+
+    if (isTestMode) {
+      // ========= テストモード用クエリ（削除予定） =========
+      questionsQuery = supabase
+        .from(config.REVIEW_QUESTIONS)
+        .select(`
+          id,
+          question_text,
+          question_number,
+          is_required,
+          question_detail_text,
+          is_detail_enabled,
+          created_at,
+          question_types!inner(id, japanese),
+          question_categories!inner(id, japanese_name),
+          question_subcategories(id, japanese_name),
+          test_review_forms!inner(id, title),
+          test_review_form_pages(id, name, page_number)
+        `)
+        .order('question_number', { ascending: true });
+      // ================================================
+    } else {
+      // 本番モード用クエリ（削除不要）
+      questionsQuery = supabase
+        .from(config.REVIEW_QUESTIONS)
+        .select(`
+          id,
+          question_text,
+          question_number,
+          is_required,
+          question_detail_text,
+          is_detail_enabled,
+          created_at,
+          question_types!inner(id, japanese),
+          question_categories!inner(id, japanese_name),
+          question_subcategories(id, japanese_name),
+          review_forms!inner(id, title, business_users),
+          review_form_pages(id, name, page_number)
+        `)
+        .eq('review_forms.business_users', userId)
+        .order('question_number', { ascending: true });
+    }
+
+    const { data: questions, error } = await questionsQuery;
+
+    if (error) {
+      console.error('Analytics用質問取得エラー:', error);
+      return [];
+    }
+
+    // データを統一フォーマットに変換（削除不要な共通処理）
+    return formatQuestionsForAnalytics(questions || []);
+
+  } catch (error) {
+    console.error('Analytics用質問取得エラー:', error);
+    return [];
+  }
+};
+
+// Analytics用質問データのフォーマット（共通処理・削除不要）
+export const formatQuestionsForAnalytics = (rawQuestions) => {
+  return rawQuestions.map(question => ({
+    id: question.id,
+    title: question.question_text || '無題の質問',
+    questionNumber: question.question_number || 0,
+    category: question.question_categories?.japanese_name || 'その他',
+    subcategory: question.question_subcategories?.japanese_name || null,
+    type: question.question_types?.japanese || '不明',
+    typeId: question.question_types?.id || 0,
+    isRequired: question.is_required || false,
+    detailText: question.question_detail_text || '',
+    isDetailEnabled: question.is_detail_enabled || false,
+    formTitle: question.review_forms?.title || question.test_review_forms?.title || '不明なフォーム',
+    pageInfo: question.review_form_pages || question.test_review_form_pages || null,
+    createdAt: question.created_at,
+    // Analytics表示用の追加情報（初期値）
+    responses: 0, // 実際のレスポンス数は別途取得
+    avgRating: 0, // 平均評価は別途取得
+    // カテゴリカラー（UI表示用）
+    categoryColor: getCategoryColor(question.question_categories?.japanese_name || 'その他')
+  }));
+};
+
+// カテゴリカラー取得（UI表示用・削除不要）
+const getCategoryColor = (categoryName) => {
+  const colorMap = {
+    '基本情報': '#3B82F6',
+    '満足度': '#10B981', 
+    'サービス評価': '#F59E0B',
+    '改善提案': '#EF4444',
+    'その他': '#6B7280'
+  };
+  return colorMap[categoryName] || colorMap['その他'];
+};
+
+// 質問統計データ取得（テストモード対応）
+export const getQuestionAnalyticsStats = async (questionId, isTestMode = false) => {
+  try {
+    const config = getDatabaseConfig(isTestMode); // テストモード削除時: getDatabaseConfig()
+
+    // 回答数取得
+    const { data: answers, error: answersError } = await supabase
+      .from(config.REVIEW_QUESTION_ANSWERS)
+      .select('id')
+      .eq('review_questions_id', questionId);
+
+    if (answersError) {
+      console.error('回答統計取得エラー:', answersError);
+      return { responses: 0, avgRating: 0 };
+    }
+
+    // リニアスケール回答の平均取得
+    const { data: linearAnswers, error: linearError } = await supabase
+      .from(config.QUESTION_ANSWER_OPTION_LINEAR_SCALE)
+      .select('answer_number')
+      .in('review_question_answers_id', answers?.map(a => a.id) || []);
+
+    if (linearError) {
+      console.error('リニアスケール統計取得エラー:', linearError);
+    }
+
+    const ratings = linearAnswers?.map(a => a.answer_number).filter(r => r !== null) || [];
+    const avgRating = ratings.length > 0 
+      ? Math.round((ratings.reduce((sum, r) => sum + r, 0) / ratings.length) * 10) / 10
+      : 0;
+
+    return {
+      responses: answers?.length || 0,
+      avgRating
+    };
+
+  } catch (error) {
+    console.error('質問統計取得エラー:', error);
+    return { responses: 0, avgRating: 0 };
   }
 };
