@@ -17,22 +17,7 @@ export const generateFilterOptions = (question) => {
   if ([3, 4, 5, 6, 7, 8].includes(questionTypeId) || 
       ['radio', 'checkbox', 'radio-2col', 'checkbox-2col', 'select', 'scale'].includes(questionType)) {
     
-    // 複数選択可能なタイプ (4, 6, 8 または checkbox系)
-    if ([4, 6, 8].includes(questionTypeId) || 
-        ['checkbox', 'checkbox-2col'].includes(questionType)) {
-      return {
-        type: 'multi-select',
-        options: question.data?.labels?.map(label => ({
-          label,
-          value: label
-        })) || question.options?.map(option => ({
-          label: option.label || option.text,
-          value: option.value || option.label || option.text
-        })) || []
-      };
-    }
-    
-    // スケール（線形スケール）タイプ
+    // スケール（線形スケール）タイプを先に判定
     if (questionTypeId === 8 || questionType === 'scale') {
       // 1-5の数字フィルタリング（均等目盛り）
       return {
@@ -44,6 +29,21 @@ export const generateFilterOptions = (question) => {
           { label: '2', value: '2' },
           { label: '1', value: '1' }
         ]
+      };
+    }
+    
+    // 複数選択可能なタイプ (4, 6 または checkbox系)
+    if ([4, 6].includes(questionTypeId) || 
+        ['checkbox', 'checkbox-2col'].includes(questionType)) {
+      return {
+        type: 'multi-select',
+        options: question.data?.labels?.map(label => ({
+          label,
+          value: label
+        })) || question.options?.map(option => ({
+          label: option.label || option.text,
+          value: option.value || option.label || option.text
+        })) || []
       };
     }
     

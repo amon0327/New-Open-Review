@@ -961,8 +961,8 @@ export const getQuestionsForAnalytics = async (userId, isTestMode = false) => {
       return [];
     }
 
-    // データを統一フォーマットに変換（削除不要な共通処理）
-    const formattedQuestions = formatQuestionsForAnalytics(questions || []);
+    // データを統一フォーマットに変換し、選択肢データも取得
+    const formattedQuestions = await formatQuestionsForAnalyticsWithOptions(questions || [], isTestMode);
     console.log('フォーマット後の質問データ:', formattedQuestions);
     
     return formattedQuestions;
@@ -971,6 +971,90 @@ export const getQuestionsForAnalytics = async (userId, isTestMode = false) => {
     console.error('Analytics用質問取得エラー:', error);
     return [];
   }
+};
+
+// Analytics用質問データのフォーマット（オプション付き・テストモード対応）
+export const formatQuestionsForAnalyticsWithOptions = async (rawQuestions, isTestMode = false) => {
+  console.log('フォーマット処理開始（オプション付き）:', rawQuestions);
+  const config = getDatabaseConfig(isTestMode);
+  
+  const formattedQuestions = await Promise.all(
+    rawQuestions.map(async (question) => {
+      console.log('フォーマット中の質問:', question);
+      
+      // 選択肢データを取得（質問タイプに応じて）
+      let options = [];
+      const questionTypeId = question.question_types?.id || question.question_types_id;
+      
+      try {
+        if ([3, 4, 5, 6, 7, 8].includes(questionTypeId)) {
+          // 選択肢データを取得
+          const tablePrefix = isTestMode ? 'test_' : '';
+          const { data: choiceOptions, error: choiceError } = await supabase
+            .from(`${tablePrefix}question_option_choices`)
+            .select('choice_name, choice_number')
+            .eq('review_questions_id', question.id)
+            .order('choice_number');
+          
+          if (!choiceError && choiceOptions) {
+            options = choiceOptions.map(opt => ({
+              label: opt.choice_name,
+              value: opt.choice_name,
+              text: opt.choice_name
+            }));
+            console.log(`質問ID ${question.id} の選択肢:`, options);
+          } else if (choiceError) {
+            console.warn(`質問ID ${question.id} の選択肢取得エラー:`, choiceError);
+          }
+        }
+      } catch (error) {
+        console.error(`質問ID ${question.id} のオプション取得でエラー:`, error);
+      }
+      
+      const formatted = {
+        id: question.id,
+        title: question.question_text || '無題の質問',
+        questionNumber: question.question_number || 0,
+        category: question.question_categories?.japanese_name || 'その他',
+        subcategory: question.question_subcategories?.japanese_name || null,
+        type: question.question_types?.japanese || getQuestionTypeName(questionTypeId),
+        typeId: questionTypeId || 0,
+        isRequired: question.is_required || false,
+        detailText: question.question_detail_text || '',
+        isDetailEnabled: question.is_detail_enabled || false,
+        formTitle: question.review_forms?.title || question.test_review_forms?.title || 'テストフォーム',
+        pageInfo: question.review_form_pages || question.test_review_form_pages || null,
+        createdAt: question.created_at,
+        // Analytics表示用の追加情報
+        responses: 0, // 実際のレスポンス数は別途取得
+        avgRating: 0, // 平均評価は別途取得
+        options: options, // 取得した選択肢データ
+        data: { labels: options.map(opt => opt.label) }, // フィルター用
+        // カテゴリカラー（UI表示用）
+        categoryColor: getCategoryColor(question.question_categories?.japanese_name || 'その他')
+      };
+      
+      console.log('フォーマット後（オプション付き）:', formatted);
+      return formatted;
+    })
+  );
+  
+  return formattedQuestions;
+};
+
+// 質問タイプIDから名前を取得するヘルパー関数
+const getQuestionTypeName = (typeId) => {
+  const typeMap = {
+    1: '短文回答',
+    2: '長文回答', 
+    3: '単一選択',
+    4: '複数選択',
+    5: '単一選択(2列)',
+    6: '複数選択(2列)',
+    7: 'プルダウン',
+    8: '線形スケール'
+  };
+  return typeMap[typeId] || '不明';
 };
 
 // Analytics用質問データのフォーマット（共通処理・削除不要）

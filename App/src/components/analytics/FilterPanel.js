@@ -352,21 +352,16 @@ export default function FilterPanel({
                             <TextField
                               fullWidth
                               placeholder={filterConfig.placeholder}
-                              value={tempFilters[question.id]?.value || ''}
+                              value={activeFilters[question.id]?.value || ''}
                               onChange={(e) => {
                                 const value = e.target.value;
-                                updateTempFilter(question.id, 'text', value);
                                 
-                                // リアルタイム検索（300ms のデバウンス）
-                                setTimeout(() => {
-                                  if (value === '' || value.length >= 1) {
-                                    if (value === '') {
-                                      clearFilter(question.id);
-                                    } else {
-                                      applyFilterInstantly(question.id, 'text', value);
-                                    }
-                                  }
-                                }, 300);
+                                // 即座にフィルターを適用
+                                if (value === '') {
+                                  clearFilter(question.id);
+                                } else {
+                                  applyFilterInstantly(question.id, 'text', value);
+                                }
                               }}
                               size="small"
                               InputProps={{
