@@ -934,44 +934,6 @@ const HeaderBar = ({
             </Typography>
           </Box>
         </Box>
-        <List sx={{ 
-          p: 0, 
-          maxHeight: 300, 
-          overflow: 'auto',
-          '&::-webkit-scrollbar': {
-            display: 'none'
-          },
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
-        }}>
-          {warnings.map((warning, index) => (
-            <ListItem
-              key={warning.id}
-              onClick={() => handleWarningItemClick(warning)}
-              sx={{
-                borderBottom: index < warnings.length - 1 ? '1px solid #f9fafb' : 'none',
-                '&:hover': { backgroundColor: '#fffbeb' },
-                cursor: 'pointer',
-                px: 2,
-                py: 1.5
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                <WarningAmber sx={{ color: '#f59e0b', fontSize: '1rem' }} />
-              </ListItemIcon>
-              <ListItemText
-                primary={warning.message}
-                secondary={warning.location}
-                primaryTypographyProps={{
-                  sx: { fontWeight: 500, color: '#374151', fontSize: '0.85rem', lineHeight: 1.4 }
-                }}
-                secondaryTypographyProps={{
-                  sx: { color: '#6b7280', fontSize: '0.75rem', mt: 0.25 }
-                }}
-              />
-            </ListItem>
-          ))}
-        </List>
       </Popover>
     </Paper>
   );
