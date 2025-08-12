@@ -97,8 +97,8 @@ const LeftNavigationBar = ({
                   src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"
                   alt="OpenReview Logo"
                   sx={{
-                    width: 40,
-                    height: 40,
+                    width: 44,
+                    height: 44,
                     objectFit: 'contain'
                   }}
                   onError={(e) => {
@@ -106,8 +106,8 @@ const LeftNavigationBar = ({
                     e.target.style.display = 'none';
                     e.target.parentNode.innerHTML = `
                       <div style="
-                        width: 40px; 
-                        height: 40px; 
+                        width: 44px; 
+                        height: 44px; 
                         border-radius: 4px; 
                         background: rgba(255, 255, 255, 0.2); 
                         display: flex; 

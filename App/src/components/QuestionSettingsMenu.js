@@ -55,6 +55,7 @@ import {
   ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
+import SvgIcon from './SvgIcon';
 
 // 質問タイプのアイコンとカラーマッピング
 const getQuestionTypeConfig = (typeId) => {
@@ -1417,10 +1418,14 @@ const QuestionSettingsMenu = ({
                   // Supabaseデータから質問タイプ情報を取得
                   const questionTypeData = questionTypesData.find(qt => qt.id === question.question_types_id);
                   const config = questionTypeData ? {
-                    icon: <TextIcon />, // SVGアイコンは後で実装
+                    icon: <SvgIcon src={questionTypeData.image} size={16} color="white" />,
                     name: questionTypeData.japanese,
-                    color: '#3B82F6',
-                    gradient: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)'
+                    color: ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7],
+                    gradient: `linear-gradient(135deg, ${
+                      ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7]
+                    } 0%, ${
+                      ['#764ba2', '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][index % 7]
+                    } 100%)`
                   } : getQuestionTypeConfig(question.question_types_id);
                   const isSelected = selectedQuestionId === question.id;
                   
@@ -1498,12 +1503,12 @@ const QuestionSettingsMenu = ({
                               sx={{
                                 width: 28,
                                 height: 28,
-                                borderRadius: '6px',
+                                borderRadius: 1,
                                 background: config.gradient,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
                               }}
                             >
                               {React.cloneElement(config.icon, {
