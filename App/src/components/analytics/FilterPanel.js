@@ -82,7 +82,7 @@ export default function FilterPanel({
                       sx={{
                         p: 2,
                         border: '1px solid #e2e8f0',
-                        borderRadius: 2,
+                        borderRadius: 1,
                         background: 'rgba(255, 255, 255, 0.8)',
                         backdropFilter: 'blur(10px)',
                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
@@ -92,8 +92,8 @@ export default function FilterPanel({
                         flexDirection: 'column'
                       }}
                     >
-                      {/* コンパクトな質問ヘッダー */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                      {/* カテゴリカラーインジケーター */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
                         <Box
                           sx={{
                             width: 6,
@@ -102,16 +102,6 @@ export default function FilterPanel({
                             bgcolor: categoryColors[question.category]
                           }}
                         />
-                        <Typography
-                          sx={{
-                            fontWeight: 600,
-                            color: '#1e293b',
-                            fontSize: '0.85rem',
-                            lineHeight: 1.3
-                          }}
-                        >
-                          {question.title}
-                        </Typography>
                       </Box>
 
                       {/* コンパクトなフィルター要素 */}
