@@ -127,7 +127,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
             setSearchTerm={setSearchTerm}
             selectedQuestions={selectedQuestions}
             setSelectedQuestions={setSelectedQuestions}
-            isTestMode={isTestMode} {/* テストモードprops（削除予定） */}
+            isTestMode={isTestMode} // テストモードprops（削除予定）
           />
 
           {/* チャート表示エリア */}
@@ -137,7 +137,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
             setActiveFilters={setActiveFilters}
             showFilters={showFilters}
             setShowFilters={setShowFilters}
-            isTestMode={isTestMode} {/* テストモードprops（削除予定） */}
+            isTestMode={isTestMode} // テストモードprops（削除予定）
           />
         </Box>
 
