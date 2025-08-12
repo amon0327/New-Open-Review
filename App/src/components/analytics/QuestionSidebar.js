@@ -80,7 +80,8 @@ export default function QuestionSidebar({
                   avgRating: 0,
                   responseCount: 0,
                   chartType: getChartTypeForQuestion(question.typeId, question.isRequired),
-                  icon: getIconForQuestion(question.typeId, question.isRequired)
+                  icon: getIconForQuestion(question.typeId, question.isRequired),
+                  iconColor: getIconColorForQuestion(question.typeId, question.isRequired)
                 };
               }
             })
@@ -130,6 +131,16 @@ export default function QuestionSidebar({
       return isRequired ? <PieChart /> : <BarChart />;
     }
     return <BarChart />;
+  };
+
+  // 質問タイプからアイコンカラーを決定（共通処理・削除不要）
+  const getIconColorForQuestion = (questionTypeId, isRequired = true) => {
+    if (questionTypeId === 1 || questionTypeId === 2) {
+      return '#3b82f6'; // テキスト系は青
+    } else if ([3, 4, 5, 6, 7, 8].includes(questionTypeId)) {
+      return isRequired ? '#10b981' : '#f59e0b'; // 必須は緑、非必須はオレンジ
+    }
+    return '#6b7280'; // デフォルトはグレー
   };
 
   // 質問の選択・解除（共通処理・削除不要）
@@ -247,8 +258,8 @@ export default function QuestionSidebar({
                         width: 32,
                         height: 32,
                         borderRadius: 1.5,
-                        bgcolor: `${question.categoryColor || categoryColors[question.category] || '#6B7280'}20`,
-                        color: question.categoryColor || categoryColors[question.category] || '#6B7280',
+                        bgcolor: `${question.iconColor || question.categoryColor || categoryColors[question.category] || '#6B7280'}20`,
+                        color: question.iconColor || question.categoryColor || categoryColors[question.category] || '#6B7280',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
