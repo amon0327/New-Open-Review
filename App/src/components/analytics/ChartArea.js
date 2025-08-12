@@ -190,7 +190,7 @@ export default function ChartArea({
               {selectedQuestions.length === 1 
                 ? selectedQuestions[0]?.title 
                 : selectedQuestions.length === 2
-                  ? `${selectedQuestions[0]?.title} vs ${selectedQuestions[1]?.title}`
+                  ? `${selectedQuestions[0]?.title} / ${selectedQuestions[1]?.title}`
                   : `${selectedQuestions.length}つの質問を比較分析`
               }
             </Typography>
