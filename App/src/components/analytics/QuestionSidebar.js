@@ -42,32 +42,52 @@ export default function QuestionSidebar({
       try {
         // ========= テストモード分岐（削除予定） =========
         if (isTestMode) {
+          console.log('テストモード: 質問データ取得開始');
+          
           // テストモード時はSupabaseから取得
           const questionsData = await getQuestionsForAnalytics(null, true);
+          console.log('取得した質問データ:', questionsData);
+          
+          if (!questionsData || questionsData.length === 0) {
+            console.warn('テストモード: 質問データが空です');
+            setQuestions([]);
+            return;
+          }
           
           // 統計データを追加取得
           const questionsWithStats = await Promise.all(
             questionsData.map(async (question) => {
-              const stats = await getQuestionAnalyticsStats(question.id, true);
-              return {
-                ...question,
-                responses: stats.responses,
-                avgRating: stats.avgRating,
-                responseCount: stats.responses,
-                chartType: getChartTypeForQuestion(question.typeId),
-                icon: <QuizOutlined />
-              };
+              try {
+                const stats = await getQuestionAnalyticsStats(question.id, true);
+                console.log(`質問ID ${question.id} の統計:`, stats);
+                
+                return {
+                  ...question,
+                  responses: stats.responses,
+                  avgRating: stats.avgRating,
+                  responseCount: stats.responses,
+                  chartType: getChartTypeForQuestion(question.typeId),
+                  icon: <QuizOutlined />
+                };
+              } catch (statsError) {
+                console.error(`質問ID ${question.id} の統計取得エラー:`, statsError);
+                return {
+                  ...question,
+                  responses: 0,
+                  avgRating: 0,
+                  responseCount: 0,
+                  chartType: getChartTypeForQuestion(question.typeId),
+                  icon: <QuizOutlined />
+                };
+              }
             })
           );
           
+          console.log('統計付き質問データ:', questionsWithStats);
           setQuestions(questionsWithStats);
         } else {
           // 本番モード時はダミーデータを使用（削除不要）
-          const filteredQuestions = questionsDatabase.filter(question =>
-            question.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            question.category.toLowerCase().includes(searchTerm.toLowerCase())
-          );
-          setQuestions(filteredQuestions);
+          setQuestions(questionsDatabase);
         }
         // ============================================
       } catch (err) {

@@ -892,12 +892,24 @@ export const getQuestionsWithOptions = async (reviewFormId, reviewFormPagesId) =
 // Analytics用質問一覧取得（テストモード対応）
 export const getQuestionsForAnalytics = async (userId, isTestMode = false) => {
   try {
+    console.log('getQuestionsForAnalytics 開始:', { userId, isTestMode });
     const config = getDatabaseConfig(isTestMode); // テストモード削除時: getDatabaseConfig()
+    console.log('使用するDB設定:', config);
 
     let questionsQuery;
 
     if (isTestMode) {
       // ========= テストモード用クエリ（削除予定） =========
+      console.log('テストモード用クエリを実行:', config.REVIEW_QUESTIONS);
+      
+      // まずはシンプルなクエリでテストデータの存在確認
+      const { data: testData, error: testError } = await supabase
+        .from(config.REVIEW_QUESTIONS)
+        .select('*')
+        .limit(5);
+      
+      console.log('テストデータ確認結果:', { data: testData, error: testError });
+      
       questionsQuery = supabase
         .from(config.REVIEW_QUESTIONS)
         .select(`
@@ -908,11 +920,9 @@ export const getQuestionsForAnalytics = async (userId, isTestMode = false) => {
           question_detail_text,
           is_detail_enabled,
           created_at,
-          question_types!inner(id, japanese),
-          question_categories!inner(id, japanese_name),
-          question_subcategories(id, japanese_name),
-          test_review_forms!inner(id, title),
-          test_review_form_pages(id, name, page_number)
+          question_types_id,
+          question_categories_id,
+          question_subcategories_id
         `)
         .order('question_number', { ascending: true });
       // ================================================
@@ -939,14 +949,23 @@ export const getQuestionsForAnalytics = async (userId, isTestMode = false) => {
     }
 
     const { data: questions, error } = await questionsQuery;
+    console.log('クエリ実行結果:', { questions, error });
 
     if (error) {
       console.error('Analytics用質問取得エラー:', error);
       return [];
     }
 
+    if (!questions || questions.length === 0) {
+      console.warn('取得した質問データが空です');
+      return [];
+    }
+
     // データを統一フォーマットに変換（削除不要な共通処理）
-    return formatQuestionsForAnalytics(questions || []);
+    const formattedQuestions = formatQuestionsForAnalytics(questions || []);
+    console.log('フォーマット後の質問データ:', formattedQuestions);
+    
+    return formattedQuestions;
 
   } catch (error) {
     console.error('Analytics用質問取得エラー:', error);
@@ -956,26 +975,35 @@ export const getQuestionsForAnalytics = async (userId, isTestMode = false) => {
 
 // Analytics用質問データのフォーマット（共通処理・削除不要）
 export const formatQuestionsForAnalytics = (rawQuestions) => {
-  return rawQuestions.map(question => ({
-    id: question.id,
-    title: question.question_text || '無題の質問',
-    questionNumber: question.question_number || 0,
-    category: question.question_categories?.japanese_name || 'その他',
-    subcategory: question.question_subcategories?.japanese_name || null,
-    type: question.question_types?.japanese || '不明',
-    typeId: question.question_types?.id || 0,
-    isRequired: question.is_required || false,
-    detailText: question.question_detail_text || '',
-    isDetailEnabled: question.is_detail_enabled || false,
-    formTitle: question.review_forms?.title || question.test_review_forms?.title || '不明なフォーム',
-    pageInfo: question.review_form_pages || question.test_review_form_pages || null,
-    createdAt: question.created_at,
-    // Analytics表示用の追加情報（初期値）
-    responses: 0, // 実際のレスポンス数は別途取得
-    avgRating: 0, // 平均評価は別途取得
-    // カテゴリカラー（UI表示用）
-    categoryColor: getCategoryColor(question.question_categories?.japanese_name || 'その他')
-  }));
+  console.log('フォーマット処理開始:', rawQuestions);
+  
+  return rawQuestions.map(question => {
+    console.log('フォーマット中の質問:', question);
+    
+    const formatted = {
+      id: question.id,
+      title: question.question_text || '無題の質問',
+      questionNumber: question.question_number || 0,
+      category: question.question_categories?.japanese_name || 'その他',
+      subcategory: question.question_subcategories?.japanese_name || null,
+      type: question.question_types?.japanese || '不明',
+      typeId: question.question_types?.id || question.question_types_id || 0,
+      isRequired: question.is_required || false,
+      detailText: question.question_detail_text || '',
+      isDetailEnabled: question.is_detail_enabled || false,
+      formTitle: question.review_forms?.title || question.test_review_forms?.title || 'テストフォーム',
+      pageInfo: question.review_form_pages || question.test_review_form_pages || null,
+      createdAt: question.created_at,
+      // Analytics表示用の追加情報（初期値）
+      responses: 0, // 実際のレスポンス数は別途取得
+      avgRating: 0, // 平均評価は別途取得
+      // カテゴリカラー（UI表示用）
+      categoryColor: getCategoryColor(question.question_categories?.japanese_name || 'その他')
+    };
+    
+    console.log('フォーマット後:', formatted);
+    return formatted;
+  });
 };
 
 // カテゴリカラー取得（UI表示用・削除不要）
