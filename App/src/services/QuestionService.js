@@ -1013,7 +1013,13 @@ const getCategoryColor = (categoryName) => {
     '満足度': '#10B981', 
     'サービス評価': '#F59E0B',
     '改善提案': '#EF4444',
-    'その他': '#6B7280'
+    'その他': '#6B7280',
+    // questionsDatabase.jsと同じカラー定義を追加
+    'satisfaction': '#3b82f6',
+    'product': '#10b981', 
+    'behavior': '#f59e0b',
+    'demographics': '#8b5cf6',
+    'feedback': '#ef4444'
   };
   return colorMap[categoryName] || colorMap['その他'];
 };
