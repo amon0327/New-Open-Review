@@ -76,6 +76,10 @@ export default function FilterPanel({
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
+          style={{ 
+            width: '100%',
+            flexShrink: 0
+          }}
         >
           <Box
             sx={{
@@ -83,6 +87,7 @@ export default function FilterPanel({
               background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
               maxHeight: 240,
               overflow: 'auto',
+              width: '100%',
               '&::-webkit-scrollbar': { width: 6 },
               '&::-webkit-scrollbar-track': { 
                 bgcolor: 'rgba(241, 245, 249, 0.5)',
@@ -123,7 +128,7 @@ export default function FilterPanel({
                         background: 'rgba(255, 255, 255, 0.8)',
                         backdropFilter: 'blur(10px)',
                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                        minHeight: 70,
+                        minHeight: 120,
                         height: '100%',
                         display: 'flex',
                         flexDirection: 'column'

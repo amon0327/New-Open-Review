@@ -134,7 +134,7 @@ export default function ChartArea({
   }
 
   return (
-    <Box sx={{ flexGrow: 1, display: 'flex', position: 'relative' }}>
+    <Box sx={{ flexGrow: 1, display: 'flex', position: 'relative', minWidth: 0 }}>
       <Box
         sx={{
           flex: 1,
@@ -144,7 +144,8 @@ export default function ChartArea({
           borderRadius: 2,
           border: '1px solid #e2e8f0',
           overflow: 'hidden',
-          position: 'relative'
+          position: 'relative',
+          minWidth: 0
         }}
       >
       {/* ヘッダーセクション */}

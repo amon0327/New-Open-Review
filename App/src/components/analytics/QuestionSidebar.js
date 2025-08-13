@@ -164,6 +164,9 @@ export default function QuestionSidebar({
     <Box
       sx={{
         width: 280,
+        minWidth: 280,
+        maxWidth: 280,
+        flexShrink: 0,
         bgcolor: '#ffffff',
         borderRadius: 2,
         border: '1px solid #e5e7eb',
@@ -243,7 +246,8 @@ export default function QuestionSidebar({
                     p: 1.5,
                     cursor: canSelect ? 'pointer' : 'not-allowed',
                     opacity: isDisabled ? 0.4 : 1,
-                    border: isSelected ? `2px solid ${question.iconColor || question.categoryColor || categoryColors[question.category] || '#6B7280'}` : '1px solid #e5e7eb',
+                    border: `2px solid ${isSelected ? (question.iconColor || question.categoryColor || categoryColors[question.category] || '#6B7280') : 'transparent'}`,
+                    outline: !isSelected ? '1px solid #e5e7eb' : 'none',
                     bgcolor: '#ffffff',
                     boxShadow: isSelected ? `0 4px 16px ${question.iconColor || question.categoryColor || categoryColors[question.category] || '#6B7280'}40` : '0 1px 3px rgba(0, 0, 0, 0.05)',
                     transition: 'all 0.2s ease',
