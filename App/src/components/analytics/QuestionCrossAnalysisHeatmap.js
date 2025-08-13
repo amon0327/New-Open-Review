@@ -5,15 +5,13 @@ import {
   Typography, 
   Alert,
   CircularProgress,
-  Tooltip,
-  Chip
+  Tooltip
 } from '@mui/material';
 import { 
   GridView, 
   Analytics
 } from '@mui/icons-material';
-import FilterPanel from './FilterPanel';
-import { applyCombinedFilters, calculateFilterStats } from '../../utils/dataFilterUtils';
+import { applyCombinedFilters } from '../../utils/dataFilterUtils';
 import { supabase } from '../../supabaseClient';
 import { getDatabaseConfig } from '../../config/databaseConfig';
 
@@ -407,36 +405,7 @@ const QuestionCrossAnalysisHeatmap = ({
           クロス分析 - ヒートマップ
         </Typography>
         
-        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-          <Chip 
-            label={`質問A: ${questionA.title}`}
-            variant="outlined"
-            sx={{ 
-              bgcolor: 'rgba(94, 23, 235, 0.1)',
-              borderColor: '#5e17eb',
-              color: '#5e17eb'
-            }}
-          />
-          <Chip 
-            label={`質問B: ${questionB.title}`}
-            variant="outlined"
-            sx={{ 
-              bgcolor: 'rgba(103, 126, 234, 0.1)',
-              borderColor: '#677eea',
-              color: '#677eea'
-            }}
-          />
-        </Box>
       </Box>
-
-      {/* フィルターパネル */}
-      <FilterPanel
-        selectedQuestions={selectedQuestions}
-        activeFilters={activeFilters || {}}
-        setActiveFilters={setActiveFilters || (() => {})}
-        showFilters={showFilters}
-        setShowFilters={setShowFilters}
-      />
 
       {/* ヒートマップ */}
       <Typography 
