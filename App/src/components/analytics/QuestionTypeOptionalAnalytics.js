@@ -161,19 +161,31 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
       
       // 線形スケール（質問タイプ5）の場合
       if (questionTypeNum === 5) {
+        console.log('線形スケール選択肢データ取得開始');
         const { data: scaleData, error: scaleError } = await supabase
           .from(config.QUESTION_OPTION_LINEAR_SCALE)
           .select('min_text, max_text')
           .eq('review_questions_id', questionId)
           .single();
           
+        console.log('線形スケール設定取得結果:', { data: scaleData, error: scaleError });
+        
         if (scaleError) {
           console.warn('線形スケールデータ取得エラー:', scaleError);
           return null;
         }
         
         if (scaleData) {
-          return ['1', '2', '3', '4', '5'];
+          // min_text, max_textを使った1-5スケールの選択肢を生成
+          const choices = [
+            `1 (${scaleData.min_text || '最小'})`,
+            '2',
+            '3',
+            '4', 
+            `5 (${scaleData.max_text || '最大'})`
+          ];
+          console.log('生成された線形スケール選択肢:', choices);
+          return choices;
         }
       }
       
@@ -233,10 +245,31 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
         }
         
         if (scaleAnswers && scaleAnswers.length > 0) {
+          // 線形スケールの設定を取得（表示用）
+          const { data: scaleConfig } = await supabase
+            .from(config.QUESTION_OPTION_LINEAR_SCALE)
+            .select('min_text, max_text')
+            .eq('review_questions_id', questionId)
+            .single();
+          
+          // 数値を表示用文字列にマッピング
+          const getDisplayValue = (answerNumber, scaleConfig) => {
+            if (!answerNumber) return '未回答';
+            const num = parseInt(answerNumber);
+            if (scaleConfig) {
+              switch (num) {
+                case 1: return `1 (${scaleConfig.min_text || '最小'})`;
+                case 5: return `5 (${scaleConfig.max_text || '最大'})`;
+                default: return num.toString();
+              }
+            }
+            return num.toString();
+          };
+          
           const formattedAnswers = scaleAnswers.map(answer => ({
             id: answer.review_question_answers_id,
             created_at: answer[config.REVIEW_QUESTION_ANSWERS].created_at,
-            answer: answer.answer_number?.toString() || '未回答'
+            answer: getDisplayValue(answer.answer_number, scaleConfig)
           }));
           console.log('フォーマット済み線形スケール回答:', formattedAnswers);
           return formattedAnswers;
@@ -330,7 +363,7 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
     const choiceMap = {
       3: ['選択肢A', '選択肢B', '選択肢C', '選択肢D'],
       4: ['オプション1', 'オプション2', 'オプション3'],
-      5: ['1', '2', '3', '4', '5'],
+      5: ['1 (最小)', '2', '3', '4', '5 (最大)'], // 線形スケールの表示例
       6: ['とても良い', '良い', '普通', '悪い', 'とても悪い'],
       7: ['カテゴリA', 'カテゴリB', 'カテゴリC'],
       8: ['項目1', '項目2', '項目3', '項目4']

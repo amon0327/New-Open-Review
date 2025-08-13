@@ -5,17 +5,12 @@ import {
   Typography, 
   Alert,
   CircularProgress,
-  Card,
   Tooltip,
-  Chip,
-  Grid
+  Chip
 } from '@mui/material';
 import { 
   GridView, 
-  Compare, 
-  TrendingUp,
-  Analytics,
-  Insights
+  Analytics
 } from '@mui/icons-material';
 import FilterPanel from './FilterPanel';
 import { applyCombinedFilters, calculateFilterStats } from '../../utils/dataFilterUtils';
@@ -443,265 +438,168 @@ const QuestionCrossAnalysisHeatmap = ({
         setShowFilters={setShowFilters}
       />
 
-      {/* 統計情報 */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={3}>
-          <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'rgba(16, 185, 129, 0.1)' }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#10b981' }}>
-              {statistics.totalResponses}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              総回答数
-            </Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'rgba(59, 130, 246, 0.1)' }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#3b82f6' }}>
-              {questionAChoices.length}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              質問A選択肢数
-            </Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'rgba(139, 92, 246, 0.1)' }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#8b5cf6' }}>
-              {questionBChoices.length}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              質問B選択肢数
-            </Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'rgba(245, 158, 11, 0.1)' }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#f59e0b' }}>
-              {questionAChoices.length * questionBChoices.length}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              組み合わせ数
-            </Typography>
-          </Card>
-        </Grid>
-      </Grid>
-
       {/* ヒートマップ */}
-      <Card sx={{ p: 3, mb: 3 }}>
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            mb: 2, 
-            fontWeight: 600, 
-            color: '#1e293b',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1
-          }}
-        >
-          <Analytics sx={{ color: '#5e17eb' }} />
-          回答の組み合わせ分布
-        </Typography>
+      <Typography 
+        variant="h6" 
+        sx={{ 
+          mb: 2, 
+          fontWeight: 600, 
+          color: '#1e293b',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1
+        }}
+      >
+        <Analytics sx={{ color: '#5e17eb' }} />
+        回答の組み合わせ分布
+      </Typography>
         
-        <Box sx={{ position: 'relative', overflow: 'auto' }}>
-          {/* Y軸ラベル（質問A） */}
+      <Box sx={{ position: 'relative', overflow: 'auto', mb: 3 }}>
+        {/* Y軸ラベル（質問A） */}
+        <Box sx={{ 
+          position: 'absolute', 
+          left: -120, 
+          top: '50%', 
+          transform: 'rotate(-90deg) translateX(-50%)', 
+          transformOrigin: 'center',
+          whiteSpace: 'nowrap',
+          fontWeight: 600,
+          color: '#5e17eb',
+          fontSize: '0.9rem'
+        }}>
+          {questionA.title}
+        </Box>
+        
+        {/* ヒートマップグリッド */}
+        <Box sx={{ ml: 8, mt: 2 }}>
+          {/* X軸ラベル（質問B） */}
           <Box sx={{ 
-            position: 'absolute', 
-            left: -120, 
-            top: '50%', 
-            transform: 'rotate(-90deg) translateX(-50%)', 
-            transformOrigin: 'center',
-            whiteSpace: 'nowrap',
+            mb: 1, 
+            textAlign: 'center',
             fontWeight: 600,
-            color: '#5e17eb',
+            color: '#677eea',
             fontSize: '0.9rem'
           }}>
-            {questionA.title}
+            {questionB.title}
           </Box>
           
-          {/* ヒートマップグリッド */}
-          <Box sx={{ ml: 8, mt: 2 }}>
-            {/* X軸ラベル（質問B） */}
-            <Box sx={{ 
-              mb: 1, 
-              textAlign: 'center',
-              fontWeight: 600,
-              color: '#677eea',
-              fontSize: '0.9rem'
-            }}>
-              {questionB.title}
-            </Box>
-            
-            {/* X軸選択肢ラベル */}
-            <Box sx={{ display: 'flex', mb: 1, ml: 12 }}>
-              {questionBChoices.map((choice, index) => (
-                <Box 
-                  key={index}
-                  sx={{ 
-                    width: 80, 
-                    minHeight: 40,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.75rem',
-                    fontWeight: 500,
-                    color: '#64748b',
-                    textAlign: 'center',
-                    px: 0.5
-                  }}
-                >
-                  {choice.length > 8 ? `${choice.substring(0, 8)}...` : choice}
-                </Box>
-              ))}
-            </Box>
-            
-            {/* ヒートマップセル */}
-            {questionAChoices.map((choiceA, indexA) => (
-              <Box key={indexA} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                {/* Y軸選択肢ラベル */}
-                <Box sx={{ 
-                  width: 120, 
-                  height: 60,
+          {/* X軸選択肢ラベル */}
+          <Box sx={{ display: 'flex', mb: 1, ml: 12 }}>
+            {questionBChoices.map((choice, index) => (
+              <Box 
+                key={index}
+                sx={{ 
+                  width: 80, 
+                  minHeight: 40,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  pr: 2,
+                  justifyContent: 'center',
                   fontSize: '0.75rem',
                   fontWeight: 500,
-                  color: '#64748b'
-                }}>
-                  {choiceA.length > 12 ? `${choiceA.substring(0, 12)}...` : choiceA}
-                </Box>
-                
-                {/* データセル */}
-                {questionBChoices.map((choiceB, indexB) => {
-                  const cellData = heatmapData.find(d => d.x === indexB && d.y === indexA);
-                  const intensity = cellData?.intensity || 0;
-                  const bgColor = heatmapColors[cellData?.colorIndex || 0];
-                  const textColor = intensity > 0.5 ? '#ffffff' : '#1e293b';
-                  
-                  return (
-                    <Tooltip 
-                      key={indexB}
-                      title={
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {choiceA} × {choiceB}
-                          </Typography>
-                          <Typography variant="body2">
-                            回答数: {cellData?.value || 0}件
-                          </Typography>
-                          <Typography variant="body2">
-                            割合: {(cellData?.percentage || 0).toFixed(1)}%
-                          </Typography>
-                        </Box>
-                      }
-                      arrow
-                    >
-                      <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Box
-                          sx={{
-                            width: 80,
-                            height: 60,
-                            bgcolor: bgColor,
-                            border: '1px solid #e2e8f0',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            '&:hover': {
-                              border: '2px solid #5e17eb',
-                              zIndex: 1
-                            }
-                          }}
-                        >
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              fontWeight: 700, 
-                              color: textColor,
-                              fontSize: '0.85rem'
-                            }}
-                          >
-                            {cellData?.value || 0}
-                          </Typography>
-                          <Typography 
-                            variant="caption" 
-                            sx={{ 
-                              color: textColor,
-                              fontSize: '0.65rem'
-                            }}
-                          >
-                            {(cellData?.percentage || 0).toFixed(1)}%
-                          </Typography>
-                        </Box>
-                      </motion.div>
-                    </Tooltip>
-                  );
-                })}
+                  color: '#64748b',
+                  textAlign: 'center',
+                  px: 0.5
+                }}
+              >
+                {choice.length > 8 ? `${choice.substring(0, 8)}...` : choice}
               </Box>
             ))}
           </Box>
-        </Box>
-      </Card>
-
-      {/* 主要な組み合わせ */}
-      {statistics.mostCommonCombination && (
-        <Card sx={{ p: 3 }}>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              mb: 2, 
-              fontWeight: 600, 
-              color: '#1e293b',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
-            }}
-          >
-            <Insights sx={{ color: '#5e17eb' }} />
-            主要な回答パターン
-          </Typography>
           
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <Box sx={{ p: 2, bgcolor: 'rgba(16, 185, 129, 0.1)', borderRadius: 2 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#10b981', mb: 1 }}>
-                  最も多い組み合わせ
-                </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {statistics.mostCommonCombination.combination}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {statistics.mostCommonCombination.count}件の回答
-                </Typography>
+          {/* ヒートマップセル */}
+          {questionAChoices.map((choiceA, indexA) => (
+            <Box key={indexA} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+              {/* Y軸選択肢ラベル */}
+              <Box sx={{ 
+                width: 120, 
+                height: 60,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                pr: 2,
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                color: '#64748b'
+              }}>
+                {choiceA.length > 12 ? `${choiceA.substring(0, 12)}...` : choiceA}
               </Box>
-            </Grid>
-            
-            {statistics.leastCommonCombination && (
-              <Grid item xs={12} md={6}>
-                <Box sx={{ p: 2, bgcolor: 'rgba(239, 68, 68, 0.1)', borderRadius: 2 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#ef4444', mb: 1 }}>
-                    最も少ない組み合わせ
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    {statistics.leastCommonCombination.combination}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {statistics.leastCommonCombination.count}件の回答
-                  </Typography>
-                </Box>
-              </Grid>
-            )}
-          </Grid>
-        </Card>
-      )}
+              
+              {/* データセル */}
+              {questionBChoices.map((choiceB, indexB) => {
+                const cellData = heatmapData.find(d => d.x === indexB && d.y === indexA);
+                const intensity = cellData?.intensity || 0;
+                const bgColor = heatmapColors[cellData?.colorIndex || 0];
+                const textColor = intensity > 0.5 ? '#ffffff' : '#1e293b';
+                
+                return (
+                  <Tooltip 
+                    key={indexB}
+                    title={
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {choiceA} × {choiceB}
+                        </Typography>
+                        <Typography variant="body2">
+                          回答数: {cellData?.value || 0}件
+                        </Typography>
+                        <Typography variant="body2">
+                          割合: {(cellData?.percentage || 0).toFixed(1)}%
+                        </Typography>
+                      </Box>
+                    }
+                    arrow
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Box
+                        sx={{
+                          width: 80,
+                          height: 60,
+                          bgcolor: bgColor,
+                          border: '1px solid #e2e8f0',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            border: '2px solid #5e17eb',
+                            zIndex: 1
+                          }
+                        }}
+                      >
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontWeight: 700, 
+                            color: textColor,
+                            fontSize: '0.85rem'
+                          }}
+                        >
+                          {cellData?.value || 0}
+                        </Typography>
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            color: textColor,
+                            fontSize: '0.65rem'
+                          }}
+                        >
+                          {(cellData?.percentage || 0).toFixed(1)}%
+                        </Typography>
+                      </Box>
+                    </motion.div>
+                  </Tooltip>
+                );
+              })}
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
     </Box>
   );
 };
