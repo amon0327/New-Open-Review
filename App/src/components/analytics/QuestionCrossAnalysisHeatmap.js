@@ -133,15 +133,28 @@ const QuestionCrossAnalysisHeatmap = ({
     try {
       const config = getDatabaseConfig(isTestMode);
       
-      if (questionTypeNum === 5) {
+      // 均等目盛（質問タイプ7）の場合
+      if (questionTypeNum === 7) {
+        console.log('ヒートマップ - 均等目盛選択肢データ取得開始');
         const { data: scaleData, error: scaleError } = await supabase
           .from(config.QUESTION_OPTION_LINEAR_SCALE)
           .select('min_text, max_text')
           .eq('review_questions_id', questionId)
           .single();
           
+        console.log('ヒートマップ - 均等目盛設定取得結果:', { data: scaleData, error: scaleError });
+        
         if (!scaleError && scaleData) {
-          return ['1', '2', '3', '4', '5'];
+          // min_text, max_textを使った1-5スケールの選択肢を生成
+          const choices = [
+            `1 (${scaleData.min_text || '最小'})`,
+            '2',
+            '3',
+            '4', 
+            `5 (${scaleData.max_text || '最大'})`
+          ];
+          console.log('ヒートマップ - 生成された均等目盛選択肢:', choices);
+          return choices;
         }
       }
       
@@ -167,7 +180,9 @@ const QuestionCrossAnalysisHeatmap = ({
     try {
       const config = getDatabaseConfig(isTestMode);
       
-      if (questionTypeNum === 5) {
+      // 均等目盛（質問タイプ7）の場合
+      if (questionTypeNum === 7) {
+        console.log('ヒートマップ - 均等目盛回答データ取得開始');
         const { data: scaleAnswers, error: scaleError } = await supabase
           .from(config.QUESTION_ANSWER_OPTION_LINEAR_SCALE)
           .select(`
@@ -181,14 +196,40 @@ const QuestionCrossAnalysisHeatmap = ({
           `)
           .eq(`${config.REVIEW_QUESTION_ANSWERS}.review_questions_id`, questionId);
           
+        console.log('ヒートマップ - 均等目盛回答取得結果:', { data: scaleAnswers, error: scaleError });
+        
         if (!scaleError && scaleAnswers?.length > 0) {
-          return scaleAnswers.map(answer => ({
+          // 均等目盛の設定を取得（表示用）
+          const { data: scaleConfig } = await supabase
+            .from(config.QUESTION_OPTION_LINEAR_SCALE)
+            .select('min_text, max_text')
+            .eq('review_questions_id', questionId)
+            .single();
+          
+          // 数値を表示用文字列にマッピング
+          const getDisplayValue = (answerNumber, scaleConfig) => {
+            if (!answerNumber) return '未回答';
+            const num = parseInt(answerNumber);
+            if (scaleConfig) {
+              switch (num) {
+                case 1: return `1 (${scaleConfig.min_text || '最小'})`;
+                case 5: return `5 (${scaleConfig.max_text || '最大'})`;
+                default: return num.toString();
+              }
+            }
+            return num.toString();
+          };
+          
+          const formattedAnswers = scaleAnswers.map(answer => ({
             id: answer.review_question_answers_id,
             submission_id: answer[config.REVIEW_QUESTION_ANSWERS].review_form_submissions_id,
             created_at: answer[config.REVIEW_QUESTION_ANSWERS].created_at,
-            answer: answer.answer_number?.toString() || '未回答',
+            answer: getDisplayValue(answer.answer_number, scaleConfig),
             question_id: questionId
           }));
+          
+          console.log('ヒートマップ - フォーマット済み均等目盛回答:', formattedAnswers);
+          return formattedAnswers;
         }
       }
       
@@ -249,9 +290,9 @@ const QuestionCrossAnalysisHeatmap = ({
     const choiceMap = {
       3: ['選択肢A', '選択肢B', '選択肢C', '選択肢D'],
       4: ['オプション1', 'オプション2', 'オプション3', 'オプション4'],
-      5: ['1', '2', '3', '4', '5'],
+      5: ['20代', '30代', '40代', '50代', '60代以上'], // 単一選択（2列）
       6: ['とても良い', '良い', '普通', '悪い', 'とても悪い'],
-      7: ['カテゴリA', 'カテゴリB', 'カテゴリC', 'カテゴリD'],
+      7: ['1 (最小)', '2', '3', '4', '5 (最大)'], // 均等目盛
       8: ['項目1', '項目2', '項目3', '項目4', '項目5']
     };
     return choiceMap[questionTypeNum] || ['回答1', '回答2', '回答3'];
@@ -448,19 +489,30 @@ const QuestionCrossAnalysisHeatmap = ({
       }}>
         {verticalQuestion && horizontalQuestion && (
           <>
-            {/* Y軸ラベル（縦軸：選択肢が多い方） */}
+            {/* Y軸ラベル（縦軸：選択肢が多い方） - 左下に横向き */}
             <Box sx={{ 
               position: 'absolute', 
               left: 20, 
-              top: '50%', 
-              transform: 'rotate(-90deg) translateX(-50%)', 
-              transformOrigin: 'center',
+              bottom: 20,
               whiteSpace: 'nowrap',
               fontWeight: 600,
               color: '#5e17eb',
               fontSize: '0.9rem'
             }}>
               {verticalQuestion.title}
+            </Box>
+            
+            {/* X軸ラベル（横軸：選択肢が少ない方） - 右上に横向き */}
+            <Box sx={{ 
+              position: 'absolute',
+              right: 20,
+              top: 20,
+              whiteSpace: 'nowrap',
+              fontWeight: 600,
+              color: '#677eea',
+              fontSize: '0.9rem'
+            }}>
+              {horizontalQuestion.title}
             </Box>
             
             {/* ヒートマップグリッド */}
@@ -472,16 +524,6 @@ const QuestionCrossAnalysisHeatmap = ({
               maxWidth: '90%',
               height: '90%'
             }}>
-              {/* X軸ラベル（横軸：選択肢が少ない方） */}
-              <Box sx={{ 
-                mb: 2, 
-                textAlign: 'center',
-                fontWeight: 600,
-                color: '#677eea',
-                fontSize: '0.9rem'
-              }}>
-                {horizontalQuestion.title}
-              </Box>
               
               {/* X軸選択肢ラベル */}
               <Box sx={{ 
