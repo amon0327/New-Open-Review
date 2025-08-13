@@ -489,7 +489,7 @@ const QuestionCrossAnalysisHeatmap = ({
       }}>
         {verticalQuestion && horizontalQuestion && (
           <>
-            {/* ヒートマップグリッド - 中央配置 */}
+            {/* ヒートマップ全体 - 中央配置 */}
             <Box sx={{ 
               display: 'flex',
               flexDirection: 'column',
@@ -497,40 +497,29 @@ const QuestionCrossAnalysisHeatmap = ({
               justifyContent: 'center',
               width: '100%',
               height: '100%',
-              position: 'relative'
+              gap: 2
             }}>
-              {/* Y軸ラベル（縦軸：選択肢が多い方） - ヒートマップの左下近く */}
+              {/* 上のrow - 横軸ラベル（右寄せ） */}
               <Box sx={{ 
-                position: 'absolute', 
-                left: '15%',
-                bottom: '15%',
-                whiteSpace: 'nowrap',
-                fontWeight: 600,
-                color: '#5e17eb',
-                fontSize: '0.9rem'
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                pr: 4
               }}>
-                {verticalQuestion.title}
+                <Typography sx={{
+                  fontWeight: 600,
+                  color: '#677eea',
+                  fontSize: '0.9rem'
+                }}>
+                  {horizontalQuestion.title}
+                </Typography>
               </Box>
               
-              {/* X軸ラベル（横軸：選択肢が少ない方） - ヒートマップの右上近く */}
-              <Box sx={{ 
-                position: 'absolute',
-                right: '15%',
-                top: '10%',
-                whiteSpace: 'nowrap',
-                fontWeight: 600,
-                color: '#677eea',
-                fontSize: '0.9rem'
-              }}>
-                {horizontalQuestion.title}
-              </Box>
-              
-              {/* ヒートマップコンテンツ - 完全中央配置 */}
+              {/* ヒートマップコンテンツ */}
               <Box sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center'
+                alignItems: 'center'
               }}>
                 {/* X軸選択肢ラベル */}
                 <Box sx={{ 
@@ -664,6 +653,22 @@ const QuestionCrossAnalysisHeatmap = ({
                   );
                 })}
               </Box>
+              </Box>
+              
+              {/* 下のrow - 縦軸ラベル（左寄せ） */}
+              <Box sx={{ 
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'flex-start',
+                pl: 4
+              }}>
+                <Typography sx={{
+                  fontWeight: 600,
+                  color: '#5e17eb',
+                  fontSize: '0.9rem'
+                }}>
+                  {verticalQuestion.title}
+                </Typography>
               </Box>
             </Box>
           </>
