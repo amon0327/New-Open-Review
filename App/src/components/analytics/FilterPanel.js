@@ -100,13 +100,13 @@ export default function FilterPanel({
           >
             <Box 
               sx={{ 
-                px: 1.5,
+                px: 1,
                 py: 2,
                 display: 'grid',
                 gridTemplateColumns: selectedQuestions.length === 2 ? '1fr 1fr' : '1fr',
-                gap: 2,
-                width: 'calc(100% - 16px)',
-                maxWidth: 'calc(100% - 16px)',
+                gap: selectedQuestions.length === 2 ? 1.5 : 2,
+                width: 'calc(100% - 24px)',
+                maxWidth: 'calc(100% - 24px)',
                 margin: '0 auto',
                 overflowX: 'hidden',
                 touchAction: 'pan-y'
@@ -124,7 +124,7 @@ export default function FilterPanel({
                   >
                     <Box
                       sx={{
-                        px: 1.5,
+                        px: selectedQuestions.length === 2 ? 1 : 1.5,
                         py: 2,
                         border: '1px solid #e2e8f0',
                         borderRadius: 1,
