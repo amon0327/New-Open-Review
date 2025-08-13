@@ -20,9 +20,10 @@ class ClaudeApiService {
    * Claude APIにメッセージを送信
    * @param {string} message - 送信するメッセージ
    * @param {Array} conversationHistory - 会話履歴（オプション）
+   * @param {Object} options - 追加オプション（systemPrompt、isDataMode等）
    * @returns {Promise<Object>} Claude APIからのレスポンス
    */
-  async sendMessage(message, conversationHistory = []) {
+  async sendMessage(message, conversationHistory = [], options = {}) {
     try {
       // 入力検証
       if (!message || typeof message !== 'string' || message.trim().length === 0) {
@@ -36,10 +37,42 @@ class ClaudeApiService {
       // Supabaseセッション取得
       const { data: { session } } = await supabase.auth.getSession();
 
+      // データモード用のシステムプロンプト構築
+      let systemPrompt = options.systemPrompt || '';
+      if (options.isDataMode && session?.access_token) {
+        systemPrompt = `
+あなたはOpenReviewのデータ分析専門アシスタントです。
+以下のMCPツールを使ってSupabaseからデータを取得・分析してください：
+
+利用可能なMCPツール：
+1. get_survey_questions - アンケート質問の取得
+   - パラメータ: jwt_token, survey_id(opt), limit, question_type(opt)
+   
+2. get_survey_responses - 回答データの取得
+   - パラメータ: jwt_token, question_id, limit, filters(opt)
+   
+3. analyze_text_responses - テキスト回答の分析
+   - パラメータ: jwt_token, question_id, analysis_type(keyword/sentiment/summary), limit
+   
+4. get_filtered_analytics_data - フィルター分析
+   - パラメータ: jwt_token, question_ids[], filters(opt), group_by
+
+重要な注意事項：
+- 必ずjwt_token: "${session.access_token}" を各ツール呼び出しで使用してください
+- 分析結果は日本語で分かりやすく説明してください
+- チャートやグラフの提案も行ってください
+- エラーが発生した場合は、ユーザーにわかりやすい形で説明してください
+
+${systemPrompt}
+        `.trim();
+      }
+
       // リクエストボディの構築
       const requestBody = {
         message: message.trim(),
-        conversationHistory: this.formatConversationHistory(conversationHistory)
+        conversationHistory: this.formatConversationHistory(conversationHistory),
+        systemPrompt: systemPrompt || undefined,
+        mcpMode: options.isDataMode || false
       };
 
       // セキュアな認証ヘッダーの構築

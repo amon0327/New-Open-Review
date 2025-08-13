@@ -398,12 +398,6 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   <Notifications sx={{ color: '#64748b' }} />
                 </Badge>
               </IconButton>
-              <Avatar 
-                src={user?.user_metadata?.avatar_url}
-                sx={{ width: 32, height: 32, ml: 1 }}
-              >
-                {!user?.user_metadata?.avatar_url && <AccountCircle />}
-              </Avatar>
             </Box>
           </Toolbar>
         </AppBar>

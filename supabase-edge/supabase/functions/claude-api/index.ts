@@ -271,7 +271,7 @@ function validateInput(data: any): { message: string; conversationHistory: any[]
 }
 
 // Claude API呼び出し
-async function callClaudeAPI(message: string, conversationHistory: any[]): Promise<any> {
+async function callClaudeAPI(message: string, conversationHistory: any[], systemPrompt?: string, mcpMode: boolean = false, userToken?: string): Promise<any> {
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   
   if (!ANTHROPIC_API_KEY) {
@@ -283,12 +283,97 @@ async function callClaudeAPI(message: string, conversationHistory: any[]): Promi
     { role: 'user', content: message }
   ];
   
-  const requestBody = {
+  // MCPツールの定義（データモード時のみ）
+  const tools = mcpMode ? [
+    {
+      name: 'get_survey_questions',
+      description: 'アンケート質問一覧を取得します',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' },
+          survey_id: { type: 'string', description: '特定のサーベイID（オプション）' },
+          limit: { type: 'number', default: 50, description: '取得件数 (1-100)' },
+          question_type: { type: 'number', description: '質問タイプでフィルター' }
+        },
+        required: ['jwt_token']
+      }
+    },
+    {
+      name: 'get_survey_responses',
+      description: '指定質問の回答データを取得します',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' },
+          question_id: { type: 'string', description: '質問ID' },
+          limit: { type: 'number', default: 500, description: '取得件数 (1-1000)' },
+          filters: {
+            type: 'object',
+            properties: {
+              gender: { type: 'string' },
+              age_group: { type: 'string' },
+              department: { type: 'string' }
+            }
+          }
+        },
+        required: ['jwt_token', 'question_id']
+      }
+    },
+    {
+      name: 'analyze_text_responses',
+      description: 'テキスト回答を分析します（キーワード抽出、感情分析、要約）',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' },
+          question_id: { type: 'string', description: '質問ID' },
+          analysis_type: { 
+            type: 'string',
+            enum: ['keyword', 'sentiment', 'summary'],
+            description: '分析タイプ'
+          },
+          limit: { type: 'number', default: 100, description: '分析対象回答数' }
+        },
+        required: ['jwt_token', 'question_id', 'analysis_type']
+      }
+    },
+    {
+      name: 'get_filtered_analytics_data',
+      description: 'フィルター条件による分析データを取得します',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' },
+          question_ids: { 
+            type: 'array',
+            items: { type: 'string' },
+            description: '質問IDの配列'
+          },
+          filters: { type: 'object', description: 'フィルター条件' },
+          group_by: { 
+            type: 'string',
+            enum: ['gender', 'age_group', 'department', 'none'],
+            default: 'none',
+            description: 'グルーピング条件'
+          }
+        },
+        required: ['jwt_token', 'question_ids']
+      }
+    }
+  ] : undefined;
+
+  const requestBody: any = {
     model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 1000,
+    max_tokens: 4000,
     messages: messages,
-    system: "You are a helpful AI assistant for business review forms and data analysis. Please respond in Japanese when appropriate."
+    system: systemPrompt || "You are a helpful AI assistant for business review forms and data analysis. Please respond in Japanese when appropriate."
   };
+
+  // ツールを追加（MCPモード時のみ）
+  if (tools && tools.length > 0) {
+    requestBody.tools = tools;
+  }
   
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -306,7 +391,102 @@ async function callClaudeAPI(message: string, conversationHistory: any[]): Promi
     throw new Error(`Claude API error ${response.status}: ${errorText}`);
   }
   
-  return await response.json();
+  const claudeResponse = await response.json();
+
+  // ツール呼び出しがある場合はMCPサーバーに転送
+  if (claudeResponse.content) {
+    const toolUses = claudeResponse.content.filter((item: any) => item.type === 'tool_use');
+    
+    if (toolUses.length > 0 && userToken) {
+      console.log('Tool uses detected, calling MCP server:', toolUses.length);
+      
+      // 各ツール呼び出しを実行
+      for (const toolUse of toolUses) {
+        try {
+          const mcpResult = await callMCPServer(toolUse.name, toolUse.input, userToken);
+          
+          // ツール結果をClaudeに送り返す
+          const toolResultMessages = [
+            ...messages,
+            { role: 'assistant', content: claudeResponse.content },
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'tool_result',
+                  tool_use_id: toolUse.id,
+                  content: JSON.stringify(mcpResult)
+                }
+              ]
+            }
+          ];
+
+          // 最終結果を取得
+          const finalRequestBody = {
+            model: 'claude-3-5-sonnet-20241022',
+            max_tokens: 4000,
+            messages: toolResultMessages,
+            system: systemPrompt || "You are a helpful AI assistant for business review forms and data analysis. Please respond in Japanese when appropriate."
+          };
+
+          const finalResponse = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'x-api-key': ANTHROPIC_API_KEY,
+              'anthropic-version': '2023-06-01',
+              'content-type': 'application/json',
+            },
+            body: JSON.stringify(finalRequestBody)
+          });
+
+          if (finalResponse.ok) {
+            return await finalResponse.json();
+          }
+        } catch (mcpError) {
+          console.error('MCP Server error:', mcpError);
+          // MCPエラーの場合でも元のレスポンスを返す
+        }
+      }
+    }
+  }
+
+  return claudeResponse;
+}
+
+// MCPサーバーへのツール呼び出し
+async function callMCPServer(toolName: string, args: any, userToken: string): Promise<any> {
+  const MCP_SERVER_URL = 'https://my-mcp-server.calm-pond-4c30.workers.dev';
+  
+  try {
+    console.log(`Calling MCP server tool: ${toolName}`, args);
+    
+    const response = await fetch(`${MCP_SERVER_URL}/openreview/mcp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userToken}`
+      },
+      body: JSON.stringify({
+        method: 'tools/call',
+        params: {
+          name: toolName,
+          arguments: {
+            ...args,
+            jwt_token: userToken // 確実にJWTトークンを渡す
+          }
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`MCP Server error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('MCP Server call failed:', error);
+    throw error;
+  }
 }
 
 // メインハンドラー
@@ -419,15 +599,22 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const { message, conversationHistory } = validatedInput;
+    const { systemPrompt, mcpMode } = requestBody;
     
     // Claude API呼び出し
     let claudeResponse;
     const requestStart = Date.now();
     
     try {
-      console.log(`Claude API request: User=${userId}, Message length=${message.length}, History count=${conversationHistory.length}`);
+      console.log(`Claude API request: User=${userId}, Message length=${message.length}, History count=${conversationHistory.length}, MCP Mode=${mcpMode}`);
       
-      claudeResponse = await callClaudeAPI(message, conversationHistory);
+      // MCPモードの場合、ユーザーのJWTトークンを取得
+      let userToken = undefined;
+      if (mcpMode && authHeader?.startsWith('Bearer ')) {
+        userToken = authHeader.substring(7);
+      }
+      
+      claudeResponse = await callClaudeAPI(message, conversationHistory, systemPrompt, mcpMode, userToken);
       
       const responseTime = Date.now() - requestStart;
       console.log(`Claude API success: User=${userId}, Response time=${responseTime}ms, Tokens=${claudeResponse.usage?.total_tokens || 0}`);

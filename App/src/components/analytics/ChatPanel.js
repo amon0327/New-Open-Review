@@ -107,8 +107,18 @@ export default function ChatPanel({ isTestMode = false }) {
           content: msg.content
         }));
 
-      // Claude APIを呼び出し
-      const response = await claudeApiService.sendMessage(currentInput, conversationHistory);
+      // Claude APIを呼び出し（データモード対応）
+      const response = await claudeApiService.sendMessage(
+        currentInput, 
+        conversationHistory,
+        { 
+          isDataMode: isDataMode,
+          systemPrompt: isDataMode ? `
+現在、OpenReview Analyticsでのデータ分析セッションです。
+ユーザーが質問したデータに基づいて、適切なMCPツールを使用してSupabaseからデータを取得し、分析結果を提供してください。
+          `.trim() : undefined
+        }
+      );
       
       const aiMessageId = Date.now() + 1;
       const fullResponse = response.message;
