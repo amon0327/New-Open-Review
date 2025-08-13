@@ -160,7 +160,7 @@ const StackedAreaChart = ({ data, title = "回答数推移" }) => {
           }}
         >
           <Typography variant="body1">
-            回答データがありません
+            データがありません
           </Typography>
         </Box>
       )}
