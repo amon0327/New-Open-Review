@@ -154,19 +154,10 @@ export default function FilterPanel({
                               gap: 0.75,
                               pb: 0.5,
                               '&::-webkit-scrollbar': {
-                                height: 4,
+                                display: 'none'
                               },
-                              '&::-webkit-scrollbar-track': {
-                                bgcolor: 'rgba(241, 245, 249, 0.3)',
-                                borderRadius: 2
-                              },
-                              '&::-webkit-scrollbar-thumb': {
-                                bgcolor: 'rgba(148, 163, 184, 0.5)',
-                                borderRadius: 2,
-                                '&:hover': {
-                                  bgcolor: 'rgba(148, 163, 184, 0.8)'
-                                }
-                              }
+                              scrollbarWidth: 'none',
+                              '-ms-overflow-style': 'none'
                             }}>
                               {filterConfig.options.map((option) => {
                                 const currentValues = activeFilters[question.id]?.value || [];
