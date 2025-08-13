@@ -270,18 +270,21 @@ const PieChartWithFilter = ({ data, title = "回答分布" }) => {
           </ResponsiveContainer>
         </Box>
       ) : (
-        <Box 
-          sx={{ 
-            height: 400, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            color: 'text.secondary'
-          }}
-        >
-          <Typography variant="body1">
-            データがありません
-          </Typography>
+        <Box sx={{ width: '100%', height: 500 }}>
+          <ResponsiveContainer>
+            <PieChart>
+              <Pie
+                data={[]}
+                cx="50%"
+                cy="50%"
+                outerRadius={160}
+                fill="#8884d8"
+                dataKey="value"
+              />
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
         </Box>
       )}
 

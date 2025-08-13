@@ -130,18 +130,38 @@ const LineChartWithFilter = ({ data, title = "回答数推移" }) => {
           </ResponsiveContainer>
         </Box>
       ) : (
-        <Box 
-          sx={{ 
-            height: 300, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            color: 'text.secondary'
-          }}
-        >
-          <Typography variant="body1">
-            データがありません
-          </Typography>
+        <Box sx={{ width: '100%', height: 300 }}>
+          <ResponsiveContainer>
+            <LineChart
+              data={[]}
+              margin={{
+                top: 10,
+                right: 30,
+                left: 0,
+                bottom: 0,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 12 }}
+                stroke="#666"
+              />
+              <YAxis 
+                tick={{ fontSize: 12 }}
+                stroke="#666"
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                }}
+              />
+              <Legend />
+            </LineChart>
+          </ResponsiveContainer>
         </Box>
       )}
     </Box>
