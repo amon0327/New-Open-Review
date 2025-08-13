@@ -103,7 +103,7 @@ export default function FilterPanel({
                 px: 1,
                 py: 2,
                 display: 'grid',
-                gridTemplateColumns: selectedQuestions.length === 2 ? '1fr 1fr' : '1fr',
+                gridTemplateColumns: selectedQuestions.length === 2 ? 'minmax(0, 1fr) minmax(0, 1fr)' : '1fr',
                 gap: selectedQuestions.length === 2 ? 1.5 : 2,
                 width: 'calc(100% - 24px)',
                 maxWidth: 'calc(100% - 24px)',
@@ -158,7 +158,13 @@ export default function FilterPanel({
                       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', py: 0.5 }}>
                         {/* Choices フィルター（統一された選択肢フィルター） */}
                         {filterConfig.type === 'choices' && (
-                          <Box sx={{ mt: -1 }}>
+                          <Box sx={{ 
+                            mt: -1,
+                            width: '100%',
+                            maxWidth: '100%',
+                            minWidth: 0,
+                            overflow: 'hidden'
+                          }}>
                             {/* 横スクロール可能な選択肢ボタン */}
                             <Box sx={{ 
                               display: 'flex', 
@@ -168,6 +174,9 @@ export default function FilterPanel({
                               py: 1,
                               px: 0.5,
                               mx: -0.5,
+                              width: '100%',
+                              maxWidth: '100%',
+                              minWidth: 0,
                               touchAction: 'pan-x',
                               '&::-webkit-scrollbar': {
                                 display: 'none'
