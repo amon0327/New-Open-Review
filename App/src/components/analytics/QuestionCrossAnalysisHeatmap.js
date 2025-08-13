@@ -457,9 +457,9 @@ const QuestionCrossAnalysisHeatmap = ({
   const [questionA, questionB] = selectedQuestions;
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ width: '100%', height: '100%' }}>
       {/* ヘッダー */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3, px: 2 }}>
         <Typography 
           variant="h6" 
           sx={{ 
@@ -479,11 +479,9 @@ const QuestionCrossAnalysisHeatmap = ({
 
       {/* ヒートマップ */}
       <Box sx={{ 
-        position: 'relative', 
         height: 'calc(100vh - 200px)', 
         width: '100%',
         display: 'flex',
-        justifyContent: 'center',
         alignItems: 'center',
         mb: 3 
       }}>
