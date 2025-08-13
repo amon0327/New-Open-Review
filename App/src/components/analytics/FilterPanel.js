@@ -158,7 +158,7 @@ export default function FilterPanel({
                       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', py: 0.5 }}>
                         {/* Choices フィルター（統一された選択肢フィルター） */}
                         {filterConfig.type === 'choices' && (
-                          <Box sx={{ mt: -0.5 }}>
+                          <Box sx={{ mt: -1 }}>
                             {/* 横スクロール可能な選択肢ボタン */}
                             <Box sx={{ 
                               display: 'flex', 
