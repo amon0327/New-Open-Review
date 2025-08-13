@@ -40,14 +40,14 @@ const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
 
 const navigationItems = [
+  { text: 'Create', icon: <Add /> },
   { text: 'Home', icon: <Home />, component: HomePage },
-  { text: 'Create', icon: <Add />, component: CreatePagePlaceholder },
   { text: 'Analytics', icon: <Analytics />, component: AnalyticsPage },
   { text: 'Settings', icon: <Settings />, component: SettingsPage },
 ];
 
 export default function Dashboard({ onCreateClick, onLogout, user }) {
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(1);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
 

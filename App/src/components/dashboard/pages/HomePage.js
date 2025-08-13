@@ -27,7 +27,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  DialogContentText
+  DialogContentText,
+  Backdrop
 } from '@mui/material';
 import { 
   Add, 
@@ -705,33 +706,107 @@ export default function HomePage({ user, onCreateFormClick }) {
               )}
               <FormCreator user={user} onCreateFormClick={onCreateFormClick}>
                 {({ onCreateForm, isCreatingForm }) => (
-                  <Button
-                    variant="contained"
-                    startIcon={isCreatingForm ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Add />}
-                    onClick={onCreateForm}
-                    disabled={isCreatingForm}
-                    sx={{
-                      background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                      borderRadius: 3,
-                      px: 3,
-                      py: 1.5,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 8px 30px rgba(94, 23, 235, 0.4)',
-                      },
-                      '&.Mui-disabled': {
-                        opacity: 0.7,
+                  <>
+                    {/* フルスクリーンローディング表示 */}
+                    <Backdrop
+                      sx={{
+                        color: '#fff',
+                        zIndex: 9999,
+                        background: 'rgba(94, 23, 235, 0.1)',
+                        backdropFilter: 'blur(10px)'
+                      }}
+                      open={isCreatingForm}
+                    >
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      >
+                        <Card
+                          sx={{
+                            minWidth: 300,
+                            background: 'rgba(255, 255, 255, 0.95)',
+                            backdropFilter: 'blur(20px)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
+                            borderRadius: 3,
+                            position: 'relative',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          <CardContent sx={{ textAlign: 'center', p: 4 }}>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                              style={{ display: 'inline-block', marginBottom: 16 }}
+                            >
+                              <CircularProgress
+                                size={50}
+                                thickness={4}
+                                sx={{
+                                  color: '#5e17eb',
+                                  '& .MuiCircularProgress-circle': {
+                                    strokeLinecap: 'round',
+                                  }
+                                }}
+                              />
+                            </motion.div>
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                fontWeight: 600,
+                                background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                                backgroundClip: 'text',
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                mb: 1
+                              }}
+                            >
+                              フォームを作成中...
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: '#64748b',
+                                fontWeight: 400
+                              }}
+                            >
+                              新しいレビューフォームを準備しています
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    </Backdrop>
+                    
+                    <Button
+                      variant="contained"
+                      startIcon={<Add />}
+                      onClick={onCreateForm}
+                      disabled={isCreatingForm}
+                      sx={{
                         background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                        color: 'white'
-                      }
-                    }}
-                  >
-                    {isCreatingForm ? '作成中...' : '新規作成'}
-                  </Button>
+                        borderRadius: 3,
+                        px: 3,
+                        py: 1.5,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 8px 30px rgba(94, 23, 235, 0.4)',
+                        },
+                        '&.Mui-disabled': {
+                          opacity: 0.7,
+                          background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                          color: 'white'
+                        }
+                      }}
+                    >
+                      新規作成
+                    </Button>
+                  </>
                 )}
               </FormCreator>
             </Box>
@@ -808,27 +883,101 @@ export default function HomePage({ user, onCreateFormClick }) {
                   </Typography>
                   <FormCreator user={user} onCreateFormClick={onCreateFormClick}>
                     {({ onCreateForm, isCreatingForm }) => (
-                      <Button
-                        variant="contained"
-                        startIcon={isCreatingForm ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Add />}
-                        onClick={onCreateForm}
-                        disabled={isCreatingForm}
-                        sx={{
-                          background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                          borderRadius: 2,
-                          px: 3,
-                          py: 1,
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          '&.Mui-disabled': {
-                            opacity: 0.7,
+                      <>
+                        {/* フルスクリーンローディング表示 */}
+                        <Backdrop
+                          sx={{
+                            color: '#fff',
+                            zIndex: 9999,
+                            background: 'rgba(94, 23, 235, 0.1)',
+                            backdropFilter: 'blur(10px)'
+                          }}
+                          open={isCreatingForm}
+                        >
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
+                          >
+                            <Card
+                              sx={{
+                                minWidth: 300,
+                                background: 'rgba(255, 255, 255, 0.95)',
+                                backdropFilter: 'blur(20px)',
+                                border: '1px solid rgba(255, 255, 255, 0.3)',
+                                boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
+                                borderRadius: 3,
+                                position: 'relative',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              <CardContent sx={{ textAlign: 'center', p: 4 }}>
+                                <motion.div
+                                  animate={{ rotate: 360 }}
+                                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                  style={{ display: 'inline-block', marginBottom: 16 }}
+                                >
+                                  <CircularProgress
+                                    size={50}
+                                    thickness={4}
+                                    sx={{
+                                      color: '#5e17eb',
+                                      '& .MuiCircularProgress-circle': {
+                                        strokeLinecap: 'round',
+                                      }
+                                    }}
+                                  />
+                                </motion.div>
+                                <Typography
+                                  variant="h6"
+                                  sx={{
+                                    fontWeight: 600,
+                                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                                    backgroundClip: 'text',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    mb: 1
+                                  }}
+                                >
+                                  フォームを作成中...
+                                </Typography>
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    color: '#64748b',
+                                    fontWeight: 400
+                                  }}
+                                >
+                                  新しいレビューフォームを準備しています
+                                </Typography>
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        </Backdrop>
+                        
+                        <Button
+                          variant="contained"
+                          startIcon={<Add />}
+                          onClick={onCreateForm}
+                          disabled={isCreatingForm}
+                          sx={{
                             background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                            color: 'white'
-                          }
-                        }}
-                      >
-                        {isCreatingForm ? '作成中...' : '最初のフォームを作成'}
-                      </Button>
+                            borderRadius: 2,
+                            px: 3,
+                            py: 1,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            '&.Mui-disabled': {
+                              opacity: 0.7,
+                              background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                              color: 'white'
+                            }
+                          }}
+                        >
+                          最初のフォームを作成
+                        </Button>
+                      </>
                     )}
                   </FormCreator>
                 </Box>
