@@ -14,6 +14,7 @@ import {
 } from '@mui/icons-material';
 import MultiDateCalendar from './MultiDateCalendar';
 import FilteredTextData from './FilteredTextData';
+import { supabase } from '../../lib/supabase';
 
 // メインのテキスト質問チャートコンポーネント
 export default function TextQuestionChart({ 
@@ -52,15 +53,39 @@ export default function TextQuestionChart({
           setReviewDates(dummyDates);
         } else {
           // 本番モード：実際のデータを取得
-          // 実装は後で追加
-          const dummyDates = [
-            "2024-12-15",
-            "2024-12-14", 
-            "2024-12-13",
-            "2024-12-12",
-            "2024-12-11"
-          ];
-          setReviewDates(dummyDates);
+          console.log('本番モード: レビュー日付取得開始');
+          
+          if (!question?.id) {
+            console.warn('質問IDが不明のため、レビュー日付を取得できません');
+            setReviewDates([]);
+            return;
+          }
+
+          // review_question_answersからcreated_atを取得
+          const { data: answers, error: answersError } = await supabase
+            .from('review_question_answers')
+            .select('created_at')
+            .eq('review_questions_id', question.id)
+            .order('created_at', { ascending: false });
+
+          console.log('本番レビュー日付取得結果:', { data: answers, error: answersError });
+
+          if (answersError) {
+            console.error('本番レビュー日付取得エラー:', answersError);
+            setReviewDates([]);
+          } else if (answers && answers.length > 0) {
+            // 日付のみを抽出し、重複を削除
+            const uniqueDates = [...new Set(
+              answers.map(answer => 
+                new Date(answer.created_at).toISOString().split('T')[0]
+              )
+            )];
+            console.log('取得された一意の日付:', uniqueDates);
+            setReviewDates(uniqueDates);
+          } else {
+            console.warn('本番モード: 回答データが見つかりません');
+            setReviewDates([]);
+          }
         }
       } catch (error) {
         console.error('レビュー日付取得エラー:', error);

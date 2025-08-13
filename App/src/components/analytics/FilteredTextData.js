@@ -139,7 +139,31 @@ export default function FilteredTextData({
       } else {
         // 本番モード用の詳細なクエリ
         try {
-          // まず、question_answer_textsテーブルから直接取得を試行
+          console.log('本番モード: 質問ID', questionId, 'のテキスト回答を取得中...');
+          
+          // review_question_answers -> question_answer_texts の順でJOIN
+          const { data: answersData, error: answersError } = await supabase
+            .from('review_question_answers')
+            .select('id')
+            .eq('review_questions_id', questionId);
+          
+          console.log('本番モード 回答データ:', { data: answersData, error: answersError });
+          
+          if (answersError) {
+            console.warn('本番モード 回答データ取得エラー:', answersError);
+            return getDummyTextData();
+          }
+          
+          if (!answersData || answersData.length === 0) {
+            console.log('本番モード: 指定された質問に対する回答が見つかりません');
+            return getDummyTextData();
+          }
+          
+          // 回答IDリストを取得
+          const answerIds = answersData.map(answer => answer.id);
+          console.log('本番モード 回答IDリスト:', answerIds);
+          
+          // question_answer_textsから回答テキストを取得
           query = supabase
             .from('question_answer_texts')
             .select(`
@@ -148,14 +172,15 @@ export default function FilteredTextData({
               created_at,
               review_questions_answers_id
             `)
+            .in('review_questions_answers_id', answerIds)
             .not('answer_text', 'is', null)
             .neq('answer_text', '')
             .limit(100);
             
-          console.log('本番モード: 直接クエリを実行中...');
+          console.log('本番モード: テキスト回答クエリを実行中...');
           
-        } catch (directQueryError) {
-          console.error('直接クエリでエラー:', directQueryError);
+        } catch (productionQueryError) {
+          console.error('本番モードクエリでエラー:', productionQueryError);
           return getDummyTextData();
         }
       }
