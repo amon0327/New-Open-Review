@@ -57,8 +57,8 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
           questionTypeNum = 3; // デフォルト設定
         }
 
-        // 質問タイプ4,5,6用のコンポーネント（折れ線グラフ + 縦棒グラフ）
-        console.log('質問タイプ4,5,6用コンポーネントで処理開始');
+        // 質問タイプ4,6,7用のコンポーネント（折れ線グラフ + 縦棒グラフ）
+        console.log('質問タイプ4,6,7用コンポーネントで処理開始');
 
         // 実際のデータベースから回答データを取得
         let responses;
@@ -159,8 +159,8 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
     try {
       const config = getDatabaseConfig(isTestMode);
       
-      // 線形スケール（質問タイプ5）の場合
-      if (questionTypeNum === 5) {
+      // 線形スケール（質問タイプ7）の場合
+      if (questionTypeNum === 7) {
         console.log('線形スケール選択肢データ取得開始');
         const { data: scaleData, error: scaleError } = await supabase
           .from(config.QUESTION_OPTION_LINEAR_SCALE)
@@ -219,9 +219,9 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
       console.log(`質問タイプ${questionTypeNum}の回答データ取得開始 - 質問ID: ${questionId}`);
       console.log('使用するデータベース設定:', config);
       
-      // 線形スケール（質問タイプ5）の場合
-      if (questionTypeNum === 5) {
-        console.log('線形スケール（質問タイプ5）の処理開始');
+      // 線形スケール（質問タイプ7）の場合
+      if (questionTypeNum === 7) {
+        console.log('線形スケール（質問タイプ7）の処理開始');
         console.log('取得テーブル:', config.QUESTION_ANSWER_OPTION_LINEAR_SCALE);
         console.log('JOINテーブル:', config.REVIEW_QUESTION_ANSWERS);
         
@@ -363,9 +363,9 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
     const choiceMap = {
       3: ['選択肢A', '選択肢B', '選択肢C', '選択肢D'],
       4: ['オプション1', 'オプション2', 'オプション3'],
-      5: ['1 (最小)', '2', '3', '4', '5 (最大)'], // 線形スケールの表示例
+      5: ['20代', '30代', '40代', '50代', '60代以上'], // 年齢関連の選択肢
       6: ['とても良い', '良い', '普通', '悪い', 'とても悪い'],
-      7: ['カテゴリA', 'カテゴリB', 'カテゴリC'],
+      7: ['1 (最小)', '2', '3', '4', '5 (最大)'], // 線形スケールの表示例
       8: ['項目1', '項目2', '項目3', '項目4']
     };
     return choiceMap[questionTypeNum] || ['回答1', '回答2', '回答3'];

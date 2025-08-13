@@ -31,6 +31,10 @@ const QuestionCrossAnalysisHeatmap = ({
 
   const [questionAChoices, setQuestionAChoices] = useState([]);
   const [questionBChoices, setQuestionBChoices] = useState([]);
+  const [verticalQuestion, setVerticalQuestion] = useState(null);
+  const [horizontalQuestion, setHorizontalQuestion] = useState(null);
+  const [verticalChoices, setVerticalChoices] = useState([]);
+  const [horizontalChoices, setHorizontalChoices] = useState([]);
 
   // カラーパレット
   const heatmapColors = [
@@ -65,8 +69,24 @@ const QuestionCrossAnalysisHeatmap = ({
           fetchQuestionChoices(questionB.id, questionB.typeId || questionB.question_types_id || questionB.type_id, isTestMode)
         ]);
 
-        setQuestionAChoices(choicesA || getChoicesForQuestionType(questionA.typeId || questionA.question_types_id || questionA.type_id));
-        setQuestionBChoices(choicesB || getChoicesForQuestionType(questionB.typeId || questionB.question_types_id || questionB.type_id));
+        const finalChoicesA = choicesA || getChoicesForQuestionType(questionA.typeId || questionA.question_types_id || questionA.type_id);
+        const finalChoicesB = choicesB || getChoicesForQuestionType(questionB.typeId || questionB.question_types_id || questionB.type_id);
+        
+        setQuestionAChoices(finalChoicesA);
+        setQuestionBChoices(finalChoicesB);
+        
+        // 選択肢が多い方を縦軸に配置
+        if (finalChoicesA.length >= finalChoicesB.length) {
+          setVerticalQuestion(questionA);
+          setHorizontalQuestion(questionB);
+          setVerticalChoices(finalChoicesA);
+          setHorizontalChoices(finalChoicesB);
+        } else {
+          setVerticalQuestion(questionB);
+          setHorizontalQuestion(questionA);
+          setVerticalChoices(finalChoicesB);
+          setHorizontalChoices(finalChoicesA);
+        }
         
         // フォールバック: サンプルデータを生成
         const finalResponsesA = responsesA?.length > 0 ? responsesA : generateSampleResponses(questionA.typeId || questionA.question_types_id || questionA.type_id, questionA.id);
@@ -99,14 +119,14 @@ const QuestionCrossAnalysisHeatmap = ({
       const crossData = generateCrossTabulation(filteredResponseData, selectedQuestions[0], selectedQuestions[1]);
       setCrossTabulation(crossData);
       
-      const heatData = generateHeatmapData(crossData, questionAChoices, questionBChoices);
+      const heatData = generateHeatmapData(crossData, verticalChoices, horizontalChoices, verticalQuestion, horizontalQuestion);
       setHeatmapData(heatData);
       
       // 統計情報を計算
       const stats = calculateStatistics(filteredResponseData, crossData);
       setStatistics(stats);
     }
-  }, [allResponses, activeFilters, selectedQuestions, questionAChoices, questionBChoices, isTestMode]);
+  }, [allResponses, activeFilters, selectedQuestions, verticalChoices, horizontalChoices, verticalQuestion, horizontalQuestion, isTestMode]);
 
   // 実際のデータベースから選択肢データを取得
   const fetchQuestionChoices = async (questionId, questionTypeNum, isTestMode) => {
@@ -286,7 +306,7 @@ const QuestionCrossAnalysisHeatmap = ({
   };
 
   // ヒートマップデータを生成
-  const generateHeatmapData = (crossData, choicesA, choicesB) => {
+  const generateHeatmapData = (crossData, verticalChoices, horizontalChoices, verticalQuestion, horizontalQuestion) => {
     const { crosstab, total } = crossData;
     const heatData = [];
     
@@ -298,20 +318,30 @@ const QuestionCrossAnalysisHeatmap = ({
       });
     });
     
-    choicesA.forEach((choiceA, indexA) => {
-      choicesB.forEach((choiceB, indexB) => {
-        const value = crosstab[choiceA]?.[choiceB] || 0;
+    verticalChoices.forEach((verticalChoice, verticalIndex) => {
+      horizontalChoices.forEach((horizontalChoice, horizontalIndex) => {
+        // クロス集計データは元の質問A/Bの順序で格納されているため、
+        // verticalQuestion が questionA か questionB かに応じて適切にマッピング
+        let value = 0;
+        if (verticalQuestion.id === selectedQuestions[0].id) {
+          // vertical = questionA, horizontal = questionB
+          value = crosstab[verticalChoice]?.[horizontalChoice] || 0;
+        } else {
+          // vertical = questionB, horizontal = questionA
+          value = crosstab[horizontalChoice]?.[verticalChoice] || 0;
+        }
+        
         const percentage = total > 0 ? (value / total * 100) : 0;
         const intensity = maxValue > 0 ? (value / maxValue) : 0;
         
         heatData.push({
-          x: indexB,
-          y: indexA,
+          x: horizontalIndex,
+          y: verticalIndex,
           value,
           percentage,
           intensity,
-          choiceA,
-          choiceB,
+          verticalChoice,
+          horizontalChoice,
           colorIndex: Math.min(Math.floor(intensity * heatmapColors.length), heatmapColors.length - 1)
         });
       });
@@ -407,150 +437,187 @@ const QuestionCrossAnalysisHeatmap = ({
       </Box>
 
       {/* ヒートマップ */}
-      <Box sx={{ position: 'relative', overflow: 'auto', mb: 3 }}>
-        {/* Y軸ラベル（質問A） */}
-        <Box sx={{ 
-          position: 'absolute', 
-          left: -120, 
-          top: '50%', 
-          transform: 'rotate(-90deg) translateX(-50%)', 
-          transformOrigin: 'center',
-          whiteSpace: 'nowrap',
-          fontWeight: 600,
-          color: '#5e17eb',
-          fontSize: '0.9rem'
-        }}>
-          {questionA.title}
-        </Box>
-        
-        {/* ヒートマップグリッド */}
-        <Box sx={{ ml: 8, mt: 2 }}>
-          {/* X軸ラベル（質問B） */}
-          <Box sx={{ 
-            mb: 1, 
-            textAlign: 'center',
-            fontWeight: 600,
-            color: '#677eea',
-            fontSize: '0.9rem'
-          }}>
-            {questionB.title}
-          </Box>
-          
-          {/* X軸選択肢ラベル */}
-          <Box sx={{ display: 'flex', mb: 1, ml: 12 }}>
-            {questionBChoices.map((choice, index) => (
-              <Box 
-                key={index}
-                sx={{ 
-                  width: 80, 
-                  minHeight: 40,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.75rem',
-                  fontWeight: 500,
-                  color: '#64748b',
-                  textAlign: 'center',
-                  px: 0.5
-                }}
-              >
-                {choice.length > 8 ? `${choice.substring(0, 8)}...` : choice}
-              </Box>
-            ))}
-          </Box>
-          
-          {/* ヒートマップセル */}
-          {questionAChoices.map((choiceA, indexA) => (
-            <Box key={indexA} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-              {/* Y軸選択肢ラベル */}
+      <Box sx={{ 
+        position: 'relative', 
+        height: 'calc(100vh - 200px)', 
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        mb: 3 
+      }}>
+        {verticalQuestion && horizontalQuestion && (
+          <>
+            {/* Y軸ラベル（縦軸：選択肢が多い方） */}
+            <Box sx={{ 
+              position: 'absolute', 
+              left: 20, 
+              top: '50%', 
+              transform: 'rotate(-90deg) translateX(-50%)', 
+              transformOrigin: 'center',
+              whiteSpace: 'nowrap',
+              fontWeight: 600,
+              color: '#5e17eb',
+              fontSize: '0.9rem'
+            }}>
+              {verticalQuestion.title}
+            </Box>
+            
+            {/* ヒートマップグリッド */}
+            <Box sx={{ 
+              ml: 8, 
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              maxWidth: '90%',
+              height: '90%'
+            }}>
+              {/* X軸ラベル（横軸：選択肢が少ない方） */}
               <Box sx={{ 
-                width: 120, 
-                height: 60,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                pr: 2,
-                fontSize: '0.75rem',
-                fontWeight: 500,
-                color: '#64748b'
+                mb: 2, 
+                textAlign: 'center',
+                fontWeight: 600,
+                color: '#677eea',
+                fontSize: '0.9rem'
               }}>
-                {choiceA.length > 12 ? `${choiceA.substring(0, 12)}...` : choiceA}
+                {horizontalQuestion.title}
               </Box>
               
-              {/* データセル */}
-              {questionBChoices.map((choiceB, indexB) => {
-                const cellData = heatmapData.find(d => d.x === indexB && d.y === indexA);
-                const intensity = cellData?.intensity || 0;
-                const bgColor = heatmapColors[cellData?.colorIndex || 0];
-                const textColor = intensity > 0.5 ? '#ffffff' : '#1e293b';
-                
-                return (
-                  <Tooltip 
-                    key={indexB}
-                    title={
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {choiceA} × {choiceB}
-                        </Typography>
-                        <Typography variant="body2">
-                          回答数: {cellData?.value || 0}件
-                        </Typography>
-                        <Typography variant="body2">
-                          割合: {(cellData?.percentage || 0).toFixed(1)}%
-                        </Typography>
-                      </Box>
-                    }
-                    arrow
-                  >
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+              {/* X軸選択肢ラベル */}
+              <Box sx={{ 
+                display: 'flex', 
+                mb: 1, 
+                ml: `${Math.max(120, verticalChoices.reduce((max, choice) => Math.max(max, choice.length * 8), 0))}px`
+              }}>
+                {horizontalChoices.map((choice, index) => {
+                  const cellWidth = Math.max(60, Math.min(120, (window.innerWidth - 400) / horizontalChoices.length));
+                  return (
+                    <Box 
+                      key={index}
+                      sx={{ 
+                        width: cellWidth, 
+                        minHeight: 40,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
+                        color: '#64748b',
+                        textAlign: 'center',
+                        px: 0.5
+                      }}
                     >
-                      <Box
-                        sx={{
-                          width: 80,
-                          height: 60,
-                          bgcolor: bgColor,
-                          border: '1px solid #e2e8f0',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            border: '2px solid #5e17eb',
-                            zIndex: 1
-                          }
-                        }}
-                      >
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
-                            fontWeight: 700, 
-                            color: textColor,
-                            fontSize: '0.85rem'
-                          }}
-                        >
-                          {cellData?.value || 0}
-                        </Typography>
-                        <Typography 
-                          variant="caption" 
-                          sx={{ 
-                            color: textColor,
-                            fontSize: '0.65rem'
-                          }}
-                        >
-                          {(cellData?.percentage || 0).toFixed(1)}%
-                        </Typography>
+                      {choice.length > Math.floor(cellWidth / 10) ? `${choice.substring(0, Math.floor(cellWidth / 10))}...` : choice}
+                    </Box>
+                  );
+                })}
+              </Box>
+              
+              {/* ヒートマップセル */}
+              <Box sx={{ 
+                maxHeight: 'calc(100% - 80px)',
+                overflowY: verticalChoices.length > 10 ? 'auto' : 'visible',
+                width: '100%'
+              }}>
+                {verticalChoices.map((verticalChoice, verticalIndex) => {
+                  const cellWidth = Math.max(60, Math.min(120, (window.innerWidth - 400) / horizontalChoices.length));
+                  const cellHeight = Math.max(40, Math.min(80, (window.innerHeight - 300) / Math.min(verticalChoices.length, 10)));
+                  
+                  return (
+                    <Box key={verticalIndex} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
+                      {/* Y軸選択肢ラベル */}
+                      <Box sx={{ 
+                        width: Math.max(120, verticalChoices.reduce((max, choice) => Math.max(max, choice.length * 8), 0)), 
+                        height: cellHeight,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        pr: 2,
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
+                        color: '#64748b'
+                      }}>
+                        {verticalChoice.length > 15 ? `${verticalChoice.substring(0, 15)}...` : verticalChoice}
                       </Box>
-                    </motion.div>
-                  </Tooltip>
-                );
-              })}
+                      
+                      {/* データセル */}
+                      {horizontalChoices.map((horizontalChoice, horizontalIndex) => {
+                        const cellData = heatmapData.find(d => d.x === horizontalIndex && d.y === verticalIndex);
+                        const intensity = cellData?.intensity || 0;
+                        const bgColor = heatmapColors[cellData?.colorIndex || 0];
+                        const textColor = intensity > 0.5 ? '#ffffff' : '#1e293b';
+                        
+                        return (
+                          <Tooltip 
+                            key={horizontalIndex}
+                            title={
+                              <Box>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  {verticalChoice} × {horizontalChoice}
+                                </Typography>
+                                <Typography variant="body2">
+                                  回答数: {cellData?.value || 0}件
+                                </Typography>
+                                <Typography variant="body2">
+                                  割合: {(cellData?.percentage || 0).toFixed(1)}%
+                                </Typography>
+                              </Box>
+                            }
+                            arrow
+                          >
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Box
+                                sx={{
+                                  width: cellWidth,
+                                  height: cellHeight,
+                                  bgcolor: bgColor,
+                                  border: '1px solid #e2e8f0',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s ease',
+                                  '&:hover': {
+                                    border: '2px solid #5e17eb',
+                                    zIndex: 1
+                                  }
+                                }}
+                              >
+                                <Typography 
+                                  variant="body2" 
+                                  sx={{ 
+                                    fontWeight: 700, 
+                                    color: textColor,
+                                    fontSize: '0.85rem'
+                                  }}
+                                >
+                                  {cellData?.value || 0}
+                                </Typography>
+                                <Typography 
+                                  variant="caption" 
+                                  sx={{ 
+                                    color: textColor,
+                                    fontSize: '0.65rem'
+                                  }}
+                                >
+                                  {(cellData?.percentage || 0).toFixed(1)}%
+                                </Typography>
+                              </Box>
+                            </motion.div>
+                          </Tooltip>
+                        );
+                      })}
+                    </Box>
+                  );
+                })}
+              </Box>
             </Box>
-          ))}
-        </Box>
+          </>
+        )}
       </Box>
 
     </Box>

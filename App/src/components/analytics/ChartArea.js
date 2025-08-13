@@ -432,9 +432,9 @@ export default function ChartArea({
               const question = selectedQuestions[0];
               const questionTypeId = question.typeId || question.question_types_id || question.type_id;
               
-              // 質問タイプ4,5,6の場合: 折れ線グラフと縦棒グラフ（均等目盛も含む）
-              if ([4, 5, 6].includes(questionTypeId)) {
-                console.log('質問タイプ4,5,6コンポーネント呼び出し:', { question, questionTypeId });
+              // 質問タイプ4,6,7の場合: 折れ線グラフと縦棒グラフ（均等目盛も含む）
+              if ([4, 6, 7].includes(questionTypeId)) {
+                console.log('質問タイプ4,6,7コンポーネント呼び出し:', { question, questionTypeId });
                 return (
                   <Box sx={{ flexGrow: 1, minHeight: 0 }}>
                     <QuestionTypeOptionalAnalytics 
@@ -448,9 +448,9 @@ export default function ChartArea({
                 );
               }
               
-              // 質問タイプ3,7,8の場合: 積み上げ面グラフと円グラフ
-              if ([3, 7, 8].includes(questionTypeId)) {
-                console.log('質問タイプ3,7,8コンポーネント呼び出し:', { question, questionTypeId });
+              // 質問タイプ3,5,8の場合: 積み上げ面グラフと円グラフ
+              if ([3, 5, 8].includes(questionTypeId)) {
+                console.log('質問タイプ3,5,8コンポーネント呼び出し:', { question, questionTypeId });
                 return (
                   <Box sx={{ flexGrow: 1, minHeight: 0 }}>
                     <QuestionType345678Analytics 

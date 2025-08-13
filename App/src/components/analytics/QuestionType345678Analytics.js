@@ -180,24 +180,8 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
     try {
       const config = getDatabaseConfig(isTestMode);
       
-      // 線形スケール（質問タイプ5）の場合
-      if (questionTypeNum === 5) {
-        const { data: scaleData, error: scaleError } = await supabase
-          .from(config.QUESTION_OPTION_LINEAR_SCALE)
-          .select('min_text, max_text')
-          .eq('review_questions_id', questionId)
-          .single();
-          
-        if (scaleError) {
-          console.warn('線形スケールデータ取得エラー:', scaleError);
-          return null;
-        }
-        
-        if (scaleData) {
-          // 1-5のスケールを返す（min_text, max_textは表示用）
-          return ['1', '2', '3', '4', '5'];
-        }
-      }
+      // 単一選択（2列）（質問タイプ5）の場合 - 従来の選択肢処理に戻す
+      // この処理は削除し、通常の選択肢系として処理する
       
       // その他の選択肢系（質問タイプ3,4,6,7,8）の場合
       const { data: choicesData, error: choicesError } = await supabase
@@ -227,35 +211,9 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
     try {
       const config = getDatabaseConfig(isTestMode);
       
-      // 線形スケール（質問タイプ5）の場合
-      if (questionTypeNum === 5) {
-        const { data: scaleAnswers, error: scaleError } = await supabase
-          .from(config.QUESTION_ANSWER_OPTION_LINEAR_SCALE)
-          .select(`
-            answer_number,
-            review_question_answers_id,
-            ${config.REVIEW_QUESTION_ANSWERS}!inner(
-              created_at,
-              review_questions_id
-            )
-          `)
-          .eq(`${config.REVIEW_QUESTION_ANSWERS}.review_questions_id`, questionId);
-          
-        if (scaleError) {
-          console.warn('線形スケール回答取得エラー:', scaleError);
-          return null;
-        }
-        
-        if (scaleAnswers && scaleAnswers.length > 0) {
-          return scaleAnswers.map(answer => ({
-            id: answer.review_question_answers_id,
-            created_at: answer[config.REVIEW_QUESTION_ANSWERS].created_at,
-            answer: answer.answer_number?.toString() || '未回答'
-          }));
-        }
-      }
+      // 質問タイプ5は通常の選択肢系として処理
       
-      // その他の選択肢系（質問タイプ3,4,6,7,8）の場合
+      // 選択肢系（質問タイプ3,4,5,6,8）の場合
       const { data: choiceAnswers, error: choiceError } = await supabase
         .from(config.QUESTION_ANSWER_OPTION_CHOICES)
         .select(`
