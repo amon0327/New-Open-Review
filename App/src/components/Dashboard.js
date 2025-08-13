@@ -324,8 +324,11 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               transition: 'all 0.3s ease'
             }}
           >
-            <Avatar sx={{ width: 40, height: 40 }}>
-              <AccountCircle />
+            <Avatar 
+              src={user?.user_metadata?.avatar_url}
+              sx={{ width: 40, height: 40 }}
+            >
+              {!user?.user_metadata?.avatar_url && <AccountCircle />}
             </Avatar>
             {!isNavCollapsed && (
               <Box>
@@ -333,13 +336,13 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   variant="body2"
                   sx={{ color: 'white', fontWeight: 600 }}
                 >
-                  田中太郎
+                  {user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'}
                 </Typography>
                 <Typography
                   variant="caption"
                   sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
                 >
-                  admin@company.com
+                  {user?.email || 'No email'}
                 </Typography>
               </Box>
             )}
@@ -395,8 +398,11 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   <Notifications sx={{ color: '#64748b' }} />
                 </Badge>
               </IconButton>
-              <Avatar sx={{ width: 32, height: 32, ml: 1 }}>
-                <AccountCircle />
+              <Avatar 
+                src={user?.user_metadata?.avatar_url}
+                sx={{ width: 32, height: 32, ml: 1 }}
+              >
+                {!user?.user_metadata?.avatar_url && <AccountCircle />}
               </Avatar>
             </Box>
           </Toolbar>
