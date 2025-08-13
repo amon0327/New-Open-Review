@@ -674,21 +674,25 @@ export default function QuestionSidebar({
                           >
                             回答数
                           </Typography>
-                          <Badge
-                            badgeContent={question.responseCount > 999 ? '999+' : question.responseCount}
-                            color="default"
-                            max={999}
-                            showZero={true}
-                            sx={{
-                              '& .MuiBadge-badge': {
-                                fontSize: '0.65rem',
-                                height: 16,
-                                minWidth: 16,
-                                bgcolor: '#f1f5f9',
-                                color: '#64748b'
-                              }
-                            }}
-                          />
+                          <Box sx={{ minWidth: 20, display: 'flex', justifyContent: 'center' }}>
+                            <Badge
+                              badgeContent={question.responseCount > 999 ? '999+' : question.responseCount}
+                              color="default"
+                              max={999}
+                              showZero={true}
+                              sx={{
+                                '& .MuiBadge-badge': {
+                                  fontSize: '0.65rem',
+                                  height: 16,
+                                  minWidth: 16,
+                                  bgcolor: '#f1f5f9',
+                                  color: '#64748b',
+                                  position: 'static',
+                                  transform: 'none'
+                                }
+                              }}
+                            />
+                          </Box>
                         </Box>
                       </Box>
                       <Typography
