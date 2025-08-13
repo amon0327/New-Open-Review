@@ -683,6 +683,9 @@ const QuestionCrossAnalysisHeatmap = ({
         )}
       </Box>
 
+      {/* 下部パディング */}
+      <Box sx={{ height: '50px' }} />
+
     </Box>
   );
 };
