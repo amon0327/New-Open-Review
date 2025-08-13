@@ -56,34 +56,41 @@ const VerticalBarChart = ({ data, title = "選択肢別回答数" }) => {
     total: data.reduce((sum, d) => sum + d.value, 0)
   }));
 
-  if (!data) {
+  if (!data || data.length === 0) {
+    // 空のチャートを表示
     return (
-      <Box sx={{ 
-        height: 400, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        color: 'text.secondary'
-      }}>
-        <Typography variant="body1">
-          データを読み込み中...
-        </Typography>
-      </Box>
-    );
-  }
-
-  if (data.length === 0) {
-    return (
-      <Box sx={{ 
-        height: 400, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        color: 'text.secondary'
-      }}>
-        <Typography variant="body1">
-          表示するデータがありません
-        </Typography>
+      <Box sx={{ width: '100%', height: 400 }}>
+        <ResponsiveContainer>
+          <BarChart
+            data={[]}
+            margin={{
+              top: 20,
+              right: 30,
+              left: 20,
+              bottom: 60,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis 
+              dataKey="name"
+              tick={{ fontSize: 12 }}
+              stroke="#666"
+              angle={-45}
+              textAnchor="end"
+              height={60}
+            />
+            <YAxis 
+              tick={{ fontSize: 12 }}
+              stroke="#666"
+              domain={[0, 'dataMax']}
+            />
+            <Tooltip />
+            <Bar 
+              dataKey="value" 
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
       </Box>
     );
   }

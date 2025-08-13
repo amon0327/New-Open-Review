@@ -134,23 +134,21 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
 
   // フィルター適用の処理
   useEffect(() => {
-    if (allResponses.length > 0) {
-      const currentQuestion = questionData?.find(q => q.id === questionId);
-      if (currentQuestion) {
-        const filtered = applyCombinedFilters([currentQuestion], { responses: allResponses }, activeFilters || {}, isTestMode);
-        const filteredResponseData = filtered.responses || allResponses;
-        
-        setFilteredResponses(filteredResponseData);
-        
-        const lineData = generateLineChartData(filteredResponseData);
-        console.log('フィルター適用後折れ線グラフデータ:', lineData);
-        setLineChartData(lineData);
-        
-        const barData = generateBarChartData(filteredResponseData, currentQuestion, currentQuestion.typeId || currentQuestion.question_types_id || currentQuestion.type_id);
-        console.log('フィルター適用後棒グラフデータ:', barData);
-        console.log('棒グラフ用responses データ:', filteredResponseData);
-        setBarChartData(barData);
-      }
+    const currentQuestion = questionData?.find(q => q.id === questionId);
+    if (currentQuestion) {
+      const filtered = applyCombinedFilters([currentQuestion], { responses: allResponses }, activeFilters || {}, isTestMode);
+      const filteredResponseData = filtered.responses || allResponses;
+      
+      setFilteredResponses(filteredResponseData);
+      
+      const lineData = generateLineChartData(filteredResponseData);
+      console.log('フィルター適用後折れ線グラフデータ:', lineData);
+      setLineChartData(lineData);
+      
+      const barData = generateBarChartData(filteredResponseData, currentQuestion, currentQuestion.typeId || currentQuestion.question_types_id || currentQuestion.type_id);
+      console.log('フィルター適用後棒グラフデータ:', barData);
+      console.log('棒グラフ用responses データ:', filteredResponseData);
+      setBarChartData(barData);
     }
   }, [allResponses, activeFilters, questionData, questionId, isTestMode]);
 
@@ -508,23 +506,9 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
           選択肢別回答数
         </Typography>
         
-        {barChartData && barChartData.length > 0 ? (
-          <VerticalBarChart 
-            data={barChartData}
-          />
-        ) : (
-          <Box sx={{ 
-            height: 400, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            color: 'text.secondary'
-          }}>
-            <Typography variant="body1">
-              {barChartData === null ? 'データを読み込み中...' : '回答データがありません'}
-            </Typography>
-          </Box>
-        )}
+        <VerticalBarChart 
+          data={barChartData || []}
+        />
       </Box>
     </Box>
   );

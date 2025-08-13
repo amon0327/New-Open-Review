@@ -156,22 +156,20 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
 
   // フィルター適用の処理
   useEffect(() => {
-    if (allResponses.length > 0) {
-      const currentQuestion = questionData?.find(q => q.id === questionId);
-      if (currentQuestion) {
-        const filtered = applyCombinedFilters([currentQuestion], { responses: allResponses }, activeFilters || {}, isTestMode);
-        const filteredResponseData = filtered.responses || allResponses;
-        
-        setFilteredResponses(filteredResponseData);
-        
-        const areaData = generateAreaChartData(filteredResponseData);
-        console.log('フィルター適用後エリアチャートデータ:', areaData);
-        setAreaChartData(areaData);
-        
-        const pieData = generatePieChartData(filteredResponseData, currentQuestion, currentQuestion.typeId || currentQuestion.question_types_id || currentQuestion.type_id);
-        console.log('フィルター適用後円グラフデータ:', pieData);
-        setPieChartData(pieData);
-      }
+    const currentQuestion = questionData?.find(q => q.id === questionId);
+    if (currentQuestion) {
+      const filtered = applyCombinedFilters([currentQuestion], { responses: allResponses }, activeFilters || {}, isTestMode);
+      const filteredResponseData = filtered.responses || allResponses;
+      
+      setFilteredResponses(filteredResponseData);
+      
+      const areaData = generateAreaChartData(filteredResponseData);
+      console.log('フィルター適用後エリアチャートデータ:', areaData);
+      setAreaChartData(areaData);
+      
+      const pieData = generatePieChartData(filteredResponseData, currentQuestion, currentQuestion.typeId || currentQuestion.question_types_id || currentQuestion.type_id);
+      console.log('フィルター適用後円グラフデータ:', pieData);
+      setPieChartData(pieData);
     }
   }, [allResponses, activeFilters, questionData, questionId, isTestMode]);
 
