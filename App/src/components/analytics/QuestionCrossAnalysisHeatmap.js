@@ -8,8 +8,7 @@ import {
   Tooltip
 } from '@mui/material';
 import { 
-  GridView, 
-  Analytics
+  GridView
 } from '@mui/icons-material';
 import { applyCombinedFilters } from '../../utils/dataFilterUtils';
 import { supabase } from '../../supabaseClient';
@@ -408,21 +407,6 @@ const QuestionCrossAnalysisHeatmap = ({
       </Box>
 
       {/* ヒートマップ */}
-      <Typography 
-        variant="h6" 
-        sx={{ 
-          mb: 2, 
-          fontWeight: 600, 
-          color: '#1e293b',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1
-        }}
-      >
-        <Analytics sx={{ color: '#5e17eb' }} />
-        回答の組み合わせ分布
-      </Typography>
-        
       <Box sx={{ position: 'relative', overflow: 'auto', mb: 3 }}>
         {/* Y軸ラベル（質問A） */}
         <Box sx={{ 
