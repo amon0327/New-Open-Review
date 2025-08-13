@@ -133,7 +133,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
             fontSize: '0.85rem',
             fontWeight: 600
           }}>
-            テストモードで動作中 - 本番データは影響されません
+            テストモードで動作中 - 回答されたデータではありません
           </Box>
         )}
         {/* メインコンテンツ */}
