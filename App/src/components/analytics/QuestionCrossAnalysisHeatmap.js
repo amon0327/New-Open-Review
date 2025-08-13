@@ -489,48 +489,55 @@ const QuestionCrossAnalysisHeatmap = ({
       }}>
         {verticalQuestion && horizontalQuestion && (
           <>
-            {/* Y軸ラベル（縦軸：選択肢が多い方） - 左下に横向き */}
+            {/* ヒートマップグリッド - 中央配置 */}
             <Box sx={{ 
-              position: 'absolute', 
-              left: 20, 
-              bottom: 20,
-              whiteSpace: 'nowrap',
-              fontWeight: 600,
-              color: '#5e17eb',
-              fontSize: '0.9rem'
-            }}>
-              {verticalQuestion.title}
-            </Box>
-            
-            {/* X軸ラベル（横軸：選択肢が少ない方） - 右上に横向き */}
-            <Box sx={{ 
-              position: 'absolute',
-              right: 20,
-              top: 20,
-              whiteSpace: 'nowrap',
-              fontWeight: 600,
-              color: '#677eea',
-              fontSize: '0.9rem'
-            }}>
-              {horizontalQuestion.title}
-            </Box>
-            
-            {/* ヒートマップグリッド */}
-            <Box sx={{ 
-              ml: 8, 
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              maxWidth: '90%',
-              height: '90%'
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%',
+              position: 'relative'
             }}>
-              
-              {/* X軸選択肢ラベル */}
+              {/* Y軸ラベル（縦軸：選択肢が多い方） - ヒートマップの左下近く */}
               <Box sx={{ 
-                display: 'flex', 
-                mb: 1, 
-                ml: `${Math.max(120, verticalChoices.reduce((max, choice) => Math.max(max, choice.length * 8), 0))}px`
+                position: 'absolute', 
+                left: '15%',
+                bottom: '15%',
+                whiteSpace: 'nowrap',
+                fontWeight: 600,
+                color: '#5e17eb',
+                fontSize: '0.9rem'
               }}>
+                {verticalQuestion.title}
+              </Box>
+              
+              {/* X軸ラベル（横軸：選択肢が少ない方） - ヒートマップの右上近く */}
+              <Box sx={{ 
+                position: 'absolute',
+                right: '15%',
+                top: '10%',
+                whiteSpace: 'nowrap',
+                fontWeight: 600,
+                color: '#677eea',
+                fontSize: '0.9rem'
+              }}>
+                {horizontalQuestion.title}
+              </Box>
+              
+              {/* ヒートマップコンテンツ - 完全中央配置 */}
+              <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {/* X軸選択肢ラベル */}
+                <Box sx={{ 
+                  display: 'flex', 
+                  mb: 1, 
+                  ml: `${Math.max(120, verticalChoices.reduce((max, choice) => Math.max(max, choice.length * 8), 0))}px`
+                }}>
                 {horizontalChoices.map((choice, index) => {
                   const cellWidth = Math.max(60, Math.min(120, (window.innerWidth - 400) / horizontalChoices.length));
                   return (
@@ -656,6 +663,7 @@ const QuestionCrossAnalysisHeatmap = ({
                     </Box>
                   );
                 })}
+              </Box>
               </Box>
             </Box>
           </>
