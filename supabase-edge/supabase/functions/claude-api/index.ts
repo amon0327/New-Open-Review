@@ -393,59 +393,89 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
   
   const claudeResponse = await response.json();
 
-  // ツール呼び出しがある場合はMCPサーバーに転送
-  if (claudeResponse.content) {
+  // ツール呼び出しがある場合はデータベースツールを実行
+  if (claudeResponse.content && userToken) {
     const toolUses = claudeResponse.content.filter((item: any) => item.type === 'tool_use');
     
-    if (toolUses.length > 0 && userToken) {
-      console.log('Tool uses detected, calling MCP server:', toolUses.length);
+    if (toolUses.length > 0) {
+      console.log('Tool uses detected, executing database tools:', toolUses.length);
       
-      // 各ツール呼び出しを実行
-      for (const toolUse of toolUses) {
-        try {
-          const mcpResult = await executeDatabaseTool(toolUse.name, toolUse.input, userToken);
-          
-          // ツール結果をClaudeに送り返す
-          const toolResultMessages = [
-            ...messages,
-            { role: 'assistant', content: claudeResponse.content },
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'tool_result',
-                  tool_use_id: toolUse.id,
-                  content: JSON.stringify(mcpResult)
-                }
-              ]
-            }
-          ];
-
-          // 最終結果を取得
-          const finalRequestBody = {
-            model: 'claude-3-5-sonnet-20241022',
-            max_tokens: 4000,
-            messages: toolResultMessages,
-            system: systemPrompt || "You are a helpful AI assistant for business review forms and data analysis. Please respond in Japanese when appropriate."
-          };
-
-          const finalResponse = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-              'x-api-key': ANTHROPIC_API_KEY,
-              'anthropic-version': '2023-06-01',
-              'content-type': 'application/json',
-            },
-            body: JSON.stringify(finalRequestBody)
-          });
-
-          if (finalResponse.ok) {
-            return await finalResponse.json();
+      try {
+        // 全ツールの結果を収集
+        const toolResults = [];
+        
+        for (const toolUse of toolUses) {
+          try {
+            console.log(`Executing tool: ${toolUse.name}`, toolUse.input);
+            const toolResult = await executeDatabaseTool(toolUse.name, toolUse.input, userToken);
+            
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: toolUse.id,
+              content: JSON.stringify(toolResult)
+            });
+            
+            console.log(`Tool ${toolUse.name} executed successfully`);
+          } catch (toolError) {
+            console.error(`Tool ${toolUse.name} failed:`, toolError);
+            
+            // ツールエラーもClaudeに伝える
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: toolUse.id,
+              content: JSON.stringify({
+                success: false,
+                error: toolError instanceof Error ? toolError.message : '不明なエラー'
+              }),
+              is_error: true
+            });
           }
-        } catch (dbError) {
-          console.error('Database tool error:', dbError);
-          // データベースエラーの場合でも元のレスポンスを返す
         }
+
+        // すべてのツール結果をClaudeに送り返す
+        const toolResultMessages = [
+          ...messages,
+          { role: 'assistant', content: claudeResponse.content },
+          {
+            role: 'user',
+            content: toolResults
+          }
+        ];
+
+        console.log('Sending tool results to Claude API');
+
+        // 最終結果を取得
+        const finalRequestBody = {
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 4000,
+          messages: toolResultMessages,
+          system: systemPrompt || "You are a helpful AI assistant for business review forms and data analysis. Please respond in Japanese when appropriate."
+        };
+
+        const finalResponse = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify(finalRequestBody)
+        });
+
+        if (finalResponse.ok) {
+          const finalResult = await finalResponse.json();
+          console.log('Final Claude response received');
+          return finalResult;
+        } else {
+          const errorText = await finalResponse.text().catch(() => 'Unknown error');
+          console.error('Final Claude API error:', finalResponse.status, errorText);
+          throw new Error(`Final Claude API error: ${finalResponse.status}`);
+        }
+
+      } catch (overallError) {
+        console.error('Overall tool execution error:', overallError);
+        // 全体的なエラーでも、元のClaudeレスポンスを返す
+        return claudeResponse;
       }
     }
   }
@@ -483,22 +513,42 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
       case 'get_survey_questions': {
         const { survey_id, limit = 50, question_type } = args;
         
+        console.log('Querying survey_questions with params:', { survey_id, limit, question_type });
+        
         let query = supabase
-          .from('survey_questions')
-          .select('id, title, question_types_id, survey_id, options, created_at')
+          .from('review_questions')
+          .select('id, title, question_types_id, post_2_id, options, created_at')
           .order('created_at', { ascending: false })
           .limit(Math.min(limit, 100));
 
-        if (survey_id) query = query.eq('survey_id', survey_id);
+        if (survey_id) query = query.eq('post_2_id', survey_id);
         if (question_type) query = query.eq('question_types_id', question_type);
 
         const { data, error } = await query;
+        
+        console.log('Survey questions query result:', { 
+          dataCount: data?.length || 0, 
+          error: error?.message || null,
+          sampleData: data?.slice(0, 2) || []
+        });
+        
         if (error) throw new Error(`質問取得エラー: ${error.message}`);
+
+        // データがない場合のメッセージ
+        if (!data || data.length === 0) {
+          return {
+            success: true,
+            data: [],
+            count: 0,
+            message: 'データベースに質問データが見つかりませんでした。テストデータを作成することをお勧めします。'
+          };
+        }
 
         return {
           success: true,
           data: data,
-          count: data?.length || 0
+          count: data?.length || 0,
+          message: `${data.length}件の質問を取得しました。`
         };
       }
 
@@ -507,46 +557,52 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
         
         if (!question_id) throw new Error('question_idは必須です');
 
+        console.log('Querying review_question_answers with question_id:', question_id);
+
         let query = supabase
-          .from('responses')
+          .from('review_question_answers')
           .select(`
             id, 
-            answer, 
-            submitted_at,
-            respondents (
+            answer_text, 
+            created_at,
+            review_form_submissions (
               id,
-              gender,
-              age_group,
-              department
+              submitted_at
             )
           `)
-          .eq('question_id', question_id)
-          .order('submitted_at', { ascending: false })
+          .eq('review_questions_id', question_id)
+          .order('created_at', { ascending: false })
           .limit(Math.min(limit, 1000));
 
         const { data, error } = await query;
         if (error) throw new Error(`回答取得エラー: ${error.message}`);
 
-        // フィルター適用
-        let filteredData = data;
-        if (filters && data) {
-          filteredData = data.filter(response => {
-            const respondent = response.respondents;
-            if (!respondent) return false;
-            
-            if (filters.gender && respondent.gender !== filters.gender) return false;
-            if (filters.age_group && respondent.age_group !== filters.age_group) return false;
-            if (filters.department && respondent.department !== filters.department) return false;
-            
-            return true;
-          });
+        console.log('Review question answers query result:', { 
+          dataCount: data?.length || 0, 
+          error: error?.message || null,
+          sampleData: data?.slice(0, 2) || []
+        });
+
+        // フィルター適用（現在のスキーマでは基本的な情報のみ）
+        let filteredData = data || [];
+        
+        // データがない場合のメッセージ
+        if (!data || data.length === 0) {
+          return {
+            success: true,
+            data: [],
+            count: 0,
+            total_count: 0,
+            message: 'この質問に対する回答データが見つかりませんでした。'
+          };
         }
 
         return {
           success: true,
           data: filteredData,
-          count: filteredData?.length || 0,
-          total_count: data?.length || 0
+          count: filteredData.length,
+          total_count: data.length,
+          message: `${filteredData.length}件の回答を取得しました。`
         };
       }
 
@@ -557,11 +613,11 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
         if (!analysis_type) throw new Error('analysis_typeは必須です');
 
         const { data, error } = await supabase
-          .from('responses')
-          .select('id, answer, submitted_at')
-          .eq('question_id', question_id)
-          .not('answer', 'is', null)
-          .order('submitted_at', { ascending: false })
+          .from('review_question_answers')
+          .select('id, answer_text, created_at')
+          .eq('review_questions_id', question_id)
+          .not('answer_text', 'is', null)
+          .order('created_at', { ascending: false })
           .limit(Math.min(limit, 500));
 
         if (error) throw new Error(`回答取得エラー: ${error.message}`);
@@ -581,7 +637,7 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
         
         switch (analysis_type) {
           case 'keyword': {
-            const allText = data.map(r => r.answer).join(' ');
+            const allText = data.map(r => r.answer_text).join(' ');
             const words = allText.split(/\s+/).filter(word => word.length > 2);
             const wordCount: Record<string, number> = {};
             
@@ -611,7 +667,7 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
             let positive = 0, negative = 0, neutral = 0;
             
             data.forEach(response => {
-              const text = response.answer.toLowerCase();
+              const text = response.answer_text.toLowerCase();
               const hasPositive = positiveWords.some(word => text.includes(word));
               const hasNegative = negativeWords.some(word => text.includes(word));
               
@@ -631,7 +687,7 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
           }
 
           case 'summary': {
-            const responseLengths = data.map(r => r.answer.length);
+            const responseLengths = data.map(r => r.answer_text.length);
             const avgLength = responseLengths.reduce((a, b) => a + b, 0) / responseLengths.length;
             
             analysisResult = {
@@ -642,8 +698,8 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
               max_length: Math.max(...responseLengths),
               recent_responses: data.slice(0, 5).map(r => ({
                 id: r.id,
-                preview: r.answer.substring(0, 100) + (r.answer.length > 100 ? '...' : ''),
-                submitted_at: r.submitted_at
+                preview: r.answer_text.substring(0, 100) + (r.answer_text.length > 100 ? '...' : ''),
+                created_at: r.created_at
               }))
             };
             break;

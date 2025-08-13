@@ -148,7 +148,7 @@ export default function ChatPanel({ isTestMode = false }) {
       const errorMessage = {
         id: errorMessageId,
         type: 'ai',
-        content: `エラーが発生しました: ${error.message}`,
+        content: `エラーが発生しました: ${error.message}\n\nデバッグ情報:\n- データモード: ${isDataMode ? 'ON' : 'OFF'}\n- 時刻: ${new Date().toLocaleString()}\n- エラーの詳細を確認するには、ブラウザのコンソールをご確認ください。`,
         timestamp: new Date(),
         isTyping: false
       };
