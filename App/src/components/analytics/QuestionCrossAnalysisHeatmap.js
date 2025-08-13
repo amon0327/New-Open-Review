@@ -36,10 +36,10 @@ const QuestionCrossAnalysisHeatmap = ({
   const [verticalChoices, setVerticalChoices] = useState([]);
   const [horizontalChoices, setHorizontalChoices] = useState([]);
 
-  // カラーパレット
+  // カラーパレット - 紫ベース
   const heatmapColors = [
-    '#f8fafc', '#f1f5f9', '#e2e8f0', '#cbd5e1', '#94a3b8', 
-    '#64748b', '#475569', '#334155', '#1e293b', '#0f172a'
+    '#faf5ff', '#f3e8ff', '#e9d5ff', '#d8b4fe', '#c084fc', 
+    '#a855f7', '#9333ea', '#7c3aed', '#6d28d9', '#5b21b6'
   ];
 
   useEffect(() => {
@@ -483,7 +483,9 @@ const QuestionCrossAnalysisHeatmap = ({
         width: '100%',
         display: 'flex',
         alignItems: 'center',
-        mb: 3 
+        mb: 3,
+        overflow: 'hidden', // スワイプ無効化
+        touchAction: 'none' // タッチ操作無効化
       }}>
         {verticalQuestion && horizontalQuestion && (
           <>
@@ -525,7 +527,10 @@ const QuestionCrossAnalysisHeatmap = ({
                   ml: `${Math.max(120, verticalChoices.reduce((max, choice) => Math.max(max, choice.length * 8), 0))}px`
                 }}>
                 {horizontalChoices.map((choice, index) => {
-                  const cellWidth = Math.max(60, Math.min(120, (window.innerWidth - 400) / horizontalChoices.length));
+                  // 要素が多い場合により小さくするセルサイズ計算
+                  const availableWidth = typeof window !== 'undefined' ? window.innerWidth - 200 : 1000;
+                  const maxCellWidth = horizontalChoices.length > 8 ? 60 : horizontalChoices.length > 5 ? 80 : 100;
+                  const cellWidth = Math.max(40, Math.min(maxCellWidth, availableWidth / horizontalChoices.length));
                   return (
                     <Box 
                       key={index}
@@ -551,12 +556,17 @@ const QuestionCrossAnalysisHeatmap = ({
               {/* ヒートマップセル */}
               <Box sx={{ 
                 maxHeight: 'calc(100% - 80px)',
-                overflowY: verticalChoices.length > 10 ? 'auto' : 'visible',
+                overflow: 'hidden', // スクロール無効化
                 width: '100%'
               }}>
                 {verticalChoices.map((verticalChoice, verticalIndex) => {
-                  const cellWidth = Math.max(60, Math.min(120, (window.innerWidth - 400) / horizontalChoices.length));
-                  const cellHeight = Math.max(40, Math.min(80, (window.innerHeight - 300) / Math.min(verticalChoices.length, 10)));
+                  // 要素が多い場合により小さくするセルサイズ計算（統一）
+                  const availableWidth = typeof window !== 'undefined' ? window.innerWidth - 200 : 1000;
+                  const availableHeight = typeof window !== 'undefined' ? window.innerHeight - 300 : 600;
+                  const maxCellWidth = horizontalChoices.length > 8 ? 60 : horizontalChoices.length > 5 ? 80 : 100;
+                  const maxCellHeight = verticalChoices.length > 10 ? 40 : verticalChoices.length > 6 ? 50 : 60;
+                  const cellWidth = Math.max(40, Math.min(maxCellWidth, availableWidth / horizontalChoices.length));
+                  const cellHeight = Math.max(35, Math.min(maxCellHeight, availableHeight / verticalChoices.length));
                   
                   return (
                     <Box key={verticalIndex} sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
