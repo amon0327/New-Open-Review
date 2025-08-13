@@ -232,7 +232,8 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
             review_question_answers_id,
             ${config.REVIEW_QUESTION_ANSWERS}!inner(
               created_at,
-              review_questions_id
+              review_questions_id,
+              review_form_submissions_id
             )
           `)
           .eq(`${config.REVIEW_QUESTION_ANSWERS}.review_questions_id`, questionId);
@@ -268,8 +269,10 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
           
           const formattedAnswers = scaleAnswers.map(answer => ({
             id: answer.review_question_answers_id,
+            submission_id: answer[config.REVIEW_QUESTION_ANSWERS].review_form_submissions_id,
             created_at: answer[config.REVIEW_QUESTION_ANSWERS].created_at,
-            answer: getDisplayValue(answer.answer_number, scaleConfig)
+            answer: getDisplayValue(answer.answer_number, scaleConfig),
+            question_id: questionId
           }));
           console.log('フォーマット済み線形スケール回答:', formattedAnswers);
           return formattedAnswers;
@@ -289,7 +292,8 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
           review_question_answers_id,
           ${config.REVIEW_QUESTION_ANSWERS}!inner(
             created_at,
-            review_questions_id
+            review_questions_id,
+            review_form_submissions_id
           )
         `)
         .eq(`${config.REVIEW_QUESTION_ANSWERS}.review_questions_id`, questionId);
@@ -322,8 +326,10 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
         
         const formattedChoiceAnswers = choiceAnswers.map(answer => ({
           id: answer.review_question_answers_id,
+          submission_id: answer[config.REVIEW_QUESTION_ANSWERS].review_form_submissions_id,
           created_at: answer[config.REVIEW_QUESTION_ANSWERS].created_at,
-          answer: choiceMap[answer.question_option_choices_id] || '未回答'
+          answer: choiceMap[answer.question_option_choices_id] || '未回答',
+          question_id: questionId
         }));
         
         console.log('フォーマット済み選択肢回答:', formattedChoiceAnswers);

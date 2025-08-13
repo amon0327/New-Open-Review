@@ -29,11 +29,13 @@ import {
   Close,
   CheckCircleOutline,
   Public,
-  CloudDone
+  CloudDone,
+  Notifications
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 import PreviewUrlDialog from './PreviewUrlDialog';
 import PublishDialog from './PublishDialog';
+import NotificationDropdown from './NotificationDropdown';
 import { validateForm } from '../utils/validation';
 
 const HeaderBar = ({
@@ -87,6 +89,8 @@ const HeaderBar = ({
   // エラー・警告ポップオーバーの状態
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
+  // 通知ドロップダウンの状態
+  const [notificationAnchor, setNotificationAnchor] = useState(null);
 
   // フォーム検証の実行
   const validationData = {

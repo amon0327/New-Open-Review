@@ -28,6 +28,7 @@ import {
   AccountCircle
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
+import NotificationDropdown from './NotificationDropdown';
 
 // 分離したページコンポーネントをインポート
 import HomePage from './dashboard/pages/HomePage';
@@ -48,6 +49,7 @@ const navigationItems = [
 export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [activeTab, setActiveTab] = useState(0);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
+  const [notificationAnchor, setNotificationAnchor] = useState(null);
 
   const renderContent = () => {
     const ActiveComponent = navigationItems[activeTab].component;
@@ -69,6 +71,14 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     } else {
       setActiveTab(index);
     }
+  };
+
+  const handleNotificationClick = (event) => {
+    setNotificationAnchor(event.currentTarget);
+  };
+
+  const handleNotificationClose = () => {
+    setNotificationAnchor(null);
   };
 
   return (
@@ -340,7 +350,17 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             </Typography>
             
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <IconButton color="inherit">
+              <IconButton 
+                color="inherit" 
+                onClick={handleNotificationClick}
+                sx={{
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    transform: 'scale(1.1)',
+                    backgroundColor: 'rgba(100, 116, 139, 0.1)'
+                  }
+                }}
+              >
                 <Badge badgeContent={4} color="error">
                   <Notifications sx={{ color: '#64748b' }} />
                 </Badge>
@@ -351,6 +371,13 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             </Box>
           </Toolbar>
         </AppBar>
+
+        {/* Notification Dropdown */}
+        <NotificationDropdown
+          anchorEl={notificationAnchor}
+          open={Boolean(notificationAnchor)}
+          onClose={handleNotificationClose}
+        />
 
         {/* Page Content */}
         <Box sx={{ 
