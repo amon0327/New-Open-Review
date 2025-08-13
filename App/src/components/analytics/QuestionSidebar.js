@@ -672,7 +672,7 @@ export default function QuestionSidebar({
                               fontWeight: 500
                             }}
                           >
-                            回答数
+                            回答
                           </Typography>
                           <Box sx={{ minWidth: 20, display: 'flex', justifyContent: 'center' }}>
                             <Badge
