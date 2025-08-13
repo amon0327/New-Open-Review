@@ -583,7 +583,7 @@ export default function QuestionSidebar({
                         fontSize: '0.75rem'
                       }}
                     >
-                      {form.question_count ? `${form.question_count}問` : '作成日: ' + new Date(form.created_at).toLocaleDateString('ja-JP')}
+                      {form.question_count || 0}問
                     </Typography>
                   </Box>
                 </Box>
