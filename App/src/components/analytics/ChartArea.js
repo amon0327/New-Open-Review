@@ -51,6 +51,11 @@ export default function ChartArea({
   isTestMode = false
   // ==============================================
 }) {
+  // テストモード切り替え時にフィルターをクリア
+  useEffect(() => {
+    setActiveFilters({});
+    setShowFilters(false);
+  }, [isTestMode, setActiveFilters, setShowFilters]);
   if (selectedQuestions.length === 0) {
     return (
       <Box sx={{ flexGrow: 1, display: 'flex', position: 'relative' }}>
@@ -132,7 +137,7 @@ export default function ChartArea({
         </Box>
 
         {/* Chat Panel */}
-        <ChatPanel />
+        <ChatPanel isTestMode={isTestMode} />
       </Box>
     );
   }
@@ -566,7 +571,7 @@ export default function ChartArea({
       </Box>
 
       {/* Chat Panel */}
-      <ChatPanel />
+      <ChatPanel isTestMode={isTestMode} />
     </Box>
   );
 }

@@ -43,6 +43,16 @@ export default function QuestionSidebar({
   const [error, setError] = useState(null);
   const [currentView, setCurrentView] = useState('forms'); // 'forms' or 'questions'
 
+  // テストモード切り替え時の状態リセット
+  useEffect(() => {
+    // テストモードが切り替わったら全ての状態をリセット
+    setCurrentView('forms');
+    setSelectedForm(null);
+    setQuestions([]);
+    setSelectedQuestions([]);
+    setSearchTerm('');
+  }, [isTestMode]);
+
   // レビューフォーム一覧取得
   useEffect(() => {
     const fetchReviewForms = async () => {
@@ -163,7 +173,7 @@ export default function QuestionSidebar({
     };
 
     fetchReviewForms();
-  }, [isTestMode]);
+  }, [isTestMode, setSelectedQuestions, setSearchTerm]);
 
   // 質問データ取得（フォーム選択後）
   const fetchQuestionsForForm = async (formId) => {

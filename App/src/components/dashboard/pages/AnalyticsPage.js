@@ -16,10 +16,11 @@ export default function AnalyticsPage({ onNavCollapse }) {
   // テストモード切り替えハンドラー（削除予定）
   const handleTestModeToggle = () => {
     setIsTestMode(!isTestMode);
-    // テストモードに入る際は選択された質問をクリア
-    if (!isTestMode) {
-      setSelectedQuestions([]);
-    }
+    // テストモード切り替え時は全ての状態をクリア
+    setSelectedQuestions([]);
+    setSearchTerm('');
+    setActiveFilters({});
+    setShowFilters(false);
   };
   // =================================================
 
@@ -83,7 +84,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
               fontSize: '0.875rem',
             }}
           >
-            テストモード
+            {isTestMode ? 'テストモード ON' : 'テストモード'}
           </Typography>
           
           {/* カスタムトグルスイッチ */}
@@ -119,6 +120,22 @@ export default function AnalyticsPage({ onNavCollapse }) {
         p: 1,
         overflow: 'hidden'
       }}>
+        {/* テストモードインジケーター */}
+        {isTestMode && (
+          <Box sx={{
+            bgcolor: '#5e17eb',
+            color: 'white',
+            py: 0.5,
+            px: 2,
+            borderRadius: 1,
+            mb: 1,
+            textAlign: 'center',
+            fontSize: '0.85rem',
+            fontWeight: 600
+          }}>
+            テストモードで動作中 - 本番データは影響されません
+          </Box>
+        )}
         {/* メインコンテンツ */}
         <Box sx={{ 
           flexGrow: 1, 

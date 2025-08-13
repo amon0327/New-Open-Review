@@ -21,7 +21,7 @@ import {
   Analytics
 } from '@mui/icons-material';
 
-export default function ChatPanel() {
+export default function ChatPanel({ isTestMode = false }) {
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -36,6 +36,22 @@ export default function ChatPanel() {
   const [isDataMode, setIsDataMode] = useState(false);
   const [typingMessageId, setTypingMessageId] = useState(null);
   const messagesEndRef = useRef(null);
+
+  // テストモード切り替え時にチャット履歴をリセット
+  useEffect(() => {
+    setMessages([
+      {
+        id: 1,
+        type: 'ai',
+        content: `こんにちは！${isTestMode ? 'テストモードで' : ''}データ分析や質問にお答えします。何かお手伝いできることはありますか？`,
+        timestamp: new Date(Date.now() - 60000),
+        isTyping: false
+      }
+    ]);
+    setInputValue('');
+    setIsTyping(false);
+    setTypingMessageId(null);
+  }, [isTestMode]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
