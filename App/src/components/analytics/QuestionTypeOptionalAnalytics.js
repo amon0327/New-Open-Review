@@ -508,7 +508,7 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
           選択肢別回答数
         </Typography>
         
-        {barChartData ? (
+        {barChartData && barChartData.length > 0 ? (
           <VerticalBarChart 
             data={barChartData}
           />
@@ -521,7 +521,7 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
             color: 'text.secondary'
           }}>
             <Typography variant="body1">
-              データを読み込み中...
+              {barChartData === null ? 'データを読み込み中...' : '回答データがありません'}
             </Typography>
           </Box>
         )}

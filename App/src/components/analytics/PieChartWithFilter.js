@@ -280,7 +280,7 @@ const PieChartWithFilter = ({ data, title = "回答分布" }) => {
           }}
         >
           <Typography variant="body1">
-            選択した期間にデータがありません
+            {dateRange ? '選択した期間に回答データがありません' : '回答データがありません'}
           </Typography>
         </Box>
       )}
