@@ -1181,7 +1181,7 @@ export default function HomePage({ user, onCreateFormClick }) {
                                 variant="body2"
                                 sx={{
                                   fontWeight: 600,
-                                  color: formattedForm.themeColor,
+                                  color: '#5e17eb',
                                   fontSize: '1rem'
                                 }}
                               >

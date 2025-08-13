@@ -53,6 +53,9 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
 
   const renderContent = () => {
     const ActiveComponent = navigationItems[activeTab].component;
+    if (!ActiveComponent) {
+      return null;
+    }
     if (navigationItems[activeTab].text === 'Settings') {
       return <ActiveComponent user={user} onLogout={onLogout} />;
     } else if (navigationItems[activeTab].text === 'Home') {
@@ -249,21 +252,56 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                       justifyContent: 'center',
                       display: 'flex',
                       alignItems: 'center',
-                      height: 24
+                      height: 24,
+                      '& svg': isCreateButton ? {
+                        fill: 'url(#createGradient)'
+                      } : {}
                     }}
                   >
+                    {isCreateButton && (
+                      <svg width="0" height="0">
+                        <defs>
+                          <linearGradient id="createGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#ff6b6b" />
+                            <stop offset="100%" stopColor="#ffd93d" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                    )}
                     {isCreateButton && isCreatingForm ? (
                       <CircularProgress size={20} sx={{ color: 'rgba(255, 255, 255, 0.8)' }} />
                     ) : (
-                      item.icon
+                      React.cloneElement(item.icon, {
+                        sx: isCreateButton ? {
+                          fill: 'url(#createGradient)',
+                          filter: 'drop-shadow(0 2px 4px rgba(255, 107, 107, 0.3))'
+                        } : {}
+                      })
                     )}
                   </ListItemIcon>
                   {!isNavCollapsed && (
                     <ListItemText
-                      primary={item.text}
+                      primary={
+                        isCreateButton ? (
+                          <Box
+                            sx={{
+                              background: 'linear-gradient(45deg, #ff6b6b 30%, #ffd93d 90%)',
+                              backgroundClip: 'text',
+                              WebkitBackgroundClip: 'text',
+                              WebkitTextFillColor: 'transparent',
+                              fontWeight: 600,
+                              display: 'inline-block'
+                            }}
+                          >
+                            {item.text}
+                          </Box>
+                        ) : (
+                          item.text
+                        )
+                      }
                       primaryTypographyProps={{
                         fontWeight: activeTab === index ? 600 : 400,
-                        color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)'
+                        color: isCreateButton ? 'transparent' : activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)'
                       }}
                     />
                   )}

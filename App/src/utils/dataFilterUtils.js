@@ -16,7 +16,12 @@ export const applyTextFilter = (data, searchText, targetField = 'text') => {
   
   return data.filter(item => {
     const fieldValue = item[targetField];
-    if (!fieldValue) return false;
+    if (!fieldValue && fieldValue !== 0) return false; // 0の値も含める
+    
+    // 数値の場合は文字列に変換
+    if (typeof fieldValue === 'number') {
+      return String(fieldValue).includes(normalizedSearch);
+    }
     
     // 文字列の場合は直接検索
     if (typeof fieldValue === 'string') {
@@ -74,7 +79,21 @@ export const applyRangeFilter = (data, rangeValue, targetField = 'value') => {
   }
 
   return data.filter(item => {
-    const fieldValue = parseFloat(item[targetField]);
+    let fieldValue = item[targetField];
+    
+    // 数値への変換処理を改善
+    if (typeof fieldValue === 'string') {
+      // "サラダ" や "1 (最小)" のような文字列から数値を抽出
+      const numMatch = fieldValue.match(/^(\d+)/);
+      if (numMatch) {
+        fieldValue = parseFloat(numMatch[1]);
+      } else {
+        fieldValue = parseFloat(fieldValue);
+      }
+    } else {
+      fieldValue = parseFloat(fieldValue);
+    }
+    
     if (isNaN(fieldValue)) return false;
 
     // 範囲条件の解析
@@ -148,25 +167,44 @@ export const applyChoicesFilter = (data, selectedValues, targetField = 'selected
     if (fieldValue === null || fieldValue === undefined) return false;
     
     // 数値の場合（スケール値など）
-    if (typeof fieldValue === 'number' || !isNaN(fieldValue)) {
+    if (typeof fieldValue === 'number' || (!isNaN(fieldValue) && !isNaN(parseFloat(fieldValue)))) {
       return valuesArray.some(selectedValue => {
         const numValue = typeof fieldValue === 'number' ? fieldValue : parseFloat(fieldValue);
-        const selectedNum = typeof selectedValue === 'number' ? selectedValue : parseFloat(selectedValue);
-        return numValue === selectedNum;
+        let selectedNum;
+        if (typeof selectedValue === 'number') {
+          selectedNum = selectedValue;
+        } else if (typeof selectedValue === 'string') {
+          // "サラダ" や "1 (最小)" のような文字列から数値を抽出
+          const numMatch = selectedValue.match(/^(\d+)/);
+          selectedNum = numMatch ? parseFloat(numMatch[1]) : parseFloat(selectedValue);
+        } else {
+          selectedNum = parseFloat(selectedValue);
+        }
+        return !isNaN(numValue) && !isNaN(selectedNum) && numValue === selectedNum;
       });
     }
     
     // 配列の場合（複数選択回答など）
     if (Array.isArray(fieldValue)) {
       return valuesArray.some(selectedValue => 
-        fieldValue.some(val => String(val) === String(selectedValue))
+        fieldValue.some(val => {
+          // 文字列の部分一致もサポート
+          if (typeof val === 'string' && typeof selectedValue === 'string') {
+            return val.includes(selectedValue) || selectedValue.includes(val) || val === selectedValue;
+          }
+          return String(val) === String(selectedValue);
+        })
       );
     }
     
     // 文字列の場合（単一選択回答など）
-    return valuesArray.some(selectedValue => 
-      String(fieldValue) === String(selectedValue)
-    );
+    return valuesArray.some(selectedValue => {
+      // 文字列の部分一致もサポート
+      if (typeof fieldValue === 'string' && typeof selectedValue === 'string') {
+        return fieldValue.includes(selectedValue) || selectedValue.includes(fieldValue) || fieldValue === selectedValue;
+      }
+      return String(fieldValue) === String(selectedValue);
+    });
   });
 };
 
@@ -194,27 +232,27 @@ export const applyCombinedFilters = (originalData, filters, question) => {
     switch (type) {
       case 'text':
         // テキスト検索（回答内容で検索）
-        filteredData = applyTextFilter(filteredData, value, 'response_text');
+        filteredData = applyTextFilter(filteredData, value, 'answer');
         break;
 
       case 'select':
         // 選択肢フィルター（回答値で絞り込み）
-        filteredData = applySelectFilter(filteredData, value, 'selected_choice');
+        filteredData = applySelectFilter(filteredData, value, 'answer');
         break;
 
       case 'multi-select':
         // 複数選択フィルター（選択された複数値のいずれかで絞り込み）
-        filteredData = applyMultiSelectFilter(filteredData, value, 'selected_choices');
+        filteredData = applyMultiSelectFilter(filteredData, value, 'answer');
         break;
 
       case 'choices':
         // 統一された選択肢フィルター（複数選択・数値・文字列すべて対応）
-        filteredData = applyChoicesFilter(filteredData, value, 'selected_choice');
+        filteredData = applyChoicesFilter(filteredData, value, 'answer');
         break;
 
       case 'range':
         // 範囲フィルター（スケール値で絞り込み）
-        filteredData = applyRangeFilter(filteredData, value, 'scale_value');
+        filteredData = applyRangeFilter(filteredData, value, 'answer');
         break;
 
       default:

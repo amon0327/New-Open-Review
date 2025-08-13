@@ -157,9 +157,16 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
   // フィルター適用の処理
   useEffect(() => {
     const currentQuestion = questionData?.find(q => q.id === questionId);
-    if (currentQuestion) {
-      const filtered = applyCombinedFilters([currentQuestion], { responses: allResponses }, activeFilters || {}, isTestMode);
-      const filteredResponseData = filtered.responses || allResponses;
+    if (currentQuestion && allResponses.length > 0) {
+      console.log('=== フィルター適用デバッグ QuestionType345678Analytics ===');
+      console.log('全回答数:', allResponses.length);
+      console.log('アクティブフィルター:', activeFilters);
+      console.log('対象質問:', currentQuestion);
+      
+      // 正しい引数順序で applyCombinedFilters を呼び出し
+      const filteredResponseData = applyCombinedFilters(allResponses, activeFilters || {}, currentQuestion);
+      console.log('フィルター後回答数:', filteredResponseData.length);
+      console.log('フィルター後データサンプル:', filteredResponseData.slice(0, 3));
       
       setFilteredResponses(filteredResponseData);
       
@@ -170,8 +177,19 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
       const pieData = generatePieChartData(filteredResponseData, currentQuestion, currentQuestion.typeId || currentQuestion.question_types_id || currentQuestion.type_id);
       console.log('フィルター適用後円グラフデータ:', pieData);
       setPieChartData(pieData);
+      console.log('=== フィルター適用デバッグ終了 ===');
+    } else if (allResponses.length > 0) {
+      // フィルターがない場合は全データを使用
+      console.log('フィルターなし - 全データを使用:', allResponses.length, '件');
+      setFilteredResponses(allResponses);
+      
+      const areaData = generateAreaChartData(allResponses);
+      setAreaChartData(areaData);
+      
+      const pieData = generatePieChartData(allResponses, currentQuestion, currentQuestion?.typeId || currentQuestion?.question_types_id || currentQuestion?.type_id);
+      setPieChartData(pieData);
     }
-  }, [allResponses, activeFilters, questionData, questionId, isTestMode]);
+  }, [allResponses, activeFilters, questionData, questionId]);
 
   // 実際のデータベースから選択肢データを取得
   const fetchQuestionChoices = async (questionId, questionTypeNum, isTestMode) => {
