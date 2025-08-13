@@ -678,6 +678,7 @@ export default function QuestionSidebar({
                             badgeContent={question.responseCount > 999 ? '999+' : question.responseCount}
                             color="default"
                             max={999}
+                            showZero={true}
                             sx={{
                               '& .MuiBadge-badge': {
                                 fontSize: '0.65rem',
