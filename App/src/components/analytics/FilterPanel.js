@@ -102,7 +102,9 @@ export default function FilterPanel({
                 p: 2,
                 display: 'grid',
                 gridTemplateColumns: selectedQuestions.length === 2 ? '1fr 1fr' : '1fr',
-                gap: 2
+                gap: 2,
+                width: '100%',
+                maxWidth: '100%'
               }}
             >
               {selectedQuestions.map((question, index) => {
@@ -125,6 +127,9 @@ export default function FilterPanel({
                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                         minHeight: 70,
                         height: '100%',
+                        width: '100%',
+                        maxWidth: '100%',
+                        minWidth: 0,
                         display: 'flex',
                         flexDirection: 'column'
                       }}
@@ -248,11 +253,20 @@ export default function FilterPanel({
                             
                             {/* 選択中の項目数表示 */}
                             {activeFilters[question.id]?.value?.length > 0 && (
-                              <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Box sx={{ 
+                                mt: 1, 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                justifyContent: 'space-between',
+                                gap: 1,
+                                width: '100%',
+                                minHeight: 24
+                              }}>
                                 <Typography variant="caption" sx={{ 
                                   color: categoryColors[question.category],
                                   fontSize: '0.7rem',
-                                  fontWeight: 600
+                                  fontWeight: 600,
+                                  flexShrink: 0
                                 }}>
                                   {Array.isArray(activeFilters[question.id].value) 
                                     ? `${activeFilters[question.id].value.length}個選択中`
@@ -268,6 +282,7 @@ export default function FilterPanel({
                                     py: 0.25,
                                     fontSize: '0.65rem',
                                     color: '#94a3b8',
+                                    flexShrink: 0,
                                     '&:hover': {
                                       color: '#ef4444',
                                       bgcolor: 'rgba(239, 68, 68, 0.05)'
