@@ -148,6 +148,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
           />
         </Box>
 
+
       </Box>
     </motion.div>
   );

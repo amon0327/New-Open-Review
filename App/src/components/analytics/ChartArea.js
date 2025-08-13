@@ -15,6 +15,7 @@ import {
 } from '@mui/icons-material';
 import FilterPanel from './FilterPanel';
 import ChatPanel from './ChatPanel';
+import TextQuestionChart from './TextQuestionChart';
 import { applyCombinedFilters, calculateFilterStats, generateFilterDescription } from '../../utils/dataFilterUtils';
 
 // CSS アニメーション用のスタイル定義
@@ -361,89 +362,161 @@ export default function ChartArea({
           )}
 
           {/* チャート表示部分 */}
-          <Box sx={{ 
-            flexShrink: 0,
-            minHeight: 1200,
-            display: 'flex', 
-            flexDirection: 'column',
-            bgcolor: Object.keys(activeFilters).length > 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
-            borderRadius: 2,
-            border: Object.keys(activeFilters).length > 0 ? '1px dashed #c7d2fe' : 'none',
-            transition: 'all 0.3s ease'
-          }}>
-            {/* 中央配置のコンテンツエリア */}
-            <Box sx={{ 
-              height: 300,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              p: 2,
-              flexShrink: 0
-            }}>
-              <Box sx={{ textAlign: 'center', color: '#64748b' }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                  {Object.keys(activeFilters).length > 0 ? 'フィルター済みデータ' : 'チャートエリア'}
-                </Typography>
-                <Typography variant="body2">
-                  {Object.keys(activeFilters).length > 0 
-                    ? 'フィルター条件に基づいたグラフが表示されます' 
-                    : 'ここにグラフが表示されます'
-                  }
-                </Typography>
-                {Object.keys(activeFilters).length > 0 && (
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="caption" sx={{ 
-                      bgcolor: 'rgba(99, 102, 241, 0.1)', 
-                      px: 2, 
-                      py: 0.5, 
-                      borderRadius: 1,
-                      color: '#4338ca',
-                      fontWeight: 500
-                    }}>
-                      フィルター結果: {selectedQuestions.length} 質問中 {Object.keys(activeFilters).length} 質問にフィルター適用
-                    </Typography>
+          {(() => {
+            // テキスト質問（1つ選択、タイプ1または2）の場合
+            if (selectedQuestions.length === 1) {
+              const question = selectedQuestions[0];
+              const questionTypeId = question.typeId || question.question_types_id || question.type_id;
+              
+              if (questionTypeId === 1 || questionTypeId === 2) {
+                return (
+                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                    <TextQuestionChart 
+                      question={question}
+                      activeFilters={activeFilters}
+                      setActiveFilters={setActiveFilters}
+                    />
                   </Box>
-                )}
+                );
+              }
+            }
+            
+            // 2つ選択されていて、1つ目がテキスト質問（タイプ1または2）、2つ目が質問タイプ3,4,5,6,7,8の場合
+            if (selectedQuestions.length === 2) {
+              const firstQuestion = selectedQuestions[0];
+              const secondQuestion = selectedQuestions[1];
+              const firstTypeId = firstQuestion.typeId || firstQuestion.question_types_id || firstQuestion.type_id;
+              const secondTypeId = secondQuestion.typeId || secondQuestion.question_types_id || secondQuestion.type_id;
+              
+              if ((firstTypeId === 1 || firstTypeId === 2) && [3, 4, 5, 6, 7, 8].includes(secondTypeId)) {
+                return (
+                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                    <TextQuestionChart 
+                      question={firstQuestion}
+                      activeFilters={activeFilters}
+                      setActiveFilters={setActiveFilters}
+                    />
+                  </Box>
+                );
+              }
+            }
+            
+            // 2つ選択されていて、両方ともテキスト質問（タイプ1または2）の場合
+            if (selectedQuestions.length === 2) {
+              const firstQuestion = selectedQuestions[0];
+              const secondQuestion = selectedQuestions[1];
+              const firstTypeId = firstQuestion.typeId || firstQuestion.question_types_id || firstQuestion.type_id;
+              const secondTypeId = secondQuestion.typeId || secondQuestion.question_types_id || secondQuestion.type_id;
+              
+              if ((firstTypeId === 1 || firstTypeId === 2) && (secondTypeId === 1 || secondTypeId === 2)) {
+                return (
+                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                    <TextQuestionChart 
+                      question={firstQuestion}
+                      secondQuestion={secondQuestion}
+                      activeFilters={activeFilters}
+                      setActiveFilters={setActiveFilters}
+                    />
+                  </Box>
+                );
+              }
+            }
+            
+            // その他の場合（選択肢系、複数質問など）は従来のプレースホルダー
+            return (
+              <Box sx={{ 
+                flexShrink: 0,
+                minHeight: 1200,
+                display: 'flex', 
+                flexDirection: 'column',
+                bgcolor: Object.keys(activeFilters).length > 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
+                borderRadius: 2,
+                border: Object.keys(activeFilters).length > 0 ? '1px dashed #c7d2fe' : 'none',
+                transition: 'all 0.3s ease'
+              }}>
+                {/* 中央配置のコンテンツエリア */}
+                <Box sx={{ 
+                  height: 300,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  p: 2,
+                  flexShrink: 0
+                }}>
+                  <Box sx={{ textAlign: 'center', color: '#64748b' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                      {selectedQuestions.length === 1 
+                        ? `${selectedQuestions[0].type}チャート` 
+                        : selectedQuestions.length === 2 
+                          ? '比較チャート' 
+                          : 'クロス分析チャート'
+                      }
+                    </Typography>
+                    <Typography variant="body2">
+                      {selectedQuestions.length === 1 
+                        ? '選択肢系質問のグラフが表示されます' 
+                        : '複数質問の比較・クロス分析が表示されます'
+                      }
+                    </Typography>
+                    {Object.keys(activeFilters).length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="caption" sx={{ 
+                          bgcolor: 'rgba(99, 102, 241, 0.1)', 
+                          px: 2, 
+                          py: 0.5, 
+                          borderRadius: 1,
+                          color: '#4338ca',
+                          fontWeight: 500
+                        }}>
+                          フィルター結果: {selectedQuestions.length} 質問中 {Object.keys(activeFilters).length} 質問にフィルター適用
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+                
+                {/* スクロール動作確認用のデモコンテンツ */}
+                <Box sx={{ 
+                  height: 600, 
+                  bgcolor: 'rgba(99, 102, 241, 0.02)',
+                  m: 2,
+                  borderRadius: 1,
+                  border: '1px dashed rgba(99, 102, 241, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'column',
+                  gap: 2
+                }}>
+                  <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 500 }}>
+                    {selectedQuestions.length === 1 
+                      ? '選択肢系チャートエリア（開発予定）' 
+                      : '比較・クロス分析エリア（開発予定）'
+                    }
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#cbd5e1' }}>
+                    棒グラフ、円グラフ、クロス集計表などが表示されます
+                  </Typography>
+                </Box>
+                
+                {/* 追加のコンテンツエリア（スクロール確認用） */}
+                <Box sx={{ 
+                  height: 400, 
+                  bgcolor: 'rgba(16, 185, 129, 0.02)',
+                  m: 2,
+                  borderRadius: 1,
+                  border: '1px dashed rgba(16, 185, 129, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Typography variant="body2" sx={{ color: '#059669' }}>
+                    統計情報・詳細分析エリア（開発予定）
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-            
-            {/* スクロール動作確認用のデモコンテンツ */}
-            <Box sx={{ 
-              height: 600, 
-              bgcolor: 'rgba(99, 102, 241, 0.02)',
-              m: 2,
-              borderRadius: 1,
-              border: '1px dashed rgba(99, 102, 241, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'column',
-              gap: 2
-            }}>
-              <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 500 }}>
-                チャートコンテンツエリア（スクロール可能）
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#cbd5e1' }}>
-                実際のチャートやグラフがここに表示されます
-              </Typography>
-            </Box>
-            
-            {/* 追加のコンテンツエリア（スクロール確認用） */}
-            <Box sx={{ 
-              height: 400, 
-              bgcolor: 'rgba(16, 185, 129, 0.02)',
-              m: 2,
-              borderRadius: 1,
-              border: '1px dashed rgba(16, 185, 129, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Typography variant="body2" sx={{ color: '#059669' }}>
-                追加チャートエリア（スクロールテスト用）
-              </Typography>
-            </Box>
-          </Box>
+            );
+          })()}
         </Box>
 
       </Box>

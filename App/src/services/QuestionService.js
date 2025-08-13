@@ -987,8 +987,8 @@ export const formatQuestionsForAnalyticsWithOptions = async (rawQuestions, isTes
       const questionTypeId = question.question_types?.id || question.question_types_id;
       
       try {
-        if ([3, 4, 5, 6, 7, 8].includes(questionTypeId)) {
-          // 選択肢データを取得
+        if ([3, 4, 5, 6, 7].includes(questionTypeId)) {
+          // 選択肢データを取得（プルダウン、単一選択、複数選択など）
           const tablePrefix = isTestMode ? 'test_' : '';
           const { data: choiceOptions, error: choiceError } = await supabase
             .from(`${tablePrefix}question_option_choices`)
@@ -1006,6 +1006,16 @@ export const formatQuestionsForAnalyticsWithOptions = async (rawQuestions, isTes
           } else if (choiceError) {
             console.warn(`質問ID ${question.id} の選択肢取得エラー:`, choiceError);
           }
+        } else if (questionTypeId === 8) {
+          // リニアスケール用のオプション生成
+          options = [
+            { label: '1', value: 1, text: '1' },
+            { label: '2', value: 2, text: '2' },
+            { label: '3', value: 3, text: '3' },
+            { label: '4', value: 4, text: '4' },
+            { label: '5', value: 5, text: '5' }
+          ];
+          console.log(`質問ID ${question.id} のリニアスケール選択肢:`, options);
         }
       } catch (error) {
         console.error(`質問ID ${question.id} のオプション取得でエラー:`, error);
