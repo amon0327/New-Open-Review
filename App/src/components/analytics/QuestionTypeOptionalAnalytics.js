@@ -57,8 +57,8 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
           questionTypeNum = 3; // デフォルト設定
         }
 
-        // 質問タイプ4,6用のコンポーネント（折れ線グラフ + 縦棒グラフ）
-        console.log('質問タイプ4,6用コンポーネントで処理開始');
+        // 質問タイプ4,5,6用のコンポーネント（折れ線グラフ + 縦棒グラフ）
+        console.log('質問タイプ4,5,6用コンポーネントで処理開始');
 
         // 実際のデータベースから回答データを取得
         let responses;
@@ -204,9 +204,15 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
   const fetchQuestionResponses = async (questionId, questionTypeNum, isTestMode) => {
     try {
       const config = getDatabaseConfig(isTestMode);
+      console.log(`質問タイプ${questionTypeNum}の回答データ取得開始 - 質問ID: ${questionId}`);
+      console.log('使用するデータベース設定:', config);
       
       // 線形スケール（質問タイプ5）の場合
       if (questionTypeNum === 5) {
+        console.log('線形スケール（質問タイプ5）の処理開始');
+        console.log('取得テーブル:', config.QUESTION_ANSWER_OPTION_LINEAR_SCALE);
+        console.log('JOINテーブル:', config.REVIEW_QUESTION_ANSWERS);
+        
         const { data: scaleAnswers, error: scaleError } = await supabase
           .from(config.QUESTION_ANSWER_OPTION_LINEAR_SCALE)
           .select(`
@@ -219,21 +225,30 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
           `)
           .eq(`${config.REVIEW_QUESTION_ANSWERS}.review_questions_id`, questionId);
           
+        console.log('線形スケール回答取得結果:', { data: scaleAnswers, error: scaleError });
+        
         if (scaleError) {
-          console.warn('線形スケール回答取得エラー:', scaleError);
+          console.error('線形スケール回答取得エラー:', scaleError);
           return null;
         }
         
         if (scaleAnswers && scaleAnswers.length > 0) {
-          return scaleAnswers.map(answer => ({
+          const formattedAnswers = scaleAnswers.map(answer => ({
             id: answer.review_question_answers_id,
             created_at: answer[config.REVIEW_QUESTION_ANSWERS].created_at,
             answer: answer.answer_number?.toString() || '未回答'
           }));
+          console.log('フォーマット済み線形スケール回答:', formattedAnswers);
+          return formattedAnswers;
+        } else {
+          console.log('線形スケール回答データなし');
         }
       }
       
       // その他の選択肢系の場合
+      console.log(`選択肢系（質問タイプ${questionTypeNum}）の処理開始`);
+      console.log('取得テーブル:', config.QUESTION_ANSWER_OPTION_CHOICES);
+      
       const { data: choiceAnswers, error: choiceError } = await supabase
         .from(config.QUESTION_ANSWER_OPTION_CHOICES)
         .select(`
@@ -246,18 +261,24 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
         `)
         .eq(`${config.REVIEW_QUESTION_ANSWERS}.review_questions_id`, questionId);
         
+      console.log('選択肢回答取得結果:', { data: choiceAnswers, error: choiceError });
+      
       if (choiceError) {
-        console.warn('選択肢回答取得エラー:', choiceError);
+        console.error('選択肢回答取得エラー:', choiceError);
         return null;
       }
       
       if (choiceAnswers && choiceAnswers.length > 0) {
         // 選択肢IDから選択肢名を取得
         const choiceIds = choiceAnswers.map(answer => answer.question_option_choices_id).filter(Boolean);
+        console.log('選択肢IDリスト:', choiceIds);
+        
         const { data: choiceNames } = await supabase
           .from(config.QUESTION_OPTION_CHOICES)
           .select('id, choice_name')
           .in('id', choiceIds);
+        
+        console.log('取得した選択肢名:', choiceNames);
         
         const choiceMap = {};
         if (choiceNames) {
@@ -266,13 +287,19 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
           });
         }
         
-        return choiceAnswers.map(answer => ({
+        const formattedChoiceAnswers = choiceAnswers.map(answer => ({
           id: answer.review_question_answers_id,
           created_at: answer[config.REVIEW_QUESTION_ANSWERS].created_at,
           answer: choiceMap[answer.question_option_choices_id] || '未回答'
         }));
+        
+        console.log('フォーマット済み選択肢回答:', formattedChoiceAnswers);
+        return formattedChoiceAnswers;
+      } else {
+        console.log('選択肢回答データなし');
       }
       
+      console.log('回答データの取得処理終了 - 返却値: null');
       return null;
     } catch (error) {
       console.error('回答取得関数エラー:', error);

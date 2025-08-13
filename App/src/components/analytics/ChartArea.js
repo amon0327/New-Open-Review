@@ -18,6 +18,7 @@ import ChatPanel from './ChatPanel';
 import TextQuestionChart from './TextQuestionChart';
 import QuestionType345678Analytics from './QuestionType345678Analytics';
 import QuestionTypeOptionalAnalytics from './QuestionTypeOptionalAnalytics';
+import QuestionCrossAnalysisHeatmap from './QuestionCrossAnalysisHeatmap';
 import { applyCombinedFilters, calculateFilterStats, generateFilterDescription } from '../../utils/dataFilterUtils';
 
 // CSS アニメーション用のスタイル定義
@@ -402,14 +403,38 @@ export default function ChartArea({
             }
 
             // テキスト質問が含まれていない場合のロジック
+            // 2つ選択されている場合（クロス分析）
+            if (selectedQuestions.length === 2) {
+              // 両方とも質問タイプ3,4,5,6,7,8の場合はヒートマップ表示
+              const allAreChoiceTypes = selectedQuestions.every(question => {
+                const questionTypeId = question.typeId || question.question_types_id || question.type_id;
+                return [3, 4, 5, 6, 7, 8].includes(questionTypeId);
+              });
+              
+              if (allAreChoiceTypes) {
+                console.log('2つの選択肢系質問でヒートマップコンポーネント呼び出し:', selectedQuestions);
+                return (
+                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                    <QuestionCrossAnalysisHeatmap 
+                      questionData={selectedQuestions}
+                      selectedQuestions={selectedQuestions}
+                      activeFilters={activeFilters}
+                      setActiveFilters={setActiveFilters}
+                      isTestMode={isTestMode}
+                    />
+                  </Box>
+                );
+              }
+            }
+            
             // 1つ選択されている場合
             if (selectedQuestions.length === 1) {
               const question = selectedQuestions[0];
               const questionTypeId = question.typeId || question.question_types_id || question.type_id;
               
-              // 質問タイプ4,6の場合: 折れ線グラフと縦棒グラフ
-              if ([4, 6].includes(questionTypeId)) {
-                console.log('質問タイプ4,6コンポーネント呼び出し:', { question, questionTypeId });
+              // 質問タイプ4,5,6の場合: 折れ線グラフと縦棒グラフ（均等目盛も含む）
+              if ([4, 5, 6].includes(questionTypeId)) {
+                console.log('質問タイプ4,5,6コンポーネント呼び出し:', { question, questionTypeId });
                 return (
                   <Box sx={{ flexGrow: 1, minHeight: 0 }}>
                     <QuestionTypeOptionalAnalytics 
@@ -423,9 +448,9 @@ export default function ChartArea({
                 );
               }
               
-              // 質問タイプ3,5,7,8の場合: 積み上げ面グラフと円グラフ
-              if ([3, 5, 7, 8].includes(questionTypeId)) {
-                console.log('質問タイプ3,5,7,8コンポーネント呼び出し:', { question, questionTypeId });
+              // 質問タイプ3,7,8の場合: 積み上げ面グラフと円グラフ
+              if ([3, 7, 8].includes(questionTypeId)) {
+                console.log('質問タイプ3,7,8コンポーネント呼び出し:', { question, questionTypeId });
                 return (
                   <Box sx={{ flexGrow: 1, minHeight: 0 }}>
                     <QuestionType345678Analytics 
