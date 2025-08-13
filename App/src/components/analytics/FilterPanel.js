@@ -83,6 +83,7 @@ export default function FilterPanel({
               background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
               maxHeight: 280,
               overflow: 'auto',
+              touchAction: 'pan-y',
               '&::-webkit-scrollbar': { width: 6 },
               '&::-webkit-scrollbar-track': { 
                 bgcolor: 'rgba(241, 245, 249, 0.5)',
@@ -104,7 +105,9 @@ export default function FilterPanel({
                 gridTemplateColumns: selectedQuestions.length === 2 ? '1fr 1fr' : '1fr',
                 gap: 2,
                 width: '100%',
-                maxWidth: '100%'
+                maxWidth: '100%',
+                overflowX: 'hidden',
+                touchAction: 'pan-y'
               }}
             >
               {selectedQuestions.map((question, index) => {
@@ -131,7 +134,9 @@ export default function FilterPanel({
                         maxWidth: '100%',
                         minWidth: 0,
                         display: 'flex',
-                        flexDirection: 'column'
+                        flexDirection: 'column',
+                        overflowX: 'hidden',
+                        touchAction: 'pan-y'
                       }}
                     >
                       {/* カテゴリカラーインジケーター */}
@@ -160,6 +165,7 @@ export default function FilterPanel({
                               py: 1,
                               px: 0.5,
                               mx: -0.5,
+                              touchAction: 'pan-x',
                               '&::-webkit-scrollbar': {
                                 display: 'none'
                               },

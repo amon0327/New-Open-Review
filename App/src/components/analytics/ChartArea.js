@@ -270,7 +270,9 @@ export default function ChartArea({
         {/* チャート表示エリア */}
         <Box sx={{ flexGrow: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
           {/* フィルター状況の表示 */}
-          {Object.keys(activeFilters).length > 0 && (
+          {Object.keys(activeFilters).length > 0 && 
+           Object.values(activeFilters).some(filter => filter && filter.value && 
+             (Array.isArray(filter.value) ? filter.value.length > 0 : filter.value !== '')) && (
             <Box sx={{ mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                 <FilterList sx={{ fontSize: 18, color: '#6366f1' }} />
