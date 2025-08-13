@@ -286,6 +286,17 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
   // MCPツールの定義（データモード時のみ）
   const tools = mcpMode ? [
     {
+      name: 'test_connection',
+      description: 'データベース接続をテストします',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' }
+        },
+        required: ['jwt_token']
+      }
+    },
+    {
       name: 'get_survey_questions',
       description: 'アンケート質問一覧を取得します',
       input_schema: {
@@ -487,35 +498,85 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
 async function executeDatabaseTool(toolName: string, args: any, userToken: string): Promise<any> {
   console.log(`Executing database tool: ${toolName}`, args);
   
-  // Supabaseクライアントを認証付きで作成
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  
-  // JWTトークンでユーザーを認証
-  const authenticatedSupabase = createClient(
-    supabaseUrl,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: `Bearer ${userToken}` } } }
-  );
-
   try {
+    // 環境変数の確認
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
+      throw new Error('Supabase環境変数が設定されていません');
+    }
+    
+    console.log('Environment check passed, creating Supabase clients');
+    
+    // Service Role で管理用クライアント作成（RLS回避）
+    const adminSupabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+    
+    // ユーザートークンで認証用クライアント作成
+    const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${userToken}` } },
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
     // ユーザー認証確認
-    const { data: userRes, error: authErr } = await authenticatedSupabase.auth.getUser();
-    if (authErr || !userRes?.user) {
-      throw new Error('認証が無効です: ' + (authErr?.message || '不明なエラー'));
+    console.log('Verifying user authentication...');
+    const { data: userRes, error: authErr } = await userSupabase.auth.getUser();
+    
+    if (authErr) {
+      console.error('Auth error:', authErr);
+      throw new Error(`認証エラー: ${authErr.message}`);
+    }
+    
+    if (!userRes?.user) {
+      throw new Error('ユーザー情報が取得できません');
     }
 
     const userId = userRes.user.id;
-    console.log(`Tool execution for user: ${userId.substring(0, 8)}...`);
+    console.log(`Tool execution for authenticated user: ${userId.substring(0, 8)}...`);
+
+    // 簡単な接続テスト
+    if (toolName === 'test_connection') {
+      try {
+        const { data: testData, error: testError } = await adminSupabase
+          .from('review_questions')
+          .select('count')
+          .limit(1);
+
+        return {
+          success: true,
+          message: 'データベース接続成功',
+          test_result: {
+            error: testError?.message || null,
+            data_exists: !!testData,
+            timestamp: new Date().toISOString()
+          }
+        };
+      } catch (testErr) {
+        return {
+          success: false,
+          message: 'データベース接続エラー',
+          error: testErr instanceof Error ? testErr.message : '不明なエラー'
+        };
+      }
+    }
 
     switch (toolName) {
       case 'get_survey_questions': {
         const { survey_id, limit = 50, question_type } = args;
         
-        console.log('Querying survey_questions with params:', { survey_id, limit, question_type });
+        console.log('Querying review_questions with params:', { survey_id, limit, question_type });
         
-        let query = supabase
+        // Admin権限でデータを取得（RLS回避）
+        let query = adminSupabase
           .from('review_questions')
           .select('id, title, question_types_id, post_2_id, options, created_at')
           .order('created_at', { ascending: false })
@@ -524,6 +585,7 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
         if (survey_id) query = query.eq('post_2_id', survey_id);
         if (question_type) query = query.eq('question_types_id', question_type);
 
+        console.log('Executing review_questions query...');
         const { data, error } = await query;
         
         console.log('Survey questions query result:', { 
@@ -559,7 +621,8 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
 
         console.log('Querying review_question_answers with question_id:', question_id);
 
-        let query = supabase
+        // Admin権限でデータを取得
+        let query = adminSupabase
           .from('review_question_answers')
           .select(`
             id, 
@@ -573,6 +636,8 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
           .eq('review_questions_id', question_id)
           .order('created_at', { ascending: false })
           .limit(Math.min(limit, 1000));
+
+        console.log('Executing review_question_answers query...');
 
         const { data, error } = await query;
         if (error) throw new Error(`回答取得エラー: ${error.message}`);
@@ -612,7 +677,9 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
         if (!question_id) throw new Error('question_idは必須です');
         if (!analysis_type) throw new Error('analysis_typeは必須です');
 
-        const { data, error } = await supabase
+        console.log('Querying review_question_answers for text analysis with question_id:', question_id);
+        
+        const { data, error } = await adminSupabase
           .from('review_question_answers')
           .select('id, answer_text, created_at')
           .eq('review_questions_id', question_id)
@@ -719,61 +786,63 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
           throw new Error('question_idsは必須です（配列形式）');
         }
 
-        let query = supabase
-          .from('responses')
+        console.log('Querying filtered analytics data for question_ids:', question_ids);
+        
+        let query = adminSupabase
+          .from('review_question_answers')
           .select(`
             id,
-            question_id,
-            answer,
-            submitted_at,
-            respondents (
+            review_questions_id,
+            answer_text,
+            created_at,
+            review_form_submissions (
               id,
-              gender,
-              age_group,
-              department
+              submitted_at
             ),
-            survey_questions (
+            review_questions (
               id,
               title,
               question_types_id,
               options
             )
           `)
-          .in('question_id', question_ids)
-          .order('submitted_at', { ascending: false });
+          .in('review_questions_id', question_ids)
+          .order('created_at', { ascending: false });
 
         // 日付フィルター
         if (filters?.date_range?.start) {
-          query = query.gte('submitted_at', filters.date_range.start);
+          query = query.gte('created_at', filters.date_range.start);
         }
         if (filters?.date_range?.end) {
-          query = query.lte('submitted_at', filters.date_range.end);
+          query = query.lte('created_at', filters.date_range.end);
         }
 
         const { data, error } = await query;
         if (error) throw new Error(`データ取得エラー: ${error.message}`);
 
-        // フィルター適用
-        let filteredData = data?.filter(response => {
-          const respondent = response.respondents;
-          if (!respondent) return false;
-          
-          if (filters?.gender && !filters.gender.includes(respondent.gender)) return false;
-          if (filters?.age_group && !filters.age_group.includes(respondent.age_group)) return false;
-          if (filters?.department && !filters.department.includes(respondent.department)) return false;
-          
-          return true;
-        }) || [];
+        console.log('Filtered analytics query result:', { 
+          dataCount: data?.length || 0, 
+          error: error?.message || null,
+          sampleData: data?.slice(0, 2) || []
+        });
 
-        // グルーピング処理
+        // 現在のスキーマではrespondents情報がないため、基本的な処理のみ
+        let filteredData = data || [];
+
+        // グルーピング処理（現在のスキーマでは制限的）
         let result: any = filteredData;
         if (group_by !== 'none') {
-          result = filteredData.reduce((acc, response) => {
-            const groupKey = response.respondents?.[group_by as keyof typeof response.respondents] || 'unknown';
-            if (!acc[groupKey]) acc[groupKey] = [];
-            acc[groupKey].push(response);
-            return acc;
-          }, {} as Record<string, any[]>);
+          // 現在のスキーマでは、質問IDごとのグルーピングのみ対応
+          if (group_by === 'question') {
+            result = filteredData.reduce((acc, response) => {
+              const groupKey = response.review_questions_id || 'unknown';
+              if (!acc[groupKey]) acc[groupKey] = [];
+              acc[groupKey].push(response);
+              return acc;
+            }, {} as Record<string, any[]>);
+          } else {
+            result = { 'all_data': filteredData };
+          }
         }
 
         return {
