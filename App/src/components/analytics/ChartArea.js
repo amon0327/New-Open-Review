@@ -143,9 +143,23 @@ export default function ChartArea({
           bgcolor: '#ffffff',
           borderRadius: 2,
           border: '1px solid #e2e8f0',
-          overflow: 'hidden',
+          overflow: 'auto',
           position: 'relative',
-          minWidth: 0
+          minWidth: 0,
+          '&::-webkit-scrollbar': {
+            width: 8
+          },
+          '&::-webkit-scrollbar-track': {
+            bgcolor: 'rgba(241, 245, 249, 0.5)',
+            borderRadius: 4
+          },
+          '&::-webkit-scrollbar-thumb': {
+            bgcolor: 'rgba(203, 213, 225, 0.8)',
+            borderRadius: 4,
+            '&:hover': {
+              bgcolor: 'rgba(148, 163, 184, 0.9)'
+            }
+          }
         }}
       >
       {/* ヘッダーセクション */}
@@ -268,7 +282,27 @@ export default function ChartArea({
       />
 
         {/* チャート表示エリア */}
-        <Box sx={{ flexGrow: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ 
+          flexGrow: 1, 
+          p: 3, 
+          display: 'flex', 
+          flexDirection: 'column',
+          overflow: 'auto',
+          '&::-webkit-scrollbar': {
+            width: 8
+          },
+          '&::-webkit-scrollbar-track': {
+            bgcolor: 'rgba(241, 245, 249, 0.5)',
+            borderRadius: 4
+          },
+          '&::-webkit-scrollbar-thumb': {
+            bgcolor: 'rgba(203, 213, 225, 0.8)',
+            borderRadius: 4,
+            '&:hover': {
+              bgcolor: 'rgba(148, 163, 184, 0.9)'
+            }
+          }
+        }}>
           {/* フィルター状況の表示 */}
           {(() => {
             console.log('activeFilters:', activeFilters);
