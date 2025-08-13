@@ -228,13 +228,13 @@ export const createTemplateQuestionWithOptions = async ({
     });
 
     // 2. 質問タイプに応じてオプションをコピー
-    if (questionTypesId === 7) {
+    if (questionTypesId === 8) {
       // リニアスケールオプションを取得してコピー
       const templateLinearOption = await getTemplateLinearScaleOption(templateReviewQuestionsId);
       if (templateLinearOption) {
         await createLinearScaleOptionFromTemplate(question.id, templateLinearOption);
       }
-    } else if ([3, 4, 5, 6, 8, 9, 10].includes(questionTypesId)) {
+    } else if ([3, 4, 5, 6, 7, 9, 10].includes(questionTypesId)) {
       // 選択肢オプションを取得してコピー
       const templateChoiceOptions = await getTemplateChoiceOptions(templateReviewQuestionsId);
       if (templateChoiceOptions.length > 0) {
@@ -265,12 +265,12 @@ export const createQuestionWithOptions = async ({
       questionNumber
     });
 
-    // 2. 質問タイプが7（リニアスケール）の場合、追加オプションを作成
-    if (questionTypesId === 7) {
+    // 2. 質問タイプが8（リニアスケール）の場合、追加オプションを作成
+    if (questionTypesId === 8) {
       await createLinearScaleOption(question.id);
     }
     // 3. 選択肢が必要な質問タイプの場合、デフォルト選択肢を作成
-    else if ([3, 4, 5, 6, 8, 9, 10].includes(questionTypesId)) {
+    else if ([3, 4, 5, 6, 7, 9, 10].includes(questionTypesId)) {
       const defaultChoices = ['選択肢1'];
       console.log(`Creating default choice for question type ${questionTypesId}:`, defaultChoices);
       await updateChoiceOptions(question.id, defaultChoices);
@@ -654,7 +654,7 @@ export const updateQuestionWithOptions = async (questionId, questionData) => {
     });
 
     // 2. 質問タイプに応じてオプションを更新
-    if (questionData.question_types_id === 7) {
+    if (questionData.question_types_id === 8) {
       // リニアスケールオプション
       if (questionData.scale_settings) {
         const scaleSettings = typeof questionData.scale_settings === 'string' 
@@ -662,7 +662,7 @@ export const updateQuestionWithOptions = async (questionId, questionData) => {
           : questionData.scale_settings;
         await updateLinearScaleOption(questionId, scaleSettings);
       }
-    } else if ([3, 4, 5, 6, 8, 9, 10].includes(questionData.question_types_id)) {
+    } else if ([3, 4, 5, 6, 7, 9, 10].includes(questionData.question_types_id)) {
       // 選択肢オプション
       if (questionData.choices) {
         const choices = typeof questionData.choices === 'string' 
@@ -867,10 +867,10 @@ export const getQuestionsWithOptions = async (reviewFormId, reviewFormPagesId) =
         let options = null;
         
         // 質問タイプに応じてオプションを取得
-        if (question.question_types_id === 7) {
+        if (question.question_types_id === 8) {
           // リニアスケールオプション
           options = await getQuestionLinearScaleOption(question.id);
-        } else if ([3, 4, 5, 6, 8, 9, 10].includes(question.question_types_id)) {
+        } else if ([3, 4, 5, 6, 7, 9, 10].includes(question.question_types_id)) {
           // 選択肢オプション
           options = await getQuestionChoiceOptions(question.id);
         }
