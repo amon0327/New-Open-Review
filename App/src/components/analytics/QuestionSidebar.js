@@ -672,7 +672,7 @@ export default function QuestionSidebar({
                               fontWeight: 500
                             }}
                           >
-                            回答
+                            回答数
                           </Typography>
                           <Badge
                             badgeContent={question.responseCount > 999 ? '999+' : question.responseCount}
