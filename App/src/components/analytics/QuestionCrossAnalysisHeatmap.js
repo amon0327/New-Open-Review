@@ -479,25 +479,26 @@ const QuestionCrossAnalysisHeatmap = ({
 
       {/* ヒートマップ */}
       <Box sx={{ 
-        height: 'calc(100vh - 200px)', 
+        flexGrow: 1,
         width: '100%',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         mb: 3,
-        overflow: 'hidden', // スワイプ無効化
+        overflow: 'auto', // 必要に応じてスクロール可能
         touchAction: 'none' // タッチ操作無効化
       }}>
         {verticalQuestion && horizontalQuestion && (
           <>
-            {/* ヒートマップ全体 - 中央配置 */}
+            {/* ヒートマップ全体 */}
             <Box sx={{ 
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
               width: '100%',
-              height: '100%',
-              gap: 2
+              minHeight: '100%',
+              gap: 2,
+              py: 2
             }}>
               {/* 上のrow - 横軸ラベル（右寄せ） */}
               <Box sx={{ 
@@ -555,9 +556,10 @@ const QuestionCrossAnalysisHeatmap = ({
               
               {/* ヒートマップセル */}
               <Box sx={{ 
-                maxHeight: 'calc(100% - 80px)',
-                overflow: 'hidden', // スクロール無効化
-                width: '100%'
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
               }}>
                 {verticalChoices.map((verticalChoice, verticalIndex) => {
                   // 要素が多い場合により小さくするセルサイズ計算（統一）
