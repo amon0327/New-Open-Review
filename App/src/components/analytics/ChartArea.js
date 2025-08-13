@@ -276,6 +276,7 @@ export default function ChartArea({
         <Box sx={{ 
           flexGrow: 1, 
           p: 3, 
+          pb: '100px', // 下部に100pxのパディング追加
           display: 'flex', 
           flexDirection: 'column',
           overflow: 'auto',

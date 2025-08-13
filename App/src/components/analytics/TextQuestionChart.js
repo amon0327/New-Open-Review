@@ -83,7 +83,7 @@ export default function TextQuestionChart({
   }, [question?.id, isTestMode]);
   
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 2, pb: '100px' }}>
       {/* メイン分析質問の選択（2つのテキスト質問が選択されている場合のみ表示） */}
       {secondQuestion && (
         <Box sx={{ mb: 4 }}>

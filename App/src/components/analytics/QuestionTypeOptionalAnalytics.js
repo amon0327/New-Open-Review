@@ -447,7 +447,7 @@ const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters
   const currentQuestion = questionData?.find(q => q.id === questionId);
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 2, pb: '100px' }}>
       {/* ヘッダー */}
       <Box sx={{ mb: 3 }}>
         <Typography 
