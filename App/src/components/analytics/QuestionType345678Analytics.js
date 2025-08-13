@@ -82,21 +82,21 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
           if (realResponses && realResponses.length > 0) {
             responses = realResponses;
             console.log('データベースから回答データを取得:', responses.length, '件');
-          } else if (Array.isArray(question.responses)) {
+          } else if (Array.isArray(question.responses) && question.responses.length > 0) {
             responses = question.responses;
             console.log('既存の回答データを使用:', responses.length, '件');
           } else {
-            responses = generateSampleResponses(questionTypeNum);
-            console.log('サンプルデータを生成:', responses.length, '件');
+            responses = [];
+            console.log('回答データがありません - 空のデータを使用');
           }
         } catch (responseError) {
           console.error('回答データ取得エラー:', responseError);
-          if (Array.isArray(question.responses)) {
+          if (Array.isArray(question.responses) && question.responses.length > 0) {
             responses = question.responses;
             console.log('エラー時既存回答データを使用:', responses.length, '件');
           } else {
-            responses = generateSampleResponses(questionTypeNum);
-            console.log('エラー時サンプルデータを生成:', responses.length, '件');
+            responses = [];
+            console.log('エラー時 - 空のデータを使用');
           }
         }
         

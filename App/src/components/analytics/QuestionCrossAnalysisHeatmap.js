@@ -88,9 +88,9 @@ const QuestionCrossAnalysisHeatmap = ({
           setHorizontalChoices(finalChoicesA);
         }
         
-        // フォールバック: サンプルデータを生成
-        const finalResponsesA = responsesA?.length > 0 ? responsesA : generateSampleResponses(questionA.typeId || questionA.question_types_id || questionA.type_id, questionA.id);
-        const finalResponsesB = responsesB?.length > 0 ? responsesB : generateSampleResponses(questionB.typeId || questionB.question_types_id || questionB.type_id, questionB.id);
+        // データがない場合は空配列を使用
+        const finalResponsesA = responsesA?.length > 0 ? responsesA : [];
+        const finalResponsesB = responsesB?.length > 0 ? responsesB : [];
         
         // 回答者IDでマッチングして、両方の質問に回答した人のデータを作成
         const combinedResponses = matchResponses(finalResponsesA, finalResponsesB);

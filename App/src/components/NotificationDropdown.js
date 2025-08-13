@@ -5,23 +5,15 @@ import {
   Typography,
   List,
   ListItem,
-  ListItemAvatar,
   ListItemText,
-  Avatar,
   Divider,
   Button,
-  IconButton,
-  Chip,
-  Badge
+  IconButton
 } from '@mui/material';
 import {
   Notifications,
-  Info,
-  CheckCircle,
-  Warning,
-  Error,
   Close,
-  MarkEmailRead
+  Circle
 } from '@mui/icons-material';
 
 const NotificationDropdown = ({ anchorEl, open, onClose }) => {
@@ -31,7 +23,6 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
     const sampleNotifications = [
       {
         id: 1,
-        type: 'info',
         title: 'システム更新',
         message: '新機能が追加されました',
         timestamp: new Date(Date.now() - 2 * 60 * 1000),
@@ -39,7 +30,6 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
       },
       {
         id: 2,
-        type: 'success',
         title: 'フォーム送信完了',
         message: 'レビューフォームが正常に送信されました',
         timestamp: new Date(Date.now() - 15 * 60 * 1000),
@@ -47,7 +37,6 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
       },
       {
         id: 3,
-        type: 'warning',
         title: '期限警告',
         message: 'レビュー期限まで残り3日です',
         timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
@@ -55,8 +44,7 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
       },
       {
         id: 4,
-        type: 'error',
-        title: 'エラー発生',
+        title: 'データ同期エラー',
         message: 'データの同期に失敗しました',
         timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
         isRead: false
@@ -65,32 +53,6 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
     setNotifications(sampleNotifications);
   }, []);
 
-  const getNotificationIcon = (type) => {
-    const iconProps = { fontSize: 'small' };
-    switch (type) {
-      case 'success':
-        return <CheckCircle {...iconProps} sx={{ color: '#10b981' }} />;
-      case 'warning':
-        return <Warning {...iconProps} sx={{ color: '#f59e0b' }} />;
-      case 'error':
-        return <Error {...iconProps} sx={{ color: '#ef4444' }} />;
-      default:
-        return <Info {...iconProps} sx={{ color: '#3b82f6' }} />;
-    }
-  };
-
-  const getNotificationColor = (type) => {
-    switch (type) {
-      case 'success':
-        return '#dcfce7';
-      case 'warning':
-        return '#fef3c7';
-      case 'error':
-        return '#fee2e2';
-      default:
-        return '#dbeafe';
-    }
-  };
 
   const formatTimestamp = (timestamp) => {
     const now = new Date();
@@ -138,131 +100,167 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
       }}
       PaperProps={{
         sx: {
-          width: 380,
-          maxHeight: 500,
-          borderRadius: 2,
-          boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-          border: '1px solid #e5e7eb'
+          width: 340,
+          maxHeight: 450,
+          borderRadius: 3,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+          border: 'none',
+          overflow: 'hidden'
         }
       }}
     >
-      <Box sx={{ p: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Notifications sx={{ color: '#6b7280' }} />
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              通知
-            </Typography>
-            {unreadCount > 0 && (
-              <Chip 
-                label={unreadCount} 
-                size="small" 
-                color="error" 
-                sx={{ height: 20, minWidth: 20, '& .MuiChip-label': { px: 0.5 } }}
-              />
-            )}
-          </Box>
-          <IconButton size="small" onClick={onClose}>
+      <Box sx={{ 
+        p: 0,
+        background: 'linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)'
+      }}>
+        {/* ヘッダー */}
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          p: 2.5,
+          borderBottom: '1px solid #f1f5f9'
+        }}>
+          <Typography variant="h6" sx={{ 
+            fontWeight: 600,
+            color: '#1e293b',
+            fontSize: '1.1rem'
+          }}>
+            通知 {unreadCount > 0 && `(${unreadCount})`}
+          </Typography>
+          <IconButton 
+            size="small" 
+            onClick={onClose}
+            sx={{ 
+              color: '#64748b',
+              '&:hover': { backgroundColor: '#f1f5f9' }
+            }}
+          >
             <Close fontSize="small" />
           </IconButton>
         </Box>
 
-        {unreadCount > 0 && (
-          <Button
-            size="small"
-            onClick={handleMarkAllAsRead}
-            startIcon={<MarkEmailRead />}
-            sx={{ mb: 1, textTransform: 'none' }}
-          >
-            すべて既読にする
-          </Button>
-        )}
-
-        <Divider />
-
-        <List sx={{ p: 0, maxHeight: 350, overflow: 'auto' }}>
+        {/* 通知リスト */}
+        <Box sx={{ maxHeight: 350, overflow: 'auto' }}>
           {notifications.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography color="textSecondary">通知はありません</Typography>
+            <Box sx={{ 
+              textAlign: 'center', 
+              py: 6,
+              px: 3
+            }}>
+              <Notifications sx={{ 
+                fontSize: 48, 
+                color: '#cbd5e1', 
+                mb: 2 
+              }} />
+              <Typography 
+                variant="body2" 
+                color="textSecondary"
+                sx={{ fontWeight: 500 }}
+              >
+                通知はありません
+              </Typography>
             </Box>
           ) : (
-            notifications.map((notification, index) => (
-              <React.Fragment key={notification.id}>
+            <List sx={{ p: 0 }}>
+              {notifications.map((notification) => (
                 <ListItem
+                  key={notification.id}
                   sx={{
-                    px: 0,
-                    py: 1.5,
-                    backgroundColor: notification.isRead ? 'transparent' : getNotificationColor(notification.type),
-                    borderRadius: 1,
-                    mb: 0.5,
+                    px: 2.5,
+                    py: 2,
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.15s ease',
+                    backgroundColor: notification.isRead ? 'transparent' : 'rgba(59, 130, 246, 0.04)',
                     '&:hover': {
-                      backgroundColor: notification.isRead 
-                        ? 'rgba(0,0,0,0.04)' 
-                        : getNotificationColor(notification.type)
+                      backgroundColor: '#f8fafc'
+                    },
+                    '&:not(:last-child)': {
+                      borderBottom: '1px solid #f1f5f9'
                     }
                   }}
                   onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
                 >
-                  <ListItemAvatar>
-                    <Avatar sx={{ 
-                      backgroundColor: 'white', 
-                      width: 36, 
-                      height: 36,
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}>
-                      {getNotificationIcon(notification.type)}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Typography variant="subtitle2" sx={{ fontWeight: notification.isRead ? 400 : 600 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    width: '100%', 
+                    alignItems: 'flex-start',
+                    gap: 1.5
+                  }}>
+                    {/* 未読インジケーター */}
+                    <Circle 
+                      sx={{ 
+                        fontSize: 8, 
+                        color: notification.isRead ? 'transparent' : '#3b82f6',
+                        mt: 1,
+                        flexShrink: 0
+                      }} 
+                    />
+                    
+                    {/* 通知内容 */}
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography 
+                        variant="subtitle2" 
+                        sx={{ 
+                          fontWeight: notification.isRead ? 500 : 600,
+                          color: '#1e293b',
+                          mb: 0.5,
+                          lineHeight: 1.4
+                        }}
+                      >
                         {notification.title}
                       </Typography>
-                    }
-                    secondary={
-                      <Box>
-                        <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
-                          {notification.message}
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          {formatTimestamp(notification.timestamp)}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                  {!notification.isRead && (
-                    <Box
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        backgroundColor: '#3b82f6',
-                        borderRadius: '50%',
-                        ml: 1
-                      }}
-                    />
-                  )}
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: '#64748b',
+                          mb: 1,
+                          lineHeight: 1.4
+                        }}
+                      >
+                        {notification.message}
+                      </Typography>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          color: '#94a3b8',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        {formatTimestamp(notification.timestamp)}
+                      </Typography>
+                    </Box>
+                  </Box>
                 </ListItem>
-                {index < notifications.length - 1 && <Divider variant="middle" />}
-              </React.Fragment>
-            ))
+              ))}
+            </List>
           )}
-        </List>
+        </Box>
 
+        {/* フッター */}
         {notifications.length > 0 && (
-          <>
-            <Divider sx={{ mt: 1 }} />
-            <Box sx={{ textAlign: 'center', pt: 1 }}>
-              <Button 
-                size="small" 
-                sx={{ textTransform: 'none', color: '#6b7280' }}
-                onClick={onClose}
-              >
-                すべての通知を見る
-              </Button>
-            </Box>
-          </>
+          <Box sx={{ 
+            p: 2,
+            borderTop: '1px solid #f1f5f9',
+            textAlign: 'center'
+          }}>
+            <Button 
+              size="small" 
+              onClick={handleMarkAllAsRead}
+              disabled={unreadCount === 0}
+              sx={{ 
+                textTransform: 'none',
+                color: '#3b82f6',
+                fontWeight: 500,
+                fontSize: '0.875rem',
+                '&:hover': {
+                  backgroundColor: 'rgba(59, 130, 246, 0.08)'
+                }
+              }}
+            >
+              すべて既読にする
+            </Button>
+          </Box>
         )}
       </Box>
     </Popover>

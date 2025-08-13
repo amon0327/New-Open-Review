@@ -66,7 +66,7 @@ export default function FilteredTextData({
           
           if (questionError || !questionData || questionData.length === 0) {
             console.warn('指定された質問IDが見つかりません:', questionId);
-            return getDummyTextData();
+            return [];
           }
           
           console.log('=== 段階2: test_review_question_answers 確認 ===');
@@ -79,12 +79,12 @@ export default function FilteredTextData({
           
           if (answerError) {
             console.warn('回答データ取得エラー:', answerError);
-            return getDummyTextData();
+            return [];
           }
           
           if (!answerData || answerData.length === 0) {
             console.log('指定された質問に対する回答が見つかりません');
-            return getDummyTextData();
+            return [];
           }
           
           // 回答IDリストを取得
@@ -103,12 +103,12 @@ export default function FilteredTextData({
           
           if (textAnswerError) {
             console.warn('テキスト回答取得エラー:', textAnswerError);
-            return getDummyTextData();
+            return [];
           }
           
           if (!textAnswerData || textAnswerData.length === 0) {
             console.log('指定された質問に対するテキスト回答が見つかりません');
-            return getDummyTextData();
+            return [];
           }
           
           // データフォーマット
@@ -127,7 +127,7 @@ export default function FilteredTextData({
           
         } catch (testErr) {
           console.warn('テストデータ確認でエラー:', testErr);
-          return getDummyTextData();
+          return [];
         }
       }
       
@@ -151,12 +151,12 @@ export default function FilteredTextData({
           
           if (answersError) {
             console.warn('本番モード 回答データ取得エラー:', answersError);
-            return getDummyTextData();
+            return [];
           }
           
           if (!answersData || answersData.length === 0) {
             console.log('本番モード: 指定された質問に対する回答が見つかりません');
-            return getDummyTextData();
+            return [];
           }
           
           // 回答IDリストを取得
@@ -181,7 +181,7 @@ export default function FilteredTextData({
           
         } catch (productionQueryError) {
           console.error('本番モードクエリでエラー:', productionQueryError);
-          return getDummyTextData();
+          return [];
         }
       }
       
@@ -225,16 +225,16 @@ export default function FilteredTextData({
       console.log('フォーマット後のデータ:', formattedData);
       
       if (formattedData.length === 0) {
-        console.log('フォーマット後のデータが空です。ダミーデータを使用します。');
-        return getDummyTextData();
+        console.log('フォーマット後のデータが空です。');
+        return [];
       }
       
       return formattedData;
       
     } catch (error) {
       console.error('テキスト回答取得処理エラー:', error);
-      console.log('予期しないエラーのため、ダミーデータを使用します');
-      return getDummyTextData();
+      console.log('予期しないエラーのため、空のデータを返します');
+      return [];
     }
   };
   
@@ -338,10 +338,9 @@ export default function FilteredTextData({
         console.error('=====================');
         
         setError(err.message || 'データの取得に失敗しました');
-        // エラー時もダミーデータを設定
-        const dummyData = getDummyTextData();
-        console.log('ダミーデータで復旧:', dummyData.length, '件');
-        setTextData(dummyData);
+        // エラー時は空データを設定
+        console.log('エラー時 - 空のデータを設定');
+        setTextData([]);
       } finally {
         setLoading(false);
       }
