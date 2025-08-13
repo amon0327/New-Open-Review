@@ -204,13 +204,13 @@ export default function FilteredTextData({
       
       if (error) {
         console.error('テキスト回答取得エラー:', error);
-        console.log('エラーのため、ダミーデータを使用します');
-        return getDummyTextData();
+        console.log('エラーのため、空のデータを使用します');
+        return [];
       }
       
       if (!data || data.length === 0) {
-        console.log('取得データが空です。ダミーデータを使用します。');
-        return getDummyTextData();
+        console.log('取得データが空です。空のデータを使用します。');
+        return [];
       }
       
       // データフォーマット
@@ -376,6 +376,10 @@ export default function FilteredTextData({
   }
   
   if (filteredData.length === 0) {
+    // データが全くない場合とフィルター結果が空の場合を区別
+    const hasNoData = textData.length === 0;
+    const isFiltered = selectedDates.length > 0 || (activeFilters[question?.id]?.value && activeFilters[question?.id]?.value.trim());
+    
     return (
       <Paper 
         sx={{ 
@@ -387,14 +391,14 @@ export default function FilteredTextData({
       >
         <Search sx={{ fontSize: 48, color: '#cbd5e1', mb: 2 }} />
         <Typography variant="h6" sx={{ color: '#94a3b8', mb: 1 }}>
-          該当するデータがありません
+          {hasNoData ? '回答データがありません' : '該当するデータがありません'}
         </Typography>
         <Typography variant="body2" sx={{ color: '#cbd5e1' }}>
-          フィルター条件を変更してお試しください
+          {hasNoData ? '回答が投稿されていません' : 'フィルター条件を変更してお試しください'}
         </Typography>
         {error && (
           <Alert severity="info" sx={{ mt: 2, textAlign: 'left' }}>
-            データベースからの取得でエラーが発生しました。ダミーデータで表示を継続しています。
+            データベースからの取得でエラーが発生しました。
           </Alert>
         )}
       </Paper>
@@ -425,7 +429,7 @@ export default function FilteredTextData({
       {/* エラー表示（データは表示継続） */}
       {error && (
         <Alert severity="warning" sx={{ mb: 2 }}>
-          データベースからの取得でエラーが発生しました。ダミーデータで表示を継続しています。
+          データベースからの取得でエラーが発生しました。
           <br />エラー: {error}
         </Alert>
       )}
