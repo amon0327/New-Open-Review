@@ -403,7 +403,7 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
       // 各ツール呼び出しを実行
       for (const toolUse of toolUses) {
         try {
-          const mcpResult = await callMCPServer(toolUse.name, toolUse.input, userToken);
+          const mcpResult = await executeDatabaseTool(toolUse.name, toolUse.input, userToken);
           
           // ツール結果をClaudeに送り返す
           const toolResultMessages = [
@@ -442,9 +442,9 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
           if (finalResponse.ok) {
             return await finalResponse.json();
           }
-        } catch (mcpError) {
-          console.error('MCP Server error:', mcpError);
-          // MCPエラーの場合でも元のレスポンスを返す
+        } catch (dbError) {
+          console.error('Database tool error:', dbError);
+          // データベースエラーの場合でも元のレスポンスを返す
         }
       }
     }
@@ -453,38 +453,288 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
   return claudeResponse;
 }
 
-// MCPサーバーへのツール呼び出し
-async function callMCPServer(toolName: string, args: any, userToken: string): Promise<any> {
-  const MCP_SERVER_URL = 'https://my-mcp-server.calm-pond-4c30.workers.dev';
+// Supabaseデータ取得ツール（MCPサーバー代替）
+async function executeDatabaseTool(toolName: string, args: any, userToken: string): Promise<any> {
+  console.log(`Executing database tool: ${toolName}`, args);
   
-  try {
-    console.log(`Calling MCP server tool: ${toolName}`, args);
-    
-    const response = await fetch(`${MCP_SERVER_URL}/openreview/mcp`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${userToken}`
-      },
-      body: JSON.stringify({
-        method: 'tools/call',
-        params: {
-          name: toolName,
-          arguments: {
-            ...args,
-            jwt_token: userToken // 確実にJWTトークンを渡す
-          }
-        }
-      })
-    });
+  // Supabaseクライアントを認証付きで作成
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  // JWTトークンでユーザーを認証
+  const authenticatedSupabase = createClient(
+    supabaseUrl,
+    Deno.env.get('SUPABASE_ANON_KEY')!,
+    { global: { headers: { Authorization: `Bearer ${userToken}` } } }
+  );
 
-    if (!response.ok) {
-      throw new Error(`MCP Server error: ${response.status}`);
+  try {
+    // ユーザー認証確認
+    const { data: userRes, error: authErr } = await authenticatedSupabase.auth.getUser();
+    if (authErr || !userRes?.user) {
+      throw new Error('認証が無効です: ' + (authErr?.message || '不明なエラー'));
     }
 
-    return await response.json();
+    const userId = userRes.user.id;
+    console.log(`Tool execution for user: ${userId.substring(0, 8)}...`);
+
+    switch (toolName) {
+      case 'get_survey_questions': {
+        const { survey_id, limit = 50, question_type } = args;
+        
+        let query = supabase
+          .from('survey_questions')
+          .select('id, title, question_types_id, survey_id, options, created_at')
+          .order('created_at', { ascending: false })
+          .limit(Math.min(limit, 100));
+
+        if (survey_id) query = query.eq('survey_id', survey_id);
+        if (question_type) query = query.eq('question_types_id', question_type);
+
+        const { data, error } = await query;
+        if (error) throw new Error(`質問取得エラー: ${error.message}`);
+
+        return {
+          success: true,
+          data: data,
+          count: data?.length || 0
+        };
+      }
+
+      case 'get_survey_responses': {
+        const { question_id, limit = 500, filters } = args;
+        
+        if (!question_id) throw new Error('question_idは必須です');
+
+        let query = supabase
+          .from('responses')
+          .select(`
+            id, 
+            answer, 
+            submitted_at,
+            respondents (
+              id,
+              gender,
+              age_group,
+              department
+            )
+          `)
+          .eq('question_id', question_id)
+          .order('submitted_at', { ascending: false })
+          .limit(Math.min(limit, 1000));
+
+        const { data, error } = await query;
+        if (error) throw new Error(`回答取得エラー: ${error.message}`);
+
+        // フィルター適用
+        let filteredData = data;
+        if (filters && data) {
+          filteredData = data.filter(response => {
+            const respondent = response.respondents;
+            if (!respondent) return false;
+            
+            if (filters.gender && respondent.gender !== filters.gender) return false;
+            if (filters.age_group && respondent.age_group !== filters.age_group) return false;
+            if (filters.department && respondent.department !== filters.department) return false;
+            
+            return true;
+          });
+        }
+
+        return {
+          success: true,
+          data: filteredData,
+          count: filteredData?.length || 0,
+          total_count: data?.length || 0
+        };
+      }
+
+      case 'analyze_text_responses': {
+        const { question_id, analysis_type, limit = 100 } = args;
+        
+        if (!question_id) throw new Error('question_idは必須です');
+        if (!analysis_type) throw new Error('analysis_typeは必須です');
+
+        const { data, error } = await supabase
+          .from('responses')
+          .select('id, answer, submitted_at')
+          .eq('question_id', question_id)
+          .not('answer', 'is', null)
+          .order('submitted_at', { ascending: false })
+          .limit(Math.min(limit, 500));
+
+        if (error) throw new Error(`回答取得エラー: ${error.message}`);
+        if (!data || data.length === 0) {
+          return {
+            success: true,
+            analysis: {
+              type: analysis_type,
+              message: 'データが見つかりませんでした',
+              total_responses: 0
+            }
+          };
+        }
+
+        // 簡単な分析処理
+        let analysisResult: any = { type: analysis_type };
+        
+        switch (analysis_type) {
+          case 'keyword': {
+            const allText = data.map(r => r.answer).join(' ');
+            const words = allText.split(/\s+/).filter(word => word.length > 2);
+            const wordCount: Record<string, number> = {};
+            
+            words.forEach(word => {
+              const cleanWord = word.toLowerCase().replace(/[.,!?;]/g, '');
+              wordCount[cleanWord] = (wordCount[cleanWord] || 0) + 1;
+            });
+            
+            const topKeywords = Object.entries(wordCount)
+              .sort(([,a], [,b]) => b - a)
+              .slice(0, 20)
+              .map(([word, count]) => ({ word, count }));
+              
+            analysisResult = {
+              ...analysisResult,
+              keywords: topKeywords,
+              total_words: words.length,
+              unique_words: Object.keys(wordCount).length
+            };
+            break;
+          }
+
+          case 'sentiment': {
+            const positiveWords = ['良い', '素晴らしい', '満足', '嬉しい', 'good', 'great', 'excellent'];
+            const negativeWords = ['悪い', '不満', '問題', '困る', 'bad', 'poor', 'terrible'];
+            
+            let positive = 0, negative = 0, neutral = 0;
+            
+            data.forEach(response => {
+              const text = response.answer.toLowerCase();
+              const hasPositive = positiveWords.some(word => text.includes(word));
+              const hasNegative = negativeWords.some(word => text.includes(word));
+              
+              if (hasPositive && !hasNegative) positive++;
+              else if (hasNegative && !hasPositive) negative++;
+              else neutral++;
+            });
+            
+            analysisResult = {
+              ...analysisResult,
+              positive,
+              negative,
+              neutral,
+              total: data.length
+            };
+            break;
+          }
+
+          case 'summary': {
+            const responseLengths = data.map(r => r.answer.length);
+            const avgLength = responseLengths.reduce((a, b) => a + b, 0) / responseLengths.length;
+            
+            analysisResult = {
+              ...analysisResult,
+              total_responses: data.length,
+              average_length: Math.round(avgLength),
+              min_length: Math.min(...responseLengths),
+              max_length: Math.max(...responseLengths),
+              recent_responses: data.slice(0, 5).map(r => ({
+                id: r.id,
+                preview: r.answer.substring(0, 100) + (r.answer.length > 100 ? '...' : ''),
+                submitted_at: r.submitted_at
+              }))
+            };
+            break;
+          }
+        }
+
+        return {
+          success: true,
+          analysis: analysisResult
+        };
+      }
+
+      case 'get_filtered_analytics_data': {
+        const { question_ids, filters, group_by = 'none' } = args;
+        
+        if (!question_ids || !Array.isArray(question_ids)) {
+          throw new Error('question_idsは必須です（配列形式）');
+        }
+
+        let query = supabase
+          .from('responses')
+          .select(`
+            id,
+            question_id,
+            answer,
+            submitted_at,
+            respondents (
+              id,
+              gender,
+              age_group,
+              department
+            ),
+            survey_questions (
+              id,
+              title,
+              question_types_id,
+              options
+            )
+          `)
+          .in('question_id', question_ids)
+          .order('submitted_at', { ascending: false });
+
+        // 日付フィルター
+        if (filters?.date_range?.start) {
+          query = query.gte('submitted_at', filters.date_range.start);
+        }
+        if (filters?.date_range?.end) {
+          query = query.lte('submitted_at', filters.date_range.end);
+        }
+
+        const { data, error } = await query;
+        if (error) throw new Error(`データ取得エラー: ${error.message}`);
+
+        // フィルター適用
+        let filteredData = data?.filter(response => {
+          const respondent = response.respondents;
+          if (!respondent) return false;
+          
+          if (filters?.gender && !filters.gender.includes(respondent.gender)) return false;
+          if (filters?.age_group && !filters.age_group.includes(respondent.age_group)) return false;
+          if (filters?.department && !filters.department.includes(respondent.department)) return false;
+          
+          return true;
+        }) || [];
+
+        // グルーピング処理
+        let result: any = filteredData;
+        if (group_by !== 'none') {
+          result = filteredData.reduce((acc, response) => {
+            const groupKey = response.respondents?.[group_by as keyof typeof response.respondents] || 'unknown';
+            if (!acc[groupKey]) acc[groupKey] = [];
+            acc[groupKey].push(response);
+            return acc;
+          }, {} as Record<string, any[]>);
+        }
+
+        return {
+          success: true,
+          data: result,
+          total_count: filteredData.length,
+          original_count: data?.length || 0,
+          group_by: group_by,
+          filters_applied: filters
+        };
+      }
+
+      default:
+        throw new Error(`未対応のツール: ${toolName}`);
+    }
   } catch (error) {
-    console.error('MCP Server call failed:', error);
+    console.error(`Database tool error (${toolName}):`, error);
     throw error;
   }
 }
