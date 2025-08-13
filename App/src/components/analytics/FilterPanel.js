@@ -128,7 +128,7 @@ export default function FilterPanel({
                         background: 'rgba(255, 255, 255, 0.8)',
                         backdropFilter: 'blur(10px)',
                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                        minHeight: 120,
+                        minHeight: 70,
                         height: '100%',
                         display: 'flex',
                         flexDirection: 'column'
@@ -155,9 +155,11 @@ export default function FilterPanel({
                             <Box sx={{ 
                               display: 'flex', 
                               overflowX: 'auto',
-                              overflowY: 'hidden',
+                              overflowY: 'visible',
                               gap: 0.75,
-                              pb: 0.5,
+                              py: 1,
+                              px: 0.5,
+                              mx: -0.5,
                               '&::-webkit-scrollbar': {
                                 display: 'none'
                               },
@@ -231,7 +233,7 @@ export default function FilterPanel({
                                       borderWidth: '1.5px',
                                       transition: 'all 0.2s ease',
                                       '&:hover': {
-                                        transform: 'translateY(-1px)',
+                                        transform: 'scale(1.02)',
                                         boxShadow: `0 4px 12px ${categoryColors[question.category]}30`,
                                         bgcolor: isSelected 
                                           ? categoryColors[question.category] 
@@ -239,7 +241,7 @@ export default function FilterPanel({
                                         borderColor: categoryColors[question.category]
                                       },
                                       '&:active': {
-                                        transform: 'translateY(0px)'
+                                        transform: 'scale(0.98)'
                                       }
                                     }}
                                   >

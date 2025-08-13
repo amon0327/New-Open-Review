@@ -120,7 +120,14 @@ export default function AnalyticsPage({ onNavCollapse }) {
         overflow: 'hidden'
       }}>
         {/* メインコンテンツ */}
-        <Box sx={{ flexGrow: 1, display: 'flex', gap: 1.5, minHeight: 0 }}>
+        <Box sx={{ 
+          flexGrow: 1, 
+          display: 'flex', 
+          gap: 1.5, 
+          minHeight: 0,
+          width: '100%',
+          overflow: 'hidden'
+        }}>
           {/* 質問選択サイドバー */}
           <QuestionSidebar
             searchTerm={searchTerm}
