@@ -143,23 +143,10 @@ export default function ChartArea({
           bgcolor: '#ffffff',
           borderRadius: 2,
           border: '1px solid #e2e8f0',
-          overflow: 'auto',
+          overflow: 'hidden',
           position: 'relative',
           minWidth: 0,
-          '&::-webkit-scrollbar': {
-            width: 8
-          },
-          '&::-webkit-scrollbar-track': {
-            bgcolor: 'rgba(241, 245, 249, 0.5)',
-            borderRadius: 4
-          },
-          '&::-webkit-scrollbar-thumb': {
-            bgcolor: 'rgba(203, 213, 225, 0.8)',
-            borderRadius: 4,
-            '&:hover': {
-              bgcolor: 'rgba(148, 163, 184, 0.9)'
-            }
-          }
+          height: '100%'
         }}
       >
       {/* ヘッダーセクション */}
@@ -288,6 +275,8 @@ export default function ChartArea({
           display: 'flex', 
           flexDirection: 'column',
           overflow: 'auto',
+          minHeight: 0,
+          height: '100%',
           '&::-webkit-scrollbar': {
             width: 8
           },
@@ -373,39 +362,86 @@ export default function ChartArea({
 
           {/* チャート表示部分 */}
           <Box sx={{ 
-            flexGrow: 1, 
+            flexShrink: 0,
+            minHeight: 1200,
             display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
+            flexDirection: 'column',
             bgcolor: Object.keys(activeFilters).length > 0 ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
             borderRadius: 2,
             border: Object.keys(activeFilters).length > 0 ? '1px dashed #c7d2fe' : 'none',
             transition: 'all 0.3s ease'
           }}>
-            <Box sx={{ textAlign: 'center', color: '#64748b' }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                {Object.keys(activeFilters).length > 0 ? 'フィルター済みデータ' : 'チャートエリア'}
+            {/* 中央配置のコンテンツエリア */}
+            <Box sx={{ 
+              height: 300,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 2,
+              flexShrink: 0
+            }}>
+              <Box sx={{ textAlign: 'center', color: '#64748b' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                  {Object.keys(activeFilters).length > 0 ? 'フィルター済みデータ' : 'チャートエリア'}
+                </Typography>
+                <Typography variant="body2">
+                  {Object.keys(activeFilters).length > 0 
+                    ? 'フィルター条件に基づいたグラフが表示されます' 
+                    : 'ここにグラフが表示されます'
+                  }
+                </Typography>
+                {Object.keys(activeFilters).length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="caption" sx={{ 
+                      bgcolor: 'rgba(99, 102, 241, 0.1)', 
+                      px: 2, 
+                      py: 0.5, 
+                      borderRadius: 1,
+                      color: '#4338ca',
+                      fontWeight: 500
+                    }}>
+                      フィルター結果: {selectedQuestions.length} 質問中 {Object.keys(activeFilters).length} 質問にフィルター適用
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+            
+            {/* スクロール動作確認用のデモコンテンツ */}
+            <Box sx={{ 
+              height: 600, 
+              bgcolor: 'rgba(99, 102, 241, 0.02)',
+              m: 2,
+              borderRadius: 1,
+              border: '1px dashed rgba(99, 102, 241, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column',
+              gap: 2
+            }}>
+              <Typography variant="body2" sx={{ color: '#94a3b8', fontWeight: 500 }}>
+                チャートコンテンツエリア（スクロール可能）
               </Typography>
-              <Typography variant="body2">
-                {Object.keys(activeFilters).length > 0 
-                  ? 'フィルター条件に基づいたグラフが表示されます' 
-                  : 'ここにグラフが表示されます'
-                }
+              <Typography variant="caption" sx={{ color: '#cbd5e1' }}>
+                実際のチャートやグラフがここに表示されます
               </Typography>
-              {Object.keys(activeFilters).length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="caption" sx={{ 
-                    bgcolor: 'rgba(99, 102, 241, 0.1)', 
-                    px: 2, 
-                    py: 0.5, 
-                    borderRadius: 1,
-                    color: '#4338ca',
-                    fontWeight: 500
-                  }}>
-                    フィルター結果: {selectedQuestions.length} 質問中 {Object.keys(activeFilters).length} 質問にフィルター適用
-                  </Typography>
-                </Box>
-              )}
+            </Box>
+            
+            {/* 追加のコンテンツエリア（スクロール確認用） */}
+            <Box sx={{ 
+              height: 400, 
+              bgcolor: 'rgba(16, 185, 129, 0.02)',
+              m: 2,
+              borderRadius: 1,
+              border: '1px dashed rgba(16, 185, 129, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Typography variant="body2" sx={{ color: '#059669' }}>
+                追加チャートエリア（スクロールテスト用）
+              </Typography>
             </Box>
           </Box>
         </Box>
