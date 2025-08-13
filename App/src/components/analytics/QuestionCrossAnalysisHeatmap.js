@@ -503,8 +503,7 @@ const QuestionCrossAnalysisHeatmap = ({
               <Box sx={{ 
                 width: '100%',
                 display: 'flex',
-                justifyContent: 'flex-end',
-                pr: 4
+                justifyContent: 'flex-end'
               }}>
                 <Typography sx={{
                   fontWeight: 600,
@@ -659,8 +658,7 @@ const QuestionCrossAnalysisHeatmap = ({
               <Box sx={{ 
                 width: '100%',
                 display: 'flex',
-                justifyContent: 'flex-start',
-                pl: 4
+                justifyContent: 'flex-start'
               }}>
                 <Typography sx={{
                   fontWeight: 600,
