@@ -271,20 +271,32 @@ export default function ChartArea({
         <Box sx={{ flexGrow: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
           {/* フィルター状況の表示 */}
           {(() => {
+            console.log('activeFilters:', activeFilters);
+            console.log('activeFilters keys:', Object.keys(activeFilters));
+            console.log('activeFilters values:', Object.values(activeFilters));
+            
             const hasActiveFilters = Object.values(activeFilters).some(filter => {
-              if (!filter || !filter.value) return false;
+              console.log('checking filter:', filter);
+              if (!filter || !filter.value) {
+                console.log('filter is null or has no value');
+                return false;
+              }
               
               if (Array.isArray(filter.value)) {
+                console.log('filter.value is array:', filter.value, 'length:', filter.value.length);
                 return filter.value.length > 0;
               }
               
               if (typeof filter.value === 'string') {
+                console.log('filter.value is string:', filter.value, 'trimmed length:', filter.value.trim().length);
                 return filter.value.trim() !== '';
               }
               
+              console.log('filter.value is other type:', typeof filter.value, filter.value);
               return Boolean(filter.value);
             });
             
+            console.log('hasActiveFilters result:', hasActiveFilters);
             return hasActiveFilters;
           })() && (
             <Box sx={{ mb: 2 }}>
