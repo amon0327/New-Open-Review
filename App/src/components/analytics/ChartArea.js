@@ -363,66 +363,49 @@ export default function ChartArea({
 
           {/* チャート表示部分 */}
           {(() => {
-            // テキスト質問（1つ選択、タイプ1または2）の場合
+            // 選択された質問にテキスト質問（タイプ1または2）が含まれている場合
+            const hasTextQuestion = selectedQuestions.some(question => {
+              const questionTypeId = question.typeId || question.question_types_id || question.type_id;
+              return questionTypeId === 1 || questionTypeId === 2;
+            });
+
+            if (hasTextQuestion && selectedQuestions.length >= 1) {
+              // テキスト質問を優先的に取得
+              const textQuestions = selectedQuestions.filter(question => {
+                const questionTypeId = question.typeId || question.question_types_id || question.type_id;
+                return questionTypeId === 1 || questionTypeId === 2;
+              });
+
+              const nonTextQuestions = selectedQuestions.filter(question => {
+                const questionTypeId = question.typeId || question.question_types_id || question.type_id;
+                return questionTypeId !== 1 && questionTypeId !== 2;
+              });
+
+              // メインのテキスト質問（最初のテキスト質問）
+              const mainTextQuestion = textQuestions[0];
+              // サブのテキスト質問（2つ目のテキスト質問があれば）
+              const secondTextQuestion = textQuestions.length > 1 ? textQuestions[1] : null;
+
+              return (
+                <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                  <TextQuestionChart 
+                    question={mainTextQuestion}
+                    secondQuestion={secondTextQuestion}
+                    activeFilters={activeFilters}
+                    setActiveFilters={setActiveFilters}
+                    isTestMode={isTestMode}
+                  />
+                </Box>
+              );
+            }
+
+            // テキスト質問が含まれていない場合の従来のロジック
+            // 1つ選択されている場合
             if (selectedQuestions.length === 1) {
               const question = selectedQuestions[0];
               const questionTypeId = question.typeId || question.question_types_id || question.type_id;
               
-              if (questionTypeId === 1 || questionTypeId === 2) {
-                return (
-                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-                    <TextQuestionChart 
-                      question={question}
-                      activeFilters={activeFilters}
-                      setActiveFilters={setActiveFilters}
-                      isTestMode={isTestMode}
-                    />
-                  </Box>
-                );
-              }
-            }
-            
-            // 2つ選択されていて、1つ目がテキスト質問（タイプ1または2）、2つ目が質問タイプ3,4,5,6,7,8の場合
-            if (selectedQuestions.length === 2) {
-              const firstQuestion = selectedQuestions[0];
-              const secondQuestion = selectedQuestions[1];
-              const firstTypeId = firstQuestion.typeId || firstQuestion.question_types_id || firstQuestion.type_id;
-              const secondTypeId = secondQuestion.typeId || secondQuestion.question_types_id || secondQuestion.type_id;
-              
-              if ((firstTypeId === 1 || firstTypeId === 2) && [3, 4, 5, 6, 7, 8].includes(secondTypeId)) {
-                return (
-                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-                    <TextQuestionChart 
-                      question={firstQuestion}
-                      activeFilters={activeFilters}
-                      setActiveFilters={setActiveFilters}
-                      isTestMode={isTestMode}
-                    />
-                  </Box>
-                );
-              }
-            }
-            
-            // 2つ選択されていて、両方ともテキスト質問（タイプ1または2）の場合
-            if (selectedQuestions.length === 2) {
-              const firstQuestion = selectedQuestions[0];
-              const secondQuestion = selectedQuestions[1];
-              const firstTypeId = firstQuestion.typeId || firstQuestion.question_types_id || firstQuestion.type_id;
-              const secondTypeId = secondQuestion.typeId || secondQuestion.question_types_id || secondQuestion.type_id;
-              
-              if ((firstTypeId === 1 || firstTypeId === 2) && (secondTypeId === 1 || secondTypeId === 2)) {
-                return (
-                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-                    <TextQuestionChart 
-                      question={firstQuestion}
-                      secondQuestion={secondQuestion}
-                      activeFilters={activeFilters}
-                      setActiveFilters={setActiveFilters}
-                      isTestMode={isTestMode}
-                    />
-                  </Box>
-                );
-              }
+              // 非テキスト質問の場合は従来のプレースホルダーを表示
             }
             
             // その他の場合（選択肢系、複数質問など）は従来のプレースホルダー

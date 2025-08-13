@@ -167,26 +167,43 @@ export default function QuestionSidebar({
         }
         
         // 質問データをフォーマット（UIに必要な形式に変換）
-        const formattedQuestions = testQuestions.map((question) => {
-          const questionTypeId = question.question_types_id;
-          
-          return {
-            id: question.id,
-            title: question.question_text || 'タイトルなし',
-            category: getCategoryName(question.question_categories_id),
-            type: getTypeName(questionTypeId),
-            typeId: questionTypeId,
-            isRequired: question.is_required,
-            responses: 0, // 実際の統計は後で取得
-            avgRating: 0,
-            responseCount: 0,
-            chartType: getChartTypeForQuestion(questionTypeId, question.is_required),
-            icon: getIconForQuestion(questionTypeId, question.is_required),
-            iconColor: getIconColorForQuestion(questionTypeId, question.is_required),
-            categoryColor: categoryColors[getCategoryName(question.question_categories_id)] || '#6B7280',
-            review_fome_id: question.review_fome_id
-          };
-        });
+        const formattedQuestions = await Promise.all(
+          testQuestions.map(async (question) => {
+            const questionTypeId = question.question_types_id;
+            
+            // 各質問の回答数を取得
+            let responseCount = 0;
+            try {
+              const { data: answerData, error: answerError } = await supabase
+                .from('test_review_question_answers')
+                .select('id')
+                .eq('review_questions_id', question.id);
+              
+              if (!answerError && answerData) {
+                responseCount = answerData.length;
+              }
+            } catch (err) {
+              console.error(`質問 ${question.id} の回答数取得エラー:`, err);
+            }
+            
+            return {
+              id: question.id,
+              title: question.question_text || 'タイトルなし',
+              category: getCategoryName(question.question_categories_id),
+              type: getTypeName(questionTypeId),
+              typeId: questionTypeId,
+              isRequired: question.is_required,
+              responses: responseCount,
+              avgRating: 0,
+              responseCount: responseCount,
+              chartType: getChartTypeForQuestion(questionTypeId, question.is_required),
+              icon: getIconForQuestion(questionTypeId, question.is_required),
+              iconColor: getIconColorForQuestion(questionTypeId, question.is_required),
+              categoryColor: categoryColors[getCategoryName(question.question_categories_id)] || '#6B7280',
+              review_fome_id: question.review_fome_id
+            };
+          })
+        );
         
         console.log('フォーマット済み質問データ:', formattedQuestions);
         setQuestions(formattedQuestions);
@@ -252,14 +269,14 @@ export default function QuestionSidebar({
   // 質問タイプIDからタイプ名を取得
   const getTypeName = (typeId) => {
     const typeMap = {
-      1: 'テキスト（短文）',
-      2: 'テキスト（長文）',
+      1: '短文テキスト',
+      2: '長文テキスト',
       3: '単一選択',
       4: '複数選択',
-      5: 'リニアスケール',
-      6: '日付',
-      7: 'プルダウン',
-      8: 'ファイルアップロード'
+      5: '単一選択（2列）',
+      6: '複数選択（2列）',
+      7: '均等目盛',
+      8: 'プルダウン'
     };
     return typeMap[typeId] || '不明';
   };
@@ -276,22 +293,32 @@ export default function QuestionSidebar({
 
   // 質問タイプからアイコンを決定（共通処理・削除不要）
   const getIconForQuestion = (questionTypeId, isRequired = true) => {
-    if (questionTypeId === 1 || questionTypeId === 2) {
-      return <TextFields />;
-    } else if ([3, 4, 5, 6, 7, 8].includes(questionTypeId)) {
-      return isRequired ? <PieChart /> : <BarChart />;
-    }
-    return <BarChart />;
+    const iconMap = {
+      1: <TextFields />, // 短文テキスト
+      2: <TextFields />, // 長文テキスト
+      3: <PieChart />,   // 単一選択
+      4: <BarChart />,   // 複数選択
+      5: <PieChart />,   // 単一選択（2列）
+      6: <BarChart />,   // 複数選択（2列）
+      7: <BarChart />,   // 均等目盛
+      8: <PieChart />    // プルダウン
+    };
+    return iconMap[questionTypeId] || <QuizOutlined />;
   };
 
   // 質問タイプからアイコンカラーを決定（共通処理・削除不要）
   const getIconColorForQuestion = (questionTypeId, isRequired = true) => {
-    if (questionTypeId === 1 || questionTypeId === 2) {
-      return '#3b82f6'; // テキスト系は青
-    } else if ([3, 4, 5, 6, 7, 8].includes(questionTypeId)) {
-      return isRequired ? '#10b981' : '#f59e0b'; // 必須は緑、非必須はオレンジ
-    }
-    return '#6b7280'; // デフォルトはグレー
+    const colorMap = {
+      1: '#3b82f6', // 短文テキスト - 青
+      2: '#3b82f6', // 長文テキスト - 青
+      3: '#10b981', // 単一選択 - 緑
+      4: '#f59e0b', // 複数選択 - オレンジ
+      5: '#10b981', // 単一選択（2列）- 緑
+      6: '#f59e0b', // 複数選択（2列）- オレンジ
+      7: '#8b5cf6', // 均等目盛 - 紫
+      8: '#06b6d4'  // プルダウン - シアン
+    };
+    return colorMap[questionTypeId] || '#6b7280';
   };
 
   // 質問の選択・解除（共通処理・削除不要）
