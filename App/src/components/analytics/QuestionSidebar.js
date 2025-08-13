@@ -18,10 +18,14 @@ import {
   QuizOutlined,
   TextFields,
   PieChart,
-  BarChart
+  BarChart,
+  ArrowBack,
+  FolderOutlined
 } from '@mui/icons-material';
 import { questionsDatabase, categoryColors } from '../../data/questionsDatabase';
 import { getQuestionsForAnalytics, getQuestionAnalyticsStats } from '../../services/QuestionService';
+import { DataService } from '../../services/DataService';
+import { supabase } from '../../lib/supabase';
 
 export default function QuestionSidebar({
   searchTerm,
@@ -33,86 +37,232 @@ export default function QuestionSidebar({
   // ==============================================
 }) {
   const [questions, setQuestions] = useState([]);
+  const [reviewForms, setReviewForms] = useState([]);
+  const [selectedForm, setSelectedForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentView, setCurrentView] = useState('forms'); // 'forms' or 'questions'
 
-  // 質問データ取得
+  // レビューフォーム一覧取得
   useEffect(() => {
-    const fetchQuestions = async () => {
+    const fetchReviewForms = async () => {
       setLoading(true);
       setError(null);
       
       try {
+        console.log('レビューフォーム一覧取得開始');
+        
         // ========= テストモード分岐（削除予定） =========
         if (isTestMode) {
-          console.log('テストモード: 質問データ取得開始');
+          console.log('テストモード: フォーム一覧データ取得開始');
           
-          // テストモード時はSupabaseから取得
-          const questionsData = await getQuestionsForAnalytics(null, true);
-          console.log('取得した質問データ:', questionsData);
+          // test_review_formsからフォーム一覧を取得
+          const { data: testForms, error: testFormsError } = await supabase
+            .from('test_review_forms')
+            .select(`
+              id,
+              title,
+              created_at,
+              updated_at,
+              is_published,
+              is_deleted
+            `)
+            .eq('is_deleted', false)
+            .order('updated_at', { ascending: false });
           
-          if (!questionsData || questionsData.length === 0) {
-            console.warn('テストモード: 質問データが空です');
-            setQuestions([]);
-            return;
+          console.log('テストフォーム取得結果:', { data: testForms, error: testFormsError });
+          
+          if (testFormsError) {
+            console.error('テストフォーム取得エラー:', testFormsError);
+            setReviewForms([]);
+          } else {
+            // 各フォームの質問数を取得
+            const formsWithQuestionCount = await Promise.all(
+              testForms.map(async (form) => {
+                try {
+                  const { data: questions, error: questionsError } = await supabase
+                    .from('test_review_questions')
+                    .select('id')
+                    .eq('review_fome_id', form.id);
+                  
+                  return {
+                    ...form,
+                    question_count: questionsError ? 0 : (questions?.length || 0)
+                  };
+                } catch (err) {
+                  console.error(`フォーム ${form.id} の質問数取得エラー:`, err);
+                  return {
+                    ...form,
+                    question_count: 0
+                  };
+                }
+              })
+            );
+            
+            console.log('質問数付きフォーム一覧:', formsWithQuestionCount);
+            setReviewForms(formsWithQuestionCount);
           }
-          
-          // 統計データを追加取得
-          const questionsWithStats = await Promise.all(
-            questionsData.map(async (question) => {
-              try {
-                const stats = await getQuestionAnalyticsStats(question.id, true);
-                console.log(`質問ID ${question.id} の統計:`, stats);
-                
-                return {
-                  ...question,
-                  responses: stats.responses,
-                  avgRating: stats.avgRating,
-                  responseCount: stats.responses,
-                  chartType: getChartTypeForQuestion(question.typeId, question.isRequired),
-                  icon: getIconForQuestion(question.typeId, question.isRequired),
-                  iconColor: getIconColorForQuestion(question.typeId, question.isRequired)
-                };
-              } catch (statsError) {
-                console.error(`質問ID ${question.id} の統計取得エラー:`, statsError);
-                return {
-                  ...question,
-                  responses: 0,
-                  avgRating: 0,
-                  responseCount: 0,
-                  chartType: getChartTypeForQuestion(question.typeId, question.isRequired),
-                  icon: getIconForQuestion(question.typeId, question.isRequired),
-                  iconColor: getIconColorForQuestion(question.typeId, question.isRequired)
-                };
-              }
-            })
-          );
-          
-          console.log('統計付き質問データ:', questionsWithStats);
-          setQuestions(questionsWithStats);
         } else {
-          // 本番モード時はダミーデータを使用（削除不要）
-          setQuestions(questionsDatabase);
+          // 本番モード: DataServiceからフォーム一覧を取得
+          const forms = await DataService.getReviewForms('dummy_user_id'); // 実際のユーザーIDに変更必要
+          console.log('取得したフォーム一覧:', forms);
+          setReviewForms(forms);
         }
-        // ============================================
+        // ===============================================
+        
       } catch (err) {
-        console.error('質問データ取得エラー:', err);
-        setError('質問データの取得に失敗しました');
-        // フォールバック: ダミーデータを使用
-        setQuestions(questionsDatabase);
+        console.error('フォーム一覧取得エラー:', err);
+        setError('フォーム一覧の取得に失敗しました');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchQuestions();
-  }, [isTestMode, searchTerm]);
+    fetchReviewForms();
+  }, [isTestMode]);
 
-  // 検索フィルタリング（共通処理・削除不要）
+  // 質問データ取得（フォーム選択後）
+  const fetchQuestionsForForm = async (formId) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('質問データ取得開始 for form:', formId);
+      
+      // ========= テストモード分岐（削除予定） =========
+      if (isTestMode) {
+        console.log('テストモード: 質問データ取得開始 for form:', formId);
+        
+        // test_review_questionsから指定されたフォームの質問を取得
+        const { data: testQuestions, error: testQuestionsError } = await supabase
+          .from('test_review_questions')
+          .select(`
+            id,
+            question_text,
+            question_number,
+            is_required,
+            question_detail_text,
+            is_detail_enabled,
+            created_at,
+            question_types_id,
+            question_categories_id,
+            question_subcategories_id,
+            review_fome_id
+          `)
+          .eq('review_fome_id', formId)
+          .order('question_number', { ascending: true });
+        
+        console.log('テスト質問取得結果:', { data: testQuestions, error: testQuestionsError });
+        
+        if (testQuestionsError) {
+          console.error('テスト質問取得エラー:', testQuestionsError);
+          setQuestions([]);
+          return;
+        }
+        
+        if (!testQuestions || testQuestions.length === 0) {
+          console.warn('テストモード: 指定されたフォームに質問がありません');
+          setQuestions([]);
+          return;
+        }
+        
+        // 質問データをフォーマット（UIに必要な形式に変換）
+        const formattedQuestions = testQuestions.map((question) => {
+          const questionTypeId = question.question_types_id;
+          
+          return {
+            id: question.id,
+            title: question.question_text || 'タイトルなし',
+            category: getCategoryName(question.question_categories_id),
+            type: getTypeName(questionTypeId),
+            typeId: questionTypeId,
+            isRequired: question.is_required,
+            responses: 0, // 実際の統計は後で取得
+            avgRating: 0,
+            responseCount: 0,
+            chartType: getChartTypeForQuestion(questionTypeId, question.is_required),
+            icon: getIconForQuestion(questionTypeId, question.is_required),
+            iconColor: getIconColorForQuestion(questionTypeId, question.is_required),
+            categoryColor: categoryColors[getCategoryName(question.question_categories_id)] || '#6B7280',
+            review_fome_id: question.review_fome_id
+          };
+        });
+        
+        console.log('フォーマット済み質問データ:', formattedQuestions);
+        setQuestions(formattedQuestions);
+      } else {
+        // 本番モード: 指定されたフォームの質問のみ取得
+        const questionsData = await getQuestionsForAnalytics('dummy_user_id', false);
+        const formQuestions = questionsData.filter(q => 
+          q.review_fome_id === formId || q.review_forms_id === formId
+        );
+        setQuestions(formQuestions);
+      }
+        // ============================================
+    } catch (err) {
+      console.error('質問データ取得エラー:', err);
+      setError('質問データの取得に失敗しました');
+      // フォールバック: ダミーデータを使用
+      setQuestions(questionsDatabase);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // フォーム選択ハンドラー
+  const handleFormSelect = async (form) => {
+    setSelectedForm(form);
+    setCurrentView('questions');
+    // 選択された質問をクリア
+    setSelectedQuestions([]);
+    // そのフォームの質問を取得
+    await fetchQuestionsForForm(form.id);
+  };
+
+  // フォーム一覧に戻る
+  const handleBackToForms = () => {
+    setCurrentView('forms');
+    setSelectedForm(null);
+    setQuestions([]);
+    setSelectedQuestions([]);
+  };
+
+  // 検索フィルタリング（フォーム・質問両対応）
   const filteredQuestions = questions.filter(question =>
     question.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    question.category.toLowerCase().includes(searchTerm.toLowerCase())
+    question.category?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const filteredForms = reviewForms.filter(form =>
+    form.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // カテゴリID からカテゴリ名を取得
+  const getCategoryName = (categoryId) => {
+    const categoryMap = {
+      1: '基本情報',
+      2: '評価',
+      3: '意見・感想',
+      4: '体験・経験',
+      5: 'その他'
+    };
+    return categoryMap[categoryId] || 'その他';
+  };
+
+  // 質問タイプIDからタイプ名を取得
+  const getTypeName = (typeId) => {
+    const typeMap = {
+      1: 'テキスト（短文）',
+      2: 'テキスト（長文）',
+      3: '単一選択',
+      4: '複数選択',
+      5: 'リニアスケール',
+      6: '日付',
+      7: 'プルダウン',
+      8: 'ファイルアップロード'
+    };
+    return typeMap[typeId] || '不明';
+  };
 
   // 質問タイプからチャートタイプを決定（共通処理・削除不要）
   const getChartTypeForQuestion = (questionTypeId, isRequired = true) => {
@@ -159,7 +309,6 @@ export default function QuestionSidebar({
     });
   };
 
-
   return (
     <Box
       sx={{
@@ -176,12 +325,32 @@ export default function QuestionSidebar({
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
       }}
     >
-      {/* 検索 */}
+      {/* ヘッダー */}
       <Box sx={{ p: 1.5, borderBottom: '1px solid #e5e7eb' }}>
+        {currentView === 'questions' && (
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+            <Button
+              onClick={handleBackToForms}
+              sx={{ 
+                minWidth: 'auto', 
+                p: 0.5, 
+                mr: 1,
+                color: '#6366f1'
+              }}
+            >
+              <ArrowBack sx={{ fontSize: 18 }} />
+            </Button>
+            <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151' }}>
+              {selectedForm?.title}
+            </Typography>
+          </Box>
+        )}
+        
+        {/* 検索 */}
         <TextField
           fullWidth
           size="small"
-          placeholder="質問を検索..."
+          placeholder={currentView === 'forms' ? 'フォームを検索...' : '質問を検索...'}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           InputProps={{
@@ -200,9 +369,7 @@ export default function QuestionSidebar({
         />
       </Box>
 
-
-
-      {/* 質問リスト */}
+      {/* フォーム一覧 / 質問一覧 */}
       <Box sx={{ 
         flexGrow: 1, 
         overflow: 'auto',
@@ -227,7 +394,64 @@ export default function QuestionSidebar({
             </Box>
           )}
 
-          {!loading && !error && filteredQuestions.map((question, index) => {
+          {/* フォーム一覧表示 */}
+          {!loading && !error && currentView === 'forms' && filteredForms.map((form, index) => (
+            <motion.div
+              key={form.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <Card
+                onClick={() => handleFormSelect(form)}
+                sx={{
+                  mb: 1,
+                  p: 1.5,
+                  cursor: 'pointer',
+                  border: '2px solid transparent',
+                  borderRadius: 1.5,
+                  bgcolor: '#ffffff',
+                  '&:hover': {
+                    bgcolor: '#f8fafc',
+                    border: '2px solid #e2e8f0',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+                  },
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <FolderOutlined sx={{ color: '#6366f1', fontSize: 18 }} />
+                  <Box sx={{ flexGrow: 1 }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontWeight: 600, 
+                        color: '#1f2937',
+                        fontSize: '0.85rem',
+                        lineHeight: 1.2,
+                        mb: 0.5
+                      }}
+                    >
+                      {form.title}
+                    </Typography>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        color: '#6b7280',
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      {form.question_count ? `${form.question_count}問` : '作成日: ' + new Date(form.created_at).toLocaleDateString('ja-JP')}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Card>
+            </motion.div>
+          ))}
+
+          {/* 質問一覧表示 */}
+          {!loading && !error && currentView === 'questions' && filteredQuestions.map((question, index) => {
             const isSelected = selectedQuestions.find(q => q.id === question.id);
             const canSelect = selectedQuestions.length < 2 || isSelected;
             const isDisabled = !canSelect && !isSelected;
@@ -342,10 +566,19 @@ export default function QuestionSidebar({
             );
           })}
 
-          {!loading && !error && filteredQuestions.length === 0 && (
+          {/* 空の状態メッセージ */}
+          {!loading && !error && currentView === 'forms' && filteredForms.length === 0 && (
             <Box sx={{ textAlign: 'center', py: 4, color: '#9ca3af' }}>
               <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
-                {isTestMode ? 'テストデータに質問がありません' : '検索結果がありません'}
+                {searchTerm ? 'フォームが見つかりません' : 'レビューフォームがありません'}
+              </Typography>
+            </Box>
+          )}
+
+          {!loading && !error && currentView === 'questions' && filteredQuestions.length === 0 && (
+            <Box sx={{ textAlign: 'center', py: 4, color: '#9ca3af' }}>
+              <Typography variant="body2" sx={{ fontSize: '0.85rem' }}>
+                {searchTerm ? '質問が見つかりません' : 'このフォームに質問がありません'}
               </Typography>
             </Box>
           )}
