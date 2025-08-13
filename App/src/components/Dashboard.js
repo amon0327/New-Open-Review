@@ -232,13 +232,23 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                     px: isNavCollapsed ? 1 : 2,
                     color: 'rgba(255, 255, 255, 0.8)',
                     backgroundColor: activeTab === index ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                    ...(isCreateButton ? {
+                      background: 'white',
+                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+                      '&:hover': {
+                        background: '#f8f9fa',
+                        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
+                        transform: 'translateY(-2px)'
+                      }
+                    } : {
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      }
+                    }),
                     justifyContent: isNavCollapsed ? 'center' : 'flex-start',
-                    borderRadius: isNavCollapsed ? 1.5 : 1,
+                    borderRadius: '100px',
                     minHeight: 48,
                     alignItems: 'center',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    },
                     '&.Mui-disabled': {
                       opacity: 0.6
                     },
@@ -247,36 +257,18 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                 >
                   <ListItemIcon
                     sx={{
-                      color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)',
+                      color: isCreateButton ? '#8b5cf6' : activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)',
                       minWidth: isNavCollapsed ? 24 : 40,
                       justifyContent: 'center',
                       display: 'flex',
                       alignItems: 'center',
-                      height: 24,
-                      '& svg': isCreateButton ? {
-                        fill: 'url(#createGradient)'
-                      } : {}
+                      height: 24
                     }}
                   >
-                    {isCreateButton && (
-                      <svg width="0" height="0">
-                        <defs>
-                          <linearGradient id="createGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#ff6b6b" />
-                            <stop offset="100%" stopColor="#ffd93d" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                    )}
                     {isCreateButton && isCreatingForm ? (
-                      <CircularProgress size={20} sx={{ color: 'rgba(255, 255, 255, 0.8)' }} />
+                      <CircularProgress size={20} sx={{ color: '#8b5cf6' }} />
                     ) : (
-                      React.cloneElement(item.icon, {
-                        sx: isCreateButton ? {
-                          fill: 'url(#createGradient)',
-                          filter: 'drop-shadow(0 2px 4px rgba(255, 107, 107, 0.3))'
-                        } : {}
-                      })
+                      item.icon
                     )}
                   </ListItemIcon>
                   {!isNavCollapsed && (
@@ -285,7 +277,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                         isCreateButton ? (
                           <Box
                             sx={{
-                              background: 'linear-gradient(45deg, #ff6b6b 30%, #ffd93d 90%)',
+                              background: 'linear-gradient(45deg, #8b5cf6 30%, #a855f7 70%)',
                               backgroundClip: 'text',
                               WebkitBackgroundClip: 'text',
                               WebkitTextFillColor: 'transparent',
@@ -300,7 +292,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                         )
                       }
                       primaryTypographyProps={{
-                        fontWeight: activeTab === index ? 600 : 400,
+                        fontWeight: isCreateButton ? 600 : activeTab === index ? 600 : 400,
                         color: isCreateButton ? 'transparent' : activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)'
                       }}
                     />
@@ -399,7 +391,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   }
                 }}
               >
-                <Badge badgeContent={4} color="error">
+                <Badge badgeContent={0} color="error">
                   <Notifications sx={{ color: '#64748b' }} />
                 </Badge>
               </IconButton>

@@ -114,6 +114,7 @@ export default function FilterPanel({
             >
               {selectedQuestions.map((question, index) => {
                 const filterConfig = generateFilterOptions(question);
+                console.log(`FilterPanel - 質問 ${question.id} のフィルター設定:`, filterConfig);
                 
                 return (
                   <motion.div
@@ -157,7 +158,7 @@ export default function FilterPanel({
                       {/* コンパクトなフィルター要素 */}
                       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', py: 0.5 }}>
                         {/* Choices フィルター（統一された選択肢フィルター） */}
-                        {filterConfig.type === 'choices' && (
+                        {filterConfig.type === 'choices' && filterConfig.options && filterConfig.options.length > 0 && (
                           <Box sx={{ 
                             mt: -1,
                             width: '100%',
@@ -311,6 +312,22 @@ export default function FilterPanel({
                                 </Button>
                               </Box>
                             )}
+                          </Box>
+                        )}
+
+                        {/* 選択肢がない場合の表示 */}
+                        {filterConfig.type === 'choices' && (!filterConfig.options || filterConfig.options.length === 0) && (
+                          <Box sx={{ 
+                            mt: -1,
+                            p: 1.5,
+                            textAlign: 'center',
+                            color: '#94a3b8',
+                            fontSize: '0.75rem',
+                            border: '1px dashed #e2e8f0',
+                            borderRadius: 1,
+                            bgcolor: 'rgba(148, 163, 184, 0.02)'
+                          }}>
+                            選択肢データを読み込み中...
                           </Box>
                         )}
 

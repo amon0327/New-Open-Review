@@ -20,36 +20,7 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    const sampleNotifications = [
-      {
-        id: 1,
-        title: 'システム更新',
-        message: '新機能が追加されました',
-        timestamp: new Date(Date.now() - 2 * 60 * 1000),
-        isRead: false
-      },
-      {
-        id: 2,
-        title: 'フォーム送信完了',
-        message: 'レビューフォームが正常に送信されました',
-        timestamp: new Date(Date.now() - 15 * 60 * 1000),
-        isRead: false
-      },
-      {
-        id: 3,
-        title: '期限警告',
-        message: 'レビュー期限まで残り3日です',
-        timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-        isRead: true
-      },
-      {
-        id: 4,
-        title: 'データ同期エラー',
-        message: 'データの同期に失敗しました',
-        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-        isRead: false
-      }
-    ];
+    const sampleNotifications = [];
     setNotifications(sampleNotifications);
   }, []);
 
@@ -100,14 +71,13 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
       }}
       PaperProps={{
         sx: {
-          width: 380,
-          maxHeight: 480,
-          borderRadius: 2,
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-          border: '1px solid rgba(0, 0, 0, 0.06)',
+          width: 320,
+          maxHeight: 400,
+          borderRadius: 0.5,
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
+          border: '1px solid #e2e8f0',
           overflow: 'hidden',
-          backdropFilter: 'blur(10px)',
-          background: 'rgba(255, 255, 255, 0.98)'
+          background: '#ffffff'
         }
       }}
     >
@@ -120,13 +90,14 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between', 
-          p: 2,
-          borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
+          px: 1.5,
+          py: 1,
+          borderBottom: '1px solid #e2e8f0'
         }}>
-          <Typography variant="h6" sx={{ 
+          <Typography variant="subtitle1" sx={{ 
             fontWeight: 600,
             color: '#1a202c',
-            fontSize: '1rem'
+            fontSize: '0.875rem'
           }}>
             通知 {unreadCount > 0 && `(${unreadCount})`}
           </Typography>
@@ -135,9 +106,9 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
             onClick={onClose}
             sx={{ 
               color: '#64748b',
-              '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
-              width: 32,
-              height: 32
+              '&:hover': { backgroundColor: '#f1f5f9' },
+              width: 24,
+              height: 24
             }}
           >
             <Close fontSize="small" />
@@ -145,17 +116,17 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
         </Box>
 
         {/* 通知リスト */}
-        <Box sx={{ maxHeight: 380, overflow: 'auto' }}>
+        <Box sx={{ maxHeight: 320, overflow: 'auto' }}>
           {notifications.length === 0 ? (
             <Box sx={{ 
               textAlign: 'center', 
-              py: 4,
-              px: 2
+              py: 3,
+              px: 1.5
             }}>
               <Notifications sx={{ 
-                fontSize: 48, 
+                fontSize: 32, 
                 color: '#cbd5e1', 
-                mb: 2 
+                mb: 1 
               }} />
               <Typography 
                 variant="body2" 
@@ -166,25 +137,23 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
               </Typography>
             </Box>
           ) : (
-            <List sx={{ p: 0 }}>
+            <List sx={{ p: 0, m: 0 }}>
               {notifications.map((notification) => (
                 <ListItem
                   key={notification.id}
                   sx={{
-                    px: 2,
-                    py: 1.5,
+                    px: 1.5,
+                    py: 1,
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    backgroundColor: notification.isRead ? 'transparent' : 'rgba(94, 23, 235, 0.03)',
+                    transition: 'background-color 0.15s ease',
+                    backgroundColor: notification.isRead ? 'transparent' : '#f8fafc',
                     '&:hover': {
-                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                      transform: 'translateX(2px)'
+                      backgroundColor: '#f1f5f9'
                     },
                     '&:not(:last-child)': {
-                      borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
+                      borderBottom: '1px solid #e2e8f0'
                     },
-                    borderRadius: 1,
-                    mx: 0.5
+                    minHeight: 'auto'
                   }}
                   onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
                 >
@@ -192,16 +161,16 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
                     display: 'flex', 
                     width: '100%', 
                     alignItems: 'flex-start',
-                    gap: 1.2
+                    gap: 1
                   }}>
                     {/* 未読インジケーター */}
                     <Box
                       sx={{ 
-                        width: 6,
-                        height: 6,
+                        width: 4,
+                        height: 4,
                         borderRadius: '50%',
                         backgroundColor: notification.isRead ? 'transparent' : '#5e17eb',
-                        mt: 0.8,
+                        mt: 0.5,
                         flexShrink: 0
                       }} 
                     />
@@ -209,24 +178,25 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
                     {/* 通知内容 */}
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography 
-                        variant="subtitle2" 
+                        variant="body2" 
                         sx={{ 
-                          fontWeight: notification.isRead ? 500 : 600,
+                          fontWeight: notification.isRead ? 400 : 500,
                           color: '#1a202c',
-                          mb: 0.3,
-                          lineHeight: 1.3,
-                          fontSize: '0.875rem'
+                          mb: 0.2,
+                          lineHeight: 1.2,
+                          fontSize: '0.8rem'
                         }}
                       >
                         {notification.title}
                       </Typography>
                       <Typography 
-                        variant="body2" 
+                        variant="caption" 
                         sx={{ 
                           color: '#64748b',
-                          mb: 0.5,
-                          lineHeight: 1.3,
-                          fontSize: '0.8rem'
+                          mb: 0.3,
+                          lineHeight: 1.2,
+                          fontSize: '0.7rem',
+                          display: 'block'
                         }}
                       >
                         {notification.message}
@@ -235,7 +205,7 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
                         variant="caption" 
                         sx={{ 
                           color: '#94a3b8',
-                          fontSize: '0.7rem'
+                          fontSize: '0.65rem'
                         }}
                       >
                         {formatTimestamp(notification.timestamp)}
@@ -248,36 +218,6 @@ const NotificationDropdown = ({ anchorEl, open, onClose }) => {
           )}
         </Box>
 
-        {/* フッター */}
-        {notifications.length > 0 && (
-          <Box sx={{ 
-            p: 1.5,
-            borderTop: '1px solid rgba(0, 0, 0, 0.05)',
-            textAlign: 'center'
-          }}>
-            <Button 
-              size="small" 
-              onClick={handleMarkAllAsRead}
-              disabled={unreadCount === 0}
-              sx={{ 
-                textTransform: 'none',
-                color: '#5e17eb',
-                fontWeight: 500,
-                fontSize: '0.8rem',
-                py: 0.5,
-                px: 2,
-                '&:hover': {
-                  backgroundColor: 'rgba(94, 23, 235, 0.06)'
-                },
-                '&.Mui-disabled': {
-                  color: '#94a3b8'
-                }
-              }}
-            >
-              すべて既読にする
-            </Button>
-          </Box>
-        )}
       </Box>
     </Popover>
   );

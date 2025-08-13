@@ -270,6 +270,7 @@ export default function ChartArea({
 
       {/* フィルターパネル */}
       <FilterPanel
+        key={selectedQuestions.map(q => `${q.id}-${q.data?.labels?.length || 0}-${q.options?.length || 0}`).join('-')}
         selectedQuestions={selectedQuestions}
         activeFilters={activeFilters}
         setActiveFilters={setActiveFilters}

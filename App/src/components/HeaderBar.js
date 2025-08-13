@@ -30,12 +30,10 @@ import {
   CheckCircleOutline,
   Public,
   CloudDone,
-  Notifications
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
 import PreviewUrlDialog from './PreviewUrlDialog';
 import PublishDialog from './PublishDialog';
-import NotificationDropdown from './NotificationDropdown';
 import { validateForm } from '../utils/validation';
 
 const HeaderBar = ({
@@ -89,8 +87,6 @@ const HeaderBar = ({
   // エラー・警告ポップオーバーの状態
   const [errorAnchorEl, setErrorAnchorEl] = useState(null);
   const [warningAnchorEl, setWarningAnchorEl] = useState(null);
-  // 通知ドロップダウンの状態
-  const [notificationAnchor, setNotificationAnchor] = useState(null);
 
   // フォーム検証の実行
   const validationData = {
@@ -119,14 +115,6 @@ const HeaderBar = ({
     setWarningAnchorEl(null);
   };
 
-  // 通知ハンドラ関数
-  const handleNotificationClick = (event) => {
-    setNotificationAnchor(event.currentTarget);
-  };
-
-  const handleNotificationClose = () => {
-    setNotificationAnchor(null);
-  };
 
   const handleErrorItemClick = (error) => {
     // エラー項目がクリックされた時の処理
@@ -627,24 +615,6 @@ const HeaderBar = ({
           </Tooltip>
         </Box>
 
-        {/* 通知アイコン */}
-        <Tooltip title="通知">
-          <IconButton 
-            onClick={handleNotificationClick}
-            sx={{
-              ...iconButtonStyles.secondary,
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                transform: 'scale(1.1)',
-                backgroundColor: 'rgba(94, 23, 235, 0.1)'
-              }
-            }}
-          >
-            <Badge badgeContent={3} color="error">
-              <Notifications />
-            </Badge>
-          </IconButton>
-        </Tooltip>
         
         <Tooltip title="プレビュー">
           <IconButton 
@@ -968,12 +938,6 @@ const HeaderBar = ({
         </Box>
       </Popover>
 
-      {/* 通知ドロップダウン */}
-      <NotificationDropdown
-        anchorEl={notificationAnchor}
-        open={Boolean(notificationAnchor)}
-        onClose={handleNotificationClose}
-      />
     </Paper>
   );
 };
