@@ -143,7 +143,7 @@ export default function FilterPanel({
                       }}
                     >
                       {/* カテゴリカラーインジケーター */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                         <Box
                           sx={{
                             width: 6,
@@ -155,10 +155,10 @@ export default function FilterPanel({
                       </Box>
 
                       {/* コンパクトなフィルター要素 */}
-                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', py: 0.5 }}>
+                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', py: 0.5 }}>
                         {/* Choices フィルター（統一された選択肢フィルター） */}
                         {filterConfig.type === 'choices' && (
-                          <Box>
+                          <Box sx={{ mt: -0.5 }}>
                             {/* 横スクロール可能な選択肢ボタン */}
                             <Box sx={{ 
                               display: 'flex', 
