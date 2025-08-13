@@ -81,8 +81,7 @@ const PieChartWithFilter = ({ data, title = "回答分布" }) => {
 
   const colors = [
     '#5e17eb', '#667eea', '#764ba2', '#f093fb', '#f5576c',
-    '#4facfe', '#43e97b', '#fa709a', '#feb47b', '#ff9a9e',
-    '#a8edea', '#fed6e3', '#d299c2', '#ffecd2', '#fcb69f'
+    '#4facfe', '#43e97b', '#fa709a', '#feb47b', '#ff9a9e'
   ];
 
   const CustomTooltip = ({ active, payload }) => {

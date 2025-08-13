@@ -7,7 +7,8 @@ import {
   CartesianGrid, 
   Tooltip, 
   Legend, 
-  ResponsiveContainer 
+  ResponsiveContainer,
+  Cell
 } from 'recharts';
 import { 
   Box, 
@@ -18,8 +19,7 @@ const VerticalBarChart = ({ data, title = "選択肢別回答数" }) => {
   
   const colors = [
     '#5e17eb', '#667eea', '#764ba2', '#f093fb', '#f5576c',
-    '#4facfe', '#43e97b', '#fa709a', '#feb47b', '#ff9a9e',
-    '#a8edea', '#fed6e3', '#d299c2', '#ffecd2', '#fcb69f'
+    '#4facfe', '#43e97b', '#fa709a', '#feb47b', '#ff9a9e'
   ];
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -118,18 +118,16 @@ const VerticalBarChart = ({ data, title = "選択肢別回答数" }) => {
             <Tooltip content={<CustomTooltip />} />
             <Bar 
               dataKey="value" 
-              fill="#5e17eb"
               radius={[4, 4, 0, 0]}
-            />
+            >
+              {dataWithTotal.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </Box>
 
-      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
-        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
-          合計回答数: {data.reduce((sum, item) => sum + item.value, 0)} 件
-        </Typography>
-      </Box>
     </Box>
   );
 };
