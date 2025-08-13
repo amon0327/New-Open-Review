@@ -180,10 +180,32 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
     try {
       const config = getDatabaseConfig(isTestMode);
       
-      // 単一選択（2列）（質問タイプ5）の場合 - 従来の選択肢処理に戻す
-      // この処理は削除し、通常の選択肢系として処理する
+      // 均等目盛（質問タイプ7）の場合
+      if (questionTypeNum === 7) {
+        console.log('円グラフ - 均等目盛選択肢データ取得開始');
+        const { data: scaleData, error: scaleError } = await supabase
+          .from(config.QUESTION_OPTION_LINEAR_SCALE)
+          .select('min_text, max_text')
+          .eq('review_questions_id', questionId)
+          .single();
+          
+        console.log('円グラフ - 均等目盛設定取得結果:', { data: scaleData, error: scaleError });
+        
+        if (!scaleError && scaleData) {
+          // min_text, max_textを使った1-5スケールの選択肢を生成
+          const choices = [
+            `1 (${scaleData.min_text || '最小'})`,
+            '2',
+            '3',
+            '4', 
+            `5 (${scaleData.max_text || '最大'})`
+          ];
+          console.log('円グラフ - 生成された均等目盛選択肢:', choices);
+          return choices;
+        }
+      }
       
-      // その他の選択肢系（質問タイプ3,4,6,7,8）の場合
+      // その他の選択肢系（質問タイプ3,4,5,6,8）の場合
       const { data: choicesData, error: choicesError } = await supabase
         .from(config.QUESTION_OPTION_CHOICES)
         .select('choice_name, choice_number')
@@ -211,7 +233,58 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
     try {
       const config = getDatabaseConfig(isTestMode);
       
-      // 質問タイプ5は通常の選択肢系として処理
+      // 均等目盛（質問タイプ7）の場合
+      if (questionTypeNum === 7) {
+        console.log('円グラフ - 均等目盛回答データ取得開始');
+        const { data: scaleAnswers, error: scaleError } = await supabase
+          .from(config.QUESTION_ANSWER_OPTION_LINEAR_SCALE)
+          .select(`
+            answer_number,
+            review_question_answers_id,
+            ${config.REVIEW_QUESTION_ANSWERS}!inner(
+              created_at,
+              review_questions_id,
+              review_form_submissions_id
+            )
+          `)
+          .eq(`${config.REVIEW_QUESTION_ANSWERS}.review_questions_id`, questionId);
+          
+        console.log('円グラフ - 均等目盛回答取得結果:', { data: scaleAnswers, error: scaleError });
+        
+        if (!scaleError && scaleAnswers?.length > 0) {
+          // 均等目盛の設定を取得（表示用）
+          const { data: scaleConfig } = await supabase
+            .from(config.QUESTION_OPTION_LINEAR_SCALE)
+            .select('min_text, max_text')
+            .eq('review_questions_id', questionId)
+            .single();
+          
+          // 数値を表示用文字列にマッピング
+          const getDisplayValue = (answerNumber, scaleConfig) => {
+            if (!answerNumber) return '未回答';
+            const num = parseInt(answerNumber);
+            if (scaleConfig) {
+              switch (num) {
+                case 1: return `1 (${scaleConfig.min_text || '最小'})`;
+                case 5: return `5 (${scaleConfig.max_text || '最大'})`;
+                default: return num.toString();
+              }
+            }
+            return num.toString();
+          };
+          
+          const formattedAnswers = scaleAnswers.map(answer => ({
+            id: answer.review_question_answers_id,
+            submission_id: answer[config.REVIEW_QUESTION_ANSWERS].review_form_submissions_id,
+            created_at: answer[config.REVIEW_QUESTION_ANSWERS].created_at,
+            answer: getDisplayValue(answer.answer_number, scaleConfig),
+            question_id: questionId
+          }));
+          
+          console.log('円グラフ - フォーマット済み均等目盛回答:', formattedAnswers);
+          return formattedAnswers;
+        }
+      }
       
       // 選択肢系（質問タイプ3,4,5,6,8）の場合
       const { data: choiceAnswers, error: choiceError } = await supabase
@@ -221,7 +294,8 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
           review_question_answers_id,
           ${config.REVIEW_QUESTION_ANSWERS}!inner(
             created_at,
-            review_questions_id
+            review_questions_id,
+            review_form_submissions_id
           ),
           ${config.QUESTION_OPTION_CHOICES}!inner(
             choice_name
@@ -237,8 +311,10 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
       if (choiceAnswers && choiceAnswers.length > 0) {
         return choiceAnswers.map(answer => ({
           id: answer.review_question_answers_id,
+          submission_id: answer[config.REVIEW_QUESTION_ANSWERS].review_form_submissions_id,
           created_at: answer[config.REVIEW_QUESTION_ANSWERS].created_at,
-          answer: answer[config.QUESTION_OPTION_CHOICES].choice_name || '未回答'
+          answer: answer[config.QUESTION_OPTION_CHOICES].choice_name || '未回答',
+          question_id: questionId
         }));
       }
       
