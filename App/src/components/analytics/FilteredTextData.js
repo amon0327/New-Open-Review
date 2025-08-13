@@ -24,42 +24,106 @@ export default function FilteredTextData({
   question, 
   secondQuestion = null,
   activeFilters, 
-  selectedDates 
+  selectedDates,
+  isTestMode: propIsTestMode
 }) {
   const [textData, setTextData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // テストモードの判定（CLAUDE.mdの指示に従って実装）
-  const isTestMode = process.env.REACT_APP_TEST_MODE === 'true' || window.location.search.includes('testmode=true');
+  // テストモードの判定（propsから受け取る場合はそれを優先、CLAUDE.mdの指示に従って実装）
+  const isTestMode = propIsTestMode !== undefined ? propIsTestMode : 
+    (process.env.REACT_APP_TEST_MODE === 'true' || window.location.search.includes('testmode=true'));
   
   // Supabaseからテキスト回答データを取得
   const fetchTextAnswers = async (questionId) => {
     try {
+      console.log('=== テストモード判定デバッグ ===');
+      console.log('process.env.REACT_APP_TEST_MODE:', process.env.REACT_APP_TEST_MODE);
+      console.log('window.location.search:', window.location.search);
+      console.log('isTestMode 計算結果:', isTestMode);
+      console.log('==============================');
+      
       const config = getDatabaseConfig(isTestMode);
       console.log('テキスト回答データ取得開始:', { questionId, isTestMode, config });
       
       if (isTestMode) {
-        // テストモードでは、まずテストデータの存在確認
-        console.log('テストモード: テストデータ確認中...');
+        // テストモード: 指定された質問IDに関連するテキスト回答を取得
+        console.log('テストモード: 質問ID', questionId, 'のテキスト回答を取得中...');
         
         try {
-          const { data: testCheck, error: testError } = await supabase
-            .from(config.QUESTION_ANSWER_TEXTS)
-            .select('id')
-            .limit(1);
+          // test_review_questions -> test_review_question_answers -> test_question_answer_texts の順でJOIN
+          console.log('テストモード: 質問ID', questionId, '用の回答テキストを取得中...');
           
-          console.log('テストデータ存在確認:', { data: testCheck, error: testError });
+          // 段階的にクエリを実行してデバッグ情報を取得
+          console.log('=== 段階1: test_review_questions 確認 ===');
+          const { data: questionData, error: questionError } = await supabase
+            .from('test_review_questions')
+            .select('*')
+            .eq('id', questionId);
           
-          if (testError) {
-            console.warn('テストデータアクセスエラー:', testError);
+          console.log('質問データ:', { data: questionData, error: questionError });
+          
+          if (questionError || !questionData || questionData.length === 0) {
+            console.warn('指定された質問IDが見つかりません:', questionId);
             return getDummyTextData();
           }
           
-          if (!testCheck || testCheck.length === 0) {
-            console.log('テストデータが存在しません。ダミーデータを使用します。');
+          console.log('=== 段階2: test_review_question_answers 確認 ===');
+          const { data: answerData, error: answerError } = await supabase
+            .from('test_review_question_answers')
+            .select('*')
+            .eq('review_questions_id', questionId);
+          
+          console.log('回答データ:', { data: answerData, error: answerError });
+          
+          if (answerError) {
+            console.warn('回答データ取得エラー:', answerError);
             return getDummyTextData();
           }
+          
+          if (!answerData || answerData.length === 0) {
+            console.log('指定された質問に対する回答が見つかりません');
+            return getDummyTextData();
+          }
+          
+          // 回答IDリストを取得
+          const answerIds = answerData.map(answer => answer.id);
+          console.log('回答IDリスト:', answerIds);
+          
+          console.log('=== 段階3: test_question_answer_texts 確認 ===');
+          const { data: textAnswerData, error: textAnswerError } = await supabase
+            .from('test_question_answer_texts')
+            .select('*')
+            .in('review_questions_answers_id', answerIds)
+            .not('answer_text', 'is', null)
+            .neq('answer_text', '');
+          
+          console.log('テキスト回答データ:', { data: textAnswerData, error: textAnswerError });
+          
+          if (textAnswerError) {
+            console.warn('テキスト回答取得エラー:', textAnswerError);
+            return getDummyTextData();
+          }
+          
+          if (!textAnswerData || textAnswerData.length === 0) {
+            console.log('指定された質問に対するテキスト回答が見つかりません');
+            return getDummyTextData();
+          }
+          
+          // データフォーマット
+          const formattedData = textAnswerData.map((item, index) => ({
+            id: item.id || `test_${index}`,
+            text: item.answer_text,
+            date: item.created_at ? item.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+            timestamp: item.created_at || new Date().toISOString(),
+            submissionId: item.review_questions_answers_id || null
+          }));
+          
+          console.log('テストモード フォーマット後のデータ:', formattedData);
+          console.log('取得できたテキスト回答数:', formattedData.length);
+          
+          return formattedData;
           
         } catch (testErr) {
           console.warn('テストデータ確認でエラー:', testErr);
@@ -70,18 +134,8 @@ export default function FilteredTextData({
       // 実際のデータ取得クエリ
       let query;
       
-      if (isTestMode) {
-        // テストモード用のシンプルなクエリ
-        query = supabase
-          .from(config.QUESTION_ANSWER_TEXTS)
-          .select(`
-            id,
-            answer_text,
-            created_at
-          `)
-          .not('answer_text', 'is', null)
-          .neq('answer_text', '')
-          .limit(50);
+      if (false) { // テストモード処理は上で完了しているため、この分岐は実行されない
+        // この部分は削除予定
       } else {
         // 本番モード用の詳細なクエリ
         try {
@@ -106,7 +160,7 @@ export default function FilteredTextData({
         }
       }
       
-      // 選択された日付のフィルター適用
+      // 本番モード用の日付フィルター適用とクエリ実行
       if (selectedDates.length > 0) {
         const dateStrings = selectedDates.map(date => date.toISOString().split('T')[0]);
         console.log('日付フィルター適用:', dateStrings);
@@ -121,7 +175,7 @@ export default function FilteredTextData({
       
       const { data, error } = await query.order('created_at', { ascending: false });
       
-      console.log('Supabaseクエリ結果:', { data, error, queryUsed: isTestMode ? 'test' : 'production' });
+      console.log('Supabaseクエリ結果:', { data, error, queryUsed: 'production' });
       
       if (error) {
         console.error('テキスト回答取得エラー:', error);
@@ -341,17 +395,6 @@ export default function FilteredTextData({
               fontWeight: 600
             }}
           />
-          {isTestMode && (
-            <Chip 
-              label="テストモード" 
-              size="small"
-              sx={{ 
-                bgcolor: '#fbbf2420',
-                color: '#f59e0b',
-                fontWeight: 600
-              }}
-            />
-          )}
         </Box>
       </Box>
       

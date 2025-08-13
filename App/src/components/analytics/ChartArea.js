@@ -375,6 +375,7 @@ export default function ChartArea({
                       question={question}
                       activeFilters={activeFilters}
                       setActiveFilters={setActiveFilters}
+                      isTestMode={isTestMode}
                     />
                   </Box>
                 );
@@ -395,6 +396,7 @@ export default function ChartArea({
                       question={firstQuestion}
                       activeFilters={activeFilters}
                       setActiveFilters={setActiveFilters}
+                      isTestMode={isTestMode}
                     />
                   </Box>
                 );
@@ -416,6 +418,7 @@ export default function ChartArea({
                       secondQuestion={secondQuestion}
                       activeFilters={activeFilters}
                       setActiveFilters={setActiveFilters}
+                      isTestMode={isTestMode}
                     />
                   </Box>
                 );

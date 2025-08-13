@@ -20,15 +20,17 @@ export default function TextQuestionChart({
   question, 
   secondQuestion = null,
   activeFilters, 
-  setActiveFilters 
+  setActiveFilters,
+  isTestMode: propIsTestMode
 }) {
   const [selectedDates, setSelectedDates] = useState([]);
   const [mainQuestion, setMainQuestion] = useState(question);
   const [reviewDates, setReviewDates] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // テストモードの判定
-  const isTestMode = process.env.REACT_APP_TEST_MODE === 'true' || window.location.search.includes('testmode=true');
+  // テストモードの判定（propsから受け取る場合はそれを優先）
+  const isTestMode = propIsTestMode !== undefined ? propIsTestMode : 
+    (process.env.REACT_APP_TEST_MODE === 'true' || window.location.search.includes('testmode=true'));
   
   // レビュー日付を取得
   useEffect(() => {
@@ -186,6 +188,7 @@ export default function TextQuestionChart({
         secondQuestion={secondQuestion}
         activeFilters={activeFilters}
         selectedDates={selectedDates}
+        isTestMode={isTestMode}
       />
     </Box>
   );
