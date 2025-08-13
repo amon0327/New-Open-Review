@@ -103,10 +103,54 @@ export default function QuestionSidebar({
             setReviewForms(formsWithQuestionCount);
           }
         } else {
-          // 本番モード: DataServiceからフォーム一覧を取得
-          const forms = await DataService.getReviewForms('dummy_user_id'); // 実際のユーザーIDに変更必要
-          console.log('取得したフォーム一覧:', forms);
-          setReviewForms(forms);
+          // 本番モード: review_formsからフォーム一覧を取得
+          console.log('本番モード: フォーム一覧データ取得開始');
+          
+          const { data: productionForms, error: productionFormsError } = await supabase
+            .from('review_forms')
+            .select(`
+              id,
+              title,
+              created_at,
+              updated_at,
+              is_published,
+              is_deleted
+            `)
+            .eq('is_deleted', false)
+            .order('updated_at', { ascending: false });
+          
+          console.log('本番フォーム取得結果:', { data: productionForms, error: productionFormsError });
+          
+          if (productionFormsError) {
+            console.error('本番フォーム取得エラー:', productionFormsError);
+            setReviewForms([]);
+          } else {
+            // 各フォームの質問数を取得
+            const formsWithQuestionCount = await Promise.all(
+              productionForms.map(async (form) => {
+                try {
+                  const { data: questions, error: questionsError } = await supabase
+                    .from('review_questions')
+                    .select('id')
+                    .eq('review_fome_id', form.id);
+                  
+                  return {
+                    ...form,
+                    question_count: questionsError ? 0 : (questions?.length || 0)
+                  };
+                } catch (err) {
+                  console.error(`フォーム ${form.id} の質問数取得エラー:`, err);
+                  return {
+                    ...form,
+                    question_count: 0
+                  };
+                }
+              })
+            );
+            
+            console.log('質問数付きフォーム一覧:', formsWithQuestionCount);
+            setReviewForms(formsWithQuestionCount);
+          }
         }
         // ===============================================
         
@@ -208,12 +252,82 @@ export default function QuestionSidebar({
         console.log('フォーマット済み質問データ:', formattedQuestions);
         setQuestions(formattedQuestions);
       } else {
-        // 本番モード: 指定されたフォームの質問のみ取得
-        const questionsData = await getQuestionsForAnalytics('dummy_user_id', false);
-        const formQuestions = questionsData.filter(q => 
-          q.review_fome_id === formId || q.review_forms_id === formId
+        // 本番モード: review_questionsから指定されたフォームの質問を取得
+        console.log('本番モード: 質問データ取得開始 for form:', formId);
+        
+        const { data: productionQuestions, error: productionQuestionsError } = await supabase
+          .from('review_questions')
+          .select(`
+            id,
+            question_text,
+            question_number,
+            is_required,
+            question_detail_text,
+            is_detail_enabled,
+            created_at,
+            question_types_id,
+            question_categories_id,
+            question_subcategories_id,
+            review_fome_id
+          `)
+          .eq('review_fome_id', formId)
+          .order('question_number', { ascending: true });
+        
+        console.log('本番質問取得結果:', { data: productionQuestions, error: productionQuestionsError });
+        
+        if (productionQuestionsError) {
+          console.error('本番質問取得エラー:', productionQuestionsError);
+          setQuestions([]);
+          return;
+        }
+        
+        if (!productionQuestions || productionQuestions.length === 0) {
+          console.warn('本番モード: 指定されたフォームに質問がありません');
+          setQuestions([]);
+          return;
+        }
+        
+        // 質問データをフォーマット（UIに必要な形式に変換）
+        const formattedQuestions = await Promise.all(
+          productionQuestions.map(async (question) => {
+            const questionTypeId = question.question_types_id;
+            
+            // 各質問の回答数を取得
+            let responseCount = 0;
+            try {
+              const { data: answerData, error: answerError } = await supabase
+                .from('review_question_answers')
+                .select('id')
+                .eq('review_questions_id', question.id);
+              
+              if (!answerError && answerData) {
+                responseCount = answerData.length;
+              }
+            } catch (err) {
+              console.error(`質問 ${question.id} の回答数取得エラー:`, err);
+            }
+            
+            return {
+              id: question.id,
+              title: question.question_text || 'タイトルなし',
+              category: getCategoryName(question.question_categories_id),
+              type: getTypeName(questionTypeId),
+              typeId: questionTypeId,
+              isRequired: question.is_required,
+              responses: responseCount,
+              avgRating: 0,
+              responseCount: responseCount,
+              chartType: getChartTypeForQuestion(questionTypeId, question.is_required),
+              icon: getIconForQuestion(questionTypeId, question.is_required),
+              iconColor: getIconColorForQuestion(questionTypeId, question.is_required),
+              categoryColor: categoryColors[getCategoryName(question.question_categories_id)] || '#6B7280',
+              review_fome_id: question.review_fome_id
+            };
+          })
         );
-        setQuestions(formQuestions);
+        
+        console.log('フォーマット済み質問データ:', formattedQuestions);
+        setQuestions(formattedQuestions);
       }
         // ============================================
     } catch (err) {
