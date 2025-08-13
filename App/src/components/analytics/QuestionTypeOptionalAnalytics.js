@@ -7,19 +7,19 @@ import {
   IconButton,
   Tooltip
 } from '@mui/material';
-import { FilterList, BarChart, PieChart } from '@mui/icons-material';
-import StackedAreaChart from './StackedAreaChart';
-import PieChartWithFilter from './PieChartWithFilter';
+import { FilterList, TrendingUp, BarChart } from '@mui/icons-material';
+import LineChartWithFilter from './LineChartWithFilter';
+import VerticalBarChart from './VerticalBarChart';
 import FilterPanel from './FilterPanel';
 import { applyCombinedFilters } from '../../utils/dataFilterUtils';
 import { supabase } from '../../supabaseClient';
 import { getDatabaseConfig } from '../../config/databaseConfig';
 
-const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, setActiveFilters, isTestMode }) => {
+const QuestionTypeOptionalAnalytics = ({ questionData, questionId, activeFilters, setActiveFilters, isTestMode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [areaChartData, setAreaChartData] = useState([]);
-  const [pieChartData, setPieChartData] = useState([]);
+  const [lineChartData, setLineChartData] = useState([]);
+  const [barChartData, setBarChartData] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [allResponses, setAllResponses] = useState([]);
   const [filteredResponses, setFilteredResponses] = useState([]);
@@ -29,7 +29,7 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
       try {
         setLoading(true);
         
-        console.log('QuestionType345678Analytics - 受信データ:', { questionData, questionId });
+        console.log('QuestionTypeOptionalAnalytics - 受信データ:', { questionData, questionId });
         
         if (!questionData || !questionId) {
           console.error('データまたはIDが不足:', { questionData, questionId });
@@ -39,42 +39,27 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
 
         const question = questionData.find(q => q.id === questionId);
         console.log('見つかった質問:', question);
-        console.log('質問の全フィールド:', Object.keys(question || {}));
+        
         if (!question) {
           setError('指定された質問が見つかりません');
           return;
         }
 
-        // 質問タイプの取得（複数のフィールド名に対応）
-        console.log('質問タイプ判定開始');
-        console.log('question.type:', question.type);
-        console.log('question.typeId:', question.typeId);
-        console.log('question.question_types_id:', question.question_types_id);
-        console.log('question.type_id:', question.type_id);
-        
-        // 質問タイプの取得 - typeIdを優先し、文字列typeは無視
+        // 質問タイプの取得
         const questionType = question.typeId || question.question_types_id || question.type_id;
         let questionTypeNum = typeof questionType === 'string' ? parseInt(questionType) : questionType;
         
         console.log('判定された質問タイプ:', questionTypeNum);
-        console.log('対象タイプかチェック:', [3, 4, 5, 6, 7, 8].includes(questionTypeNum));
         
-        // 質問タイプのチェック - 正常な場合はそのまま、異常な場合はデフォルト設定
+        // 質問タイプのチェック
         if (![3, 4, 5, 6, 7, 8].includes(questionTypeNum)) {
-          console.warn('質問タイプが対象外 - デフォルトタイプで継続:', questionTypeNum, 'question:', question);
-          // 質問タイプが無効な場合のみデフォルト設定
-          questionTypeNum = 3; // デフォルトとして複数選択を設定
-          console.log('デフォルト質問タイプに設定:', questionTypeNum);
-        } else {
-          console.log('質問タイプ確認完了:', questionTypeNum);
+          console.warn('質問タイプが対象外 - デフォルトタイプで継続:', questionTypeNum);
+          questionTypeNum = 3; // デフォルト設定
         }
 
-        // 質問タイプ3,5,7,8用のコンポーネント（積み上げ面グラフ + 円グラフ）
-        console.log('質問タイプ3,5,7,8用コンポーネントで処理開始');
+        // 質問タイプ4,6用のコンポーネント（折れ線グラフ + 縦棒グラフ）
+        console.log('質問タイプ4,6用コンポーネントで処理開始');
 
-        // サンプルデータの生成（実際のresponses データがない場合）
-        console.log('元の回答データ:', question.responses, 'タイプ:', typeof question.responses);
-        
         // 実際のデータベースから回答データを取得
         let responses;
         try {
@@ -91,14 +76,12 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
           }
         } catch (responseError) {
           console.error('回答データ取得エラー:', responseError);
-          if (Array.isArray(question.responses)) {
-            responses = question.responses;
-            console.log('エラー時既存回答データを使用:', responses.length, '件');
-          } else {
-            responses = generateSampleResponses(questionTypeNum);
-            console.log('エラー時サンプルデータを生成:', responses.length, '件');
-          }
+          responses = generateSampleResponses(questionTypeNum);
+          console.log('エラー時サンプルデータを生成:', responses.length, '件');
         }
+        
+        // デバッグ：生成されたresponses データを確認
+        console.log('最終的なresponses データ:', responses);
         
         // 実際のデータベースから選択肢データを取得
         try {
@@ -113,7 +96,6 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
             }));
             console.log('データベースから選択肢データを取得:', realChoices);
           } else {
-            // フォールバック: サンプルデータ
             const choices = getChoicesForQuestionType(questionTypeNum);
             question.data = {
               labels: choices
@@ -126,7 +108,6 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
           }
         } catch (choiceError) {
           console.error('選択肢データ取得エラー:', choiceError);
-          // エラー時はサンプルデータを使用
           const choices = getChoicesForQuestionType(questionTypeNum);
           question.data = {
             labels: choices
@@ -138,10 +119,7 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
           console.log('エラー時サンプル選択肢データを使用:', choices);
         }
         
-        // 全データを保存
         setAllResponses(responses);
-        
-        console.log('データ処理完了 - エラーをクリア');
         setError(null);
       } catch (err) {
         console.error('データ処理エラー:', err);
@@ -164,13 +142,14 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
         
         setFilteredResponses(filteredResponseData);
         
-        const areaData = generateAreaChartData(filteredResponseData);
-        console.log('フィルター適用後エリアチャートデータ:', areaData);
-        setAreaChartData(areaData);
+        const lineData = generateLineChartData(filteredResponseData);
+        console.log('フィルター適用後折れ線グラフデータ:', lineData);
+        setLineChartData(lineData);
         
-        const pieData = generatePieChartData(filteredResponseData, currentQuestion, currentQuestion.typeId || currentQuestion.question_types_id || currentQuestion.type_id);
-        console.log('フィルター適用後円グラフデータ:', pieData);
-        setPieChartData(pieData);
+        const barData = generateBarChartData(filteredResponseData, currentQuestion, currentQuestion.typeId || currentQuestion.question_types_id || currentQuestion.type_id);
+        console.log('フィルター適用後棒グラフデータ:', barData);
+        console.log('棒グラフ用responses データ:', filteredResponseData);
+        setBarChartData(barData);
       }
     }
   }, [allResponses, activeFilters, questionData, questionId, isTestMode]);
@@ -194,12 +173,11 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
         }
         
         if (scaleData) {
-          // 1-5のスケールを返す（min_text, max_textは表示用）
           return ['1', '2', '3', '4', '5'];
         }
       }
       
-      // その他の選択肢系（質問タイプ3,4,6,7,8）の場合
+      // その他の選択肢系の場合
       const { data: choicesData, error: choicesError } = await supabase
         .from(config.QUESTION_OPTION_CHOICES)
         .select('choice_name, choice_number')
@@ -255,7 +233,7 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
         }
       }
       
-      // その他の選択肢系（質問タイプ3,4,6,7,8）の場合
+      // その他の選択肢系の場合
       const { data: choiceAnswers, error: choiceError } = await supabase
         .from(config.QUESTION_ANSWER_OPTION_CHOICES)
         .select(`
@@ -264,9 +242,6 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
           ${config.REVIEW_QUESTION_ANSWERS}!inner(
             created_at,
             review_questions_id
-          ),
-          ${config.QUESTION_OPTION_CHOICES}!inner(
-            choice_name
           )
         `)
         .eq(`${config.REVIEW_QUESTION_ANSWERS}.review_questions_id`, questionId);
@@ -277,10 +252,24 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
       }
       
       if (choiceAnswers && choiceAnswers.length > 0) {
+        // 選択肢IDから選択肢名を取得
+        const choiceIds = choiceAnswers.map(answer => answer.question_option_choices_id).filter(Boolean);
+        const { data: choiceNames } = await supabase
+          .from(config.QUESTION_OPTION_CHOICES)
+          .select('id, choice_name')
+          .in('id', choiceIds);
+        
+        const choiceMap = {};
+        if (choiceNames) {
+          choiceNames.forEach(choice => {
+            choiceMap[choice.id] = choice.choice_name;
+          });
+        }
+        
         return choiceAnswers.map(answer => ({
           id: answer.review_question_answers_id,
           created_at: answer[config.REVIEW_QUESTION_ANSWERS].created_at,
-          answer: answer[config.QUESTION_OPTION_CHOICES].choice_name || '未回答'
+          answer: choiceMap[answer.question_option_choices_id] || '未回答'
         }));
       }
       
@@ -296,7 +285,7 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
     const choices = getChoicesForQuestionType(questionTypeNum);
     
     // 過去30日間のサンプルデータを生成
-    for (let i = 0; i < 150; i++) {
+    for (let i = 0; i < 120; i++) {
       const date = new Date();
       date.setDate(date.getDate() - Math.floor(Math.random() * 30));
       
@@ -314,15 +303,15 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
     const choiceMap = {
       3: ['選択肢A', '選択肢B', '選択肢C', '選択肢D'],
       4: ['オプション1', 'オプション2', 'オプション3'],
-      5: ['20代', '30代', '40代', '50代', '60代以上'], // 年齢関連の選択肢
-      6: ['1', '2', '3', '4', '5'],
-      7: ['とても良い', '良い', '普通', '悪い', 'とても悪い'],
-      8: ['カテゴリA', 'カテゴリB', 'カテゴリC']
+      5: ['1', '2', '3', '4', '5'],
+      6: ['とても良い', '良い', '普通', '悪い', 'とても悪い'],
+      7: ['カテゴリA', 'カテゴリB', 'カテゴリC'],
+      8: ['項目1', '項目2', '項目3', '項目4']
     };
     return choiceMap[questionTypeNum] || ['回答1', '回答2', '回答3'];
   };
 
-  const generateAreaChartData = (responses) => {
+  const generateLineChartData = (responses) => {
     const dailyData = {};
     
     // 各日付と回答選択肢の組み合わせでカウント
@@ -364,7 +353,7 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
     return last30Days;
   };
 
-  const generatePieChartData = (responses, question, questionTypeNum) => {
+  const generateBarChartData = (responses, question, questionTypeNum) => {
     const answerCounts = {};
     
     responses.forEach(response => {
@@ -372,23 +361,9 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
       answerCounts[answer] = (answerCounts[answer] || 0) + 1;
     });
 
-    return Object.entries(answerCounts).map(([name, value]) => ({
-      name,
-      value,
-      date: new Date().toISOString()
-    }));
-  };
-
-  const getQuestionTypeLabel = (type) => {
-    const typeLabels = {
-      '3': '複数選択',
-      '4': '単一選択',
-      '5': '線形スケール',
-      '6': 'テキスト（短文）',
-      '7': 'テキスト（長文）',
-      '8': 'プルダウン'
-    };
-    return typeLabels[type] || `タイプ${type}`;
+    return Object.entries(answerCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value); // 回答数の多い順にソート
   };
 
   if (loading) {
@@ -413,7 +388,7 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
 
   return (
     <Box sx={{ p: 2 }}>
-      {/* ヘッダー - TextQuestionChartスタイル */}
+      {/* ヘッダー */}
       <Box sx={{ mb: 3 }}>
         <Typography 
           variant="h6" 
@@ -426,8 +401,8 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
             gap: 1
           }}
         >
-          <BarChart sx={{ color: '#5e17eb' }} />
-          回答分布の推移（積み上げ100%）
+          <TrendingUp sx={{ color: '#5e17eb' }} />
+          回答数推移
         </Typography>
       </Box>
 
@@ -442,15 +417,15 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
         />
       )}
 
-      {/* 積み上げ面グラフ */}
-      <Box sx={{ mb: 3 }}>
-        <StackedAreaChart 
-          data={areaChartData}
-          title="回答分布の推移（積み上げ100%）"
+      {/* 折れ線グラフ */}
+      <Box sx={{ mb: 4 }}>
+        <LineChartWithFilter 
+          data={lineChartData}
+          title="回答数推移"
         />
       </Box>
 
-      {/* 円グラフ */}
+      {/* 棒グラフ */}
       <Box sx={{ mb: 2 }}>
         <Typography 
           variant="h6" 
@@ -463,16 +438,30 @@ const QuestionType345678Analytics = ({ questionData, questionId, activeFilters, 
             gap: 1
           }}
         >
-          <PieChart sx={{ color: '#5e17eb' }} />
-          回答内容の分布
+          <BarChart sx={{ color: '#5e17eb' }} />
+          選択肢別回答数
         </Typography>
         
-        <PieChartWithFilter 
-          data={pieChartData}
-        />
+        {barChartData ? (
+          <VerticalBarChart 
+            data={barChartData}
+          />
+        ) : (
+          <Box sx={{ 
+            height: 400, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            color: 'text.secondary'
+          }}>
+            <Typography variant="body1">
+              データを読み込み中...
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Box>
   );
 };
 
-export default QuestionType345678Analytics;
+export default QuestionTypeOptionalAnalytics;

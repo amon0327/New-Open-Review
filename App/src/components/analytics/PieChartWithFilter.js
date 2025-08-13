@@ -9,57 +9,75 @@ import {
 } from 'recharts';
 import { 
   Box, 
-  FormControl, 
-  Select, 
-  MenuItem, 
   Typography,
-  Paper,
-  InputLabel
+  TextField,
+  Button,
+  ButtonGroup
 } from '@mui/material';
-import { format, subDays, subMonths, subYears } from 'date-fns';
-import { ja } from 'date-fns/locale';
 
 const PieChartWithFilter = ({ data, title = "回答分布" }) => {
-  const [periodFilter, setPeriodFilter] = useState('all');
+  const [dateRange, setDateRange] = useState('');
 
-  const handlePeriodChange = (event) => {
-    setPeriodFilter(event.target.value);
+  const getPresetDateRange = (preset) => {
+    const today = new Date();
+    const formatDate = (date) => date.toISOString().split('T')[0];
+    
+    switch (preset) {
+      case '1week':
+        const oneWeekAgo = new Date(today);
+        oneWeekAgo.setDate(today.getDate() - 7);
+        return `${formatDate(oneWeekAgo)} - ${formatDate(today)}`;
+      case '1month':
+        const oneMonthAgo = new Date(today);
+        oneMonthAgo.setMonth(today.getMonth() - 1);
+        return `${formatDate(oneMonthAgo)} - ${formatDate(today)}`;
+      case '3months':
+        const threeMonthsAgo = new Date(today);
+        threeMonthsAgo.setMonth(today.getMonth() - 3);
+        return `${formatDate(threeMonthsAgo)} - ${formatDate(today)}`;
+      case 'all':
+        return '';
+      default:
+        return '';
+    }
   };
 
-  const filterDataByPeriod = (data, period) => {
+  const parseDateRange = (dateRangeStr) => {
+    if (!dateRangeStr || !dateRangeStr.includes(' - ')) return { startDate: null, endDate: null };
+    
+    const [startStr, endStr] = dateRangeStr.split(' - ');
+    return {
+      startDate: startStr ? new Date(startStr) : null,
+      endDate: endStr ? new Date(endStr) : null
+    };
+  };
+
+  const filterDataByDateRange = (data, dateRangeStr) => {
     if (!data || data.length === 0) return [];
     
-    if (period === 'all') return data;
+    const { startDate, endDate } = parseDateRange(dateRangeStr);
     
-    const now = new Date();
-    let cutoffDate;
-    
-    switch (period) {
-      case 'week':
-        cutoffDate = subDays(now, 7);
-        break;
-      case 'month':
-        cutoffDate = subMonths(now, 1);
-        break;
-      case 'quarter':
-        cutoffDate = subMonths(now, 3);
-        break;
-      case 'year':
-        cutoffDate = subYears(now, 1);
-        break;
-      default:
-        return data;
-    }
+    // 日付範囲が設定されていない場合は全期間
+    if (!startDate && !endDate) return data;
     
     return data.filter(item => {
-      if (item.date) {
-        return new Date(item.date) >= cutoffDate;
+      if (!item.date) return true;
+      
+      const itemDate = new Date(item.date);
+      
+      if (startDate && endDate) {
+        return itemDate >= startDate && itemDate <= endDate;
+      } else if (startDate) {
+        return itemDate >= startDate;
+      } else if (endDate) {
+        return itemDate <= endDate;
       }
+      
       return true;
     });
   };
 
-  const filteredData = filterDataByPeriod(data, periodFilter);
+  const filteredData = filterDataByDateRange(data, dateRange);
 
   const colors = [
     '#5e17eb', '#667eea', '#764ba2', '#f093fb', '#f5576c',
@@ -119,37 +137,105 @@ const PieChartWithFilter = ({ data, title = "回答分布" }) => {
   };
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 2, boxShadow: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" component="h2" sx={{ fontWeight: 600 }}>
-          {title}
-        </Typography>
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1.5, mb: 2 }}>
+        <TextField
+          label="カスタム期間"
+          placeholder="2024-01-01 - 2024-12-31"
+          value={dateRange}
+          onChange={(e) => setDateRange(e.target.value)}
+          size="small"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          sx={{
+            minWidth: 220,
+            '& .MuiOutlinedInput-root': {
+              '&.Mui-focused fieldset': {
+                borderColor: '#5e17eb',
+              }
+            }
+          }}
+        />
         
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>期間</InputLabel>
-          <Select
-            value={periodFilter}
-            label="期間"
-            onChange={handlePeriodChange}
+        <ButtonGroup size="small" variant="outlined">
+          <Button 
+            onClick={() => setDateRange(getPresetDateRange('1week'))}
+            variant={dateRange === getPresetDateRange('1week') ? 'contained' : 'outlined'}
             sx={{
-              '& .MuiOutlinedInput-root': {
-                '&.Mui-focused fieldset': {
-                  borderColor: '#5e17eb',
-                }
+              bgcolor: dateRange === getPresetDateRange('1week') ? '#5e17eb' : 'transparent',
+              borderColor: '#5e17eb',
+              color: dateRange === getPresetDateRange('1week') ? 'white' : '#5e17eb',
+              px: 1.5,
+              py: 0.5,
+              fontSize: '0.8rem',
+              '&:hover': {
+                bgcolor: '#5e17eb',
+                color: 'white'
               }
             }}
           >
-            <MenuItem value="all">全期間</MenuItem>
-            <MenuItem value="week">1週間</MenuItem>
-            <MenuItem value="month">1ヶ月</MenuItem>
-            <MenuItem value="quarter">3ヶ月</MenuItem>
-            <MenuItem value="year">1年</MenuItem>
-          </Select>
-        </FormControl>
+            1週間
+          </Button>
+          <Button 
+            onClick={() => setDateRange(getPresetDateRange('1month'))}
+            variant={dateRange === getPresetDateRange('1month') ? 'contained' : 'outlined'}
+            sx={{
+              bgcolor: dateRange === getPresetDateRange('1month') ? '#5e17eb' : 'transparent',
+              borderColor: '#5e17eb',
+              color: dateRange === getPresetDateRange('1month') ? 'white' : '#5e17eb',
+              px: 1.5,
+              py: 0.5,
+              fontSize: '0.8rem',
+              '&:hover': {
+                bgcolor: '#5e17eb',
+                color: 'white'
+              }
+            }}
+          >
+            1ヶ月
+          </Button>
+          <Button 
+            onClick={() => setDateRange(getPresetDateRange('3months'))}
+            variant={dateRange === getPresetDateRange('3months') ? 'contained' : 'outlined'}
+            sx={{
+              bgcolor: dateRange === getPresetDateRange('3months') ? '#5e17eb' : 'transparent',
+              borderColor: '#5e17eb',
+              color: dateRange === getPresetDateRange('3months') ? 'white' : '#5e17eb',
+              px: 1.5,
+              py: 0.5,
+              fontSize: '0.8rem',
+              '&:hover': {
+                bgcolor: '#5e17eb',
+                color: 'white'
+              }
+            }}
+          >
+            3ヶ月
+          </Button>
+          <Button 
+            onClick={() => setDateRange('')}
+            variant={dateRange === '' ? 'contained' : 'outlined'}
+            sx={{
+              bgcolor: dateRange === '' ? '#5e17eb' : 'transparent',
+              borderColor: '#5e17eb',
+              color: dateRange === '' ? 'white' : '#5e17eb',
+              px: 1.5,
+              py: 0.5,
+              fontSize: '0.8rem',
+              '&:hover': {
+                bgcolor: '#5e17eb',
+                color: 'white'
+              }
+            }}
+          >
+            全期間
+          </Button>
+        </ButtonGroup>
       </Box>
 
       {filteredData.length > 0 ? (
-        <Box sx={{ width: '100%', height: 400 }}>
+        <Box sx={{ width: '100%', height: 500 }}>
           <ResponsiveContainer>
             <PieChart>
               <Pie
@@ -158,7 +244,7 @@ const PieChartWithFilter = ({ data, title = "回答分布" }) => {
                 cy="50%"
                 labelLine={false}
                 label={CustomLabel}
-                outerRadius={120}
+                outerRadius={160}
                 fill="#8884d8"
                 dataKey="value"
                 animationBegin={0}
@@ -200,14 +286,7 @@ const PieChartWithFilter = ({ data, title = "回答分布" }) => {
         </Box>
       )}
 
-      {filteredData.length > 0 && (
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            総計: {filteredData.reduce((sum, item) => sum + item.value, 0)} 件
-          </Typography>
-        </Box>
-      )}
-    </Paper>
+    </Box>
   );
 };
 

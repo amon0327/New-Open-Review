@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
-  AreaChart, 
-  Area, 
+  LineChart, 
+  Line, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -16,7 +16,7 @@ import {
   Typography
 } from '@mui/material';
 
-const StackedAreaChart = ({ data, title = "回答数推移" }) => {
+const LineChartWithFilter = ({ data, title = "回答数推移" }) => {
   const [timeRange, setTimeRange] = useState('week');
 
   const handleTimeRangeChange = (event, newRange) => {
@@ -47,34 +47,16 @@ const StackedAreaChart = ({ data, title = "回答数推移" }) => {
     '#4facfe', '#43e97b', '#fa709a', '#feb47b', '#ff9a9e'
   ];
 
-  // 100%積み上げ用にデータを正規化
-  const normalizedData = filteredData.map(item => {
-    const total = Object.keys(item)
-      .filter(key => key !== 'date')
-      .reduce((sum, key) => sum + (item[key] || 0), 0);
-    
-    if (total === 0) return item;
-    
-    const normalized = { date: item.date };
-    Object.keys(item)
-      .filter(key => key !== 'date')
-      .forEach(key => {
-        normalized[key] = total > 0 ? (item[key] / total) * 100 : 0;
-      });
-    
-    return normalized;
-  });
-
-  const areas = normalizedData.length > 0 
-    ? Object.keys(normalizedData[0]).filter(key => key !== 'date').map((key, index) => (
-        <Area
+  const lines = filteredData.length > 0 
+    ? Object.keys(filteredData[0]).filter(key => key !== 'date').map((key, index) => (
+        <Line
           key={key}
           type="monotone"
           dataKey={key}
-          stackId="1"
           stroke={colors[index % colors.length]}
-          fill={colors[index % colors.length]}
-          fillOpacity={0.7}
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 6, stroke: colors[index % colors.length], strokeWidth: 2 }}
         />
       ))
     : [];
@@ -92,6 +74,7 @@ const StackedAreaChart = ({ data, title = "回答数推移" }) => {
               px: 2,
               py: 0.5,
               border: '1px solid #e0e0e0',
+              fontSize: '0.8rem',
               '&.Mui-selected': {
                 backgroundColor: '#5e17eb',
                 color: 'white',
@@ -113,8 +96,8 @@ const StackedAreaChart = ({ data, title = "回答数推移" }) => {
 
       <Box sx={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
-          <AreaChart
-            data={normalizedData}
+          <LineChart
+            data={filteredData}
             margin={{
               top: 10,
               right: 30,
@@ -129,13 +112,10 @@ const StackedAreaChart = ({ data, title = "回答数推移" }) => {
               stroke="#666"
             />
             <YAxis 
-              domain={[0, 100]}
-              tickFormatter={(value) => `${value}%`}
               tick={{ fontSize: 12 }}
               stroke="#666"
             />
             <Tooltip
-              formatter={(value, name) => [`${value.toFixed(1)}%`, name]}
               contentStyle={{
                 backgroundColor: 'white',
                 border: '1px solid #e0e0e0',
@@ -144,12 +124,12 @@ const StackedAreaChart = ({ data, title = "回答数推移" }) => {
               }}
             />
             <Legend />
-            {areas}
-          </AreaChart>
+            {lines}
+          </LineChart>
         </ResponsiveContainer>
       </Box>
     </Box>
   );
 };
 
-export default StackedAreaChart;
+export default LineChartWithFilter;

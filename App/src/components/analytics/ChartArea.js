@@ -16,6 +16,8 @@ import {
 import FilterPanel from './FilterPanel';
 import ChatPanel from './ChatPanel';
 import TextQuestionChart from './TextQuestionChart';
+import QuestionType345678Analytics from './QuestionType345678Analytics';
+import QuestionTypeOptionalAnalytics from './QuestionTypeOptionalAnalytics';
 import { applyCombinedFilters, calculateFilterStats, generateFilterDescription } from '../../utils/dataFilterUtils';
 
 // CSS アニメーション用のスタイル定義
@@ -399,13 +401,43 @@ export default function ChartArea({
               );
             }
 
-            // テキスト質問が含まれていない場合の従来のロジック
+            // テキスト質問が含まれていない場合のロジック
             // 1つ選択されている場合
             if (selectedQuestions.length === 1) {
               const question = selectedQuestions[0];
               const questionTypeId = question.typeId || question.question_types_id || question.type_id;
               
-              // 非テキスト質問の場合は従来のプレースホルダーを表示
+              // 質問タイプ4,6の場合: 折れ線グラフと縦棒グラフ
+              if ([4, 6].includes(questionTypeId)) {
+                console.log('質問タイプ4,6コンポーネント呼び出し:', { question, questionTypeId });
+                return (
+                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                    <QuestionTypeOptionalAnalytics 
+                      questionData={[question]}
+                      questionId={question.id}
+                      activeFilters={activeFilters}
+                      setActiveFilters={setActiveFilters}
+                      isTestMode={isTestMode}
+                    />
+                  </Box>
+                );
+              }
+              
+              // 質問タイプ3,5,7,8の場合: 積み上げ面グラフと円グラフ
+              if ([3, 5, 7, 8].includes(questionTypeId)) {
+                console.log('質問タイプ3,5,7,8コンポーネント呼び出し:', { question, questionTypeId });
+                return (
+                  <Box sx={{ flexGrow: 1, minHeight: 0 }}>
+                    <QuestionType345678Analytics 
+                      questionData={[question]}
+                      questionId={question.id}
+                      activeFilters={activeFilters}
+                      setActiveFilters={setActiveFilters}
+                      isTestMode={isTestMode}
+                    />
+                  </Box>
+                );
+              }
             }
             
             // その他の場合（選択肢系、複数質問など）は従来のプレースホルダー
