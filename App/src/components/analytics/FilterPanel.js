@@ -76,18 +76,13 @@ export default function FilterPanel({
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
-          style={{ 
-            width: '100%',
-            flexShrink: 0
-          }}
         >
           <Box
             sx={{
               borderTop: '1px solid #f1f5f9',
               background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-              maxHeight: 240,
+              maxHeight: 280,
               overflow: 'auto',
-              width: '100%',
               '&::-webkit-scrollbar': { width: 6 },
               '&::-webkit-scrollbar-track': { 
                 bgcolor: 'rgba(241, 245, 249, 0.5)',
@@ -147,7 +142,7 @@ export default function FilterPanel({
                       </Box>
 
                       {/* コンパクトなフィルター要素 */}
-                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', py: 0.5 }}>
                         {/* Choices フィルター（統一された選択肢フィルター） */}
                         {filterConfig.type === 'choices' && (
                           <Box>
@@ -233,7 +228,7 @@ export default function FilterPanel({
                                       borderWidth: '1.5px',
                                       transition: 'all 0.2s ease',
                                       '&:hover': {
-                                        transform: 'scale(1.02)',
+                                        transform: 'translateY(-1px)',
                                         boxShadow: `0 4px 12px ${categoryColors[question.category]}30`,
                                         bgcolor: isSelected 
                                           ? categoryColors[question.category] 
@@ -241,7 +236,7 @@ export default function FilterPanel({
                                         borderColor: categoryColors[question.category]
                                       },
                                       '&:active': {
-                                        transform: 'scale(0.98)'
+                                        transform: 'translateY(0px)'
                                       }
                                     }}
                                   >
