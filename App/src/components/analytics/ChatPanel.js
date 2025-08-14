@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { claudeApiService } from '../../services/claudeApi';
 import { motion, AnimatePresence } from 'framer-motion';
+import MarkdownRenderer from './MarkdownRenderer';
 import {
   Box,
   Typography,
@@ -394,16 +395,14 @@ ${generateDataSharingSQL()}
                       mr: message.type === 'ai' ? 'auto' : 0
                     }}
                   >
-                    <Typography
+                    <MarkdownRenderer
+                      content={message.content}
                       sx={{
                         fontSize: '0.8rem',
                         lineHeight: 1.4,
-                        color: message.type === 'ai' ? '#1e293b' : '#fff',
-                        whiteSpace: 'pre-wrap'
+                        color: message.type === 'ai' ? '#1e293b' : '#fff'
                       }}
-                    >
-                      {message.content}
-                    </Typography>
+                    />
                   </Box>
                 </Box>
               </motion.div>
