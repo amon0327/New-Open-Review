@@ -117,6 +117,7 @@ export default function MarkdownRenderer({ content, sx = {} }) {
             sx={{ 
               pl: 2, 
               mb: 1,
+              fontSize: 'inherit',
               '&:last-child': { mb: 0 }
             }} 
             {...props}
@@ -131,6 +132,7 @@ export default function MarkdownRenderer({ content, sx = {} }) {
             sx={{ 
               pl: 2, 
               mb: 1,
+              fontSize: 'inherit',
               '&:last-child': { mb: 0 }
             }} 
             {...props}
@@ -144,9 +146,12 @@ export default function MarkdownRenderer({ content, sx = {} }) {
             component="li" 
             sx={{ 
               mb: 0.5,
-              fontSize: '0.9rem',
+              fontSize: 'inherit',
               lineHeight: 1.6,
-              color: 'inherit'
+              color: 'inherit',
+              '& *': {
+                fontSize: 'inherit !important'
+              }
             }} 
             {...props}
           >

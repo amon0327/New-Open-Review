@@ -116,7 +116,11 @@ export default function ChatPanel({
       console.log('🔍 ChatPanel API Call Debug:', {
         isDataMode: isDataMode,
         isTestMode: isTestMode,
-        messageLength: currentInput.length
+        testModeValue: isTestMode,
+        testModeType: typeof isTestMode,
+        messageLength: currentInput.length,
+        selectedQuestionsCount: selectedQuestions.length,
+        activeFiltersCount: Object.keys(activeFilters).length
       });
 
       // データ共有用のSQL情報を生成

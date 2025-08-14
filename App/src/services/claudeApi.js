@@ -95,8 +95,17 @@ ${systemPrompt}
         conversationHistory: this.formatConversationHistory(conversationHistory),
         systemPrompt: systemPrompt || undefined,
         mcpMode: options.isDataMode || false,
-        testMode: options.testMode || true  // デフォルトでテストモードを有効
+        testMode: options.testMode || false  // デフォルトは本番モード、明示的にtestMode指定時のみテストモード
       };
+      
+      // TestMode デバッグログ追加
+      console.log('🎯 ClaudeApiService testMode Debug:', {
+        optionsTestMode: options.testMode,
+        optionsTestModeType: typeof options.testMode,
+        finalTestMode: requestBody.testMode,
+        isDataMode: options.isDataMode,
+        allOptions: options
+      });
 
       // セキュアな認証ヘッダーの構築
       const headers = {
