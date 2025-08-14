@@ -319,17 +319,16 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           }}
         >
           {!isNavCollapsed && (
-            <Chip
-              label="プレビュー版"
-              size="small"
+            <Typography
+              variant="caption"
               sx={{
-                bgcolor: 'rgba(255, 193, 7, 0.9)',
-                color: '#000',
+                color: 'white',
                 fontWeight: 600,
-                fontSize: '0.75rem',
-                height: 24
+                fontSize: '0.75rem'
               }}
-            />
+            >
+              プレビュー版
+            </Typography>
           )}
           <Tooltip
             title={
