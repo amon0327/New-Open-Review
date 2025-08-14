@@ -21,7 +21,11 @@ import {
   Analytics
 } from '@mui/icons-material';
 
-export default function ChatPanel({ isTestMode = false }) {
+export default function ChatPanel({ 
+  isTestMode = false,
+  selectedQuestions = [],
+  activeFilters = {}
+}) {
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -107,21 +111,88 @@ export default function ChatPanel({ isTestMode = false }) {
           content: msg.content
         }));
 
-      // Claude APIを呼び出し（データモード対応）
+      // デバッグログを追加
+      console.log('🔍 ChatPanel API Call Debug:', {
+        isDataMode: isDataMode,
+        isTestMode: isTestMode,
+        messageLength: currentInput.length
+      });
+
+      // データ共有用のSQL情報を生成
+      const generateDataSharingSQL = () => {
+        if (!isDataMode || selectedQuestions.length === 0) return '';
+        
+        const tablePrefix = isTestMode ? 'test_' : '';
+        const questionIds = selectedQuestions.map(q => `'${q.id}'`).join(', ');
+        
+        let sql = `-- 現在表示中のデータ分析用SQL\n`;
+        sql += `-- 選択中の質問: ${selectedQuestions.length}件\n`;
+        sql += `-- テストモード: ${isTestMode ? 'ON' : 'OFF'}\n\n`;
+        
+        // 基本の質問データ取得SQL
+        sql += `-- 1. 選択された質問情報\n`;
+        sql += `SELECT id, question_text, question_types_id, question_number, is_required\n`;
+        sql += `FROM ${tablePrefix}review_questions\n`;
+        sql += `WHERE id IN (${questionIds});\n\n`;
+        
+        // 回答データ取得SQL
+        sql += `-- 2. 回答データ（テキスト回答含む）\n`;
+        sql += `SELECT rqa.id, rqa.created_at, rqa.review_questions_id,\n`;
+        sql += `       rfs.id as submission_id, rfs.created_at as submitted_at,\n`;
+        sql += `       qat.answer_text,\n`;
+        sql += `       qac.question_option_choices_id,\n`;
+        sql += `       qals.answer_number\n`;
+        sql += `FROM ${tablePrefix}review_question_answers rqa\n`;
+        sql += `LEFT JOIN ${tablePrefix}review_form_submissions rfs ON rqa.review_form_submissions_id = rfs.id\n`;
+        sql += `LEFT JOIN ${tablePrefix}question_answer_texts qat ON qat.review_questions_answers_id = rqa.id\n`;
+        sql += `LEFT JOIN ${tablePrefix}question_answer_option_choices qac ON qac.review_question_answers_id = rqa.id\n`;
+        sql += `LEFT JOIN ${tablePrefix}question_answer_option_linear_scale qals ON qals.review_question_answers_id = rqa.id\n`;
+        sql += `WHERE rqa.review_questions_id IN (${questionIds})\n`;
+        sql += `ORDER BY rqa.created_at DESC;\n\n`;
+        
+        // フィルター情報
+        if (Object.keys(activeFilters).length > 0) {
+          sql += `-- 3. 適用中のフィルター条件\n`;
+          sql += `-- ${JSON.stringify(activeFilters, null, 2)}\n\n`;
+        }
+        
+        return sql;
+      };
+
+      // Claude APIを呼び出し（データ共有対応）
       const response = await claudeApiService.sendMessage(
         currentInput, 
         conversationHistory,
         { 
           isDataMode: isDataMode,
+          testMode: isTestMode,
           systemPrompt: isDataMode ? `
 現在、OpenReview Analyticsでのデータ分析セッションです。
-ユーザーが質問したデータに基づいて、適切なMCPツールを使用してSupabaseからデータを取得し、分析結果を提供してください。
+
+## 表示中のデータ情報
+${generateDataSharingSQL()}
+
+以下の情報を使ってユーザーの質問に答えてください：
+- 選択中の質問数: ${selectedQuestions.length}件
+- 適用中のフィルター: ${Object.keys(activeFilters).length > 0 ? JSON.stringify(activeFilters) : 'なし'}
+- テストモード: ${isTestMode ? 'ON' : 'OFF'}
+
+適切なMCPツールを使用してSupabaseからデータを取得し、分析結果を提供してください。
           `.trim() : undefined
         }
       );
       
       const aiMessageId = Date.now() + 1;
       const fullResponse = response.message;
+      
+      // デバッグログ追加
+      console.log('🔍 Claude API Response Debug:', {
+        messageLength: fullResponse?.length || 0,
+        messagePreview: fullResponse?.substring(0, 100) + (fullResponse?.length > 100 ? '...' : ''),
+        fullResponse: fullResponse,
+        responseKeys: Object.keys(response || {}),
+        usage: response.usage
+      });
       
       const aiResponse = {
         id: aiMessageId,
@@ -141,14 +212,54 @@ export default function ChatPanel({ isTestMode = false }) {
       }, 300);
 
     } catch (error) {
-      console.error('Claude API Error:', error);
+      console.error('🚨 Claude API Error - Full Details:', {
+        error: error.message,
+        stack: error.stack,
+        isDataMode: isDataMode,
+        messageLength: currentInput.length,
+        conversationLength: messages.length,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent
+      });
+      
       setIsTyping(false);
       
       const errorMessageId = Date.now() + 1;
+      
+      // より詳細なエラーメッセージを生成
+      let detailedErrorMessage = `🚨 **エラーが発生しました**\n\n`;
+      detailedErrorMessage += `**エラー内容:** ${error.message}\n\n`;
+      detailedErrorMessage += `**デバッグ情報:**\n`;
+      detailedErrorMessage += `- データモード: ${isDataMode ? 'ON' : 'OFF'}\n`;
+      detailedErrorMessage += `- 時刻: ${new Date().toLocaleString()}\n`;
+      detailedErrorMessage += `- メッセージ長: ${currentInput.length}文字\n`;
+      detailedErrorMessage += `- 会話履歴数: ${messages.filter(m => !m.isTyping).length}件\n\n`;
+      
+      // エラーの種類に応じた対処法を提案
+      if (error.message.includes('タイムアウト')) {
+        detailedErrorMessage += `**対処法:** リクエストがタイムアウトしました。データベース処理に時間がかかっている可能性があります。\n`;
+        detailedErrorMessage += `- より簡潔な質問を試してください\n`;
+        detailedErrorMessage += `- しばらく待ってから再度お試しください\n`;
+      } else if (error.message.includes('認証')) {
+        detailedErrorMessage += `**対処法:** 認証エラーが発生しました。\n`;
+        detailedErrorMessage += `- ログイン状態を確認してください\n`;
+        detailedErrorMessage += `- ページを再読み込みしてください\n`;
+      } else if (error.message.includes('制限')) {
+        detailedErrorMessage += `**対処法:** レート制限に達しました。\n`;
+        detailedErrorMessage += `- しばらく待ってから再度お試しください\n`;
+        detailedErrorMessage += `- ログインすると制限が緩和されます\n`;
+      } else {
+        detailedErrorMessage += `**対処法:** 予期しないエラーです。\n`;
+        detailedErrorMessage += `- ページを再読み込みしてください\n`;
+        detailedErrorMessage += `- 問題が続く場合はサポートにお問い合わせください\n`;
+      }
+      
+      detailedErrorMessage += `\n**技術的詳細:** ブラウザのコンソール（F12）でより詳細なログを確認できます。`;
+      
       const errorMessage = {
         id: errorMessageId,
         type: 'ai',
-        content: `エラーが発生しました: ${error.message}\n\nデバッグ情報:\n- データモード: ${isDataMode ? 'ON' : 'OFF'}\n- 時刻: ${new Date().toLocaleString()}\n- エラーの詳細を確認するには、ブラウザのコンソールをご確認ください。`,
+        content: detailedErrorMessage,
         timestamp: new Date(),
         isTyping: false
       };

@@ -560,7 +560,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
                                   mb: 0.25
                                 }}
                               >
-                                {selectedQuestions[0].title}
+                                {selectedQuestions[0].question_text}
                               </Typography>
                               <Typography 
                                 variant="body2" 

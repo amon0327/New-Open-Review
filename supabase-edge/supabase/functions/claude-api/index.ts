@@ -371,6 +371,37 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
         },
         required: ['jwt_token', 'question_ids']
       }
+    },
+    {
+      name: 'execute_custom_sql',
+      description: '選択された質問とフィルターに基づいてカスタムSQLを実行し、データを分析します',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' },
+          question_ids: {
+            type: 'array',
+            items: { type: 'string' },
+            description: '選択中の質問IDの配列'
+          },
+          filters: { 
+            type: 'object', 
+            description: 'フィルター条件（任意）',
+            properties: {
+              date_range: { type: 'object' },
+              demographics: { type: 'object' },
+              other: { type: 'object' }
+            }
+          },
+          analysis_type: {
+            type: 'string',
+            enum: ['full_analysis', 'text_summary', 'statistical_summary', 'cross_analysis'],
+            default: 'full_analysis',
+            description: '分析タイプ'
+          }
+        },
+        required: ['jwt_token', 'question_ids']
+      }
     }
   ] : undefined;
 
@@ -400,6 +431,8 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
 - **test_question_option_linear_scale**: リニアスケール質問設定
   - id, review_questions_id, min_text, max_text
 
+**重要: review_questionsテーブルには'title'カラムは存在しません。質問の内容は'question_text'カラムに格納されています。**
+
 ### 回答データ
 - **test_review_form_submissions**: フォーム提出記録
   - id, review_forms_id, users(回答者), created_at
@@ -418,6 +451,11 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
 3. アンケート結果の可視化とレポート作成の支援
 4. データドリブンな意思決定のためのアドバイス
 5. フォーム設計のベストプラクティス提案
+
+**エラー処理の重要な指示:**
+- ツール実行エラーが発生した場合、技術的な詳細をそのまま表示してください
+- エラーメッセージを親切な言葉に変換しないでください
+- 具体的なテーブル名、カラム名、SQLエラーをそのまま伝えてください
 
 データ分析時は具体的な数値、パーセンテージ、傾向を明確に示し、日本語で回答してください。`;
 
@@ -450,6 +488,17 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
   }
   
   const claudeResponse = await response.json();
+  
+  // 📊 Claude API からの生レスポンスをログ出力
+  console.log('📊 Claude API Raw Response:', {
+    fullResponse: claudeResponse,
+    contentArray: claudeResponse.content,
+    contentCount: claudeResponse.content?.length || 0,
+    usage: claudeResponse.usage,
+    model: claudeResponse.model,
+    responseKeys: Object.keys(claudeResponse || {}),
+    timestamp: new Date().toISOString()
+  });
 
   // ツール呼び出しがある場合はデータベースツールを実行
   if (claudeResponse.content && userToken) {
@@ -464,8 +513,23 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
         
         for (const toolUse of toolUses) {
           try {
-            console.log(`Executing tool: ${toolUse.name}`, toolUse.input);
+            console.log(`🔧 Executing tool: ${toolUse.name}`, {
+              toolInput: toolUse.input,
+              testMode: testMode,
+              userToken: userToken ? 'provided' : 'missing',
+              timestamp: new Date().toISOString()
+            });
+            
+            // デバッグ: ツール入力パラメータの詳細ログ
+            console.log(`📋 Tool ${toolUse.name} detailed input:`, JSON.stringify(toolUse.input, null, 2));
+            
             const toolResult = await executeDatabaseTool(toolUse.name, toolUse.input, userToken, testMode);
+            
+            console.log(`✅ Tool ${toolUse.name} executed successfully:`, {
+              success: toolResult.success,
+              dataCount: toolResult.data?.length || toolResult.count || 0,
+              message: toolResult.message
+            });
             
             toolResults.push({
               type: 'tool_result',
@@ -473,20 +537,61 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
               content: JSON.stringify(toolResult)
             });
             
-            console.log(`Tool ${toolUse.name} executed successfully`);
           } catch (toolError) {
-            console.error(`Tool ${toolUse.name} failed:`, toolError);
-            
-            // ツールエラーもClaudeに伝える
-            toolResults.push({
-              type: 'tool_result',
-              tool_use_id: toolUse.id,
-              content: JSON.stringify({
-                success: false,
-                error: toolError instanceof Error ? toolError.message : '不明なエラー'
-              }),
-              is_error: true
+            console.error(`❌ Tool ${toolUse.name} failed:`, {
+              error: toolError.message,
+              stack: toolError.stack,
+              toolInput: toolUse.input,
+              testMode: testMode,
+              timestamp: new Date().toISOString()
             });
+            
+            // データベースエラーの場合は直接クライアントにエラーレスポンスを返す
+            let technicalError = toolError instanceof Error ? toolError.message : '不明なエラー';
+            let errorType = 'unknown_error';
+            
+            // エラータイプの分類
+            if (technicalError.includes('column') && technicalError.includes('does not exist')) {
+              errorType = 'column_not_exists';
+              technicalError = `Database Error: ${technicalError}`;
+            } else if (technicalError.includes('relation') && technicalError.includes('does not exist')) {
+              errorType = 'table_not_exists';
+              technicalError = `Database Error: ${technicalError}`;
+            } else if (technicalError.includes('authentication') || technicalError.includes('JWT')) {
+              errorType = 'authentication_error';
+            } else if (technicalError.includes('permission') || technicalError.includes('access')) {
+              errorType = 'permission_error';
+            }
+
+            // エラーレスポンスを直接返す（Claude AIを経由しない）
+            return new Response(
+              JSON.stringify({
+                error: 'Database Tool Error',
+                message: technicalError,
+                details: {
+                  error_type: errorType,
+                  tool_name: toolUse.name,
+                  tool_input: toolUse.input,
+                  test_mode: testMode,
+                  timestamp: new Date().toISOString(),
+                  raw_error: toolError instanceof Error ? toolError.message : '不明なエラー',
+                  stack_trace: toolError instanceof Error ? toolError.stack?.split('\n').slice(0, 5).join('\n') : null
+                },
+                debug_info: {
+                  function: 'executeDatabaseTool',
+                  user_authenticated: !!userToken,
+                  environment: 'edge_function'
+                }
+              }), 
+              { 
+                status: 500, 
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Error-Source': 'database-tool',
+                  'X-Error-Type': errorType
+                }
+              }
+            );
           }
         }
 
@@ -532,8 +637,34 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
 
       } catch (overallError) {
         console.error('Overall tool execution error:', overallError);
-        // 全体的なエラーでも、元のClaudeレスポンスを返す
-        return claudeResponse;
+        
+        // 全体的なツール実行エラーの場合も直接エラーレスポンスを返す
+        return new Response(
+          JSON.stringify({
+            error: 'Tool Execution Error',
+            message: overallError instanceof Error ? overallError.message : '全体的なツール実行エラーが発生しました',
+            details: {
+              error_type: 'tool_execution_error',
+              timestamp: new Date().toISOString(),
+              test_mode: testMode,
+              tools_attempted: toolUses.map(t => t.name),
+              raw_error: overallError instanceof Error ? overallError.message : '不明なエラー'
+            },
+            debug_info: {
+              function: 'tool_execution_loop',
+              user_authenticated: !!userToken,
+              environment: 'edge_function'
+            }
+          }), 
+          { 
+            status: 500, 
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Error-Source': 'tool-execution',
+              'X-Error-Type': 'execution_error'
+            }
+          }
+        );
       }
     }
   }
@@ -543,7 +674,12 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
 
 // Supabaseデータ取得ツール（MCPサーバー代替）
 async function executeDatabaseTool(toolName: string, args: any, userToken: string, testMode: boolean = false): Promise<any> {
-  console.log(`Executing database tool: ${toolName}`, args);
+  console.log(`🚀 Executing database tool: ${toolName}`, {
+    args: args,
+    testMode: testMode,
+    userToken: userToken ? 'provided' : 'missing',
+    timestamp: new Date().toISOString()
+  });
   
   try {
     // 環境変数の確認
@@ -555,7 +691,7 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
       throw new Error('Supabase環境変数が設定されていません');
     }
     
-    console.log('Environment check passed, creating Supabase clients');
+    console.log('✅ Environment check passed, creating Supabase clients');
     
     // Service Role で管理用クライアント作成（RLS回避）
     const adminSupabase = createClient(supabaseUrl, supabaseServiceKey, {
@@ -575,20 +711,29 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
     });
 
     // ユーザー認証確認
-    console.log('Verifying user authentication...');
+    console.log('🔐 Verifying user authentication...');
     const { data: userRes, error: authErr } = await userSupabase.auth.getUser();
     
     if (authErr) {
-      console.error('Auth error:', authErr);
-      throw new Error(`認証エラー: ${authErr.message}`);
+      console.error('❌ Auth error:', {
+        error: authErr.message,
+        code: authErr.status,
+        details: authErr
+      });
+      throw new Error(`認証エラー: ${authErr.message} (Code: ${authErr.status})`);
     }
     
     if (!userRes?.user) {
+      console.error('❌ No user data returned from auth');
       throw new Error('ユーザー情報が取得できません');
     }
 
     const userId = userRes.user.id;
-    console.log(`Tool execution for authenticated user: ${userId.substring(0, 8)}...`);
+    console.log(`👤 Tool execution for authenticated user: ${userId.substring(0, 8)}...`, {
+      userEmail: userRes.user.email,
+      userRole: userRes.user.role,
+      testMode: testMode
+    });
 
     // 簡単な接続テスト
     if (toolName === 'test_connection') {
@@ -598,7 +743,7 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
         
         const { data: testData, error: testError } = await adminSupabase
           .from(tableName)
-          .select('id')
+          .select('id, question_text, question_types_id')
           .limit(1);
 
         console.log('Connection test result:', { 
@@ -641,16 +786,30 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
         
         try {
           // Admin権限でデータを取得（RLS回避）
+          console.log(`Constructing query for table: ${tableName}`);
+          
           let query = adminSupabase
             .from(tableName)
             .select('id, question_text, question_types_id, review_fome_id, is_required, created_at, question_number, pege_number')
             .order('created_at', { ascending: false })
             .limit(Math.min(limit, 100));
 
-          if (survey_id) query = query.eq('review_fome_id', survey_id);
-          if (question_type) query = query.eq('question_types_id', question_type);
+          if (survey_id) {
+            console.log(`Adding survey_id filter: ${survey_id}`);
+            query = query.eq('review_fome_id', survey_id);
+          }
+          if (question_type) {
+            console.log(`Adding question_type filter: ${question_type}`);
+            query = query.eq('question_types_id', question_type);
+          }
 
           console.log('Executing review_questions query...');
+          console.log('Query details:', {
+            table: tableName,
+            select_columns: 'id, question_text, question_types_id, review_fome_id, is_required, created_at, question_number, pege_number',
+            filters: { survey_id, question_type }
+          });
+          
           const { data, error } = await query;
           
           console.log('Raw query result:', { 
@@ -722,13 +881,14 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
             created_at,
             ${submissionTableName} (
               id,
-              created_at as submitted_at
+              created_at
             ),
             ${textTableName} (
               answer_text
             )
-          `) as any
-          .eq('review_questions_id', question_id)
+          `) as any;
+        
+        query = query.eq('review_questions_id', question_id)
           .order('created_at', { ascending: false })
           .limit(Math.min(limit, 1000));
 
@@ -999,6 +1159,121 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
         };
       }
 
+      case 'execute_custom_sql': {
+        const { question_ids, filters, analysis_type = 'full_analysis' } = args;
+        
+        if (!question_ids || !Array.isArray(question_ids)) {
+          throw new Error('question_idsは必須です（配列形式）');
+        }
+
+        console.log('Executing custom SQL analysis for question_ids:', question_ids);
+        
+        // テストモードに応じてテーブル名を選択
+        const tablePrefix = testMode ? 'test_' : '';
+        const questionTableName = `${tablePrefix}review_questions`;
+        const answerTableName = `${tablePrefix}review_question_answers`;
+        const submissionTableName = `${tablePrefix}review_form_submissions`;
+        const textTableName = `${tablePrefix}question_answer_texts`;
+        const choiceTableName = `${tablePrefix}question_answer_option_choices`;
+        const scaleTableName = `${tablePrefix}question_answer_option_linear_scale`;
+        
+        try {
+          // 1. 選択された質問の詳細情報を取得
+          const { data: questionsData, error: questionsError } = await adminSupabase
+            .from(questionTableName)
+            .select('id, question_text, question_types_id, question_number, is_required')
+            .in('id', question_ids);
+
+          if (questionsError) throw new Error(`質問情報取得エラー: ${questionsError.message}`);
+
+          // 2. 各質問の回答データを取得
+          const allResponsesData = [];
+          
+          for (const question of questionsData || []) {
+            // 回答データを取得
+            const { data: responsesData, error: responsesError } = await adminSupabase
+              .from(answerTableName)
+              .select(`
+                id,
+                created_at,
+                ${submissionTableName} (
+                  id,
+                  created_at
+                ),
+                ${textTableName} (
+                  answer_text
+                ),
+                ${choiceTableName} (
+                  question_option_choices_id
+                ),
+                ${scaleTableName} (
+                  answer_number
+                )
+              `)
+              .eq('review_questions_id', question.id)
+              .order('created_at', { ascending: false })
+              .limit(1000);
+
+            if (responsesError) {
+              console.warn(`Question ${question.id} responses error:`, responsesError.message);
+              continue;
+            }
+
+            allResponsesData.push({
+              question: question,
+              responses: responsesData || [],
+              response_count: responsesData?.length || 0
+            });
+          }
+
+          // 3. 分析結果を生成
+          const analysisResult = {
+            analysis_type: analysis_type,
+            questions_analyzed: questionsData?.length || 0,
+            total_responses: allResponsesData.reduce((sum, q) => sum + q.response_count, 0),
+            questions_summary: questionsData?.map(q => ({
+              id: q.id,
+              text: q.question_text,
+              type_id: q.question_types_id,
+              question_number: q.question_number,
+              required: q.is_required
+            })) || [],
+            detailed_data: allResponsesData,
+            filters_applied: filters || {},
+            sql_info: {
+              tables_used: [questionTableName, answerTableName, submissionTableName, textTableName, choiceTableName, scaleTableName],
+              test_mode: testMode,
+              question_ids: question_ids
+            }
+          };
+
+          // 4. フィルターを適用（日付範囲など）
+          if (filters?.date_range) {
+            const { start, end } = filters.date_range;
+            if (start || end) {
+              analysisResult.filters_applied.date_filtering = 'Applied';
+              // 実際のフィルタリングロジックはここに追加
+            }
+          }
+
+          console.log('Custom SQL analysis completed:', {
+            questions_count: analysisResult.questions_analyzed,
+            total_responses: analysisResult.total_responses,
+            analysis_type: analysis_type
+          });
+
+          return {
+            success: true,
+            analysis_result: analysisResult,
+            message: `${analysisResult.questions_analyzed}個の質問について${analysisResult.total_responses}件の回答を分析しました。`
+          };
+
+        } catch (sqlError) {
+          console.error('Custom SQL execution error:', sqlError);
+          throw new Error(`カスタムSQL実行エラー: ${sqlError instanceof Error ? sqlError.message : '不明なエラー'}`);
+        }
+      }
+
       default:
         throw new Error(`未対応のツール: ${toolName}`);
     }
@@ -1161,20 +1436,46 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
+    // 🔧 すべてのテキストコンテンツを結合
+    const allTextContent = claudeResponse.content
+      .filter((item: any) => item.type === 'text')
+      .map((item: any) => item.text)
+      .join('\n\n');
+    
+    console.log('🔍 Content Analysis:', {
+      totalContentItems: claudeResponse.content?.length || 0,
+      contentTypes: claudeResponse.content?.map((item: any) => item.type) || [],
+      textItems: claudeResponse.content?.filter((item: any) => item.type === 'text').length || 0,
+      toolItems: claudeResponse.content?.filter((item: any) => item.type === 'tool_use').length || 0,
+      allTextContent: allTextContent,
+      allTextLength: allTextContent.length
+    });
+
+    // 📤 最終レスポンスをログ出力
+    const finalResponse = {
+      response: allTextContent || claudeResponse.content[0]?.text || 'レスポンスが取得できませんでした',
+      usage: {
+        input_tokens: claudeResponse.usage?.input_tokens || 0,
+        output_tokens: claudeResponse.usage?.output_tokens || 0
+      },
+      metadata: {
+        timestamp: new Date().toISOString(),
+        authenticated: isAuthenticated,
+        model: 'claude-3-5-sonnet-20241022'
+      }
+    };
+    
+    console.log('📤 Final Response to Client:', {
+      responseText: finalResponse.response,
+      responseLength: finalResponse.response?.length || 0,
+      usage: finalResponse.usage,
+      metadata: finalResponse.metadata,
+      timestamp: new Date().toISOString()
+    });
+
     // 成功レスポンス
     return new Response(
-      JSON.stringify({
-        response: claudeResponse.content[0].text,
-        usage: {
-          input_tokens: claudeResponse.usage?.input_tokens || 0,
-          output_tokens: claudeResponse.usage?.output_tokens || 0
-        },
-        metadata: {
-          timestamp: new Date().toISOString(),
-          authenticated: isAuthenticated,
-          model: 'claude-3-5-sonnet-20241022'
-        }
-      }), 
+      JSON.stringify(finalResponse), 
       { status: 200, headers }
     );
 

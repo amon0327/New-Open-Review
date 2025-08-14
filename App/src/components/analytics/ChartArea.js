@@ -47,7 +47,7 @@ export default function ChartArea({
   setActiveFilters,
   showFilters,
   setShowFilters,
-  // ========= テストモードparam（削除予定） =========
+  // ========= テストモード対応 =========
   isTestMode = false
   // ==============================================
 }) {
@@ -99,7 +99,7 @@ export default function ChartArea({
                 fontSize: '0.95rem'
               }}
             >
-              左側から質問を選択してください
+{isTestMode ? 'テストモード: 左側から質問を選択してください' : '左側から質問を選択してください'}
             </Typography>
           </Box>
           
@@ -137,7 +137,11 @@ export default function ChartArea({
         </Box>
 
         {/* Chat Panel */}
-        <ChatPanel isTestMode={isTestMode} />
+        <ChatPanel 
+          isTestMode={isTestMode}
+          selectedQuestions={selectedQuestions}
+          activeFilters={activeFilters}
+        />
       </Box>
     );
   }
@@ -202,7 +206,7 @@ export default function ChartArea({
                   fontSize: '0.875rem'
                 }}
               >
-                {selectedQuestions[0]?.title}
+                {selectedQuestions[0]?.question_text}
               </Typography>
             ) : selectedQuestions.length === 2 ? (
               <Box>
@@ -214,7 +218,7 @@ export default function ChartArea({
                     lineHeight: 1.2
                   }}
                 >
-                  {selectedQuestions[0]?.title}
+                  {selectedQuestions[0]?.question_text}
                 </Typography>
                 <Typography 
                   variant="body2" 
@@ -224,7 +228,7 @@ export default function ChartArea({
                     lineHeight: 1.2
                   }}
                 >
-                  {selectedQuestions[1]?.title}
+                  {selectedQuestions[1]?.question_text}
                 </Typography>
               </Box>
             ) : (
@@ -572,7 +576,11 @@ export default function ChartArea({
       </Box>
 
       {/* Chat Panel */}
-      <ChatPanel isTestMode={isTestMode} />
+      <ChatPanel 
+        isTestMode={isTestMode}
+        selectedQuestions={selectedQuestions}
+        activeFilters={activeFilters}
+      />
     </Box>
   );
 }

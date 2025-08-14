@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 import {
   Container,
-  Paper,
   Box,
   Typography,
   TextField,
   Button,
-  Tab,
-  Tabs,
   InputAdornment,
   IconButton,
-  Divider,
-  Chip,
-  Alert
+  Alert,
+  Card,
+  Stack,
+  Link
 } from '@mui/material';
 import {
   Email,
@@ -22,19 +20,27 @@ import {
   Visibility,
   VisibilityOff,
   Google,
-  Person
+  Person,
+  Business
 } from '@mui/icons-material';
 
-function TabPanel({ children, value, index }) {
-  return (
-    <div hidden={value !== index}>
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
-    </div>
-  );
-}
+// モダンなアニメーションバリアント
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 }
+};
+
+const staggerContainer = {
+  animate: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
 
 export default function LoginPage({ onLogin }) {
-  const [tabValue, setTabValue] = useState(0);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -45,8 +51,9 @@ export default function LoginPage({ onLogin }) {
     company: ''
   });
 
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
+  const toggleMode = () => {
+    setIsSignUp(!isSignUp);
+    setError('');
   };
 
   const handleInputChange = (field) => (event) => {
@@ -199,13 +206,6 @@ export default function LoginPage({ onLogin }) {
 
   return (
     <Box
-      onClick={(e) => {
-        // 背景クリック時に基本設定トグルを開く処理を追加
-        const settingsButton = document.querySelector('[data-testid="settings-button"]');
-        if (settingsButton) {
-          settingsButton.click();
-        }
-      }}
       sx={{
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -213,318 +213,349 @@ export default function LoginPage({ onLogin }) {
         alignItems: 'center',
         justifyContent: 'center',
         position: 'relative',
-        overflow: 'hidden',
-        cursor: 'pointer'
+        overflow: 'hidden'
       }}
     >
-      {/* Background Animation Elements */}
-      <Box
-        sx={{
-          position: 'absolute',
-          width: '150%',
-          height: '150%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)',
-          backgroundSize: '50px 50px',
-          animation: 'float 20s infinite linear',
-          '@keyframes float': {
-            '0%': { transform: 'translate(-50px, -50px)' },
-            '100%': { transform: 'translate(50px, 50px)' }
-          }
-        }}
-      />
-      
-      <Container maxWidth="sm">
+      <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
         >
-          <Paper
-            elevation={24}
+          <Card
+            elevation={0}
             sx={{
-              p: 4,
-              borderRadius: 3,
+              borderRadius: '16px',
               background: 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.2)'
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
+              overflow: 'hidden'
             }}
           >
-            {/* Logo and Brand */}
-            <Box sx={{ textAlign: 'center', mb: 3 }}>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-              >
-                <Box
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    // ロゴクリック時に基本設定トグルを開く処理を追加
-                    const settingsButton = document.querySelector('[data-testid="settings-button"]');
-                    if (settingsButton) {
-                      settingsButton.click();
-                    }
-                  }}
-                  sx={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 2,
-                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto',
-                    mb: 2,
-                    boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Typography
-                    variant="h4"
-                    sx={{ color: 'white', fontWeight: 'bold' }}
+            {/* Header Section */}
+            <Box sx={{ p: 6, pb: 0 }}>
+              <motion.div variants={fadeInUp}>
+                <Stack alignItems="center" spacing={3}>
+                  {/* Logo */}
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    O
-                  </Typography>
-                </Box>
+                    <Box
+                      component="img"
+                      src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png"
+                      alt="OpenReview Logo"
+                      sx={{
+                        height: 48,
+                        width: 'auto',
+                        filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))'
+                      }}
+                    />
+                  </motion.div>
+                  
+                  {/* Title */}
+                  <Box textAlign="center">
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        fontWeight: 700,
+                        background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        mb: 1,
+                        fontSize: { xs: '1.75rem', sm: '2.125rem' }
+                      }}
+                    >
+                      {isSignUp ? 'アカウント作成' : 'サインイン'}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      sx={{ fontSize: '1rem', fontWeight: 400 }}
+                    >
+                      {isSignUp 
+                        ? 'OpenReviewで美しいレビューフォームを作成しましょう'
+                        : 'アカウントにサインインしてください'
+                      }
+                    </Typography>
+                  </Box>
+                </Stack>
               </motion.div>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  mb: 1
-                }}
-              >
-                OpenReview
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Create beautiful review forms with ease
-              </Typography>
             </Box>
 
-            {/* Tab Navigation */}
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 0 }}>
-              <Tabs
-                value={tabValue}
-                onChange={handleTabChange}
-                variant="fullWidth"
-                sx={{
-                  '& .MuiTab-root': {
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    fontSize: '1rem'
-                  }
-                }}
-              >
-                <Tab label="ログイン" />
-                <Tab label="新規登録" />
-              </Tabs>
-            </Box>
+            {/* Form Section */}
+            <Box sx={{ p: 6, pt: 4 }}>
+              {/* Error Message */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                  >
+                    <Alert 
+                      severity={error.includes('確認メール') ? 'info' : 'error'} 
+                      sx={{ 
+                        mb: 3,
+                        borderRadius: '12px',
+                        border: 'none'
+                      }}
+                    >
+                      {error}
+                    </Alert>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            {/* Error Message */}
-            {error && (
-              <Alert 
-                severity={error.includes('確認メール') ? 'info' : 'error'} 
-                sx={{ mb: 2 }}
-              >
-                {error}
-              </Alert>
-            )}
-
-            {/* Login Form */}
-            <TabPanel value={tabValue} index={0}>
-              <Box component="form" onSubmit={handleLogin}>
-                <TextField
-                  fullWidth
-                  label="メールアドレス"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange('email')}
-                  sx={{ mb: 3 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Email color="primary" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                
-                <TextField
-                  fullWidth
-                  label="パスワード"
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={handleInputChange('password')}
-                  sx={{ mb: 3 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Lock color="primary" />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  size="large"
-                  disabled={loading}
-                  sx={{
-                    mb: 3,
-                    py: 1.5,
-                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3)',
-                    '&:hover': {
-                      boxShadow: '0 12px 40px rgba(94, 23, 235, 0.4)',
-                    }
-                  }}
+              {/* Form Content */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={isSignUp ? 'signup' : 'signin'}
+                  variants={fadeInUp}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={{ duration: 0.3 }}
                 >
-                  {loading ? 'ログイン中...' : 'ログイン'}
-                </Button>
-              </Box>
-            </TabPanel>
+                  <Box component="form" onSubmit={isSignUp ? handleSignUp : handleLogin}>
+                    <Stack spacing={3}>
+                      {/* Sign Up Fields */}
+                      {isSignUp && (
+                        <>
+                          <TextField
+                            fullWidth
+                            label="お名前"
+                            value={formData.name}
+                            onChange={handleInputChange('name')}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <Person sx={{ color: 'text.secondary' }} />
+                                </InputAdornment>
+                              ),
+                            }}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: '12px',
+                                backgroundColor: 'rgba(248, 250, 252, 0.8)',
+                                '&:hover fieldset': {
+                                  borderColor: '#5e17eb',
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: '#5e17eb',
+                                }
+                              }
+                            }}
+                          />
 
-            {/* Sign Up Form */}
-            <TabPanel value={tabValue} index={1}>
-              <Box component="form" onSubmit={handleSignUp}>
-                <TextField
-                  fullWidth
-                  label="お名前"
-                  value={formData.name}
-                  onChange={handleInputChange('name')}
-                  sx={{ mb: 3 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Person color="primary" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                          <TextField
+                            fullWidth
+                            label="会社名"
+                            value={formData.company}
+                            onChange={handleInputChange('company')}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <Business sx={{ color: 'text.secondary' }} />
+                                </InputAdornment>
+                              ),
+                            }}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: '12px',
+                                backgroundColor: 'rgba(248, 250, 252, 0.8)',
+                                '&:hover fieldset': {
+                                  borderColor: '#5e17eb',
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: '#5e17eb',
+                                }
+                              }
+                            }}
+                          />
+                        </>
+                      )}
 
-                <TextField
-                  fullWidth
-                  label="会社名"
-                  value={formData.company}
-                  onChange={handleInputChange('company')}
-                  sx={{ mb: 3 }}
-                />
+                      {/* Email Field */}
+                      <TextField
+                        fullWidth
+                        label="メールアドレス"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleInputChange('email')}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Email sx={{ color: 'text.secondary' }} />
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '12px',
+                            backgroundColor: 'rgba(248, 250, 252, 0.8)',
+                            '&:hover fieldset': {
+                              borderColor: '#5e17eb',
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5e17eb',
+                            }
+                          }
+                        }}
+                      />
+                      
+                      {/* Password Field */}
+                      <TextField
+                        fullWidth
+                        label="パスワード"
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onChange={handleInputChange('password')}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Lock sx={{ color: 'text.secondary' }} />
+                            </InputAdornment>
+                          ),
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => setShowPassword(!showPassword)}
+                                edge="end"
+                                sx={{ color: 'text.secondary' }}
+                              >
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '12px',
+                            backgroundColor: 'rgba(248, 250, 252, 0.8)',
+                            '&:hover fieldset': {
+                              borderColor: '#5e17eb',
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5e17eb',
+                            }
+                          }
+                        }}
+                      />
 
-                <TextField
-                  fullWidth
-                  label="メールアドレス"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange('email')}
-                  sx={{ mb: 3 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Email color="primary" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                
-                <TextField
-                  fullWidth
-                  label="パスワード"
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={handleInputChange('password')}
-                  sx={{ mb: 3 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Lock color="primary" />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
+                      {/* Submit Button */}
+                      <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        size="large"
+                        disabled={loading}
+                        sx={{
+                          py: 1.5,
+                          borderRadius: '12px',
+                          background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                          textTransform: 'none',
+                          fontSize: '1rem',
+                          fontWeight: 600,
+                          boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            boxShadow: '0 6px 25px rgba(94, 23, 235, 0.4)',
+                            transform: 'translateY(-1px)',
+                          },
+                          '&:active': {
+                            transform: 'translateY(0px)',
+                          }
+                        }}
+                      >
+                        {loading 
+                          ? (isSignUp ? 'アカウント作成中...' : 'サインイン中...') 
+                          : (isSignUp ? 'アカウント作成' : 'サインイン')
+                        }
+                      </Button>
+
+                      {/* Divider */}
+                      <Box sx={{ position: 'relative', py: 1 }}>
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: 0,
+                            right: 0,
+                            height: '1px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.08)'
+                          }}
+                        />
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            position: 'relative',
+                            textAlign: 'center',
+                            backgroundColor: 'transparent',
+                            px: 2,
+                            color: 'text.secondary',
+                            fontSize: '0.875rem'
+                          }}
                         >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                          または
+                        </Typography>
+                      </Box>
 
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  size="large"
-                  disabled={loading}
-                  sx={{
-                    mb: 3,
-                    py: 1.5,
-                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3)',
-                    '&:hover': {
-                      boxShadow: '0 12px 40px rgba(94, 23, 235, 0.4)',
-                    }
-                  }}
-                >
-                  {loading ? 'アカウント作成中...' : 'アカウント作成'}
-                </Button>
+                      {/* Google Login */}
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        startIcon={<Google />}
+                        onClick={handleGoogleLogin}
+                        disabled={loading}
+                        sx={{
+                          py: 1.5,
+                          borderRadius: '12px',
+                          textTransform: 'none',
+                          borderColor: 'divider',
+                          color: 'text.primary',
+                          backgroundColor: 'rgba(248, 250, 252, 0.5)',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            borderColor: '#5e17eb',
+                            backgroundColor: 'rgba(94, 23, 235, 0.04)',
+                            transform: 'translateY(-1px)',
+                          }
+                        }}
+                      >
+                        {loading ? 'Googleサインイン中...' : 'Googleでサインイン'}
+                      </Button>
+                    </Stack>
+                  </Box>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Toggle Auth Mode */}
+              <Box sx={{ textAlign: 'center', mt: 4 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {isSignUp ? 'すでにアカウントをお持ちですか？' : 'アカウントをお持ちでない方は'}
+                  <Link
+                    component="button"
+                    type="button"
+                    onClick={toggleMode}
+                    sx={{
+                      ml: 1,
+                      color: '#5e17eb',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                      '&:hover': {
+                        textDecoration: 'underline',
+                      }
+                    }}
+                  >
+                    {isSignUp ? 'サインイン' : 'アカウント作成'}
+                  </Link>
+                </Typography>
               </Box>
-            </TabPanel>
-
-            {/* Social Login Options */}
-            <Box sx={{ mt: 3 }}>
-              <Divider sx={{ mb: 3 }}>
-                <Chip label="または" size="small" />
-              </Divider>
-              
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<Google />}
-                onClick={handleGoogleLogin}
-                disabled={loading}
-                sx={{
-                  py: 1.5,
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  borderColor: '#ddd',
-                  color: '#666',
-                  '&:hover': {
-                    borderColor: '#5e17eb',
-                    color: '#5e17eb'
-                  }
-                }}
-              >
-                {loading ? 'Googleログイン中...' : 'Googleでログイン'}
-              </Button>
             </Box>
-          </Paper>
+          </Card>
         </motion.div>
       </Container>
     </Box>
