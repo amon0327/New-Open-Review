@@ -323,29 +323,37 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             placement="top"
             arrow
           >
-            <Info 
-              sx={{ 
-                fontSize: 14,
-                color: 'white',
-                cursor: 'pointer',
-                '&:hover': {
-                  color: 'rgba(255, 255, 255, 0.8)'
-                }
-              }} 
-            />
-          </Tooltip>
-          {!isNavCollapsed && (
-            <Typography
-              variant="caption"
+            <Box
               sx={{
-                color: 'white',
-                fontWeight: 600,
-                fontSize: '0.75rem'
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                cursor: 'pointer'
               }}
             >
-              プレビュー版
-            </Typography>
-          )}
+              <Info 
+                sx={{ 
+                  fontSize: 14,
+                  color: 'white',
+                  '&:hover': {
+                    color: 'rgba(255, 255, 255, 0.8)'
+                  }
+                }} 
+              />
+              {!isNavCollapsed && (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: '0.75rem'
+                  }}
+                >
+                  プレビュー版
+                </Typography>
+              )}
+            </Box>
+          </Tooltip>
         </Box>
 
         {/* User Profile Section */}
