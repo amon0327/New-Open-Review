@@ -182,6 +182,56 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           },
         }}
       >
+        {/* Preview Version Notice */}
+        <Box
+          sx={{
+            px: isNavCollapsed ? 1.5 : 3,
+            pt: 2,
+            pb: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            gap: 1
+          }}
+        >
+          <Tooltip
+            title="プレビュー版につき、データなどは一時的な保存となります。あくまでもプレビュー版としてご利用ください。"
+            placement="top"
+            arrow
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                cursor: 'pointer'
+              }}
+            >
+              <Info 
+                sx={{ 
+                  fontSize: 14,
+                  color: 'white',
+                  '&:hover': {
+                    color: 'rgba(255, 255, 255, 0.8)'
+                  }
+                }} 
+              />
+              {!isNavCollapsed && (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: '0.75rem'
+                  }}
+                >
+                  プレビュー版
+                </Typography>
+              )}
+            </Box>
+          </Tooltip>
+        </Box>
+
         {/* Logo Section */}
         <Box
           sx={{
@@ -306,59 +356,11 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           })}
         </List>
 
-        {/* Preview Version Notice */}
-        <Box
-          sx={{
-            mt: 'auto',
-            px: isNavCollapsed ? 1.5 : 3,
-            pb: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            gap: 1
-          }}
-        >
-          <Tooltip
-            title="プレビュー版につき、データなどは一時的な保存となります。あくまでもプレビュー版としてご利用ください。"
-            placement="top"
-            arrow
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                cursor: 'pointer'
-              }}
-            >
-              <Info 
-                sx={{ 
-                  fontSize: 14,
-                  color: 'white',
-                  '&:hover': {
-                    color: 'rgba(255, 255, 255, 0.8)'
-                  }
-                }} 
-              />
-              {!isNavCollapsed && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: 'white',
-                    fontWeight: 600,
-                    fontSize: '0.75rem'
-                  }}
-                >
-                  プレビュー版
-                </Typography>
-              )}
-            </Box>
-          </Tooltip>
-        </Box>
 
         {/* User Profile Section */}
         <Box
           sx={{
+            mt: 'auto',
             p: isNavCollapsed ? 1.5 : 3,
             borderTop: '1px solid rgba(255, 255, 255, 0.1)'
           }}
