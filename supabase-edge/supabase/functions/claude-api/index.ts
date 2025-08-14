@@ -594,21 +594,32 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
     if (toolName === 'test_connection') {
       try {
         const tableName = testMode ? 'test_review_questions' : 'review_questions';
+        console.log(`Testing connection to table: ${tableName}`);
+        
         const { data: testData, error: testError } = await adminSupabase
           .from(tableName)
-          .select('count')
+          .select('id')
           .limit(1);
 
+        console.log('Connection test result:', { 
+          error: testError?.message || null, 
+          dataExists: !!testData,
+          dataCount: testData?.length || 0 
+        });
+
         return {
-          success: true,
-          message: 'データベース接続成功',
+          success: !testError,
+          message: testError ? `データベース接続エラー: ${testError.message}` : 'データベース接続成功',
           test_result: {
+            table_name: tableName,
             error: testError?.message || null,
             data_exists: !!testData,
+            data_count: testData?.length || 0,
             timestamp: new Date().toISOString()
           }
         };
       } catch (testErr) {
+        console.error('Connection test exception:', testErr);
         return {
           success: false,
           message: 'データベース接続エラー',
@@ -621,48 +632,74 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
       case 'get_survey_questions': {
         const { survey_id, limit = 50, question_type } = args;
         
-        console.log('Querying review_questions with params:', { survey_id, limit, question_type });
+        console.log('Querying review_questions with params:', { survey_id, limit, question_type, testMode });
         
         // テストモードに応じてテーブル名を選択
         const tableName = testMode ? 'test_review_questions' : 'review_questions';
         
-        // Admin権限でデータを取得（RLS回避）
-        let query = adminSupabase
-          .from(tableName)
-          .select('id, question_text, question_types_id, review_fome_id, is_required, created_at, question_number, pege_number')
-          .order('created_at', { ascending: false })
-          .limit(Math.min(limit, 100));
-
-        if (survey_id) query = query.eq('review_fome_id', survey_id);
-        if (question_type) query = query.eq('question_types_id', question_type);
-
-        console.log('Executing review_questions query...');
-        const { data, error } = await query;
+        console.log(`Using table: ${tableName}`);
         
-        console.log('Survey questions query result:', { 
-          dataCount: data?.length || 0, 
-          error: error?.message || null,
-          sampleData: data?.slice(0, 2) || []
-        });
-        
-        if (error) throw new Error(`質問取得エラー: ${error.message}`);
+        try {
+          // Admin権限でデータを取得（RLS回避）
+          let query = adminSupabase
+            .from(tableName)
+            .select('id, question_text, question_types_id, review_fome_id, is_required, created_at, question_number, pege_number')
+            .order('created_at', { ascending: false })
+            .limit(Math.min(limit, 100));
 
-        // データがない場合のメッセージ
-        if (!data || data.length === 0) {
+          if (survey_id) query = query.eq('review_fome_id', survey_id);
+          if (question_type) query = query.eq('question_types_id', question_type);
+
+          console.log('Executing review_questions query...');
+          const { data, error } = await query;
+          
+          console.log('Raw query result:', { 
+            hasData: !!data,
+            dataLength: data?.length || 0,
+            hasError: !!error,
+            errorMessage: error?.message || null,
+            errorCode: error?.code || null,
+            errorDetails: error?.details || null
+          });
+          
+          if (error) {
+            console.error('Database query error:', error);
+            throw new Error(`質問取得エラー: ${error.message} (Code: ${error.code})`);
+          }
+          
+          // データがない場合のメッセージ
+          if (!data || data.length === 0) {
+            console.log('No data found in table:', tableName);
+            return {
+              success: true,
+              data: [],
+              count: 0,
+              message: 'データベースに質問データが見つかりませんでした。テストデータを作成することをお勧めします。',
+              debug_info: {
+                table_used: tableName,
+                test_mode: testMode,
+                filters_applied: { survey_id, question_type }
+              }
+            };
+          }
+
+          console.log(`Successfully retrieved ${data.length} questions from ${tableName}`);
+          
           return {
             success: true,
-            data: [],
-            count: 0,
-            message: 'データベースに質問データが見つかりませんでした。テストデータを作成することをお勧めします。'
+            data: data,
+            count: data?.length || 0,
+            message: `${data.length}件の質問を取得しました。`,
+            debug_info: {
+              table_used: tableName,
+              test_mode: testMode
+            }
           };
+          
+        } catch (queryError) {
+          console.error('Query execution error:', queryError);
+          throw new Error(`データベースクエリエラー: ${queryError instanceof Error ? queryError.message : '不明なエラー'}`);
         }
-
-        return {
-          success: true,
-          data: data,
-          count: data?.length || 0,
-          message: `${data.length}件の質問を取得しました。`
-        };
       }
 
       case 'get_survey_responses': {

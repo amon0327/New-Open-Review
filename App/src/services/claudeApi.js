@@ -12,7 +12,7 @@ class ClaudeApiService {
       headers: {
         'Content-Type': 'application/json',
       },
-      timeout: 30000, // 30秒タイムアウト
+      timeout: 60000, // 60秒タイムアウト（データベース処理を考慮）
     };
   }
 
@@ -72,7 +72,8 @@ ${systemPrompt}
         message: message.trim(),
         conversationHistory: this.formatConversationHistory(conversationHistory),
         systemPrompt: systemPrompt || undefined,
-        mcpMode: options.isDataMode || false
+        mcpMode: options.isDataMode || false,
+        testMode: options.testMode || true  // デフォルトでテストモードを有効
       };
 
       // セキュアな認証ヘッダーの構築
@@ -150,11 +151,25 @@ ${systemPrompt}
     } catch (error) {
       // ネットワークエラーの処理
       if (error.name === 'AbortError') {
-        throw new Error('リクエストがタイムアウトしました');
+        console.error('Claude API Timeout - Request details:', {
+          message: message.substring(0, 100) + '...',
+          isDataMode: options.isDataMode,
+          testMode: options.testMode,
+          timeout: this.defaultConfig.timeout
+        });
+        throw new Error('リクエストがタイムアウトしました。データベース処理に時間がかかっている可能性があります。');
       }
 
       // その他のエラー
-      console.error('Claude API Error:', error);
+      console.error('Claude API Error:', {
+        error: error.message,
+        stack: error.stack,
+        requestDetails: {
+          isDataMode: options.isDataMode,
+          testMode: options.testMode,
+          messageLength: message.length
+        }
+      });
       throw error;
     }
   }
