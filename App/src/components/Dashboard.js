@@ -311,60 +311,50 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           sx={{
             mt: 'auto',
             px: isNavCollapsed ? 1.5 : 3,
-            pb: 2
+            pb: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: isNavCollapsed ? 'center' : 'space-between',
+            gap: 1
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: isNavCollapsed ? 'center' : 'space-between',
-              gap: 1,
-              p: isNavCollapsed ? 1 : 1.5,
-              background: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: 1,
-              border: '1px solid rgba(255, 255, 255, 0.2)'
-            }}
+          {!isNavCollapsed && (
+            <Chip
+              label="プレビュー版"
+              size="small"
+              sx={{
+                bgcolor: 'rgba(255, 193, 7, 0.9)',
+                color: '#000',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                height: 24
+              }}
+            />
+          )}
+          <Tooltip
+            title={
+              <Typography sx={{ fontSize: '0.8rem', lineHeight: 1.4 }}>
+                プレビュー版につき、データなどは一時的な保存となります。
+                <br />
+                あくまでもプレビュー版としてご利用ください。
+              </Typography>
+            }
+            placement="top"
+            arrow
           >
-            {!isNavCollapsed && (
-              <Chip
-                label="プレビュー版"
-                size="small"
-                sx={{
-                  bgcolor: 'rgba(255, 193, 7, 0.9)',
-                  color: '#000',
-                  fontWeight: 600,
-                  fontSize: '0.75rem',
-                  height: 24
-                }}
-              />
-            )}
-            <Tooltip
-              title={
-                <Typography sx={{ fontSize: '0.8rem', lineHeight: 1.4 }}>
-                  プレビュー版につき、データなどは一時的な保存となります。
-                  <br />
-                  あくまでもプレビュー版としてご利用ください。
-                </Typography>
-              }
-              placement="top"
-              arrow
+            <IconButton
+              size="small"
+              sx={{
+                color: '#ffc107',
+                p: 0.5,
+                '&:hover': {
+                  bgcolor: 'rgba(255, 193, 7, 0.1)'
+                }
+              }}
             >
-              <IconButton
-                size="small"
-                sx={{
-                  color: '#ffc107',
-                  p: 0.5,
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 193, 7, 0.1)'
-                  }
-                }}
-              >
-                <Info fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Box>
+              <Info fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
 
         {/* User Profile Section */}
