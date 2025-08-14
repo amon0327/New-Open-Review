@@ -314,30 +314,12 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             pb: 2,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: isNavCollapsed ? 'center' : 'space-between',
+            justifyContent: 'flex-start',
             gap: 1
           }}
         >
-          {!isNavCollapsed && (
-            <Typography
-              variant="caption"
-              sx={{
-                color: 'white',
-                fontWeight: 600,
-                fontSize: '0.75rem'
-              }}
-            >
-              プレビュー版
-            </Typography>
-          )}
           <Tooltip
-            title={
-              <Typography sx={{ fontSize: '0.8rem', lineHeight: 1.4 }}>
-                プレビュー版につき、データなどは一時的な保存となります。
-                <br />
-                あくまでもプレビュー版としてご利用ください。
-              </Typography>
-            }
+            title="プレビュー版につき、データなどは一時的な保存となります。あくまでもプレビュー版としてご利用ください。"
             placement="top"
             arrow
           >
@@ -358,6 +340,18 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               <Info sx={{ fontSize: 14 }} />
             </IconButton>
           </Tooltip>
+          {!isNavCollapsed && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '0.75rem'
+              }}
+            >
+              プレビュー版
+            </Typography>
+          )}
         </Box>
 
         {/* User Profile Section */}
