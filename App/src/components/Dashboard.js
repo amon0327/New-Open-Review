@@ -327,14 +327,9 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               sx={{ 
                 fontSize: 14,
                 color: 'white',
-                bgcolor: 'rgba(255, 255, 255, 0.2)',
-                borderRadius: '50%',
-                width: 20,
-                height: 20,
-                p: 0.3,
                 cursor: 'pointer',
                 '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.3)'
+                  color: 'rgba(255, 255, 255, 0.8)'
                 }
               }} 
             />
