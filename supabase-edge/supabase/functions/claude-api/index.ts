@@ -271,7 +271,7 @@ function validateInput(data: any): { message: string; conversationHistory: any[]
 }
 
 // Claude API呼び出し
-async function callClaudeAPI(message: string, conversationHistory: any[], systemPrompt?: string, mcpMode: boolean = false, userToken?: string): Promise<any> {
+async function callClaudeAPI(message: string, conversationHistory: any[], systemPrompt?: string, mcpMode: boolean = false, userToken?: string, testMode: boolean = false): Promise<any> {
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   
   if (!ANTHROPIC_API_KEY) {
@@ -374,11 +374,58 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
     }
   ] : undefined;
 
+  // システムプロンプトの構築（テーブル構造情報を含む）
+  const defaultSystemPrompt = `あなたは企業レビューフォームとデータ分析の専門AIアシスタントです。
+
+## データベーススキーマ構造
+
+### ユーザー管理
+- **test_business_users**: 企業ユーザー（フォーム作成者）
+  - id, name, email, role, organizations
+- **test_users**: 一般ユーザー（回答者）
+  - id, name, email
+
+### レビューフォーム構造
+- **test_review_forms**: レビューフォーム本体
+  - id, title, business_users(作成者), is_published, published_url
+- **test_review_form_pages**: フォームページ
+  - id, review_forms_id, page_number, name
+- **test_review_questions**: 質問データ
+  - id, review_fome_id(フォームID), question_text, question_types_id, question_number, pege_number
+  - is_required, question_categories_id, question_subcategories_id
+
+### 質問オプション
+- **test_question_option_choices**: 選択肢質問のオプション
+  - id, review_questions_id, choice_number, choice_name
+- **test_question_option_linear_scale**: リニアスケール質問設定
+  - id, review_questions_id, min_text, max_text
+
+### 回答データ
+- **test_review_form_submissions**: フォーム提出記録
+  - id, review_forms_id, users(回答者), created_at
+- **test_review_question_answers**: 質問回答の基本情報
+  - id, review_form_submissions_id, review_questions_id
+- **test_question_answer_texts**: テキスト回答
+  - id, review_questions_answers_id, answer_text
+- **test_question_answer_option_choices**: 選択肢回答
+  - id, review_question_answers_id, question_option_choices_id
+- **test_question_answer_option_linear_scale**: スケール回答
+  - id, review_question_answers_id, answer_number
+
+## 主な役割
+1. レビューフォームの質問設計と最適化の支援
+2. 回答データの分析と洞察の提供（テキスト分析、統計分析、トレンド分析）
+3. アンケート結果の可視化とレポート作成の支援
+4. データドリブンな意思決定のためのアドバイス
+5. フォーム設計のベストプラクティス提案
+
+データ分析時は具体的な数値、パーセンテージ、傾向を明確に示し、日本語で回答してください。`;
+
   const requestBody: any = {
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 4000,
     messages: messages,
-    system: systemPrompt || "You are a helpful AI assistant for business review forms and data analysis. Please respond in Japanese when appropriate."
+    system: systemPrompt || defaultSystemPrompt
   };
 
   // ツールを追加（MCPモード時のみ）
@@ -418,7 +465,7 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
         for (const toolUse of toolUses) {
           try {
             console.log(`Executing tool: ${toolUse.name}`, toolUse.input);
-            const toolResult = await executeDatabaseTool(toolUse.name, toolUse.input, userToken);
+            const toolResult = await executeDatabaseTool(toolUse.name, toolUse.input, userToken, testMode);
             
             toolResults.push({
               type: 'tool_result',
@@ -495,7 +542,7 @@ async function callClaudeAPI(message: string, conversationHistory: any[], system
 }
 
 // Supabaseデータ取得ツール（MCPサーバー代替）
-async function executeDatabaseTool(toolName: string, args: any, userToken: string): Promise<any> {
+async function executeDatabaseTool(toolName: string, args: any, userToken: string, testMode: boolean = false): Promise<any> {
   console.log(`Executing database tool: ${toolName}`, args);
   
   try {
@@ -546,8 +593,9 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
     // 簡単な接続テスト
     if (toolName === 'test_connection') {
       try {
+        const tableName = testMode ? 'test_review_questions' : 'review_questions';
         const { data: testData, error: testError } = await adminSupabase
-          .from('review_questions')
+          .from(tableName)
           .select('count')
           .limit(1);
 
@@ -575,14 +623,17 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
         
         console.log('Querying review_questions with params:', { survey_id, limit, question_type });
         
+        // テストモードに応じてテーブル名を選択
+        const tableName = testMode ? 'test_review_questions' : 'review_questions';
+        
         // Admin権限でデータを取得（RLS回避）
         let query = adminSupabase
-          .from('review_questions')
-          .select('id, title, question_types_id, post_2_id, options, created_at')
+          .from(tableName)
+          .select('id, question_text, question_types_id, review_fome_id, is_required, created_at, question_number, pege_number')
           .order('created_at', { ascending: false })
           .limit(Math.min(limit, 100));
 
-        if (survey_id) query = query.eq('post_2_id', survey_id);
+        if (survey_id) query = query.eq('review_fome_id', survey_id);
         if (question_type) query = query.eq('question_types_id', question_type);
 
         console.log('Executing review_questions query...');
@@ -621,18 +672,25 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
 
         console.log('Querying review_question_answers with question_id:', question_id);
 
+        // テストモードに応じてテーブル名を選択
+        const answerTableName = testMode ? 'test_review_question_answers' : 'review_question_answers';
+        const submissionTableName = testMode ? 'test_review_form_submissions' : 'review_form_submissions';
+        const textTableName = testMode ? 'test_question_answer_texts' : 'question_answer_texts';
+        
         // Admin権限でデータを取得
         let query = adminSupabase
-          .from('review_question_answers')
+          .from(answerTableName)
           .select(`
             id, 
-            answer_text, 
             created_at,
-            review_form_submissions (
+            ${submissionTableName} (
               id,
-              submitted_at
+              created_at as submitted_at
+            ),
+            ${textTableName} (
+              answer_text
             )
-          `)
+          `) as any
           .eq('review_questions_id', question_id)
           .order('created_at', { ascending: false })
           .limit(Math.min(limit, 1000));
@@ -679,13 +737,24 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
 
         console.log('Querying review_question_answers for text analysis with question_id:', question_id);
         
+        // テストモードに応じてテーブル名を選択
+        const answerTableName = testMode ? 'test_review_question_answers' : 'review_question_answers';
+        
+        // テキスト回答データを取得（JOINを使用）
+        const textTableName = testMode ? 'test_question_answer_texts' : 'question_answer_texts';
+        
         const { data, error } = await adminSupabase
-          .from('review_question_answers')
-          .select('id, answer_text, created_at')
+          .from(answerTableName)
+          .select(`
+            id, 
+            created_at,
+            ${textTableName} (
+              answer_text
+            )
+          `)
           .eq('review_questions_id', question_id)
-          .not('answer_text', 'is', null)
           .order('created_at', { ascending: false })
-          .limit(Math.min(limit, 500));
+          .limit(Math.min(limit, 500)) as any;
 
         if (error) throw new Error(`回答取得エラー: ${error.message}`);
         if (!data || data.length === 0) {
@@ -699,12 +768,35 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
           };
         }
 
+        // データから実際のテキストを抽出
+        const textFieldName = testMode ? 'test_question_answer_texts' : 'question_answer_texts';
+        const textData = data?.filter(item => 
+          item[textFieldName] && 
+          item[textFieldName].length > 0 &&
+          item[textFieldName][0].answer_text
+        ).map(item => ({
+          id: item.id,
+          answer_text: item[textFieldName][0].answer_text,
+          created_at: item.created_at
+        })) || [];
+        
+        if (textData.length === 0) {
+          return {
+            success: true,
+            analysis: {
+              type: analysis_type,
+              message: 'テキスト回答データが見つかりませんでした',
+              total_responses: 0
+            }
+          };
+        }
+        
         // 簡単な分析処理
         let analysisResult: any = { type: analysis_type };
         
         switch (analysis_type) {
           case 'keyword': {
-            const allText = data.map(r => r.answer_text).join(' ');
+            const allText = textData.map(r => r.answer_text).join(' ');
             const words = allText.split(/\s+/).filter(word => word.length > 2);
             const wordCount: Record<string, number> = {};
             
@@ -733,7 +825,7 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
             
             let positive = 0, negative = 0, neutral = 0;
             
-            data.forEach(response => {
+            textData.forEach(response => {
               const text = response.answer_text.toLowerCase();
               const hasPositive = positiveWords.some(word => text.includes(word));
               const hasNegative = negativeWords.some(word => text.includes(word));
@@ -748,22 +840,22 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
               positive,
               negative,
               neutral,
-              total: data.length
+              total: textData.length
             };
             break;
           }
 
           case 'summary': {
-            const responseLengths = data.map(r => r.answer_text.length);
+            const responseLengths = textData.map(r => r.answer_text.length);
             const avgLength = responseLengths.reduce((a, b) => a + b, 0) / responseLengths.length;
             
             analysisResult = {
               ...analysisResult,
-              total_responses: data.length,
+              total_responses: textData.length,
               average_length: Math.round(avgLength),
               min_length: Math.min(...responseLengths),
               max_length: Math.max(...responseLengths),
-              recent_responses: data.slice(0, 5).map(r => ({
+              recent_responses: textData.slice(0, 5).map(r => ({
                 id: r.id,
                 preview: r.answer_text.substring(0, 100) + (r.answer_text.length > 100 ? '...' : ''),
                 created_at: r.created_at
@@ -788,22 +880,37 @@ async function executeDatabaseTool(toolName: string, args: any, userToken: strin
 
         console.log('Querying filtered analytics data for question_ids:', question_ids);
         
+        // テストモードに応じてテーブル名を選択
+        const answerTableName = testMode ? 'test_review_question_answers' : 'review_question_answers';
+        const submissionTableName = testMode ? 'test_review_form_submissions' : 'review_form_submissions';
+        const questionTableName = testMode ? 'test_review_questions' : 'review_questions';
+        const textTableName = testMode ? 'test_question_answer_texts' : 'question_answer_texts';
+        const choiceTableName = testMode ? 'test_question_answer_option_choices' : 'question_answer_option_choices';
+        const scaleTableName = testMode ? 'test_question_answer_option_linear_scale' : 'question_answer_option_linear_scale';
+        
         let query = adminSupabase
-          .from('review_question_answers')
+          .from(answerTableName)
           .select(`
             id,
             review_questions_id,
-            answer_text,
             created_at,
-            review_form_submissions (
+            ${submissionTableName} (
               id,
-              submitted_at
+              created_at as submitted_at
             ),
-            review_questions (
+            ${questionTableName} (
               id,
-              title,
-              question_types_id,
-              options
+              question_text,
+              question_types_id
+            ),
+            ${textTableName} (
+              answer_text
+            ),
+            ${choiceTableName} (
+              question_option_choices_id
+            ),
+            ${scaleTableName} (
+              answer_number
             )
           `)
           .in('review_questions_id', question_ids)
@@ -974,7 +1081,7 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const { message, conversationHistory } = validatedInput;
-    const { systemPrompt, mcpMode } = requestBody;
+    const { systemPrompt, mcpMode, testMode } = requestBody;
     
     // Claude API呼び出し
     let claudeResponse;
@@ -989,7 +1096,7 @@ serve(async (req: Request): Promise<Response> => {
         userToken = authHeader.substring(7);
       }
       
-      claudeResponse = await callClaudeAPI(message, conversationHistory, systemPrompt, mcpMode, userToken);
+      claudeResponse = await callClaudeAPI(message, conversationHistory, systemPrompt, mcpMode, userToken, testMode);
       
       const responseTime = Date.now() - requestStart;
       console.log(`Claude API success: User=${userId}, Response time=${responseTime}ms, Tokens=${claudeResponse.usage?.total_tokens || 0}`);

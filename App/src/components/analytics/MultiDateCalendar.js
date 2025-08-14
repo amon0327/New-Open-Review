@@ -51,7 +51,9 @@ export default function MultiDateCalendar({
   
   const isDateSelected = (date) => {
     return selectedDates.some(selectedDate => 
-      selectedDate.toDateString() === date.toDateString()
+      selectedDate.getFullYear() === date.getFullYear() &&
+      selectedDate.getMonth() === date.getMonth() &&
+      selectedDate.getDate() === date.getDate()
     );
   };
   
@@ -64,10 +66,22 @@ export default function MultiDateCalendar({
       // reviewDateが文字列の場合は日付オブジェクトに変換して比較
       if (typeof reviewDate === 'string') {
         const reviewDateObj = new Date(reviewDate);
-        return reviewDateObj.toDateString() === date.toDateString();
+        // タイムゾーンを考慮した日付比較
+        const reviewYear = reviewDateObj.getFullYear();
+        const reviewMonth = reviewDateObj.getMonth();
+        const reviewDay = reviewDateObj.getDate();
+        return (
+          date.getFullYear() === reviewYear &&
+          date.getMonth() === reviewMonth &&
+          date.getDate() === reviewDay
+        );
       }
       // reviewDateが既に日付オブジェクトの場合
-      return reviewDate.toDateString() === date.toDateString();
+      return (
+        date.getFullYear() === reviewDate.getFullYear() &&
+        date.getMonth() === reviewDate.getMonth() &&
+        date.getDate() === reviewDate.getDate()
+      );
     });
   };
   
@@ -78,7 +92,11 @@ export default function MultiDateCalendar({
     let newDates;
     
     if (isSelected) {
-      newDates = selectedDates.filter(d => d.toDateString() !== date.toDateString());
+      newDates = selectedDates.filter(d => 
+        !(d.getFullYear() === date.getFullYear() &&
+          d.getMonth() === date.getMonth() &&
+          d.getDate() === date.getDate())
+      );
     } else {
       if (maxSelections && selectedDates.length >= maxSelections) {
         return; // 最大選択数に達している場合は追加しない

@@ -115,7 +115,19 @@ export default function FilteredTextData({
           const formattedData = textAnswerData.map((item, index) => ({
             id: item.id || `test_${index}`,
             text: item.answer_text,
-            date: item.created_at ? item.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+            date: item.created_at ? (() => {
+          const date = new Date(item.created_at);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        })() : (() => {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        })(),
             timestamp: item.created_at || new Date().toISOString(),
             submissionId: item.review_questions_answers_id || null
           }));
@@ -187,15 +199,22 @@ export default function FilteredTextData({
       
       // 本番モード用の日付フィルター適用とクエリ実行
       if (selectedDates.length > 0) {
-        const dateStrings = selectedDates.map(date => date.toISOString().split('T')[0]);
+        // タイムゾーンを考慮した日付文字列生成
+        const dateStrings = selectedDates.map(date => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        });
         console.log('日付フィルター適用:', dateStrings);
         
-        // 日付範囲でフィルター
-        const startDate = dateStrings[0];
-        const endDate = dateStrings[dateStrings.length - 1];
+        // 日付範囲でフィルター（年月日順でソート）
+        const sortedDates = [...dateStrings].sort();
+        const startDate = sortedDates[0];
+        const endDate = sortedDates[sortedDates.length - 1];
         query = query
-          .gte('created_at', startDate + 'T00:00:00Z')
-          .lte('created_at', endDate + 'T23:59:59Z');
+          .gte('created_at', startDate + 'T00:00:00')
+          .lte('created_at', endDate + 'T23:59:59');
       }
       
       const { data, error } = await query.order('created_at', { ascending: false });
@@ -217,7 +236,19 @@ export default function FilteredTextData({
       const formattedData = data.map((item, index) => ({
         id: item.id || `fetched_${index}`,
         text: item.answer_text,
-        date: item.created_at ? item.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+        date: item.created_at ? (() => {
+          const date = new Date(item.created_at);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        })() : (() => {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        })(),
         timestamp: item.created_at || new Date().toISOString(),
         submissionId: item.review_questions_answers_id || null
       }));
@@ -286,9 +317,12 @@ export default function FilteredTextData({
     
     // 日付フィルター
     if (selectedDates.length > 0) {
-      const selectedDateStrings = selectedDates.map(date => 
-        date.toISOString().split('T')[0]
-      );
+      const selectedDateStrings = selectedDates.map(date => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      });
       filtered = filtered.filter(item => 
         selectedDateStrings.includes(item.date)
       );
