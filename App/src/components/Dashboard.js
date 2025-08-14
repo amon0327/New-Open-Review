@@ -344,14 +344,18 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             <IconButton
               size="small"
               sx={{
-                color: '#ffc107',
+                color: 'white',
                 p: 0.5,
+                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
                 '&:hover': {
-                  bgcolor: 'rgba(255, 193, 7, 0.1)'
+                  bgcolor: 'rgba(255, 255, 255, 0.3)'
                 }
               }}
             >
-              <Info fontSize="small" />
+              <Info sx={{ fontSize: 14 }} />
             </IconButton>
           </Tooltip>
         </Box>
