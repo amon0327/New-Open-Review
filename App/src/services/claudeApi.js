@@ -4,6 +4,9 @@ import { supabase } from '../lib/supabase';
 
 class ClaudeApiService {
   constructor() {
+    // 🚫 AI機能の一時無効化設定
+    this.AI_ENABLED = false; // 💡 true に変更するとAI機能が再有効化されます
+    
     // Supabase Edge Functions経由でClaude APIを呼び出し
     this.baseUrl = 'https://otfreskkeaenahqziriz.supabase.co/functions/v1';
     
@@ -25,6 +28,36 @@ class ClaudeApiService {
    */
   async sendMessage(message, conversationHistory = [], options = {}) {
     try {
+      // 🚫 AI機能が無効化されている場合の処理
+      if (!this.AI_ENABLED) {
+        console.log('🚫 AI機能は現在無効化されています。ダミーレスポンスを返します。');
+        
+        // リアルなローディング時間を模擬（実際のAPIコールらしさを演出）
+        await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1000));
+        
+        // プレビュー版でのシンプルな案内メッセージ
+        const generateDummyResponse = () => {
+          return "申し訳ございません。AIチャット機能はプレビュー版では利用できません。";
+        };
+        
+        const responseMessage = generateDummyResponse();
+        
+        // 実際のAPIレスポンス形式に合わせて返す
+        return {
+          message: responseMessage,
+          usage: { input_tokens: 0, output_tokens: 0 },
+          metadata: { 
+            timestamp: new Date().toISOString(),
+            ai_disabled: true,
+            dummy_response: true,
+            user_message_length: message.length,
+            data_mode: options.isDataMode || false,
+            test_mode: options.testMode || false
+          }
+        };
+      }
+
+      // ✅ AI機能が有効な場合の通常処理
       // 入力検証
       if (!message || typeof message !== 'string' || message.trim().length === 0) {
         throw new Error('メッセージが無効です');
