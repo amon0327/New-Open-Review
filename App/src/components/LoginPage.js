@@ -5,23 +5,15 @@ import {
   Container,
   Box,
   Typography,
-  TextField,
   Button,
-  InputAdornment,
-  IconButton,
   Alert,
   Card,
   Stack,
-  Link
+  Chip
 } from '@mui/material';
 import {
-  Email,
-  Lock,
-  Visibility,
-  VisibilityOff,
   Google,
-  Person,
-  Business
+  Info
 } from '@mui/icons-material';
 
 // モダンなアニメーションバリアント
@@ -40,150 +32,9 @@ const staggerContainer = {
 };
 
 export default function LoginPage({ onLogin }) {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    name: '',
-    company: ''
-  });
 
-  const toggleMode = () => {
-    setIsSignUp(!isSignUp);
-    setError('');
-  };
-
-  const handleInputChange = (field) => (event) => {
-    setFormData({
-      ...formData,
-      [field]: event.target.value
-    });
-  };
-
-  const ensureBusinessUserExists = async (user) => {
-    try {
-      // タイムアウト設定付きでbusiness_usersテーブルにエントリが存在するかチェック
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database timeout')), 5000); // 5秒タイムアウト
-      });
-
-      const selectPromise = supabase
-        .from('business_users')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      const { data: existingUser, error: selectError } = await Promise.race([
-        selectPromise,
-        timeoutPromise
-      ]);
-
-      if (selectError && selectError.code === 'PGRST116') {
-        // エントリが存在しない場合は作成（タイムアウト付き）
-        const insertPromise = supabase
-          .from('business_users')
-          .insert({
-            id: user.id,
-            email: user.email,
-            name: user.user_metadata?.name || '',
-            company_name: user.user_metadata?.company || ''
-          });
-
-        const insertTimeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Insert timeout')), 5000);
-        });
-
-        const { error: insertError } = await Promise.race([
-          insertPromise,
-          insertTimeoutPromise
-        ]);
-
-        if (insertError) {
-          console.error('business_users自動作成エラー:', insertError);
-        }
-      } else if (selectError && selectError.message !== 'Database timeout') {
-        console.error('business_usersチェックエラー:', selectError);
-      }
-    } catch (error) {
-      console.error('ensureBusinessUserExists エラー:', error);
-      // エラーが発生してもログイン処理は継続する
-    }
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // business_usersテーブルにエントリが存在するかチェック（エラーでも継続）
-        try {
-          await ensureBusinessUserExists(data.user);
-        } catch (businessUserError) {
-          console.error('business_users処理でエラーが発生しましたが、ログインを継続します:', businessUserError);
-        }
-        onLogin(data.user);
-      }
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignUp = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            name: formData.name,
-            company: formData.company,
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // business_usersテーブルに新規ユーザー情報を挿入
-        const { error: insertError } = await supabase
-          .from('business_users')
-          .insert({
-            id: data.user.id,
-            email: formData.email,
-            name: formData.name,
-            company_name: formData.company
-          });
-
-        if (insertError) {
-          console.error('business_users挿入エラー:', insertError);
-        }
-
-        setError('確認メールを送信しました。メールをご確認ください。');
-      }
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -254,6 +105,18 @@ export default function LoginPage({ onLogin }) {
                     />
                   </motion.div>
                   
+                  {/* Preview Badge */}
+                  <Chip
+                    label="プレビュー版"
+                    size="small"
+                    sx={{
+                      bgcolor: 'rgba(255, 193, 7, 0.9)',
+                      color: '#000',
+                      fontWeight: 600,
+                      fontSize: '0.75rem'
+                    }}
+                  />
+                  
                   {/* Title */}
                   <Box textAlign="center">
                     <Typography
@@ -268,25 +131,49 @@ export default function LoginPage({ onLogin }) {
                         fontSize: { xs: '1.75rem', sm: '2.125rem' }
                       }}
                     >
-                      {isSignUp ? 'アカウント作成' : 'サインイン'}
+                      サインイン
                     </Typography>
                     <Typography
                       variant="body1"
                       color="text.secondary"
                       sx={{ fontSize: '1rem', fontWeight: 400 }}
                     >
-                      {isSignUp 
-                        ? 'OpenReviewで美しいレビューフォームを作成しましょう'
-                        : 'アカウントにサインインしてください'
-                      }
+                      プレビュー版としてお試しいただけます
                     </Typography>
                   </Box>
                 </Stack>
               </motion.div>
             </Box>
 
-            {/* Form Section */}
-            <Box sx={{ p: 6, pt: 4 }}>
+            {/* Notice Section */}
+            <Box sx={{ px: 6, pb: 4 }}>
+              <motion.div variants={fadeInUp}>
+                <Alert 
+                  severity="info" 
+                  icon={<Info />}
+                  sx={{ 
+                    borderRadius: '12px',
+                    border: 'none',
+                    backgroundColor: 'rgba(33, 150, 243, 0.08)',
+                    '& .MuiAlert-icon': {
+                      color: '#1976d2'
+                    }
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                    プレビュー版について
+                  </Typography>
+                  <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                    • データは一時的な保存となります<br/>
+                    • 作成したフォームやデータは定期的に削除されます<br/>
+                    • あくまでもプレビュー版としてご利用ください
+                  </Typography>
+                </Alert>
+              </motion.div>
+            </Box>
+
+            {/* Login Section */}
+            <Box sx={{ p: 6, pt: 0 }}>
               {/* Error Message */}
               <AnimatePresence>
                 {error && (
@@ -296,7 +183,7 @@ export default function LoginPage({ onLogin }) {
                     exit={{ opacity: 0, y: -10 }}
                   >
                     <Alert 
-                      severity={error.includes('確認メール') ? 'info' : 'error'} 
+                      severity="error" 
                       sx={{ 
                         mb: 3,
                         borderRadius: '12px',
@@ -309,251 +196,38 @@ export default function LoginPage({ onLogin }) {
                 )}
               </AnimatePresence>
 
-              {/* Form Content */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={isSignUp ? 'signup' : 'signin'}
-                  variants={fadeInUp}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  transition={{ duration: 0.3 }}
-                >
-                  <Box component="form" onSubmit={isSignUp ? handleSignUp : handleLogin}>
-                    <Stack spacing={3}>
-                      {/* Sign Up Fields */}
-                      {isSignUp && (
-                        <>
-                          <TextField
-                            fullWidth
-                            label="お名前"
-                            value={formData.name}
-                            onChange={handleInputChange('name')}
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <Person sx={{ color: 'text.secondary' }} />
-                                </InputAdornment>
-                              ),
-                            }}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: '12px',
-                                backgroundColor: 'rgba(248, 250, 252, 0.8)',
-                                '&:hover fieldset': {
-                                  borderColor: '#5e17eb',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#5e17eb',
-                                }
-                              }
-                            }}
-                          />
-
-                          <TextField
-                            fullWidth
-                            label="会社名"
-                            value={formData.company}
-                            onChange={handleInputChange('company')}
-                            InputProps={{
-                              startAdornment: (
-                                <InputAdornment position="start">
-                                  <Business sx={{ color: 'text.secondary' }} />
-                                </InputAdornment>
-                              ),
-                            }}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                borderRadius: '12px',
-                                backgroundColor: 'rgba(248, 250, 252, 0.8)',
-                                '&:hover fieldset': {
-                                  borderColor: '#5e17eb',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#5e17eb',
-                                }
-                              }
-                            }}
-                          />
-                        </>
-                      )}
-
-                      {/* Email Field */}
-                      <TextField
-                        fullWidth
-                        label="メールアドレス"
-                        type="email"
-                        value={formData.email}
-                        onChange={handleInputChange('email')}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Email sx={{ color: 'text.secondary' }} />
-                            </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: '12px',
-                            backgroundColor: 'rgba(248, 250, 252, 0.8)',
-                            '&:hover fieldset': {
-                              borderColor: '#5e17eb',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: '#5e17eb',
-                            }
-                          }
-                        }}
-                      />
-                      
-                      {/* Password Field */}
-                      <TextField
-                        fullWidth
-                        label="パスワード"
-                        type={showPassword ? 'text' : 'password'}
-                        value={formData.password}
-                        onChange={handleInputChange('password')}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Lock sx={{ color: 'text.secondary' }} />
-                            </InputAdornment>
-                          ),
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                onClick={() => setShowPassword(!showPassword)}
-                                edge="end"
-                                sx={{ color: 'text.secondary' }}
-                              >
-                                {showPassword ? <VisibilityOff /> : <Visibility />}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                        }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: '12px',
-                            backgroundColor: 'rgba(248, 250, 252, 0.8)',
-                            '&:hover fieldset': {
-                              borderColor: '#5e17eb',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: '#5e17eb',
-                            }
-                          }
-                        }}
-                      />
-
-                      {/* Submit Button */}
-                      <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        size="large"
-                        disabled={loading}
-                        sx={{
-                          py: 1.5,
-                          borderRadius: '12px',
-                          background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
-                          textTransform: 'none',
-                          fontSize: '1rem',
-                          fontWeight: 600,
-                          boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
-                          transition: 'all 0.2s ease-in-out',
-                          '&:hover': {
-                            boxShadow: '0 6px 25px rgba(94, 23, 235, 0.4)',
-                            transform: 'translateY(-1px)',
-                          },
-                          '&:active': {
-                            transform: 'translateY(0px)',
-                          }
-                        }}
-                      >
-                        {loading 
-                          ? (isSignUp ? 'アカウント作成中...' : 'サインイン中...') 
-                          : (isSignUp ? 'アカウント作成' : 'サインイン')
-                        }
-                      </Button>
-
-                      {/* Divider */}
-                      <Box sx={{ position: 'relative', py: 1 }}>
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: 0,
-                            right: 0,
-                            height: '1px',
-                            backgroundColor: 'rgba(0, 0, 0, 0.08)'
-                          }}
-                        />
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            position: 'relative',
-                            textAlign: 'center',
-                            backgroundColor: 'transparent',
-                            px: 2,
-                            color: 'text.secondary',
-                            fontSize: '0.875rem'
-                          }}
-                        >
-                          または
-                        </Typography>
-                      </Box>
-
-                      {/* Google Login */}
-                      <Button
-                        fullWidth
-                        variant="outlined"
-                        startIcon={<Google />}
-                        onClick={handleGoogleLogin}
-                        disabled={loading}
-                        sx={{
-                          py: 1.5,
-                          borderRadius: '12px',
-                          textTransform: 'none',
-                          borderColor: 'divider',
-                          color: 'text.primary',
-                          backgroundColor: 'rgba(248, 250, 252, 0.5)',
-                          transition: 'all 0.2s ease-in-out',
-                          '&:hover': {
-                            borderColor: '#5e17eb',
-                            backgroundColor: 'rgba(94, 23, 235, 0.04)',
-                            transform: 'translateY(-1px)',
-                          }
-                        }}
-                      >
-                        {loading ? 'Googleサインイン中...' : 'Googleでサインイン'}
-                      </Button>
-                    </Stack>
-                  </Box>
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Toggle Auth Mode */}
-              <Box sx={{ textAlign: 'center', mt: 4 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {isSignUp ? 'すでにアカウントをお持ちですか？' : 'アカウントをお持ちでない方は'}
-                  <Link
-                    component="button"
-                    type="button"
-                    onClick={toggleMode}
+              <motion.div variants={fadeInUp}>
+                <Stack spacing={3}>
+                  {/* Google Login */}
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<Google />}
+                    onClick={handleGoogleLogin}
+                    disabled={loading}
+                    size="large"
                     sx={{
-                      ml: 1,
-                      color: '#5e17eb',
-                      textDecoration: 'none',
+                      py: 1.5,
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                      textTransform: 'none',
+                      fontSize: '1rem',
                       fontWeight: 600,
+                      boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
+                      transition: 'all 0.2s ease-in-out',
                       '&:hover': {
-                        textDecoration: 'underline',
+                        boxShadow: '0 6px 25px rgba(94, 23, 235, 0.4)',
+                        transform: 'translateY(-1px)',
+                      },
+                      '&:active': {
+                        transform: 'translateY(0px)',
                       }
                     }}
                   >
-                    {isSignUp ? 'サインイン' : 'アカウント作成'}
-                  </Link>
-                </Typography>
-              </Box>
+                    {loading ? 'Googleでサインイン中...' : 'Googleでサインイン'}
+                  </Button>
+                </Stack>
+              </motion.div>
             </Box>
           </Card>
         </motion.div>

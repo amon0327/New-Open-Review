@@ -7,7 +7,6 @@ import { Toaster } from 'react-hot-toast';
 
 import { supabase } from './supabaseClient';
 import LoginPage from './components/LoginPage';
-import AnonymousStartPage from './components/AnonymousStartPage';
 import Dashboard from './components/Dashboard';
 import CreatePage from './components/CreatePage';
 
@@ -117,16 +116,11 @@ const theme = createTheme({
 });
 
 function App() {
-  const [currentView, setCurrentView] = useState('anonymous'); // 'anonymous', 'login', 'dashboard', 'create'
+  const [currentView, setCurrentView] = useState('login'); // 'login', 'dashboard', 'create'
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentFormId, setCurrentFormId] = useState(null);
-  const [isAnonymous, setIsAnonymous] = useState(false);
 
-  // 匿名ユーザーかどうかを判定するヘルパー関数
-  const isAnonymousUser = (user) => {
-    return user && user.email && user.email.includes('@preview.openreview.jp');
-  };
 
   const ensureBusinessUserExists = async (user) => {
     try {
@@ -217,8 +211,8 @@ function App() {
             }
           }
         } else {
-          if (isMounted && !isAnonymous) {
-            setCurrentView('anonymous');
+          if (isMounted) {
+            setCurrentView('login');
           }
         }
       } catch (error) {
@@ -239,73 +233,13 @@ function App() {
 
   const handleLogin = (user) => {
     setUser(user);
-    setIsAnonymous(false);
-    setCurrentView('dashboard');
-  };
-
-  const handleAnonymousStart = async () => {
-    setIsAnonymous(true);
-    
-    // 匿名ユーザー用の一時的なユーザーオブジェクトを作成
-    const anonymousUser = {
-      id: `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      email: `anonymous_${Date.now()}@preview.openreview.jp`,
-      user_metadata: {
-        name: 'プレビューユーザー',
-        company: 'プレビュー版'
-      },
-      is_anonymous: true
-    };
-    
-    try {
-      // business_usersテーブルに匿名ユーザーを挿入
-      const { error: insertError } = await supabase
-        .from('business_users')
-        .insert({
-          id: anonymousUser.id,
-          email: anonymousUser.email,
-          name: anonymousUser.user_metadata.name,
-          company_name: anonymousUser.user_metadata.company
-        });
-
-      if (insertError) {
-        console.error('匿名ユーザーbusiness_users挿入エラー:', insertError);
-      } else {
-        console.log('✅ 匿名ユーザーをbusiness_usersに登録しました:', anonymousUser.id);
-      }
-    } catch (error) {
-      console.error('匿名ユーザー処理エラー:', error);
-    }
-    
-    setUser(anonymousUser);
     setCurrentView('dashboard');
   };
 
   const handleLogout = async () => {
-    if (!isAnonymous) {
-      await supabase.auth.signOut();
-    } else {
-      // 匿名ユーザーの場合、business_usersテーブルから削除
-      if (user && isAnonymousUser(user)) {
-        try {
-          const { error: deleteError } = await supabase
-            .from('business_users')
-            .delete()
-            .eq('id', user.id);
-
-          if (deleteError) {
-            console.error('匿名ユーザー削除エラー:', deleteError);
-          } else {
-            console.log('✅ 匿名ユーザーをbusiness_usersから削除しました:', user.id);
-          }
-        } catch (error) {
-          console.error('匿名ユーザー削除処理エラー:', error);
-        }
-      }
-    }
+    await supabase.auth.signOut();
     setUser(null);
-    setIsAnonymous(false);
-    setCurrentView('anonymous');
+    setCurrentView('login');
   };
 
   const handleCreateClick = (formId) => {
@@ -340,16 +274,14 @@ function App() {
     }
 
     switch (currentView) {
-      case 'anonymous':
-        return <AnonymousStartPage onAnonymousStart={handleAnonymousStart} />;
       case 'login':
         return <LoginPage onLogin={handleLogin} />;
       case 'dashboard':
-        return <Dashboard onCreateClick={handleCreateClick} onLogout={handleLogout} user={user} isAnonymous={isAnonymous} />;
+        return <Dashboard onCreateClick={handleCreateClick} onLogout={handleLogout} user={user} />;
       case 'create':
-        return <CreatePage onBackClick={handleBackToDashboard} user={user} formId={currentFormId} isAnonymous={isAnonymous} />;
+        return <CreatePage onBackClick={handleBackToDashboard} user={user} formId={currentFormId} />;
       default:
-        return <AnonymousStartPage onAnonymousStart={handleAnonymousStart} />;
+        return <LoginPage onLogin={handleLogin} />;
     }
   };
 
