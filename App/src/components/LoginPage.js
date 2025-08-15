@@ -8,8 +8,7 @@ import {
   Button,
   Alert,
   Card,
-  Stack,
-  Chip
+  Stack
 } from '@mui/material';
 import {
   Google,
@@ -104,18 +103,6 @@ export default function LoginPage({ onLogin }) {
                       }}
                     />
                   </motion.div>
-                  
-                  {/* Preview Badge */}
-                  <Chip
-                    label="プレビュー版"
-                    size="small"
-                    sx={{
-                      bgcolor: 'rgba(255, 193, 7, 0.9)',
-                      color: '#000',
-                      fontWeight: 600,
-                      fontSize: '0.75rem'
-                    }}
-                  />
                   
                   {/* Title */}
                   <Box textAlign="center">
