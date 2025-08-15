@@ -148,7 +148,7 @@ export default function LoginPage({ onLogin }) {
                   }}
                 >
                   <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-                    データは一時的な保存となります。作成したフォームやデータは定期的に削除されます。プレビュー版としてご利用ください。
+                    データは一時的な保存となりますので、プレビュー版としてご利用ください。
                   </Typography>
                 </Alert>
               </motion.div>
