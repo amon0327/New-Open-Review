@@ -123,6 +123,11 @@ function App() {
   const [currentFormId, setCurrentFormId] = useState(null);
   const [isAnonymous, setIsAnonymous] = useState(false);
 
+  // 匿名ユーザーかどうかを判定するヘルパー関数
+  const isAnonymousUser = (user) => {
+    return user && user.email && user.email.includes('@preview.openreview.jp');
+  };
+
   const ensureBusinessUserExists = async (user) => {
     try {
       // タイムアウト時間を延長（10秒）
@@ -238,15 +243,65 @@ function App() {
     setCurrentView('dashboard');
   };
 
-  const handleAnonymousStart = () => {
+  const handleAnonymousStart = async () => {
     setIsAnonymous(true);
-    setUser(null);
+    
+    // 匿名ユーザー用の一時的なユーザーオブジェクトを作成
+    const anonymousUser = {
+      id: `anonymous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      email: `anonymous_${Date.now()}@preview.openreview.jp`,
+      user_metadata: {
+        name: 'プレビューユーザー',
+        company: 'プレビュー版'
+      },
+      is_anonymous: true
+    };
+    
+    try {
+      // business_usersテーブルに匿名ユーザーを挿入
+      const { error: insertError } = await supabase
+        .from('business_users')
+        .insert({
+          id: anonymousUser.id,
+          email: anonymousUser.email,
+          name: anonymousUser.user_metadata.name,
+          company_name: anonymousUser.user_metadata.company
+        });
+
+      if (insertError) {
+        console.error('匿名ユーザーbusiness_users挿入エラー:', insertError);
+      } else {
+        console.log('✅ 匿名ユーザーをbusiness_usersに登録しました:', anonymousUser.id);
+      }
+    } catch (error) {
+      console.error('匿名ユーザー処理エラー:', error);
+    }
+    
+    setUser(anonymousUser);
     setCurrentView('dashboard');
   };
 
   const handleLogout = async () => {
     if (!isAnonymous) {
       await supabase.auth.signOut();
+    } else {
+      // 匿名ユーザーの場合、business_usersテーブルから削除
+      if (user && isAnonymousUser(user)) {
+        try {
+          const { error: deleteError } = await supabase
+            .from('business_users')
+            .delete()
+            .eq('id', user.id);
+
+          if (deleteError) {
+            console.error('匿名ユーザー削除エラー:', deleteError);
+          } else {
+            console.log('✅ 匿名ユーザーをbusiness_usersから削除しました:', user.id);
+          }
+        } catch (error) {
+          console.error('匿名ユーザー削除処理エラー:', error);
+        }
+      }
     }
     setUser(null);
     setIsAnonymous(false);
