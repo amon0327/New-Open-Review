@@ -31,7 +31,7 @@ const PublishSettings = ({
   formData = {}, // フォームデータ (検証用)
   onPublishClick // HeaderBarの公開処理を呼び出すためのコールバック関数
 }) => {
-  const formUrl = `https://forms.openreview.app/${projectTitle.toLowerCase().replace(/\s+/g, '-')}`;
+  const formUrl = `https://reviewform.openreview.jp/?reviewFormId=${formId}`;
   
   // 公開ダイアログの状態
   const [showPublishDialog, setShowPublishDialog] = useState(false);

@@ -16,7 +16,7 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
 
   // プレビューURLを生成
-  const previewUrl = `http://localhost:3000/preview?reviewFormId=${formId}`;
+  const previewUrl = `https://reviewform.openreview.jp/preview?reviewFormId=${formId}`;
 
   // QRコード生成
   useEffect(() => {
