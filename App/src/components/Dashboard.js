@@ -49,7 +49,7 @@ const navigationItems = [
   { text: 'Settings', icon: <Settings />, component: SettingsPage },
 ];
 
-export default function Dashboard({ onCreateClick, onLogout, user }) {
+export default function Dashboard({ onCreateClick, onLogout, user, isAnonymous = false }) {
   const [activeTab, setActiveTab] = useState(1);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
@@ -378,10 +378,10 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             }}
           >
             <Avatar 
-              src={user?.user_metadata?.avatar_url}
+              src={isAnonymous ? null : user?.user_metadata?.avatar_url}
               sx={{ width: 40, height: 40 }}
             >
-              {!user?.user_metadata?.avatar_url && <AccountCircle />}
+              <AccountCircle />
             </Avatar>
             {!isNavCollapsed && (
               <Box>
@@ -389,13 +389,13 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   variant="body2"
                   sx={{ color: 'white', fontWeight: 600 }}
                 >
-                  {user?.user_metadata?.name || user?.email?.split('@')[0] || 'User'}
+                  {isAnonymous ? 'プレビューユーザー' : (user?.user_metadata?.name || user?.email?.split('@')[0] || 'User')}
                 </Typography>
                 <Typography
                   variant="caption"
                   sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
                 >
-                  {user?.email || 'No email'}
+                  {isAnonymous ? 'プレビュー版でお試し中' : (user?.email || 'No email')}
                 </Typography>
               </Box>
             )}

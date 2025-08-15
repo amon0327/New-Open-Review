@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast';
 
 import { supabase } from './supabaseClient';
 import LoginPage from './components/LoginPage';
+import AnonymousStartPage from './components/AnonymousStartPage';
 import Dashboard from './components/Dashboard';
 import CreatePage from './components/CreatePage';
 
@@ -116,10 +117,11 @@ const theme = createTheme({
 });
 
 function App() {
-  const [currentView, setCurrentView] = useState('login'); // 'login', 'dashboard', 'create'
+  const [currentView, setCurrentView] = useState('anonymous'); // 'anonymous', 'login', 'dashboard', 'create'
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentFormId, setCurrentFormId] = useState(null);
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   const ensureBusinessUserExists = async (user) => {
     try {
@@ -210,8 +212,8 @@ function App() {
             }
           }
         } else {
-          if (isMounted) {
-            setCurrentView('login');
+          if (isMounted && !isAnonymous) {
+            setCurrentView('anonymous');
           }
         }
       } catch (error) {
@@ -232,13 +234,23 @@ function App() {
 
   const handleLogin = (user) => {
     setUser(user);
+    setIsAnonymous(false);
+    setCurrentView('dashboard');
+  };
+
+  const handleAnonymousStart = () => {
+    setIsAnonymous(true);
+    setUser(null);
     setCurrentView('dashboard');
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    if (!isAnonymous) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
-    setCurrentView('login');
+    setIsAnonymous(false);
+    setCurrentView('anonymous');
   };
 
   const handleCreateClick = (formId) => {
@@ -273,14 +285,16 @@ function App() {
     }
 
     switch (currentView) {
+      case 'anonymous':
+        return <AnonymousStartPage onAnonymousStart={handleAnonymousStart} />;
       case 'login':
         return <LoginPage onLogin={handleLogin} />;
       case 'dashboard':
-        return <Dashboard onCreateClick={handleCreateClick} onLogout={handleLogout} user={user} />;
+        return <Dashboard onCreateClick={handleCreateClick} onLogout={handleLogout} user={user} isAnonymous={isAnonymous} />;
       case 'create':
-        return <CreatePage onBackClick={handleBackToDashboard} user={user} formId={currentFormId} />;
+        return <CreatePage onBackClick={handleBackToDashboard} user={user} formId={currentFormId} isAnonymous={isAnonymous} />;
       default:
-        return <LoginPage onLogin={handleLogin} />;
+        return <AnonymousStartPage onAnonymousStart={handleAnonymousStart} />;
     }
   };
 
