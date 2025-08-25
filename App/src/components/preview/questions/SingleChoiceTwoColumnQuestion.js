@@ -10,7 +10,7 @@ const SingleChoiceTwoColumnQuestion = ({ question, themeColor, currentQuestion, 
   const handleChoiceSelect = (choiceValue) => {
     setSelectedChoice(choiceValue);
     onAnswerChange(question.id, {
-      questionTypeId: 9, // 新しいquestionTypeId
+      questionTypeId: question.question_types_id, // 動的に取得
       answer: choiceValue
     });
   };

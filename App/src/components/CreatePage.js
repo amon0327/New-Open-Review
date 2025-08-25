@@ -338,8 +338,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
       'scale': 7,       // リニアスケール
       'select': 8,      // プルダウン
       'loyalty_score': 9, // 推奨度スコア
-      'radio-2col': 5,  // 単一選択(2列)
-      'checkbox-2col': 6 // 複数選択(2列)
+      'radio-2col': 9,  // 単一選択(2列)
+      'checkbox-2col': 10 // 複数選択(2列)
     };
     return typeMapping[typeString] || 1; // デフォルトは短文テキスト
   };
@@ -758,7 +758,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // 質問タイプに応じてデフォルト設定を追加
       const questionTypeData = questionTypesData.find(qt => qt.id === questionTypeId);
       const typeName = questionTypeData ? questionTypeData.japanese : '';
-      const needsChoices = [3, 4, 8, 9, 10].includes(questionTypeId) || typeName.includes('選択') || typeName.includes('プルダウン');
+      const needsChoices = [3, 4, 8, 10].includes(questionTypeId);
       
       if (needsChoices) {
         // 通常の質問作成時は選択肢を1つ作成
@@ -785,7 +785,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
         if (draggedData.choices && Array.isArray(draggedData.choices) && draggedData.choices.length > 0) {
           optimisticQuestion.choices = JSON.stringify(draggedData.choices);
-        } else if (needsChoices) {
+        } else if ([3, 4, 8, 10].includes(optimisticQuestion.question_types_id)) {
           // テンプレート質問でも選択肢が空の場合はデフォルト選択肢を作成
           optimisticQuestion.choices = JSON.stringify(['選択肢1']);
         }

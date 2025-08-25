@@ -346,9 +346,9 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
   
   // Supabaseから取得した質問タイプデータを使用して動的に判定（将来的な拡張のため）
   // 現在は基本的な数値ベース判定を維持
-  const needsChoices = [3, 4, 8, 9, 10].includes(typeId);
+  const needsChoices = [3, 4, 8, 10].includes(typeId);
   const needsMatrix = [5, 6].includes(typeId);
-  const needsScale = typeId === 7;
+  const needsScale = [7, 9].includes(typeId);
   const scaleSettings = localQuestion.scale_settings ? JSON.parse(localQuestion.scale_settings) : {};
   
 
@@ -674,7 +674,7 @@ const QuestionSettingsPanel = ({ selectedPage, questions = [], onUpdateQuestions
       detail_text: '',
       is_required: false,
       choices: needsChoices(newQuestionType) ? JSON.stringify(['選択肢 1', '選択肢 2']) : null,
-      scale_settings: newQuestionType === 7 ? JSON.stringify({ minValue: 1, maxValue: 5, minLabel: '', maxLabel: '' }) : null
+      scale_settings: [7, 9].includes(newQuestionType) ? JSON.stringify({ minValue: 1, maxValue: 5, minLabel: '', maxLabel: '' }) : null
     };
     onUpdateQuestions([...questions, newQuestion]);
     setExpandedQuestion(newQuestion.id);
@@ -705,7 +705,7 @@ const QuestionSettingsPanel = ({ selectedPage, questions = [], onUpdateQuestions
     setExpandedQuestion(duplicatedQuestion.id);
   };
 
-  const needsChoices = (typeId) => [3, 4, 8, 9, 10].includes(typeId);
+  const needsChoices = (typeId) => [3, 4, 8, 10].includes(typeId);
 
   if (!selectedPage || selectedPage.type === 'system') {
     return (
