@@ -180,43 +180,11 @@ export const validateForm = (formData) => {
       console.log(`Question ${index + 1} does not require choices (type: ${questionTypeId}, numeric: ${numericQuestionTypeId})`);
     }
 
-    // リニアスケール・推奨度スコアの場合のラベル検証
-    if (numericQuestionTypeId === 7 || numericQuestionTypeId === 9) { // リニアスケール・推奨度スコア
-      let minLabel = question.minLabel || question.min_label || question.scale_min_label || '';
-      let maxLabel = question.maxLabel || question.max_label || question.scale_max_label || '';
-      
-      // scale_settingsがある場合はそこからラベルを取得
-      if (question.scale_settings && typeof question.scale_settings === 'string') {
-        try {
-          const scaleSettings = JSON.parse(question.scale_settings);
-          minLabel = minLabel || scaleSettings.minLabel || '';
-          maxLabel = maxLabel || scaleSettings.maxLabel || '';
-        } catch (e) {
-          console.error('Failed to parse scale_settings:', question.scale_settings);
-        }
-      }
-      
-      if (!minLabel || minLabel.trim() === '') {
-        errors.push({
-          id: `missing-min-label-${question.id}`,
-          message: `質問${index + 1}の最小値ラベルが設定されていません`,
-          location: '質問設定',
-          action: 'openSettings',
-          questionId: question.id,
-          labelType: 'min'
-        });
-      }
-      if (!maxLabel || maxLabel.trim() === '') {
-        errors.push({
-          id: `missing-max-label-${question.id}`,
-          message: `質問${index + 1}の最大値ラベルが設定されていません`,
-          location: '質問設定',
-          action: 'openSettings',
-          questionId: question.id,
-          labelType: 'max'
-        });
-      }
-    }
+    // リニアスケール・推奨度スコアの場合のラベル検証は無効化
+    // ユーザー要求により、これらのエラーは表示しないようにする
+    // if (numericQuestionTypeId === 7 || numericQuestionTypeId === 9) {
+    //   // ラベル検証処理をコメントアウト
+    // }
 
   });
 
@@ -420,25 +388,11 @@ export const validateQuestion = (question, index) => {
     }
   }
 
-  // リニアスケールの場合のラベル検証
-  if (question.type === 7) {
-    if (!question.minLabel || question.minLabel.trim() === '') {
-      errors.push({
-        id: `missing-min-label-${question.id}`,
-        message: `質問${index + 1}の最小値ラベルが設定されていません`,
-        location: '質問設定',
-        action: 'openSettings'
-      });
-    }
-    if (!question.maxLabel || question.maxLabel.trim() === '') {
-      errors.push({
-        id: `missing-max-label-${question.id}`,
-        message: `質問${index + 1}の最大値ラベルが設定されていません`,
-        location: '質問設定',
-        action: 'openSettings'
-      });
-    }
-  }
+  // リニアスケールの場合のラベル検証は無効化
+  // ユーザー要求により、これらのエラーは表示しないようにする
+  // if (question.type === 7) {
+  //   // ラベル検証処理をコメントアウト
+  // }
 
   return errors;
 };
