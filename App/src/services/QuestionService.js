@@ -49,14 +49,15 @@ export const createReviewQuestion = async ({
 };
 
 // question_option_linear_scaleテーブルにリニアスケールオプションを登録する関数
-export const createLinearScaleOption = async (reviewQuestionsId) => {
+export const createLinearScaleOption = async (reviewQuestionsId, questionTypesId = null) => {
   try {
     const { data, error } = await supabase
       .from('question_option_linear_scale')
       .insert({
         review_questions_id: reviewQuestionsId,
         min_text: '',
-        max_text: ''
+        max_text: '',
+        loyalty_score_flags: questionTypesId === 9
       })
       .select()
       .single();
@@ -155,14 +156,15 @@ export const getTemplateChoiceOptions = async (templateReviewQuestionsId) => {
 };
 
 // テンプレート質問のリニアスケールオプションをコピーして作成する関数
-export const createLinearScaleOptionFromTemplate = async (reviewQuestionsId, templateOption) => {
+export const createLinearScaleOptionFromTemplate = async (reviewQuestionsId, templateOption, questionTypesId = null) => {
   try {
     const { data, error } = await supabase
       .from('question_option_linear_scale')
       .insert({
         review_questions_id: reviewQuestionsId,
         min_text: templateOption.min_text,
-        max_text: templateOption.max_text
+        max_text: templateOption.max_text,
+        loyalty_score_flags: questionTypesId === 9
       })
       .select()
       .single();
@@ -228,13 +230,13 @@ export const createTemplateQuestionWithOptions = async ({
     });
 
     // 2. 質問タイプに応じてオプションをコピー
-    if (questionTypesId === 8) {
+    if (questionTypesId === 7 || questionTypesId === 9) {
       // リニアスケールオプションを取得してコピー
       const templateLinearOption = await getTemplateLinearScaleOption(templateReviewQuestionsId);
       if (templateLinearOption) {
-        await createLinearScaleOptionFromTemplate(question.id, templateLinearOption);
+        await createLinearScaleOptionFromTemplate(question.id, templateLinearOption, questionTypesId);
       }
-    } else if ([3, 4, 5, 6, 7, 9, 10].includes(questionTypesId)) {
+    } else if ([3, 4, 5, 6, 8, 10].includes(questionTypesId)) {
       // 選択肢オプションを取得してコピー
       const templateChoiceOptions = await getTemplateChoiceOptions(templateReviewQuestionsId);
       if (templateChoiceOptions.length > 0) {
@@ -265,12 +267,12 @@ export const createQuestionWithOptions = async ({
       questionNumber
     });
 
-    // 2. 質問タイプが8（リニアスケール）の場合、追加オプションを作成
-    if (questionTypesId === 8) {
-      await createLinearScaleOption(question.id);
+    // 2. 質問タイプが7（線形スケール）または9（推奨度スコア）の場合、追加オプションを作成
+    if (questionTypesId === 7 || questionTypesId === 9) {
+      await createLinearScaleOption(question.id, questionTypesId);
     }
     // 3. 選択肢が必要な質問タイプの場合、デフォルト選択肢を作成
-    else if ([3, 4, 5, 6, 7, 9, 10].includes(questionTypesId)) {
+    else if ([3, 4, 5, 6, 8, 10].includes(questionTypesId)) {
       const defaultChoices = ['選択肢1'];
       console.log(`Creating default choice for question type ${questionTypesId}:`, defaultChoices);
       await updateChoiceOptions(question.id, defaultChoices);
@@ -610,20 +612,32 @@ export const updateChoiceOptions = async (reviewQuestionsId, choices) => {
 // リニアスケールオプションを更新する関数
 export const updateLinearScaleOption = async (reviewQuestionsId, scaleSettings) => {
   try {
-    // 1. 既存のスケール設定を削除
+    // 1. 質問タイプIDを取得してloyalty_score_flagsを決定
+    const { data: questionData, error: questionError } = await supabase
+      .from('review_questions')
+      .select('question_types_id')
+      .eq('id', reviewQuestionsId)
+      .single();
+    
+    if (questionError) {
+      throw questionError;
+    }
+
+    // 2. 既存のスケール設定を削除
     await supabase
       .from('question_option_linear_scale')
       .delete()
       .eq('review_questions_id', reviewQuestionsId);
 
-    // 2. 新しいスケール設定を追加
+    // 3. 新しいスケール設定を追加
     if (scaleSettings) {
       const { data, error } = await supabase
         .from('question_option_linear_scale')
         .insert({
           review_questions_id: reviewQuestionsId,
           min_text: scaleSettings.minLabel || 'そう思わない',
-          max_text: scaleSettings.maxLabel || 'そう思う'
+          max_text: scaleSettings.maxLabel || 'そう思う',
+          loyalty_score_flags: questionData.question_types_id === 9
         })
         .select()
         .single();
@@ -823,20 +837,32 @@ export const updateChoiceOptionsDirect = async (reviewQuestionsId, choices) => {
 // 均等目盛りオプションを直接更新する関数（review_questionsテーブルを経由しない）
 export const updateLinearScaleOptionDirect = async (reviewQuestionsId, scaleSettings) => {
   try {
-    // 1. 既存のスケール設定を削除
+    // 1. 質問タイプIDを取得してloyalty_score_flagsを決定
+    const { data: questionData, error: questionError } = await supabase
+      .from('review_questions')
+      .select('question_types_id')
+      .eq('id', reviewQuestionsId)
+      .single();
+    
+    if (questionError) {
+      throw questionError;
+    }
+
+    // 2. 既存のスケール設定を削除
     await supabase
       .from('question_option_linear_scale')
       .delete()
       .eq('review_questions_id', reviewQuestionsId);
 
-    // 2. 新しいスケール設定を追加
+    // 3. 新しいスケール設定を追加
     if (scaleSettings) {
       const { data, error } = await supabase
         .from('question_option_linear_scale')
         .insert({
           review_questions_id: reviewQuestionsId,
           min_text: scaleSettings.minLabel || '',
-          max_text: scaleSettings.maxLabel || ''
+          max_text: scaleSettings.maxLabel || '',
+          loyalty_score_flags: questionData.question_types_id === 9
         })
         .select()
         .single();
@@ -867,10 +893,10 @@ export const getQuestionsWithOptions = async (reviewFormId, reviewFormPagesId) =
         let options = null;
         
         // 質問タイプに応じてオプションを取得
-        if (question.question_types_id === 8) {
-          // リニアスケールオプション
+        if (question.question_types_id === 7 || question.question_types_id === 9) {
+          // リニアスケール・推奨度スコアオプション
           options = await getQuestionLinearScaleOption(question.id);
-        } else if ([3, 4, 5, 6, 7, 9, 10].includes(question.question_types_id)) {
+        } else if ([3, 4, 5, 6, 8, 10].includes(question.question_types_id)) {
           // 選択肢オプション
           options = await getQuestionChoiceOptions(question.id);
         }

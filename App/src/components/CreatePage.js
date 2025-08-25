@@ -337,8 +337,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
       'matrix-multiple': 6, // 複数選択マトリックス
       'scale': 7,       // リニアスケール
       'select': 8,      // プルダウン
-      'radio-2col': 9,  // 単一選択(2列)
-      'checkbox-2col': 10 // 複数選択(2列)
+      'loyalty_score': 9, // 推奨度スコア
+      'radio-2col': 5,  // 単一選択(2列)
+      'checkbox-2col': 6 // 複数選択(2列)
     };
     return typeMapping[typeString] || 1; // デフォルトは短文テキスト
   };
@@ -734,6 +735,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
       
       // 質問タイプからデフォルトデータを作成
       const questionTypeId = draggedData.question_types_id || getQuestionTypeId(draggedData.type);
+      console.log(`🔍 CreatePage handleDrop: draggedData.type = "${draggedData.type}", questionTypeId = ${questionTypeId}`);
       
       // 現在のページの質問数を取得して質問番号を決定
       const currentQuestions = getQuestionsForPage(selectedPage.id);
@@ -763,10 +765,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
         optimisticQuestion.choices = JSON.stringify(['選択肢1']);
       }
 
-      if (questionTypeId === 7 || typeName.includes('スケール') || typeName.includes('リニア')) {
+      if (questionTypeId === 7 || questionTypeId === 9 || typeName.includes('スケール') || typeName.includes('リニア') || typeName.includes('推奨度')) {
         optimisticQuestion.scale_settings = JSON.stringify({
-          minValue: 1,
-          maxValue: 5,
+          minValue: questionTypeId === 9 ? 0 : 1,
+          maxValue: questionTypeId === 9 ? 10 : 5,
           minLabel: '',
           maxLabel: ''
         });

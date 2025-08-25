@@ -105,7 +105,7 @@ const PreviewQuestionsRefactored = ({
       case 8:
         return <PullDownQuestion {...commonProps} zoom={zoom} />;
       case 9:
-        return <SingleChoiceTwoColumnQuestion {...commonProps} />;
+        return <LinearScaleQuestion {...commonProps} />;
       case 10:
         return <MultipleChoiceTwoColumnQuestion {...commonProps} />;
       default:

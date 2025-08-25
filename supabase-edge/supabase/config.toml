@@ -9,7 +9,7 @@ max_rows = 1000
 
 [auth]
 enabled = true
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://yourdomain.com"]
+site_url = "https://app.openreview.jp"
+additional_redirect_urls = ["http://localhost:3000", "https://app.openreview.jp"]
 jwt_expiry = 3600
 enable_signup = true

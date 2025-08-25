@@ -1612,6 +1612,8 @@ const PreviewQuestions = ({
       </Box>
     );
 
+    console.log(`🔍 PreviewQuestions renderQuestion: question_types_id = ${question.question_types_id}`);
+    
     switch (question.question_types_id) {
       case 1:
         return questionWrapper(
@@ -1704,7 +1706,7 @@ const PreviewQuestions = ({
         );
       case 9:
         return questionWrapper(
-          <SingleChoiceTwoColumnQuestion
+          <LinearScaleQuestion
             key={question.id}
             question={question}
             themeColor={themeColor}

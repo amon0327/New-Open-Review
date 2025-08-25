@@ -180,10 +180,21 @@ export const validateForm = (formData) => {
       console.log(`Question ${index + 1} does not require choices (type: ${questionTypeId}, numeric: ${numericQuestionTypeId})`);
     }
 
-    // リニアスケールの場合のラベル検証
-    if (numericQuestionTypeId === 7) { // リニアスケール
-      const minLabel = question.minLabel || question.min_label || question.scale_min_label || '';
-      const maxLabel = question.maxLabel || question.max_label || question.scale_max_label || '';
+    // リニアスケール・推奨度スコアの場合のラベル検証
+    if (numericQuestionTypeId === 7 || numericQuestionTypeId === 9) { // リニアスケール・推奨度スコア
+      let minLabel = question.minLabel || question.min_label || question.scale_min_label || '';
+      let maxLabel = question.maxLabel || question.max_label || question.scale_max_label || '';
+      
+      // scale_settingsがある場合はそこからラベルを取得
+      if (question.scale_settings && typeof question.scale_settings === 'string') {
+        try {
+          const scaleSettings = JSON.parse(question.scale_settings);
+          minLabel = minLabel || scaleSettings.minLabel || '';
+          maxLabel = maxLabel || scaleSettings.maxLabel || '';
+        } catch (e) {
+          console.error('Failed to parse scale_settings:', question.scale_settings);
+        }
+      }
       
       if (!minLabel || minLabel.trim() === '') {
         errors.push({

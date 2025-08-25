@@ -39,7 +39,7 @@ export const questionTypes = [
   { icon: <ViewList />, label: '複数選択(2列)', type: 'checkbox-2col' },
   { icon: <ExpandMore />, label: 'プルダウン', type: 'select' },
   { icon: <LinearScale />, label: '線形スケール', type: 'scale' },
-  { icon: <Image />, label: '画像アップロード', type: 'image' }
+  { icon: <LinearScale />, label: '推奨度スコア', type: 'loyalty_score' }
 ];
 
 // テンプレート質問の定義
