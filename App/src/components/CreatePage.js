@@ -15,7 +15,7 @@ import { leftNavigationItems, questionTypes, questionTemplates, settingsCategori
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import FormDataService from '../services/FormDataService';
-import { createQuestionWithOptions, createTemplateQuestionWithOptions } from '../services/QuestionService';
+import { createQuestionWithOptions, createTemplateQuestionWithOptions, updateReviewQuestion } from '../services/QuestionService';
 // import CompletionScreenService from '../services/CompletionScreenService'; // FormDataServiceを使用するため削除
 import { supabase } from '../lib/supabase';
 import {
@@ -1305,7 +1305,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
   };
 
   // 質問順序変更ハンドラー
-  const handleQuestionReorder = (dragIndex, hoverIndex) => {
+  const handleQuestionReorder = async (dragIndex, hoverIndex) => {
     if (!selectedPage) return;
     
     const currentQuestions = getQuestionsForPage(selectedPage.id);
@@ -1316,7 +1316,26 @@ export default function CreatePage({ onBackClick, user, formId }) {
     updatedQuestions.splice(dragIndex, 1);
     updatedQuestions.splice(hoverIndex, 0, draggedQuestion);
     
-    handleQuestionsUpdate(selectedPage.id, updatedQuestions);
+    // question_numberを連番で更新
+    const questionsWithUpdatedNumbers = updatedQuestions.map((question, index) => ({
+      ...question,
+      question_number: index + 1
+    }));
+    
+    // データベースでquestion_numberを更新
+    try {
+      await Promise.all(
+        questionsWithUpdatedNumbers.map(question => 
+          updateReviewQuestion(question.id, { question_number: question.question_number })
+        )
+      );
+      
+      // UI状態を更新
+      handleQuestionsUpdate(selectedPage.id, questionsWithUpdatedNumbers);
+    } catch (error) {
+      console.error('質問順序の更新に失敗しました:', error);
+      toast.error('質問順序の更新に失敗しました');
+    }
   };
 
   // 基本設定関連のハンドラー
