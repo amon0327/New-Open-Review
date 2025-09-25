@@ -440,14 +440,16 @@ const QuestionSettingsMenu = ({
   }, [selectedColor]);
 
   // カラーピッカーが閉じられた時の処理（代替手段）
-  useEffect(() => {
-    if (!showColorPicker && tempColorForSave && tempColorForSave !== selectedColor) {
-      console.log('Color picker closed, saving color:', tempColorForSave);
-      if (onThemeColorChange) {
-        onThemeColorChange(tempColorForSave);
-      }
-    }
-  }, [showColorPicker, tempColorForSave, selectedColor]);
+  // 注意: このuseEffectは無限ループを引き起こすため、一時的に無効化
+  // 代わりに handleColorPickerClose で処理
+  // useEffect(() => {
+  //   if (!showColorPicker && tempColorForSave && tempColorForSave !== selectedColor) {
+  //     console.log('Color picker closed, saving color:', tempColorForSave);
+  //     if (onThemeColorChange) {
+  //       onThemeColorChange(tempColorForSave);
+  //     }
+  //   }
+  // }, [showColorPicker, tempColorForSave, selectedColor, onThemeColorChange]);
 
   // ページタイプと選択状態に応じてタブを制御
   useEffect(() => {

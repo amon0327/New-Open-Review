@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import PreviewControlPanel from './PreviewControlPanel';
 import LeftNavigationBar from './LeftNavigationBar';
 import HeaderBar from './HeaderBar';
@@ -1377,7 +1377,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
   };
 
   // 基本設定更新ハンドラー（楽観的UI更新 + Supabase保存）
-  const handleThemeColorUpdate = async (themeColor) => {
+  const handleThemeColorUpdate = useCallback(async (themeColor) => {
     console.log('handleThemeColorUpdate called with:', themeColor);
     console.log('formId:', formId);
     
@@ -1407,7 +1407,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [formId, setSelectedColor]);
 
   const handleLogoImageUpdate = async (logoImageUrl) => {
     // 元の値を保存（ロールバック用）
