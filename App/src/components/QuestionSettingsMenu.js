@@ -447,7 +447,7 @@ const QuestionSettingsMenu = ({
         onThemeColorChange(tempColorForSave);
       }
     }
-  }, [showColorPicker, tempColorForSave, selectedColor, onThemeColorChange]);
+  }, [showColorPicker, tempColorForSave, selectedColor]);
 
   // ページタイプと選択状態に応じてタブを制御
   useEffect(() => {
