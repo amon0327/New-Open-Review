@@ -663,43 +663,25 @@ export class FormDataService {
    */
   static async updateFormSettings(formId, settings) {
     try {
-      // 既存の設定があるかチェック
-      const { data: existingSettings } = await supabase
+      // Supabaseのupsert機能を使用して競合状態を回避
+      const { data, error } = await supabase
         .from('review_form_settings')
-        .select('id')
-        .eq('review_form_id', formId)
+        .upsert({
+          review_form_id: formId,
+          ...settings
+        }, {
+          onConflict: 'review_form_id'
+        })
+        .select()
         .single();
 
-      let result;
-      if (existingSettings) {
-        // 更新
-        result = await supabase
-          .from('review_form_settings')
-          .update({
-            ...settings
-          })
-          .eq('review_form_id', formId)
-          .select()
-          .single();
-      } else {
-        // 新規作成
-        result = await supabase
-          .from('review_form_settings')
-          .insert([{
-            review_form_id: formId,
-            ...settings
-          }])
-          .select()
-          .single();
-      }
-
-      if (result.error) {
-        throw result.error;
+      if (error) {
+        throw error;
       }
 
       return {
         success: true,
-        data: result.data
+        data: data
       };
     } catch (error) {
       console.error('Error updating form settings:', error);
