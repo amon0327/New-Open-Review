@@ -407,6 +407,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
             setFormSettings(result.data);
             // ローカル状態も更新
             setLogoImageState(result.data.logo_image_url);
+            // selectedColor状態も同期
+            setSelectedColor(result.data.theme_color || '#5e17eb');
           } else {
             toast.error('フォーム設定の読み込みに失敗しました');
           }
@@ -1371,6 +1373,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
   // テーマカラープレビュー用ハンドラー（保存なし）
   const handleThemeColorPreview = (themeColor) => {
     setFormSettings(prev => ({ ...prev, theme_color: themeColor }));
+    setSelectedColor(themeColor);
   };
 
   // 基本設定更新ハンドラー（楽観的UI更新 + Supabase保存）
@@ -1378,8 +1381,12 @@ export default function CreatePage({ onBackClick, user, formId }) {
     console.log('handleThemeColorUpdate called with:', themeColor);
     console.log('formId:', formId);
     
+    // 元の値を保存（ロールバック用）
+    const previousThemeColor = formSettings.theme_color;
+    
     // 即座にローカル状態を更新
     setFormSettings(prev => ({ ...prev, theme_color: themeColor }));
+    setSelectedColor(themeColor);
     setIsSaving(true);
 
     // バックグラウンドでSupabaseに保存
@@ -1394,7 +1401,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
     } catch (error) {
       console.error('Theme color update error:', error);
       // エラー時は元の状態に戻す
-      setFormSettings(prev => ({ ...prev, theme_color: formSettings.theme_color }));
+      setFormSettings(prev => ({ ...prev, theme_color: previousThemeColor }));
+      setSelectedColor(previousThemeColor);
       toast.error('テーマカラーの更新に失敗しました');
     } finally {
       setIsSaving(false);
@@ -1402,6 +1410,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
   };
 
   const handleLogoImageUpdate = async (logoImageUrl) => {
+    // 元の値を保存（ロールバック用）
+    const previousLogoImageUrl = formSettings.logo_image_url;
+    const previousLogoImageState = logoImageState;
+    
     // 即座にローカル状態を更新
     setFormSettings(prev => ({ ...prev, logo_image_url: logoImageUrl }));
     setLogoImageState(logoImageUrl);
@@ -1416,8 +1428,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
     } catch (error) {
       console.error('Logo image update error:', error);
       // エラー時は元の状態に戻す
-      setFormSettings(prev => ({ ...prev, logo_image_url: formSettings.logo_image_url }));
-      setLogoImageState(formSettings.logo_image_url);
+      setFormSettings(prev => ({ ...prev, logo_image_url: previousLogoImageUrl }));
+      setLogoImageState(previousLogoImageState);
       toast.error('ロゴ画像の更新に失敗しました');
     } finally {
       setIsSaving(false);
@@ -1425,6 +1437,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
   };
 
   const handleHeaderImageUpdate = async (headerImageUrl) => {
+    // 元の値を保存（ロールバック用）
+    const previousHeaderImage = headerImage;
+    
     // 即座にローカル状態を更新
     setHeaderImage(headerImageUrl);
     setIsSaving(true);
@@ -1438,7 +1453,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     } catch (error) {
       console.error('Header image update error:', error);
       // エラー時は元の状態に戻す
-      setHeaderImage(headerImage);
+      setHeaderImage(previousHeaderImage);
       toast.error('ヘッダー画像の更新に失敗しました');
     } finally {
       setIsSaving(false);
