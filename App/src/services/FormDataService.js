@@ -663,25 +663,61 @@ export class FormDataService {
    */
   static async updateFormSettings(formId, settings) {
     try {
-      // Supabaseのupsert機能を使用して競合状態を回避
-      const { data, error } = await supabase
+      // UNIQUE制約がないため手動でupsert処理を実装
+      // 重複レコードがある場合の対処も含める
+      const { data: existingSettings, error: selectError } = await supabase
         .from('review_form_settings')
-        .upsert({
-          review_form_id: formId,
-          ...settings
-        }, {
-          onConflict: 'review_form_id'
-        })
-        .select()
-        .single();
+        .select('id')
+        .eq('review_form_id', formId)
+        .order('created_at', { ascending: true });
 
-      if (error) {
-        throw error;
+      if (selectError) {
+        throw selectError;
+      }
+
+      let result;
+      if (existingSettings && existingSettings.length > 0) {
+        // 既存レコードがある場合
+        if (existingSettings.length > 1) {
+          // 重複レコードがある場合、最初のもの以外を削除
+          const keepRecord = existingSettings[0];
+          const duplicateIds = existingSettings.slice(1).map(record => record.id);
+          
+          if (duplicateIds.length > 0) {
+            console.warn(`Found ${duplicateIds.length} duplicate records for form ${formId}, cleaning up...`);
+            await supabase
+              .from('review_form_settings')
+              .delete()
+              .in('id', duplicateIds);
+          }
+        }
+        
+        // 最初のレコードを更新
+        result = await supabase
+          .from('review_form_settings')
+          .update(settings)
+          .eq('review_form_id', formId)
+          .select()
+          .single();
+      } else {
+        // 既存レコードがない場合は新規作成
+        result = await supabase
+          .from('review_form_settings')
+          .insert({
+            review_form_id: formId,
+            ...settings
+          })
+          .select()
+          .single();
+      }
+
+      if (result.error) {
+        throw result.error;
       }
 
       return {
         success: true,
-        data: data
+        data: result.data
       };
     } catch (error) {
       console.error('Error updating form settings:', error);
