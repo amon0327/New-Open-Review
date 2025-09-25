@@ -108,7 +108,7 @@ export const validateForm = (formData) => {
     });
     
     // 選択肢がある質問タイプの場合の検証
-    const choiceRequiredTypes = [3, 4, 5, 6, 8, 9, 10]; // 単一選択、複数選択、マトリックス、プルダウン等
+    const choiceRequiredTypes = [3, 4, 5, 6, 8, 10]; // 単一選択、複数選択、マトリックス、プルダウン等
     
     // 数値型に変換して比較
     const numericQuestionTypeId = parseInt(questionTypeId, 10);
@@ -376,7 +376,7 @@ export const validateQuestion = (question, index) => {
   }
 
   // 選択肢がある質問タイプの場合の検証
-  const choiceRequiredTypes = [3, 4, 5, 6, 8, 9, 10];
+  const choiceRequiredTypes = [3, 4, 5, 6, 8, 10];
   if (choiceRequiredTypes.includes(question.type)) {
     if (!question.choices || question.choices.length === 0) {
       errors.push({

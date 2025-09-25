@@ -46,9 +46,11 @@ const useQuestionData = (formId) => {
 
         // スケール設定の変換
         if (question.options && question.options.min_text && question.options.max_text) {
+          // 質問タイプ9（推奨度スコア）の場合は0-10、その他は1-5
+          const isLoyaltyScore = question.question_types_id === 9;
           converted.scale_settings = JSON.stringify({
-            minValue: 1,
-            maxValue: 5,
+            minValue: isLoyaltyScore ? 0 : 1,
+            maxValue: isLoyaltyScore ? 10 : 5,
             minLabel: question.options.min_text,
             maxLabel: question.options.max_text
           });

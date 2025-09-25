@@ -178,6 +178,8 @@ const PreviewQuestions = ({
         return questionWrapper(<LinearScaleQuestion {...commonProps} />);
       case 8:
         return questionWrapper(<PullDownQuestion {...commonProps} zoom={zoom} />);
+      case 9:
+        return questionWrapper(<LinearScaleQuestion {...commonProps} />);
       default:
         return (
           <Box key={question.id} sx={{ py: 4, textAlign: 'center' }}>

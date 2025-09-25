@@ -245,45 +245,61 @@ const ChoicesEditor = ({ choices, onChange, disabled = false }) => {
 };
 
 // スケール設定コンポーネント
-const ScaleSettings = ({ settings, onChange, disabled = false }) => {
+const ScaleSettings = ({ settings, onChange, disabled = false, questionTypeId }) => {
+  const isLoyaltyScore = questionTypeId === 9;
+  
+  // 質問タイプ9の場合、自動的に0-10を設定
+  React.useEffect(() => {
+    if (isLoyaltyScore) {
+      onChange({ 
+        ...settings, 
+        minValue: 0, 
+        maxValue: 10 
+      });
+    }
+  }, [isLoyaltyScore, onChange]);
+  
   const handleChange = (key, value) => {
     onChange({ ...settings, [key]: value });
   };
 
   return (
     <Stack spacing={3}>
-      <Box>
-        <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151', mb: 2 }}>
-          スケール範囲
-        </Typography>
-        <Stack direction="row" spacing={2} alignItems="center">
-          <Box sx={{ minWidth: 80 }}>
-            <TextField
-              label="最小値"
-              type="number"
-              value={settings.minValue || 1}
-              onChange={(e) => handleChange('minValue', parseInt(e.target.value) || 1)}
-              disabled={disabled}
-              size="small"
-              variant="outlined"
-              sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.85rem' } }}
-            />
-          </Box>
-          <Typography variant="body2" color="text.secondary">〜</Typography>
-          <Box sx={{ minWidth: 80 }}>
-            <TextField
-              label="最大値"
-              type="number"
-              value={settings.maxValue || 5}
-              onChange={(e) => handleChange('maxValue', parseInt(e.target.value) || 5)}
-              disabled={disabled}
-              size="small"
-              variant="outlined"
-              sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.85rem' } }}
-            />
-          </Box>
-        </Stack>
-      </Box>
+      {!isLoyaltyScore && (
+        // 線形スケール（質問タイプ7）: カスタマイズ可能
+        <Box>
+          <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151', mb: 2 }}>
+            スケール範囲
+          </Typography>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Box sx={{ minWidth: 80 }}>
+              <TextField
+                label="最小値"
+                type="number"
+                value={settings.minValue || 1}
+                onChange={(e) => handleChange('minValue', parseInt(e.target.value) || 1)}
+                disabled={disabled}
+                size="small"
+                variant="outlined"
+                sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.85rem' } }}
+              />
+            </Box>
+            <Typography variant="body2" color="text.secondary">〜</Typography>
+            <Box sx={{ minWidth: 80 }}>
+              <TextField
+                label="最大値"
+                type="number"
+                value={settings.maxValue || 5}
+                onChange={(e) => handleChange('maxValue', parseInt(e.target.value) || 5)}
+                disabled={disabled}
+                size="small"
+                variant="outlined"
+                sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.85rem' } }}
+              />
+            </Box>
+          </Stack>
+        </Box>
+      )}
 
       <Box>
         <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151', mb: 2 }}>
@@ -605,6 +621,7 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                   <ScaleSettings
                     settings={scaleSettings}
                     onChange={(newSettings) => handleLocalChange('scale_settings', JSON.stringify(newSettings))}
+                    questionTypeId={typeId}
                   />
                 </Box>
               )}

@@ -951,11 +951,15 @@ const MultipleChoiceMatrixQuestion = ({ question, themeColor, currentQuestion, t
 const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange }) => {
   const [selectedValue, setSelectedValue] = useState(null);
 
+  // 質問タイプ9（推奨度スコア）の判定
+  const isLoyaltyScore = question.question_type_id === 9 || question.question_types_id === 9;
+
   const handleValueSelect = (value) => {
-    setSelectedValue(value);
+    const newValue = selectedValue === value ? null : value;
+    setSelectedValue(newValue);
     onAnswerChange(question.id, {
-      questionTypeId: 7,
-      answer: value.toString()
+      questionTypeId: isLoyaltyScore ? 9 : 7,
+      answer: newValue ? newValue.toString() : null
     });
   };
 
@@ -967,27 +971,27 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
     const scaleData = JSON.parse(question.scale_settings);
     minLabel = scaleData.minLabel || scaleData.min_label || 'そう思わない';
     maxLabel = scaleData.maxLabel || scaleData.max_label || 'そう思う';
-    minValue = scaleData.minValue || 1;
-    maxValue = scaleData.maxValue || 5;
+    minValue = scaleData.minValue !== null && scaleData.minValue !== undefined ? scaleData.minValue : (isLoyaltyScore ? 0 : 1);
+    maxValue = scaleData.maxValue !== null && scaleData.maxValue !== undefined ? scaleData.maxValue : (isLoyaltyScore ? 10 : 5);
   } else if (question.scale_labels) {
     // 後方互換性のため
     const scaleData = JSON.parse(question.scale_labels);
     minLabel = scaleData.minLabel || scaleData.min_label || 'そう思わない';
     maxLabel = scaleData.maxLabel || scaleData.max_label || 'そう思う';
-    minValue = scaleData.minValue || 1;
-    maxValue = scaleData.maxValue || 5;
+    minValue = scaleData.minValue !== null && scaleData.minValue !== undefined ? scaleData.minValue : (isLoyaltyScore ? 0 : 1);
+    maxValue = scaleData.maxValue !== null && scaleData.maxValue !== undefined ? scaleData.maxValue : (isLoyaltyScore ? 10 : 5);
   } else if (question.options && question.options.min_text && question.options.max_text) {
     // Supabaseのlinear_scaleオプションをフォールバックとして使用
     minLabel = question.options.min_text;
     maxLabel = question.options.max_text;
-    minValue = 1;
-    maxValue = 5;
+    minValue = isLoyaltyScore ? 0 : 1;
+    maxValue = isLoyaltyScore ? 10 : 5;
   } else {
     // デフォルト値
     minLabel = 'そう思わない';
     maxLabel = 'そう思う';
-    minValue = 1;
-    maxValue = 5;
+    minValue = isLoyaltyScore ? 0 : 1;
+    maxValue = isLoyaltyScore ? 10 : 5;
   }
   
   // 動的にスケール配列を生成
@@ -1083,7 +1087,7 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
           </Box>
 
           {/* Scale Labels */}
-          <Box sx={{ width: '100%', maxWidth: 400, display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Box sx={{ width: '100%', maxWidth: isLoyaltyScore ? 600 : 400, display: 'flex', justifyContent: 'space-between', mb: 3 }}>
             <Typography 
               variant="body2" 
               sx={{ 
@@ -1107,39 +1111,105 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
           </Box>
 
           {/* Scale Options */}
-          <Box sx={{ width: '100%', maxWidth: 400, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            {scaleOptions.map((value) => (
-              <Box
-                key={value}
-                onClick={() => handleValueSelect(value)}
-                sx={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: '50%',
-                  border: `2px solid ${stringToColor(themeColor)}`,
-                  backgroundColor: selectedValue === value ? stringToColor(themeColor) : 'transparent',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    transform: 'scale(1.1)'
-                  }
-                }}
-              >
-                {selectedValue === value && (
+          <Box sx={{ 
+            width: '100%', 
+            maxWidth: isLoyaltyScore ? 600 : 400, 
+            display: 'flex', 
+            justifyContent: isLoyaltyScore ? 'center' : 'space-between', 
+            alignItems: 'center' 
+          }}>
+            {isLoyaltyScore ? (
+              // 推奨度スコア（質問タイプ9）: 連結された長方形ボックス
+              <Box sx={{ display: 'flex', gap: 0, px: 1 }}>
+                {scaleOptions.map((value, index) => (
                   <Box
+                    key={value}
                     sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      backgroundColor: 'white'
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      minWidth: 'auto'
                     }}
-                  />
-                )}
+                  >
+                    <Box
+                      onClick={() => handleValueSelect(value)}
+                      sx={{
+                        width: 28,
+                        height: 36,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: `2px solid ${stringToColor(themeColor)}`,
+                        borderRight: index === scaleOptions.length - 1 ? `2px solid ${stringToColor(themeColor)}` : 'none',
+                        borderRadius: 0,
+                        backgroundColor: selectedValue === value ? stringToColor(themeColor) : 'transparent',
+                        color: selectedValue === value ? 'white' : stringToColor(themeColor),
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease-in-out',
+                        fontFamily: '"Noto Sans JP", sans-serif',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        '&:hover': {
+                          backgroundColor: selectedValue === value 
+                            ? stringToColor(themeColor) 
+                            : `${stringToColor(themeColor)}15`
+                        }
+                      }}
+                    >
+                      {value}
+                    </Box>
+                  </Box>
+                ))}
               </Box>
-            ))}
+            ) : (
+              // 線形スケール（質問タイプ7）: 円形ボタン
+              scaleOptions.map((value) => (
+                <Box key={value}>
+                  <Box
+                    onClick={() => handleValueSelect(value)}
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      border: `2px solid ${stringToColor(themeColor)}`,
+                      backgroundColor: selectedValue === value ? stringToColor(themeColor) : 'transparent',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        transform: 'scale(1.1)'
+                      }
+                    }}
+                  >
+                    {selectedValue === value && (
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          backgroundColor: 'white'
+                        }}
+                      />
+                    )}
+                  </Box>
+                  {/* Scale Numbers */}
+                  <Box sx={{ textAlign: 'center', mt: 1 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#57636C',
+                        fontSize: '0.75rem',
+                        fontFamily: '"Noto Sans JP", sans-serif'
+                      }}
+                    >
+                      {value}
+                    </Typography>
+                  </Box>
+                </Box>
+              ))
+            )}
           </Box>
         </Box>
       </Container>

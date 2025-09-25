@@ -1297,7 +1297,7 @@ const QuestionSettingsMenu = ({
             )}
 
             {/* リニアスケール設定 - Supabaseデータベースに基づいて動的に判定 */}
-            {(typeName.includes('スケール') || typeName.includes('リニア') || typeId === 7) && (
+            {(typeName.includes('スケール') || typeName.includes('リニア') || typeId === 7 || typeId === 9) && (
               <Box>
                 <Typography 
                   variant="body2" 
@@ -1313,38 +1313,40 @@ const QuestionSettingsMenu = ({
                   スケール設定
                 </Typography>
                 <Stack spacing={2}>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <StylishTextField
-                      label="最小値"
-                      value={localScaleSettings.minValue ?? ''}
-                      onChange={(e) => {
-                        const value = e.target.value.trim();
-                        if (value === '') {
-                          handleScaleUpdate('minValue', null);
-                        } else {
-                          const numValue = parseInt(value);
-                          handleScaleUpdate('minValue', isNaN(numValue) ? null : numValue);
-                        }
-                      }}
-                      type="number"
-                      placeholder="1"
-                    />
-                    <StylishTextField
-                      label="最大値"
-                      value={localScaleSettings.maxValue ?? ''}
-                      onChange={(e) => {
-                        const value = e.target.value.trim();
-                        if (value === '') {
-                          handleScaleUpdate('maxValue', null);
-                        } else {
-                          const numValue = parseInt(value);
-                          handleScaleUpdate('maxValue', isNaN(numValue) ? null : numValue);
-                        }
-                      }}
-                      type="number"
-                      placeholder="5"
-                    />
-                  </Box>
+                  {typeId !== 9 && (
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <StylishTextField
+                        label="最小値"
+                        value={localScaleSettings.minValue ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value.trim();
+                          if (value === '') {
+                            handleScaleUpdate('minValue', null);
+                          } else {
+                            const numValue = parseInt(value);
+                            handleScaleUpdate('minValue', isNaN(numValue) ? null : numValue);
+                          }
+                        }}
+                        type="number"
+                        placeholder="1"
+                      />
+                      <StylishTextField
+                        label="最大値"
+                        value={localScaleSettings.maxValue ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value.trim();
+                          if (value === '') {
+                            handleScaleUpdate('maxValue', null);
+                          } else {
+                            const numValue = parseInt(value);
+                            handleScaleUpdate('maxValue', isNaN(numValue) ? null : numValue);
+                          }
+                        }}
+                        type="number"
+                        placeholder="5"
+                      />
+                    </Box>
+                  )}
                   <StylishTextField
                     label="最小値ラベル"
                     value={localScaleSettings.minLabel || ''}
