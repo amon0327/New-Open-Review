@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Box,
@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
+import CompanySetup from './CompanySetup';
 
 // 分離したページコンポーネントをインポート
 import HomePage from './dashboard/pages/HomePage';
@@ -53,6 +54,113 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [activeTab, setActiveTab] = useState(1);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
+  const [showCompanySetup, setShowCompanySetup] = useState(false);
+  const [isCheckingCompany, setIsCheckingCompany] = useState(true);
+
+  // ユーザーの会社情報をチェック
+  useEffect(() => {
+    const checkUserCompany = async () => {
+      if (!user?.id) return;
+
+      try {
+        // Supabaseクライアントを使用してユーザーの会社情報をチェック
+        const supabase = window.supabase;
+        
+        const { data, error } = await supabase
+          .from('created_by_business_user_id')
+          .select('id')
+          .eq('business_user_id', user.id)
+          .single();
+
+        if (error && error.code === 'PGRST116') {
+          // レコードが見つからない場合
+          setShowCompanySetup(true);
+        } else if (error) {
+          console.error('会社情報チェック中にエラー:', error);
+          setShowCompanySetup(true);
+        }
+        // データが存在する場合はshowCompanySetupはfalseのまま
+      } catch (error) {
+        console.error('会社情報チェック中にエラー:', error);
+        setShowCompanySetup(true);
+      } finally {
+        setIsCheckingCompany(false);
+      }
+    };
+
+    checkUserCompany();
+  }, [user]);
+
+  const handleCompanyCreated = (companyData) => {
+    setShowCompanySetup(false);
+  };
+
+  // 会社情報チェック中の表示
+  if (isCheckingCompany) {
+    return (
+      <Box
+        sx={{
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        }}
+      >
+        <Card
+          sx={{
+            minWidth: 300,
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
+            borderRadius: 3,
+            textAlign: 'center'
+          }}
+        >
+          <CardContent sx={{ p: 4 }}>
+            <CircularProgress
+              size={50}
+              thickness={4}
+              sx={{
+                color: '#5e17eb',
+                mb: 2
+              }}
+            />
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                mb: 1
+              }}
+            >
+              初期化中...
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: '#64748b' }}
+            >
+              アカウント情報を確認しています
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
+  // 会社セットアップが必要な場合
+  if (showCompanySetup) {
+    return (
+      <CompanySetup 
+        user={user} 
+        onCompanyCreated={handleCompanyCreated}
+      />
+    );
+  }
 
   const renderContent = () => {
     const ActiveComponent = navigationItems[activeTab].component;
