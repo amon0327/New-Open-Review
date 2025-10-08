@@ -19,6 +19,7 @@ import {
   Email,
   Save
 } from '@mui/icons-material';
+import { supabase } from '../lib/supabase';
 
 export default function CompanySetup({ user, onCompanyCreated }) {
   const [formData, setFormData] = useState({
@@ -49,7 +50,6 @@ export default function CompanySetup({ user, onCompanyCreated }) {
       }
 
       // Supabaseクライアントを使用して会社情報を保存
-      const supabase = window.supabase;
       
       // 1. 会社情報を保存
       const { data: companyData, error: companyError } = await supabase

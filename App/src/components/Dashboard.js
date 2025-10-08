@@ -33,6 +33,7 @@ import {
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
 import CompanySetup from './CompanySetup';
+import { supabase } from '../lib/supabase';
 
 // 分離したページコンポーネントをインポート
 import HomePage from './dashboard/pages/HomePage';
@@ -64,7 +65,6 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
 
       try {
         // Supabaseクライアントを使用してユーザーの会社情報をチェック
-        const supabase = window.supabase;
         
         const { data, error } = await supabase
           .from('created_by_business_user_id')
