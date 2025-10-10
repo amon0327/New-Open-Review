@@ -44,7 +44,7 @@ export default function StaffInvitationComplete() {
       }
 
       // 招待情報を取得
-      const { data: invitation, error: invitationError } = await supabase
+      const { data: invitations, error: invitationError } = await supabase
         .from('store_invitations')
         .select(`
           *,
@@ -57,12 +57,13 @@ export default function StaffInvitationComplete() {
           )
         `)
         .eq('token', token)
-        .eq('status', 'invited')
-        .single();
+        .eq('status', 'invited');
 
-      if (invitationError || !invitation) {
+      if (invitationError || !invitations || invitations.length === 0) {
         throw new Error('招待が見つからないか、既に使用済みです。');
       }
+
+      const invitation = invitations[0];
 
       // 24時間チェック
       const invitationDate = new Date(invitation.created_at);
@@ -83,10 +84,9 @@ export default function StaffInvitationComplete() {
         .from('store_memberships')
         .select('id')
         .eq('business_user_id', user.id)
-        .eq('store_id', invitation.store_id)
-        .single();
+        .eq('store_id', invitation.store_id);
 
-      if (existingMembership) {
+      if (existingMembership && existingMembership.length > 0) {
         throw new Error('既にこの店舗のメンバーです。');
       }
 

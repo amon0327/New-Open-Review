@@ -84,11 +84,15 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
       const { data: storeData, error: storeError } = await supabase
         .from('stores')
         .select('*')
-        .eq('id', storeId)
-        .single();
+        .eq('id', storeId);
 
       if (storeError) throw storeError;
-      setStore(storeData);
+      
+      if (!storeData || storeData.length === 0) {
+        throw new Error('店舗が見つかりません');
+      }
+      
+      setStore(storeData[0]);
 
       // スタッフメンバーを取得
       const { data: staffData, error: staffError } = await supabase

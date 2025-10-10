@@ -59,18 +59,23 @@ export default function StoresManagementPage() {
       const { data: companyRelation, error: relationError } = await supabase
         .from('company_memberships')
         .select('company_id')
-        .eq('business_user_id', user.id)
-        .single();
+        .eq('business_user_id', user.id);
 
       if (relationError) {
         throw new Error('会社情報の取得に失敗しました');
       }
 
+      if (!companyRelation || companyRelation.length === 0) {
+        throw new Error('会社情報が見つかりません');
+      }
+
+      const companyId = companyRelation[0].company_id;
+
       // 会社の店舗一覧を取得
       const { data: storesData, error: storesError } = await supabase
         .from('stores')
         .select('*')
-        .eq('company_id', companyRelation.company_id)
+        .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
       if (storesError) {

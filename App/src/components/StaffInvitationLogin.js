@@ -65,15 +65,16 @@ export default function StaffInvitationLogin() {
           )
         `)
         .eq('token', token)
-        .eq('status', 'invited')
-        .single();
+        .eq('status', 'invited');
 
-      if (invitationError || !invitationData) {
+      if (invitationError || !invitationData || invitationData.length === 0) {
         throw new Error('招待が見つからないか、既に使用済みです');
       }
 
+      const invitation = invitationData[0];
+      
       // 24時間チェック
-      const invitationDate = new Date(invitationData.created_at);
+      const invitationDate = new Date(invitation.created_at);
       const now = new Date();
       const hoursDiff = (now - invitationDate) / (1000 * 60 * 60);
 
@@ -87,7 +88,7 @@ export default function StaffInvitationLogin() {
         throw new Error('招待の有効期限が切れています（24時間）');
       }
 
-      setInvitation(invitationData);
+      setInvitation(invitation);
     } catch (err) {
       setError(err.message);
     } finally {

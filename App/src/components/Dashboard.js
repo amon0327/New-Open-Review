@@ -79,14 +79,13 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         const { data, error } = await supabase
           .from('company_memberships')
           .select('id, company_id')
-          .eq('business_user_id', currentUser.id)
-          .single();
+          .eq('business_user_id', currentUser.id);
 
-        if (error && error.code === 'PGRST116') {
-          // レコードが見つからない場合
-          setShowCompanySetup(true);
-        } else if (error) {
+        if (error) {
           console.error('会社情報チェック中にエラー:', error);
+          setShowCompanySetup(true);
+        } else if (!data || data.length === 0) {
+          // レコードが見つからない場合
           setShowCompanySetup(true);
         }
         // データが存在する場合はshowCompanySetupはfalseのまま
