@@ -24,12 +24,16 @@ import {
   LocationOn,
   Edit,
   Delete,
-  Close
+  Close,
+  Visibility,
+  People
 } from '@mui/icons-material';
 import { supabase } from '../../../lib/supabase';
 import StoreRegistrationForm from '../../StoreRegistrationForm';
+import { useNavigate } from 'react-router-dom';
 
 export default function StoresManagementPage() {
+  const navigate = useNavigate();
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -272,12 +276,26 @@ export default function StoresManagementPage() {
                       <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
                         <IconButton
                           size="small"
+                          onClick={() => navigate(`/store/${store.id}`)}
                           sx={{
                             color: '#5e17eb',
                             '&:hover': {
                               backgroundColor: 'rgba(94, 23, 235, 0.1)'
                             }
                           }}
+                          title="店舗詳細・スタッフ管理"
+                        >
+                          <People />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          sx={{
+                            color: '#10b981',
+                            '&:hover': {
+                              backgroundColor: 'rgba(16, 185, 129, 0.1)'
+                            }
+                          }}
+                          title="店舗情報を編集"
                         >
                           <Edit />
                         </IconButton>
@@ -289,6 +307,7 @@ export default function StoresManagementPage() {
                               backgroundColor: 'rgba(239, 68, 68, 0.1)'
                             }
                           }}
+                          title="店舗を削除"
                         >
                           <Delete />
                         </IconButton>
