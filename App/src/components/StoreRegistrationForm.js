@@ -48,46 +48,30 @@ export default function StoreRegistrationForm({ onStoreRegistered, onCancel }) {
         throw new Error('店舗住所を入力してください');
       }
 
-      // 認証情報の取得
+      // 🔒 認証情報の取得
       const { data: sessionData } = await supabase.auth.getSession();
       
       if (!sessionData.session) {
         throw new Error('認証情報の取得に失敗しました。再ログインしてください。');
       }
 
-      // 一時的にクライアントサイドで直接作成（後でEdge Functionに変更予定）
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        throw new Error('認証が必要です');
+      // 🔒 Edge Functionを呼び出し（サーバーサイドで安全に処理）
+      const { data, error } = await supabase.functions.invoke('create-store', {
+        body: {
+          name: formData.name.trim(),
+          address: formData.address.trim()
+        }
+      });
+
+      if (error) {
+        throw new Error(`店舗登録に失敗しました: ${error.message}`);
       }
 
-      // ユーザーの会社IDを取得
-      const { data: companyRelation, error: relationError } = await supabase
-        .from('created_by_business_user_id')
-        .select('company_id')
-        .eq('business_user_id', user.id)
-        .single();
-
-      if (relationError) {
-        throw new Error('会社情報の取得に失敗しました');
+      if (!data.success) {
+        throw new Error(data.error || '店舗登録に失敗しました');
       }
 
-      // 店舗を作成
-      const { data: storeData, error: storeError } = await supabase
-        .from('stores')
-        .insert([
-          {
-            company_id: companyRelation.company_id,
-            name: formData.name.trim(),
-            address: formData.address.trim()
-          }
-        ])
-        .select()
-        .single();
-
-      if (storeError) {
-        throw new Error(`店舗の登録に失敗しました: ${storeError.message}`);
-      }
+      const storeData = data.store;
       
       // 登録完了を親コンポーネントに通知
       if (onStoreRegistered) {
