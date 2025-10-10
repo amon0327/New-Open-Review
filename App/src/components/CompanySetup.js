@@ -49,42 +49,36 @@ export default function CompanySetup({ user, onCompanyCreated }) {
         throw new Error('会社名を入力してください');
       }
 
-      // Supabaseクライアントを使用して会社情報を保存
+      // 🔒 セキュリティ：安全なEdge Functionエンドポイントを使用
+      const { data: sessionData } = await supabase.auth.getSession();
       
-      // 1. 会社情報を保存
-      const { data: companyData, error: companyError } = await supabase
-        .from('companies')
-        .insert([
-          {
-            name: formData.name.trim(),
-            phone_number: formData.phone_number.trim() || null,
-            email: formData.email.trim() || null
-          }
-        ])
-        .select()
-        .single();
-
-      if (companyError) {
-        throw new Error(`会社情報の保存に失敗しました: ${companyError.message}`);
+      if (!sessionData.session) {
+        throw new Error('認証情報の取得に失敗しました。再ログインしてください。');
       }
 
-      // 2. created_by_business_user_idテーブルに関連付けを保存
-      const { error: relationError } = await supabase
-        .from('created_by_business_user_id')
-        .insert([
-          {
-            business_user_id: user?.id,
-            company_id: companyData.id
-          }
-        ]);
+      // 🔒 安全なサーバーサイドエンドポイントを呼び出し
+      const { data, error } = await supabase.functions.invoke('create-company', {
+        body: {
+          name: formData.name.trim(),
+          phone_number: formData.phone_number.trim() || null,
+          email: formData.email.trim() || null
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`
+        }
+      });
 
-      if (relationError) {
-        throw new Error(`ユーザーと会社の関連付けに失敗しました: ${relationError.message}`);
+      if (error) {
+        throw new Error(`会社作成に失敗しました: ${error.message}`);
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || '会社作成に失敗しました');
       }
       
       // 会社作成完了を親コンポーネントに通知
       if (onCompanyCreated) {
-        onCompanyCreated(companyData);
+        onCompanyCreated(data.company);
       }
 
     } catch (err) {

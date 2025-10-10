@@ -61,15 +61,22 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   // ユーザーの会社情報をチェック
   useEffect(() => {
     const checkUserCompany = async () => {
-      if (!user?.id) return;
-
       try {
-        // Supabaseクライアントを使用してユーザーの会社情報をチェック
+        // 🔒 セキュリティ：認証されたユーザーの情報を直接取得
+        const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
         
+        if (authError || !currentUser) {
+          console.error('認証情報の取得に失敗:', authError);
+          setShowCompanySetup(true);
+          setIsCheckingCompany(false);
+          return;
+        }
+
+        // 🔒 セキュリティ：認証されたユーザーIDでのみ会社情報をチェック
         const { data, error } = await supabase
           .from('created_by_business_user_id')
-          .select('id')
-          .eq('business_user_id', user.id)
+          .select('id, company_id')
+          .eq('business_user_id', currentUser.id)
           .single();
 
         if (error && error.code === 'PGRST116') {
@@ -89,7 +96,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     };
 
     checkUserCompany();
-  }, [user]);
+  }, []);
 
   const handleCompanyCreated = (companyData) => {
     setShowCompanySetup(false);
