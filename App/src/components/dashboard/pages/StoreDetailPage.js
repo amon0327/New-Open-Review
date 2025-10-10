@@ -62,7 +62,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
   // TODO: React Router設定後に有効化
   // const { storeId } = useParams();
   // const navigate = useNavigate();
-  const storeId = propStoreId || 'demo-store-id'; // propsからstoreIdを取得、なければデモ用ID
+  const storeId = propStoreId;
   const [store, setStore] = useState(null);
   const [staffMembers, setStaffMembers] = useState([]);
   const [invitations, setInvitations] = useState([]);
@@ -72,7 +72,12 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
   const [showInvitationForm, setShowInvitationForm] = useState(false);
 
   useEffect(() => {
-    fetchStoreData();
+    if (storeId) {
+      fetchStoreData();
+    } else {
+      setError('店舗IDが指定されていません');
+      setLoading(false);
+    }
   }, [storeId]);
 
   const fetchStoreData = async () => {
@@ -80,16 +85,21 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
       setLoading(true);
       setError(null);
 
+      console.log('fetchStoreData - storeId:', storeId); // デバッグ用
+
       // 店舗情報を取得
       const { data: storeData, error: storeError } = await supabase
         .from('stores')
         .select('*')
         .eq('id', storeId);
 
+      console.log('fetchStoreData - storeData:', storeData); // デバッグ用
+      console.log('fetchStoreData - storeError:', storeError); // デバッグ用
+
       if (storeError) throw storeError;
       
       if (!storeData || storeData.length === 0) {
-        throw new Error('店舗が見つかりません');
+        throw new Error(`店舗が見つかりません (ID: ${storeId})`);
       }
       
       setStore(storeData[0]);

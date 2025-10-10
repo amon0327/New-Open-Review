@@ -100,6 +100,7 @@ export default function StoresManagementPage() {
   };
 
   const handleViewStoreDetail = (storeId) => {
+    console.log('handleViewStoreDetail - storeId:', storeId); // デバッグ用
     setSelectedStoreId(storeId);
     setShowStoreDetail(true);
   };
@@ -400,10 +401,18 @@ export default function StoresManagementPage() {
           }
         }}
       >
-        <StoreDetailPage 
-          storeId={selectedStoreId}
-          onClose={handleCloseStoreDetail}
-        />
+        {selectedStoreId && (
+          <StoreDetailPage 
+            storeId={selectedStoreId}
+            onClose={handleCloseStoreDetail}
+          />
+        )}
+        {!selectedStoreId && (
+          <div style={{ padding: '20px', textAlign: 'center' }}>
+            <p>店舗IDが選択されていません</p>
+            <p>selectedStoreId: {selectedStoreId}</p>
+          </div>
+        )}
       </Dialog>
     </Box>
   );
