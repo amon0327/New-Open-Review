@@ -28,7 +28,8 @@ import {
   Settings,
   Notifications,
   AccountCircle,
-  Info
+  Info,
+  Business
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
@@ -40,6 +41,7 @@ import HomePage from './dashboard/pages/HomePage';
 import CreatePagePlaceholder from './dashboard/pages/CreatePagePlaceholder';
 import AnalyticsPage from './dashboard/pages/AnalyticsPage';
 import SettingsPage from './dashboard/pages/SettingsPage';
+import StoresManagementPage from './dashboard/pages/StoresManagementPage';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
@@ -47,6 +49,7 @@ const collapsedDrawerWidth = 72;
 const navigationItems = [
   { text: 'Create', icon: <Add /> },
   { text: 'Home', icon: <Home />, component: HomePage },
+  { text: 'Management', icon: <Business />, component: StoresManagementPage },
   { text: 'Analytics', icon: <Analytics />, component: AnalyticsPage },
   { text: 'Settings', icon: <Settings />, component: SettingsPage },
 ];
