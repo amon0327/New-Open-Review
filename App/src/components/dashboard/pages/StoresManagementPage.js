@@ -53,7 +53,7 @@ export default function StoresManagementPage() {
 
       // ユーザーの会社情報を取得
       const { data: companyRelation, error: relationError } = await supabase
-        .from('created_by_business_user_id')
+        .from('company_memberships')
         .select('company_id')
         .eq('business_user_id', user.id)
         .single();

@@ -61,7 +61,7 @@ serve(async (req) => {
 
     // 🔒 ユーザーに紐付いた会社IDを取得
     const { data: companyRelation, error: relationError } = await supabase
-      .from('created_by_business_user_id')
+      .from('company_memberships')
       .select('company_id')
       .eq('business_user_id', user.id)
       .single()

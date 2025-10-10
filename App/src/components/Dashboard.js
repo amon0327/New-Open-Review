@@ -77,7 +77,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
 
         // ユーザーの会社情報をチェック
         const { data, error } = await supabase
-          .from('created_by_business_user_id')
+          .from('company_memberships')
           .select('id, company_id')
           .eq('business_user_id', currentUser.id)
           .single();

@@ -53,7 +53,7 @@ serve(async (req) => {
 
     // 🔒 既存の関連付けチェック（重複防止）
     const { data: existingRelation, error: checkError } = await supabase
-      .from('created_by_business_user_id')
+      .from('company_memberships')
       .select('id')
       .eq('business_user_id', user.id)
       .single()
@@ -92,7 +92,7 @@ serve(async (req) => {
 
     // ユーザーと会社の関連付け
     const { error: relationError } = await supabase
-      .from('created_by_business_user_id')
+      .from('company_memberships')
       .insert([
         {
           business_user_id: user.id, // 🔒 認証されたユーザーIDのみ使用
