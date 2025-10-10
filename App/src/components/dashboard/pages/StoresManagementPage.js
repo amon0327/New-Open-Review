@@ -30,11 +30,14 @@ import {
 } from '@mui/icons-material';
 import { supabase } from '../../../lib/supabase';
 import StoreRegistrationForm from '../../StoreRegistrationForm';
+import StoreDetailPage from './StoreDetailPage';
 export default function StoresManagementPage() {
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+  const [selectedStoreId, setSelectedStoreId] = useState(null);
+  const [showStoreDetail, setShowStoreDetail] = useState(false);
 
   // 店舗一覧を取得
   useEffect(() => {
@@ -89,6 +92,16 @@ export default function StoresManagementPage() {
 
   const handleCloseRegistrationForm = () => {
     setShowRegistrationForm(false);
+  };
+
+  const handleViewStoreDetail = (storeId) => {
+    setSelectedStoreId(storeId);
+    setShowStoreDetail(true);
+  };
+
+  const handleCloseStoreDetail = () => {
+    setShowStoreDetail(false);
+    setSelectedStoreId(null);
   };
 
   if (loading) {
@@ -273,12 +286,7 @@ export default function StoresManagementPage() {
                       <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
                         <IconButton
                           size="small"
-                          onClick={() => {
-                            // TODO: React Router設定後にナビゲーション実装
-                            console.log('店舗詳細ページに移動:', store.id);
-                            // 一時的にアラート表示
-                            alert(`店舗詳細ページ（ID: ${store.id}）\n※ 後でルーティング実装予定`);
-                          }}
+                          onClick={() => handleViewStoreDetail(store.id)}
                           sx={{
                             color: '#5e17eb',
                             '&:hover': {
@@ -371,6 +379,26 @@ export default function StoresManagementPage() {
             onCancel={handleCloseRegistrationForm}
           />
         </DialogContent>
+      </Dialog>
+
+      {/* 店舗詳細ダイアログ */}
+      <Dialog
+        open={showStoreDetail}
+        onClose={handleCloseStoreDetail}
+        maxWidth="lg"
+        fullWidth
+        fullScreen
+        PaperProps={{
+          sx: {
+            borderRadius: 0,
+            background: '#f8fafc'
+          }
+        }}
+      >
+        <StoreDetailPage 
+          storeId={selectedStoreId}
+          onClose={handleCloseStoreDetail}
+        />
       </Dialog>
     </Box>
   );

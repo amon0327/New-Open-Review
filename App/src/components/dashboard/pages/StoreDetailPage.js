@@ -58,11 +58,11 @@ function TabPanel({ children, value, index, ...other }) {
   );
 }
 
-export default function StoreDetailPage() {
+export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
   // TODO: React Router設定後に有効化
   // const { storeId } = useParams();
   // const navigate = useNavigate();
-  const storeId = 'demo-store-id'; // 一時的なデモ用ID
+  const storeId = propStoreId || 'demo-store-id'; // propsからstoreIdを取得、なければデモ用ID
   const [store, setStore] = useState(null);
   const [staffMembers, setStaffMembers] = useState([]);
   const [invitations, setInvitations] = useState([]);
@@ -198,9 +198,13 @@ export default function StoreDetailPage() {
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <IconButton
                 onClick={() => {
-                  // TODO: React Router設定後にナビゲーション実装
-                  console.log('ダッシュボードに戻る');
-                  alert('ダッシュボードに戻る\n※ 後でルーティング実装予定');
+                  if (onClose) {
+                    onClose();
+                  } else {
+                    // TODO: React Router設定後にナビゲーション実装
+                    console.log('ダッシュボードに戻る');
+                    alert('ダッシュボードに戻る\n※ 後でルーティング実装予定');
+                  }
                 }}
                 sx={{ mr: 2 }}
               >
