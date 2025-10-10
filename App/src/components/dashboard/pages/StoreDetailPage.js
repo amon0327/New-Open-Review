@@ -36,7 +36,7 @@ import {
   Email,
   Schedule
 } from '@mui/icons-material';
-import { useParams, useNavigate } from 'react-router-dom';
+// import { useParams, useNavigate } from 'react-router-dom'; // TODO: React Router設定後に有効化
 import { supabase } from '../../../lib/supabase';
 import StaffInvitationForm from '../../StaffInvitationForm';
 
@@ -59,8 +59,10 @@ function TabPanel({ children, value, index, ...other }) {
 }
 
 export default function StoreDetailPage() {
-  const { storeId } = useParams();
-  const navigate = useNavigate();
+  // TODO: React Router設定後に有効化
+  // const { storeId } = useParams();
+  // const navigate = useNavigate();
+  const storeId = 'demo-store-id'; // 一時的なデモ用ID
   const [store, setStore] = useState(null);
   const [staffMembers, setStaffMembers] = useState([]);
   const [invitations, setInvitations] = useState([]);
@@ -195,7 +197,11 @@ export default function StoreDetailPage() {
           <Box sx={{ mb: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <IconButton
-                onClick={() => navigate('/dashboard')}
+                onClick={() => {
+                  // TODO: React Router設定後にナビゲーション実装
+                  console.log('ダッシュボードに戻る');
+                  alert('ダッシュボードに戻る\n※ 後でルーティング実装予定');
+                }}
                 sx={{ mr: 2 }}
               >
                 <ArrowBack />

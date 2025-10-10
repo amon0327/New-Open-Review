@@ -15,11 +15,13 @@ import {
   Error,
   ExitToApp
 } from '@mui/icons-material';
-import { useParams } from 'react-router-dom';
+// import { useParams } from 'react-router-dom'; // TODO: React Router設定後に有効化
 import { supabase } from '../lib/supabase';
 
 export default function StaffInvitationComplete() {
-  const { token } = useParams();
+  // TODO: React Router設定後に有効化
+  // const { token } = useParams();
+  const token = 'demo-token'; // 一時的なデモ用トークン
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);

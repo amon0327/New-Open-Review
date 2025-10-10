@@ -30,10 +30,7 @@ import {
 } from '@mui/icons-material';
 import { supabase } from '../../../lib/supabase';
 import StoreRegistrationForm from '../../StoreRegistrationForm';
-import { useNavigate } from 'react-router-dom';
-
 export default function StoresManagementPage() {
-  const navigate = useNavigate();
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -276,7 +273,12 @@ export default function StoresManagementPage() {
                       <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
                         <IconButton
                           size="small"
-                          onClick={() => navigate(`/store/${store.id}`)}
+                          onClick={() => {
+                            // TODO: React Router設定後にナビゲーション実装
+                            console.log('店舗詳細ページに移動:', store.id);
+                            // 一時的にアラート表示
+                            alert(`店舗詳細ページ（ID: ${store.id}）\n※ 後でルーティング実装予定`);
+                          }}
                           sx={{
                             color: '#5e17eb',
                             '&:hover': {
