@@ -275,56 +275,107 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                 <Typography variant="body2" sx={{ color: '#94a3b8', mb: 3 }}>
                   スタッフ招待ボタンから最初のスタッフを招待してください
                 </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<PersonAdd />}
+                  onClick={() => setShowInvitationForm(true)}
+                  sx={{
+                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                    boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                    }
+                  }}
+                >
+                  スタッフを招待
+                </Button>
               </CardContent>
             </Card>
           ) : (
-            <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>スタッフ</TableCell>
-                    <TableCell>メールアドレス</TableCell>
-                    <TableCell>ロール</TableCell>
-                    <TableCell>参加日</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {staffMembers.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Avatar
-                            src={member.business_users?.avatar_url}
-                            sx={{ mr: 2 }}
-                          >
-                            {member.business_users?.name?.charAt(0) || 
-                             member.business_users?.email?.charAt(0)}
-                          </Avatar>
-                          <Typography variant="body2">
-                            {member.business_users?.name || 'ユーザー'}
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>{member.business_users?.email}</TableCell>
-                      <TableCell>
-                        <Chip
-                          icon={getRoleIcon(member.role)}
-                          label={member.role === 'STORE' ? '店舗管理者' : 'スタッフ'}
-                          sx={{
-                            backgroundColor: `${getRoleColor(member.role)}20`,
-                            color: getRoleColor(member.role),
-                            fontWeight: 500
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {new Date(member.created_at).toLocaleDateString('ja-JP')}
-                      </TableCell>
+            <>
+              <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>スタッフ</TableCell>
+                      <TableCell>メールアドレス</TableCell>
+                      <TableCell>ロール</TableCell>
+                      <TableCell>参加日</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {staffMembers.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar
+                              src={member.business_users?.avatar_url}
+                              sx={{ mr: 2 }}
+                            >
+                              {member.business_users?.name?.charAt(0) || 
+                               member.business_users?.email?.charAt(0)}
+                            </Avatar>
+                            <Typography variant="body2">
+                              {member.business_users?.name || 'ユーザー'}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>{member.business_users?.email}</TableCell>
+                        <TableCell>
+                          <Chip
+                            icon={getRoleIcon(member.role)}
+                            label={member.role === 'STORE' ? '店舗管理者' : 'スタッフ'}
+                            sx={{
+                              backgroundColor: `${getRoleColor(member.role)}20`,
+                              color: getRoleColor(member.role),
+                              fontWeight: 500
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {new Date(member.created_at).toLocaleDateString('ja-JP')}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              
+              {/* スタッフ一覧タブのアクションボタン */}
+              <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<PersonAdd />}
+                  onClick={() => setShowInvitationForm(true)}
+                  sx={{
+                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                    boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                    }
+                  }}
+                >
+                  スタッフを招待
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<Email />}
+                  onClick={() => setTabValue(1)}
+                  sx={{
+                    borderColor: '#5e17eb',
+                    color: '#5e17eb',
+                    '&:hover': {
+                      borderColor: '#4c1d95',
+                      backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                    }
+                  }}
+                >
+                  招待一覧を見る
+                </Button>
+              </Box>
+            </>
           )}
         </TabPanel>
 
@@ -340,64 +391,115 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                 <Typography variant="body2" sx={{ color: '#94a3b8', mb: 3 }}>
                   スタッフ招待ボタンから招待を送信してください
                 </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<PersonAdd />}
+                  onClick={() => setShowInvitationForm(true)}
+                  sx={{
+                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                    boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                    }
+                  }}
+                >
+                  スタッフを招待
+                </Button>
               </CardContent>
             </Card>
           ) : (
-            <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>招待者名</TableCell>
-                    <TableCell>ロール</TableCell>
-                    <TableCell>ステータス</TableCell>
-                    <TableCell>招待日</TableCell>
-                    <TableCell>招待URL</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {invitations.map((invitation) => (
-                    <TableRow key={invitation.id}>
-                      <TableCell>{invitation.name}</TableCell>
-                      <TableCell>
-                        <Chip
-                          icon={getRoleIcon(invitation.role)}
-                          label={invitation.role === 'STORE' ? '店舗管理者' : 'スタッフ'}
-                          sx={{
-                            backgroundColor: `${getRoleColor(invitation.role)}20`,
-                            color: getRoleColor(invitation.role),
-                            fontWeight: 500
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={getStatusText(invitation.status)}
-                          sx={{
-                            backgroundColor: `${getStatusColor(invitation.status)}20`,
-                            color: getStatusColor(invitation.status),
-                            fontWeight: 500
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {new Date(invitation.created_at).toLocaleDateString('ja-JP')}
-                      </TableCell>
-                      <TableCell>
-                        {invitation.status === 'invited' && (
-                          <Button
-                            size="small"
-                            onClick={() => copyInvitationUrl(invitation.token)}
-                            sx={{ textTransform: 'none' }}
-                          >
-                            URLをコピー
-                          </Button>
-                        )}
-                      </TableCell>
+            <>
+              <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>招待者名</TableCell>
+                      <TableCell>ロール</TableCell>
+                      <TableCell>ステータス</TableCell>
+                      <TableCell>招待日</TableCell>
+                      <TableCell>招待URL</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {invitations.map((invitation) => (
+                      <TableRow key={invitation.id}>
+                        <TableCell>{invitation.name}</TableCell>
+                        <TableCell>
+                          <Chip
+                            icon={getRoleIcon(invitation.role)}
+                            label={invitation.role === 'STORE' ? '店舗管理者' : 'スタッフ'}
+                            sx={{
+                              backgroundColor: `${getRoleColor(invitation.role)}20`,
+                              color: getRoleColor(invitation.role),
+                              fontWeight: 500
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={getStatusText(invitation.status)}
+                            sx={{
+                              backgroundColor: `${getStatusColor(invitation.status)}20`,
+                              color: getStatusColor(invitation.status),
+                              fontWeight: 500
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {new Date(invitation.created_at).toLocaleDateString('ja-JP')}
+                        </TableCell>
+                        <TableCell>
+                          {invitation.status === 'invited' && (
+                            <Button
+                              size="small"
+                              onClick={() => copyInvitationUrl(invitation.token)}
+                              sx={{ textTransform: 'none' }}
+                            >
+                              URLをコピー
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              {/* 招待一覧タブのアクションボタン */}
+              <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<PersonAdd />}
+                  onClick={() => setShowInvitationForm(true)}
+                  sx={{
+                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                    boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                    }
+                  }}
+                >
+                  新しいスタッフを招待
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<Person />}
+                  onClick={() => setTabValue(0)}
+                  sx={{
+                    borderColor: '#5e17eb',
+                    color: '#5e17eb',
+                    '&:hover': {
+                      borderColor: '#4c1d95',
+                      backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                    }
+                  }}
+                >
+                  スタッフ一覧に戻る
+                </Button>
+              </Box>
+            </>
           )}
         </TabPanel>
 
