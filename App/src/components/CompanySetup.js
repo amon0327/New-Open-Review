@@ -49,22 +49,19 @@ export default function CompanySetup({ user, onCompanyCreated }) {
         throw new Error('会社名を入力してください');
       }
 
-      // 🔒 セキュリティ：安全なEdge Functionエンドポイントを使用
+      // 🔒 認証情報の取得
       const { data: sessionData } = await supabase.auth.getSession();
       
       if (!sessionData.session) {
         throw new Error('認証情報の取得に失敗しました。再ログインしてください。');
       }
 
-      // 🔒 安全なサーバーサイドエンドポイントを呼び出し
+      // 🔒 Edge Functionを呼び出し（サーバーサイドで安全に処理）
       const { data, error } = await supabase.functions.invoke('create-company', {
         body: {
           name: formData.name.trim(),
           phone_number: formData.phone_number.trim() || null,
           email: formData.email.trim() || null
-        },
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`
         }
       });
 

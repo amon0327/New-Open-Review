@@ -62,7 +62,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   useEffect(() => {
     const checkUserCompany = async () => {
       try {
-        // 🔒 セキュリティ：認証されたユーザーの情報を直接取得
+        // 認証されたユーザーの情報を取得
         const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
         
         if (authError || !currentUser) {
@@ -72,7 +72,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           return;
         }
 
-        // 🔒 セキュリティ：認証されたユーザーIDでのみ会社情報をチェック
+        // ユーザーの会社情報をチェック
         const { data, error } = await supabase
           .from('created_by_business_user_id')
           .select('id, company_id')
