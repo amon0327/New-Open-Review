@@ -87,51 +87,36 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
 
       console.log('fetchStoreData - storeId:', storeId); // デバッグ用
 
-      // 店舗情報を取得
-      const { data: storeData, error: storeError } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('id', storeId);
-
-      console.log('fetchStoreData - storeData:', storeData); // デバッグ用
-      console.log('fetchStoreData - storeError:', storeError); // デバッグ用
-
-      if (storeError) throw storeError;
-      
-      if (!storeData || storeData.length === 0) {
-        throw new Error(`店舗が見つかりません (ID: ${storeId})`);
+      // 認証トークンを取得
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error('認証が必要です');
       }
-      
-      setStore(storeData[0]);
 
-      // スタッフメンバーを取得
-      const { data: staffData, error: staffError } = await supabase
-        .from('store_memberships')
-        .select(`
-          *,
-          business_users (
-            id,
-            email,
-            name,
-            avatar_url
-          )
-        `)
-        .eq('store_id', storeId);
+      // Edge Functionを使用して店舗詳細を取得
+      const { data, error } = await supabase.functions.invoke('get-store-detail', {
+        body: { storeId },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
-      if (staffError) throw staffError;
-      setStaffMembers(staffData || []);
+      console.log('fetchStoreData - Edge Function response:', data); // デバッグ用
 
-      // 招待一覧を取得
-      const { data: invitationData, error: invitationError } = await supabase
-        .from('store_invitations')
-        .select('*')
-        .eq('store_id', storeId)
-        .order('created_at', { ascending: false });
+      if (error) {
+        throw new Error(`店舗情報の取得に失敗: ${error.message}`);
+      }
 
-      if (invitationError) throw invitationError;
-      setInvitations(invitationData || []);
+      if (!data.success) {
+        throw new Error(data.error || '店舗情報の取得に失敗しました');
+      }
+
+      setStore(data.store);
+      setStaffMembers(data.staffMembers || []);
+      setInvitations(data.invitations || []);
 
     } catch (err) {
+      console.error('fetchStoreData error:', err); // デバッグ用
       setError(err.message);
     } finally {
       setLoading(false);
