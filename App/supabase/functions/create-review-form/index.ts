@@ -125,6 +125,27 @@ serve(async (req) => {
       throw new Error(`会社とレビューフォームの関連付けに失敗: ${companyReviewFormError.message}`)
     }
 
+    console.log('🎰 Creating lottery record for review form')
+    const { data: lotteryData, error: lotteryError } = await supabaseAdmin
+      .from('lottery')
+      .insert([
+        {
+          review_form_id: reviewForm.id,
+          max_wins_per_month: 1,
+          win_rate_divisor: 1000,
+          current_wins: 0,
+          current_trials: 0
+        }
+      ])
+      .select('id')
+
+    console.log('🎰 Lottery creation result:', { lotteryData, lotteryError })
+
+    if (lotteryError) {
+      console.error('❌ Lottery creation failed:', lotteryError)
+      throw new Error(`抽選設定の作成に失敗: ${lotteryError.message}`)
+    }
+
     console.log('🎉 Edge Function completed successfully')
     return new Response(
       JSON.stringify({
