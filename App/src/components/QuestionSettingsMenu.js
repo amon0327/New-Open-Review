@@ -52,7 +52,8 @@ import {
   Image as ImageIcon,
   CloudUpload as CloudUploadIcon,
   ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon
+  ExpandLess as ExpandLessIcon,
+  ContentCopy as ContentCopyIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import SvgIcon from './SvgIcon';
@@ -254,6 +255,7 @@ const QuestionSettingsMenu = ({
   selectedQuestionId = null,
   onQuestionUpdate,
   onQuestionDelete,
+  onQuestionDuplicate,
   onQuestionSelect,
   onQuestionReorder,
   // 専用テーブル更新用のprops
@@ -1157,6 +1159,35 @@ const QuestionSettingsMenu = ({
               />
             </Box>
 
+            {/* 質問複製ボタン */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', pt: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<ContentCopyIcon />}
+                onClick={() => {
+                  if (onQuestionDuplicate && selectedQuestion) {
+                    onQuestionDuplicate(selectedQuestion);
+                  }
+                }}
+                sx={{
+                  color: '#5E17EB',
+                  borderColor: '#5E17EB',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.8rem',
+                  py: 0.5,
+                  px: 2,
+                  '&:hover': { 
+                    backgroundColor: 'rgba(94, 23, 235, 0.08)',
+                    borderColor: '#4c1d95'
+                  }
+                }}
+              >
+                この質問を複製
+              </Button>
+            </Box>
+
             {/* 質問テキスト */}
             <StylishTextField
               label="質問テキスト"
@@ -1375,7 +1406,12 @@ const QuestionSettingsMenu = ({
                 startIcon={<DeleteIcon />}
                 onClick={() => {
                   if (onQuestionDelete && selectedQuestion) {
-                    onQuestionDelete(selectedQuestion.id);
+                    const confirmDelete = window.confirm(
+                      `「${selectedQuestion.question_text || '新しい質問'}」を削除してもよろしいですか？\n\nこの操作は取り消せません。`
+                    );
+                    if (confirmDelete) {
+                      onQuestionDelete(selectedQuestion.id);
+                    }
                   }
                 }}
                 sx={{
@@ -1594,7 +1630,12 @@ const QuestionSettingsMenu = ({
                             onClick={(e) => {
                               e.stopPropagation();
                               if (onQuestionDelete) {
-                                onQuestionDelete(question.id);
+                                const confirmDelete = window.confirm(
+                                  `「${question.question_text || '新しい質問'}」を削除してもよろしいですか？\n\nこの操作は取り消せません。`
+                                );
+                                if (confirmDelete) {
+                                  onQuestionDelete(question.id);
+                                }
                               }
                             }}
                             sx={{
