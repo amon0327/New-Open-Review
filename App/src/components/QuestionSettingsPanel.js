@@ -565,25 +565,50 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                     size="small"
                     sx={{ '& .MuiOutlinedInput-root': { fontSize: '0.85rem' } }}
                   />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={localQuestion.is_required}
-                        onChange={(e) => handleLocalChange('is_required', e.target.checked)}
-                        sx={{
-                          '& .MuiSwitch-switchBase.Mui-checked': {
-                            color: '#5e17eb',
-                            '& + .MuiSwitch-track': { backgroundColor: '#5e17eb' }
-                          }
-                        }}
-                      />
-                    }
-                    label={
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151' }}>
-                        必須回答
-                      </Typography>
-                    }
-                  />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={localQuestion.is_required}
+                          onChange={(e) => handleLocalChange('is_required', e.target.checked)}
+                          sx={{
+                            '& .MuiSwitch-switchBase.Mui-checked': {
+                              color: '#5e17eb',
+                              '& + .MuiSwitch-track': { backgroundColor: '#5e17eb' }
+                            }
+                          }}
+                        />
+                      }
+                      label={
+                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151' }}>
+                          必須回答
+                        </Typography>
+                      }
+                    />
+                    
+                    {/* 複製ボタン */}
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => onDuplicate(question)}
+                      startIcon={<CopyIcon />}
+                      sx={{
+                        color: '#5e17eb',
+                        borderColor: '#5e17eb',
+                        textTransform: 'none',
+                        fontWeight: 500,
+                        fontSize: '0.8rem',
+                        py: 0.5,
+                        px: 1.5,
+                        '&:hover': { 
+                          backgroundColor: 'rgba(94, 23, 235, 0.08)',
+                          borderColor: '#4c1d95'
+                        }
+                      }}
+                    >
+                      この質問を複製
+                    </Button>
+                  </Box>
                 </Stack>
               </Box>
 
@@ -618,61 +643,38 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                 </Box>
               )}
 
-              {/* アクションボタン */}
-              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'space-between', pt: 1 }}>
-                {/* 複製ボタン */}
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={() => onDuplicate(question)}
-                  startIcon={<CopyIcon />}
-                  sx={{
-                    color: '#5e17eb',
-                    borderColor: '#5e17eb',
-                    textTransform: 'none',
-                    fontWeight: 500,
-                    '&:hover': { 
-                      backgroundColor: 'rgba(94, 23, 235, 0.08)',
-                      borderColor: '#4c1d95'
-                    }
-                  }}
-                >
-                  複製
-                </Button>
-
-                {/* 保存・リセットボタン */}
-                {hasChanges && (
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={handleReset}
-                      sx={{
-                        color: '#6b7280',
-                        borderColor: '#d1d5db',
-                        textTransform: 'none',
-                        fontWeight: 500
-                      }}
-                    >
-                      リセット
-                    </Button>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={handleSave}
-                      startIcon={<SaveIcon />}
-                      sx={{
-                        backgroundColor: '#5e17eb',
-                        textTransform: 'none',
-                        fontWeight: 500,
-                        '&:hover': { backgroundColor: '#4c1d95' }
-                      }}
-                    >
-                      保存
-                    </Button>
-                  </Box>
-                )}
-              </Box>
+              {/* 保存・リセットボタン */}
+              {hasChanges && (
+                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', pt: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleReset}
+                    sx={{
+                      color: '#6b7280',
+                      borderColor: '#d1d5db',
+                      textTransform: 'none',
+                      fontWeight: 500
+                    }}
+                  >
+                    リセット
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={handleSave}
+                    startIcon={<SaveIcon />}
+                    sx={{
+                      backgroundColor: '#5e17eb',
+                      textTransform: 'none',
+                      fontWeight: 500,
+                      '&:hover': { backgroundColor: '#4c1d95' }
+                    }}
+                  >
+                    保存
+                  </Button>
+                </Box>
+              )}
             </Stack>
           </Box>
         </Collapse>
