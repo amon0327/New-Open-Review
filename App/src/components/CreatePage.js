@@ -1409,6 +1409,27 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   }, [formId, setSelectedColor]);
 
+  // 抽選設定更新ハンドラー
+  const handleLotteryUpdate = useCallback(async (lotterySettings) => {
+    setIsSaving(true);
+    
+    try {
+      const { LotteryService } = await import('../services/LotteryService');
+      
+      await LotteryService.updateLotterySettings(formId, {
+        max_wins_per_month: lotterySettings.maxWinsPerMonth,
+        win_rate_divisor: lotterySettings.winRateDivisor
+      });
+      
+      console.log('Lottery settings saved successfully');
+    } catch (error) {
+      console.error('Lottery settings update error:', error);
+      toast.error('抽選設定の更新に失敗しました');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [formId]);
+
   const handleLogoImageUpdate = async (logoImageUrl) => {
     // 元の値を保存（ロールバック用）
     const previousLogoImageUrl = formSettings.logo_image_url;
@@ -2209,6 +2230,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   onThemeColorUpdate={handleThemeColorUpdate}
                   onLogoImageUpdate={handleLogoImageFileUpload}
                   onProjectTitleUpdate={handleProjectTitleUpdate}
+                  onLotteryUpdate={handleLotteryUpdate}
                   
                   // アクティブセクション
                   activeSection={activeSection}
