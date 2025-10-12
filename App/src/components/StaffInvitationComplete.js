@@ -26,6 +26,15 @@ export default function StaffInvitationComplete() {
   const [storeInfo, setStoreInfo] = useState(null);
 
   useEffect(() => {
+    if (!token) {
+      setError('無効なURLです。招待URLが正しくありません。');
+      setLoading(false);
+      // 2秒後にログアウト
+      setTimeout(async () => {
+        await supabase.auth.signOut();
+      }, 2000);
+      return;
+    }
     handleInvitationComplete();
   }, [token]);
 
@@ -71,29 +80,42 @@ export default function StaffInvitationComplete() {
       setStoreInfo(data.store);
       setSuccess(true);
 
-      // 3秒後に自動ログアウト
+      // 2秒後に自動ログアウト（完了画面を表示したまま）
       setTimeout(async () => {
         await supabase.auth.signOut();
-        window.location.href = '/';
-      }, 3000);
+        // ログイン画面には戻さない
+      }, 2000);
 
     } catch (err) {
-      setError(err.message);
+      console.error('StaffInvitationComplete - エラー:', err);
       
-      // エラーの場合も3秒後にログアウト
+      // エラーメッセージを具体的に設定
+      let errorMessage = err.message;
+      if (err.message.includes('招待が見つからない') || err.message.includes('使用済み')) {
+        errorMessage = '無効なURLです。招待が見つからないか、既に使用済みです。';
+      } else if (err.message.includes('有効期限')) {
+        errorMessage = '無効なURLです。招待の有効期限が切れています（24時間）。';
+      } else if (err.message.includes('既にこの店舗のメンバー')) {
+        errorMessage = '無効なURLです。既にこの店舗のメンバーです。';
+      } else if (err.message.includes('ログインが確認できません')) {
+        errorMessage = '無効なURLです。ログイン情報を確認できませんでした。';
+      } else {
+        errorMessage = '無効なURLです。招待処理に失敗しました。';
+      }
+      
+      setError(errorMessage);
+      
+      // エラーの場合も2秒後にログアウト
       setTimeout(async () => {
         await supabase.auth.signOut();
-        window.location.href = '/';
-      }, 3000);
+        // ログイン画面には戻さない
+      }, 2000);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleManualLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/';
-  };
+  // handleManualLogout関数は削除（自動ログアウトのみ使用）
 
   if (loading) {
     return (
@@ -202,24 +224,10 @@ export default function StaffInvitationComplete() {
                   </Typography>
                   <Typography variant="body1" sx={{ color: '#64748b', mb: 4 }}>
                     スタッフとして正常に登録されました。<br />
-                    3秒後に自動的にログアウトします。
+                    2秒後に自動的にログアウトし、この画面が表示されたままになります。
                   </Typography>
                   
-                  <Button
-                    variant="outlined"
-                    startIcon={<ExitToApp />}
-                    onClick={handleManualLogout}
-                    sx={{ 
-                      borderColor: '#10b981', 
-                      color: '#10b981',
-                      '&:hover': {
-                        borderColor: '#059669',
-                        backgroundColor: '#10b98110'
-                      }
-                    }}
-                  >
-                    今すぐログアウト
-                  </Button>
+                  {/* 自動ログアウトのみ使用、手動ボタンは削除 */}
                 </motion.div>
               ) : (
                 <motion.div
@@ -242,24 +250,10 @@ export default function StaffInvitationComplete() {
                     {error}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-                    3秒後に自動的にログアウトします。
+                    2秒後に自動的にログアウトし、この画面が表示されたままになります。
                   </Typography>
                   
-                  <Button
-                    variant="outlined"
-                    startIcon={<ExitToApp />}
-                    onClick={handleManualLogout}
-                    sx={{ 
-                      borderColor: '#ef4444', 
-                      color: '#ef4444',
-                      '&:hover': {
-                        borderColor: '#dc2626',
-                        backgroundColor: '#ef444410'
-                      }
-                    }}
-                  >
-                    今すぐログアウト
-                  </Button>
+                  {/* 自動ログアウトのみ使用、手動ボタンは削除 */}
                 </motion.div>
               )}
             </CardContent>
