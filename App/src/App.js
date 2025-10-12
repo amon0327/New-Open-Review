@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AnimatePresence } from 'framer-motion';
@@ -9,6 +10,8 @@ import { supabase } from './supabaseClient';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import CreatePage from './components/CreatePage';
+import StaffInvitationLogin from './components/StaffInvitationLogin';
+import StaffInvitationComplete from './components/StaffInvitationComplete';
 
 // カスタムテーマ設定
 const theme = createTheme({
@@ -319,9 +322,62 @@ function App() {
           bottom: '80px',
         }}
       />
-      <AnimatePresence mode="wait">
-        {renderCurrentView()}
-      </AnimatePresence>
+      <Router>
+        <AnimatePresence mode="wait">
+          <Routes>
+            {/* 招待ログインページ */}
+            <Route path="/staff-invitation/:token" element={<StaffInvitationLogin />} />
+            
+            {/* 招待完了ページ */}
+            <Route path="/staff-invitation/:token/complete" element={<StaffInvitationComplete />} />
+            
+            {/* メインアプリケーション */}
+            <Route path="/*" element={
+              loading ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '100vh',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                  }}
+                >
+                  <CircularProgress sx={{ color: 'white' }} />
+                </Box>
+              ) : (
+                <Routes>
+                  <Route path="/" element={
+                    !user ? (
+                      <LoginPage onLogin={handleLogin} />
+                    ) : currentView === 'dashboard' ? (
+                      <Dashboard onCreateClick={handleCreateClick} onLogout={handleLogout} user={user} />
+                    ) : currentView === 'create' ? (
+                      <CreatePage onBackClick={handleBackToDashboard} user={user} formId={currentFormId} />
+                    ) : (
+                      <Navigate to="/" replace />
+                    )
+                  } />
+                  <Route path="/dashboard" element={
+                    user ? (
+                      <Dashboard onCreateClick={handleCreateClick} onLogout={handleLogout} user={user} />
+                    ) : (
+                      <Navigate to="/" replace />
+                    )
+                  } />
+                  <Route path="/create" element={
+                    user ? (
+                      <CreatePage onBackClick={handleBackToDashboard} user={user} formId={currentFormId} />
+                    ) : (
+                      <Navigate to="/" replace />
+                    )
+                  } />
+                </Routes>
+              )
+            } />
+          </Routes>
+        </AnimatePresence>
+      </Router>
     </ThemeProvider>
   );
 }

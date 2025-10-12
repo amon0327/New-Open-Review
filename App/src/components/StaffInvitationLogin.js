@@ -21,13 +21,11 @@ import {
   AdminPanelSettings,
   WorkOutline
 } from '@mui/icons-material';
-// import { useParams } from 'react-router-dom'; // TODO: React Router設定後に有効化
+import { useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 export default function StaffInvitationLogin() {
-  // TODO: React Router設定後に有効化
-  // const { token } = useParams();
-  const token = 'demo-token'; // 一時的なデモ用トークン
+  const { token } = useParams();
   const [invitation, setInvitation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
