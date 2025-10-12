@@ -10,26 +10,35 @@ const FormCreator = ({
   const [isCreatingForm, setIsCreatingForm] = useState(false);
 
   const handleCreateForm = async () => {
+    console.log('🎯 FormCreator.handleCreateForm called with user:', user);
+    
     if (!user) {
+      console.error('❌ No user found');
       toast.error('ユーザー情報が取得できません');
       return;
     }
 
+    console.log('⏳ Setting isCreatingForm to true');
     setIsCreatingForm(true);
     try {
+      console.log('🔄 Calling FormDataService.createNewForm with user.id:', user.id);
       const result = await FormDataService.createNewForm(user.id);
+      console.log('📋 FormDataService.createNewForm result:', result);
       
       if (result.success) {
+        console.log('✅ Form creation successful, navigating to form:', result.data.reviewFormId);
         // フォーム作成成功時は通知なし（Dashboard.jsと同じ挙動）
         // フォーム作成画面に遷移（formIdを渡す）
         onCreateFormClick(result.data.reviewFormId);
       } else {
+        console.error('❌ Form creation failed:', result.error);
         toast.error(result.error || 'フォームの作成に失敗しました');
       }
     } catch (error) {
-      console.error('Form creation error:', error);
+      console.error('❌ Form creation error:', error);
       toast.error('フォームの作成中にエラーが発生しました');
     } finally {
+      console.log('🏁 Setting isCreatingForm to false');
       setIsCreatingForm(false);
     }
   };

@@ -13,28 +13,38 @@ export class FormDataService {
    */
   static async createNewForm(userId) {
     try {
+      console.log('🚀 FormDataService.createNewForm started with userId:', userId);
+      
       // 現在のセッションを取得
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
+        console.error('❌ Session error:', sessionError);
         throw new Error('認証セッションが取得できません');
       }
+      console.log('✅ Session obtained successfully');
 
       // Edge Functionを呼び出してフォームを作成
+      console.log('🔄 Calling Edge Function: create-review-form');
       const { data, error } = await supabase.functions.invoke('create-review-form', {
         body: {
           title: '新規レビューフォーム'
         }
       });
+      console.log('📊 Edge Function response:', { data, error });
 
       if (error) {
+        console.error('❌ Edge Function error:', error);
         throw new Error(`Edge Function呼び出しエラー: ${error.message}`);
       }
 
       if (!data.success) {
+        console.error('❌ Edge Function returned failure:', data);
         throw new Error(data.error || 'フォーム作成に失敗しました');
       }
 
+      console.log('✅ Edge Function succeeded:', data);
       const reviewFormId = data.reviewForm.id;
+      console.log('📝 Review Form ID:', reviewFormId);
 
       // 2. review_form_pagesテーブルにレコードを作成
       const { data: reviewFormPage, error: pageError } = await supabase
