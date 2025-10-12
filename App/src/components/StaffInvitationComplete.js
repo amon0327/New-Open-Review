@@ -34,12 +34,18 @@ export default function StaffInvitationComplete() {
       setLoading(true);
       setError(null);
 
+      console.log('StaffInvitationComplete - token:', token);
+
       // 認証情報の取得
       const { data: sessionData } = await supabase.auth.getSession();
+      
+      console.log('StaffInvitationComplete - sessionData:', sessionData);
       
       if (!sessionData.session) {
         throw new Error('ログインが確認できません。再度ログインしてください。');
       }
+
+      console.log('StaffInvitationComplete - calling Edge Function with token:', token);
 
       // Edge Functionを使用して招待を完了
       const { data, error } = await supabase.functions.invoke('complete-staff-invitation', {
@@ -51,6 +57,8 @@ export default function StaffInvitationComplete() {
         },
       });
 
+      console.log('StaffInvitationComplete - Edge Function response:', { data, error });
+
       if (error) {
         throw new Error(`招待完了処理に失敗しました: ${error.message}`);
       }
@@ -59,6 +67,7 @@ export default function StaffInvitationComplete() {
         throw new Error(data.error || '招待完了処理に失敗しました');
       }
 
+      console.log('StaffInvitationComplete - 登録成功:', data.store);
       setStoreInfo(data.store);
       setSuccess(true);
 

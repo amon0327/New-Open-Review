@@ -88,6 +88,31 @@ serve(async (req) => {
       throw new Error('招待の有効期限が切れています（24時間）')
     }
 
+    // business_usersテーブルにレコードが存在することを確認（サービスロールで）
+    const { data: existingBusinessUser } = await supabaseAdmin
+      .from('business_users')
+      .select('id')
+      .eq('id', user.id)
+
+    if (!existingBusinessUser || existingBusinessUser.length === 0) {
+      // business_usersテーブルにレコードを作成
+      const { error: businessUserError } = await supabaseAdmin
+        .from('business_users')
+        .insert([
+          {
+            id: user.id,
+            email: user.email,
+            name: user.user_metadata?.name || user.user_metadata?.full_name || '',
+            company_name: ''
+          }
+        ])
+
+      if (businessUserError) {
+        console.error('business_users作成エラー:', businessUserError)
+        // エラーでも続行する（既存のbusiness_userが存在する可能性）
+      }
+    }
+
     // 既に登録されているかチェック（サービスロールで）
     const { data: existingMembership } = await supabaseAdmin
       .from('store_memberships')
@@ -100,7 +125,7 @@ serve(async (req) => {
     }
 
     // store_membershipsに登録（サービスロールで）
-    const { error: membershipError } = await supabaseAdmin
+    const { data: membershipResult, error: membershipError } = await supabaseAdmin
       .from('store_memberships')
       .insert([
         {
@@ -109,10 +134,14 @@ serve(async (req) => {
           role: invitation.role
         }
       ])
+      .select()
 
     if (membershipError) {
+      console.error('store_memberships登録エラー:', membershipError)
       throw new Error(`メンバー登録に失敗: ${membershipError.message}`)
     }
+
+    console.log('store_memberships登録成功:', membershipResult)
 
     // 招待ステータスを完了に更新（サービスロールで）
     const { error: statusError } = await supabaseAdmin

@@ -194,8 +194,15 @@ function App() {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // 初回ロード時のみダッシュボードに遷移
-          if (isMounted && isInitialLoad) {
+          // URLに招待トークンが含まれているかチェック
+          const currentPath = window.location.pathname;
+          const isInvitationFlow = currentPath.includes('/staff-invitation/');
+          
+          console.log('App.js - currentPath:', currentPath);
+          console.log('App.js - isInvitationFlow:', isInvitationFlow);
+          
+          // 初回ロード時のみダッシュボードに遷移（招待フロー以外）
+          if (isMounted && isInitialLoad && !isInvitationFlow) {
             setCurrentView('dashboard');
           }
           
