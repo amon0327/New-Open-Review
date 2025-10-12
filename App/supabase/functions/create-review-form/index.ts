@@ -102,19 +102,50 @@ serve(async (req) => {
 
     const reviewForm = reviewFormData[0]
 
-    // company_review_formsテーブルに関連付けを作成（サービスロールで）
-    const { data: companyReviewFormData, error: companyReviewFormError } = await supabaseAdmin
-      .from('company_review_forms')
-      .insert([
-        {
-          company_id: companyId,
-          review_form_id: reviewForm.id
-        }
-      ])
-      .select('id')
+    // store_review_formsテーブルに関連付けを作成（サービスロールで）
+    if (storeId) {
+      const { data: storeReviewFormData, error: storeReviewFormError } = await supabaseAdmin
+        .from('store_review_forms')
+        .insert([
+          {
+            store_id: storeId,
+            business_users_id: user.id
+          }
+        ])
+        .select('id')
 
-    if (companyReviewFormError) {
-      throw new Error(`会社とレビューフォームの関連付けに失敗: ${companyReviewFormError.message}`)
+      if (storeReviewFormError) {
+        throw new Error(`店舗とレビューフォームの関連付けに失敗: ${storeReviewFormError.message}`)
+      }
+    } else {
+      // storeIdが指定されていない場合は、会社の最初の店舗を使用
+      const { data: firstStore, error: firstStoreError } = await supabaseAdmin
+        .from('stores')
+        .select('id')
+        .eq('company_id', companyId)
+        .limit(1)
+
+      if (firstStoreError) {
+        throw new Error(`デフォルト店舗の取得に失敗: ${firstStoreError.message}`)
+      }
+
+      if (!firstStore || firstStore.length === 0) {
+        throw new Error('店舗が見つかりません。先に店舗を作成してください')
+      }
+
+      const { data: storeReviewFormData, error: storeReviewFormError } = await supabaseAdmin
+        .from('store_review_forms')
+        .insert([
+          {
+            store_id: firstStore[0].id,
+            business_users_id: user.id
+          }
+        ])
+        .select('id')
+
+      if (storeReviewFormError) {
+        throw new Error(`店舗とレビューフォームの関連付けに失敗: ${storeReviewFormError.message}`)
+      }
     }
 
     const { data: lotteryData, error: lotteryError } = await supabaseAdmin
