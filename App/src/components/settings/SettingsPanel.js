@@ -8,6 +8,7 @@ import {
 import ThemeSettings from './ThemeSettings';
 import ProjectSettings from './ProjectSettings';
 import PublishSettings from './PublishSettings';
+import LotterySettings from './LotterySettings';
 
 const SettingsPanel = ({
   // テーマ設定のprops
@@ -35,7 +36,10 @@ const SettingsPanel = ({
   onProjectTitleUpdate,
   
   // アクティブセクション指定用
-  activeSection = 'all' // 'all', 'design', 'project', 'publish', 'login', 'completion'
+  activeSection = 'all', // 'all', 'design', 'project', 'publish', 'lottery', 'login', 'completion'
+  
+  // 抽選設定用のprops
+  onLotteryUpdate
 }) => {
   return (
     <Box
@@ -99,6 +103,14 @@ const SettingsPanel = ({
               formId={formId}
               formData={formData}
               onPublishClick={onPublishClick}
+            />
+          )}
+
+          {/* 抽選設定 */}
+          {(activeSection === 'all' || activeSection === 'lottery') && (
+            <LotterySettings
+              formId={formId}
+              onLotteryUpdate={onLotteryUpdate}
             />
           )}
 
