@@ -41,7 +41,7 @@ serve(async (req) => {
     }
 
     // リクエストボディから必要な情報を取得
-    const { title } = await req.json()
+    const { title, storeId } = await req.json()
     
     // タイトルが指定されていない場合はデフォルトを使用
     const reviewFormTitle = title || '新規レビューフォーム'
@@ -61,6 +61,23 @@ serve(async (req) => {
     }
 
     const companyId = companyMembership[0].company_id
+
+    // storeIdが指定されている場合、そのstoreが会社に属するかチェック
+    if (storeId) {
+      const { data: storeData, error: storeError } = await supabaseAdmin
+        .from('stores')
+        .select('id, company_id')
+        .eq('id', storeId)
+        .eq('company_id', companyId)
+
+      if (storeError) {
+        throw new Error(`店舗情報の取得に失敗: ${storeError.message}`)
+      }
+
+      if (!storeData || storeData.length === 0) {
+        throw new Error('指定された店舗が見つからないか、アクセス権限がありません')
+      }
+    }
 
     // レビューフォームを作成（サービスロールで）
     const { data: reviewFormData, error: reviewFormError } = await supabaseAdmin
