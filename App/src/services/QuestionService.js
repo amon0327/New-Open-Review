@@ -1223,24 +1223,26 @@ export const duplicateQuestionWithOptions = async (formId, pageId, originalQuest
     const questionTypeId = originalQuestion.question_types_id;
     
     // 選択肢が必要な質問タイプの場合
-    if ([3, 4, 8, 9, 10].includes(questionTypeId) && originalQuestion.options) {
-      const choiceOptions = originalQuestion.options.map(option => ({
-        choice_name: option.choice_name,
-        choice_number: option.choice_number
-      }));
-      await updateChoiceOptions(duplicatedQuestion.id, choiceOptions);
+    if ([3, 4, 5, 6, 8, 10].includes(questionTypeId) && originalQuestion.options && Array.isArray(originalQuestion.options)) {
+      // 選択肢名の配列を作成（updateChoiceOptionsは文字列配列を期待）
+      const choiceNames = originalQuestion.options.map(option => option.choice_name);
+      await updateChoiceOptions(duplicatedQuestion.id, choiceNames);
     }
     
     // リニアスケールが必要な質問タイプの場合
-    if ([7, 9].includes(questionTypeId) && originalQuestion.options) {
+    if ([7, 9].includes(questionTypeId) && originalQuestion.options && !Array.isArray(originalQuestion.options)) {
       const scaleOption = originalQuestion.options;
-      await createLinearScaleOption({
-        questionId: duplicatedQuestion.id,
-        minValue: scaleOption.min_value || (questionTypeId === 9 ? 0 : 1),
-        maxValue: scaleOption.max_value || (questionTypeId === 9 ? 10 : 5),
-        minText: scaleOption.min_text || '',
-        maxText: scaleOption.max_text || ''
-      });
+      
+      // リニアスケールオプションを作成
+      await createLinearScaleOption(duplicatedQuestion.id, questionTypeId);
+      
+      // 元の質問のmin_text、max_textがある場合は更新
+      if (scaleOption.min_text || scaleOption.max_text) {
+        await updateLinearScaleOption(duplicatedQuestion.id, {
+          min_text: scaleOption.min_text || '',
+          max_text: scaleOption.max_text || ''
+        });
+      }
     }
 
     // 6. 完全なデータを再取得して返す
