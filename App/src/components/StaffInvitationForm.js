@@ -17,7 +17,10 @@ import {
   CircularProgress,
   Alert,
   Stack,
-  IconButton
+  IconButton,
+  Card,
+  CardContent,
+  Divider
 } from '@mui/material';
 import {
   PersonAdd,
@@ -25,7 +28,9 @@ import {
   Person,
   AdminPanelSettings,
   WorkOutline,
-  Send
+  Send,
+  ContentCopy,
+  Link
 } from '@mui/icons-material';
 import { supabase } from '../lib/supabase';
 
@@ -42,7 +47,7 @@ export default function StaffInvitationForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [invitationUrl, setInvitationUrl] = useState('');
+  const [invitationData, setInvitationData] = useState(null);
 
   const handleInputChange = (field) => (event) => {
     setFormData(prev => ({
@@ -70,28 +75,27 @@ export default function StaffInvitationForm({
         throw new Error('認証情報の取得に失敗しました。再ログインしてください。');
       }
 
-      // Edge Functionを呼び出し（後で実装）
-      // 一時的にクライアントサイドで直接作成
-      const { data: invitationData, error: invitationError } = await supabase
-        .from('store_invitations')
-        .insert([
-          {
-            store_id: storeId,
-            role: formData.role,
-            name: formData.name.trim(),
-            status: 'invited'
-          }
-        ])
-        .select()
-        .single();
+      // Edge Functionを使用して招待を作成
+      const { data, error } = await supabase.functions.invoke('create-staff-invitation', {
+        body: {
+          storeId: storeId,
+          role: formData.role,
+          name: formData.name.trim()
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+      });
 
-      if (invitationError) {
-        throw new Error(`招待の作成に失敗しました: ${invitationError.message}`);
+      if (error) {
+        throw new Error(`招待の作成に失敗しました: ${error.message}`);
       }
 
-      // 招待URLを生成
-      const url = `${window.location.origin}/staff-invitation/${invitationData.token}`;
-      setInvitationUrl(url);
+      if (!data.success) {
+        throw new Error(data.error || '招待の作成に失敗しました');
+      }
+
+      setInvitationData(data.invitation);
       setSuccess(true);
       
       // 親コンポーネントに通知
@@ -106,16 +110,26 @@ export default function StaffInvitationForm({
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(invitationUrl);
-    // TODO: トースト通知を表示
+  const copyUrl = () => {
+    if (invitationData?.url) {
+      navigator.clipboard.writeText(invitationData.url);
+      // TODO: トースト通知を表示
+    }
+  };
+
+  const copyTemplate = () => {
+    if (invitationData) {
+      const template = `${invitationData.name}さん\n\n${invitationData.storeName}への招待URLです：\n${invitationData.url}`;
+      navigator.clipboard.writeText(template);
+      // TODO: トースト通知を表示
+    }
   };
 
   const handleClose = () => {
     setFormData({ name: '', role: 'STAFF' });
     setError(null);
     setSuccess(false);
-    setInvitationUrl('');
+    setInvitationData(null);
     onClose();
   };
 
@@ -157,55 +171,119 @@ export default function StaffInvitationForm({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <PersonAdd sx={{ fontSize: 64, color: '#10b981', mb: 2 }} />
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#10b981' }}>
-                招待を送信しました！
-              </Typography>
-              <Typography variant="body1" sx={{ color: '#64748b', mb: 4 }}>
-                以下のURLを{formData.name}さんに送信してください
-              </Typography>
-              
-              <Box
-                sx={{
-                  p: 3,
-                  background: '#f8fafc',
-                  borderRadius: 2,
-                  border: '1px solid #e2e8f0',
-                  mb: 3
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    wordBreak: 'break-all',
-                    fontFamily: 'monospace',
-                    color: '#374151'
-                  }}
-                >
-                  {invitationUrl}
+            <Box sx={{ py: 2 }}>
+              <Box sx={{ textAlign: 'center', mb: 4 }}>
+                <PersonAdd sx={{ fontSize: 64, color: '#10b981', mb: 2 }} />
+                <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#10b981' }}>
+                  招待URLを発行しました！
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#64748b' }}>
+                  以下の情報を{invitationData?.name}さんに送信してください
                 </Typography>
               </Box>
 
-              <Stack direction="row" spacing={2} justifyContent="center">
-                <Button
-                  variant="contained"
-                  onClick={copyToClipboard}
-                  startIcon={<Send />}
-                  sx={{
-                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                  }}
-                >
-                  URLをコピー
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={handleClose}
-                  sx={{ borderColor: '#cbd5e1', color: '#64748b' }}
-                >
-                  閉じる
-                </Button>
-              </Stack>
+              {/* テンプレート表示カード */}
+              <Card sx={{ mb: 3, border: '1px solid #e2e8f0' }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Person sx={{ color: '#5e17eb', mr: 1 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      招待テンプレート
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      p: 2,
+                      background: '#f8fafc',
+                      borderRadius: 1,
+                      border: '1px solid #e2e8f0',
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                      whiteSpace: 'pre-line',
+                      color: '#374151'
+                    }}
+                  >
+                    {`${invitationData?.name}さん
+
+${invitationData?.storeName}への招待URLです：
+${invitationData?.url}`}
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<ContentCopy />}
+                    onClick={copyTemplate}
+                    sx={{ 
+                      mt: 2,
+                      borderColor: '#5e17eb',
+                      color: '#5e17eb',
+                      '&:hover': {
+                        borderColor: '#4c1d95',
+                        backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                      }
+                    }}
+                  >
+                    テンプレートをコピー
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* URL単体表示カード */}
+              <Card sx={{ mb: 3, border: '1px solid #e2e8f0' }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Link sx={{ color: '#5e17eb', mr: 1 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      招待URL
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      p: 2,
+                      background: '#f8fafc',
+                      borderRadius: 1,
+                      border: '1px solid #e2e8f0',
+                      wordBreak: 'break-all',
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                      color: '#374151'
+                    }}
+                  >
+                    {invitationData?.url}
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<ContentCopy />}
+                    onClick={copyUrl}
+                    sx={{ 
+                      mt: 2,
+                      borderColor: '#5e17eb',
+                      color: '#5e17eb',
+                      '&:hover': {
+                        borderColor: '#4c1d95',
+                        backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                      }
+                    }}
+                  >
+                    URLをコピー
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleClose}
+                sx={{
+                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                  py: 1.5
+                }}
+              >
+                閉じる
+              </Button>
             </Box>
           </motion.div>
         ) : (
