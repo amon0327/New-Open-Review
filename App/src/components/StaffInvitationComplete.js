@@ -43,25 +43,86 @@ export default function StaffInvitationComplete() {
         throw new Error('ログインが確認できません。再度ログインしてください。');
       }
 
-      // Edge Functionを使用して招待を完了
-      const { data, error } = await supabase.functions.invoke('complete-staff-invitation', {
-        body: {
-          invitationToken: token
-        },
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`,
-        },
-      });
-
-      if (error) {
-        throw new Error(`招待完了処理に失敗しました: ${error.message}`);
+      // 現在のユーザーを取得
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error('ログインが確認できません。再度ログインしてください。');
       }
 
-      if (!data.success) {
-        throw new Error(data.error || '招待完了処理に失敗しました');
+      // 招待情報を取得
+      const { data: invitations, error: invitationError } = await supabase
+        .from('store_invitations')
+        .select(`
+          *,
+          stores (
+            id,
+            name,
+            companies (
+              name
+            )
+          )
+        `)
+        .eq('token', token)
+        .eq('status', 'invited');
+
+      if (invitationError || !invitations || invitations.length === 0) {
+        throw new Error('招待が見つからないか、既に使用済みです。');
       }
 
-      setStoreInfo(data.store);
+      const invitation = invitations[0];
+
+      // 24時間チェック
+      const invitationDate = new Date(invitation.created_at);
+      const now = new Date();
+      const hoursDiff = (now - invitationDate) / (1000 * 60 * 60);
+
+      if (hoursDiff > 24) {
+        await supabase
+          .from('store_invitations')
+          .update({ status: 'expired' })
+          .eq('token', token);
+        
+        throw new Error('招待の有効期限が切れています（24時間）。');
+      }
+
+      // 既に登録されているかチェック
+      const { data: existingMembership } = await supabase
+        .from('store_memberships')
+        .select('id')
+        .eq('business_user_id', user.id)
+        .eq('store_id', invitation.store_id);
+
+      if (existingMembership && existingMembership.length > 0) {
+        throw new Error('既にこの店舗のメンバーです。');
+      }
+
+      // store_membershipsに登録
+      const { error: membershipError } = await supabase
+        .from('store_memberships')
+        .insert([
+          {
+            business_user_id: user.id,
+            store_id: invitation.store_id,
+            role: invitation.role
+          }
+        ]);
+
+      if (membershipError) {
+        throw new Error(`メンバー登録に失敗しました: ${membershipError.message}`);
+      }
+
+      // 招待ステータスを完了に更新
+      const { error: statusError } = await supabase
+        .from('store_invitations')
+        .update({ status: 'completed' })
+        .eq('token', token);
+
+      if (statusError) {
+        console.error('Status update error:', statusError);
+      }
+
+      setStoreInfo(invitation.stores);
       setSuccess(true);
 
       // 3秒後に自動ログアウト

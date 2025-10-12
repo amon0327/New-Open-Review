@@ -75,27 +75,34 @@ export default function StaffInvitationForm({
         throw new Error('認証情報の取得に失敗しました。再ログインしてください。');
       }
 
-      // Edge Functionを使用して招待を作成
-      const { data, error } = await supabase.functions.invoke('create-staff-invitation', {
-        body: {
-          storeId: storeId,
-          role: formData.role,
-          name: formData.name.trim()
-        },
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`,
-        },
+      // 一時的に直接クエリで招待を作成
+      const { data: invitationResult, error: invitationError } = await supabase
+        .from('store_invitations')
+        .insert([
+          {
+            store_id: storeId,
+            role: formData.role,
+            name: formData.name.trim(),
+            status: 'invited'
+          }
+        ])
+        .select()
+        .single();
+
+      if (invitationError) {
+        throw new Error(`招待の作成に失敗しました: ${invitationError.message}`);
+      }
+
+      // 招待データを設定
+      const invitationUrl = `${window.location.origin}/staff-invitation/${invitationResult.token}`;
+      setInvitationData({
+        id: invitationResult.id,
+        token: invitationResult.token,
+        name: invitationResult.name,
+        role: invitationResult.role,
+        url: invitationUrl,
+        storeName: storeName
       });
-
-      if (error) {
-        throw new Error(`招待の作成に失敗しました: ${error.message}`);
-      }
-
-      if (!data.success) {
-        throw new Error(data.error || '招待の作成に失敗しました');
-      }
-
-      setInvitationData(data.invitation);
       setSuccess(true);
       
       // 親コンポーネントに通知
