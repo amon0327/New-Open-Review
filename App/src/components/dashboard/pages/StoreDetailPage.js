@@ -112,8 +112,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
           business_users (
             id,
             email,
-            name,
-            avatar_url
+            name
           )
         `)
         .eq('store_id', storeId);
@@ -319,10 +318,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                       <TableRow key={member.id}>
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Avatar
-                              src={member.business_users?.avatar_url}
-                              sx={{ mr: 2 }}
-                            >
+                            <Avatar sx={{ mr: 2 }}>
                               {member.business_users?.name?.charAt(0) || 
                                member.business_users?.email?.charAt(0)}
                             </Avatar>
