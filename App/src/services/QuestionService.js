@@ -1185,3 +1185,72 @@ export const getQuestionAnalyticsStats = async (questionId, isTestMode = false) 
     return { responses: 0, avgRating: 0 };
   }
 };
+
+// 質問複製関数
+export const duplicateQuestionWithOptions = async (formId, pageId, originalQuestionId) => {
+  try {
+    // 1. 元質問とオプションデータを取得
+    const originalQuestions = await getQuestionsWithOptions(formId, pageId);
+    const originalQuestion = originalQuestions.find(q => q.id === originalQuestionId);
+    
+    if (!originalQuestion) {
+      throw new Error('複製対象の質問が見つかりません');
+    }
+
+    // 2. 現在のページの質問数を取得して新しい質問番号を決定
+    const existingQuestions = await getReviewQuestions(formId, pageId);
+    const maxQuestionNumber = existingQuestions.length > 0 
+      ? Math.max(...existingQuestions.map(q => q.question_number || 0))
+      : 0;
+    const newQuestionNumber = maxQuestionNumber + 1;
+
+    // 3. 基本的な質問を作成
+    const duplicatedQuestion = await createReviewQuestion({
+      reviewFormId: formId,
+      questionTypesId: originalQuestion.question_types_id,
+      reviewFormPagesId: pageId,
+      questionNumber: newQuestionNumber
+    });
+
+    // 4. 質問テキストと設定を更新
+    const updatedQuestion = await updateReviewQuestion(duplicatedQuestion.id, {
+      question_text: `${originalQuestion.question_text} (コピー)`,
+      detail_text: originalQuestion.detail_text,
+      is_required: originalQuestion.is_required
+    });
+
+    // 5. オプションデータを複製（質問タイプに応じて）
+    const questionTypeId = originalQuestion.question_types_id;
+    
+    // 選択肢が必要な質問タイプの場合
+    if ([3, 4, 8, 9, 10].includes(questionTypeId) && originalQuestion.options) {
+      const choiceOptions = originalQuestion.options.map(option => ({
+        choice_name: option.choice_name,
+        choice_number: option.choice_number
+      }));
+      await updateChoiceOptions(duplicatedQuestion.id, choiceOptions);
+    }
+    
+    // リニアスケールが必要な質問タイプの場合
+    if ([7, 9].includes(questionTypeId) && originalQuestion.options) {
+      const scaleOption = originalQuestion.options;
+      await createLinearScaleOption({
+        questionId: duplicatedQuestion.id,
+        minValue: scaleOption.min_value || (questionTypeId === 9 ? 0 : 1),
+        maxValue: scaleOption.max_value || (questionTypeId === 9 ? 10 : 5),
+        minText: scaleOption.min_text || '',
+        maxText: scaleOption.max_text || ''
+      });
+    }
+
+    // 6. 完全なデータを再取得して返す
+    const finalQuestions = await getQuestionsWithOptions(formId, pageId);
+    const finalQuestion = finalQuestions.find(q => q.id === duplicatedQuestion.id);
+    
+    return finalQuestion;
+    
+  } catch (error) {
+    console.error('Error duplicating question:', error);
+    throw error;
+  }
+};

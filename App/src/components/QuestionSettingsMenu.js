@@ -1159,34 +1159,6 @@ const QuestionSettingsMenu = ({
               />
             </Box>
 
-            {/* 質問複製ボタン */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', pt: 1 }}>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<ContentCopyIcon />}
-                onClick={() => {
-                  if (onQuestionDuplicate && selectedQuestion) {
-                    onQuestionDuplicate(selectedQuestion);
-                  }
-                }}
-                sx={{
-                  color: '#5E17EB',
-                  borderColor: '#5E17EB',
-                  textTransform: 'none',
-                  fontWeight: 500,
-                  fontSize: '0.8rem',
-                  py: 0.5,
-                  px: 2,
-                  '&:hover': { 
-                    backgroundColor: 'rgba(94, 23, 235, 0.08)',
-                    borderColor: '#4c1d95'
-                  }
-                }}
-              >
-                この質問を複製
-              </Button>
-            </Box>
 
             {/* 質問テキスト */}
             <StylishTextField
@@ -1398,8 +1370,38 @@ const QuestionSettingsMenu = ({
               </Box>
             )}
 
-            {/* 質問削除ボタン */}
+            {/* 質問複製・削除ボタン */}
             <Box sx={{ pt: 2, mt: 2, borderTop: '1px solid #E5E7EB' }}>
+              {/* 複製ボタン */}
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<ContentCopyIcon />}
+                onClick={() => {
+                  if (onQuestionDuplicate && selectedQuestion) {
+                    onQuestionDuplicate(selectedQuestion);
+                  }
+                }}
+                sx={{
+                  color: '#5E17EB',
+                  borderColor: '#5E17EB',
+                  textTransform: 'none',
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  px: 2,
+                  py: 0.75,
+                  width: '100%',
+                  mb: 1,
+                  '&:hover': { 
+                    backgroundColor: 'rgba(94, 23, 235, 0.08)',
+                    borderColor: '#4c1d95'
+                  }
+                }}
+              >
+                この質問を複製
+              </Button>
+              
+              {/* 削除ボタン */}
               <Button
                 variant="outlined"
                 size="small"

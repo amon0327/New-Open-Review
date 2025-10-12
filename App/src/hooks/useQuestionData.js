@@ -4,7 +4,8 @@ import {
   updateQuestionWithOptions, 
   deleteReviewQuestion,
   updateChoiceOptionsDirect,
-  updateLinearScaleOptionDirect
+  updateLinearScaleOptionDirect,
+  duplicateQuestionWithOptions
 } from '../services/QuestionService';
 
 // 質問データ管理のカスタムフック
@@ -131,29 +132,31 @@ const useQuestionData = (formId) => {
     }
   }, []);
 
-  // 質問を複製
-  const duplicateQuestion = useCallback((pageId, questionId) => {
-    const currentQuestions = questionsData[pageId] || [];
-    const originalQuestion = currentQuestions.find(q => q.id === questionId);
-    
-    if (originalQuestion) {
-      const duplicatedQuestion = {
-        ...originalQuestion,
-        id: Date.now() + Math.random(),
-        question_text: `${originalQuestion.question_text} (コピー)`,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+  // 質問を複製（Supabaseへの登録も含む）
+  const duplicateQuestion = useCallback(async (pageId, questionId) => {
+    if (!formId) return null;
 
-      setQuestionsData(prev => ({
-        ...prev,
-        [pageId]: [...currentQuestions, duplicatedQuestion]
-      }));
-
-      return duplicatedQuestion;
+    try {
+      // QuestionServiceの複製関数を使用してSupabaseに保存
+      const duplicatedQuestion = await duplicateQuestionWithOptions(formId, pageId, questionId);
+      
+      if (duplicatedQuestion) {
+        // ローカル状態も更新
+        const currentQuestions = questionsData[pageId] || [];
+        setQuestionsData(prev => ({
+          ...prev,
+          [pageId]: [...currentQuestions, duplicatedQuestion]
+        }));
+        
+        return duplicatedQuestion;
+      }
+    } catch (error) {
+      console.error('Error duplicating question:', error);
+      throw error; // エラーを呼び出し元に伝播
     }
+    
     return null;
-  }, [questionsData]);
+  }, [formId, questionsData]);
 
   // 質問の順序を変更
   const reorderQuestions = useCallback((pageId, sourceIndex, destinationIndex) => {

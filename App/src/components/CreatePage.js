@@ -1306,6 +1306,29 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
+  // 質問複製ハンドラー（楽観的UI更新）
+  const handleQuestionDuplicate = async (originalQuestion) => {
+    if (!selectedPage) return;
+    
+    try {
+      setIsSaving(true);
+      
+      // duplicateQuestion関数を使用して複製
+      const duplicatedQuestion = await duplicateQuestion(selectedPage.id, originalQuestion.id);
+      
+      if (duplicatedQuestion) {
+        // 複製された質問を選択状態にする
+        setSelectedQuestionId(duplicatedQuestion.id);
+        toast.success('質問を複製しました');
+      }
+    } catch (error) {
+      console.error('Question duplicate error:', error);
+      toast.error('質問の複製に失敗しました');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // 質問順序変更ハンドラー
   const handleQuestionReorder = async (dragIndex, hoverIndex) => {
     if (!selectedPage) return;
@@ -2641,6 +2664,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     selectedQuestionId={selectedQuestionId}
                     onQuestionUpdate={handleQuestionUpdate}
                     onQuestionDelete={handleQuestionDelete}
+                    onQuestionDuplicate={handleQuestionDuplicate}
                     onQuestionSelect={handleQuestionSelect}
                     onQuestionReorder={handleQuestionReorder}
                     selectedElement={selectedElement}
