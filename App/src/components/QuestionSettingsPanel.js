@@ -492,22 +492,6 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                 size="small"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDuplicate(question);
-                }}
-                sx={{
-                  color: isExpanded ? 'rgba(255, 255, 255, 0.8)' : '#6b7280',
-                  '&:hover': { 
-                    backgroundColor: isExpanded ? 'rgba(255, 255, 255, 0.1)' : 'rgba(107, 114, 128, 0.1)',
-                    color: isExpanded ? 'white' : '#374151'
-                  }
-                }}
-              >
-                <CopyIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
                   onDelete(question.id);
                 }}
                 sx={{
@@ -634,38 +618,61 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                 </Box>
               )}
 
-              {/* 保存・リセットボタン */}
-              {hasChanges && (
-                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', pt: 1 }}>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={handleReset}
-                    sx={{
-                      color: '#6b7280',
-                      borderColor: '#d1d5db',
-                      textTransform: 'none',
-                      fontWeight: 500
-                    }}
-                  >
-                    リセット
-                  </Button>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={handleSave}
-                    startIcon={<SaveIcon />}
-                    sx={{
-                      backgroundColor: '#5e17eb',
-                      textTransform: 'none',
-                      fontWeight: 500,
-                      '&:hover': { backgroundColor: '#4c1d95' }
-                    }}
-                  >
-                    保存
-                  </Button>
-                </Box>
-              )}
+              {/* アクションボタン */}
+              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'space-between', pt: 1 }}>
+                {/* 複製ボタン */}
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => onDuplicate(question)}
+                  startIcon={<CopyIcon />}
+                  sx={{
+                    color: '#5e17eb',
+                    borderColor: '#5e17eb',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    '&:hover': { 
+                      backgroundColor: 'rgba(94, 23, 235, 0.08)',
+                      borderColor: '#4c1d95'
+                    }
+                  }}
+                >
+                  複製
+                </Button>
+
+                {/* 保存・リセットボタン */}
+                {hasChanges && (
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleReset}
+                      sx={{
+                        color: '#6b7280',
+                        borderColor: '#d1d5db',
+                        textTransform: 'none',
+                        fontWeight: 500
+                      }}
+                    >
+                      リセット
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={handleSave}
+                      startIcon={<SaveIcon />}
+                      sx={{
+                        backgroundColor: '#5e17eb',
+                        textTransform: 'none',
+                        fontWeight: 500,
+                        '&:hover': { backgroundColor: '#4c1d95' }
+                      }}
+                    >
+                      保存
+                    </Button>
+                  </Box>
+                )}
+              </Box>
             </Stack>
           </Box>
         </Collapse>
