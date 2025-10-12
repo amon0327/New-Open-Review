@@ -7,25 +7,34 @@ import ImageUploadService from './ImageUploadService';
 export class FormDataService {
   /**
    * 新しいフォームを作成し、関連する全てのテーブルにレコードを作成
+   * Edge Functionを使用してcompany_review_formsテーブルへの書き込みも行う
    * @param {string} userId - ログインしているユーザーのID
    * @returns {Promise<Object>} 作成されたフォームの情報とエラー
    */
   static async createNewForm(userId) {
     try {
-      // 1. review_formsテーブルにレコードを作成
-      const { data: reviewForm, error: reviewFormError } = await supabase
-        .from('review_forms')
-        .insert([{
-          business_users: userId
-        }])
-        .select()
-        .single();
-
-      if (reviewFormError) {
-        throw new Error(`フォーム作成エラー: ${reviewFormError.message}`);
+      // 現在のセッションを取得
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error('認証セッションが取得できません');
       }
 
-      const reviewFormId = reviewForm.id;
+      // Edge Functionを呼び出してフォームを作成
+      const { data, error } = await supabase.functions.invoke('create-review-form', {
+        body: {
+          title: '新規レビューフォーム'
+        }
+      });
+
+      if (error) {
+        throw new Error(`Edge Function呼び出しエラー: ${error.message}`);
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'フォーム作成に失敗しました');
+      }
+
+      const reviewFormId = data.reviewForm.id;
 
       // 2. review_form_pagesテーブルにレコードを作成
       const { data: reviewFormPage, error: pageError } = await supabase
@@ -88,7 +97,7 @@ export class FormDataService {
       return {
         success: true,
         data: {
-          reviewForm,
+          reviewForm: data.reviewForm,
           reviewFormPage,
           reviewFormId
         },
