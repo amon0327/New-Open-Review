@@ -189,7 +189,10 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   const handleNavClick = (index, onCreateForm) => {
     if (navigationItems[index].text === 'Create') {
       if (onCreateForm) {
+        console.log('🎯 Dashboard - Createボタンがクリックされました');
         onCreateForm();
+      } else {
+        console.error('❌ Dashboard - onCreateForm関数が見つかりません');
       }
     } else {
       setActiveTab(index);
