@@ -5,6 +5,9 @@ export class QuestionDisplayService {
   // 質問表示設定の作成
   static async createDisplaySetting(reviewQuestionId, displayName) {
     try {
+      console.log('=== 表示設定作成開始 ===');
+      console.log('パラメータ:', { reviewQuestionId, displayName });
+      
       const { data, error } = await supabase
         .from('question_display_settings')
         .insert([
@@ -16,7 +19,14 @@ export class QuestionDisplayService {
         .select()
         .single();
 
-      if (error) throw error;
+      console.log('表示設定作成結果:', { data, error });
+
+      if (error) {
+        console.error('表示設定作成エラー詳細:', error);
+        throw error;
+      }
+      
+      console.log('表示設定作成成功:', data);
       return { success: true, data };
     } catch (error) {
       console.error('質問表示設定の作成に失敗:', error);
@@ -378,6 +388,8 @@ export class QuestionDisplayService {
   // 表示設定済みの質問のみを取得
   static async getQuestionsWithDisplaySettingsOnly() {
     try {
+      console.log('=== 表示設定済み質問取得開始 ===');
+      
       const { data, error } = await supabase
         .from('question_display_settings')
         .select(`
@@ -405,7 +417,18 @@ export class QuestionDisplayService {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Supabaseクエリ結果:', { data, error });
+      console.log('取得した表示設定の件数:', data?.length || 0);
+      
+      if (data && data.length > 0) {
+        console.log('表示設定詳細:', data);
+      }
+
+      if (error) {
+        console.error('Supabaseクエリエラー:', error);
+        throw error;
+      }
+      
       return { success: true, data };
     } catch (error) {
       console.error('表示設定済み質問の取得に失敗:', error);

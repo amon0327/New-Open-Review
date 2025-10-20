@@ -124,14 +124,18 @@ const AppPage = () => {
       }
 
       // 表示設定一覧を取得
+      console.log('=== AppPage: 表示設定取得開始 ===');
       const displaySettingsResult = await QuestionDisplayService.getQuestionsWithDisplaySettingsOnly();
-      console.log('表示設定取得結果:', displaySettingsResult);
+      console.log('AppPage: 表示設定取得結果:', displaySettingsResult);
       
       if (displaySettingsResult.success) {
+        console.log('AppPage: 表示設定データの配列:', displaySettingsResult.data);
+        console.log('AppPage: 表示設定の件数:', displaySettingsResult.data?.length || 0);
+        
         setDisplaySettings(displaySettingsResult.data || []);
-        console.log('設定された表示設定データ:', displaySettingsResult.data);
+        console.log('AppPage: Stateに設定された表示設定データ:', displaySettingsResult.data);
       } else {
-        console.error('表示設定取得エラー:', displaySettingsResult.error);
+        console.error('AppPage: 表示設定取得エラー:', displaySettingsResult.error);
         toast.error('表示設定データの読み込みに失敗しました');
       }
     } catch (error) {
@@ -228,12 +232,15 @@ const AppPage = () => {
       );
 
       if (result.success) {
+        console.log('AppPage: 表示設定追加成功、リロード開始');
         toast.success('表示設定を追加しました');
         await loadForms(); // データを再読み込み
+        console.log('AppPage: リロード完了');
         setSettingsDialogOpen(false);
         setSelectedQuestion(null);
         setDisplayName('');
       } else {
+        console.error('AppPage: 表示設定追加失敗:', result.error);
         toast.error(result.error || '表示設定の追加に失敗しました');
       }
     } catch (error) {
@@ -900,7 +907,11 @@ const AppPage = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                   <CircularProgress />
                 </Box>
-              ) : displaySettings.length === 0 ? (
+              ) : (() => {
+                console.log('UI表示チェック - displaySettings:', displaySettings);
+                console.log('UI表示チェック - displaySettings.length:', displaySettings.length);
+                return displaySettings.length === 0;
+              })() ? (
                 <Box sx={{ textAlign: 'center', p: 4 }}>
                   <Typography variant="h6" sx={{ color: '#64748b', mb: 1 }}>
                     表示設定済みの質問がありません
