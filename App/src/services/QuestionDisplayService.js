@@ -233,22 +233,25 @@ export class QuestionDisplayService {
   // すべての質問を取得
   static async getAllQuestions() {
     try {
+      // まずシンプルな構造で試す
       const { data, error } = await supabase
         .from('review_questions')
-        .select(`
-          id,
-          question_text,
-          question_types_id,
-          created_at,
-          updated_at,
-          question_types (
-            id,
-            type_name
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabaseエラー:', error);
+        throw error;
+      }
+      
+      // ログでデータを確認
+      console.log('取得した質問データ (raw):', data);
+      console.log('データ件数:', data?.length || 0);
+      
+      if (data && data.length > 0) {
+        console.log('最初の質問のスキーマ:', Object.keys(data[0]));
+      }
+      
       return { success: true, data };
     } catch (error) {
       console.error('質問の取得に失敗:', error);

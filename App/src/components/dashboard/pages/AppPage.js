@@ -105,16 +105,30 @@ const AppPage = () => {
   const loadData = async () => {
     setLoading(true);
     try {
+      console.log('AppPage: データ読み込み開始');
+      
       // 質問一覧を取得
       const questionsResult = await QuestionDisplayService.getAllQuestions();
+      console.log('質問取得結果:', questionsResult);
+      
       if (questionsResult.success) {
         setQuestions(questionsResult.data || []);
+        console.log('設定された質問データ:', questionsResult.data);
+      } else {
+        console.error('質問取得エラー:', questionsResult.error);
+        toast.error('質問データの読み込みに失敗しました');
       }
 
       // 表示設定一覧を取得
       const displaySettingsResult = await QuestionDisplayService.getQuestionsWithDisplaySettingsOnly();
+      console.log('表示設定取得結果:', displaySettingsResult);
+      
       if (displaySettingsResult.success) {
         setDisplaySettings(displaySettingsResult.data || []);
+        console.log('設定された表示設定データ:', displaySettingsResult.data);
+      } else {
+        console.error('表示設定取得エラー:', displaySettingsResult.error);
+        toast.error('表示設定データの読み込みに失敗しました');
       }
     } catch (error) {
       console.error('データ読み込みエラー:', error);
@@ -596,7 +610,10 @@ const AppPage = () => {
                     質問が見つかりません
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                    まず質問を作成してください
+                    まず質問を作成してください。Createページでフォームと質問を作成できます。
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#94a3b8', mt: 1 }}>
+                    質問総数: {stats.totalQuestions}
                   </Typography>
                 </Box>
               ) : (
