@@ -229,7 +229,7 @@ const AppPage = () => {
 
       if (result.success) {
         toast.success('表示設定を追加しました');
-        await loadData(); // データを再読み込み
+        await loadForms(); // データを再読み込み
         setSettingsDialogOpen(false);
         setSelectedQuestion(null);
         setDisplayName('');
@@ -280,7 +280,7 @@ const AppPage = () => {
 
       if (result.success) {
         toast.success('ルール設定を追加しました');
-        await loadData();
+        await loadForms();
         setRuleDialogOpen(false);
         setSelectedDisplaySetting(null);
         setNpsSegment('');
@@ -319,7 +319,7 @@ const AppPage = () => {
 
       if (result.success) {
         toast.success('表示設定を更新しました');
-        await loadData();
+        await loadForms();
         setEditDialogOpen(false);
         setSelectedDisplaySetting(null);
         setDisplayName('');
@@ -346,7 +346,7 @@ const AppPage = () => {
 
       if (result.success) {
         toast.success('表示設定を削除しました');
-        await loadData();
+        await loadForms();
       } else {
         toast.error(result.error || '表示設定の削除に失敗しました');
       }
