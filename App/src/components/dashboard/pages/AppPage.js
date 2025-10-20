@@ -156,8 +156,19 @@ const AppPage = () => {
       console.log('質問取得結果:', questionsResult);
       
       if (questionsResult.success) {
-        setQuestions(questionsResult.data || []);
-        console.log('設定された質問データ:', questionsResult.data);
+        // 既存の表示設定をチェックして、質問に設定済みフラグを追加
+        const questionsWithSettingFlag = await Promise.all(
+          (questionsResult.data || []).map(async (question) => {
+            const settingResult = await QuestionDisplayService.getDisplaySettingByQuestionId(question.id);
+            return {
+              ...question,
+              hasDisplaySetting: settingResult.success && settingResult.data
+            };
+          })
+        );
+        
+        setQuestions(questionsWithSettingFlag);
+        console.log('設定された質問データ（設定済みフラグ付き）:', questionsWithSettingFlag);
       } else {
         console.error('質問取得エラー:', questionsResult.error);
         toast.error('質問データの読み込みに失敗しました');
@@ -203,6 +214,12 @@ const AppPage = () => {
 
   // 表示設定追加
   const handleAddDisplaySetting = async (question) => {
+    // 既に表示設定が存在するかチェック
+    if (question.hasDisplaySetting) {
+      toast.error('この質問は既に表示設定が追加されています');
+      return;
+    }
+    
     setSelectedQuestion(question);
     setDisplayName(question.question_text);
     
@@ -234,7 +251,15 @@ const AppPage = () => {
       if (result.success) {
         console.log('AppPage: 表示設定追加成功、リロード開始');
         toast.success('表示設定を追加しました');
-        await loadForms(); // データを再読み込み
+        
+        // データを再読み込み
+        await loadForms();
+        
+        // 現在のフォームが選択されている場合は質問も再読み込み
+        if (selectedForm) {
+          await loadQuestionsForForm(selectedForm.id);
+        }
+        
         console.log('AppPage: リロード完了');
         setSettingsDialogOpen(false);
         setSelectedQuestion(null);
@@ -327,6 +352,12 @@ const AppPage = () => {
       if (result.success) {
         toast.success('表示設定を更新しました');
         await loadForms();
+        
+        // 現在のフォームが選択されている場合は質問も再読み込み
+        if (selectedForm) {
+          await loadQuestionsForForm(selectedForm.id);
+        }
+        
         setEditDialogOpen(false);
         setSelectedDisplaySetting(null);
         setDisplayName('');
@@ -354,6 +385,11 @@ const AppPage = () => {
       if (result.success) {
         toast.success('表示設定を削除しました');
         await loadForms();
+        
+        // 現在のフォームが選択されている場合は質問も再読み込み
+        if (selectedForm) {
+          await loadQuestionsForForm(selectedForm.id);
+        }
       } else {
         toast.error(result.error || '表示設定の削除に失敗しました');
       }
@@ -771,9 +807,7 @@ const AppPage = () => {
               ) : (
                 <List sx={{ p: 0 }}>
                   {questions.map((question, index) => {
-                    const hasDisplaySetting = displaySettings.some(
-                      ds => ds.review_questions?.id === question.id
-                    );
+                    const hasDisplaySetting = question.hasDisplaySetting;
                     
                     return (
                       <motion.div
@@ -907,11 +941,7 @@ const AppPage = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                   <CircularProgress />
                 </Box>
-              ) : (() => {
-                console.log('UI表示チェック - displaySettings:', displaySettings);
-                console.log('UI表示チェック - displaySettings.length:', displaySettings.length);
-                return displaySettings.length === 0;
-              })() ? (
+              ) : displaySettings.length === 0 ? (
                 <Box sx={{ textAlign: 'center', p: 4 }}>
                   <Typography variant="h6" sx={{ color: '#64748b', mb: 1 }}>
                     表示設定済みの質問がありません
