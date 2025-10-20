@@ -60,7 +60,9 @@ import {
   Save,
   Cancel,
   FilterList,
-  Refresh
+  Refresh,
+  ArrowBack,
+  Folder
 } from '@mui/icons-material';
 import { gradients } from '../../../constants/theme';
 import QuestionDisplayService from '../../../services/QuestionDisplayService';
@@ -68,6 +70,8 @@ import toast from 'react-hot-toast';
 
 const AppPage = () => {
   const [questions, setQuestions] = useState([]);
+  const [reviewForms, setReviewForms] = useState([]);
+  const [selectedForm, setSelectedForm] = useState(null);
   const [displaySettings, setDisplaySettings] = useState([]);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [selectedDisplaySetting, setSelectedDisplaySetting] = useState(null);
@@ -77,6 +81,7 @@ const AppPage = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [tabValue, setTabValue] = useState(0);
+  const [currentView, setCurrentView] = useState('forms'); // 'forms' or 'questions'
   const [displayName, setDisplayName] = useState('');
   const [npsSegment, setNpsSegment] = useState('');
   const [questionOptions, setQuestionOptions] = useState([]);
@@ -101,22 +106,21 @@ const AppPage = () => {
     return typeMap[question?.question_types_id] || 'その他';
   };
 
-  // データ読み込み
-  const loadData = async () => {
+  // フォーム一覧読み込み
+  const loadForms = async () => {
     setLoading(true);
     try {
-      console.log('AppPage: データ読み込み開始');
+      console.log('AppPage: フォーム一覧読み込み開始');
       
-      // 質問一覧を取得
-      const questionsResult = await QuestionDisplayService.getAllQuestions();
-      console.log('質問取得結果:', questionsResult);
+      const formsResult = await QuestionDisplayService.getReviewForms();
+      console.log('フォーム取得結果:', formsResult);
       
-      if (questionsResult.success) {
-        setQuestions(questionsResult.data || []);
-        console.log('設定された質問データ:', questionsResult.data);
+      if (formsResult.success) {
+        setReviewForms(formsResult.data || []);
+        console.log('設定されたフォームデータ:', formsResult.data);
       } else {
-        console.error('質問取得エラー:', questionsResult.error);
-        toast.error('質問データの読み込みに失敗しました');
+        console.error('フォーム取得エラー:', formsResult.error);
+        toast.error('フォームデータの読み込みに失敗しました');
       }
 
       // 表示設定一覧を取得
@@ -138,16 +142,59 @@ const AppPage = () => {
     }
   };
 
+  // 指定されたフォームの質問を取得
+  const loadQuestionsForForm = async (formId) => {
+    setLoading(true);
+    try {
+      console.log('AppPage: 質問データ読み込み開始 for form:', formId);
+      
+      const questionsResult = await QuestionDisplayService.getQuestionsByFormId(formId);
+      console.log('質問取得結果:', questionsResult);
+      
+      if (questionsResult.success) {
+        setQuestions(questionsResult.data || []);
+        console.log('設定された質問データ:', questionsResult.data);
+      } else {
+        console.error('質問取得エラー:', questionsResult.error);
+        toast.error('質問データの読み込みに失敗しました');
+      }
+    } catch (error) {
+      console.error('質問読み込みエラー:', error);
+      toast.error('質問の読み込みに失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // データ更新
   const refreshData = async () => {
     setRefreshing(true);
-    await loadData();
+    if (currentView === 'forms') {
+      await loadForms();
+    } else if (selectedForm) {
+      await loadQuestionsForForm(selectedForm.id);
+    }
     setRefreshing(false);
     toast.success('データを更新しました');
   };
 
+  // フォーム選択ハンドラー
+  const handleFormSelect = async (form) => {
+    setSelectedForm(form);
+    setCurrentView('questions');
+    setQuestions([]);
+    await loadQuestionsForForm(form.id);
+  };
+
+  // フォーム一覧に戻る
+  const handleBackToForms = () => {
+    setCurrentView('forms');
+    setSelectedForm(null);
+    setQuestions([]);
+  };
+
   useEffect(() => {
-    loadData();
+    loadForms();
   }, []);
 
   // 表示設定追加
@@ -344,7 +391,9 @@ const AppPage = () => {
 
   // 統計データの計算
   const stats = {
-    totalQuestions: questions.length,
+    totalForms: reviewForms.length,
+    totalQuestions: currentView === 'questions' ? questions.length : 
+      reviewForms.reduce((total, form) => total + (form.question_count || 0), 0),
     withDisplaySettings: displaySettings.length,
     needsRuleSettings: questions.filter(q => needsRuleSettings(q.question_types_id)).length,
     withRuleSettings: displaySettings.reduce((count, ds) => 
@@ -443,10 +492,10 @@ const AppPage = () => {
                   <QuestionAnswer sx={{ fontSize: '2.5rem', opacity: 0.8 }} />
                   <Box>
                     <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                      {stats.totalQuestions}
+                      {currentView === 'forms' ? stats.totalForms : stats.totalQuestions}
                     </Typography>
                     <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                      総質問数
+                      {currentView === 'forms' ? '総フォーム数' : '総質問数'}
                     </Typography>
                   </Box>
                 </Box>
@@ -556,7 +605,7 @@ const AppPage = () => {
               }}
             >
               <Tab 
-                label={`全質問 (${stats.totalQuestions})`}
+                label={currentView === 'forms' ? `フォーム一覧 (${stats.totalForms})` : `質問一覧 (${stats.totalQuestions})`}
                 sx={{
                   fontWeight: 600,
                   '&.Mui-selected': {
@@ -582,38 +631,134 @@ const AppPage = () => {
             </Tabs>
           </Box>
 
-          {/* 全質問タブ */}
+          {/* フォーム・質問一覧タブ */}
           {tabValue === 0 && (
             <Box>
+              {/* ヘッダー */}
               <Box
                 sx={{
                   p: 3,
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white'
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2
                 }}
               >
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  質問一覧と表示設定
-                </Typography>
-                <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
-                  閲覧アプリで表示したい質問を選択し、表示設定を追加してください
-                </Typography>
+                {currentView === 'questions' && (
+                  <IconButton
+                    onClick={handleBackToForms}
+                    sx={{ 
+                      color: 'white',
+                      '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }
+                    }}
+                  >
+                    <ArrowBack />
+                  </IconButton>
+                )}
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    {currentView === 'forms' ? 'フォーム一覧' : `${selectedForm?.title} - 質問一覧`}
+                  </Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+                    {currentView === 'forms' 
+                      ? 'フォームを選択して質問の表示設定を管理してください'
+                      : '閲覧アプリで表示したい質問を選択し、表示設定を追加してください'
+                    }
+                  </Typography>
+                </Box>
               </Box>
 
               {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                   <CircularProgress />
                 </Box>
+              ) : currentView === 'forms' ? (
+                // フォーム一覧表示
+                reviewForms.length === 0 ? (
+                  <Box sx={{ textAlign: 'center', p: 4 }}>
+                    <Typography variant="h6" sx={{ color: '#64748b', mb: 1 }}>
+                      フォームが見つかりません
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                      まずフォームを作成してください。Createページでフォームと質問を作成できます。
+                    </Typography>
+                  </Box>
+                ) : (
+                  <List sx={{ p: 0 }}>
+                    {reviewForms.map((form, index) => (
+                      <motion.div
+                        key={form.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.4, delay: index * 0.1 }}
+                      >
+                        <ListItem
+                          sx={{
+                            py: 2,
+                            px: 3,
+                            borderBottom: index < reviewForms.length - 1 ? '1px solid rgba(0, 0, 0, 0.05)' : 'none',
+                            cursor: 'pointer',
+                            '&:hover': {
+                              backgroundColor: 'rgba(94, 23, 235, 0.02)'
+                            }
+                          }}
+                          onClick={() => handleFormSelect(form)}
+                        >
+                          <ListItemIcon>
+                            <Box
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 2,
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white'
+                              }}
+                            >
+                              <Folder />
+                            </Box>
+                          </ListItemIcon>
+                          
+                          <ListItemText
+                            primary={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                  {form.title}
+                                </Typography>
+                                <Chip
+                                  size="small"
+                                  label={`${form.question_count || 0}問`}
+                                  sx={{
+                                    backgroundColor: '#eff6ff',
+                                    color: '#3b82f6',
+                                    fontWeight: 600,
+                                    fontSize: '0.7rem'
+                                  }}
+                                />
+                              </Box>
+                            }
+                            secondary={
+                              <Typography variant="body2" sx={{ color: '#64748b' }}>
+                                フォームID: {form.id} • 
+                                作成日: {new Date(form.created_at).toLocaleDateString('ja-JP')}
+                              </Typography>
+                            }
+                          />
+                        </ListItem>
+                      </motion.div>
+                    ))}
+                  </List>
+                )
               ) : questions.length === 0 ? (
                 <Box sx={{ textAlign: 'center', p: 4 }}>
                   <Typography variant="h6" sx={{ color: '#64748b', mb: 1 }}>
                     質問が見つかりません
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                    まず質問を作成してください。Createページでフォームと質問を作成できます。
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#94a3b8', mt: 1 }}>
-                    質問総数: {stats.totalQuestions}
+                    このフォームには質問がありません。Createページで質問を追加してください。
                   </Typography>
                 </Box>
               ) : (

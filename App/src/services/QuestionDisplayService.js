@@ -230,10 +230,89 @@ export class QuestionDisplayService {
     ];
   }
 
-  // すべての質問を取得
+  // レビューフォーム一覧を取得
+  static async getReviewForms() {
+    try {
+      const { data, error } = await supabase
+        .from('review_forms')
+        .select(`
+          id,
+          title,
+          created_at,
+          updated_at,
+          is_published,
+          is_deleted
+        `)
+        .eq('is_deleted', false)
+        .order('updated_at', { ascending: false });
+
+      if (error) throw error;
+
+      // 各フォームの質問数を取得
+      const formsWithQuestionCount = await Promise.all(
+        data.map(async (form) => {
+          try {
+            const { data: questions, error: questionsError } = await supabase
+              .from('review_questions')
+              .select('id')
+              .eq('review_fome_id', form.id);
+            
+            return {
+              ...form,
+              question_count: questionsError ? 0 : (questions?.length || 0)
+            };
+          } catch (err) {
+            console.error(`フォーム ${form.id} の質問数取得エラー:`, err);
+            return {
+              ...form,
+              question_count: 0
+            };
+          }
+        })
+      );
+
+      console.log('取得したフォーム一覧:', formsWithQuestionCount);
+      return { success: true, data: formsWithQuestionCount };
+    } catch (error) {
+      console.error('フォーム一覧の取得に失敗:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // 指定されたフォームの質問を取得
+  static async getQuestionsByFormId(formId) {
+    try {
+      const { data, error } = await supabase
+        .from('review_questions')
+        .select(`
+          id,
+          question_text,
+          question_number,
+          is_required,
+          question_detail_text,
+          is_detail_enabled,
+          created_at,
+          question_types_id,
+          question_categories_id,
+          question_subcategories_id,
+          review_fome_id
+        `)
+        .eq('review_fome_id', formId)
+        .order('question_number', { ascending: true });
+
+      if (error) throw error;
+      
+      console.log(`フォーム ${formId} の質問データ:`, data);
+      return { success: true, data };
+    } catch (error) {
+      console.error('質問の取得に失敗:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // すべての質問を取得（後方互換性のため残す）
   static async getAllQuestions() {
     try {
-      // まずシンプルな構造で試す
       const { data, error } = await supabase
         .from('review_questions')
         .select('*')
@@ -244,13 +323,8 @@ export class QuestionDisplayService {
         throw error;
       }
       
-      // ログでデータを確認
       console.log('取得した質問データ (raw):', data);
       console.log('データ件数:', data?.length || 0);
-      
-      if (data && data.length > 0) {
-        console.log('最初の質問のスキーマ:', Object.keys(data[0]));
-      }
       
       return { success: true, data };
     } catch (error) {
