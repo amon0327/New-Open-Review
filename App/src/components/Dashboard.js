@@ -43,6 +43,7 @@ import CreatePagePlaceholder from './dashboard/pages/CreatePagePlaceholder';
 import AnalyticsPage from './dashboard/pages/AnalyticsPage';
 import SettingsPage from './dashboard/pages/SettingsPage';
 import StoresManagementPage from './dashboard/pages/StoresManagementPage';
+import AppPage from './dashboard/pages/AppPage';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
@@ -51,7 +52,7 @@ const navigationItems = [
   { text: 'Create', icon: <Add /> },
   { text: 'Home', icon: <Home />, component: HomePage },
   { text: 'Management', icon: <Business />, component: StoresManagementPage },
-  { text: 'App', icon: <Apps /> },
+  { text: 'App', icon: <Apps />, component: AppPage },
   { text: 'Analytics', icon: <Analytics />, component: AnalyticsPage },
   { text: 'Settings', icon: <Settings />, component: SettingsPage },
 ];
