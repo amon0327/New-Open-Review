@@ -82,8 +82,12 @@ const AppPage = () => {
   const [questionOptions, setQuestionOptions] = useState([]);
   const [selectedOptionId, setSelectedOptionId] = useState('');
 
-  // 質問タイプの名前マッピング
-  const getQuestionTypeName = (type) => {
+  // 質問タイプの名前を取得
+  const getQuestionTypeName = (question) => {
+    if (question?.question_types?.type_name) {
+      return question.question_types.type_name;
+    }
+    // フォールバック
     const typeMap = {
       1: '短文回答',
       2: '長文回答', 
@@ -94,7 +98,7 @@ const AppPage = () => {
       7: '評価スケール',
       8: '推奨度スコア'
     };
-    return typeMap[type] || 'その他';
+    return typeMap[question?.question_types_id] || 'その他';
   };
 
   // データ読み込み
@@ -138,7 +142,7 @@ const AppPage = () => {
     setDisplayName(question.question_text);
     
     // 質問タイプが3,5,8の場合は選択肢を取得
-    if (QuestionDisplayService.needsRuleSettings(question.question_type)) {
+    if (QuestionDisplayService.needsRuleSettings(question.question_types_id)) {
       const optionsResult = await QuestionDisplayService.getQuestionOptions(question.id);
       if (optionsResult.success) {
         setQuestionOptions(optionsResult.data || []);
@@ -293,7 +297,7 @@ const AppPage = () => {
     }
   };
 
-  const getQuestionTypeChip = (type) => {
+  const getQuestionTypeChip = (question) => {
     const typeColors = {
       1: { color: '#10b981', bg: '#ecfdf5' },
       2: { color: '#06b6d4', bg: '#cffafe' },
@@ -305,12 +309,13 @@ const AppPage = () => {
       8: { color: '#ec4899', bg: '#fdf2f8' }
     };
     
-    const typeConfig = typeColors[type] || { color: '#6b7280', bg: '#f3f4f6' };
+    const typeId = question?.question_types_id || question?.review_questions?.question_types_id;
+    const typeConfig = typeColors[typeId] || { color: '#6b7280', bg: '#f3f4f6' };
     
     return (
       <Chip
         size="small"
-        label={getQuestionTypeName(type)}
+        label={getQuestionTypeName(question)}
         sx={{
           backgroundColor: typeConfig.bg,
           color: typeConfig.color,
@@ -327,7 +332,7 @@ const AppPage = () => {
   const stats = {
     totalQuestions: questions.length,
     withDisplaySettings: displaySettings.length,
-    needsRuleSettings: questions.filter(q => needsRuleSettings(q.question_type)).length,
+    needsRuleSettings: questions.filter(q => needsRuleSettings(q.question_types_id)).length,
     withRuleSettings: displaySettings.reduce((count, ds) => 
       count + (ds.question_display_rule_settings?.length || 0), 0
     )
@@ -626,7 +631,7 @@ const AppPage = () => {
                                 borderRadius: 2,
                                 background: hasDisplaySetting
                                   ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                                  : needsRuleSettings(question.question_type) 
+                                  : needsRuleSettings(question.question_types_id) 
                                     ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
                                     : 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
                                 display: 'flex',
@@ -645,7 +650,7 @@ const AppPage = () => {
                                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                                   {question.question_text}
                                 </Typography>
-                                {getQuestionTypeChip(question.question_type)}
+                                {getQuestionTypeChip(question)}
                                 {hasDisplaySetting && (
                                   <Chip
                                     size="small"
@@ -659,7 +664,7 @@ const AppPage = () => {
                                     }}
                                   />
                                 )}
-                                {needsRuleSettings(question.question_type) && !hasDisplaySetting && (
+                                {needsRuleSettings(question.question_types_id) && !hasDisplaySetting && (
                                   <Chip
                                     size="small"
                                     icon={<Rule sx={{ fontSize: '0.875rem' }} />}
@@ -676,7 +681,7 @@ const AppPage = () => {
                             }
                             secondary={
                               <Typography variant="body2" sx={{ color: '#64748b' }}>
-                                質問ID: {question.id} • タイプ: {question.question_type} • 
+                                質問ID: {question.id} • タイプID: {question.question_types_id} • 
                                 作成日: {new Date(question.created_at).toLocaleDateString('ja-JP')}
                               </Typography>
                             }
@@ -780,14 +785,14 @@ const AppPage = () => {
                             </Typography>
                           </TableCell>
                           <TableCell>
-                            {getQuestionTypeChip(setting.review_questions?.question_type)}
+                            {getQuestionTypeChip(setting)}
                           </TableCell>
                           <TableCell>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                               <Typography variant="body2">
                                 {setting.question_display_rule_settings?.length || 0} 件
                               </Typography>
-                              {needsRuleSettings(setting.review_questions?.question_type) && (
+                              {needsRuleSettings(setting.review_questions?.question_types_id) && (
                                 <Tooltip title="ルール設定を追加">
                                   <IconButton
                                     size="small"
@@ -890,7 +895,7 @@ const AppPage = () => {
               <Alert severity="info" sx={{ mb: 3 }}>
                 <AlertTitle>質問情報</AlertTitle>
                 <Typography variant="body2">
-                  {selectedQuestion.question_text}（タイプ: {getQuestionTypeName(selectedQuestion.question_type)}）
+                  {selectedQuestion.question_text}（タイプ: {getQuestionTypeName(selectedQuestion)}）
                 </Typography>
               </Alert>
               
@@ -972,7 +977,7 @@ const AppPage = () => {
                 <AlertTitle>質問情報</AlertTitle>
                 <Typography variant="body2">
                   {selectedDisplaySetting.review_questions?.question_text}
-                  （タイプ: {getQuestionTypeName(selectedDisplaySetting.review_questions?.question_type)}）
+                  （タイプ: {getQuestionTypeName(selectedDisplaySetting)}）
                 </Typography>
               </Alert>
               
@@ -1055,7 +1060,7 @@ const AppPage = () => {
                 <AlertTitle>ルール設定が必要な質問</AlertTitle>
                 <Typography variant="body2">
                   {selectedDisplaySetting.review_questions?.question_text}
-                  （質問タイプ {selectedDisplaySetting.review_questions?.question_type}）には、追加のルール設定が必要です。
+                  （質問タイプ {selectedDisplaySetting.review_questions?.question_types_id}）には、追加のルール設定が必要です。
                 </Typography>
               </Alert>
               

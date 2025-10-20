@@ -198,8 +198,10 @@ export class QuestionDisplayService {
   }
 
   // 質問タイプに基づいてルール設定が必要かチェック
-  static needsRuleSettings(questionType) {
-    return [3, 5, 8].includes(questionType);
+  static needsRuleSettings(questionTypesId) {
+    // 質問タイプID 3,5,8 がルール設定が必要なタイプと仮定
+    // 実際のquestion_typesテーブルの構造に応じて調整が必要
+    return [3, 5, 8].includes(questionTypesId);
   }
 
   // 質問の選択肢を取得（質問タイプ3,5,8の場合）
@@ -236,9 +238,13 @@ export class QuestionDisplayService {
         .select(`
           id,
           question_text,
-          question_type,
+          question_types_id,
           created_at,
-          updated_at
+          updated_at,
+          question_types (
+            id,
+            type_name
+          )
         `)
         .order('created_at', { ascending: false });
 
@@ -259,9 +265,13 @@ export class QuestionDisplayService {
         .select(`
           id,
           question_text,
-          question_type,
+          question_types_id,
           created_at,
           updated_at,
+          question_types (
+            id,
+            type_name
+          ),
           question_display_settings (
             id,
             display_name,
@@ -300,7 +310,11 @@ export class QuestionDisplayService {
           review_questions (
             id,
             question_text,
-            question_type
+            question_types_id,
+            question_types (
+              id,
+              type_name
+            )
           ),
           question_display_rule_settings (
             id,
