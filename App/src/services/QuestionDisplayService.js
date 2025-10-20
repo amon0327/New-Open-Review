@@ -228,6 +228,28 @@ export class QuestionDisplayService {
     ];
   }
 
+  // すべての質問を取得
+  static async getAllQuestions() {
+    try {
+      const { data, error } = await supabase
+        .from('review_questions')
+        .select(`
+          id,
+          question_text,
+          question_type,
+          created_at,
+          updated_at
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      console.error('質問の取得に失敗:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
   // 質問と表示設定をまとめて取得
   static async getQuestionsWithDisplaySettings() {
     try {
@@ -238,6 +260,8 @@ export class QuestionDisplayService {
           id,
           question_text,
           question_type,
+          created_at,
+          updated_at,
           question_display_settings (
             id,
             display_name,
@@ -260,6 +284,40 @@ export class QuestionDisplayService {
       return { success: true, data: questions };
     } catch (error) {
       console.error('質問と表示設定の取得に失敗:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // 表示設定済みの質問のみを取得
+  static async getQuestionsWithDisplaySettingsOnly() {
+    try {
+      const { data, error } = await supabase
+        .from('question_display_settings')
+        .select(`
+          id,
+          display_name,
+          created_at,
+          review_questions (
+            id,
+            question_text,
+            question_type
+          ),
+          question_display_rule_settings (
+            id,
+            nps_segments,
+            question_option_choices_id,
+            question_option_choices (
+              id,
+              option_text
+            )
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      console.error('表示設定済み質問の取得に失敗:', error);
       return { success: false, error: error.message };
     }
   }
