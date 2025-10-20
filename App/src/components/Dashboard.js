@@ -29,7 +29,8 @@ import {
   Notifications,
   AccountCircle,
   Info,
-  Business
+  Business,
+  Apps
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
@@ -50,6 +51,7 @@ const navigationItems = [
   { text: 'Create', icon: <Add /> },
   { text: 'Home', icon: <Home />, component: HomePage },
   { text: 'Management', icon: <Business />, component: StoresManagementPage },
+  { text: 'App', icon: <Apps /> },
   { text: 'Analytics', icon: <Analytics />, component: AnalyticsPage },
   { text: 'Settings', icon: <Settings />, component: SettingsPage },
 ];

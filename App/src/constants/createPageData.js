@@ -27,7 +27,6 @@ export const leftNavigationItems = [
   { icon: null, label: 'OpenReview', category: 'main', isLogo: true },
   { icon: <Folder />, label: 'フォルダー', category: 'main' },
   { icon: <Edit />, label: '編集', category: 'main' },
-  { icon: <Apps />, label: 'App', category: 'management' },
   { icon: <Settings />, label: '設定', category: 'main' }
 ];
 
