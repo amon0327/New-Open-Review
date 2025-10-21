@@ -89,8 +89,8 @@ const AppPage = () => {
 
   // 質問タイプの名前を取得
   const getQuestionTypeName = (question) => {
-    if (question?.question_types?.type_name) {
-      return question.question_types.type_name;
+    if (question?.question_types?.japanese) {
+      return question.question_types.japanese;
     }
     // フォールバック
     const typeMap = {
@@ -1294,7 +1294,7 @@ const AppPage = () => {
                     >
                       {questionOptions.map((option) => (
                         <MenuItem key={option.id} value={option.id}>
-                          {option.option_text}
+                          {option.choice_name}
                         </MenuItem>
                       ))}
                     </Select>

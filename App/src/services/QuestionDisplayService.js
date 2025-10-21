@@ -143,7 +143,7 @@ export class QuestionDisplayService {
           *,
           question_option_choices (
             id,
-            option_text
+            choice_name
           )
         `)
         .eq('question_display_settings_id', questionDisplaySettingsId)
@@ -220,8 +220,8 @@ export class QuestionDisplayService {
       const { data, error } = await supabase
         .from('question_option_choices')
         .select('*')
-        .eq('review_question_id', reviewQuestionId)
-        .order('option_order', { ascending: true });
+        .eq('review_questions_id', reviewQuestionId)
+        .order('choice_number', { ascending: true });
 
       if (error) throw error;
       return { success: true, data };
@@ -355,9 +355,10 @@ export class QuestionDisplayService {
           question_types_id,
           created_at,
           updated_at,
-          question_types (
+          question_types!review_questions_question_types_id_fkey (
             id,
-            type_name
+            name,
+            japanese
           ),
           question_display_settings (
             id,
@@ -400,9 +401,10 @@ export class QuestionDisplayService {
             id,
             question_text,
             question_types_id,
-            question_types (
+            question_types!review_questions_question_types_id_fkey (
               id,
-              type_name
+              name,
+              japanese
             )
           ),
           question_display_rule_settings (
@@ -411,7 +413,7 @@ export class QuestionDisplayService {
             question_option_choices_id,
             question_option_choices (
               id,
-              option_text
+              choice_name
             )
           )
         `)
