@@ -265,7 +265,7 @@ export class QuestionDisplayService {
             const { data: questions, error: questionsError } = await supabase
               .from('review_questions')
               .select('id')
-              .eq('review_fome_id', form.id);
+              .eq('review_form_id', form.id);
             
             return {
               ...form,
@@ -305,9 +305,9 @@ export class QuestionDisplayService {
           question_types_id,
           question_categories_id,
           question_subcategories_id,
-          review_fome_id
+          review_form_id
         `)
-        .eq('review_fome_id', formId)
+        .eq('review_form_id', formId)
         .order('question_number', { ascending: true });
 
       if (error) throw error;
