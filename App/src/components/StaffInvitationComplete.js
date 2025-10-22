@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import {
   CheckCircle,
-  Error,
+  Error as ErrorIcon,
   ExitToApp
 } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
@@ -235,7 +235,7 @@ export default function StaffInvitationComplete() {
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
                 >
-                  <Error sx={{ fontSize: 64, color: '#ef4444', mb: 2 }} />
+                  <ErrorIcon sx={{ fontSize: 64, color: '#ef4444', mb: 2 }} />
                   <Typography
                     variant="h4"
                     sx={{

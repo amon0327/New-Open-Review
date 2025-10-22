@@ -16,7 +16,7 @@ import {
   Google,
   PersonAdd,
   CheckCircle,
-  Error,
+  Error as ErrorIcon,
   Store,
   AdminPanelSettings,
   WorkOutline
@@ -210,7 +210,7 @@ export default function StaffInvitationLogin() {
               }}
             >
               <CardContent sx={{ p: 4 }}>
-                <Error sx={{ fontSize: 64, color: '#ef4444', mb: 2 }} />
+                <ErrorIcon sx={{ fontSize: 64, color: '#ef4444', mb: 2 }} />
                 <Typography
                   variant="h5"
                   sx={{ fontWeight: 600, color: '#ef4444', mb: 2 }}
