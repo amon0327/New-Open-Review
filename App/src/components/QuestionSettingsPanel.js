@@ -788,7 +788,7 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
               {/* ルール設定（質問タイプ3,5,8用） */}
               {QuestionDisplayService.needsRuleSettings(typeId) && (
                 <RuleSettingsSection
-                  questionId={questionId}
+                  questionId={question.id}
                   questionType={typeId}
                   choices={choices}
                 />
