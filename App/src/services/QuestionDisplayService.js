@@ -276,14 +276,25 @@ export class QuestionDisplayService {
     return categorized;
   }
 
-  // 質問選択肢のカテゴリ分類を保存
+  // 質問選択肢のカテゴリ分類を保存（既存のquestion_display_rule_settingsテーブルを使用）
   static async saveChoiceCategorization(reviewQuestionId, categorization, questionOptions = []) {
     try {
-      // 既存のカテゴリ分類を削除
+      // まず対応するdisplay_settingsを取得
+      const { data: displaySettings, error: displayError } = await supabase
+        .from('question_display_settings')
+        .select('id')
+        .eq('review_question_id', reviewQuestionId)
+        .single();
+
+      if (displayError) {
+        throw new Error('対応する表示設定が見つかりません: ' + displayError.message);
+      }
+
+      // 既存のルール設定を削除
       await supabase
-        .from('question_choice_categorization')
+        .from('question_display_rule_settings')
         .delete()
-        .eq('review_question_id', reviewQuestionId);
+        .eq('question_display_settings_id', displaySettings.id);
 
       // 新しいカテゴリ分類を保存
       const insertData = [];
@@ -294,9 +305,9 @@ export class QuestionDisplayService {
           const optionData = questionOptions.find(opt => opt.choice_name === choiceName);
           if (optionData) {
             insertData.push({
-              review_question_id: reviewQuestionId,
-              choice_id: optionData.id,
-              category: category
+              question_display_settings_id: displaySettings.id,
+              question_option_choices_id: optionData.id,
+              nps_segments: category
             });
           }
         });
@@ -304,7 +315,7 @@ export class QuestionDisplayService {
 
       if (insertData.length > 0) {
         const { data, error } = await supabase
-          .from('question_choice_categorization')
+          .from('question_display_rule_settings')
           .insert(insertData)
           .select();
 
@@ -316,6 +327,60 @@ export class QuestionDisplayService {
     } catch (error) {
       console.error('選択肢カテゴリ分類の保存に失敗:', error);
       return { success: false, error: error.message };
+    }
+  }
+
+  // 既存のカテゴリ分類を読み込み
+  static async loadChoiceCategorization(reviewQuestionId, questionOptions = []) {
+    try {
+      // 対応するdisplay_settingsを取得
+      const { data: displaySettings, error: displayError } = await supabase
+        .from('question_display_settings')
+        .select('id')
+        .eq('review_question_id', reviewQuestionId)
+        .single();
+
+      if (displayError) {
+        // 表示設定がない場合は自動カテゴリ分類を返す
+        const choices = questionOptions.map(opt => opt.choice_name);
+        return { success: true, data: this.categorizeQuestionChoices(choices) };
+      }
+
+      // ルール設定を取得
+      const { data: ruleSettings, error: ruleError } = await supabase
+        .from('question_display_rule_settings')
+        .select(`
+          nps_segments,
+          question_option_choices (
+            id,
+            choice_name
+          )
+        `)
+        .eq('question_display_settings_id', displaySettings.id);
+
+      if (ruleError) throw ruleError;
+
+      // カテゴリ分類オブジェクトを構築
+      const categorization = { promoter: [], passive: [], detractor: [] };
+      
+      if (ruleSettings && ruleSettings.length > 0) {
+        ruleSettings.forEach(rule => {
+          if (rule.question_option_choices && rule.nps_segments) {
+            categorization[rule.nps_segments].push(rule.question_option_choices.choice_name);
+          }
+        });
+      } else {
+        // ルール設定がない場合は自動カテゴリ分類を使用
+        const choices = questionOptions.map(opt => opt.choice_name);
+        return { success: true, data: this.categorizeQuestionChoices(choices) };
+      }
+
+      return { success: true, data: categorization };
+    } catch (error) {
+      console.error('カテゴリ分類の読み込みに失敗:', error);
+      // エラーの場合は自動カテゴリ分類を返す
+      const choices = questionOptions.map(opt => opt.choice_name);
+      return { success: true, data: this.categorizeQuestionChoices(choices) };
     }
   }
 

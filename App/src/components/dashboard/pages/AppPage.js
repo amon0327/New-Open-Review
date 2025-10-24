@@ -367,10 +367,20 @@ const AppPage = () => {
       if (optionsResult.success && optionsResult.data) {
         setQuestionOptions(optionsResult.data || []);
         
-        // 既存のカテゴリ分類があるかチェック、なければ自動生成
-        const choices = optionsResult.data.map(opt => opt.choice_name);
-        const categorization = QuestionDisplayService.categorizeQuestionChoices(choices);
-        setEditRuleCategorization(categorization);
+        // 既存のカテゴリ分類を読み込み（なければ自動生成）
+        const categorizationResult = await QuestionDisplayService.loadChoiceCategorization(
+          displaySetting.review_questions.id,
+          optionsResult.data
+        );
+        
+        if (categorizationResult.success) {
+          setEditRuleCategorization(categorizationResult.data);
+        } else {
+          // フォールバック: 自動カテゴリ分類
+          const choices = optionsResult.data.map(opt => opt.choice_name);
+          const categorization = QuestionDisplayService.categorizeQuestionChoices(choices);
+          setEditRuleCategorization(categorization);
+        }
       }
     }
     
