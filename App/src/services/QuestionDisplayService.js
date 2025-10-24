@@ -242,44 +242,30 @@ export class QuestionDisplayService {
 
   // NPSセグメント値をデータベース用の値にマッピング
   static mapToDbNpsSegment(clientValue) {
-    // 複数のパターンを試行（最初は大文字、次は小文字、最後は日本語）
-    const mappings = [
-      {
-        'promoter': 'PROMOTER',
-        'passive': 'PASSIVE', 
-        'detractor': 'DETRACTOR'
-      },
-      {
-        'promoter': 'promoter',
-        'passive': 'passive', 
-        'detractor': 'detractor'
-      },
-      {
-        'promoter': '推奨者',
-        'passive': '中立者', 
-        'detractor': '批判者'
-      }
-    ];
+    // データベースのENUMは日本語で定義されている
+    const mapping = {
+      'promoter': '推奨者',
+      'passive': '中立者', 
+      'detractor': '批判者'
+    };
     
-    // 最初のマッピング（大文字）を返す
-    return mappings[0][clientValue] || clientValue;
+    return mapping[clientValue] || clientValue;
   }
 
   // データベースの値をクライアント用の値にマッピング
   static mapFromDbNpsSegment(dbValue) {
+    // データベースのENUMは日本語で定義されている
     const mapping = {
-      // 大文字パターン
+      '推奨者': 'promoter',
+      '中立者': 'passive',
+      '批判者': 'detractor',
+      // 英語パターンもサポート（フォールバック用）
       'PROMOTER': 'promoter',
       'PASSIVE': 'passive',
       'DETRACTOR': 'detractor',
-      // 小文字パターン
       'promoter': 'promoter',
       'passive': 'passive',
-      'detractor': 'detractor',
-      // 日本語パターン
-      '推奨者': 'promoter',
-      '中立者': 'passive',
-      '批判者': 'detractor'
+      'detractor': 'detractor'
     };
     return mapping[dbValue] || (typeof dbValue === 'string' ? dbValue.toLowerCase() : dbValue);
   }
