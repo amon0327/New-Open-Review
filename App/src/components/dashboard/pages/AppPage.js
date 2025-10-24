@@ -86,6 +86,31 @@ const AppPage = () => {
   const [npsSegment, setNpsSegment] = useState('');
   const [questionOptions, setQuestionOptions] = useState([]);
   const [selectedOptionId, setSelectedOptionId] = useState('');
+  const [ruleCategorization, setRuleCategorization] = useState(null);
+  const [showRuleSettings, setShowRuleSettings] = useState(false);
+
+  // 選択肢のカテゴリを手動で変更する関数
+  const handleChoiceCategoryChange = (choiceIndex, newCategory) => {
+    if (!ruleCategorization) return;
+    
+    const updatedCategorization = { ...ruleCategorization };
+    const choiceName = questionOptions[choiceIndex]?.choice_name;
+    
+    // 元のカテゴリから削除
+    Object.keys(updatedCategorization).forEach(category => {
+      updatedCategorization[category] = updatedCategorization[category].filter(
+        choice => choice !== choiceName
+      );
+    });
+    
+    // 新しいカテゴリに追加
+    if (!updatedCategorization[newCategory]) {
+      updatedCategorization[newCategory] = [];
+    }
+    updatedCategorization[newCategory].push(choiceName);
+    
+    setRuleCategorization(updatedCategorization);
+  };
 
   // 質問タイプの名前を取得
   const getQuestionTypeName = (question) => {
@@ -223,12 +248,21 @@ const AppPage = () => {
     setSelectedQuestion(question);
     setDisplayName(question.question_text);
     
-    // 質問タイプが3,5,8の場合は選択肢を取得
+    // 質問タイプが3,5,8の場合は選択肢を取得してルール設定を準備
     if (QuestionDisplayService.needsRuleSettings(question.question_types_id)) {
       const optionsResult = await QuestionDisplayService.getQuestionOptions(question.id);
-      if (optionsResult.success) {
+      if (optionsResult.success && optionsResult.data) {
         setQuestionOptions(optionsResult.data || []);
+        
+        // 選択肢を自動カテゴリ分類
+        const choices = optionsResult.data.map(opt => opt.choice_name);
+        const categorization = QuestionDisplayService.categorizeQuestionChoices(choices);
+        setRuleCategorization(categorization);
+        setShowRuleSettings(true);
       }
+    } else {
+      setRuleCategorization(null);
+      setShowRuleSettings(false);
     }
     
     setSettingsDialogOpen(true);
@@ -249,8 +283,24 @@ const AppPage = () => {
       );
 
       if (result.success) {
-        console.log('AppPage: 表示設定追加成功、リロード開始');
-        toast.success('表示設定を追加しました');
+        console.log('AppPage: 表示設定追加成功、ルール設定保存開始');
+        
+        // ルール設定が必要な場合は保存
+        if (showRuleSettings && ruleCategorization && result.data) {
+          const ruleResult = await QuestionDisplayService.saveChoiceCategorization(
+            selectedQuestion.id,
+            ruleCategorization
+          );
+          
+          if (!ruleResult.success) {
+            console.error('ルール設定保存失敗:', ruleResult.error);
+            toast.error('ルール設定の保存に失敗しましたが、表示設定は正常に追加されました');
+          } else {
+            console.log('ルール設定保存成功');
+          }
+        }
+        
+        toast.success('表示設定を追加しました' + (showRuleSettings ? '（ルール設定も保存されました）' : ''));
         
         // データを再読み込み
         await loadForms();
@@ -264,6 +314,8 @@ const AppPage = () => {
         setSettingsDialogOpen(false);
         setSelectedQuestion(null);
         setDisplayName('');
+        setRuleCategorization(null);
+        setShowRuleSettings(false);
       } else {
         console.error('AppPage: 表示設定追加失敗:', result.error);
         toast.error(result.error || '表示設定の追加に失敗しました');
@@ -1069,6 +1121,8 @@ const AppPage = () => {
           setSettingsDialogOpen(false);
           setSelectedQuestion(null);
           setDisplayName('');
+          setRuleCategorization(null);
+          setShowRuleSettings(false);
         }}
         maxWidth="md"
         fullWidth
@@ -1109,8 +1163,71 @@ const AppPage = () => {
                 variant="outlined"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                sx={{ mb: 2 }}
+                sx={{ mb: 3 }}
               />
+
+              {/* ルール設定セクション */}
+              {showRuleSettings && ruleCategorization && (
+                <Box sx={{ mt: 2 }}>
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    <AlertTitle>ルール設定</AlertTitle>
+                    選択肢を3つのカテゴリに分類して、表示条件を設定できます。
+                  </Alert>
+                  
+                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                    選択肢のカテゴリ分類
+                  </Typography>
+                  
+                  <Stack spacing={2}>
+                    {questionOptions.map((option, index) => {
+                      // この選択肢が現在どのカテゴリに属しているかを見つける
+                      let currentCategory = null;
+                      Object.entries(ruleCategorization).forEach(([category, choices]) => {
+                        if (choices.includes(option.choice_name)) {
+                          currentCategory = category;
+                        }
+                      });
+                      
+                      const npsSegments = QuestionDisplayService.getNpsSegments();
+                      const currentSegment = npsSegments.find(s => s.value === currentCategory);
+                      
+                      return (
+                        <Box key={option.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Typography variant="body2" sx={{ minWidth: 150, fontWeight: 500 }}>
+                            {option.choice_name}
+                          </Typography>
+                          <FormControl size="small" sx={{ minWidth: 120 }}>
+                            <InputLabel>カテゴリ</InputLabel>
+                            <Select
+                              value={currentCategory || ''}
+                              label="カテゴリ"
+                              onChange={(e) => handleChoiceCategoryChange(index, e.target.value)}
+                            >
+                              {npsSegments.map((segment) => (
+                                <MenuItem key={segment.value} value={segment.value}>
+                                  {segment.label}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <Chip
+                            label={currentSegment?.description || '未分類'}
+                            size="small"
+                            sx={{
+                              backgroundColor: currentCategory === 'promoter' ? '#dcfdf7' : 
+                                             currentCategory === 'passive' ? '#fef3c7' : 
+                                             currentCategory === 'detractor' ? '#fde2e8' : '#f3f4f6',
+                              color: currentCategory === 'promoter' ? '#047857' : 
+                                     currentCategory === 'passive' ? '#92400e' : 
+                                     currentCategory === 'detractor' ? '#be123c' : '#6b7280'
+                            }}
+                          />
+                        </Box>
+                      );
+                    })}
+                  </Stack>
+                </Box>
+              )}
             </Box>
           )}
         </DialogContent>
@@ -1120,6 +1237,8 @@ const AppPage = () => {
               setSettingsDialogOpen(false);
               setSelectedQuestion(null);
               setDisplayName('');
+              setRuleCategorization(null);
+              setShowRuleSettings(false);
             }}
             startIcon={<Cancel />}
             sx={{ color: '#64748b' }}
