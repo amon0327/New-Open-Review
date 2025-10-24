@@ -234,10 +234,85 @@ export class QuestionDisplayService {
   // NPSセグメントの定義を取得
   static getNpsSegments() {
     return [
-      { value: 'promoter', label: 'Promoter (9-10点)', description: '推奨者' },
-      { value: 'passive', label: 'Passive (7-8点)', description: '中立者' },
-      { value: 'detractor', label: 'Detractor (0-6点)', description: '批判者' }
+      { value: 'promoter', label: '推奨者 (9-10点)', description: '推奨者' },
+      { value: 'passive', label: '中立者 (7-8点)', description: '中立者' },
+      { value: 'detractor', label: '批判者 (0-6点)', description: '批判者' }
     ];
+  }
+
+  // 質問選択肢を3つのカテゴリに強制分類
+  static categorizeQuestionChoices(choices) {
+    if (!choices || choices.length === 0) {
+      return { promoter: [], passive: [], detractor: [] };
+    }
+
+    // 選択肢数に応じて自動分類
+    const total = choices.length;
+    let promoterCount, passiveCount, detractorCount;
+
+    if (total <= 3) {
+      // 3つ以下の場合は均等分散
+      promoterCount = Math.floor(total / 3);
+      passiveCount = Math.floor(total / 3);
+      detractorCount = total - promoterCount - passiveCount;
+    } else if (total <= 5) {
+      // 5つ以下の場合は1:1:3 または 1:2:2 の分布
+      promoterCount = 1;
+      passiveCount = total <= 4 ? 1 : 2;
+      detractorCount = total - promoterCount - passiveCount;
+    } else {
+      // 6つ以上の場合は約1/3ずつ分配
+      promoterCount = Math.ceil(total / 3);
+      passiveCount = Math.ceil((total - promoterCount) / 2);
+      detractorCount = total - promoterCount - passiveCount;
+    }
+
+    const categorized = {
+      promoter: choices.slice(0, promoterCount),
+      passive: choices.slice(promoterCount, promoterCount + passiveCount),
+      detractor: choices.slice(promoterCount + passiveCount)
+    };
+
+    return categorized;
+  }
+
+  // 質問選択肢のカテゴリ分類を保存
+  static async saveChoiceCategorization(reviewQuestionId, categorization) {
+    try {
+      // 既存のカテゴリ分類を削除
+      await supabase
+        .from('question_choice_categorization')
+        .delete()
+        .eq('review_question_id', reviewQuestionId);
+
+      // 新しいカテゴリ分類を保存
+      const insertData = [];
+      
+      Object.entries(categorization).forEach(([category, choices]) => {
+        choices.forEach(choice => {
+          insertData.push({
+            review_question_id: reviewQuestionId,
+            choice_id: choice.id,
+            category: category
+          });
+        });
+      });
+
+      if (insertData.length > 0) {
+        const { data, error } = await supabase
+          .from('question_choice_categorization')
+          .insert(insertData)
+          .select();
+
+        if (error) throw error;
+        return { success: true, data };
+      }
+
+      return { success: true, data: [] };
+    } catch (error) {
+      console.error('選択肢カテゴリ分類の保存に失敗:', error);
+      return { success: false, error: error.message };
+    }
   }
 
   // レビューフォーム一覧を取得

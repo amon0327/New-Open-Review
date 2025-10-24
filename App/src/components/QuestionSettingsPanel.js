@@ -43,6 +43,148 @@ import {
   KeyboardArrowDown
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
+import { QuestionDisplayService } from '../services/QuestionDisplayService';
+
+// ルール設定セクションコンポーネント
+const RuleSettingsSection = ({ questionId, questionType, choices }) => {
+  const [categorization, setCategorization] = useState(null);
+  const [showCategorization, setShowCategorization] = useState(false);
+
+  useEffect(() => {
+    if (choices && choices.length > 0) {
+      const defaultCategorization = QuestionDisplayService.categorizeQuestionChoices(choices);
+      setCategorization(defaultCategorization);
+    }
+  }, [choices]);
+
+  const handleToggleCategorization = () => {
+    setShowCategorization(!showCategorization);
+  };
+
+  const handleSaveCategorization = async () => {
+    if (categorization && questionId) {
+      const result = await QuestionDisplayService.saveChoiceCategorization(questionId, categorization);
+      if (result.success) {
+        alert('選択肢のカテゴリ分類を保存しました');
+      } else {
+        alert('保存に失敗しました: ' + result.error);
+      }
+    }
+  };
+
+  const npsSegments = QuestionDisplayService.getNpsSegments();
+
+  return (
+    <Box sx={{ mt: 3 }}>
+      <Typography variant="h6" sx={{ color: '#374151', fontWeight: 600, mb: 2, fontSize: '1rem' }}>
+        ルール設定
+      </Typography>
+      
+      <Alert severity="info" sx={{ mb: 2 }}>
+        この質問の回答に応じて、後続の質問表示を制御できます
+      </Alert>
+
+      {questionType === 8 && ( // NPSスコア質問の場合
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+            NPS分類設定
+          </Typography>
+          <Stack spacing={1}>
+            {npsSegments.map((segment) => (
+              <Box key={segment.value} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Chip
+                  label={segment.label}
+                  size="small"
+                  sx={{
+                    backgroundColor: segment.value === 'promoter' ? '#dcfdf7' : 
+                                   segment.value === 'passive' ? '#fef3c7' : '#fde2e8',
+                    color: segment.value === 'promoter' ? '#047857' : 
+                           segment.value === 'passive' ? '#92400e' : '#be123c',
+                    minWidth: 120
+                  }}
+                />
+                <Typography variant="body2" sx={{ color: '#6b7280' }}>
+                  {segment.description}
+                </Typography>
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+      )}
+
+      {(questionType === 3 || questionType === 5) && choices && choices.length > 0 && ( // 選択肢がある質問の場合
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              選択肢カテゴリ分類
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={handleToggleCategorization}
+              sx={{ textTransform: 'none' }}
+            >
+              {showCategorization ? '設定を隠す' : '分類を設定'}
+            </Button>
+          </Box>
+
+          <Collapse in={showCategorization}>
+            {categorization && (
+              <Box sx={{ p: 2, border: '1px solid #e5e7eb', borderRadius: 2, mt: 2 }}>
+                <Typography variant="body2" sx={{ mb: 2, color: '#6b7280' }}>
+                  選択肢を3つのカテゴリに自動分類しました。必要に応じて調整してください。
+                </Typography>
+                
+                <Stack spacing={2}>
+                  {Object.entries(categorization).map(([category, categoryChoices]) => {
+                    const segment = npsSegments.find(s => s.value === category);
+                    return (
+                      <Box key={category}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                          {segment?.label}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                          {categoryChoices.map((choice, index) => (
+                            <Chip
+                              key={index}
+                              label={choice}
+                              size="small"
+                              sx={{
+                                backgroundColor: category === 'promoter' ? '#dcfdf7' : 
+                                               category === 'passive' ? '#fef3c7' : '#fde2e8',
+                                color: category === 'promoter' ? '#047857' : 
+                                       category === 'passive' ? '#92400e' : '#be123c'
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+
+                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={handleSaveCategorization}
+                    sx={{
+                      backgroundColor: '#5e17eb',
+                      textTransform: 'none',
+                      '&:hover': { backgroundColor: '#4c1d95' }
+                    }}
+                  >
+                    分類を保存
+                  </Button>
+                </Box>
+              </Box>
+            )}
+          </Collapse>
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 // 質問タイプのアイコンマッピング
 const getQuestionTypeIcon = (typeId) => {
@@ -641,6 +783,15 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                     マトリックス設定は今後実装予定です
                   </Alert>
                 </Box>
+              )}
+
+              {/* ルール設定（質問タイプ3,5,8用） */}
+              {QuestionDisplayService.needsRuleSettings(typeId) && (
+                <RuleSettingsSection
+                  questionId={questionId}
+                  questionType={typeId}
+                  choices={choices}
+                />
               )}
 
               {/* 保存・リセットボタン */}
