@@ -240,6 +240,50 @@ export class QuestionDisplayService {
     ];
   }
 
+  // NPSセグメント値をデータベース用の値にマッピング
+  static mapToDbNpsSegment(clientValue) {
+    // 複数のパターンを試行（最初は大文字、次は小文字、最後は日本語）
+    const mappings = [
+      {
+        'promoter': 'PROMOTER',
+        'passive': 'PASSIVE', 
+        'detractor': 'DETRACTOR'
+      },
+      {
+        'promoter': 'promoter',
+        'passive': 'passive', 
+        'detractor': 'detractor'
+      },
+      {
+        'promoter': '推奨者',
+        'passive': '中立者', 
+        'detractor': '批判者'
+      }
+    ];
+    
+    // 最初のマッピング（大文字）を返す
+    return mappings[0][clientValue] || clientValue;
+  }
+
+  // データベースの値をクライアント用の値にマッピング
+  static mapFromDbNpsSegment(dbValue) {
+    const mapping = {
+      // 大文字パターン
+      'PROMOTER': 'promoter',
+      'PASSIVE': 'passive',
+      'DETRACTOR': 'detractor',
+      // 小文字パターン
+      'promoter': 'promoter',
+      'passive': 'passive',
+      'detractor': 'detractor',
+      // 日本語パターン
+      '推奨者': 'promoter',
+      '中立者': 'passive',
+      '批判者': 'detractor'
+    };
+    return mapping[dbValue] || (typeof dbValue === 'string' ? dbValue.toLowerCase() : dbValue);
+  }
+
   // 質問選択肢を3つのカテゴリに強制分類
   static categorizeQuestionChoices(choices) {
     if (!choices || choices.length === 0) {
@@ -307,7 +351,7 @@ export class QuestionDisplayService {
             insertData.push({
               question_display_settings_id: displaySettings.id,
               question_option_choices_id: optionData.id,
-              nps_segments: category
+              nps_segments: this.mapToDbNpsSegment(category)
             });
           }
         });
@@ -366,7 +410,10 @@ export class QuestionDisplayService {
       if (ruleSettings && ruleSettings.length > 0) {
         ruleSettings.forEach(rule => {
           if (rule.question_option_choices && rule.nps_segments) {
-            categorization[rule.nps_segments].push(rule.question_option_choices.choice_name);
+            const clientCategory = this.mapFromDbNpsSegment(rule.nps_segments);
+            if (categorization[clientCategory]) {
+              categorization[clientCategory].push(rule.question_option_choices.choice_name);
+            }
           }
         });
       } else {
