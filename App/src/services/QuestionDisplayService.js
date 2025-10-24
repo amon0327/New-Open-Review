@@ -234,9 +234,9 @@ export class QuestionDisplayService {
   // NPSセグメントの定義を取得
   static getNpsSegments() {
     return [
-      { value: 'promoter', label: '推奨者 (9-10点)', description: '推奨者' },
-      { value: 'passive', label: '中立者 (7-8点)', description: '中立者' },
-      { value: 'detractor', label: '批判者 (0-6点)', description: '批判者' }
+      { value: 'promoter', label: '推奨者', description: '推奨者' },
+      { value: 'passive', label: '中立者', description: '中立者' },
+      { value: 'detractor', label: '批判者', description: '批判者' }
     ];
   }
 
