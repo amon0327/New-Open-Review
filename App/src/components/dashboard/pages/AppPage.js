@@ -313,7 +313,8 @@ const AppPage = () => {
         if (showRuleSettings && ruleCategorization && result.data) {
           const ruleResult = await QuestionDisplayService.saveChoiceCategorization(
             selectedQuestion.id,
-            ruleCategorization
+            ruleCategorization,
+            questionOptions
           );
           
           if (!ruleResult.success) {
@@ -394,7 +395,8 @@ const AppPage = () => {
       // カテゴリ分類を保存
       const result = await QuestionDisplayService.saveChoiceCategorization(
         selectedDisplaySetting.review_questions.id,
-        editRuleCategorization
+        editRuleCategorization,
+        questionOptions
       );
 
       if (result.success) {

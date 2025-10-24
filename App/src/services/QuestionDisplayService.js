@@ -277,7 +277,7 @@ export class QuestionDisplayService {
   }
 
   // 質問選択肢のカテゴリ分類を保存
-  static async saveChoiceCategorization(reviewQuestionId, categorization) {
+  static async saveChoiceCategorization(reviewQuestionId, categorization, questionOptions = []) {
     try {
       // 既存のカテゴリ分類を削除
       await supabase
@@ -289,12 +289,16 @@ export class QuestionDisplayService {
       const insertData = [];
       
       Object.entries(categorization).forEach(([category, choices]) => {
-        choices.forEach(choice => {
-          insertData.push({
-            review_question_id: reviewQuestionId,
-            choice_id: choice.id,
-            category: category
-          });
+        choices.forEach(choiceName => {
+          // 選択肢名からIDを取得
+          const optionData = questionOptions.find(opt => opt.choice_name === choiceName);
+          if (optionData) {
+            insertData.push({
+              review_question_id: reviewQuestionId,
+              choice_id: optionData.id,
+              category: category
+            });
+          }
         });
       });
 
