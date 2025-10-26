@@ -55,7 +55,9 @@ serve(async (req) => {
         stores (
           id,
           name,
+          company_id,
           companies (
+            id,
             name
           )
         )
@@ -131,7 +133,8 @@ serve(async (req) => {
         {
           business_user_id: user.id,
           store_id: invitation.store_id,
-          role: invitation.role
+          role: invitation.role,
+          company_id: invitation.stores.company_id
         }
       ])
       .select()
