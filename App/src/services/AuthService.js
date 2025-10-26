@@ -122,11 +122,16 @@ export class AuthService {
   // サインアウト
   static async signOut() {
     try {
-      const { error } = await supabase.auth.signOut();
+      // 全てのスコープからサインアウト（他のタブやウィンドウも含む）
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
       if (error) {
         console.error('サインアウトエラー:', error);
         return { success: false, error: error.message };
       }
+
+      // ブラウザのローカルストレージからも認証情報を完全に削除
+      localStorage.removeItem('supabase.auth.token');
+      sessionStorage.removeItem('supabase.auth.token');
 
       return { success: true, error: null };
     } catch (error) {
