@@ -26,8 +26,28 @@ if (!supabaseAnonKey.startsWith('eyJ') || supabaseAnonKey.length < 100) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
+    persistSession: false, // セッション永続化を無効化
+    detectSessionInUrl: true,
+    storage: {
+      // セッション管理を手動制御
+      getItem: (key) => {
+        if (typeof window !== 'undefined') {
+          return sessionStorage.getItem(key); // sessionStorageを使用（タブ閉じると削除）
+        }
+        return null;
+      },
+      setItem: (key, value) => {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(key, value);
+        }
+      },
+      removeItem: (key) => {
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem(key);
+          localStorage.removeItem(key); // 既存のlocalStorageも削除
+        }
+      }
+    }
   }
 })
 
