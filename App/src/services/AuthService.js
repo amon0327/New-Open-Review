@@ -122,28 +122,10 @@ export class AuthService {
   // サインアウト
   static async signOut() {
     try {
-      // Supabaseからサインアウト
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('サインアウトエラー:', error);
         return { success: false, error: error.message };
-      }
-
-      // 全ての認証関連データをクリア
-      if (typeof window !== 'undefined') {
-        // SessionStorage（現在の設定）
-        Object.keys(sessionStorage).forEach(key => {
-          if (key.startsWith('sb-') || key.includes('supabase')) {
-            sessionStorage.removeItem(key);
-          }
-        });
-        
-        // LocalStorage（既存データのクリーンアップ）
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('sb-') || key.includes('supabase')) {
-            localStorage.removeItem(key);
-          }
-        });
       }
 
       return { success: true, error: null };
