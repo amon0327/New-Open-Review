@@ -73,7 +73,10 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         
         if (authError || !currentUser) {
           console.error('認証情報の取得に失敗:', authError);
-          setShowCompanySetup(true);
+          // 未ログインの場合は会社情報登録を表示しない
+          if (onLogout) {
+            onLogout(); // ログアウト処理を実行してログイン画面に戻る
+          }
           setIsCheckingCompany(false);
           return;
         }

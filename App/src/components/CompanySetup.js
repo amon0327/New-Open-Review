@@ -49,11 +49,16 @@ export default function CompanySetup({ user, onCompanyCreated }) {
         throw new Error('会社名を入力してください');
       }
 
-      // 🔒 認証情報の取得
-      const { data: sessionData } = await supabase.auth.getSession();
+      // 🔒 認証情報の取得と検証
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
-      if (!sessionData.session) {
-        throw new Error('認証情報の取得に失敗しました。再ログインしてください。');
+      if (sessionError || !sessionData.session || !sessionData.session.user) {
+        throw new Error('ログインが必要です。再ログインしてください。');
+      }
+
+      // userプロパティからも認証状態を確認
+      if (!user || !user.id) {
+        throw new Error('ユーザー情報が見つかりません。再ログインしてください。');
       }
 
       // 🔒 Edge Functionを呼び出し（サーバーサイドで安全に処理）
