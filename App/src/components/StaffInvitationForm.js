@@ -119,7 +119,15 @@ export default function StaffInvitationForm({
 
   const copyTemplate = () => {
     if (invitationData) {
-      const template = `${invitationData.name}さん\n\n${invitationData.storeName}への招待URLです：\n${invitationData.url}`;
+      const template = `${invitationData.name}さん
+
+${invitationData.storeName}への招待URLです：
+
+【開発版】
+http://localhost:3000/staff-invitation/${invitationData.token}
+
+【本番版】
+https://app.openreview.jp/staff-invitation/${invitationData.token}`;
       navigator.clipboard.writeText(template);
       // TODO: トースト通知を表示
     }
@@ -206,7 +214,12 @@ export default function StaffInvitationForm({
                     {`${invitationData?.name}さん
 
 ${invitationData?.storeName}への招待URLです：
-${invitationData?.url}`}
+
+【開発版】
+http://localhost:3000/staff-invitation/${invitationData?.token}
+
+【本番版】
+https://app.openreview.jp/staff-invitation/${invitationData?.token}`}
                   </Box>
                   <Button
                     variant="outlined"
@@ -230,13 +243,13 @@ ${invitationData?.url}`}
 
               <Divider sx={{ my: 2 }} />
 
-              {/* URL単体表示カード */}
+              {/* URL表示カード - 開発版 */}
               <Card sx={{ mb: 3, border: '1px solid #e2e8f0' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <Link sx={{ color: '#5e17eb', mr: 1 }} />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      招待URL
+                      招待URL（開発版）
                     </Typography>
                   </Box>
                   <Box
@@ -251,13 +264,19 @@ ${invitationData?.url}`}
                       color: '#374151'
                     }}
                   >
-                    {invitationData?.url}
+                    {invitationData?.token ? `http://localhost:3000/staff-invitation/${invitationData.token}` : ''}
                   </Box>
                   <Button
                     variant="outlined"
                     fullWidth
                     startIcon={<ContentCopy />}
-                    onClick={copyUrl}
+                    onClick={() => {
+                      if (invitationData?.token) {
+                        const localhostUrl = `http://localhost:3000/staff-invitation/${invitationData.token}`;
+                        navigator.clipboard.writeText(localhostUrl);
+                        // TODO: トースト通知を表示
+                      }
+                    }}
                     sx={{ 
                       mt: 2,
                       borderColor: '#5e17eb',
@@ -268,7 +287,56 @@ ${invitationData?.url}`}
                       }
                     }}
                   >
-                    URLをコピー
+                    開発版URLをコピー
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* URL表示カード - 本番版 */}
+              <Card sx={{ mb: 3, border: '1px solid #e2e8f0' }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Link sx={{ color: '#10b981', mr: 1 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      招待URL（本番版）
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      p: 2,
+                      background: '#f0fdf4',
+                      borderRadius: 1,
+                      border: '1px solid #bbf7d0',
+                      wordBreak: 'break-all',
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                      color: '#166534'
+                    }}
+                  >
+                    {invitationData?.token ? `https://app.openreview.jp/staff-invitation/${invitationData.token}` : ''}
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<ContentCopy />}
+                    onClick={() => {
+                      if (invitationData?.token) {
+                        const productionUrl = `https://app.openreview.jp/staff-invitation/${invitationData.token}`;
+                        navigator.clipboard.writeText(productionUrl);
+                        // TODO: トースト通知を表示
+                      }
+                    }}
+                    sx={{ 
+                      mt: 2,
+                      borderColor: '#10b981',
+                      color: '#10b981',
+                      '&:hover': {
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                      }
+                    }}
+                  >
+                    本番版URLをコピー
                   </Button>
                 </CardContent>
               </Card>

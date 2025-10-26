@@ -167,8 +167,13 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
     }
   };
 
-  const copyInvitationUrl = (token) => {
-    const url = `${window.location.origin}/staff-invitation/${token}`;
+  const copyInvitationUrl = (token, environment = 'dev') => {
+    let url;
+    if (environment === 'production') {
+      url = `https://app.openreview.jp/staff-invitation/${token}`;
+    } else {
+      url = `http://localhost:3000/staff-invitation/${token}`;
+    }
     navigator.clipboard.writeText(url);
     // TODO: トースト通知を表示
   };
@@ -457,13 +462,44 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                         </TableCell>
                         <TableCell>
                           {invitation.status === 'invited' && (
-                            <Button
-                              size="small"
-                              onClick={() => copyInvitationUrl(invitation.token)}
-                              sx={{ textTransform: 'none' }}
-                            >
-                              URLをコピー
-                            </Button>
+                            <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => copyInvitationUrl(invitation.token, 'dev')}
+                                sx={{ 
+                                  textTransform: 'none',
+                                  borderColor: '#5e17eb',
+                                  color: '#5e17eb',
+                                  fontSize: '0.75rem',
+                                  py: 0.5,
+                                  '&:hover': {
+                                    borderColor: '#4c1d95',
+                                    backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                                  }
+                                }}
+                              >
+                                開発版
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() => copyInvitationUrl(invitation.token, 'production')}
+                                sx={{ 
+                                  textTransform: 'none',
+                                  borderColor: '#10b981',
+                                  color: '#10b981',
+                                  fontSize: '0.75rem',
+                                  py: 0.5,
+                                  '&:hover': {
+                                    borderColor: '#059669',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                                  }
+                                }}
+                              >
+                                本番版
+                              </Button>
+                            </Box>
                           )}
                         </TableCell>
                       </TableRow>
