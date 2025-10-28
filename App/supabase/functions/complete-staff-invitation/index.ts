@@ -68,6 +68,7 @@ serve(async (req) => {
     }
 
     // 招待情報を取得（サービスロールで）
+    console.log('Fetching invitation data for token:', invitationToken)
     const { data: invitationData, error: invitationError } = await supabaseAdmin
       .from('store_invitations')
       .select(`
@@ -83,7 +84,8 @@ serve(async (req) => {
         )
       `)
       .eq('token', invitationToken)
-      .eq('status', 'invited')
+
+    console.log('Invitation query result:', { invitationData, invitationError })
 
     if (invitationError) {
       throw new Error(`招待情報の取得に失敗: ${invitationError.message}`)
@@ -94,14 +96,23 @@ serve(async (req) => {
     }
 
     const invitation = invitationData[0]
+    console.log('Found invitation:', invitation)
+
+    // ステータスチェック
+    if (invitation.status && invitation.status !== 'invited') {
+      throw new Error(`招待は既に${invitation.status}です`)
+    }
 
     // 24時間チェック
     const invitationDate = new Date(invitation.created_at)
     const now = new Date()
     const hoursDiff = (now.getTime() - invitationDate.getTime()) / (1000 * 60 * 60)
 
+    console.log('Time check:', { invitationDate, now, hoursDiff })
+
     if (hoursDiff > 24) {
       // 期限切れの招待をexpiredに更新（サービスロールで）
+      console.log('Invitation expired, updating status')
       await supabaseAdmin
         .from('store_invitations')
         .update({ status: 'expired' })
@@ -131,8 +142,7 @@ serve(async (req) => {
       const businessUserData = {
         id: user.id,
         email: user.email,
-        name: user.user_metadata?.name || user.user_metadata?.full_name || '',
-        company_name: ''
+        name: user.user_metadata?.name || user.user_metadata?.full_name || ''
       }
       
       console.log('Business user data to insert:', businessUserData)
@@ -178,7 +188,7 @@ serve(async (req) => {
       business_user_id: user.id,
       store_id: invitation.store_id,
       role: invitation.role,
-      company_id: invitation.stores.company_id
+      company_id: invitation.stores?.company_id || null
     }
     
     console.log('Creating store membership with data:', membershipData)
