@@ -22,7 +22,7 @@ import {
   WorkOutline
 } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../supabaseClient';
 
 export default function StaffInvitationLogin() {
   const { token } = useParams();
