@@ -111,53 +111,84 @@ serve(async (req) => {
     }
 
     // business_usersテーブルにレコードが存在することを確認（サービスロールで）
-    const { data: existingBusinessUser } = await supabaseAdmin
+    console.log('Checking business_users for user:', user.id)
+    const { data: existingBusinessUser, error: checkError } = await supabaseAdmin
       .from('business_users')
       .select('id')
       .eq('id', user.id)
 
+    console.log('Business user check result:', { existingBusinessUser, checkError })
+
+    if (checkError) {
+      console.error('business_users確認エラー:', checkError)
+      throw new Error(`ユーザー情報の確認に失敗: ${checkError.message}`)
+    }
+
     if (!existingBusinessUser || existingBusinessUser.length === 0) {
+      console.log('Creating business_users record for user:', user.id)
+      
       // business_usersテーブルにレコードを作成
-      const { error: businessUserError } = await supabaseAdmin
+      const businessUserData = {
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.name || user.user_metadata?.full_name || '',
+        company_name: ''
+      }
+      
+      console.log('Business user data to insert:', businessUserData)
+      
+      const { data: newBusinessUser, error: businessUserError } = await supabaseAdmin
         .from('business_users')
-        .insert([
-          {
-            id: user.id,
-            email: user.email,
-            name: user.user_metadata?.name || user.user_metadata?.full_name || '',
-            company_name: ''
-          }
-        ])
+        .insert([businessUserData])
+        .select()
+
+      console.log('Business user creation result:', { newBusinessUser, businessUserError })
 
       if (businessUserError) {
         console.error('business_users作成エラー:', businessUserError)
-        // エラーでも続行する（既存のbusiness_userが存在する可能性）
+        throw new Error(`ユーザー情報の作成に失敗: ${businessUserError.message}`)
       }
+      
+      console.log('Business user created successfully:', newBusinessUser)
+    } else {
+      console.log('Business user already exists:', existingBusinessUser[0])
     }
 
     // 既に登録されているかチェック（サービスロールで）
-    const { data: existingMembership } = await supabaseAdmin
+    console.log('Checking existing membership for user:', user.id, 'store:', invitation.store_id)
+    const { data: existingMembership, error: membershipCheckError } = await supabaseAdmin
       .from('store_memberships')
       .select('id')
       .eq('business_user_id', user.id)
       .eq('store_id', invitation.store_id)
+
+    console.log('Membership check result:', { existingMembership, membershipCheckError })
+
+    if (membershipCheckError) {
+      console.error('メンバーシップ確認エラー:', membershipCheckError)
+      throw new Error(`メンバーシップの確認に失敗: ${membershipCheckError.message}`)
+    }
 
     if (existingMembership && existingMembership.length > 0) {
       throw new Error('既にこの店舗のメンバーです')
     }
 
     // store_membershipsに登録（サービスロールで）
+    const membershipData = {
+      business_user_id: user.id,
+      store_id: invitation.store_id,
+      role: invitation.role,
+      company_id: invitation.stores.company_id
+    }
+    
+    console.log('Creating store membership with data:', membershipData)
+    
     const { data: membershipResult, error: membershipError } = await supabaseAdmin
       .from('store_memberships')
-      .insert([
-        {
-          business_user_id: user.id,
-          store_id: invitation.store_id,
-          role: invitation.role,
-          company_id: invitation.stores.company_id
-        }
-      ])
+      .insert([membershipData])
       .select()
+
+    console.log('Store membership creation result:', { membershipResult, membershipError })
 
     if (membershipError) {
       console.error('store_memberships登録エラー:', membershipError)
