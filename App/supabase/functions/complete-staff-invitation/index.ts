@@ -12,6 +12,11 @@ serve(async (req) => {
   }
 
   try {
+    console.log('=== Edge Function開始 ===')
+    console.log('Request URL:', req.url)
+    console.log('Request method:', req.method)
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()))
+
     // サービスロール用のSupabaseクライアントを作成
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -31,17 +36,32 @@ serve(async (req) => {
 
     // JWTトークンからユーザー情報を取得
     const token = req.headers.get('Authorization')?.replace('Bearer ', '')
+    console.log('Authorization token present:', !!token)
     if (!token) {
       throw new Error('認証トークンが必要です')
     }
 
     const { data: { user }, error: userError } = await supabase.auth.getUser(token)
+    console.log('User auth result:', { user: !!user, userError })
     if (userError || !user) {
-      throw new Error('認証に失敗しました')
+      console.error('Auth error details:', userError)
+      throw new Error('認証に失敗しました: ' + (userError?.message || 'Unknown error'))
     }
 
     // リクエストボディから招待トークンを取得
-    const { invitationToken } = await req.json()
+    const requestBody = await req.text()
+    console.log('Request body:', requestBody)
+    
+    let parsedBody
+    try {
+      parsedBody = JSON.parse(requestBody)
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError)
+      throw new Error('リクエストボディが無効なJSONです')
+    }
+    
+    const { invitationToken } = parsedBody
+    console.log('Invitation token:', invitationToken)
     
     if (!invitationToken) {
       throw new Error('招待トークンが必要です')
