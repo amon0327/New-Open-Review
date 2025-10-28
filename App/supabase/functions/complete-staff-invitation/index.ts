@@ -170,15 +170,46 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Complete staff invitation error:', error)
+    
+    // エラーの詳細をログに記録
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    })
+    
+    // より詳細なエラーメッセージを返す
+    let errorMessage = error.message
+    let statusCode = 400
+    
+    // 特定のエラーケースに対する対処
+    if (error.message.includes('招待が見つからない')) {
+      statusCode = 404
+      errorMessage = '指定された招待URLは無効です。'
+    } else if (error.message.includes('有効期限が切れています')) {
+      statusCode = 410
+      errorMessage = '招待の有効期限が切れています（24時間）。新しい招待をリクエストしてください。'
+    } else if (error.message.includes('既にこの店舗のメンバー')) {
+      statusCode = 409
+      errorMessage = '既にこの店舗のメンバーです。'
+    } else if (error.message.includes('認証')) {
+      statusCode = 401
+      errorMessage = '認証に失敗しました。再度ログインしてください。'
+    }
+    
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: errorMessage,
+        details: {
+          originalError: error.message,
+          timestamp: new Date().toISOString()
+        }
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        status: statusCode,
       }
     )
   }
