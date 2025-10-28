@@ -23,11 +23,38 @@ if (!supabaseAnonKey.startsWith('eyJ') || supabaseAnonKey.length < 100) {
   throw new Error('無効な Supabase Anon Key フォーマットです');
 }
 
+// モバイルブラウザの検出
+const isMobile = typeof window !== 'undefined' && 
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    // モバイル固有の設定
+    flowType: isMobile ? 'pkce' : 'implicit',
+    // モバイルでのセッション持続性を向上
+    storage: typeof window !== 'undefined' ? {
+      getItem: (key) => {
+        if (typeof localStorage === 'undefined') return null;
+        return localStorage.getItem(key);
+      },
+      setItem: (key, value) => {
+        if (typeof localStorage === 'undefined') return;
+        localStorage.setItem(key, value);
+      },
+      removeItem: (key) => {
+        if (typeof localStorage === 'undefined') return;
+        localStorage.removeItem(key);
+      },
+    } : undefined
+  },
+  // モバイルでのネットワーク接続を改善
+  global: {
+    headers: {
+      'X-Client-Info': isMobile ? 'mobile-browser' : 'desktop-browser'
+    }
   }
 })
 

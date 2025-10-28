@@ -35,6 +35,15 @@ export default function StaffInvitationLogin() {
 
   useEffect(() => {
     if (token) {
+      // デバッグ情報を出力
+      console.log('=== スタッフ招待デバッグ情報 ===');
+      console.log('Token:', token);
+      console.log('User Agent:', navigator.userAgent);
+      console.log('URL:', window.location.href);
+      console.log('Connection Type:', navigator.connection?.effectiveType || 'unknown');
+      console.log('Online Status:', navigator.onLine);
+      console.log('=========================');
+      
       validateInvitation();
     } else {
       setError('招待トークンが見つかりません');
@@ -47,46 +56,92 @@ export default function StaffInvitationLogin() {
       setLoading(true);
       setError(null);
 
-      // 招待情報を取得
-      const { data: invitationData, error: invitationError } = await supabase
-        .from('store_invitations')
-        .select(`
-          *,
-          stores (
-            id,
-            name,
-            address,
-            companies (
-              id,
-              name
-            )
-          )
-        `)
-        .eq('token', token)
-        .eq('status', 'invited');
-
-      if (invitationError || !invitationData || invitationData.length === 0) {
-        throw new Error('招待が見つからないか、既に使用済みです');
-      }
-
-      const invitation = invitationData[0];
+      // モバイル用の拡張タイムアウトとリトライロジック
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const timeout = isMobile ? 15000 : 10000; // モバイルは15秒
+      const maxRetries = isMobile ? 3 : 1;
       
-      // 24時間チェック
-      const invitationDate = new Date(invitation.created_at);
-      const now = new Date();
-      const hoursDiff = (now - invitationDate) / (1000 * 60 * 60);
+      let lastError = null;
+      
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`招待情報取得試行 ${attempt}/${maxRetries} (モバイル: ${isMobile})`);
+          
+          // ネットワーク接続チェック
+          if (!navigator.onLine) {
+            throw new Error('ネットワーク接続がありません');
+          }
+          
+          // タイムアウト付きの招待情報を取得
+          const queryPromise = supabase
+            .from('store_invitations')
+            .select(`
+              *,
+              stores (
+                id,
+                name,
+                address,
+                companies (
+                  id,
+                  name
+                )
+              )
+            `)
+            .eq('token', token)
+            .eq('status', 'invited');
 
-      if (hoursDiff > 24) {
-        // 期限切れの場合、ステータスを更新
-        await supabase
-          .from('store_invitations')
-          .update({ status: 'expired' })
-          .eq('token', token);
-        
-        throw new Error('招待の有効期限が切れています（24時間）');
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database timeout')), timeout);
+          });
+
+          const { data: invitationData, error: invitationError } = await Promise.race([
+            queryPromise,
+            timeoutPromise
+          ]);
+          
+          if (invitationError) {
+            throw invitationError;
+          }
+          
+          // 成功した場合、残りの処理を続行
+          if (!invitationData || invitationData.length === 0) {
+            throw new Error('招待が見つからないか、既に使用済みです');
+          }
+
+          const invitation = invitationData[0];
+          
+          // 24時間チェック
+          const invitationDate = new Date(invitation.created_at);
+          const now = new Date();
+          const hoursDiff = (now - invitationDate) / (1000 * 60 * 60);
+
+          if (hoursDiff > 24) {
+            // 期限切れの場合、ステータスを更新
+            await supabase
+              .from('store_invitations')
+              .update({ status: 'expired' })
+              .eq('token', token);
+            
+            throw new Error('招待の有効期限が切れています（24時間）');
+          }
+
+          setInvitation(invitation);
+          return; // 成功時は関数を終了
+          
+        } catch (err) {
+          console.error(`試行 ${attempt} でエラー:`, err);
+          lastError = err;
+          
+          if (attempt < maxRetries) {
+            // 少し待ってからリトライ
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            continue;
+          }
+        }
       }
-
-      setInvitation(invitation);
+      
+      // すべてのリトライが失敗した場合
+      throw lastError || new Error('接続に失敗しました');
     } catch (err) {
       setError(err.message);
     } finally {
