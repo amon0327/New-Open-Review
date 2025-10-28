@@ -72,60 +72,42 @@ export default function StaffInvitationLogin() {
             throw new Error('ネットワーク接続がありません');
           }
           
-          // タイムアウト付きの招待情報を取得
-          const queryPromise = supabase
-            .from('store_invitations')
-            .select(`
-              *,
-              stores (
-                id,
-                name,
-                address,
-                companies (
-                  id,
-                  name
-                )
-              )
-            `)
-            .eq('token', token)
-            .eq('status', 'invited');
+          // Edge Functionを使用して招待情報を検証（RLS回避）
+          const edgeFunctionPromise = supabase.functions.invoke('validate-staff-invitation', {
+            body: {
+              invitationToken: token
+            }
+          });
 
           const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('Database timeout')), timeout);
           });
 
-          const { data: invitationData, error: invitationError } = await Promise.race([
-            queryPromise,
+          const { data, error } = await Promise.race([
+            edgeFunctionPromise,
             timeoutPromise
           ]);
           
-          if (invitationError) {
-            throw invitationError;
+          if (error) {
+            throw new Error(`招待情報の取得に失敗しました: ${error.message}`);
+          }
+
+          if (!data.success) {
+            throw new Error(data.error || '招待情報の取得に失敗しました');
           }
           
           // 成功した場合、残りの処理を続行
-          if (!invitationData || invitationData.length === 0) {
-            throw new Error('招待が見つからないか、既に使用済みです');
-          }
+          // Edge Functionから取得した招待データを設定
+          const invitationForState = {
+            ...data.invitation,
+            stores: data.invitation.store,
+            stores: {
+              ...data.invitation.store,
+              companies: data.invitation.store.company
+            }
+          };
 
-          const invitation = invitationData[0];
-          
-          // 24時間チェック
-          const invitationDate = new Date(invitation.created_at);
-          const now = new Date();
-          const hoursDiff = (now - invitationDate) / (1000 * 60 * 60);
-
-          if (hoursDiff > 24) {
-            // 期限切れの場合、ステータスを更新
-            await supabase
-              .from('store_invitations')
-              .update({ status: 'expired' })
-              .eq('token', token);
-            
-            throw new Error('招待の有効期限が切れています（24時間）');
-          }
-
-          setInvitation(invitation);
+          setInvitation(invitationForState);
           return; // 成功時は関数を終了
           
         } catch (err) {
