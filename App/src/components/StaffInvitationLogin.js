@@ -295,9 +295,9 @@ export default function StaffInvitationLogin() {
               borderRadius: 3
             }}
           >
-            <CardContent sx={{ p: 4 }}>
+            <CardContent sx={{ p: 3 }}>
               {/* ヘッダー */}
-              <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
                 <PersonAdd sx={{ fontSize: 48, color: '#5e17eb', mb: 2 }} />
                 <Typography
                   variant="h4"
@@ -320,11 +320,11 @@ export default function StaffInvitationLogin() {
               {/* 招待詳細 */}
               <Box
                 sx={{
-                  p: 3,
+                  p: 2,
                   background: '#f8fafc',
                   borderRadius: 2,
                   border: '1px solid #e2e8f0',
-                  mb: 4
+                  mb: 3
                 }}
               >
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
@@ -404,23 +404,6 @@ export default function StaffInvitationLogin() {
                 {isAuthenticating ? 'ログイン中...' : 'Googleでログインして参加'}
               </Button>
 
-              {/* 注意事項 */}
-              <Box
-                sx={{
-                  mt: 3,
-                  p: 3,
-                  background: '#fef3c7',
-                  borderRadius: 2,
-                  border: '1px solid #fbbf24'
-                }}
-              >
-                <Typography variant="body2" sx={{ color: '#92400e', lineHeight: 1.6 }}>
-                  <strong>ご注意:</strong><br />
-                  • この招待は24時間で無効になります<br />
-                  • ログイン後、自動的に店舗に参加されます<br />
-                  • 参加完了後、自動的にログアウトされます
-                </Typography>
-              </Box>
             </CardContent>
           </Card>
         </motion.div>

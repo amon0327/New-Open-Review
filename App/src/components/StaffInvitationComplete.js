@@ -56,14 +56,14 @@ export default function StaffInvitationComplete() {
 
       console.log('StaffInvitationComplete - calling Edge Function with token:', token);
 
-      // Edge Functionを使用して招待を完了（認証なしで実行）
+      // Edge Functionを使用して招待を完了
       const { data, error } = await supabase.functions.invoke('complete-staff-invitation', {
         body: {
-          invitationToken: token,
-          userEmail: sessionData.session.user.email,
-          userName: sessionData.session.user.user_metadata?.name || sessionData.session.user.user_metadata?.full_name || '',
-          userId: sessionData.session.user.id
-        }
+          invitationToken: token
+        },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
       });
 
       console.log('StaffInvitationComplete - Edge Function response:', { data, error });
