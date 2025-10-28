@@ -80,11 +80,7 @@ export default function StaffInvitationComplete() {
       setStoreInfo(data.store);
       setSuccess(true);
 
-      // 2秒後に自動ログアウト（完了画面を表示したまま）
-      setTimeout(async () => {
-        await supabase.auth.signOut();
-        // ログイン画面には戻さない
-      }, 2000);
+      // 自動ログアウトを削除 - ユーザーが手動で店舗アプリに移動
 
     } catch (err) {
       console.error('StaffInvitationComplete - エラー:', err);
@@ -104,12 +100,6 @@ export default function StaffInvitationComplete() {
       }
       
       setError(errorMessage);
-      
-      // エラーの場合も2秒後にログアウト
-      setTimeout(async () => {
-        await supabase.auth.signOut();
-        // ログイン画面には戻さない
-      }, 2000);
     } finally {
       setLoading(false);
     }
@@ -224,10 +214,31 @@ export default function StaffInvitationComplete() {
                   </Typography>
                   <Typography variant="body1" sx={{ color: '#64748b', mb: 4 }}>
                     スタッフとして正常に登録されました。<br />
-                    2秒後に自動的にログアウトし、この画面が表示されたままになります。
+                    店舗アプリにアクセスして作業を開始してください。
                   </Typography>
                   
-                  {/* 自動ログアウトのみ使用、手動ボタンは削除 */}
+                  {/* 店舗アプリへのボタン */}
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    onClick={() => window.open('https://store.openreview.jp/', '_blank')}
+                    sx={{
+                      py: 1.5,
+                      borderRadius: 2,
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      background: 'linear-gradient(45deg, #10b981 30%, #059669 90%)',
+                      boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+                      mb: 2,
+                      '&:hover': {
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 6px 20px rgba(16, 185, 129, 0.4)',
+                      }
+                    }}
+                  >
+                    店舗アプリを開く
+                  </Button>
                 </motion.div>
               ) : (
                 <motion.div
@@ -250,10 +261,8 @@ export default function StaffInvitationComplete() {
                     {error}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-                    2秒後に自動的にログアウトし、この画面が表示されたままになります。
+                    エラーが発生しました。サポートにお問い合わせください。
                   </Typography>
-                  
-                  {/* 自動ログアウトのみ使用、手動ボタンは削除 */}
                 </motion.div>
               )}
             </CardContent>

@@ -96,11 +96,9 @@ export default function StaffInvitationLogin() {
             throw new Error(data.error || '招待情報の取得に失敗しました');
           }
           
-          // 成功した場合、残りの処理を続行
           // Edge Functionから取得した招待データを設定
           const invitationForState = {
             ...data.invitation,
-            stores: data.invitation.store,
             stores: {
               ...data.invitation.store,
               companies: data.invitation.store.company
