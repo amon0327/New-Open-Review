@@ -18,21 +18,33 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // リクエストボディからユーザー情報と招待トークンを取得
-    const { invitationToken, userEmail, userName, userId } = await req.json()
-    
-    if (!invitationToken || !userId || !userEmail) {
-      throw new Error('招待トークン、ユーザーID、メールアドレスが必要です')
+    // 認証用のSupabaseクライアント（JWTトークン検証用）
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
+    )
+
+    // JWTトークンからユーザー情報を取得
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '')
+    if (!token) {
+      throw new Error('認証トークンが必要です')
     }
 
-    // ユーザー情報をオブジェクトとして構成（既存のコードとの互換性のため）
-    const user = {
-      id: userId,
-      email: userEmail,
-      user_metadata: {
-        name: userName,
-        full_name: userName
-      }
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token)
+    if (userError || !user) {
+      throw new Error('認証に失敗しました')
+    }
+
+    // リクエストボディから招待トークンを取得
+    const { invitationToken } = await req.json()
+    
+    if (!invitationToken) {
+      throw new Error('招待トークンが必要です')
     }
 
     // 招待情報を取得（サービスロールで）
