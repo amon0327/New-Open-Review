@@ -5,15 +5,12 @@ import {
   Card,
   CardContent,
   Typography,
-  Button,
   Container,
-  Alert,
   CircularProgress
 } from '@mui/material';
 import {
   CheckCircle,
-  Error as ErrorIcon,
-  ExitToApp
+  Error as ErrorIcon
 } from '@mui/icons-material';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
@@ -213,32 +210,8 @@ export default function StaffInvitationComplete() {
                     {storeInfo?.companies?.name}
                   </Typography>
                   <Typography variant="body1" sx={{ color: '#64748b', mb: 4 }}>
-                    スタッフとして正常に登録されました。<br />
-                    店舗アプリにアクセスして作業を開始してください。
+                    メンバーとして正常に登録されました。
                   </Typography>
-                  
-                  {/* 店舗アプリへのボタン */}
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    size="large"
-                    onClick={() => window.open('https://store.openreview.jp/', '_blank')}
-                    sx={{
-                      py: 1.5,
-                      borderRadius: 2,
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      background: 'linear-gradient(45deg, #10b981 30%, #059669 90%)',
-                      boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
-                      mb: 2,
-                      '&:hover': {
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 20px rgba(16, 185, 129, 0.4)',
-                      }
-                    }}
-                  >
-                    店舗アプリを開く
-                  </Button>
                 </motion.div>
               ) : (
                 <motion.div
