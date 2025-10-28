@@ -232,8 +232,7 @@ export class AuthService {
         .from('business_users')
         .upsert({
           id: userId,
-          ...userData,
-          updated_at: new Date().toISOString()
+          ...userData
         })
         .select()
         .single();

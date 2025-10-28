@@ -150,8 +150,7 @@ function App() {
           .insert([{
             id: user.id,
             email: user.email,
-            name: user.user_metadata?.name || '',
-            company_name: user.user_metadata?.company || ''
+            name: user.user_metadata?.name || ''
           }]);
 
         const insertTimeoutPromise = new Promise((_, reject) => {
