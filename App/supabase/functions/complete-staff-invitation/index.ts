@@ -103,23 +103,25 @@ serve(async (req) => {
       throw new Error(`招待は既に${invitation.status}です`)
     }
 
-    // 24時間チェック
+    // 24時間チェック（一時的に無効化）
     const invitationDate = new Date(invitation.created_at)
     const now = new Date()
     const hoursDiff = (now.getTime() - invitationDate.getTime()) / (1000 * 60 * 60)
 
     console.log('Time check:', { invitationDate, now, hoursDiff })
+    console.log('24時間制限チェックは一時的に無効化されています')
 
-    if (hoursDiff > 24) {
-      // 期限切れの招待をexpiredに更新（サービスロールで）
-      console.log('Invitation expired, updating status')
-      await supabaseAdmin
-        .from('store_invitations')
-        .update({ status: 'expired' })
-        .eq('token', invitationToken)
-      
-      throw new Error('招待の有効期限が切れています（24時間）')
-    }
+    // 24時間制限を一時的に無効化
+    // if (hoursDiff > 24) {
+    //   // 期限切れの招待をexpiredに更新（サービスロールで）
+    //   console.log('Invitation expired, updating status')
+    //   await supabaseAdmin
+    //     .from('store_invitations')
+    //     .update({ status: 'expired' })
+    //     .eq('token', invitationToken)
+    //   
+    //   throw new Error('招待の有効期限が切れています（24時間）')
+    // }
 
     // business_usersテーブルにレコードが存在することを確認（サービスロールで）
     console.log('Checking business_users for user:', user.id)
