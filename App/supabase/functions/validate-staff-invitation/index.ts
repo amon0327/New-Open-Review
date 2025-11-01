@@ -30,22 +30,8 @@ serve(async (req) => {
       throw new Error('無効なトークン形式です')
     }
 
-    // 24時間経過した招待のステータスを'expired'に変更（クリーンアップ）
-    const twentyFourHoursAgo = new Date()
-    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24)
-
-    const { data: expiredInvitations, error: expiredError } = await supabaseAdmin
-      .from('store_invitations')
-      .update({ status: 'expired' })
-      .eq('status', 'invited')
-      .lt('created_at', twentyFourHoursAgo.toISOString())
-      .select()
-
-    if (expiredError) {
-      console.error('期限切れ招待の更新エラー:', expiredError)
-    } else {
-      console.log(`${expiredInvitations?.length || 0}件の招待を期限切れに更新しました`)
-    }
+    // 一括期限切れクリーンアップ処理を削除（招待URLアクセス時に他の招待に影響しないよう修正）
+    console.log('一括期限切れクリーンアップ処理は削除されました')
 
     // サービスロールで招待情報を取得（RLSポリシーを回避）
     const { data: invitationData, error: invitationError } = await supabaseAdmin
@@ -63,7 +49,7 @@ serve(async (req) => {
         )
       `)
       .eq('token', invitationToken)
-      .eq('status', 'invited')
+      .in('status', ['invited', 'expired'])
 
     if (invitationError) {
       throw new Error(`招待情報の取得に失敗: ${invitationError.message}`)
