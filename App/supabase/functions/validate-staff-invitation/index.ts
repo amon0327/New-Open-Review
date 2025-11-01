@@ -75,20 +75,24 @@ serve(async (req) => {
 
     const invitation = invitationData[0]
 
-    // 24時間チェック（ダブルチェック）
+    // 24時間チェック（一時的に無効化）
     const invitationDate = new Date(invitation.created_at)
     const now = new Date()
     const hoursDiff = (now.getTime() - invitationDate.getTime()) / (1000 * 60 * 60)
 
-    if (hoursDiff > 24) {
-      // 期限切れの招待をexpiredに更新
-      await supabaseAdmin
-        .from('store_invitations')
-        .update({ status: 'expired' })
-        .eq('token', invitationToken)
-      
-      throw new Error('招待の有効期限が切れています（24時間）')
-    }
+    console.log('Time check:', { invitationDate, now, hoursDiff })
+    console.log('24時間制限チェックは一時的に無効化されています')
+
+    // 24時間制限を一時的に無効化
+    // if (hoursDiff > 24) {
+    //   // 期限切れの招待をexpiredに更新
+    //   await supabaseAdmin
+    //     .from('store_invitations')
+    //     .update({ status: 'expired' })
+    //     .eq('token', invitationToken)
+    //   
+    //   throw new Error('招待の有効期限が切れています（24時間）')
+    // }
 
     // セキュリティ：必要最小限の情報のみを返す
     return new Response(

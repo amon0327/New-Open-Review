@@ -82,22 +82,24 @@ serve(async (req) => {
       throw new Error('指定された店舗が見つからないか、アクセス権限がありません')
     }
 
-    // 24時間経過した招待のステータスを'expired'に変更（擬似削除）
-    const twentyFourHoursAgo = new Date()
-    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24)
+    // 24時間経過した招待のステータスを'expired'に変更（一時的に無効化）
+    console.log('自動期限切れ処理は一時的に無効化されています')
+    
+    // const twentyFourHoursAgo = new Date()
+    // twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24)
 
-    const { data: expiredInvitations, error: expiredError } = await supabaseAdmin
-      .from('store_invitations')
-      .update({ status: 'expired' })
-      .eq('status', 'invited')
-      .lt('created_at', twentyFourHoursAgo.toISOString())
-      .select()
+    // const { data: expiredInvitations, error: expiredError } = await supabaseAdmin
+    //   .from('store_invitations')
+    //   .update({ status: 'expired' })
+    //   .eq('status', 'invited')
+    //   .lt('created_at', twentyFourHoursAgo.toISOString())
+    //   .select()
 
-    if (expiredError) {
-      console.error('期限切れ招待の更新エラー:', expiredError)
-    } else {
-      console.log(`${expiredInvitations?.length || 0}件の招待を期限切れに更新しました`)
-    }
+    // if (expiredError) {
+    //   console.error('期限切れ招待の更新エラー:', expiredError)
+    // } else {
+    //   console.log(`${expiredInvitations?.length || 0}件の招待を期限切れに更新しました`)
+    // }
 
     // 新しい招待を作成（サービスロールで）
     const { data: invitationData, error: invitationError } = await supabaseAdmin
