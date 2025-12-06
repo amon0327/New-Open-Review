@@ -52,7 +52,6 @@ const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
 
 const navigationItems = [
-  { text: 'フォームを作成', icon: <Add /> },
   { text: 'ホーム', icon: <Home />, component: HomePage },
   { text: '店舗管理', icon: <Business />, component: StoresManagementPage },
   { text: 'アプリ表示', icon: <Apps />, component: AppPage },
@@ -61,7 +60,7 @@ const navigationItems = [
 ];
 
 export default function Dashboard({ onCreateClick, onLogout, user, selectedCompany = null, onBackToPartnerDashboard = null }) {
-  const [activeTab, setActiveTab] = useState(1);
+  const [activeTab, setActiveTab] = useState(0);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
   const [showCompanySetup, setShowCompanySetup] = useState(false);
@@ -246,17 +245,8 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
     return <ActiveComponent />;
   };
 
-  const handleNavClick = (index, onCreateForm) => {
-    if (navigationItems[index].text === 'フォームを作成') {
-      if (onCreateForm) {
-        console.log('🎯 Dashboard - フォームを作成ボタンがクリックされました');
-        onCreateForm();
-      } else {
-        console.error('❌ Dashboard - onCreateForm関数が見つかりません');
-      }
-    } else {
-      setActiveTab(index);
-    }
+  const handleNavClick = (index) => {
+    setActiveTab(index);
   };
 
   const handleNotificationClick = (event) => {
@@ -449,151 +439,112 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
             </ListItem>
           )}
 
-          {navigationItems.map((item, index) => {
-            const isCreateButton = item.text === 'フォームを作成';
-            const isCreateButtonDisabled = isCreateButton && isCreatingForm;
-            
-            return (
-              <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
-                <ListItemButton
-                  onClick={() => handleNavClick(index, onCreateForm)}
-                  disabled={isCreateButtonDisabled}
+          {navigationItems.map((item, index) => (
+            <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={() => handleNavClick(index)}
+                sx={{
+                  py: 1.5,
+                  px: isNavCollapsed ? 1 : 2,
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  backgroundColor: activeTab === index ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  },
+                  justifyContent: isNavCollapsed ? 'center' : 'flex-start',
+                  borderRadius: '100px',
+                  minHeight: 48,
+                  alignItems: 'center',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <ListItemIcon
                   sx={{
-                    py: 1.5,
-                    px: isNavCollapsed ? 1 : 2,
-                    color: 'rgba(255, 255, 255, 0.8)',
-                    backgroundColor: activeTab === index ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                    ...(isCreateButton ? {
-                      background: 'white',
-                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                      '&:hover': {
-                        background: '#f8f9fa',
-                        boxShadow: '0 6px 20px rgba(0, 0, 0, 0.15)',
-                        transform: 'translateY(-2px)'
-                      }
-                    } : {
-                      '&:hover': {
-                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      }
-                    }),
-                    justifyContent: isNavCollapsed ? 'center' : 'flex-start',
-                    borderRadius: '100px',
-                    minHeight: 48,
+                    color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)',
+                    minWidth: isNavCollapsed ? 24 : 40,
+                    justifyContent: 'center',
+                    display: 'flex',
                     alignItems: 'center',
-                    '&.Mui-disabled': {
-                      opacity: 0.6
-                    },
-                    transition: 'all 0.3s ease'
+                    height: 24
                   }}
                 >
-                  <ListItemIcon
-                    sx={{
-                      color: isCreateButton ? '#8b5cf6' : activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)',
-                      minWidth: isNavCollapsed ? 24 : 40,
-                      justifyContent: 'center',
-                      display: 'flex',
-                      alignItems: 'center',
-                      height: 24
+                  {item.icon}
+                </ListItemIcon>
+                {!isNavCollapsed && (
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontWeight: activeTab === index ? 600 : 400,
+                      color: activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)'
                     }}
-                  >
-                    {isCreateButton && isCreatingForm ? (
-                      <CircularProgress size={20} sx={{ color: '#8b5cf6' }} />
-                    ) : (
-                      item.icon
-                    )}
-                  </ListItemIcon>
-                  {!isNavCollapsed && (
-                    <ListItemText
-                      primary={
-                        isCreateButton ? (
-                          <Box
-                            sx={{
-                              background: 'linear-gradient(45deg, #8b5cf6 30%, #a855f7 70%)',
-                              backgroundClip: 'text',
-                              WebkitBackgroundClip: 'text',
-                              WebkitTextFillColor: 'transparent',
-                              fontWeight: 600,
-                              display: 'inline-block'
-                            }}
-                          >
-                            {item.text}
-                          </Box>
-                        ) : (
-                          item.text
-                        )
-                      }
-                      primaryTypographyProps={{
-                        fontWeight: isCreateButton ? 600 : activeTab === index ? 600 : 400,
-                        color: isCreateButton ? 'transparent' : activeTab === index ? 'white' : 'rgba(255, 255, 255, 0.8)'
-                      }}
-                    />
-                  )}
-                </ListItemButton>
-              </ListItem>
-            );
-          })}
+                  />
+                )}
+              </ListItemButton>
+            </ListItem>
+          ))}
         </List>
 
 
-        {/* Preview Version Notice */}
-        {!onBackToPartnerDashboard && (
+        {/* Bottom Section: Preview Notice and User Profile */}
+        <Box sx={{ mt: 'auto' }}>
+          {/* Preview Version Notice */}
+          {!onBackToPartnerDashboard && (
+            <Box
+              sx={{
+                px: isNavCollapsed ? 1.5 : 3,
+                pb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                gap: 1
+              }}
+            >
+              <Tooltip
+                title="プレビュー版につき、データなどは一時的な保存となります。あくまでもプレビュー版としてご利用ください。"
+                placement="top"
+                arrow
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Info
+                    sx={{
+                      fontSize: 14,
+                      color: 'white',
+                      '&:hover': {
+                        color: 'rgba(255, 255, 255, 0.8)'
+                      }
+                    }}
+                  />
+                  {!isNavCollapsed && (
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'white',
+                        fontWeight: 600,
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      プレビュー版
+                    </Typography>
+                  )}
+                </Box>
+              </Tooltip>
+            </Box>
+          )}
+
+          {/* User Profile Section */}
           <Box
             sx={{
-              mt: 'auto',
-              px: isNavCollapsed ? 1.5 : 3,
-              pb: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-              gap: 1
+              p: isNavCollapsed ? 1.5 : 3,
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)'
             }}
           >
-            <Tooltip
-              title="プレビュー版につき、データなどは一時的な保存となります。あくまでもプレビュー版としてご利用ください。"
-              placement="top"
-              arrow
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  cursor: 'pointer'
-                }}
-              >
-                <Info
-                  sx={{
-                    fontSize: 14,
-                    color: 'white',
-                    '&:hover': {
-                      color: 'rgba(255, 255, 255, 0.8)'
-                    }
-                  }}
-                />
-                {!isNavCollapsed && (
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: 'white',
-                      fontWeight: 600,
-                      fontSize: '0.75rem'
-                    }}
-                  >
-                    プレビュー版
-                  </Typography>
-                )}
-              </Box>
-            </Tooltip>
-          </Box>
-        )}
-
-        {/* User Profile Section */}
-        <Box
-          sx={{
-            p: isNavCollapsed ? 1.5 : 3,
-            borderTop: '1px solid rgba(255, 255, 255, 0.1)'
-          }}
-        >
           <Box
             sx={{
               display: 'flex',
