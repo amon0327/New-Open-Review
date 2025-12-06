@@ -121,11 +121,18 @@ const theme = createTheme({
 // CreatePage ラッパー - URL パラメータから formId を取得
 function CreatePageWrapper({ user, onBackClick }) {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const formId = searchParams.get('formId');
 
   console.log('🔍 CreatePageWrapper - formId from URL:', formId);
 
-  return <CreatePage user={user} formId={formId} onBackClick={onBackClick} />;
+  // 戻る処理 - ブラウザの履歴で一つ前に戻る
+  const handleBack = () => {
+    console.log('⬅️ CreatePageWrapper - Going back to previous page');
+    navigate(-1);
+  };
+
+  return <CreatePage user={user} formId={formId} onBackClick={handleBack} />;
 }
 
 function App() {
