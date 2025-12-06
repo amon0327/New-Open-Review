@@ -447,7 +447,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             <ListItem disablePadding sx={{ mb: 2 }}>
               <ListItemButton
                 onClick={() => {
-                  console.log('🔙 Navigating back to /dashboard');
+                  console.log('🔙 Navigating back to partner dashboard');
+                  setShowPartnerDashboard(true);
                   navigate('/dashboard');
                 }}
                 sx={{
