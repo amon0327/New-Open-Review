@@ -35,6 +35,8 @@ import {
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
 import CompanySetup from './CompanySetup';
+import PartnerCompanySetup from './PartnerCompanySetup';
+import PartnerDashboard from './PartnerDashboard';
 import { supabase } from '../lib/supabase';
 
 // 分離したページコンポーネントをインポート
@@ -62,6 +64,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
   const [showCompanySetup, setShowCompanySetup] = useState(false);
+  const [showPartnerCompanySetup, setShowPartnerCompanySetup] = useState(false);
+  const [showPartnerDashboard, setShowPartnerDashboard] = useState(false);
   const [isCheckingCompany, setIsCheckingCompany] = useState(true);
 
   // ユーザーの会社情報をチェック
@@ -70,7 +74,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
       try {
         // 認証されたユーザーの情報を取得
         const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
-        
+
         if (authError || !currentUser) {
           console.error('認証情報の取得に失敗:', authError);
           // 未ログインの場合は会社情報登録を表示しない
@@ -81,23 +85,40 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           return;
         }
 
-        // ユーザーの会社情報をチェック
-        const { data, error } = await supabase
+        // 1. まずcompany_membershipsをチェック
+        const { data: companyData, error: companyError } = await supabase
           .from('company_memberships')
           .select('id, company_id')
           .eq('business_user_id', currentUser.id);
 
-        if (error) {
-          console.error('会社情報チェック中にエラー:', error);
-          setShowCompanySetup(true);
-        } else if (!data || data.length === 0) {
-          // レコードが見つからない場合
-          setShowCompanySetup(true);
+        if (!companyError && companyData && companyData.length > 0) {
+          // company_membershipsにレコードがある → 既存の通常Dashboard
+          console.log('✅ Company membership found - showing normal dashboard');
+          setIsCheckingCompany(false);
+          return;
         }
-        // データが存在する場合はshowCompanySetupはfalseのまま
+
+        // 2. company_membershipsにない場合、partner_company_membershipsをチェック
+        const { data: partnerData, error: partnerError } = await supabase
+          .from('partner_company_memberships')
+          .select('id, partner_company_id')
+          .eq('business_users_id', currentUser.id);
+
+        if (!partnerError && partnerData && partnerData.length > 0) {
+          // partner_company_membershipsにレコードがある → PartnerDashboard表示
+          console.log('✅ Partner membership found - showing partner dashboard');
+          setShowPartnerDashboard(true);
+          setIsCheckingCompany(false);
+          return;
+        }
+
+        // 3. どちらにもない場合 → PartnerCompanySetup表示
+        console.log('⚠️ No membership found - showing partner company setup');
+        setShowPartnerCompanySetup(true);
+
       } catch (error) {
         console.error('会社情報チェック中にエラー:', error);
-        setShowCompanySetup(true);
+        setShowPartnerCompanySetup(true);
       } finally {
         setIsCheckingCompany(false);
       }
@@ -108,6 +129,12 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
 
   const handleCompanyCreated = (companyData) => {
     setShowCompanySetup(false);
+  };
+
+  const handlePartnerCompanyCreated = (partnerCompanyData) => {
+    console.log('✅ Partner company created:', partnerCompanyData);
+    setShowPartnerCompanySetup(false);
+    setShowPartnerDashboard(true);
   };
 
   // 会社情報チェック中の表示
@@ -167,11 +194,31 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     );
   }
 
-  // 会社セットアップが必要な場合
+  // Partner会社セットアップが必要な場合
+  if (showPartnerCompanySetup) {
+    return (
+      <PartnerCompanySetup
+        user={user}
+        onPartnerCompanyCreated={handlePartnerCompanyCreated}
+      />
+    );
+  }
+
+  // PartnerDashboard表示
+  if (showPartnerDashboard) {
+    return (
+      <PartnerDashboard
+        user={user}
+        onLogout={onLogout}
+      />
+    );
+  }
+
+  // 会社セットアップが必要な場合（旧来のフロー - 通常は使用されない）
   if (showCompanySetup) {
     return (
-      <CompanySetup 
-        user={user} 
+      <CompanySetup
+        user={user}
         onCompanyCreated={handleCompanyCreated}
       />
     );
