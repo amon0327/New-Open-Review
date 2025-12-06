@@ -401,10 +401,13 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
                 sx={{
                   py: 1.5,
                   px: isNavCollapsed ? 1 : 2,
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  color: '#a5b4fc',
+                  backgroundColor: 'transparent',
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                    backgroundColor: 'transparent',
+                    '& .MuiListItemText-primary': {
+                      textDecoration: 'underline'
+                    }
                   },
                   justifyContent: isNavCollapsed ? 'center' : 'flex-start',
                   borderRadius: '100px',
@@ -415,7 +418,7 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
               >
                 <ListItemIcon
                   sx={{
-                    color: 'white',
+                    color: '#a5b4fc',
                     minWidth: isNavCollapsed ? 24 : 40,
                     justifyContent: 'center',
                     display: 'flex',
@@ -431,7 +434,7 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
                     primaryTypographyProps={{
                       fontWeight: 600,
                       fontSize: '0.875rem',
-                      color: 'white'
+                      color: '#a5b4fc'
                     }}
                   />
                 )}
@@ -581,6 +584,7 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
               </Box>
             )}
           </Box>
+        </Box>
         </Box>
       </Drawer>
 
