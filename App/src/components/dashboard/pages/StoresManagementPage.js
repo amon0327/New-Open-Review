@@ -34,6 +34,11 @@ import StoreRegistrationForm from '../../StoreRegistrationForm';
 import StoreDetailPage from './StoreDetailPage';
 export default function StoresManagementPage() {
   const { companyId: urlCompanyId } = useParams(); // URLからcompanyIdを取得
+
+  // デバッグ用ログ
+  console.log('🔍 StoresManagementPage - urlCompanyId:', urlCompanyId);
+  console.log('🔍 StoresManagementPage - window.location.pathname:', window.location.pathname);
+
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -48,6 +53,7 @@ export default function StoresManagementPage() {
 
   const fetchStores = async () => {
     try {
+      console.log('🔄 fetchStores called - urlCompanyId:', urlCompanyId);
       setLoading(true);
       setError(null);
 
@@ -56,6 +62,7 @@ export default function StoresManagementPage() {
       if (authError || !user) {
         throw new Error('認証が必要です');
       }
+      console.log('✅ User authenticated:', user.id);
 
       let companyId = null;
 
@@ -72,16 +79,20 @@ export default function StoresManagementPage() {
           .eq('business_user_id', user.id);
 
         if (relationError) {
+          console.error('❌ company_memberships query error:', relationError);
           throw new Error('会社情報の取得に失敗しました');
         }
 
         if (!companyRelation || companyRelation.length === 0) {
+          console.error('❌ No company_memberships found for user:', user.id);
           throw new Error('会社情報が見つかりません');
         }
 
         companyId = companyRelation[0].company_id;
         console.log('✅ Company ID from company_memberships:', companyId);
       }
+
+      console.log('📍 Querying stores with company_id:', companyId);
 
       // 会社の店舗一覧を取得
       const { data: storesData, error: storesError } = await supabase
@@ -91,10 +102,12 @@ export default function StoresManagementPage() {
         .order('created_at', { ascending: false });
 
       if (storesError) {
+        console.error('❌ Stores query error:', storesError);
         throw new Error('店舗情報の取得に失敗しました');
       }
 
       console.log('✅ Stores loaded:', storesData?.length || 0);
+      console.log('📦 Stores data:', storesData);
       setStores(storesData || []);
     } catch (err) {
       console.error('❌ Error fetching stores:', err);
