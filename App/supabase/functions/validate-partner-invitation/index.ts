@@ -13,6 +13,8 @@ serve(async (req) => {
 
   try {
     console.log('=== validate-partner-invitation Edge Function開始 ===')
+    console.log('Request method:', req.method)
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()))
 
     // サービスロール用のSupabaseクライアントを作成（RLS回避）
     const supabaseAdmin = createClient(
@@ -23,6 +25,7 @@ serve(async (req) => {
     // リクエストボディから招待トークンを取得
     const requestBody = await req.text()
     console.log('Raw request body:', requestBody)
+    console.log('Request body length:', requestBody.length)
 
     let parsedBody
     try {
@@ -34,6 +37,8 @@ serve(async (req) => {
 
     const { invitationToken } = parsedBody
     console.log('Parsed invitation token:', invitationToken)
+    console.log('Token type:', typeof invitationToken)
+    console.log('Token length:', invitationToken?.length)
 
     if (!invitationToken) {
       throw new Error('招待トークンが必要です')
@@ -49,7 +54,12 @@ serve(async (req) => {
     const { data: invitationData, error: invitationError } = await supabaseAdmin
       .from('partner_user_invitations')
       .select(`
-        *,
+        id,
+        name,
+        role,
+        status,
+        created_at,
+        partner_company_id,
         partner_company (
           id,
           company_name
