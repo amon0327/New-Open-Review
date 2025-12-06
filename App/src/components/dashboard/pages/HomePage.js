@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Box, 
@@ -49,6 +50,7 @@ import ArticleDataService from '../../../services/ArticleDataService';
 import { toast } from 'react-hot-toast';
 
 export default function HomePage({ user, onCreateFormClick, onCreateForm, isCreatingForm }) {
+  const navigate = useNavigate();
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -1119,8 +1121,8 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                 console.log('🔍 HomePage - selectedForm.id:', selectedForm?.id);
                 handleMenuClose();
                 if (selectedForm) {
-                  console.log('🔍 HomePage - onCreateFormClickを呼び出し中:', selectedForm.id);
-                  onCreateFormClick(selectedForm.id);
+                  console.log('📝 HomePage - Navigating to edit form:', selectedForm.id);
+                  navigate(`/create?formId=${selectedForm.id}`);
                 }
               }} 
               sx={{ py: 1, px: 2 }}
