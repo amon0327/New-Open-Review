@@ -568,20 +568,57 @@ export default function PartnerDashboard({ user, onLogout }) {
                                 {index > 0 && <Divider />}
                                 <ListItem
                                   secondaryAction={
-                                    <Box sx={{ display: 'flex', gap: 1 }}>
-                                      <IconButton
-                                        aria-label="copy"
+                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                      <Button
+                                        size="small"
+                                        variant="outlined"
+                                        startIcon={<ContentCopy sx={{ fontSize: 16 }} />}
+                                        onClick={() => {
+                                          const url = `http://localhost:3000/partner-invitation/${invitation.token}`;
+                                          navigator.clipboard.writeText(url);
+                                          toast.success('開発版URLをコピーしました');
+                                        }}
+                                        sx={{
+                                          borderColor: '#5e17eb',
+                                          color: '#5e17eb',
+                                          fontSize: '0.75rem',
+                                          py: 0.5,
+                                          px: 1,
+                                          minWidth: 'auto',
+                                          '&:hover': {
+                                            borderColor: '#4c1d95',
+                                            backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                                          }
+                                        }}
+                                      >
+                                        開発版
+                                      </Button>
+                                      <Button
+                                        size="small"
+                                        variant="outlined"
+                                        startIcon={<ContentCopy sx={{ fontSize: 16 }} />}
                                         onClick={() => {
                                           const url = `https://app.openreview.jp/partner-invitation/${invitation.token}`;
                                           navigator.clipboard.writeText(url);
-                                          toast.success('招待URLをコピーしました');
+                                          toast.success('本番版URLをコピーしました');
                                         }}
-                                        sx={{ color: '#5e17eb' }}
+                                        sx={{
+                                          borderColor: '#10b981',
+                                          color: '#10b981',
+                                          fontSize: '0.75rem',
+                                          py: 0.5,
+                                          px: 1,
+                                          minWidth: 'auto',
+                                          '&:hover': {
+                                            borderColor: '#059669',
+                                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                                          }
+                                        }}
                                       >
-                                        <ContentCopy />
-                                      </IconButton>
+                                        本番版
+                                      </Button>
                                       <IconButton
-                                        edge="end"
+                                        size="small"
                                         aria-label="delete"
                                         onClick={() => {
                                           if (window.confirm(`${invitation.name}さんへの招待を削除しますか？`)) {
@@ -590,7 +627,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                                         }}
                                         sx={{ color: '#ef4444' }}
                                       >
-                                        <Delete />
+                                        <Delete sx={{ fontSize: 20 }} />
                                       </IconButton>
                                     </Box>
                                   }
