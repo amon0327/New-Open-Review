@@ -44,7 +44,7 @@ export default function StoresManagementPage() {
   // 店舗一覧を取得
   useEffect(() => {
     fetchStores();
-  }, []);
+  }, [urlCompanyId]); // urlCompanyIdが変わったら再取得
 
   const fetchStores = async () => {
     try {
