@@ -51,6 +51,30 @@ serve(async (req) => {
       throw new Error('パートナー企業名は100文字以内で入力してください')
     }
 
+    // 🔒 business_usersテーブルにユーザーが存在することを確認
+    const { data: businessUser, error: businessUserError } = await supabase
+      .from('business_users')
+      .select('id')
+      .eq('id', user.id)
+      .single()
+
+    // business_usersに存在しない場合は作成
+    if (businessUserError && businessUserError.code === 'PGRST116') {
+      const { error: createBusinessUserError } = await supabase
+        .from('business_users')
+        .insert([{
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata?.name || user.email?.split('@')[0] || ''
+        }])
+
+      if (createBusinessUserError) {
+        throw new Error(`ビジネスユーザーの作成に失敗: ${createBusinessUserError.message}`)
+      }
+    } else if (businessUserError) {
+      throw new Error(`ビジネスユーザーの確認に失敗: ${businessUserError.message}`)
+    }
+
     // 🔒 既存の関連付けチェック（重複防止）
     const { data: existingRelation, error: checkError } = await supabase
       .from('partner_memberships')
@@ -81,7 +105,8 @@ serve(async (req) => {
           company_name: company_name.trim(),
           website_url: website_url?.trim() || null,
           phone: phone?.trim() || null,
-          email: email?.trim() || null
+          email: email?.trim() || null,
+          is_active: true
         }
       ])
       .select()
@@ -96,8 +121,10 @@ serve(async (req) => {
       .from('partner_memberships')
       .insert([
         {
-          business_users_id: user.id, // 🔒 認証されたユーザーIDのみ使用
-          partner_company_id: partnerCompany.id
+          business_users_id: user.id, // business_usersテーブルを参照
+          partner_company_id: partnerCompany.id,
+          role: 'owner', // 作成者はowner
+          is_active: true
         }
       ])
 
