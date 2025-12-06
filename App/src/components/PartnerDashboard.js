@@ -37,7 +37,7 @@ import {
   Email
 } from '@mui/icons-material';
 import CompanyCreationDialog from './CompanyCreationDialog';
-import CompanyDashboard from './CompanyDashboard';
+import Dashboard from './Dashboard';
 import { supabase } from '../lib/supabase';
 
 export default function PartnerDashboard({ user, onLogout }) {
@@ -400,14 +400,15 @@ export default function PartnerDashboard({ user, onLogout }) {
     setSelectedCompany(null);
   };
 
-  // 企業が選択されている場合は企業ダッシュボードを表示
+  // 企業が選択されている場合は通常のダッシュボードを表示
   if (selectedCompany) {
     return (
-      <CompanyDashboard
-        company={selectedCompany}
+      <Dashboard
         user={user}
-        onBack={handleBackToPartnerDashboard}
         onLogout={onLogout}
+        onCreateClick={() => {}}
+        selectedCompany={selectedCompany}
+        onBackToPartnerDashboard={handleBackToPartnerDashboard}
       />
     );
   }

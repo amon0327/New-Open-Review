@@ -30,7 +30,8 @@ import {
   AccountCircle,
   Info,
   Business,
-  Apps
+  Apps,
+  ArrowBack
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
@@ -59,17 +60,23 @@ const navigationItems = [
   { text: 'Settings', icon: <Settings />, component: SettingsPage },
 ];
 
-export default function Dashboard({ onCreateClick, onLogout, user }) {
+export default function Dashboard({ onCreateClick, onLogout, user, selectedCompany = null, onBackToPartnerDashboard = null }) {
   const [activeTab, setActiveTab] = useState(1);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
   const [showCompanySetup, setShowCompanySetup] = useState(false);
   const [showPartnerCompanySetup, setShowPartnerCompanySetup] = useState(false);
   const [showPartnerDashboard, setShowPartnerDashboard] = useState(false);
-  const [isCheckingCompany, setIsCheckingCompany] = useState(true);
+  const [isCheckingCompany, setIsCheckingCompany] = useState(!selectedCompany);
 
-  // ユーザーの会社情報をチェック
+  // ユーザーの会社情報をチェック（selectedCompanyが渡されている場合はスキップ）
   useEffect(() => {
+    // 企業コンテキストで開かれている場合は会社チェックをスキップ
+    if (selectedCompany) {
+      setIsCheckingCompany(false);
+      return;
+    }
+
     const checkUserCompany = async () => {
       try {
         // 認証されたユーザーの情報を取得
@@ -597,6 +604,15 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           }}
         >
           <Toolbar>
+            {onBackToPartnerDashboard && (
+              <IconButton
+                edge="start"
+                onClick={onBackToPartnerDashboard}
+                sx={{ mr: 2, color: '#5e17eb' }}
+              >
+                <ArrowBack />
+              </IconButton>
+            )}
             <Typography
               variant="h6"
               sx={{
@@ -605,9 +621,9 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                 fontWeight: 600
               }}
             >
-              {navigationItems[activeTab].text}
+              {selectedCompany ? `${selectedCompany.name} - ${navigationItems[activeTab].text}` : navigationItems[activeTab].text}
             </Typography>
-            
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <IconButton 
                 color="inherit" 
