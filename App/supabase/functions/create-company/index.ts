@@ -111,14 +111,13 @@ serve(async (req) => {
       throw new Error(`企業アカウントの作成に失敗: ${companyError.message}`)
     }
 
-    // company_membershipsに関連付け（作成者はowner）
+    // company_membershipsに関連付け
     const { error: membershipError } = await supabase
       .from('company_memberships')
       .insert([
         {
           business_user_id: user.id,
-          company_id: company.id,
-          role: 'owner'
+          company_id: company.id
         }
       ])
 
