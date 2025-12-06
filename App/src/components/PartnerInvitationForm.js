@@ -20,7 +20,6 @@ import {
 import {
   PersonAdd,
   Close,
-  Email,
   AdminPanelSettings,
   Send,
   ContentCopy,
@@ -36,7 +35,7 @@ export default function PartnerInvitationForm({
   onInvitationSent
 }) {
   const [formData, setFormData] = useState({
-    email: '',
+    name: '',
     role: 'owner'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,14 +58,8 @@ export default function PartnerInvitationForm({
 
     try {
       // バリデーション
-      if (!formData.email.trim()) {
-        throw new Error('招待するメールアドレスを入力してください');
-      }
-
-      // メールアドレスの簡易検証
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        throw new Error('有効なメールアドレスを入力してください');
+      if (!formData.name.trim()) {
+        throw new Error('招待する人の名前を入力してください');
       }
 
       // 認証情報の取得
@@ -78,7 +71,7 @@ export default function PartnerInvitationForm({
 
       console.log('Creating partner invitation:', {
         partnerCompanyId,
-        email: formData.email,
+        name: formData.name,
         role: formData.role
       });
 
@@ -87,7 +80,7 @@ export default function PartnerInvitationForm({
         body: {
           partnerCompanyId: partnerCompanyId,
           role: formData.role,
-          email: formData.email.trim()
+          name: formData.name.trim()
         },
         headers: {
           Authorization: `Bearer ${sessionData.session.access_token}`,
@@ -122,7 +115,7 @@ export default function PartnerInvitationForm({
 
   const copyTemplate = () => {
     if (invitationData) {
-      const template = `${invitationData.email}様
+      const template = `${invitationData.name}様
 
 ${invitationData.partnerCompanyName}への招待URLです：
 
@@ -137,7 +130,7 @@ https://app.openreview.jp/partner-invitation/${invitationData.token}`;
   };
 
   const handleClose = () => {
-    setFormData({ email: '', role: 'member' });
+    setFormData({ name: '', role: 'owner' });
     setError(null);
     setSuccess(false);
     setInvitationData(null);
@@ -215,7 +208,7 @@ https://app.openreview.jp/partner-invitation/${invitationData.token}`;
                   招待URLを発行しました！
                 </Typography>
                 <Typography variant="body1" sx={{ color: '#64748b' }}>
-                  以下の情報を{invitationData?.email}に送信してください
+                  以下の情報を{invitationData?.name}さんに送信してください
                 </Typography>
               </Box>
 
@@ -240,7 +233,7 @@ https://app.openreview.jp/partner-invitation/${invitationData.token}`;
                       color: '#374151'
                     }}
                   >
-                    {`${invitationData?.email}様
+                    {`${invitationData?.name}様
 
 ${invitationData?.partnerCompanyName}への招待URLです：
 
@@ -399,19 +392,18 @@ https://app.openreview.jp/partner-invitation/${invitationData?.token}`}
             {/* フォーム */}
             <Box component="form" onSubmit={handleSubmit}>
               <Stack spacing={3}>
-                {/* メールアドレス */}
+                {/* 招待者名 */}
                 <TextField
-                  label="招待するメールアドレス"
-                  placeholder="example@email.com"
-                  type="email"
+                  label="招待する人の名前"
+                  placeholder="山田太郎"
                   fullWidth
                   required
-                  value={formData.email}
-                  onChange={handleInputChange('email')}
+                  value={formData.name}
+                  onChange={handleInputChange('name')}
                   disabled={isSubmitting}
                   InputProps={{
                     startAdornment: (
-                      <Email sx={{ color: '#64748b', mr: 1 }} />
+                      <AdminPanelSettings sx={{ color: '#64748b', mr: 1 }} />
                     ),
                   }}
                   sx={{
@@ -438,14 +430,9 @@ https://app.openreview.jp/partner-invitation/${invitationData?.token}`}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <AdminPanelSettings sx={{ mr: 1.5, color: '#f59e0b', fontSize: 28 }} />
-                    <Box>
-                      <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>
-                        オーナー権限で招待
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#64748b' }}>
-                        招待されたユーザーは完全な管理権限を持ちます
-                      </Typography>
-                    </Box>
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      オーナー権限で招待
+                    </Typography>
                   </Box>
                 </Box>
               </Stack>
@@ -464,8 +451,7 @@ https://app.openreview.jp/partner-invitation/${invitationData?.token}`}
               <Typography variant="body2" sx={{ color: '#92400e', lineHeight: 1.6 }}>
                 <strong>注意事項:</strong><br />
                 • 招待された方はGoogleアカウントでログインが必要です<br />
-                • 招待URLは安全に管理してください<br />
-                • 同じメールアドレスで有効な招待が既にある場合は作成できません
+                • 招待URLは安全に管理してください
               </Typography>
             </Box>
           </motion.div>
@@ -484,7 +470,7 @@ https://app.openreview.jp/partner-invitation/${invitationData?.token}`}
           <Button
             type="submit"
             variant="contained"
-            disabled={isSubmitting || !formData.email.trim()}
+            disabled={isSubmitting || !formData.name.trim()}
             startIcon={
               isSubmitting ? (
                 <CircularProgress size={20} color="inherit" />

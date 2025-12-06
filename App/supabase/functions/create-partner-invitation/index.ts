@@ -41,20 +41,14 @@ serve(async (req) => {
     }
 
     // リクエストボディから必要な情報を取得
-    const { partnerCompanyId, role, email } = await req.json()
+    const { partnerCompanyId, role, name } = await req.json()
 
-    if (!partnerCompanyId || !role || !email) {
-      throw new Error('パートナー企業ID、ロール、メールアドレスが必要です')
+    if (!partnerCompanyId || !role || !name) {
+      throw new Error('パートナー企業ID、ロール、名前が必要です')
     }
 
-    if (!['owner', 'admin', 'member'].includes(role)) {
-      throw new Error('ロールはowner、admin、またはmemberである必要があります')
-    }
-
-    // メールアドレスの形式チェック
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      throw new Error('有効なメールアドレスを入力してください')
+    if (role !== 'owner') {
+      throw new Error('ロールはownerである必要があります')
     }
 
     // ユーザーのパートナーメンバーシップを確認（サービスロールで）
@@ -92,33 +86,19 @@ serve(async (req) => {
       throw new Error('指定されたパートナー企業が見つかりません')
     }
 
-    // すでに同じメールアドレスで有効な招待が存在するかチェック
-    const { data: existingInvitation, error: existingError } = await supabaseAdmin
-      .from('partner_user_invitations')
-      .select('id, status')
-      .eq('email', email)
-      .eq('partner_company_id', partnerCompanyId)
-      .eq('status', 'invited')
-
-    if (existingError) {
-      console.error('既存招待のチェックエラー:', existingError)
-    } else if (existingInvitation && existingInvitation.length > 0) {
-      throw new Error('このメールアドレスには既に招待が送信されています')
-    }
-
     // 新しい招待を作成（サービスロールで）
     const { data: invitationData, error: invitationError } = await supabaseAdmin
       .from('partner_user_invitations')
       .insert([
         {
           partner_company_id: partnerCompanyId,
-          email: email,
+          name: name,
           role: role,
           status: 'invited',
           invited_by: user.id
         }
       ])
-      .select('id, token, email, role')
+      .select('id, token, name, role')
 
     if (invitationError) {
       throw new Error(`招待の作成に失敗: ${invitationError.message}`)
@@ -140,7 +120,7 @@ serve(async (req) => {
         invitation: {
           id: invitation.id,
           token: invitation.token,
-          email: invitation.email,
+          name: invitation.name,
           role: invitation.role,
           url: invitationUrl,
           partnerCompanyName: partnerCompanyData[0].company_name
