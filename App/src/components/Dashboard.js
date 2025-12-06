@@ -487,7 +487,7 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
         </List>
 
 
-        {/* Preview Version Notice */}
+        {/* Back to Partner Dashboard or Preview Version Notice */}
         <Box
           sx={{
             mt: 'auto',
@@ -499,42 +499,87 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
             gap: 1
           }}
         >
-          <Tooltip
-            title="プレビュー版につき、データなどは一時的な保存となります。あくまでもプレビュー版としてご利用ください。"
-            placement="top"
-            arrow
-          >
-            <Box
+          {onBackToPartnerDashboard ? (
+            // パートナーページに戻るボタン
+            <ListItemButton
+              onClick={onBackToPartnerDashboard}
               sx={{
-                display: 'flex',
+                py: 1.5,
+                px: isNavCollapsed ? 1 : 2,
+                color: 'white',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                },
+                justifyContent: isNavCollapsed ? 'center' : 'flex-start',
+                borderRadius: '100px',
+                minHeight: 48,
                 alignItems: 'center',
-                gap: 1,
-                cursor: 'pointer'
+                transition: 'all 0.3s ease'
               }}
             >
-              <Info 
-                sx={{ 
-                  fontSize: 14,
+              <ListItemIcon
+                sx={{
                   color: 'white',
-                  '&:hover': {
-                    color: 'rgba(255, 255, 255, 0.8)'
-                  }
-                }} 
-              />
+                  minWidth: isNavCollapsed ? 24 : 40,
+                  justifyContent: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  height: 24
+                }}
+              >
+                <ArrowBack />
+              </ListItemIcon>
               {!isNavCollapsed && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: 'white',
+                <ListItemText
+                  primary="パートナーページに戻る"
+                  primaryTypographyProps={{
                     fontWeight: 600,
-                    fontSize: '0.75rem'
+                    fontSize: '0.875rem',
+                    color: 'white'
                   }}
-                >
-                  プレビュー版
-                </Typography>
+                />
               )}
-            </Box>
-          </Tooltip>
+            </ListItemButton>
+          ) : (
+            // プレビュー版の表示
+            <Tooltip
+              title="プレビュー版につき、データなどは一時的な保存となります。あくまでもプレビュー版としてご利用ください。"
+              placement="top"
+              arrow
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  cursor: 'pointer'
+                }}
+              >
+                <Info
+                  sx={{
+                    fontSize: 14,
+                    color: 'white',
+                    '&:hover': {
+                      color: 'rgba(255, 255, 255, 0.8)'
+                    }
+                  }}
+                />
+                {!isNavCollapsed && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '0.75rem'
+                    }}
+                  >
+                    プレビュー版
+                  </Typography>
+                )}
+              </Box>
+            </Tooltip>
+          )}
         </Box>
 
         {/* User Profile Section */}
@@ -604,15 +649,6 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
           }}
         >
           <Toolbar>
-            {onBackToPartnerDashboard && (
-              <IconButton
-                edge="start"
-                onClick={onBackToPartnerDashboard}
-                sx={{ mr: 2, color: '#5e17eb' }}
-              >
-                <ArrowBack />
-              </IconButton>
-            )}
             <Typography
               variant="h6"
               sx={{
