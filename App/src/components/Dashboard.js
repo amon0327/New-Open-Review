@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Box,
@@ -59,19 +60,61 @@ const navigationItems = [
   { text: '設定', icon: <Settings />, component: SettingsPage },
 ];
 
-export default function Dashboard({ onCreateClick, onLogout, user, selectedCompany = null, onBackToPartnerDashboard = null }) {
+export default function Dashboard({ onCreateClick, onLogout, user }) {
+  const { companyId } = useParams();
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState(0);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
   const [showCompanySetup, setShowCompanySetup] = useState(false);
   const [showPartnerCompanySetup, setShowPartnerCompanySetup] = useState(false);
   const [showPartnerDashboard, setShowPartnerDashboard] = useState(false);
-  const [isCheckingCompany, setIsCheckingCompany] = useState(!selectedCompany);
+  const [isCheckingCompany, setIsCheckingCompany] = useState(!companyId);
+  const [currentCompany, setCurrentCompany] = useState(null);
+  const [isLoadingCompany, setIsLoadingCompany] = useState(!!companyId);
 
-  // ユーザーの会社情報をチェック（selectedCompanyが渡されている場合はスキップ）
+  // URLパラメータから企業データを取得
+  useEffect(() => {
+    if (!companyId) {
+      setCurrentCompany(null);
+      setIsLoadingCompany(false);
+      return;
+    }
+
+    const fetchCompanyData = async () => {
+      try {
+        setIsLoadingCompany(true);
+        console.log('🔍 Fetching company data for companyId:', companyId);
+
+        const { data, error } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('id', companyId)
+          .single();
+
+        if (error) {
+          console.error('❌ Error fetching company:', error);
+          setCurrentCompany(null);
+        } else {
+          console.log('✅ Company data loaded:', data);
+          setCurrentCompany(data);
+        }
+      } catch (error) {
+        console.error('❌ Exception fetching company:', error);
+        setCurrentCompany(null);
+      } finally {
+        setIsLoadingCompany(false);
+      }
+    };
+
+    fetchCompanyData();
+  }, [companyId]);
+
+  // ユーザーの会社情報をチェック（URLでcompanyIdが指定されている場合はスキップ）
   useEffect(() => {
     // 企業コンテキストで開かれている場合は会社チェックをスキップ
-    if (selectedCompany) {
+    if (companyId) {
       setIsCheckingCompany(false);
       return;
     }
@@ -210,8 +253,8 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
     );
   }
 
-  // PartnerDashboard表示（ただしselectedCompanyが指定されている場合はスキップ）
-  if (showPartnerDashboard && !selectedCompany) {
+  // PartnerDashboard表示（ただしURLでcompanyIdが指定されている場合はスキップ）
+  if (showPartnerDashboard && !companyId) {
     return (
       <PartnerDashboard
         user={user}
@@ -258,7 +301,7 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
   };
 
   return (
-    <FormCreator user={user} onCreateFormClick={onCreateClick} selectedCompany={selectedCompany}>
+    <FormCreator user={user} onCreateFormClick={onCreateClick} selectedCompany={currentCompany}>
       {({ onCreateForm, isCreatingForm }) => (
         <Box sx={{ display: 'flex', height: '100vh' }}>
           {/* モダンなローディング表示 */}
@@ -394,10 +437,13 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
         {/* Navigation Items */}
         <List sx={{ px: isNavCollapsed ? 1 : 2, py: 3 }}>
           {/* Back to Partner Dashboard Button */}
-          {onBackToPartnerDashboard && (
+          {companyId && (
             <ListItem disablePadding sx={{ mb: 2 }}>
               <ListItemButton
-                onClick={onBackToPartnerDashboard}
+                onClick={() => {
+                  console.log('🔙 Navigating back to /dashboard');
+                  navigate('/dashboard');
+                }}
                 sx={{
                   py: 1.5,
                   px: isNavCollapsed ? 1 : 2,
@@ -491,7 +537,7 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
         {/* Bottom Section: Preview Notice and User Profile */}
         <Box sx={{ mt: 'auto' }}>
           {/* Preview Version Notice */}
-          {!onBackToPartnerDashboard && (
+          {!companyId && (
             <Box
               sx={{
                 px: isNavCollapsed ? 1.5 : 3,
@@ -617,7 +663,7 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
                 fontWeight: 600
               }}
             >
-              {selectedCompany ? `${selectedCompany.name} - ${navigationItems[activeTab].text}` : navigationItems[activeTab].text}
+              {currentCompany ? `${currentCompany.name} - ${navigationItems[activeTab].text}` : navigationItems[activeTab].text}
             </Typography>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

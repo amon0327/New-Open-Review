@@ -371,6 +371,14 @@ function App() {
                       <Navigate to="/" replace />
                     )
                   } />
+                  {/* パートナー企業ダッシュボード - URLパラメータで企業を指定 */}
+                  <Route path="/company/:companyId/dashboard" element={
+                    user ? (
+                      <Dashboard onCreateClick={handleCreateClick} onLogout={handleLogout} user={user} />
+                    ) : (
+                      <Navigate to="/" replace />
+                    )
+                  } />
                   <Route path="/create" element={
                     user ? (
                       <CreatePage onBackClick={handleBackToDashboard} user={user} formId={currentFormId} />

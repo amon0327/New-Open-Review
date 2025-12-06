@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Box,
@@ -37,16 +38,15 @@ import {
   Email
 } from '@mui/icons-material';
 import CompanyCreationDialog from './CompanyCreationDialog';
-import Dashboard from './Dashboard';
 import { supabase } from '../lib/supabase';
 
 export default function PartnerDashboard({ user, onLogout }) {
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showCompanyDialog, setShowCompanyDialog] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
-  const [selectedCompany, setSelectedCompany] = useState(null);
 
   // 紐付いている企業一覧を取得
   const fetchAffiliatedCompanies = async () => {
@@ -270,8 +270,8 @@ export default function PartnerDashboard({ user, onLogout }) {
                         console.log('🏢 Company card clicked:', company);
                         console.log('  - company.id:', company.id);
                         console.log('  - company.name:', company.name);
-                        setSelectedCompany(company);
-                        console.log('✅ setSelectedCompany called with:', company);
+                        console.log('🔀 Navigating to /company/' + company.id + '/dashboard');
+                        navigate(`/company/${company.id}/dashboard`);
                       }}
                       sx={{
                         borderRadius: 3,
@@ -401,26 +401,6 @@ export default function PartnerDashboard({ user, onLogout }) {
     // 企業一覧を再取得して最新の状態を表示
     await fetchAffiliatedCompanies();
   };
-
-  const handleBackToPartnerDashboard = () => {
-    setSelectedCompany(null);
-  };
-
-  // 企業が選択されている場合は通常のダッシュボードを表示
-  console.log('🔍 PartnerDashboard render - selectedCompany:', selectedCompany);
-  if (selectedCompany) {
-    console.log('✅ Rendering Dashboard with selectedCompany:', selectedCompany);
-    return (
-      <Dashboard
-        user={user}
-        onLogout={onLogout}
-        onCreateClick={() => {}}
-        selectedCompany={selectedCompany}
-        onBackToPartnerDashboard={handleBackToPartnerDashboard}
-      />
-    );
-  }
-  console.log('⚠️ Rendering PartnerDashboard (no company selected)');
 
   return (
     <Box sx={{ minHeight: '100vh', background: '#ffffff' }}>
