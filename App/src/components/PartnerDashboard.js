@@ -159,7 +159,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                   px: 3
                 }}
               >
-                企業を招待
+                企業アカウント作成
               </Button>
             </Box>
 
@@ -171,7 +171,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                     登録されている企業がありません
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                    「企業を招待」ボタンから企業を招待してください
+                    「企業アカウント作成」ボタンから新しい企業を作成してください
                   </Typography>
                 </Box>
               </CardContent>
