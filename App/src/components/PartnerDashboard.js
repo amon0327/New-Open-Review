@@ -266,7 +266,13 @@ export default function PartnerDashboard({ user, onLogout }) {
                 {companies.map((company) => (
                   <Grid item xs={12} md={6} lg={4} key={company.id}>
                     <Card
-                      onClick={() => setSelectedCompany(company)}
+                      onClick={() => {
+                        console.log('🏢 Company card clicked:', company);
+                        console.log('  - company.id:', company.id);
+                        console.log('  - company.name:', company.name);
+                        setSelectedCompany(company);
+                        console.log('✅ setSelectedCompany called with:', company);
+                      }}
                       sx={{
                         borderRadius: 3,
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
@@ -401,7 +407,9 @@ export default function PartnerDashboard({ user, onLogout }) {
   };
 
   // 企業が選択されている場合は通常のダッシュボードを表示
+  console.log('🔍 PartnerDashboard render - selectedCompany:', selectedCompany);
   if (selectedCompany) {
+    console.log('✅ Rendering Dashboard with selectedCompany:', selectedCompany);
     return (
       <Dashboard
         user={user}
@@ -412,6 +420,7 @@ export default function PartnerDashboard({ user, onLogout }) {
       />
     );
   }
+  console.log('⚠️ Rendering PartnerDashboard (no company selected)');
 
   return (
     <Box sx={{ minHeight: '100vh', background: '#ffffff' }}>
