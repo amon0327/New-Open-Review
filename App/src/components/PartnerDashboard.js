@@ -39,11 +39,13 @@ import {
   Phone,
   Email,
   Delete,
-  HourglassEmpty
+  HourglassEmpty,
+  ContentCopy
 } from '@mui/icons-material';
 import CompanyCreationDialog from './CompanyCreationDialog';
 import PartnerInvitationForm from './PartnerInvitationForm';
 import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 export default function PartnerDashboard({ user, onLogout }) {
   const navigate = useNavigate();
@@ -566,18 +568,31 @@ export default function PartnerDashboard({ user, onLogout }) {
                                 {index > 0 && <Divider />}
                                 <ListItem
                                   secondaryAction={
-                                    <IconButton
-                                      edge="end"
-                                      aria-label="delete"
-                                      onClick={() => {
-                                        if (window.confirm(`${invitation.name}さんへの招待を削除しますか？`)) {
-                                          handleDeleteInvitation(invitation.id);
-                                        }
-                                      }}
-                                      sx={{ color: '#ef4444' }}
-                                    >
-                                      <Delete />
-                                    </IconButton>
+                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                      <IconButton
+                                        aria-label="copy"
+                                        onClick={() => {
+                                          const url = `https://app.openreview.jp/partner-invitation/${invitation.token}`;
+                                          navigator.clipboard.writeText(url);
+                                          toast.success('招待URLをコピーしました');
+                                        }}
+                                        sx={{ color: '#5e17eb' }}
+                                      >
+                                        <ContentCopy />
+                                      </IconButton>
+                                      <IconButton
+                                        edge="end"
+                                        aria-label="delete"
+                                        onClick={() => {
+                                          if (window.confirm(`${invitation.name}さんへの招待を削除しますか？`)) {
+                                            handleDeleteInvitation(invitation.id);
+                                          }
+                                        }}
+                                        sx={{ color: '#ef4444' }}
+                                      >
+                                        <Delete />
+                                      </IconButton>
+                                    </Box>
                                   }
                                 >
                                   <ListItemIcon>
