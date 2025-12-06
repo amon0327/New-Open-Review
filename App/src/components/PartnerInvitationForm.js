@@ -148,8 +148,7 @@ https://app.openreview.jp/partner-invitation/${invitationData.token}`;
         sx: {
           borderRadius: 3,
           background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          minHeight: '550px'
+          backdropFilter: 'blur(20px)'
         }
       }}
     >
@@ -366,7 +365,7 @@ https://app.openreview.jp/partner-invitation/${invitationData?.token}`}
             )}
 
             {/* フォーム */}
-            <Box component="form" onSubmit={handleSubmit}>
+            <Box component="form" onSubmit={handleSubmit} sx={{ pt: 3 }}>
               <Stack spacing={3}>
                 {/* 招待者名 */}
                 <TextField
