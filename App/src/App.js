@@ -14,6 +14,8 @@ import StaffInvitationLogin from './components/StaffInvitationLogin';
 import StaffInvitationComplete from './components/StaffInvitationComplete';
 import PartnerInvitationLogin from './components/PartnerInvitationLogin';
 import PartnerInvitationComplete from './components/PartnerInvitationComplete';
+import CompanyInvitationLogin from './components/CompanyInvitationLogin';
+import CompanyInvitationComplete from './components/CompanyInvitationComplete';
 
 // カスタムテーマ設定
 const theme = createTheme({
@@ -214,7 +216,7 @@ function App() {
         if (session?.user) {
           // URLに招待トークンが含まれているかチェック
           const currentPath = window.location.pathname;
-          const isInvitationFlow = currentPath.includes('/staff-invitation/') || currentPath.includes('/partner-invitation/');
+          const isInvitationFlow = currentPath.includes('/staff-invitation/') || currentPath.includes('/partner-invitation/') || currentPath.includes('/company-invitation/');
 
           console.log('App.js - currentPath:', currentPath);
           console.log('App.js - isInvitationFlow:', isInvitationFlow);
@@ -361,7 +363,13 @@ function App() {
 
             {/* パートナーメンバー招待完了ページ */}
             <Route path="/partner-invitation/:token/complete" element={<PartnerInvitationComplete />} />
-            
+
+            {/* 企業メンバー招待ログインページ */}
+            <Route path="/company-invitation/:token" element={<CompanyInvitationLogin />} />
+
+            {/* 企業メンバー招待完了ページ */}
+            <Route path="/company-invitation/:token/complete" element={<CompanyInvitationComplete />} />
+
             {/* メインアプリケーション */}
             <Route path="/*" element={
               loading ? (
