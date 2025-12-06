@@ -32,10 +32,13 @@ import {
   People,
   AccountCircle
 } from '@mui/icons-material';
+import CompanyCreationDialog from './CompanyCreationDialog';
 
 export default function PartnerDashboard({ user, onLogout }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showCompanyDialog, setShowCompanyDialog] = useState(false);
+  const [companies, setCompanies] = useState([]);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -153,6 +156,7 @@ export default function PartnerDashboard({ user, onLogout }) {
               <Button
                 variant="contained"
                 startIcon={<Business />}
+                onClick={() => setShowCompanyDialog(true)}
                 sx={{
                   background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
                   borderRadius: 2,
@@ -242,8 +246,20 @@ export default function PartnerDashboard({ user, onLogout }) {
     }
   };
 
+  const handleCompanyCreated = (company) => {
+    setCompanies(prev => [company, ...prev]);
+    setShowCompanyDialog(false);
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', background: '#ffffff' }}>
+      {/* 企業作成ダイアログ */}
+      <CompanyCreationDialog
+        open={showCompanyDialog}
+        onClose={() => setShowCompanyDialog(false)}
+        onCompanyCreated={handleCompanyCreated}
+      />
+
       {/* AppBar */}
       <AppBar
         position="fixed"
