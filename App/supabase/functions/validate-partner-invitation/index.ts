@@ -77,7 +77,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         invitation: {
-          email: invitation.email,
+          name: invitation.name,
           role: invitation.role,
           partnerCompany: {
             id: invitation.partner_company.id,
