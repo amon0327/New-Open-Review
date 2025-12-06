@@ -137,31 +137,6 @@ https://app.openreview.jp/partner-invitation/${invitationData.token}`;
     onClose();
   };
 
-  const getRoleIcon = (role) => {
-    switch (role) {
-      case 'owner':
-        return <AdminPanelSettings />;
-      case 'admin':
-        return <SupervisedUserCircle />;
-      case 'member':
-        return <Group />;
-      default:
-        return <Group />;
-    }
-  };
-
-  const getRoleColor = (role) => {
-    switch (role) {
-      case 'owner':
-        return '#f59e0b';
-      case 'admin':
-        return '#3b82f6';
-      case 'member':
-        return '#10b981';
-      default:
-        return '#10b981';
-    }
-  };
 
   return (
     <Dialog
@@ -216,7 +191,7 @@ https://app.openreview.jp/partner-invitation/${invitationData.token}`;
               <Card sx={{ mb: 3, border: '1px solid #e2e8f0' }}>
                 <CardContent sx={{ p: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Email sx={{ color: '#5e17eb', mr: 1 }} />
+                    <PersonAdd sx={{ color: '#5e17eb', mr: 1 }} />
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
                       招待テンプレート
                     </Typography>
