@@ -104,8 +104,9 @@ export default function StoresManagementPage() {
     }
   };
 
-  const handleStoreRegistered = (newStore) => {
-    setStores(prev => [newStore, ...prev]);
+  const handleStoreRegistered = async (newStore) => {
+    // 店舗作成後、サーバーから最新の店舗一覧を取得
+    await fetchStores();
     setShowRegistrationForm(false);
   };
 
