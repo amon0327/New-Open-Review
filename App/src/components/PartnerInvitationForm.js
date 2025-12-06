@@ -8,11 +8,6 @@ import {
   Box,
   TextField,
   Button,
-  FormControl,
-  FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   Typography,
   CircularProgress,
   Alert,
@@ -27,8 +22,6 @@ import {
   Close,
   Email,
   AdminPanelSettings,
-  SupervisedUserCircle,
-  Group,
   Send,
   ContentCopy,
   Link
@@ -44,7 +37,7 @@ export default function PartnerInvitationForm({
 }) {
   const [formData, setFormData] = useState({
     email: '',
-    role: 'member'
+    role: 'owner'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -434,99 +427,27 @@ https://app.openreview.jp/partner-invitation/${invitationData?.token}`}
                   }}
                 />
 
-                {/* ロール選択 */}
-                <FormControl component="fieldset">
-                  <FormLabel
-                    component="legend"
-                    sx={{
-                      color: '#374151',
-                      fontWeight: 600,
-                      '&.Mui-focused': { color: '#5e17eb' }
-                    }}
-                  >
-                    権限レベル
-                  </FormLabel>
-                  <RadioGroup
-                    value={formData.role}
-                    onChange={handleInputChange('role')}
-                    sx={{ mt: 1 }}
-                  >
-                    <FormControlLabel
-                      value="member"
-                      control={<Radio sx={{ '&.Mui-checked': { color: '#5e17eb' } }} />}
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Group sx={{ mr: 1, color: '#10b981' }} />
-                          <Box>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                              メンバー
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#64748b' }}>
-                              基本的な閲覧権限を持ちます
-                            </Typography>
-                          </Box>
-                        </Box>
-                      }
-                      sx={{
-                        mb: 2,
-                        p: 2,
-                        border: formData.role === 'member' ? '2px solid #5e17eb' : '1px solid #e2e8f0',
-                        borderRadius: 2,
-                        margin: 0,
-                        width: '100%'
-                      }}
-                    />
-                    <FormControlLabel
-                      value="admin"
-                      control={<Radio sx={{ '&.Mui-checked': { color: '#5e17eb' } }} />}
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <SupervisedUserCircle sx={{ mr: 1, color: '#3b82f6' }} />
-                          <Box>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                              管理者
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#64748b' }}>
-                              メンバー招待や管理権限を持ちます
-                            </Typography>
-                          </Box>
-                        </Box>
-                      }
-                      sx={{
-                        mb: 2,
-                        p: 2,
-                        border: formData.role === 'admin' ? '2px solid #5e17eb' : '1px solid #e2e8f0',
-                        borderRadius: 2,
-                        margin: 0,
-                        width: '100%'
-                      }}
-                    />
-                    <FormControlLabel
-                      value="owner"
-                      control={<Radio sx={{ '&.Mui-checked': { color: '#5e17eb' } }} />}
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <AdminPanelSettings sx={{ mr: 1, color: '#f59e0b' }} />
-                          <Box>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                              オーナー
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#64748b' }}>
-                              完全な管理権限を持ちます
-                            </Typography>
-                          </Box>
-                        </Box>
-                      }
-                      sx={{
-                        p: 2,
-                        border: formData.role === 'owner' ? '2px solid #5e17eb' : '1px solid #e2e8f0',
-                        borderRadius: 2,
-                        margin: 0,
-                        width: '100%'
-                      }}
-                    />
-                  </RadioGroup>
-                </FormControl>
+                {/* 権限レベル表示 */}
+                <Box
+                  sx={{
+                    p: 2,
+                    border: '2px solid #5e17eb',
+                    borderRadius: 2,
+                    background: 'rgba(94, 23, 235, 0.05)'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <AdminPanelSettings sx={{ mr: 1.5, color: '#f59e0b', fontSize: 28 }} />
+                    <Box>
+                      <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                        オーナー権限で招待
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#64748b' }}>
+                        招待されたユーザーは完全な管理権限を持ちます
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
               </Stack>
             </Box>
 

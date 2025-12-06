@@ -81,7 +81,7 @@ serve(async (req) => {
     // パートナー企業情報を取得（サービスロールで）
     const { data: partnerCompanyData, error: companyError } = await supabaseAdmin
       .from('partner_company')
-      .select('id, name')
+      .select('id, company_name')
       .eq('id', partnerCompanyId)
 
     if (companyError) {
@@ -143,7 +143,7 @@ serve(async (req) => {
           email: invitation.email,
           role: invitation.role,
           url: invitationUrl,
-          partnerCompanyName: partnerCompanyData[0].name
+          partnerCompanyName: partnerCompanyData[0].company_name
         }
       }),
       {

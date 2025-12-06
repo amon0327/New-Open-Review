@@ -74,7 +74,7 @@ serve(async (req) => {
         *,
         partner_company (
           id,
-          name
+          company_name
         )
       `)
       .eq('token', invitationToken)
@@ -197,7 +197,10 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         message: 'パートナーメンバー登録が完了しました',
-        partnerCompany: invitation.partner_company,
+        partnerCompany: {
+          id: invitation.partner_company.id,
+          name: invitation.partner_company.company_name
+        },
         role: invitation.role
       }),
       {

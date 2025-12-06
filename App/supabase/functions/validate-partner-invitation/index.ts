@@ -52,7 +52,7 @@ serve(async (req) => {
         *,
         partner_company (
           id,
-          name
+          company_name
         )
       `)
       .eq('token', invitationToken)
@@ -81,7 +81,7 @@ serve(async (req) => {
           role: invitation.role,
           partnerCompany: {
             id: invitation.partner_company.id,
-            name: invitation.partner_company.name
+            name: invitation.partner_company.company_name
           },
           created_at: invitation.created_at
         }

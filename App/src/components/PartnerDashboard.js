@@ -59,7 +59,7 @@ export default function PartnerDashboard({ user, onLogout }) {
       // 現在のユーザーのpartner_company_idを取得
       const { data: partnerMembership, error: membershipError } = await supabase
         .from('partner_memberships')
-        .select('partner_company_id, partner_company(id, name)')
+        .select('partner_company_id, partner_company(id, company_name)')
         .eq('business_users_id', user.id)
         .single();
 
@@ -69,9 +69,12 @@ export default function PartnerDashboard({ user, onLogout }) {
         return;
       }
 
-      // パートナー企業情報を保存
+      // パートナー企業情報を保存（company_name を name に変換）
       if (partnerMembership.partner_company) {
-        setPartnerCompanyInfo(partnerMembership.partner_company);
+        setPartnerCompanyInfo({
+          id: partnerMembership.partner_company.id,
+          name: partnerMembership.partner_company.company_name
+        });
       }
 
       // partner_affiliate_companiesから紐付いている企業を取得
