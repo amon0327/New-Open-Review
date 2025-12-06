@@ -38,6 +38,7 @@ import {
   Email
 } from '@mui/icons-material';
 import CompanyCreationDialog from './CompanyCreationDialog';
+import PartnerInvitationForm from './PartnerInvitationForm';
 import { supabase } from '../lib/supabase';
 
 export default function PartnerDashboard({ user, onLogout }) {
@@ -45,8 +46,10 @@ export default function PartnerDashboard({ user, onLogout }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showCompanyDialog, setShowCompanyDialog] = useState(false);
+  const [showInvitationDialog, setShowInvitationDialog] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
+  const [partnerCompanyInfo, setPartnerCompanyInfo] = useState(null);
 
   // 紐付いている企業一覧を取得
   const fetchAffiliatedCompanies = async () => {
@@ -56,7 +59,7 @@ export default function PartnerDashboard({ user, onLogout }) {
       // 現在のユーザーのpartner_company_idを取得
       const { data: partnerMembership, error: membershipError } = await supabase
         .from('partner_memberships')
-        .select('partner_company_id')
+        .select('partner_company_id, partner_company(id, name)')
         .eq('business_users_id', user.id)
         .single();
 
@@ -64,6 +67,11 @@ export default function PartnerDashboard({ user, onLogout }) {
         console.error('パートナー企業情報の取得に失敗:', membershipError);
         setIsLoadingCompanies(false);
         return;
+      }
+
+      // パートナー企業情報を保存
+      if (partnerMembership.partner_company) {
+        setPartnerCompanyInfo(partnerMembership.partner_company);
       }
 
       // partner_affiliate_companiesから紐付いている企業を取得
@@ -343,6 +351,8 @@ export default function PartnerDashboard({ user, onLogout }) {
               <Button
                 variant="contained"
                 startIcon={<PersonAdd />}
+                onClick={() => setShowInvitationDialog(true)}
+                disabled={!partnerCompanyInfo}
                 sx={{
                   background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
                   borderRadius: 2,
@@ -410,6 +420,19 @@ export default function PartnerDashboard({ user, onLogout }) {
         onClose={() => setShowCompanyDialog(false)}
         onCompanyCreated={handleCompanyCreated}
       />
+
+      {/* メンバー招待ダイアログ */}
+      {showInvitationDialog && partnerCompanyInfo && (
+        <PartnerInvitationForm
+          partnerCompanyId={partnerCompanyInfo.id}
+          partnerCompanyName={partnerCompanyInfo.name}
+          onClose={() => setShowInvitationDialog(false)}
+          onInvitationSent={() => {
+            // 招待が送信された後の処理（必要に応じて実装）
+            console.log('Invitation sent successfully');
+          }}
+        />
+      )}
 
       {/* AppBar */}
       <AppBar
