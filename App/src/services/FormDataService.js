@@ -31,9 +31,15 @@ export class FormDataService {
       };
 
       // パートナーコンテキストの場合はcompanyIdを追加
+      console.log('🔍 Checking companyId:', companyId, 'Type:', typeof companyId);
       if (companyId) {
         requestBody.companyId = companyId;
+        console.log('✅ Added companyId to requestBody:', companyId);
+      } else {
+        console.log('⚠️ No companyId provided, will use company_memberships');
       }
+
+      console.log('📤 Final request body:', JSON.stringify(requestBody, null, 2));
 
       const { data, error } = await supabase.functions.invoke('create-review-form', {
         body: requestBody

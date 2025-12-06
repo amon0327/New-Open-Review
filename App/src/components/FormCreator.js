@@ -11,7 +11,11 @@ const FormCreator = ({
   const [isCreatingForm, setIsCreatingForm] = useState(false);
 
   const handleCreateForm = async () => {
-    console.log('🎯 FormCreator.handleCreateForm called with user:', user, 'selectedCompany:', selectedCompany);
+    console.log('🎯 FormCreator.handleCreateForm called');
+    console.log('  - user:', user);
+    console.log('  - selectedCompany:', selectedCompany);
+    console.log('  - selectedCompany type:', typeof selectedCompany);
+    console.log('  - selectedCompany?.id:', selectedCompany?.id);
 
     if (!user) {
       console.error('❌ No user found');
@@ -23,6 +27,7 @@ const FormCreator = ({
     setIsCreatingForm(true);
     try {
       const companyId = selectedCompany?.id || null;
+      console.log('🔍 Extracted companyId:', companyId, 'Type:', typeof companyId);
       console.log('🔄 Calling FormDataService.createNewForm with user.id:', user.id, 'companyId:', companyId);
       const result = await FormDataService.createNewForm(user.id, companyId);
       console.log('📋 FormDataService.createNewForm result:', result);
