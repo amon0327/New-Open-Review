@@ -401,6 +401,52 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
 
         {/* Navigation Items */}
         <List sx={{ px: isNavCollapsed ? 1 : 2, py: 3 }}>
+          {/* Back to Partner Dashboard Button */}
+          {onBackToPartnerDashboard && (
+            <ListItem disablePadding sx={{ mb: 2 }}>
+              <ListItemButton
+                onClick={onBackToPartnerDashboard}
+                sx={{
+                  py: 1.5,
+                  px: isNavCollapsed ? 1 : 2,
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                  },
+                  justifyContent: isNavCollapsed ? 'center' : 'flex-start',
+                  borderRadius: '100px',
+                  minHeight: 48,
+                  alignItems: 'center',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    color: 'white',
+                    minWidth: isNavCollapsed ? 24 : 40,
+                    justifyContent: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    height: 24
+                  }}
+                >
+                  <ArrowBack />
+                </ListItemIcon>
+                {!isNavCollapsed && (
+                  <ListItemText
+                    primary="パートナーページに戻る"
+                    primaryTypographyProps={{
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      color: 'white'
+                    }}
+                  />
+                )}
+              </ListItemButton>
+            </ListItem>
+          )}
+
           {navigationItems.map((item, index) => {
             const isCreateButton = item.text === 'Create';
             const isCreateButtonDisabled = isCreateButton && isCreatingForm;
@@ -487,62 +533,19 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
         </List>
 
 
-        {/* Back to Partner Dashboard or Preview Version Notice */}
-        <Box
-          sx={{
-            mt: 'auto',
-            px: isNavCollapsed ? 1.5 : 3,
-            pb: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            gap: 1
-          }}
-        >
-          {onBackToPartnerDashboard ? (
-            // パートナーページに戻るボタン
-            <ListItemButton
-              onClick={onBackToPartnerDashboard}
-              sx={{
-                py: 1.5,
-                px: isNavCollapsed ? 1 : 2,
-                color: 'white',
-                backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
-                },
-                justifyContent: isNavCollapsed ? 'center' : 'flex-start',
-                borderRadius: '100px',
-                minHeight: 48,
-                alignItems: 'center',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  color: 'white',
-                  minWidth: isNavCollapsed ? 24 : 40,
-                  justifyContent: 'center',
-                  display: 'flex',
-                  alignItems: 'center',
-                  height: 24
-                }}
-              >
-                <ArrowBack />
-              </ListItemIcon>
-              {!isNavCollapsed && (
-                <ListItemText
-                  primary="パートナーページに戻る"
-                  primaryTypographyProps={{
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    color: 'white'
-                  }}
-                />
-              )}
-            </ListItemButton>
-          ) : (
-            // プレビュー版の表示
+        {/* Preview Version Notice */}
+        {!onBackToPartnerDashboard && (
+          <Box
+            sx={{
+              mt: 'auto',
+              px: isNavCollapsed ? 1.5 : 3,
+              pb: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              gap: 1
+            }}
+          >
             <Tooltip
               title="プレビュー版につき、データなどは一時的な保存となります。あくまでもプレビュー版としてご利用ください。"
               placement="top"
@@ -579,8 +582,8 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
                 )}
               </Box>
             </Tooltip>
-          )}
-        </Box>
+          </Box>
+        )}
 
         {/* User Profile Section */}
         <Box
