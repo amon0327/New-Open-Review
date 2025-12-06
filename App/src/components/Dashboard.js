@@ -210,8 +210,8 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
     );
   }
 
-  // PartnerDashboard表示
-  if (showPartnerDashboard) {
+  // PartnerDashboard表示（ただしselectedCompanyが指定されている場合はスキップ）
+  if (showPartnerDashboard && !selectedCompany) {
     return (
       <PartnerDashboard
         user={user}
