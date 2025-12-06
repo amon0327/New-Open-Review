@@ -109,7 +109,7 @@ serve(async (req) => {
         .insert([
           {
             store_id: storeId,
-            business_users_id: user.id
+            review_form_id: reviewForm.id
           }
         ])
         .select('id')
@@ -138,7 +138,7 @@ serve(async (req) => {
         .insert([
           {
             store_id: firstStore[0].id,
-            business_users_id: user.id
+            review_form_id: reviewForm.id
           }
         ])
         .select('id')
