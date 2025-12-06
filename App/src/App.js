@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AnimatePresence } from 'framer-motion';
@@ -117,6 +117,16 @@ const theme = createTheme({
     },
   },
 });
+
+// CreatePage ラッパー - URL パラメータから formId を取得
+function CreatePageWrapper({ user, onBackClick }) {
+  const [searchParams] = useSearchParams();
+  const formId = searchParams.get('formId');
+
+  console.log('🔍 CreatePageWrapper - formId from URL:', formId);
+
+  return <CreatePage user={user} formId={formId} onBackClick={onBackClick} />;
+}
 
 function App() {
   const [currentView, setCurrentView] = useState('login'); // 'login', 'dashboard', 'create'
@@ -381,7 +391,7 @@ function App() {
                   } />
                   <Route path="/create" element={
                     user ? (
-                      <CreatePage onBackClick={handleBackToDashboard} user={user} formId={currentFormId} />
+                      <CreatePageWrapper user={user} onBackClick={handleBackToDashboard} />
                     ) : (
                       <Navigate to="/" replace />
                     )

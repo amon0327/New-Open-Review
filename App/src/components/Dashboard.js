@@ -74,6 +74,12 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [currentCompany, setCurrentCompany] = useState(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(!!companyId);
 
+  // フォーム作成時のハンドラー - URL遷移を行う
+  const handleFormCreated = (formId) => {
+    console.log('📝 Dashboard - Form created, navigating to:', formId);
+    navigate(`/create?formId=${formId}`);
+  };
+
   // URLパラメータから企業データを取得
   useEffect(() => {
     if (!companyId) {
@@ -301,7 +307,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   };
 
   return (
-    <FormCreator user={user} onCreateFormClick={onCreateClick}>
+    <FormCreator user={user} onCreateFormClick={handleFormCreated}>
       {({ onCreateForm, isCreatingForm }) => (
         <Box sx={{ display: 'flex', height: '100vh' }}>
           {/* モダンなローディング表示 */}
