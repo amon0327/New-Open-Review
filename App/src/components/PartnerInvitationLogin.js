@@ -119,11 +119,27 @@ export default function PartnerInvitationLogin() {
       setIsAuthenticating(true);
       setAuthError(null);
 
+      // 開発環境と本番環境で異なるリダイレクトURLを使用
+      const isDevelopment = window.location.hostname === 'localhost' ||
+                           window.location.hostname === '127.0.0.1' ||
+                           window.location.hostname.includes('localhost');
+
+      const baseUrl = isDevelopment
+        ? 'http://localhost:3000'
+        : 'https://app.openreview.jp';
+
+      console.log('OAuth redirect settings:', {
+        isDevelopment,
+        hostname: window.location.hostname,
+        baseUrl,
+        fullRedirectUrl: `${baseUrl}/partner-invitation/${token}/complete`
+      });
+
       // Googleログイン
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/partner-invitation/${token}/complete`
+          redirectTo: `${baseUrl}/partner-invitation/${token}/complete`
         }
       });
 
