@@ -273,7 +273,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     );
   }
 
-  const renderContent = () => {
+  const renderContent = (onCreateForm, isCreatingForm) => {
     const ActiveComponent = navigationItems[activeTab].component;
     if (!ActiveComponent) {
       return null;
@@ -281,7 +281,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     if (navigationItems[activeTab].text === '設定') {
       return <ActiveComponent user={user} onLogout={onLogout} />;
     } else if (navigationItems[activeTab].text === 'ホーム') {
-      return <ActiveComponent user={user} onCreateFormClick={onCreateClick} />;
+      return <ActiveComponent user={user} onCreateFormClick={onCreateClick} onCreateForm={onCreateForm} isCreatingForm={isCreatingForm} />;
     } else if (navigationItems[activeTab].text === '分析') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} />;
     }
@@ -694,8 +694,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         />
 
         {/* Page Content */}
-        <Box sx={{ 
-          height: 'calc(100vh - 64px)', 
+        <Box sx={{
+          height: 'calc(100vh - 64px)',
           overflow: 'auto',
           '&::-webkit-scrollbar': {
             display: 'none',
@@ -706,7 +706,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           },
         }}>
           <AnimatePresence mode="wait">
-            {renderContent()}
+            {renderContent(onCreateForm, isCreatingForm)}
           </AnimatePresence>
         </Box>
       </Box>
