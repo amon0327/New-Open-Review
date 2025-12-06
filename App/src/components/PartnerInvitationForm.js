@@ -149,7 +149,7 @@ https://app.openreview.jp/partner-invitation/${invitationData.token}`;
           borderRadius: 3,
           background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(20px)',
-          minHeight: '400px'
+          minHeight: '550px'
         }
       }}
     >
