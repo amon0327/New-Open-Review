@@ -393,23 +393,6 @@ https://app.openreview.jp/partner-invitation/${invitationData?.token}`}
                     }
                   }}
                 />
-
-                {/* 権限レベル表示 */}
-                <Box
-                  sx={{
-                    p: 2,
-                    border: '2px solid #5e17eb',
-                    borderRadius: 2,
-                    background: 'rgba(94, 23, 235, 0.05)'
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <AdminPanelSettings sx={{ mr: 1.5, color: '#f59e0b', fontSize: 28 }} />
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      オーナー権限で招待
-                    </Typography>
-                  </Box>
-                </Box>
               </Stack>
             </Box>
 
