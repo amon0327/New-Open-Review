@@ -52,12 +52,12 @@ const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
 
 const navigationItems = [
-  { text: 'Create', icon: <Add /> },
-  { text: 'Home', icon: <Home />, component: HomePage },
-  { text: 'Management', icon: <Business />, component: StoresManagementPage },
-  { text: 'App', icon: <Apps />, component: AppPage },
-  { text: 'Analytics', icon: <Analytics />, component: AnalyticsPage },
-  { text: 'Settings', icon: <Settings />, component: SettingsPage },
+  { text: 'フォームを作成', icon: <Add /> },
+  { text: 'ホーム', icon: <Home />, component: HomePage },
+  { text: '店舗管理', icon: <Business />, component: StoresManagementPage },
+  { text: 'アプリ表示', icon: <Apps />, component: AppPage },
+  { text: '分析', icon: <Analytics />, component: AnalyticsPage },
+  { text: '設定', icon: <Settings />, component: SettingsPage },
 ];
 
 export default function Dashboard({ onCreateClick, onLogout, user, selectedCompany = null, onBackToPartnerDashboard = null }) {
@@ -236,20 +236,20 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
     if (!ActiveComponent) {
       return null;
     }
-    if (navigationItems[activeTab].text === 'Settings') {
+    if (navigationItems[activeTab].text === '設定') {
       return <ActiveComponent user={user} onLogout={onLogout} />;
-    } else if (navigationItems[activeTab].text === 'Home') {
+    } else if (navigationItems[activeTab].text === 'ホーム') {
       return <ActiveComponent user={user} onCreateFormClick={onCreateClick} />;
-    } else if (navigationItems[activeTab].text === 'Analytics') {
+    } else if (navigationItems[activeTab].text === '分析') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} />;
     }
     return <ActiveComponent />;
   };
 
   const handleNavClick = (index, onCreateForm) => {
-    if (navigationItems[index].text === 'Create') {
+    if (navigationItems[index].text === 'フォームを作成') {
       if (onCreateForm) {
-        console.log('🎯 Dashboard - Createボタンがクリックされました');
+        console.log('🎯 Dashboard - フォームを作成ボタンがクリックされました');
         onCreateForm();
       } else {
         console.error('❌ Dashboard - onCreateForm関数が見つかりません');
@@ -358,7 +358,9 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
             boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)',
             borderRadius: 0,
             transition: 'width 0.3s ease',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
           },
         }}
       >
@@ -448,7 +450,7 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
           )}
 
           {navigationItems.map((item, index) => {
-            const isCreateButton = item.text === 'Create';
+            const isCreateButton = item.text === 'フォームを作成';
             const isCreateButtonDisabled = isCreateButton && isCreatingForm;
             
             return (
