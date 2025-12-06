@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Box,
@@ -32,6 +33,7 @@ import { supabase } from '../../../lib/supabase';
 import StoreRegistrationForm from '../../StoreRegistrationForm';
 import StoreDetailPage from './StoreDetailPage';
 export default function StoresManagementPage() {
+  const { companyId: urlCompanyId } = useParams(); // URLからcompanyIdを取得
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -49,27 +51,37 @@ export default function StoresManagementPage() {
       setLoading(true);
       setError(null);
 
-      // 認証されたユーザーの会社IDを取得
+      // 認証されたユーザーの取得
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
         throw new Error('認証が必要です');
       }
 
-      // ユーザーの会社情報を取得
-      const { data: companyRelation, error: relationError } = await supabase
-        .from('company_memberships')
-        .select('company_id')
-        .eq('business_user_id', user.id);
+      let companyId = null;
 
-      if (relationError) {
-        throw new Error('会社情報の取得に失敗しました');
+      // URLにcompanyIdがある場合はそれを使用（パートナーユーザー用）
+      if (urlCompanyId) {
+        console.log('✅ Using companyId from URL:', urlCompanyId);
+        companyId = urlCompanyId;
+      } else {
+        // URLにない場合はcompany_membershipsから取得（通常ユーザー用）
+        console.log('⚠️ No companyId in URL, checking company_memberships');
+        const { data: companyRelation, error: relationError } = await supabase
+          .from('company_memberships')
+          .select('company_id')
+          .eq('business_user_id', user.id);
+
+        if (relationError) {
+          throw new Error('会社情報の取得に失敗しました');
+        }
+
+        if (!companyRelation || companyRelation.length === 0) {
+          throw new Error('会社情報が見つかりません');
+        }
+
+        companyId = companyRelation[0].company_id;
+        console.log('✅ Company ID from company_memberships:', companyId);
       }
-
-      if (!companyRelation || companyRelation.length === 0) {
-        throw new Error('会社情報が見つかりません');
-      }
-
-      const companyId = companyRelation[0].company_id;
 
       // 会社の店舗一覧を取得
       const { data: storesData, error: storesError } = await supabase
@@ -82,8 +94,10 @@ export default function StoresManagementPage() {
         throw new Error('店舗情報の取得に失敗しました');
       }
 
+      console.log('✅ Stores loaded:', storesData?.length || 0);
       setStores(storesData || []);
     } catch (err) {
+      console.error('❌ Error fetching stores:', err);
       setError(err.message);
     } finally {
       setLoading(false);
