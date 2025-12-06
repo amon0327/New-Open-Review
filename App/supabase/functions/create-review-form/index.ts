@@ -50,33 +50,55 @@ serve(async (req) => {
 
     // ケース1: companyIdが明示的に指定されている場合（パートナーユーザー用）
     if (requestedCompanyId) {
-      // パートナー企業経由でのアクセス権限を確認
-      const { data: partnerAccess, error: partnerError } = await supabaseAdmin
-        .from('partner_affiliate_companies')
-        .select('companies_id')
-        .eq('companies_id', requestedCompanyId)
-        .in('partner_company_id',
-          supabaseAdmin
-            .from('partner_memberships')
-            .select('partner_company_id')
-            .eq('business_users_id', user.id)
-        )
+      console.log('Checking partner access for companyId:', requestedCompanyId, 'userId:', user.id)
 
-      if (partnerError) {
-        throw new Error(`パートナーアクセス確認に失敗: ${partnerError.message}`)
+      // まずユーザーのパートナー企業IDを取得
+      const { data: partnerMemberships, error: membershipError } = await supabaseAdmin
+        .from('partner_memberships')
+        .select('partner_company_id')
+        .eq('business_users_id', user.id)
+
+      console.log('Partner memberships:', partnerMemberships, 'error:', membershipError)
+
+      if (membershipError) {
+        throw new Error(`パートナーメンバーシップ取得に失敗: ${membershipError.message}`)
       }
 
-      if (partnerAccess && partnerAccess.length > 0) {
-        companyId = requestedCompanyId
+      // パートナー企業IDのリストを作成
+      if (partnerMemberships && partnerMemberships.length > 0) {
+        const partnerCompanyIds = partnerMemberships.map(m => m.partner_company_id)
+        console.log('Partner company IDs:', partnerCompanyIds)
+
+        // そのパートナー企業が指定された会社にアクセスできるかチェック
+        const { data: affiliateCompanies, error: affiliateError } = await supabaseAdmin
+          .from('partner_affiliate_companies')
+          .select('companies_id')
+          .eq('companies_id', requestedCompanyId)
+          .in('partner_company_id', partnerCompanyIds)
+
+        console.log('Affiliate companies:', affiliateCompanies, 'error:', affiliateError)
+
+        if (affiliateError) {
+          throw new Error(`提携企業チェックに失敗: ${affiliateError.message}`)
+        }
+
+        if (affiliateCompanies && affiliateCompanies.length > 0) {
+          console.log('Partner access granted for company:', requestedCompanyId)
+          companyId = requestedCompanyId
+        }
       }
     }
 
     // ケース2: 通常の会社メンバーとしてのアクセス
     if (!companyId) {
+      console.log('Checking company membership for userId:', user.id)
+
       const { data: companyMembership, error: membershipError } = await supabaseAdmin
         .from('company_memberships')
         .select('company_id')
         .eq('business_user_id', user.id)
+
+      console.log('Company memberships:', companyMembership, 'error:', membershipError)
 
       if (membershipError) {
         throw new Error(`会社情報の取得に失敗: ${membershipError.message}`)
@@ -84,11 +106,13 @@ serve(async (req) => {
 
       if (companyMembership && companyMembership.length > 0) {
         companyId = companyMembership[0].company_id
+        console.log('Company membership found, companyId:', companyId)
       }
     }
 
     // どちらの方法でも会社が見つからない場合
     if (!companyId) {
+      console.error('No company access found for user:', user.id, 'requestedCompanyId:', requestedCompanyId)
       throw new Error('会社に所属していないか、アクセス権限がありません')
     }
 
