@@ -22,92 +22,68 @@ import {
   ListItemText,
   Paper,
   CircularProgress,
-  Chip
+  Chip,
+  Fab
 } from '@mui/material';
 import {
-  Handshake,
+  ArrowBack,
   Business,
-  PersonAdd,
+  Add,
   Settings,
   Logout,
   Dashboard as DashboardIcon,
+  Assignment,
+  Analytics,
+  RateReview,
   People,
-  AccountCircle,
-  Phone,
-  Email
+  AccountCircle
 } from '@mui/icons-material';
-import CompanyCreationDialog from './CompanyCreationDialog';
-import CompanyDashboard from './CompanyDashboard';
 import { supabase } from '../lib/supabase';
 
-export default function PartnerDashboard({ user, onLogout }) {
+export default function CompanyDashboard({ company, user, onBack, onLogout }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [showCompanyDialog, setShowCompanyDialog] = useState(false);
-  const [companies, setCompanies] = useState([]);
-  const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
-  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [reviewForms, setReviewForms] = useState([]);
+  const [isLoadingForms, setIsLoadingForms] = useState(true);
+  const [stats, setStats] = useState({
+    totalForms: 0,
+    totalReviews: 0,
+    activeStores: 0
+  });
 
-  // 紐付いている企業一覧を取得
-  const fetchAffiliatedCompanies = async () => {
+  // レビューフォーム一覧を取得
+  const fetchReviewForms = async () => {
     try {
-      setIsLoadingCompanies(true);
+      setIsLoadingForms(true);
 
-      // 現在のユーザーのpartner_company_idを取得
-      const { data: partnerMembership, error: membershipError } = await supabase
-        .from('partner_memberships')
-        .select('partner_company_id')
-        .eq('business_users_id', user.id)
-        .single();
-
-      if (membershipError || !partnerMembership) {
-        console.error('パートナー企業情報の取得に失敗:', membershipError);
-        setIsLoadingCompanies(false);
-        return;
-      }
-
-      // partner_affiliate_companiesから紐付いている企業を取得
-      const { data: affiliations, error: affiliationsError } = await supabase
-        .from('partner_affiliate_companies')
-        .select(`
-          id,
-          created_at,
-          companies:companies_id (
-            id,
-            name,
-            phone_number,
-            email,
-            created_at
-          )
-        `)
-        .eq('partner_company_id', partnerMembership.partner_company_id)
+      const { data, error } = await supabase
+        .from('review_forms')
+        .select('*')
+        .eq('company_id', company.id)
         .order('created_at', { ascending: false });
 
-      if (affiliationsError) {
-        console.error('企業一覧の取得に失敗:', affiliationsError);
-        setIsLoadingCompanies(false);
+      if (error) {
+        console.error('レビューフォーム取得エラー:', error);
         return;
       }
 
-      // companies情報を抽出
-      const companiesList = affiliations
-        .map(affiliation => affiliation.companies)
-        .filter(company => company !== null);
-
-      setCompanies(companiesList);
+      setReviewForms(data || []);
+      setStats(prev => ({
+        ...prev,
+        totalForms: data?.length || 0
+      }));
     } catch (error) {
-      console.error('企業一覧取得エラー:', error);
+      console.error('レビューフォーム取得エラー:', error);
     } finally {
-      setIsLoadingCompanies(false);
+      setIsLoadingForms(false);
     }
   };
 
-  // 初回ロード時に企業一覧を取得
   useEffect(() => {
-    if (user) {
-      fetchAffiliatedCompanies();
+    if (company) {
+      fetchReviewForms();
     }
-  }, [user]);
+  }, [company]);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -126,8 +102,9 @@ export default function PartnerDashboard({ user, onLogout }) {
 
   const navigationItems = [
     { id: 'dashboard', label: 'ダッシュボード', icon: <DashboardIcon /> },
-    { id: 'companies', label: '企業管理', icon: <Business /> },
-    { id: 'members', label: 'メンバー招待', icon: <PersonAdd /> },
+    { id: 'forms', label: 'レビューフォーム', icon: <Assignment /> },
+    { id: 'reviews', label: 'レビュー管理', icon: <RateReview /> },
+    { id: 'analytics', label: '分析', icon: <Analytics /> },
     { id: 'settings', label: '設定', icon: <Settings /> },
   ];
 
@@ -137,7 +114,7 @@ export default function PartnerDashboard({ user, onLogout }) {
         return (
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 700, mb: 4, color: '#1a202c' }}>
-              ダッシュボード
+              {company.name} - ダッシュボード
             </Typography>
 
             <Grid container spacing={3}>
@@ -146,13 +123,13 @@ export default function PartnerDashboard({ user, onLogout }) {
                 <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Business sx={{ fontSize: 40, color: '#5e17eb', mr: 2 }} />
+                      <Assignment sx={{ fontSize: 40, color: '#5e17eb', mr: 2 }} />
                       <Box>
                         <Typography variant="h3" sx={{ fontWeight: 700, color: '#1a202c' }}>
-                          {isLoadingCompanies ? '-' : companies.length}
+                          {stats.totalForms}
                         </Typography>
                         <Typography variant="body2" sx={{ color: '#64748b' }}>
-                          登録企業数
+                          レビューフォーム数
                         </Typography>
                       </Box>
                     </Box>
@@ -164,13 +141,13 @@ export default function PartnerDashboard({ user, onLogout }) {
                 <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <People sx={{ fontSize: 40, color: '#10b981', mr: 2 }} />
+                      <RateReview sx={{ fontSize: 40, color: '#10b981', mr: 2 }} />
                       <Box>
                         <Typography variant="h3" sx={{ fontWeight: 700, color: '#1a202c' }}>
-                          0
+                          {stats.totalReviews}
                         </Typography>
                         <Typography variant="body2" sx={{ color: '#64748b' }}>
-                          メンバー数
+                          レビュー総数
                         </Typography>
                       </Box>
                     </Box>
@@ -182,13 +159,13 @@ export default function PartnerDashboard({ user, onLogout }) {
                 <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <PersonAdd sx={{ fontSize: 40, color: '#f59e0b', mr: 2 }} />
+                      <People sx={{ fontSize: 40, color: '#f59e0b', mr: 2 }} />
                       <Box>
                         <Typography variant="h3" sx={{ fontWeight: 700, color: '#1a202c' }}>
-                          0
+                          {stats.activeStores}
                         </Typography>
                         <Typography variant="body2" sx={{ color: '#64748b' }}>
-                          招待中
+                          アクティブ店舗
                         </Typography>
                       </Box>
                     </Box>
@@ -196,18 +173,63 @@ export default function PartnerDashboard({ user, onLogout }) {
                 </Card>
               </Grid>
 
-              {/* 最近のアクティビティ */}
+              {/* 最近のフォーム */}
               <Grid item xs={12}>
                 <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                      最近のアクティビティ
-                    </Typography>
-                    <Box sx={{ textAlign: 'center', py: 5 }}>
-                      <Typography variant="body1" sx={{ color: '#64748b' }}>
-                        まだアクティビティがありません
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        最近のレビューフォーム
                       </Typography>
+                      <Button
+                        variant="text"
+                        onClick={() => setActiveTab('forms')}
+                        sx={{ color: '#5e17eb' }}
+                      >
+                        すべて表示
+                      </Button>
                     </Box>
+                    {isLoadingForms ? (
+                      <Box sx={{ textAlign: 'center', py: 5 }}>
+                        <CircularProgress sx={{ color: '#5e17eb' }} />
+                      </Box>
+                    ) : reviewForms.length === 0 ? (
+                      <Box sx={{ textAlign: 'center', py: 5 }}>
+                        <Assignment sx={{ fontSize: 60, color: '#e2e8f0', mb: 2 }} />
+                        <Typography variant="body1" sx={{ color: '#64748b' }}>
+                          まだレビューフォームがありません
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <List>
+                        {reviewForms.slice(0, 5).map((form) => (
+                          <ListItem
+                            key={form.id}
+                            sx={{
+                              borderBottom: '1px solid #e2e8f0',
+                              '&:last-child': { borderBottom: 'none' }
+                            }}
+                          >
+                            <ListItemIcon>
+                              <Assignment sx={{ color: '#5e17eb' }} />
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={form.form_title || 'タイトルなし'}
+                              secondary={`作成日: ${new Date(form.created_at).toLocaleDateString('ja-JP')}`}
+                            />
+                            <Chip
+                              label={form.is_active ? '有効' : '無効'}
+                              size="small"
+                              sx={{
+                                bgcolor: form.is_active ? '#d1fae5' : '#fee2e2',
+                                color: form.is_active ? '#065f46' : '#991b1b',
+                                fontWeight: 600
+                              }}
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>
@@ -215,104 +237,93 @@ export default function PartnerDashboard({ user, onLogout }) {
           </Box>
         );
 
-      case 'companies':
+      case 'forms':
         return (
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
               <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a202c' }}>
-                企業管理
+                レビューフォーム管理
               </Typography>
               <Button
                 variant="contained"
-                startIcon={<Business />}
-                onClick={() => setShowCompanyDialog(true)}
+                startIcon={<Add />}
                 sx={{
                   background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
                   borderRadius: 2,
                   px: 3
                 }}
               >
-                企業アカウント作成
+                新しいフォームを作成
               </Button>
             </Box>
 
-            {isLoadingCompanies ? (
+            {isLoadingForms ? (
               <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                 <CardContent>
                   <Box sx={{ textAlign: 'center', py: 8 }}>
                     <CircularProgress sx={{ color: '#5e17eb' }} />
                     <Typography variant="body1" sx={{ color: '#64748b', mt: 2 }}>
-                      企業一覧を読み込み中...
+                      フォームを読み込み中...
                     </Typography>
                   </Box>
                 </CardContent>
               </Card>
-            ) : companies.length === 0 ? (
+            ) : reviewForms.length === 0 ? (
               <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                 <CardContent>
                   <Box sx={{ textAlign: 'center', py: 8 }}>
-                    <Business sx={{ fontSize: 80, color: '#e2e8f0', mb: 2 }} />
+                    <Assignment sx={{ fontSize: 80, color: '#e2e8f0', mb: 2 }} />
                     <Typography variant="h6" sx={{ color: '#64748b', mb: 1 }}>
-                      登録されている企業がありません
+                      レビューフォームがありません
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                      「企業アカウント作成」ボタンから新しい企業を作成してください
+                      「新しいフォームを作成」ボタンから最初のフォームを作成してください
                     </Typography>
                   </Box>
                 </CardContent>
               </Card>
             ) : (
               <Grid container spacing={3}>
-                {companies.map((company) => (
-                  <Grid item xs={12} md={6} lg={4} key={company.id}>
-                    <Card
-                      onClick={() => setSelectedCompany(company)}
-                      sx={{
-                        borderRadius: 3,
-                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                        transition: 'transform 0.2s, box-shadow 0.2s',
-                        cursor: 'pointer',
-                        '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: '0 8px 30px rgba(94, 23, 235, 0.15)'
-                        }
-                      }}>
+                {reviewForms.map((form) => (
+                  <Grid item xs={12} md={6} lg={4} key={form.id}>
+                    <Card sx={{
+                      borderRadius: 3,
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 8px 30px rgba(94, 23, 235, 0.15)'
+                      }
+                    }}>
                       <CardContent>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                          <Business sx={{ fontSize: 32, color: '#5e17eb', mr: 1.5 }} />
+                          <Assignment sx={{ fontSize: 32, color: '#5e17eb', mr: 1.5 }} />
                           <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a202c' }}>
-                            {company.name}
+                            {form.form_title || 'タイトルなし'}
                           </Typography>
                         </Box>
 
                         <Divider sx={{ my: 2 }} />
 
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                          {company.phone_number && (
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Phone sx={{ fontSize: 18, color: '#64748b', mr: 1 }} />
-                              <Typography variant="body2" sx={{ color: '#64748b' }}>
-                                {company.phone_number}
-                              </Typography>
-                            </Box>
-                          )}
-
-                          {company.email && (
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Email sx={{ fontSize: 18, color: '#64748b', mr: 1 }} />
-                              <Typography variant="body2" sx={{ color: '#64748b' }}>
-                                {company.email}
-                              </Typography>
-                            </Box>
-                          )}
-
                           <Box sx={{ mt: 1 }}>
                             <Chip
-                              label={`登録日: ${new Date(company.created_at).toLocaleDateString('ja-JP')}`}
+                              label={`作成日: ${new Date(form.created_at).toLocaleDateString('ja-JP')}`}
                               size="small"
                               sx={{
                                 bgcolor: '#f1f5f9',
                                 color: '#64748b',
+                                fontSize: '0.75rem',
+                                mr: 1
+                              }}
+                            />
+                            <Chip
+                              label={form.is_active ? '有効' : '無効'}
+                              size="small"
+                              sx={{
+                                bgcolor: form.is_active ? '#d1fae5' : '#fee2e2',
+                                color: form.is_active ? '#065f46' : '#991b1b',
+                                fontWeight: 600,
                                 fontSize: '0.75rem'
                               }}
                             />
@@ -327,35 +338,45 @@ export default function PartnerDashboard({ user, onLogout }) {
           </Box>
         );
 
-      case 'members':
+      case 'reviews':
         return (
           <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a202c' }}>
-                メンバー招待
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<PersonAdd />}
-                sx={{
-                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                  borderRadius: 2,
-                  px: 3
-                }}
-              >
-                メンバーを招待
-              </Button>
-            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 4, color: '#1a202c' }}>
+              レビュー管理
+            </Typography>
 
             <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
               <CardContent>
                 <Box sx={{ textAlign: 'center', py: 8 }}>
-                  <People sx={{ fontSize: 80, color: '#e2e8f0', mb: 2 }} />
+                  <RateReview sx={{ fontSize: 80, color: '#e2e8f0', mb: 2 }} />
                   <Typography variant="h6" sx={{ color: '#64748b', mb: 1 }}>
-                    メンバーがいません
+                    レビューがありません
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                    「メンバーを招待」ボタンからメンバーを招待してください
+                    レビューフォームからレビューが投稿されるとここに表示されます
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
+        );
+
+      case 'analytics':
+        return (
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 4, color: '#1a202c' }}>
+              分析
+            </Typography>
+
+            <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+              <CardContent>
+                <Box sx={{ textAlign: 'center', py: 8 }}>
+                  <Analytics sx={{ fontSize: 80, color: '#e2e8f0', mb: 2 }} />
+                  <Typography variant="h6" sx={{ color: '#64748b', mb: 1 }}>
+                    分析データは準備中です
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                    レビューデータが蓄積されると分析結果が表示されます
                   </Typography>
                 </Box>
               </CardContent>
@@ -367,18 +388,43 @@ export default function PartnerDashboard({ user, onLogout }) {
         return (
           <Box>
             <Typography variant="h4" sx={{ fontWeight: 700, mb: 4, color: '#1a202c' }}>
-              設定
+              企業設定
             </Typography>
 
             <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                  パートナー企業情報
+                  企業情報
                 </Typography>
-                <Box sx={{ textAlign: 'center', py: 5 }}>
-                  <Typography variant="body1" sx={{ color: '#64748b' }}>
-                    設定画面は準備中です
-                  </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Box>
+                    <Typography variant="body2" sx={{ color: '#64748b', mb: 0.5 }}>
+                      企業名
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      {company.name}
+                    </Typography>
+                  </Box>
+                  {company.phone_number && (
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#64748b', mb: 0.5 }}>
+                        電話番号
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                        {company.phone_number}
+                      </Typography>
+                    </Box>
+                  )}
+                  {company.email && (
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#64748b', mb: 0.5 }}>
+                        メールアドレス
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                        {company.email}
+                      </Typography>
+                    </Box>
+                  )}
                 </Box>
               </CardContent>
             </Card>
@@ -390,37 +436,8 @@ export default function PartnerDashboard({ user, onLogout }) {
     }
   };
 
-  const handleCompanyCreated = async (company) => {
-    setShowCompanyDialog(false);
-    // 企業一覧を再取得して最新の状態を表示
-    await fetchAffiliatedCompanies();
-  };
-
-  const handleBackToPartnerDashboard = () => {
-    setSelectedCompany(null);
-  };
-
-  // 企業が選択されている場合は企業ダッシュボードを表示
-  if (selectedCompany) {
-    return (
-      <CompanyDashboard
-        company={selectedCompany}
-        user={user}
-        onBack={handleBackToPartnerDashboard}
-        onLogout={onLogout}
-      />
-    );
-  }
-
   return (
     <Box sx={{ minHeight: '100vh', background: '#ffffff' }}>
-      {/* 企業作成ダイアログ */}
-      <CompanyCreationDialog
-        open={showCompanyDialog}
-        onClose={() => setShowCompanyDialog(false)}
-        onCompanyCreated={handleCompanyCreated}
-      />
-
       {/* AppBar */}
       <AppBar
         position="fixed"
@@ -432,9 +449,17 @@ export default function PartnerDashboard({ user, onLogout }) {
         }}
       >
         <Toolbar>
-          <Handshake sx={{ fontSize: 32, color: '#5e17eb', mr: 2 }} />
+          <IconButton
+            edge="start"
+            onClick={onBack}
+            sx={{ mr: 2, color: '#5e17eb' }}
+          >
+            <ArrowBack />
+          </IconButton>
+
+          <Business sx={{ fontSize: 32, color: '#5e17eb', mr: 2 }} />
           <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
-            Partner Dashboard
+            {company.name}
           </Typography>
 
           <IconButton onClick={handleMenuOpen}>
@@ -530,6 +555,25 @@ export default function PartnerDashboard({ user, onLogout }) {
           </Container>
         </Box>
       </Box>
+
+      {/* フォーム作成FAB（formsタブのみ表示） */}
+      {activeTab === 'forms' && (
+        <Fab
+          color="primary"
+          aria-label="add"
+          sx={{
+            position: 'fixed',
+            bottom: 32,
+            right: 32,
+            background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #5e17eb 40%, #764ba2 100%)',
+            }
+          }}
+        >
+          <Add />
+        </Fab>
+      )}
     </Box>
   );
 }
