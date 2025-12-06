@@ -98,9 +98,9 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           return;
         }
 
-        // 2. company_membershipsにない場合、partner_company_membershipsをチェック
+        // 2. company_membershipsにない場合、partner_membershipsをチェック
         const { data: partnerData, error: partnerError } = await supabase
-          .from('partner_company_memberships')
+          .from('partner_memberships')
           .select('id, partner_company_id')
           .eq('business_users_id', currentUser.id);
 

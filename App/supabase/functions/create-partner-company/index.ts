@@ -40,20 +40,20 @@ serve(async (req) => {
     }
 
     // リクエストボディの取得
-    const { name, description, website_url, phone, email, address } = await req.json()
+    const { company_name, website_url, phone, email } = await req.json()
 
     // 🔒 入力バリデーション
-    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+    if (!company_name || typeof company_name !== 'string' || company_name.trim().length === 0) {
       throw new Error('パートナー企業名は必須です')
     }
 
-    if (name.trim().length > 100) {
+    if (company_name.trim().length > 100) {
       throw new Error('パートナー企業名は100文字以内で入力してください')
     }
 
     // 🔒 既存の関連付けチェック（重複防止）
     const { data: existingRelation, error: checkError } = await supabase
-      .from('partner_company_memberships')
+      .from('partner_memberships')
       .select('id')
       .eq('business_users_id', user.id)
       .single()
@@ -64,9 +64,9 @@ serve(async (req) => {
 
     // 🔒 同名パートナー企業のチェック
     const { data: existingPartnerCompany, error: partnerCheckError } = await supabase
-      .from('partner_companies')
+      .from('partner_company')
       .select('id')
-      .ilike('name', name.trim())
+      .ilike('company_name', company_name.trim())
       .single()
 
     if (existingPartnerCompany && !partnerCheckError) {
@@ -75,15 +75,13 @@ serve(async (req) => {
 
     // トランザクション開始（パートナー企業作成と関連付け）
     const { data: partnerCompany, error: partnerCompanyError } = await supabase
-      .from('partner_companies')
+      .from('partner_company')
       .insert([
         {
-          name: name.trim(),
-          description: description?.trim() || null,
+          company_name: company_name.trim(),
           website_url: website_url?.trim() || null,
           phone: phone?.trim() || null,
-          email: email?.trim() || null,
-          address: address?.trim() || null
+          email: email?.trim() || null
         }
       ])
       .select()
@@ -93,21 +91,20 @@ serve(async (req) => {
       throw new Error(`パートナー企業情報の保存に失敗: ${partnerCompanyError.message}`)
     }
 
-    // ユーザーとパートナー企業の関連付け（role='owner'として）
+    // ユーザーとパートナー企業の関連付け
     const { error: relationError } = await supabase
-      .from('partner_company_memberships')
+      .from('partner_memberships')
       .insert([
         {
           business_users_id: user.id, // 🔒 認証されたユーザーIDのみ使用
-          partner_company_id: partnerCompany.id,
-          role: 'owner' // オーナーとして登録
+          partner_company_id: partnerCompany.id
         }
       ])
 
     if (relationError) {
       // パートナー企業作成をロールバック（手動削除）
       await supabase
-        .from('partner_companies')
+        .from('partner_company')
         .delete()
         .eq('id', partnerCompany.id)
 

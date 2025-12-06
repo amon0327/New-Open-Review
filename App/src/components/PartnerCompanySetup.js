@@ -24,12 +24,10 @@ import { supabase } from '../lib/supabase';
 
 export default function PartnerCompanySetup({ user, onPartnerCompanyCreated }) {
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
+    company_name: '',
     website_url: '',
     phone: '',
-    email: '',
-    address: ''
+    email: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -49,7 +47,7 @@ export default function PartnerCompanySetup({ user, onPartnerCompanyCreated }) {
 
     try {
       // バリデーション
-      if (!formData.name.trim()) {
+      if (!formData.company_name.trim()) {
         throw new Error('パートナー企業名を入力してください');
       }
 
@@ -67,12 +65,10 @@ export default function PartnerCompanySetup({ user, onPartnerCompanyCreated }) {
       // Edge Functionを呼び出し（サーバーサイドで安全に処理）
       const { data, error } = await supabase.functions.invoke('create-partner-company', {
         body: {
-          name: formData.name.trim(),
-          description: formData.description.trim() || null,
+          company_name: formData.company_name.trim(),
           website_url: formData.website_url.trim() || null,
           phone: formData.phone.trim() || null,
-          email: formData.email.trim() || null,
-          address: formData.address.trim() || null
+          email: formData.email.trim() || null
         }
       });
 
@@ -181,37 +177,14 @@ export default function PartnerCompanySetup({ user, onPartnerCompanyCreated }) {
                     placeholder="株式会社〇〇"
                     fullWidth
                     required
-                    value={formData.name}
-                    onChange={handleInputChange('name')}
+                    value={formData.company_name}
+                    onChange={handleInputChange('company_name')}
                     disabled={isSubmitting}
                     InputProps={{
                       startAdornment: (
                         <Handshake sx={{ color: '#64748b', mr: 1 }} />
                       ),
                     }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#5e17eb',
-                        }
-                      },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#5e17eb'
-                      }
-                    }}
-                  />
-
-                  {/* 企業説明 */}
-                  <TextField
-                    label="企業説明"
-                    placeholder="企業の概要や特徴を入力してください"
-                    fullWidth
-                    multiline
-                    rows={3}
-                    value={formData.description}
-                    onChange={handleInputChange('description')}
-                    disabled={isSubmitting}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
@@ -304,34 +277,13 @@ export default function PartnerCompanySetup({ user, onPartnerCompanyCreated }) {
                     }}
                   />
 
-                  {/* 住所 */}
-                  <TextField
-                    label="住所"
-                    placeholder="東京都渋谷区..."
-                    fullWidth
-                    value={formData.address}
-                    onChange={handleInputChange('address')}
-                    disabled={isSubmitting}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#5e17eb',
-                        }
-                      },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#5e17eb'
-                      }
-                    }}
-                  />
-
                   {/* 送信ボタン */}
                   <Button
                     type="submit"
                     variant="contained"
                     size="large"
                     fullWidth
-                    disabled={isSubmitting || !formData.name.trim()}
+                    disabled={isSubmitting || !formData.company_name.trim()}
                     startIcon={
                       isSubmitting ? (
                         <CircularProgress size={20} color="inherit" />
