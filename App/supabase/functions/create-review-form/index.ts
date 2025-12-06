@@ -41,26 +41,56 @@ serve(async (req) => {
     }
 
     // リクエストボディから必要な情報を取得
-    const { title, storeId } = await req.json()
-    
+    const { title, storeId, companyId: requestedCompanyId } = await req.json()
+
     // タイトルが指定されていない場合はデフォルトを使用
     const reviewFormTitle = title || '新規レビューフォーム'
 
-    // ユーザーの会社メンバーシップを確認（サービスロールで）
-    const { data: companyMembership, error: membershipError } = await supabaseAdmin
-      .from('company_memberships')
-      .select('company_id')
-      .eq('business_user_id', user.id)
+    let companyId = null
 
-    if (membershipError) {
-      throw new Error(`会社情報の取得に失敗: ${membershipError.message}`)
+    // ケース1: companyIdが明示的に指定されている場合（パートナーユーザー用）
+    if (requestedCompanyId) {
+      // パートナー企業経由でのアクセス権限を確認
+      const { data: partnerAccess, error: partnerError } = await supabaseAdmin
+        .from('partner_affiliate_companies')
+        .select('companies_id')
+        .eq('companies_id', requestedCompanyId)
+        .in('partner_company_id',
+          supabaseAdmin
+            .from('partner_memberships')
+            .select('partner_company_id')
+            .eq('business_users_id', user.id)
+        )
+
+      if (partnerError) {
+        throw new Error(`パートナーアクセス確認に失敗: ${partnerError.message}`)
+      }
+
+      if (partnerAccess && partnerAccess.length > 0) {
+        companyId = requestedCompanyId
+      }
     }
 
-    if (!companyMembership || companyMembership.length === 0) {
-      throw new Error('会社に所属していません')
+    // ケース2: 通常の会社メンバーとしてのアクセス
+    if (!companyId) {
+      const { data: companyMembership, error: membershipError } = await supabaseAdmin
+        .from('company_memberships')
+        .select('company_id')
+        .eq('business_user_id', user.id)
+
+      if (membershipError) {
+        throw new Error(`会社情報の取得に失敗: ${membershipError.message}`)
+      }
+
+      if (companyMembership && companyMembership.length > 0) {
+        companyId = companyMembership[0].company_id
+      }
     }
 
-    const companyId = companyMembership[0].company_id
+    // どちらの方法でも会社が見つからない場合
+    if (!companyId) {
+      throw new Error('会社に所属していないか、アクセス権限がありません')
+    }
 
     // storeIdが指定されている場合、そのstoreが会社に属するかチェック
     if (storeId) {

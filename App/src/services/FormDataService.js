@@ -9,12 +9,13 @@ export class FormDataService {
    * 新しいフォームを作成し、関連する全てのテーブルにレコードを作成
    * Edge Functionを使用してcompany_review_formsテーブルへの書き込みも行う
    * @param {string} userId - ログインしているユーザーのID
+   * @param {string} [companyId] - オプショナル：パートナーコンテキストで作成する場合の企業ID
    * @returns {Promise<Object>} 作成されたフォームの情報とエラー
    */
-  static async createNewForm(userId) {
+  static async createNewForm(userId, companyId = null) {
     try {
-      console.log('🚀 FormDataService.createNewForm started with userId:', userId);
-      
+      console.log('🚀 FormDataService.createNewForm started with userId:', userId, 'companyId:', companyId);
+
       // 現在のセッションを取得
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
@@ -25,10 +26,17 @@ export class FormDataService {
 
       // Edge Functionを呼び出してフォームを作成
       console.log('🔄 Calling Edge Function: create-review-form');
+      const requestBody = {
+        title: '新規レビューフォーム'
+      };
+
+      // パートナーコンテキストの場合はcompanyIdを追加
+      if (companyId) {
+        requestBody.companyId = companyId;
+      }
+
       const { data, error } = await supabase.functions.invoke('create-review-form', {
-        body: {
-          title: '新規レビューフォーム'
-        }
+        body: requestBody
       });
       console.log('📊 Edge Function response:', { data, error });
 

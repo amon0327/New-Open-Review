@@ -258,7 +258,7 @@ export default function Dashboard({ onCreateClick, onLogout, user, selectedCompa
   };
 
   return (
-    <FormCreator user={user} onCreateFormClick={onCreateClick}>
+    <FormCreator user={user} onCreateFormClick={onCreateClick} selectedCompany={selectedCompany}>
       {({ onCreateForm, isCreatingForm }) => (
         <Box sx={{ display: 'flex', height: '100vh' }}>
           {/* モダンなローディング表示 */}

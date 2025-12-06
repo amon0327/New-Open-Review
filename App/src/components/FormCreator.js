@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import FormDataService from '../services/FormDataService';
 
-const FormCreator = ({ 
-  user, 
-  onCreateFormClick, 
-  children 
+const FormCreator = ({
+  user,
+  onCreateFormClick,
+  children,
+  selectedCompany = null
 }) => {
   const [isCreatingForm, setIsCreatingForm] = useState(false);
 
   const handleCreateForm = async () => {
-    console.log('🎯 FormCreator.handleCreateForm called with user:', user);
-    
+    console.log('🎯 FormCreator.handleCreateForm called with user:', user, 'selectedCompany:', selectedCompany);
+
     if (!user) {
       console.error('❌ No user found');
       toast.error('ユーザー情報が取得できません');
@@ -21,8 +22,9 @@ const FormCreator = ({
     console.log('⏳ Setting isCreatingForm to true');
     setIsCreatingForm(true);
     try {
-      console.log('🔄 Calling FormDataService.createNewForm with user.id:', user.id);
-      const result = await FormDataService.createNewForm(user.id);
+      const companyId = selectedCompany?.id || null;
+      console.log('🔄 Calling FormDataService.createNewForm with user.id:', user.id, 'companyId:', companyId);
+      const result = await FormDataService.createNewForm(user.id, companyId);
       console.log('📋 FormDataService.createNewForm result:', result);
       
       if (result.success) {
