@@ -41,8 +41,8 @@ serve(async (req) => {
     }
 
     // リクエストボディから必要な情報を取得
-    const { storeId, role, name } = await req.json()
-    
+    const { storeId, role, name, shiftName } = await req.json()
+
     if (!storeId || !role || !name) {
       throw new Error('店舗ID、ロール、名前が必要です')
     }
@@ -109,10 +109,11 @@ serve(async (req) => {
           store_id: storeId,
           role: role,
           name: name,
+          shift_name: shiftName || null,
           status: 'invited'
         }
       ])
-      .select('id, token, name, role')
+      .select('id, token, name, role, shift_name')
 
     if (invitationError) {
       throw new Error(`招待の作成に失敗: ${invitationError.message}`)
@@ -124,9 +125,9 @@ serve(async (req) => {
 
     const invitation = invitationData[0]
     
-    // 招待URLを生成
-    const origin = req.headers.get('origin') || 'http://localhost:3000'
-    const invitationUrl = `${origin}/staff-invitation/${invitation.token}`
+    // 招待URLを生成（store-management-appのドメインを固定使用）
+    const storeManagementDomain = 'https://store.openreview.jp'
+    const invitationUrl = `${storeManagementDomain}/staff-invitation/${invitation.token}`
 
     return new Response(
       JSON.stringify({

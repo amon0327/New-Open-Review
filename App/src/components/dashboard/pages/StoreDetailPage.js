@@ -170,7 +170,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
   const copyInvitationUrl = (token, environment = 'dev') => {
     let url;
     if (environment === 'production') {
-      url = `https://app.openreview.jp/staff-invitation/${token}`;
+      url = `https://store.openreview.jp/staff-invitation/${token}`;
     } else {
       url = `http://localhost:3000/staff-invitation/${token}`;
     }

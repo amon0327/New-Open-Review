@@ -68,6 +68,7 @@ serve(async (req) => {
     }
 
     // 招待情報を取得（サービスロールで）
+    // 24時間制限無効化に伴い、invitedとexpiredの両方を取得可能にする
     console.log('Fetching invitation data for token:', invitationToken)
     const { data: invitationData, error: invitationError } = await supabaseAdmin
       .from('store_invitations')
@@ -84,6 +85,7 @@ serve(async (req) => {
         )
       `)
       .eq('token', invitationToken)
+      .in('status', ['invited', 'expired', 'completed'])
 
     console.log('Invitation query result:', { invitationData, invitationError })
 
@@ -98,8 +100,9 @@ serve(async (req) => {
     const invitation = invitationData[0]
     console.log('Found invitation:', invitation)
 
-    // ステータスチェック
-    if (invitation.status && invitation.status !== 'invited') {
+    // ステータスチェック（expired以外をブロック）
+    // 24時間制限無効化に伴い、expiredステータスも受け入れる
+    if (invitation.status && invitation.status !== 'invited' && invitation.status !== 'expired') {
       throw new Error(`招待は既に${invitation.status}です`)
     }
 
@@ -190,7 +193,8 @@ serve(async (req) => {
       business_user_id: user.id,
       store_id: invitation.store_id,
       role: invitation.role,
-      company_id: invitation.stores?.company_id || null
+      company_id: invitation.stores?.company_id || null,
+      shift_name: invitation.shift_name || null
     }
     
     console.log('Creating store membership with data:', membershipData)

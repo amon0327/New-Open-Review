@@ -55,6 +55,7 @@ serve(async (req) => {
     console.log('一括期限切れクリーンアップ処理は削除されました')
 
     // サービスロールで招待情報を取得（RLSポリシーを回避）
+    // 24時間制限無効化に伴い、invitedとexpiredの両方を取得可能にする
     console.log('Querying store_invitations with token:', invitationToken)
     const { data: invitationData, error: invitationError } = await supabaseAdmin
       .from('store_invitations')
