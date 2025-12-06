@@ -83,6 +83,19 @@ serve(async (req) => {
       throw new Error(`ビジネスユーザーの確認に失敗: ${businessUserError.message}`)
     }
 
+    // 🔒 partner_membershipsからパートナー企業IDを取得
+    const { data: partnerMembership, error: partnerMembershipError } = await supabase
+      .from('partner_memberships')
+      .select('partner_company_id')
+      .eq('business_users_id', user.id)
+      .single()
+
+    if (partnerMembershipError || !partnerMembership) {
+      throw new Error('パートナー企業に所属していません')
+    }
+
+    const partnerCompanyId = partnerMembership.partner_company_id
+
     // 🔒 同名企業のチェック
     const { data: existingCompany, error: companyCheckError } = await supabase
       .from('companies')
@@ -129,6 +142,31 @@ serve(async (req) => {
         .eq('id', company.id)
 
       throw new Error(`メンバーシップの作成に失敗: ${membershipError.message}`)
+    }
+
+    // partner_affiliate_companiesに関連付け
+    const { error: affiliationError } = await supabase
+      .from('partner_affiliate_companies')
+      .insert([
+        {
+          partner_company_id: partnerCompanyId,
+          companies_id: company.id
+        }
+      ])
+
+    if (affiliationError) {
+      // 企業とメンバーシップをロールバック（手動削除）
+      await supabase
+        .from('company_memberships')
+        .delete()
+        .eq('company_id', company.id)
+
+      await supabase
+        .from('companies')
+        .delete()
+        .eq('id', company.id)
+
+      throw new Error(`パートナー企業との関連付けに失敗: ${affiliationError.message}`)
     }
 
     // 成功レスポンス
