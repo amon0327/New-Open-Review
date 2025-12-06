@@ -40,7 +40,7 @@ serve(async (req) => {
     }
 
     // リクエストボディの取得
-    const { name, address } = await req.json()
+    const { name, address, companyId: requestedCompanyId } = await req.json()
 
     // 🔒 入力バリデーション
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -59,22 +59,67 @@ serve(async (req) => {
       throw new Error('店舗住所は500文字以内で入力してください')
     }
 
-    // 🔒 ユーザーに紐付いた会社IDを取得
-    const { data: companyRelation, error: relationError } = await supabase
-      .from('company_memberships')
-      .select('company_id')
-      .eq('business_user_id', user.id)
-      .single()
+    // 🔒 会社IDの取得とアクセス権限チェック
+    let companyId = null
 
-    if (relationError || !companyRelation) {
-      throw new Error('ユーザーに関連付けられた会社が見つかりません')
+    // ケース1: companyIdが明示的に指定されている場合（パートナーユーザー用）
+    if (requestedCompanyId) {
+      console.log('Checking partner access for companyId:', requestedCompanyId, 'userId:', user.id)
+
+      // まずユーザーのパートナー企業IDを取得
+      const { data: partnerMemberships, error: membershipError } = await supabase
+        .from('partner_memberships')
+        .select('partner_company_id')
+        .eq('business_users_id', user.id)
+
+      // パートナー企業IDのリストを作成
+      if (partnerMemberships && partnerMemberships.length > 0) {
+        const partnerCompanyIds = partnerMemberships.map(m => m.partner_company_id)
+
+        // そのパートナー企業が指定された会社にアクセスできるかチェック
+        const { data: affiliateCompanies, error: affiliateError } = await supabase
+          .from('partner_affiliate_companies')
+          .select('companies_id')
+          .eq('companies_id', requestedCompanyId)
+          .in('partner_company_id', partnerCompanyIds)
+
+        if (affiliateCompanies && affiliateCompanies.length > 0) {
+          companyId = requestedCompanyId
+          console.log('✅ Partner access granted for companyId:', companyId)
+        } else {
+          console.log('❌ Partner access denied - company not affiliated')
+        }
+      } else {
+        console.log('⚠️ No partner memberships found')
+      }
+    }
+
+    // ケース2: 通常の会社メンバーとしてのアクセス
+    if (!companyId) {
+      console.log('Checking company_memberships for userId:', user.id)
+      const { data: companyRelation, error: relationError } = await supabase
+        .from('company_memberships')
+        .select('company_id')
+        .eq('business_user_id', user.id)
+        .single()
+
+      if (relationError || !companyRelation) {
+        throw new Error('ユーザーに関連付けられた会社が見つかりません')
+      }
+
+      companyId = companyRelation.company_id
+      console.log('✅ Company membership found, companyId:', companyId)
+    }
+
+    if (!companyId) {
+      throw new Error('会社に所属していません')
     }
 
     // 🔒 会社が実際に存在するかチェック
     const { data: company, error: companyError } = await supabase
       .from('companies')
       .select('id, name')
-      .eq('id', companyRelation.company_id)
+      .eq('id', companyId)
       .single()
 
     if (companyError || !company) {
@@ -85,7 +130,7 @@ serve(async (req) => {
     const { data: existingStore, error: storeCheckError } = await supabase
       .from('stores')
       .select('id')
-      .eq('company_id', companyRelation.company_id)
+      .eq('company_id', companyId)
       .ilike('name', name.trim())
       .single()
 
@@ -93,12 +138,12 @@ serve(async (req) => {
       throw new Error('同じ会社内に同名の店舗が既に存在します')
     }
 
-    // 🔒 店舗作成（認証されたユーザーの会社IDのみ使用）
+    // 🔒 店舗作成（認証されたユーザーまたはパートナーの会社IDのみ使用）
     const { data: store, error: storeError } = await supabase
       .from('stores')
       .insert([
         {
-          company_id: companyRelation.company_id, // 🔒 認証されたユーザーの会社IDのみ
+          company_id: companyId, // 🔒 認証されたユーザーまたはパートナーの会社IDのみ
           name: name.trim(),
           address: address.trim()
         }

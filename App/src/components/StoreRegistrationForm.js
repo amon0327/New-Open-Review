@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Box,
@@ -19,6 +20,7 @@ import {
 import { supabase } from '../lib/supabase';
 
 export default function StoreRegistrationForm({ onStoreRegistered, onCancel }) {
+  const { companyId } = useParams(); // URLからcompanyIdを取得
   const [formData, setFormData] = useState({
     name: '',
     address: ''
@@ -56,11 +58,19 @@ export default function StoreRegistrationForm({ onStoreRegistered, onCancel }) {
       }
 
       // 🔒 Edge Functionを呼び出し（サーバーサイドで安全に処理）
+      const requestBody = {
+        name: formData.name.trim(),
+        address: formData.address.trim()
+      };
+
+      // パートナーコンテキストの場合はcompanyIdを追加
+      if (companyId) {
+        requestBody.companyId = companyId;
+        console.log('✅ Adding companyId to store creation request:', companyId);
+      }
+
       const { data, error } = await supabase.functions.invoke('create-store', {
-        body: {
-          name: formData.name.trim(),
-          address: formData.address.trim()
-        }
+        body: requestBody
       });
 
       if (error) {
