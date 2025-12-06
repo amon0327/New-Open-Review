@@ -113,22 +113,6 @@ export default function PartnerInvitationForm({
     }
   };
 
-  const copyTemplate = () => {
-    if (invitationData) {
-      const template = `${invitationData.name}様
-
-${invitationData.partnerCompanyName}への招待URLです：
-
-【開発版】
-http://localhost:3000/partner-invitation/${invitationData.token}
-
-【本番版】
-https://app.openreview.jp/partner-invitation/${invitationData.token}`;
-      navigator.clipboard.writeText(template);
-      toast.success('テンプレートをコピーしました');
-    }
-  };
-
   const handleClose = () => {
     setFormData({ name: '', role: 'owner' });
     setError(null);
@@ -178,172 +162,57 @@ https://app.openreview.jp/partner-invitation/${invitationData.token}`;
           >
             <Box sx={{ py: 2 }}>
               <Box sx={{ textAlign: 'center', mb: 4 }}>
-                <PersonAdd sx={{ fontSize: 64, color: '#10b981', mb: 2 }} />
-                <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#10b981' }}>
-                  招待URLを発行しました！
+                <PersonAdd sx={{ fontSize: 48, color: '#10b981', mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#10b981' }}>
+                  招待URLを発行しました
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#64748b' }}>
-                  以下の情報を{invitationData?.name}さんに送信してください
+                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                  {invitationData?.name}さんに以下のURLを送信してください
                 </Typography>
               </Box>
 
-              {/* テンプレート表示カード */}
-              <Card sx={{ mb: 3, border: '1px solid #e2e8f0' }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <PersonAdd sx={{ color: '#5e17eb', mr: 1 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      招待テンプレート
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      p: 2,
-                      background: '#f8fafc',
-                      borderRadius: 1,
-                      border: '1px solid #e2e8f0',
-                      fontFamily: 'monospace',
-                      fontSize: '0.9rem',
-                      whiteSpace: 'pre-line',
-                      color: '#374151'
-                    }}
-                  >
-                    {`${invitationData?.name}様
-
-${invitationData?.partnerCompanyName}への招待URLです：
-
-【開発版】
-http://localhost:3000/partner-invitation/${invitationData?.token}
-
-【本番版】
-https://app.openreview.jp/partner-invitation/${invitationData?.token}`}
-                  </Box>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<ContentCopy />}
-                    onClick={copyTemplate}
-                    sx={{
-                      mt: 2,
-                      borderColor: '#5e17eb',
-                      color: '#5e17eb',
-                      '&:hover': {
-                        borderColor: '#4c1d95',
-                        backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                      }
-                    }}
-                  >
-                    テンプレートをコピー
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Divider sx={{ my: 2 }} />
-
-              {/* URL表示カード - 開発版 */}
-              <Card sx={{ mb: 3, border: '1px solid #e2e8f0' }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Link sx={{ color: '#5e17eb', mr: 1 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      招待URL（開発版）
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      p: 2,
-                      background: '#f8fafc',
-                      borderRadius: 1,
-                      border: '1px solid #e2e8f0',
-                      wordBreak: 'break-all',
-                      fontFamily: 'monospace',
-                      fontSize: '0.9rem',
-                      color: '#374151'
-                    }}
-                  >
-                    {invitationData?.token ? `http://localhost:3000/partner-invitation/${invitationData.token}` : ''}
-                  </Box>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<ContentCopy />}
-                    onClick={() => {
-                      if (invitationData?.token) {
-                        const localhostUrl = `http://localhost:3000/partner-invitation/${invitationData.token}`;
-                        navigator.clipboard.writeText(localhostUrl);
-                        toast.success('開発版URLをコピーしました');
-                      }
-                    }}
-                    sx={{
-                      mt: 2,
-                      borderColor: '#5e17eb',
-                      color: '#5e17eb',
-                      '&:hover': {
-                        borderColor: '#4c1d95',
-                        backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                      }
-                    }}
-                  >
-                    開発版URLをコピー
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* URL表示カード - 本番版 */}
-              <Card sx={{ mb: 3, border: '1px solid #e2e8f0' }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Link sx={{ color: '#10b981', mr: 1 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      招待URL（本番版）
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      p: 2,
-                      background: '#f0fdf4',
-                      borderRadius: 1,
-                      border: '1px solid #bbf7d0',
-                      wordBreak: 'break-all',
-                      fontFamily: 'monospace',
-                      fontSize: '0.9rem',
-                      color: '#166534'
-                    }}
-                  >
-                    {invitationData?.token ? `https://app.openreview.jp/partner-invitation/${invitationData.token}` : ''}
-                  </Box>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<ContentCopy />}
-                    onClick={() => {
-                      if (invitationData?.token) {
-                        const productionUrl = `https://app.openreview.jp/partner-invitation/${invitationData.token}`;
-                        navigator.clipboard.writeText(productionUrl);
-                        toast.success('本番版URLをコピーしました');
-                      }
-                    }}
-                    sx={{
-                      mt: 2,
-                      borderColor: '#10b981',
-                      color: '#10b981',
-                      '&:hover': {
-                        borderColor: '#059669',
-                        backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                      }
-                    }}
-                  >
-                    本番版URLをコピー
-                  </Button>
-                </CardContent>
-              </Card>
+              {/* シンプルなURL表示 */}
+              <Box
+                sx={{
+                  p: 2,
+                  mb: 2,
+                  background: '#f8fafc',
+                  borderRadius: 2,
+                  border: '1px solid #e2e8f0',
+                  wordBreak: 'break-all',
+                  fontFamily: 'monospace',
+                  fontSize: '0.9rem',
+                  color: '#374151'
+                }}
+              >
+                {invitationData?.url || `https://app.openreview.jp/partner-invitation/${invitationData?.token}`}
+              </Box>
 
               <Button
                 variant="contained"
                 fullWidth
+                startIcon={<ContentCopy />}
+                onClick={() => {
+                  const url = invitationData?.url || `https://app.openreview.jp/partner-invitation/${invitationData?.token}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success('URLをコピーしました');
+                }}
+                sx={{
+                  mb: 2,
+                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                  py: 1.5
+                }}
+              >
+                URLをコピー
+              </Button>
+
+              <Button
+                variant="outlined"
+                fullWidth
                 onClick={handleClose}
                 sx={{
-                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                  borderColor: '#e2e8f0',
+                  color: '#64748b',
                   py: 1.5
                 }}
               >

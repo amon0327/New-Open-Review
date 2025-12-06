@@ -35,7 +35,9 @@ import {
   People,
   AccountCircle,
   Phone,
-  Email
+  Email,
+  Delete,
+  HourglassEmpty
 } from '@mui/icons-material';
 import CompanyCreationDialog from './CompanyCreationDialog';
 import PartnerInvitationForm from './PartnerInvitationForm';
@@ -50,6 +52,9 @@ export default function PartnerDashboard({ user, onLogout }) {
   const [companies, setCompanies] = useState([]);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
   const [partnerCompanyInfo, setPartnerCompanyInfo] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [invitations, setInvitations] = useState([]);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
 
   // 紐付いている企業一覧を取得
   const fetchAffiliatedCompanies = async () => {
@@ -113,12 +118,97 @@ export default function PartnerDashboard({ user, onLogout }) {
     }
   };
 
+  // メンバーと招待を取得
+  const fetchMembersAndInvitations = async () => {
+    if (!partnerCompanyInfo) return;
+
+    try {
+      setIsLoadingMembers(true);
+
+      // メンバー一覧を取得
+      const { data: membersData, error: membersError } = await supabase
+        .from('partner_memberships')
+        .select(`
+          id,
+          created_at,
+          role,
+          business_users:business_users_id (
+            id,
+            name,
+            email
+          )
+        `)
+        .eq('partner_company_id', partnerCompanyInfo.id)
+        .eq('is_active', true);
+
+      if (membersError) {
+        console.error('メンバー取得エラー:', membersError);
+      } else {
+        setMembers(membersData || []);
+      }
+
+      // 招待中のリストを取得
+      const { data: invitationsData, error: invitationsError } = await supabase
+        .from('partner_user_invitations')
+        .select('*')
+        .eq('partner_company_id', partnerCompanyInfo.id)
+        .eq('status', 'invited')
+        .order('created_at', { ascending: false });
+
+      if (invitationsError) {
+        console.error('招待取得エラー:', invitationsError);
+      } else {
+        setInvitations(invitationsData || []);
+      }
+    } catch (error) {
+      console.error('メンバー・招待取得エラー:', error);
+    } finally {
+      setIsLoadingMembers(false);
+    }
+  };
+
+  // 招待を削除
+  const handleDeleteInvitation = async (invitationId) => {
+    try {
+      const { error } = await supabase
+        .from('partner_user_invitations')
+        .delete()
+        .eq('id', invitationId);
+
+      if (error) {
+        console.error('招待削除エラー:', error);
+        alert('招待の削除に失敗しました');
+        return;
+      }
+
+      // リストを更新
+      await fetchMembersAndInvitations();
+    } catch (error) {
+      console.error('招待削除エラー:', error);
+      alert('招待の削除に失敗しました');
+    }
+  };
+
   // 初回ロード時に企業一覧を取得
   useEffect(() => {
     if (user) {
       fetchAffiliatedCompanies();
     }
   }, [user]);
+
+  // パートナー企業情報が取得できたらメンバー・招待を取得
+  useEffect(() => {
+    if (partnerCompanyInfo) {
+      fetchMembersAndInvitations();
+    }
+  }, [partnerCompanyInfo]);
+
+  // メンバータブに切り替えたときにリフレッシュ
+  useEffect(() => {
+    if (activeTab === 'members' && partnerCompanyInfo) {
+      fetchMembersAndInvitations();
+    }
+  }, [activeTab]);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -349,7 +439,7 @@ export default function PartnerDashboard({ user, onLogout }) {
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
               <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a202c' }}>
-                メンバー招待
+                メンバー管理
               </Typography>
               <Button
                 variant="contained"
@@ -366,19 +456,142 @@ export default function PartnerDashboard({ user, onLogout }) {
               </Button>
             </Box>
 
-            <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
-              <CardContent>
-                <Box sx={{ textAlign: 'center', py: 8 }}>
-                  <People sx={{ fontSize: 80, color: '#e2e8f0', mb: 2 }} />
-                  <Typography variant="h6" sx={{ color: '#64748b', mb: 1 }}>
-                    メンバーがいません
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                    「メンバーを招待」ボタンからメンバーを招待してください
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
+            {isLoadingMembers ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Grid container spacing={3}>
+                {/* 現在のメンバー */}
+                <Grid item xs={12}>
+                  <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <People sx={{ color: '#5e17eb', mr: 1.5, fontSize: 28 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                          メンバー ({members.length})
+                        </Typography>
+                      </Box>
+                      {members.length === 0 ? (
+                        <Box sx={{ textAlign: 'center', py: 4 }}>
+                          <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                            メンバーがいません
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <List>
+                          {members.map((member, index) => (
+                            <React.Fragment key={member.id}>
+                              {index > 0 && <Divider />}
+                              <ListItem>
+                                <ListItemIcon>
+                                  <Avatar sx={{ bgcolor: '#5e17eb' }}>
+                                    {member.business_users?.name?.[0] || '?'}
+                                  </Avatar>
+                                </ListItemIcon>
+                                <ListItemText
+                                  primary={member.business_users?.name || '名前なし'}
+                                  secondary={
+                                    <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                      <Typography variant="body2" component="span" sx={{ color: '#64748b' }}>
+                                        {member.business_users?.email}
+                                      </Typography>
+                                      <Chip
+                                        label={member.role === 'owner' ? 'オーナー' : member.role}
+                                        size="small"
+                                        sx={{
+                                          width: 'fit-content',
+                                          bgcolor: '#f1f5f9',
+                                          color: '#5e17eb',
+                                          fontSize: '0.75rem',
+                                          height: '20px'
+                                        }}
+                                      />
+                                    </Box>
+                                  }
+                                />
+                              </ListItem>
+                            </React.Fragment>
+                          ))}
+                        </List>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* 招待中 */}
+                <Grid item xs={12}>
+                  <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <HourglassEmpty sx={{ color: '#f59e0b', mr: 1.5, fontSize: 28 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                          招待中 ({invitations.length})
+                        </Typography>
+                      </Box>
+                      {invitations.length === 0 ? (
+                        <Box sx={{ textAlign: 'center', py: 4 }}>
+                          <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                            招待中のメンバーはいません
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <List>
+                          {invitations.map((invitation, index) => (
+                            <React.Fragment key={invitation.id}>
+                              {index > 0 && <Divider />}
+                              <ListItem
+                                secondaryAction={
+                                  <IconButton
+                                    edge="end"
+                                    aria-label="delete"
+                                    onClick={() => {
+                                      if (window.confirm(`${invitation.name}さんへの招待を削除しますか？`)) {
+                                        handleDeleteInvitation(invitation.id);
+                                      }
+                                    }}
+                                    sx={{ color: '#ef4444' }}
+                                  >
+                                    <Delete />
+                                  </IconButton>
+                                }
+                              >
+                                <ListItemIcon>
+                                  <Avatar sx={{ bgcolor: '#f59e0b' }}>
+                                    {invitation.name?.[0] || '?'}
+                                  </Avatar>
+                                </ListItemIcon>
+                                <ListItemText
+                                  primary={invitation.name}
+                                  secondary={
+                                    <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                      <Typography variant="body2" component="span" sx={{ color: '#64748b' }}>
+                                        招待日: {new Date(invitation.created_at).toLocaleDateString('ja-JP')}
+                                      </Typography>
+                                      <Chip
+                                        label="招待中"
+                                        size="small"
+                                        sx={{
+                                          width: 'fit-content',
+                                          bgcolor: '#fef3c7',
+                                          color: '#f59e0b',
+                                          fontSize: '0.75rem',
+                                          height: '20px'
+                                        }}
+                                      />
+                                    </Box>
+                                  }
+                                />
+                              </ListItem>
+                            </React.Fragment>
+                          ))}
+                        </List>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            )}
           </Box>
         );
 
@@ -431,8 +644,8 @@ export default function PartnerDashboard({ user, onLogout }) {
           partnerCompanyName={partnerCompanyInfo.name}
           onClose={() => setShowInvitationDialog(false)}
           onInvitationSent={() => {
-            // 招待が送信された後の処理（必要に応じて実装）
-            console.log('Invitation sent successfully');
+            // 招待リストを更新
+            fetchMembersAndInvitations();
           }}
         />
       )}
