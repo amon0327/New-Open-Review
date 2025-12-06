@@ -23,7 +23,9 @@ import {
   ListItemText,
   Paper,
   CircularProgress,
-  Chip
+  Chip,
+  Tabs,
+  Tab
 } from '@mui/material';
 import {
   Handshake,
@@ -55,6 +57,7 @@ export default function PartnerDashboard({ user, onLogout }) {
   const [members, setMembers] = useState([]);
   const [invitations, setInvitations] = useState([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+  const [memberTab, setMemberTab] = useState(0); // 0: メンバー, 1: 招待中
 
   // 紐付いている企業一覧を取得
   const fetchAffiliatedCompanies = async () => {
@@ -456,142 +459,164 @@ export default function PartnerDashboard({ user, onLogout }) {
               </Button>
             </Box>
 
-            {isLoadingMembers ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                <CircularProgress />
+            <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs
+                  value={memberTab}
+                  onChange={(e, newValue) => setMemberTab(newValue)}
+                  sx={{
+                    px: 2,
+                    '& .MuiTab-root': {
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      fontSize: '1rem'
+                    },
+                    '& .Mui-selected': {
+                      color: '#5e17eb'
+                    },
+                    '& .MuiTabs-indicator': {
+                      backgroundColor: '#5e17eb'
+                    }
+                  }}
+                >
+                  <Tab
+                    label={`メンバー (${members.length})`}
+                    icon={<People sx={{ fontSize: 20 }} />}
+                    iconPosition="start"
+                  />
+                  <Tab
+                    label={`招待中 (${invitations.length})`}
+                    icon={<HourglassEmpty sx={{ fontSize: 20 }} />}
+                    iconPosition="start"
+                  />
+                </Tabs>
               </Box>
-            ) : (
-              <Grid container spacing={3}>
-                {/* 現在のメンバー */}
-                <Grid item xs={12}>
-                  <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                        <People sx={{ color: '#5e17eb', mr: 1.5, fontSize: 28 }} />
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          メンバー ({members.length})
-                        </Typography>
-                      </Box>
-                      {members.length === 0 ? (
-                        <Box sx={{ textAlign: 'center', py: 4 }}>
-                          <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                            メンバーがいません
-                          </Typography>
-                        </Box>
-                      ) : (
-                        <List>
-                          {members.map((member, index) => (
-                            <React.Fragment key={member.id}>
-                              {index > 0 && <Divider />}
-                              <ListItem>
-                                <ListItemIcon>
-                                  <Avatar sx={{ bgcolor: '#5e17eb' }}>
-                                    {member.business_users?.name?.[0] || '?'}
-                                  </Avatar>
-                                </ListItemIcon>
-                                <ListItemText
-                                  primary={member.business_users?.name || '名前なし'}
-                                  secondary={
-                                    <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                      <Typography variant="body2" component="span" sx={{ color: '#64748b' }}>
-                                        {member.business_users?.email}
-                                      </Typography>
-                                      <Chip
-                                        label={member.role === 'owner' ? 'オーナー' : member.role}
-                                        size="small"
-                                        sx={{
-                                          width: 'fit-content',
-                                          bgcolor: '#f1f5f9',
-                                          color: '#5e17eb',
-                                          fontSize: '0.75rem',
-                                          height: '20px'
-                                        }}
-                                      />
-                                    </Box>
-                                  }
-                                />
-                              </ListItem>
-                            </React.Fragment>
-                          ))}
-                        </List>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Grid>
 
-                {/* 招待中 */}
-                <Grid item xs={12}>
-                  <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
-                    <CardContent>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                        <HourglassEmpty sx={{ color: '#f59e0b', mr: 1.5, fontSize: 28 }} />
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          招待中 ({invitations.length})
-                        </Typography>
-                      </Box>
-                      {invitations.length === 0 ? (
-                        <Box sx={{ textAlign: 'center', py: 4 }}>
-                          <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                            招待中のメンバーはいません
-                          </Typography>
-                        </Box>
-                      ) : (
-                        <List>
-                          {invitations.map((invitation, index) => (
-                            <React.Fragment key={invitation.id}>
-                              {index > 0 && <Divider />}
-                              <ListItem
-                                secondaryAction={
-                                  <IconButton
-                                    edge="end"
-                                    aria-label="delete"
-                                    onClick={() => {
-                                      if (window.confirm(`${invitation.name}さんへの招待を削除しますか？`)) {
-                                        handleDeleteInvitation(invitation.id);
-                                      }
-                                    }}
-                                    sx={{ color: '#ef4444' }}
-                                  >
-                                    <Delete />
-                                  </IconButton>
-                                }
-                              >
-                                <ListItemIcon>
-                                  <Avatar sx={{ bgcolor: '#f59e0b' }}>
-                                    {invitation.name?.[0] || '?'}
-                                  </Avatar>
-                                </ListItemIcon>
-                                <ListItemText
-                                  primary={invitation.name}
-                                  secondary={
-                                    <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                      <Typography variant="body2" component="span" sx={{ color: '#64748b' }}>
-                                        招待日: {new Date(invitation.created_at).toLocaleDateString('ja-JP')}
-                                      </Typography>
-                                      <Chip
-                                        label="招待中"
-                                        size="small"
-                                        sx={{
-                                          width: 'fit-content',
-                                          bgcolor: '#fef3c7',
-                                          color: '#f59e0b',
-                                          fontSize: '0.75rem',
-                                          height: '20px'
-                                        }}
-                                      />
-                                    </Box>
+              <CardContent>
+                {isLoadingMembers ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : (
+                  <>
+                    {/* メンバータブ */}
+                    {memberTab === 0 && (
+                      <>
+                        {members.length === 0 ? (
+                          <Box sx={{ textAlign: 'center', py: 8 }}>
+                            <People sx={{ fontSize: 60, color: '#e2e8f0', mb: 2 }} />
+                            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                              メンバーがいません
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <List sx={{ pt: 0 }}>
+                            {members.map((member, index) => (
+                              <React.Fragment key={member.id}>
+                                {index > 0 && <Divider />}
+                                <ListItem>
+                                  <ListItemIcon>
+                                    <Avatar sx={{ bgcolor: '#5e17eb' }}>
+                                      {member.business_users?.name?.[0] || '?'}
+                                    </Avatar>
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={member.business_users?.name || '名前なし'}
+                                    secondary={
+                                      <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                        <Typography variant="body2" component="span" sx={{ color: '#64748b' }}>
+                                          {member.business_users?.email}
+                                        </Typography>
+                                        <Chip
+                                          label={member.role === 'owner' ? 'オーナー' : member.role}
+                                          size="small"
+                                          sx={{
+                                            width: 'fit-content',
+                                            bgcolor: '#f1f5f9',
+                                            color: '#5e17eb',
+                                            fontSize: '0.75rem',
+                                            height: '20px'
+                                          }}
+                                        />
+                                      </Box>
+                                    }
+                                  />
+                                </ListItem>
+                              </React.Fragment>
+                            ))}
+                          </List>
+                        )}
+                      </>
+                    )}
+
+                    {/* 招待中タブ */}
+                    {memberTab === 1 && (
+                      <>
+                        {invitations.length === 0 ? (
+                          <Box sx={{ textAlign: 'center', py: 8 }}>
+                            <HourglassEmpty sx={{ fontSize: 60, color: '#e2e8f0', mb: 2 }} />
+                            <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                              招待中のメンバーはいません
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <List sx={{ pt: 0 }}>
+                            {invitations.map((invitation, index) => (
+                              <React.Fragment key={invitation.id}>
+                                {index > 0 && <Divider />}
+                                <ListItem
+                                  secondaryAction={
+                                    <IconButton
+                                      edge="end"
+                                      aria-label="delete"
+                                      onClick={() => {
+                                        if (window.confirm(`${invitation.name}さんへの招待を削除しますか？`)) {
+                                          handleDeleteInvitation(invitation.id);
+                                        }
+                                      }}
+                                      sx={{ color: '#ef4444' }}
+                                    >
+                                      <Delete />
+                                    </IconButton>
                                   }
-                                />
-                              </ListItem>
-                            </React.Fragment>
-                          ))}
-                        </List>
-                      )}
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            )}
+                                >
+                                  <ListItemIcon>
+                                    <Avatar sx={{ bgcolor: '#f59e0b' }}>
+                                      {invitation.name?.[0] || '?'}
+                                    </Avatar>
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={invitation.name}
+                                    secondary={
+                                      <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                        <Typography variant="body2" component="span" sx={{ color: '#64748b' }}>
+                                          招待日: {new Date(invitation.created_at).toLocaleDateString('ja-JP')}
+                                        </Typography>
+                                        <Chip
+                                          label="招待中"
+                                          size="small"
+                                          sx={{
+                                            width: 'fit-content',
+                                            bgcolor: '#fef3c7',
+                                            color: '#f59e0b',
+                                            fontSize: '0.75rem',
+                                            height: '20px'
+                                          }}
+                                        />
+                                      </Box>
+                                    }
+                                  />
+                                </ListItem>
+                              </React.Fragment>
+                            ))}
+                          </List>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
           </Box>
         );
 
