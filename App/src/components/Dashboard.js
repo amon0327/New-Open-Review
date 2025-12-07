@@ -48,6 +48,7 @@ import AnalyticsPage from './dashboard/pages/AnalyticsPage';
 import SettingsPage from './dashboard/pages/SettingsPage';
 import StoresManagementPage from './dashboard/pages/StoresManagementPage';
 import AppPage from './dashboard/pages/AppPage';
+import CompanyAdminPage from './dashboard/pages/CompanyAdminPage';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
@@ -55,6 +56,7 @@ const collapsedDrawerWidth = 72;
 const navigationItems = [
   { text: 'ホーム', icon: <Home />, component: HomePage },
   { text: '店舗管理', icon: <Business />, component: StoresManagementPage },
+  { text: '企業管理', icon: <People />, component: CompanyAdminPage },
   { text: 'アプリ表示', icon: <Apps />, component: AppPage },
   { text: '分析', icon: <Analytics />, component: AnalyticsPage },
   { text: '設定', icon: <Settings />, component: SettingsPage },
@@ -290,6 +292,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
       return <ActiveComponent user={user} onCreateFormClick={onCreateClick} onCreateForm={onCreateForm} isCreatingForm={isCreatingForm} />;
     } else if (navigationItems[activeTab].text === '分析') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} />;
+    } else if (navigationItems[activeTab].text === '企業管理') {
+      return <ActiveComponent companyId={companyId} companyName={currentCompany?.name} />;
     }
     return <ActiveComponent />;
   };
