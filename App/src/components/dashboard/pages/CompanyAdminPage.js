@@ -112,7 +112,7 @@ export default function CompanyAdminPage({ companyId, companyName }) {
   }, [companyId]);
 
   return (
-    <Box>
+    <Box sx={{ p: 3 }}>
       {/* ヘッダー */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
