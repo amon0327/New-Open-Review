@@ -12,6 +12,10 @@ serve(async (req) => {
   }
 
   try {
+    console.log('=== create-company-invitation Edge Function開始 ===')
+    console.log('Request method:', req.method)
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()))
+
     // サービスロール用のSupabaseクライアントを作成（RLS回避）
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -26,37 +30,87 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     )
 
+    console.log('Auth header present:', !!authHeader)
+
     // 認証チェック
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+
+    console.log('Auth result:', { userId: user?.id, authError: authError?.message })
 
     if (authError || !user) {
       throw new Error('認証に失敗しました')
     }
 
     // リクエストボディの取得
-    const { companyId, name } = await req.json()
+    const requestBody = await req.text()
+    console.log('Raw request body:', requestBody)
+
+    const { companyId, name } = JSON.parse(requestBody)
+    console.log('Parsed request:', { companyId, name, userId: user.id })
 
     if (!companyId || !name) {
       throw new Error('企業IDと名前が必要です')
     }
 
-    // ユーザーが指定した企業のメンバーかどうかを確認（サービスロールで確認）
-    const { data: membership, error: membershipError } = await supabaseAdmin
+    // ユーザーが指定した企業のメンバーかどうかを確認（2つの経路をチェック）
+    console.log('Checking permissions for:', { companyId, userId: user.id })
+
+    // 1. 直接のメンバーシップをチェック
+    const { data: directMembership, error: directMembershipError } = await supabaseAdmin
       .from('company_memberships')
       .select('id')
       .eq('company_id', companyId)
       .eq('business_user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (membershipError || !membership) {
-      console.error('Membership check error:', membershipError)
+    console.log('Direct membership check:', {
+      found: !!directMembership,
+      error: directMembershipError?.message
+    })
+
+    let hasPermission = !!directMembership
+
+    // 2. 直接のメンバーシップがない場合、パートナー経由のアクセス権をチェック
+    if (!hasPermission) {
+      console.log('Checking partner-based access...')
+
+      const { data: partnerAccess, error: partnerAccessError } = await supabaseAdmin
+        .from('partner_memberships')
+        .select(`
+          id,
+          partner_company_id,
+          partner_affiliate_companies!inner (
+            companies_id
+          )
+        `)
+        .eq('business_users_id', user.id)
+        .eq('is_active', true)
+        .eq('partner_affiliate_companies.companies_id', companyId)
+        .maybeSingle()
+
+      console.log('Partner access check:', {
+        found: !!partnerAccess,
+        partnerCompanyId: partnerAccess?.partner_company_id,
+        error: partnerAccessError?.message
+      })
+
+      hasPermission = !!partnerAccess
+    }
+
+    // どちらの経路でも権限がない場合はエラー
+    if (!hasPermission) {
+      console.error('Permission denied: No direct membership or partner access found')
       throw new Error('この企業に対する権限がありません')
     }
 
+    console.log('Permission check passed')
+
     // 招待トークンを生成
     const token = crypto.randomUUID()
+    console.log('Generated invitation token:', token)
 
     // 招待をデータベースに作成（サービスロールで）
+    console.log('Creating invitation in database...')
     const { data: invitation, error: invitationError } = await supabaseAdmin
       .from('company_user_invitations')
       .insert({
@@ -68,10 +122,19 @@ serve(async (req) => {
       .select()
       .single()
 
+    console.log('Invitation creation result:', { invitation, invitationError })
+
     if (invitationError) {
-      console.error('招待作成エラー:', invitationError)
+      console.error('招待作成エラー:', {
+        error: invitationError,
+        code: invitationError.code,
+        message: invitationError.message,
+        details: invitationError.details
+      })
       throw new Error(`招待の作成に失敗しました: ${invitationError.message}`)
     }
+
+    console.log('Invitation created successfully:', invitation.id)
 
     return new Response(
       JSON.stringify({
@@ -91,12 +154,21 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Edge Function エラー:', error)
+    console.error('=== create-company-invitation Edge Function エラー ===')
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    })
 
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: error.message,
+        details: {
+          timestamp: new Date().toISOString(),
+          errorType: error.name
+        }
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
