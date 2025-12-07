@@ -40,8 +40,8 @@ serve(async (req) => {
       throw new Error('企業IDと名前が必要です')
     }
 
-    // ユーザーが指定した企業のメンバーかどうかを確認
-    const { data: membership, error: membershipError } = await supabaseClient
+    // ユーザーが指定した企業のメンバーかどうかを確認（サービスロールで確認）
+    const { data: membership, error: membershipError } = await supabaseAdmin
       .from('company_memberships')
       .select('id')
       .eq('company_id', companyId)
@@ -49,6 +49,7 @@ serve(async (req) => {
       .single()
 
     if (membershipError || !membership) {
+      console.error('Membership check error:', membershipError)
       throw new Error('この企業に対する権限がありません')
     }
 
