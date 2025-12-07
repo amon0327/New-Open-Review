@@ -182,15 +182,50 @@ export default function PartnerDashboard({ user, onLogout }) {
 
       if (error) {
         console.error('招待削除エラー:', error);
-        alert('招待の削除に失敗しました');
+        toast.error('招待の削除に失敗しました');
         return;
       }
 
+      toast.success('招待を削除しました');
       // リストを更新
       await fetchMembersAndInvitations();
     } catch (error) {
       console.error('招待削除エラー:', error);
-      alert('招待の削除に失敗しました');
+      toast.error('招待の削除に失敗しました');
+    }
+  };
+
+  // メンバーを削除
+  const handleDeleteMember = async (memberId, memberName) => {
+    // メンバーが1人しかいない場合は削除不可
+    if (members.length <= 1) {
+      toast.error('最低1人のメンバーが必要です');
+      return;
+    }
+
+    if (!window.confirm(`${memberName}さんをメンバーから削除しますか？`)) {
+      return;
+    }
+
+    try {
+      // is_activeをfalseに設定（論理削除）
+      const { error } = await supabase
+        .from('partner_memberships')
+        .update({ is_active: false })
+        .eq('id', memberId);
+
+      if (error) {
+        console.error('メンバー削除エラー:', error);
+        toast.error('メンバーの削除に失敗しました');
+        return;
+      }
+
+      toast.success(`${memberName}さんをメンバーから削除しました`);
+      // リストを更新
+      await fetchMembersAndInvitations();
+    } catch (error) {
+      console.error('メンバー削除エラー:', error);
+      toast.error('メンバーの削除に失敗しました');
     }
   };
 
@@ -516,7 +551,25 @@ export default function PartnerDashboard({ user, onLogout }) {
                             {members.map((member, index) => (
                               <React.Fragment key={member.id}>
                                 {index > 0 && <Divider />}
-                                <ListItem>
+                                <ListItem
+                                  secondaryAction={
+                                    members.length > 1 && (
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => handleDeleteMember(member.id, member.business_users?.name || '名前なし')}
+                                        sx={{
+                                          color: '#94a3b8',
+                                          '&:hover': {
+                                            color: '#ef4444',
+                                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                                          }
+                                        }}
+                                      >
+                                        <Delete sx={{ fontSize: 20 }} />
+                                      </IconButton>
+                                    )
+                                  }
+                                >
                                   <ListItemIcon>
                                     <Avatar sx={{ bgcolor: '#5e17eb' }}>
                                       {member.business_users?.name?.[0] || '?'}
