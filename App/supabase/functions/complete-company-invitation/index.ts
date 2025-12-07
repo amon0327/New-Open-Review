@@ -54,7 +54,7 @@ serve(async (req) => {
         name,
         status,
         company_id,
-        companies:company_id (
+        companies!company_user_invitations_company_id_fkey (
           id,
           name
         )

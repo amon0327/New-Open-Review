@@ -146,12 +146,24 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         // 1. まずcompany_membershipsをチェック
         const { data: companyData, error: companyError } = await supabase
           .from('company_memberships')
-          .select('id, company_id')
+          .select(`
+            id,
+            company_id,
+            companies:company_id (
+              id,
+              name
+            )
+          `)
           .eq('business_user_id', currentUser.id);
 
         if (!companyError && companyData && companyData.length > 0) {
           // company_membershipsにレコードがある → 既存の通常Dashboard
           console.log('✅ Company membership found - showing normal dashboard');
+          // 最初の企業をcurrentCompanyに設定
+          if (companyData[0].companies) {
+            console.log('✅ Setting current company:', companyData[0].companies);
+            setCurrentCompany(companyData[0].companies);
+          }
           setIsCheckingCompany(false);
           return;
         }
@@ -294,7 +306,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     } else if (navigationItems[activeTab].text === '分析') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} />;
     } else if (navigationItems[activeTab].text === '管理メンバー') {
-      return <ActiveComponent companyId={companyId} companyName={currentCompany?.name} />;
+      return <ActiveComponent companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     }
     return <ActiveComponent />;
   };

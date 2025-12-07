@@ -74,27 +74,36 @@ serve(async (req) => {
     if (!hasPermission) {
       console.log('Checking partner-based access...')
 
-      const { data: partnerAccess, error: partnerAccessError } = await supabaseAdmin
+      // まずユーザーのパートナーメンバーシップを取得
+      const { data: partnerMembership, error: partnerMembershipError } = await supabaseAdmin
         .from('partner_memberships')
-        .select(`
-          id,
-          partner_company_id,
-          partner_affiliate_companies!inner (
-            companies_id
-          )
-        `)
+        .select('id, partner_company_id')
         .eq('business_users_id', user.id)
         .eq('is_active', true)
-        .eq('partner_affiliate_companies.companies_id', companyId)
         .maybeSingle()
 
-      console.log('Partner access check:', {
-        found: !!partnerAccess,
-        partnerCompanyId: partnerAccess?.partner_company_id,
-        error: partnerAccessError?.message
+      console.log('Partner membership check:', {
+        found: !!partnerMembership,
+        partnerCompanyId: partnerMembership?.partner_company_id,
+        error: partnerMembershipError?.message
       })
 
-      hasPermission = !!partnerAccess
+      // パートナーメンバーシップがあれば、そのパートナー企業が対象企業と紐付いているかチェック
+      if (partnerMembership) {
+        const { data: affiliateCompany, error: affiliateError } = await supabaseAdmin
+          .from('partner_affiliate_companies')
+          .select('id')
+          .eq('partner_company_id', partnerMembership.partner_company_id)
+          .eq('companies_id', companyId)
+          .maybeSingle()
+
+        console.log('Affiliate company check:', {
+          found: !!affiliateCompany,
+          error: affiliateError?.message
+        })
+
+        hasPermission = !!affiliateCompany
+      }
     }
 
     // どちらの経路でも権限がない場合はエラー

@@ -59,7 +59,7 @@ serve(async (req) => {
         status,
         created_at,
         company_id,
-        companies:company_id (
+        companies!company_user_invitations_company_id_fkey (
           id,
           name
         )
