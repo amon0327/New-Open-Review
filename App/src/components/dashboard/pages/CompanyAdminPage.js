@@ -116,7 +116,7 @@ export default function CompanyAdminPage({ companyId, companyName }) {
       {/* ヘッダー */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
-          企業管理者
+          管理メンバー
         </Typography>
         <Button
           variant="contained"
