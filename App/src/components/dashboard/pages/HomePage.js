@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -24,7 +24,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  DialogContentText
+  DialogContentText,
+  Select,
+  FormControl
 } from '@mui/material';
 import {
   Add,
@@ -36,7 +38,10 @@ import {
   Analytics,
   ContentCopy,
   KeyboardArrowUp,
-  KeyboardArrowDown
+  KeyboardArrowDown,
+  Settings,
+  ChevronLeft,
+  ChevronRight
 } from '@mui/icons-material';
 import FormDataService from '../../../services/FormDataService';
 import { toast } from 'react-hot-toast';
@@ -57,6 +62,118 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
   const [selectedForms, setSelectedForms] = useState(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // アンケートサイクル設定の状態
+  const [surveyCycleConfig, setSurveyCycleConfig] = useState({
+    jan: 'Quality',
+    apr: 'Service',
+    jul: 'Cleanliness',
+    oct: 'Quality'
+  });
+  const [showCycleSettings, setShowCycleSettings] = useState(false);
+  const timelineRef = useRef(null);
+
+  // サーベイタイプの定義
+  const surveyTypes = [
+    { id: 'Quality', label: 'Quality', color: '#5e17eb', bgColor: 'rgba(94, 23, 235, 0.1)' },
+    { id: 'Service', label: 'Service', color: '#059669', bgColor: 'rgba(5, 150, 105, 0.1)' },
+    { id: 'Cleanliness', label: 'Cleanliness', color: '#0ea5e9', bgColor: 'rgba(14, 165, 233, 0.1)' }
+  ];
+
+  // 過去のサーベイデータ（実際はDBから取得）
+  const [surveyHistory] = useState([
+    { year: 2024, month: 1, type: 'Quality', completed: true },
+    { year: 2024, month: 2, type: 'Quality', completed: true },
+    { year: 2024, month: 3, type: 'Quality', completed: true },
+    { year: 2024, month: 4, type: 'Service', completed: true },
+    { year: 2024, month: 5, type: 'Service', completed: true },
+    { year: 2024, month: 6, type: 'Service', completed: true },
+    { year: 2024, month: 7, type: 'Cleanliness', completed: true },
+    { year: 2024, month: 8, type: 'Cleanliness', completed: true },
+    { year: 2024, month: 9, type: 'Cleanliness', completed: true },
+    { year: 2024, month: 10, type: 'Quality', completed: true },
+    { year: 2024, month: 11, type: 'Quality', completed: true },
+    { year: 2024, month: 12, type: 'Quality', completed: true },
+    { year: 2025, month: 1, type: 'Service', completed: true },
+    { year: 2025, month: 2, type: 'Service', completed: true },
+    { year: 2025, month: 3, type: 'Service', completed: true },
+    { year: 2025, month: 4, type: 'Cleanliness', completed: true },
+    { year: 2025, month: 5, type: 'Cleanliness', completed: true },
+    { year: 2025, month: 6, type: 'Cleanliness', completed: true },
+    { year: 2025, month: 7, type: 'Quality', completed: true },
+    { year: 2025, month: 8, type: 'Quality', completed: true },
+    { year: 2025, month: 9, type: 'Quality', completed: true },
+    { year: 2025, month: 10, type: 'Service', completed: true },
+    { year: 2025, month: 11, type: 'Service', completed: true },
+  ]);
+
+  // タイムラインデータを生成（過去2年〜未来1年）
+  const timelineData = useMemo(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const data = [];
+
+    // 過去2年から未来1年までのデータを生成
+    for (let year = currentYear - 2; year <= currentYear + 1; year++) {
+      for (let month = 1; month <= 12; month++) {
+        const isPast = year < currentYear || (year === currentYear && month < currentMonth);
+        const isCurrent = year === currentYear && month === currentMonth;
+        const isFuture = year > currentYear || (year === currentYear && month > currentMonth);
+
+        // 過去のデータは履歴から取得
+        const historyItem = surveyHistory.find(h => h.year === year && h.month === month);
+
+        // 未来のデータはサイクル設定から予測
+        let predictedType = null;
+        if (isFuture || isCurrent) {
+          if (month >= 1 && month <= 3) predictedType = surveyCycleConfig.jan;
+          else if (month >= 4 && month <= 6) predictedType = surveyCycleConfig.apr;
+          else if (month >= 7 && month <= 9) predictedType = surveyCycleConfig.jul;
+          else predictedType = surveyCycleConfig.oct;
+        }
+
+        data.push({
+          year,
+          month,
+          type: historyItem?.type || predictedType,
+          completed: historyItem?.completed || false,
+          isPast,
+          isCurrent,
+          isFuture
+        });
+      }
+    }
+
+    return data;
+  }, [surveyHistory, surveyCycleConfig]);
+
+  // タイムラインスクロール関数
+  const scrollTimeline = (direction) => {
+    if (timelineRef.current) {
+      const scrollAmount = 300;
+      timelineRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // 現在の月にスクロール
+  useEffect(() => {
+    if (timelineRef.current) {
+      const now = new Date();
+      const currentIndex = timelineData.findIndex(
+        d => d.year === now.getFullYear() && d.month === now.getMonth() + 1
+      );
+      if (currentIndex !== -1) {
+        const itemWidth = 56; // 各月のアイテム幅
+        const containerWidth = timelineRef.current.clientWidth;
+        const scrollPosition = currentIndex * itemWidth - containerWidth / 2 + itemWidth / 2;
+        timelineRef.current.scrollLeft = scrollPosition;
+      }
+    }
+  }, [timelineData]);
 
   // フォーム一覧を取得
   useEffect(() => {
@@ -240,8 +357,257 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
         }}
       >
 
+        {/* アンケートサイクルセクション */}
+        <Container maxWidth="xl" sx={{ mt: 2, mb: 3 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: 2,
+              border: '1px solid #e5e7eb',
+              overflow: 'hidden',
+              bgcolor: '#fafafa'
+            }}
+          >
+            {/* ヘッダー */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                px: 2,
+                py: 1.5,
+                borderBottom: '1px solid #e5e7eb',
+                bgcolor: '#fff'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1a202c', fontSize: '0.9rem' }}>
+                  Survey Cycle
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 0.5 }}>
+                  {surveyTypes.map(type => (
+                    <Chip
+                      key={type.id}
+                      label={type.label}
+                      size="small"
+                      sx={{
+                        height: 20,
+                        fontSize: '0.65rem',
+                        fontWeight: 600,
+                        bgcolor: type.bgColor,
+                        color: type.color,
+                        border: `1px solid ${type.color}20`
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+              <IconButton
+                size="small"
+                onClick={() => setShowCycleSettings(!showCycleSettings)}
+                sx={{
+                  color: showCycleSettings ? '#5e17eb' : '#64748b',
+                  bgcolor: showCycleSettings ? 'rgba(94, 23, 235, 0.1)' : 'transparent',
+                  '&:hover': { bgcolor: 'rgba(94, 23, 235, 0.1)' }
+                }}
+              >
+                <Settings sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Box>
+
+            {/* サイクル設定パネル */}
+            {showCycleSettings && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  px: 2,
+                  py: 1.5,
+                  bgcolor: '#fff',
+                  borderBottom: '1px solid #e5e7eb'
+                }}
+              >
+                {[
+                  { key: 'jan', label: '1-3月', months: '1月〜' },
+                  { key: 'apr', label: '4-6月', months: '4月〜' },
+                  { key: 'jul', label: '7-9月', months: '7月〜' },
+                  { key: 'oct', label: '10-12月', months: '10月〜' }
+                ].map(period => (
+                  <Box key={period.key} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', minWidth: 32 }}>
+                      {period.months}
+                    </Typography>
+                    <FormControl size="small" sx={{ minWidth: 100 }}>
+                      <Select
+                        value={surveyCycleConfig[period.key]}
+                        onChange={(e) => setSurveyCycleConfig(prev => ({ ...prev, [period.key]: e.target.value }))}
+                        sx={{
+                          fontSize: '0.75rem',
+                          height: 28,
+                          '& .MuiSelect-select': { py: 0.5, px: 1 },
+                          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e5e7eb' },
+                          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#5e17eb' },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#5e17eb' }
+                        }}
+                      >
+                        {surveyTypes.map(type => (
+                          <MenuItem key={type.id} value={type.id} sx={{ fontSize: '0.75rem' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: type.color }} />
+                              {type.label}
+                            </Box>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                ))}
+              </Box>
+            )}
+
+            {/* タイムライン */}
+            <Box sx={{ display: 'flex', alignItems: 'center', px: 1, py: 1 }}>
+              <IconButton
+                size="small"
+                onClick={() => scrollTimeline('left')}
+                sx={{ color: '#64748b', '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } }}
+              >
+                <ChevronLeft sx={{ fontSize: 20 }} />
+              </IconButton>
+
+              <Box
+                ref={timelineRef}
+                sx={{
+                  display: 'flex',
+                  overflowX: 'auto',
+                  flex: 1,
+                  gap: 0,
+                  scrollBehavior: 'smooth',
+                  '&::-webkit-scrollbar': { display: 'none' },
+                  msOverflowStyle: 'none',
+                  scrollbarWidth: 'none'
+                }}
+              >
+                {timelineData.map((item, index) => {
+                  const typeInfo = surveyTypes.find(t => t.id === item.type);
+                  const showYear = index === 0 || item.month === 1;
+
+                  return (
+                    <Box
+                      key={`${item.year}-${item.month}`}
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        minWidth: 52,
+                        py: 0.5,
+                        position: 'relative',
+                        opacity: item.isFuture ? 0.5 : 1,
+                        transition: 'opacity 0.2s'
+                      }}
+                    >
+                      {/* 年表示 */}
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: '0.6rem',
+                          color: '#94a3b8',
+                          fontWeight: 500,
+                          height: 14,
+                          visibility: showYear ? 'visible' : 'hidden'
+                        }}
+                      >
+                        {item.year}
+                      </Typography>
+
+                      {/* 月セル */}
+                      <Tooltip
+                        title={`${item.year}年${item.month}月: ${item.type || '未設定'}${item.isFuture ? ' (予定)' : ''}`}
+                        arrow
+                        placement="top"
+                      >
+                        <Box
+                          sx={{
+                            width: 40,
+                            height: 32,
+                            borderRadius: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            bgcolor: item.isCurrent
+                              ? '#5e17eb'
+                              : typeInfo?.bgColor || '#f1f5f9',
+                            border: item.isCurrent
+                              ? '2px solid #5e17eb'
+                              : item.isFuture
+                                ? `1px dashed ${typeInfo?.color || '#cbd5e1'}`
+                                : `1px solid ${typeInfo?.color || '#e5e7eb'}30`,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              transform: 'scale(1.05)',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                            }
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontSize: '0.7rem',
+                              fontWeight: 600,
+                              color: item.isCurrent ? '#fff' : '#374151',
+                              lineHeight: 1
+                            }}
+                          >
+                            {item.month}月
+                          </Typography>
+                          {typeInfo && (
+                            <Box
+                              sx={{
+                                width: 6,
+                                height: 6,
+                                borderRadius: '50%',
+                                bgcolor: item.isCurrent ? '#fff' : typeInfo.color,
+                                mt: 0.25
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </Tooltip>
+
+                      {/* タイプラベル（3ヶ月ごと） */}
+                      {(item.month === 1 || item.month === 4 || item.month === 7 || item.month === 10) && typeInfo && (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontSize: '0.55rem',
+                            color: typeInfo.color,
+                            fontWeight: 600,
+                            mt: 0.25,
+                            opacity: item.isFuture ? 0.6 : 1
+                          }}
+                        >
+                          {typeInfo.label.charAt(0)}
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                })}
+              </Box>
+
+              <IconButton
+                size="small"
+                onClick={() => scrollTimeline('right')}
+                sx={{ color: '#64748b', '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } }}
+              >
+                <ChevronRight sx={{ fontSize: 20 }} />
+              </IconButton>
+            </Box>
+          </Paper>
+        </Container>
+
         {/* フォーム一覧セクション */}
-        <Container maxWidth="xl" sx={{ mt: 4, mb: 6 }}>
+        <Container maxWidth="xl" sx={{ mt: 2, mb: 6 }}>
           {/* セクションヘッダー */}
           <Box sx={{ 
             display: 'flex', 
