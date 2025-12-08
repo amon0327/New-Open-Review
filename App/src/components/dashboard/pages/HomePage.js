@@ -328,20 +328,20 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
             </Typography>
           </Box>
 
-          {/* 現在の評価項目表示 */}
+          {/* 評価項目カード */}
           {currentSurveyType && (
             <Paper
               elevation={0}
               sx={{
-                borderRadius: 2,
-                border: '1px solid #e5e7eb',
-                overflow: 'hidden',
-                mb: 2
+                borderRadius: 0.5,
+                border: '1px solid rgba(0, 0, 0, 0.06)',
+                overflow: 'hidden'
               }}
             >
+              {/* メイン表示部分 */}
               <Box
                 sx={{
-                  p: 2.5,
+                  p: 2,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between'
@@ -352,18 +352,18 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                   <Box
                     sx={{
                       width: 4,
-                      height: 48,
-                      borderRadius: 1,
+                      height: 40,
+                      borderRadius: 0.5,
                       bgcolor: currentSurveyType.color
                     }}
                   />
 
                   {/* 年月と評価項目 */}
                   <Box>
-                    <Typography sx={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
                       {currentYear}年{currentMonth}月
                     </Typography>
-                    <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: currentSurveyType.color }}>
+                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: currentSurveyType.color }}>
                       {currentSurveyType.fullLabel}
                     </Typography>
                   </Box>
@@ -373,184 +373,154 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                 <IconButton
                   onClick={() => setShowCycleSettings(!showCycleSettings)}
                   sx={{
-                    color: '#94a3b8',
+                    color: showCycleSettings ? '#5e17eb' : '#94a3b8',
+                    bgcolor: showCycleSettings ? 'rgba(94, 23, 235, 0.08)' : 'transparent',
                     '&:hover': {
                       color: '#5e17eb',
-                      bgcolor: 'rgba(94, 23, 235, 0.04)'
+                      bgcolor: 'rgba(94, 23, 235, 0.08)'
                     }
                   }}
                 >
-                  <Settings />
-                </IconButton>
-              </Box>
-            </Paper>
-          )}
-
-          {/* 設定パネル（開閉式） */}
-          {showCycleSettings && (
-            <Paper
-              elevation={0}
-              sx={{
-                borderRadius: 2,
-                border: '1px solid #e5e7eb',
-                overflow: 'hidden'
-              }}
-            >
-              {/* 設定パネルヘッダー */}
-              <Box
-                sx={{
-                  px: 3,
-                  py: 2,
-                  bgcolor: '#f8fafc',
-                  borderBottom: '1px solid #e5e7eb',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <Typography sx={{ fontWeight: 600, color: '#1a202c', fontSize: '0.95rem' }}>
-                  サイクル設定
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => setShowCycleSettings(false)}
-                  sx={{ color: '#94a3b8' }}
-                >
-                  <Close fontSize="small" />
+                  {showCycleSettings ? <Close /> : <Settings />}
                 </IconButton>
               </Box>
 
-              {/* 設定テーブル */}
-              <Box sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  {cycleGroups.map((group) => {
-                    const selectedType = surveyTypes.find(t => t.id === surveyCycleConfig[group.key]);
-                    return (
-                      <Box
-                        key={group.key}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 3,
-                          p: 2,
-                          borderRadius: 1.5,
-                          bgcolor: '#fafafa',
-                          border: '1px solid #f0f0f0'
-                        }}
-                      >
-                        {/* 月表示 */}
-                        <Box sx={{ display: 'flex', gap: 0.75, minWidth: 160 }}>
-                          {group.months.map((month) => (
-                            <Box
-                              key={month}
-                              sx={{
-                                width: 36,
-                                height: 36,
-                                borderRadius: 1,
-                                bgcolor: month === currentMonth ? '#1a202c' : '#fff',
-                                border: month === currentMonth ? 'none' : '1px solid #e5e7eb',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              <Typography
-                                sx={{
-                                  fontSize: '0.85rem',
-                                  fontWeight: 600,
-                                  color: month === currentMonth ? '#fff' : '#374151'
-                                }}
-                              >
-                                {month}月
-                              </Typography>
-                            </Box>
-                          ))}
-                        </Box>
-
-                        {/* 矢印 */}
-                        <Typography sx={{ color: '#94a3b8', fontSize: '1.2rem' }}>→</Typography>
-
-                        {/* アンケート種類選択 */}
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          {surveyTypes.map((type) => {
-                            const isSelected = surveyCycleConfig[group.key] === type.id;
-                            return (
-                              <Box
-                                key={type.id}
-                                onClick={() => handleCycleChange(group.key, type.id)}
-                                sx={{
-                                  px: 2.5,
-                                  py: 1,
-                                  borderRadius: 1,
-                                  cursor: 'pointer',
-                                  bgcolor: isSelected ? type.color : '#fff',
-                                  border: `2px solid ${isSelected ? type.color : '#e5e7eb'}`,
-                                  transition: 'all 0.15s',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 1,
-                                  '&:hover': {
-                                    borderColor: type.color,
-                                    bgcolor: isSelected ? type.color : type.bgColor
-                                  }
-                                }}
-                              >
+              {/* 設定パネル（開閉式） */}
+              {showCycleSettings && (
+                <Box sx={{ borderTop: '1px solid #e5e7eb' }}>
+                  <Box sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {cycleGroups.map((group) => {
+                        const selectedType = surveyTypes.find(t => t.id === surveyCycleConfig[group.key]);
+                        return (
+                          <Box
+                            key={group.key}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 2,
+                              p: 1.5,
+                              borderRadius: 0.5,
+                              bgcolor: '#fafafa'
+                            }}
+                          >
+                            {/* 月表示 */}
+                            <Box sx={{ display: 'flex', gap: 0.5, minWidth: 140 }}>
+                              {group.months.map((month) => (
                                 <Box
+                                  key={month}
                                   sx={{
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: '50%',
-                                    bgcolor: isSelected ? '#fff' : type.color
-                                  }}
-                                />
-                                <Typography
-                                  sx={{
-                                    fontSize: '0.85rem',
-                                    fontWeight: 600,
-                                    color: isSelected ? '#fff' : type.color
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 0.5,
+                                    bgcolor: month === currentMonth ? '#1a202c' : '#fff',
+                                    border: month === currentMonth ? 'none' : '1px solid #e5e7eb',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                   }}
                                 >
-                                  {type.fullLabel}
-                                </Typography>
-                              </Box>
-                            );
-                          })}
-                        </Box>
-                      </Box>
-                    );
-                  })}
-                </Box>
+                                  <Typography
+                                    sx={{
+                                      fontSize: '0.75rem',
+                                      fontWeight: 600,
+                                      color: month === currentMonth ? '#fff' : '#374151'
+                                    }}
+                                  >
+                                    {month}月
+                                  </Typography>
+                                </Box>
+                              ))}
+                            </Box>
 
-                {/* 説明文と確定ボタン */}
-                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                    ※ 各アンケートタイプは重複できません。選択すると自動的に入れ替わります。
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    onClick={() => {
-                      // TODO: サイクル設定をDBに保存する処理
-                      toast.success('アンケートサイクルを保存しました');
-                      setShowCycleSettings(false);
-                    }}
-                    sx={{
-                      background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                      borderRadius: 2,
-                      px: 4,
-                      py: 1,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      boxShadow: '0 4px 15px rgba(94, 23, 235, 0.25)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-                        boxShadow: '0 6px 20px rgba(94, 23, 235, 0.35)',
-                      }
-                    }}
-                  >
-                    設定を保存
-                  </Button>
+                            {/* 矢印 */}
+                            <Typography sx={{ color: '#d1d5db', fontSize: '1rem' }}>→</Typography>
+
+                            {/* アンケート種類選択 */}
+                            <Box sx={{ display: 'flex', gap: 0.75 }}>
+                              {surveyTypes.map((type) => {
+                                const isSelected = surveyCycleConfig[group.key] === type.id;
+                                return (
+                                  <Box
+                                    key={type.id}
+                                    onClick={() => handleCycleChange(group.key, type.id)}
+                                    sx={{
+                                      px: 1.5,
+                                      py: 0.75,
+                                      borderRadius: 0.5,
+                                      cursor: 'pointer',
+                                      bgcolor: isSelected ? type.color : '#fff',
+                                      border: `1.5px solid ${isSelected ? type.color : '#e5e7eb'}`,
+                                      transition: 'all 0.15s',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 0.75,
+                                      '&:hover': {
+                                        borderColor: type.color,
+                                        bgcolor: isSelected ? type.color : type.bgColor
+                                      }
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{
+                                        width: 6,
+                                        height: 6,
+                                        borderRadius: '50%',
+                                        bgcolor: isSelected ? '#fff' : type.color
+                                      }}
+                                    />
+                                    <Typography
+                                      sx={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: 600,
+                                        color: isSelected ? '#fff' : type.color
+                                      }}
+                                    >
+                                      {type.fullLabel}
+                                    </Typography>
+                                  </Box>
+                                );
+                              })}
+                            </Box>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+
+                    {/* 説明文と確定ボタン */}
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                        ※ 各項目は重複不可。選択すると自動で入れ替わります。
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => {
+                          // TODO: サイクル設定をDBに保存する処理
+                          toast.success('設定を保存しました');
+                          setShowCycleSettings(false);
+                        }}
+                        sx={{
+                          background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                          borderRadius: 0.5,
+                          px: 2.5,
+                          py: 0.75,
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          fontSize: '0.8rem',
+                          boxShadow: 'none',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                            boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
+                          }
+                        }}
+                      >
+                        保存
+                      </Button>
+                    </Box>
+                  </Box>
                 </Box>
-              </Box>
+              )}
             </Paper>
           )}
         </Container>
