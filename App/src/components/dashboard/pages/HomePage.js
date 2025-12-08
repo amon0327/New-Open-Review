@@ -36,7 +36,9 @@ import {
   Analytics,
   ContentCopy,
   KeyboardArrowUp,
-  KeyboardArrowDown
+  KeyboardArrowDown,
+  Settings,
+  Close
 } from '@mui/icons-material';
 import FormDataService from '../../../services/FormDataService';
 import { toast } from 'react-hot-toast';
@@ -64,6 +66,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
     groupB: 'Service',      // 2月, 5月, 8月, 11月
     groupC: 'Cleanliness'   // 3月, 6月, 9月, 12月
   });
+  const [showCycleSettings, setShowCycleSettings] = useState(false);
 
   const surveyTypes = [
     { id: 'Quality', label: 'Q', fullLabel: 'Quality', color: '#6366f1', bgColor: '#eef2ff' },
@@ -76,6 +79,21 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
     { key: 'groupB', months: [2, 5, 8, 11], label: '2・5・8・11月' },
     { key: 'groupC', months: [3, 6, 9, 12], label: '3・6・9・12月' }
   ];
+
+  // 現在の月からアンケートタイプを取得
+  const getCurrentSurveyType = () => {
+    const currentMonth = new Date().getMonth() + 1;
+    const group = cycleGroups.find(g => g.months.includes(currentMonth));
+    if (group) {
+      const typeId = surveyCycleConfig[group.key];
+      return surveyTypes.find(t => t.id === typeId);
+    }
+    return null;
+  };
+
+  const currentSurveyType = getCurrentSurveyType();
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
 
   // サイクル設定変更ハンドラー（重複を許さない）
   const handleCycleChange = (groupKey, newType) => {
@@ -284,7 +302,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
         }}
       >
 
-        {/* アンケートサイクル設定セクション */}
+        {/* アンケートサイクルセクション */}
         <Container maxWidth="xl" sx={{ mt: 2, mb: 3 }}>
           {/* セクションヘッダー */}
           <Box sx={{ mb: 4 }}>
@@ -297,7 +315,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                 fontSize: '1.75rem'
               }}
             >
-              アンケートサイクル設定
+              アンケートサイクル
             </Typography>
             <Typography
               variant="body2"
@@ -306,143 +324,262 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                 fontSize: '0.875rem'
               }}
             >
-              各月に実施するアンケートの種類を設定
+              今月実施するアンケートの種類を確認
             </Typography>
           </Box>
 
+          {/* 現在の月のアンケート表示 */}
           <Paper
             elevation={0}
             sx={{
               borderRadius: 2,
               border: '1px solid #e5e7eb',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              mb: 2
             }}
           >
-            {/* 設定テーブル */}
-            <Box sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                {cycleGroups.map((group) => {
-                  const selectedType = surveyTypes.find(t => t.id === surveyCycleConfig[group.key]);
-                  return (
+            <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                {/* 現在の年月 */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8', mb: 0.5 }}>
+                    現在
+                  </Typography>
+                  <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#1a202c' }}>
+                    {currentYear}年{currentMonth}月
+                  </Typography>
+                </Box>
+
+                {/* 矢印 */}
+                <Typography sx={{ color: '#d1d5db', fontSize: '1.5rem' }}>→</Typography>
+
+                {/* アンケートタイプ */}
+                {currentSurveyType && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      px: 3,
+                      py: 1.5,
+                      borderRadius: 2,
+                      bgcolor: currentSurveyType.bgColor,
+                      border: `2px solid ${currentSurveyType.color}`
+                    }}
+                  >
                     <Box
-                      key={group.key}
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 3,
-                        p: 2,
-                        borderRadius: 1.5,
-                        bgcolor: '#fafafa',
-                        border: '1px solid #f0f0f0'
+                        width: 12,
+                        height: 12,
+                        borderRadius: '50%',
+                        bgcolor: currentSurveyType.color
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontSize: '1.25rem',
+                        fontWeight: 700,
+                        color: currentSurveyType.color
                       }}
                     >
-                      {/* 月表示 */}
-                      <Box sx={{ display: 'flex', gap: 0.75, minWidth: 160 }}>
-                        {group.months.map((month) => (
-                          <Box
-                            key={month}
-                            sx={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 1,
-                              bgcolor: '#fff',
-                              border: '1px solid #e5e7eb',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#374151' }}>
-                              {month}月
-                            </Typography>
-                          </Box>
-                        ))}
-                      </Box>
+                      {currentSurveyType.fullLabel}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
 
-                      {/* 矢印 */}
-                      <Typography sx={{ color: '#94a3b8', fontSize: '1.2rem' }}>→</Typography>
+              {/* 設定ボタン */}
+              <Button
+                variant="outlined"
+                startIcon={<Settings />}
+                onClick={() => setShowCycleSettings(!showCycleSettings)}
+                sx={{
+                  borderColor: '#e5e7eb',
+                  color: '#64748b',
+                  borderRadius: 2,
+                  px: 2.5,
+                  py: 1,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  '&:hover': {
+                    borderColor: '#5e17eb',
+                    color: '#5e17eb',
+                    bgcolor: 'rgba(94, 23, 235, 0.04)'
+                  }
+                }}
+              >
+                サイクル設定
+              </Button>
+            </Box>
+          </Paper>
 
-                      {/* アンケート種類選択 */}
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        {surveyTypes.map((type) => {
-                          const isSelected = surveyCycleConfig[group.key] === type.id;
-                          return (
+          {/* 設定パネル（開閉式） */}
+          {showCycleSettings && (
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 2,
+                border: '1px solid #e5e7eb',
+                overflow: 'hidden'
+              }}
+            >
+              {/* 設定パネルヘッダー */}
+              <Box
+                sx={{
+                  px: 3,
+                  py: 2,
+                  bgcolor: '#f8fafc',
+                  borderBottom: '1px solid #e5e7eb',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Typography sx={{ fontWeight: 600, color: '#1a202c', fontSize: '0.95rem' }}>
+                  サイクル設定
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => setShowCycleSettings(false)}
+                  sx={{ color: '#94a3b8' }}
+                >
+                  <Close fontSize="small" />
+                </IconButton>
+              </Box>
+
+              {/* 設定テーブル */}
+              <Box sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {cycleGroups.map((group) => {
+                    const selectedType = surveyTypes.find(t => t.id === surveyCycleConfig[group.key]);
+                    return (
+                      <Box
+                        key={group.key}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 3,
+                          p: 2,
+                          borderRadius: 1.5,
+                          bgcolor: '#fafafa',
+                          border: '1px solid #f0f0f0'
+                        }}
+                      >
+                        {/* 月表示 */}
+                        <Box sx={{ display: 'flex', gap: 0.75, minWidth: 160 }}>
+                          {group.months.map((month) => (
                             <Box
-                              key={type.id}
-                              onClick={() => handleCycleChange(group.key, type.id)}
+                              key={month}
                               sx={{
-                                px: 2.5,
-                                py: 1,
+                                width: 36,
+                                height: 36,
                                 borderRadius: 1,
-                                cursor: 'pointer',
-                                bgcolor: isSelected ? type.color : '#fff',
-                                border: `2px solid ${isSelected ? type.color : '#e5e7eb'}`,
-                                transition: 'all 0.15s',
+                                bgcolor: month === currentMonth ? '#1a202c' : '#fff',
+                                border: month === currentMonth ? 'none' : '1px solid #e5e7eb',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: 1,
-                                '&:hover': {
-                                  borderColor: type.color,
-                                  bgcolor: isSelected ? type.color : type.bgColor
-                                }
+                                justifyContent: 'center'
                               }}
                             >
-                              <Box
-                                sx={{
-                                  width: 8,
-                                  height: 8,
-                                  borderRadius: '50%',
-                                  bgcolor: isSelected ? '#fff' : type.color
-                                }}
-                              />
                               <Typography
                                 sx={{
                                   fontSize: '0.85rem',
                                   fontWeight: 600,
-                                  color: isSelected ? '#fff' : type.color
+                                  color: month === currentMonth ? '#fff' : '#374151'
                                 }}
                               >
-                                {type.fullLabel}
+                                {month}月
                               </Typography>
                             </Box>
-                          );
-                        })}
-                      </Box>
-                    </Box>
-                  );
-                })}
-              </Box>
+                          ))}
+                        </Box>
 
-              {/* 説明文と確定ボタン */}
-              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                  ※ 各アンケートタイプは重複できません。選択すると自動的に入れ替わります。
-                </Typography>
-                <Button
-                  variant="contained"
-                  onClick={() => {
-                    // TODO: サイクル設定をDBに保存する処理
-                    toast.success('アンケートサイクルを保存しました');
-                  }}
-                  sx={{
-                    background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                    borderRadius: 2,
-                    px: 4,
-                    py: 1,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    boxShadow: '0 4px 15px rgba(94, 23, 235, 0.25)',
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.35)',
-                    }
-                  }}
-                >
-                  設定を保存
-                </Button>
+                        {/* 矢印 */}
+                        <Typography sx={{ color: '#94a3b8', fontSize: '1.2rem' }}>→</Typography>
+
+                        {/* アンケート種類選択 */}
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          {surveyTypes.map((type) => {
+                            const isSelected = surveyCycleConfig[group.key] === type.id;
+                            return (
+                              <Box
+                                key={type.id}
+                                onClick={() => handleCycleChange(group.key, type.id)}
+                                sx={{
+                                  px: 2.5,
+                                  py: 1,
+                                  borderRadius: 1,
+                                  cursor: 'pointer',
+                                  bgcolor: isSelected ? type.color : '#fff',
+                                  border: `2px solid ${isSelected ? type.color : '#e5e7eb'}`,
+                                  transition: 'all 0.15s',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1,
+                                  '&:hover': {
+                                    borderColor: type.color,
+                                    bgcolor: isSelected ? type.color : type.bgColor
+                                  }
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: '50%',
+                                    bgcolor: isSelected ? '#fff' : type.color
+                                  }}
+                                />
+                                <Typography
+                                  sx={{
+                                    fontSize: '0.85rem',
+                                    fontWeight: 600,
+                                    color: isSelected ? '#fff' : type.color
+                                  }}
+                                >
+                                  {type.fullLabel}
+                                </Typography>
+                              </Box>
+                            );
+                          })}
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
+
+                {/* 説明文と確定ボタン */}
+                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                    ※ 各アンケートタイプは重複できません。選択すると自動的に入れ替わります。
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      // TODO: サイクル設定をDBに保存する処理
+                      toast.success('アンケートサイクルを保存しました');
+                      setShowCycleSettings(false);
+                    }}
+                    sx={{
+                      background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                      borderRadius: 2,
+                      px: 4,
+                      py: 1,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      boxShadow: '0 4px 15px rgba(94, 23, 235, 0.25)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                        boxShadow: '0 6px 20px rgba(94, 23, 235, 0.35)',
+                      }
+                    }}
+                  >
+                    設定を保存
+                  </Button>
+                </Box>
               </Box>
-            </Box>
-          </Paper>
+            </Paper>
+          )}
         </Container>
 
         {/* フォーム一覧セクション */}
