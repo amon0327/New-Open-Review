@@ -1,17 +1,13 @@
-import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Card, 
-  CardContent, 
-  CardMedia, 
-  Chip, 
-  Grid, 
-  Container, 
-  CircularProgress, 
+import {
+  Box,
+  Typography,
+  Button,
+  Chip,
+  Container,
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
@@ -28,15 +24,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  DialogContentText,
-  Backdrop
+  DialogContentText
 } from '@mui/material';
-import { 
-  Add, 
-  Description, 
-  Visibility, 
-  Edit, 
-  MoreVert, 
+import {
+  Add,
+  Description,
+  Edit,
+  MoreVert,
   Delete,
   Share,
   Analytics,
@@ -44,9 +38,7 @@ import {
   KeyboardArrowUp,
   KeyboardArrowDown
 } from '@mui/icons-material';
-import { styled, keyframes } from '@mui/material/styles';
 import FormDataService from '../../../services/FormDataService';
-import ArticleDataService from '../../../services/ArticleDataService';
 import { toast } from 'react-hot-toast';
 
 export default function HomePage({ user, onCreateFormClick, onCreateForm, isCreatingForm }) {
@@ -56,9 +48,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
   const [error, setError] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedForm, setSelectedForm] = useState(null);
-  const [articles, setArticles] = useState([]);
-  const [articlesLoading, setArticlesLoading] = useState(true);
-  const [articlesError, setArticlesError] = useState(null);
   
   // ソート関連の状態
   const [sortField, setSortField] = useState('updated_at'); // デフォルトは更新日
@@ -68,14 +57,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
   const [selectedForms, setSelectedForms] = useState(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  // ドラッグスクロール用の状態
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [dragDistance, setDragDistance] = useState(0); // ドラッグ距離を追跡
-  const scrollContainerRef = useRef(null);
-
 
   // フォーム一覧を取得
   useEffect(() => {
@@ -99,30 +80,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
 
     fetchForms();
   }, [user?.id]);
-
-  // 記事一覧を取得
-  useEffect(() => {
-    const fetchArticles = async () => {
-      setArticlesLoading(true);
-      try {
-        const result = await ArticleDataService.getPublishedArticles(5);
-        if (result.success) {
-          setArticles(result.data);
-        } else {
-          setArticlesError(result.error);
-          console.error('記事取得エラー:', result.error);
-        }
-      } catch (err) {
-        setArticlesError('記事の取得に失敗しました');
-        console.error('記事取得中にエラー:', err);
-      } finally {
-        setArticlesLoading(false);
-      }
-    };
-
-    fetchArticles();
-  }, []);
-
 
   // メニューハンドラー
   const handleMenuClick = (event, form) => {
@@ -262,173 +219,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
     });
   }, [forms, sortField, sortDirection]);
 
-  // アニメーション定義
-  const fadeInUp = keyframes`
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  `;
-
-
-  const CategoryChip = styled(Chip)(({ theme, categorycolor }) => ({
-    backgroundColor: categorycolor || theme.palette.primary.main,
-    color: '#fff',
-    fontWeight: 600,
-    fontSize: '0.75rem',
-    height: 24,
-    borderRadius: 12,
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      backgroundColor: categorycolor || theme.palette.primary.dark,
-      transform: 'scale(1.05)',
-    },
-  }));
-
-  const StatsChip = styled(Chip)(({ theme }) => ({
-    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-    color: theme.palette.primary.main,
-    fontWeight: 500,
-    fontSize: '0.75rem',
-    height: 20,
-    borderRadius: 10,
-    '& .MuiChip-icon': {
-      fontSize: 14,
-    },
-  }));
-
-  // シンプルな記事カード用スタイル  
-  const ArticleCard = styled(Card)(({ theme }) => ({
-    height: '320px',
-    minHeight: '320px',
-    maxWidth: '280px',
-    width: '100%',
-    margin: '0 auto',
-    display: 'flex',
-    flexDirection: 'column',
-    borderRadius: 12,
-    border: 'none',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    cursor: 'pointer',
-    overflow: 'hidden',
-    background: '#ffffff',
-    position: 'relative',
-    '&:hover': {
-      boxShadow: '0 8px 30px rgba(94, 23, 235, 0.15)',
-      '& .article-image': {
-        transform: 'scale(1.05)',
-      },
-    },
-  }));
-
-  const ArticleImage = styled(CardMedia)({
-    width: '100%',
-    aspectRatio: '16 / 9',
-    position: 'relative',
-    overflow: 'hidden',
-    display: 'block',
-    backgroundColor: '#f5f5f5',
-    flex: 'none',
-    '& img': {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover',
-      objectPosition: 'center',
-      transition: 'transform 0.4s ease',
-      display: 'block',
-      verticalAlign: 'top',
-    },
-  });
-
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
-  };
-
-  // ドラッグスクロール用の関数
-  const handleMouseDown = (e) => {
-    if (!scrollContainerRef.current) return;
-    // 記事カードのクリックを妨げないように、記事カード内の要素はスキップ
-    if (e.target.closest('.MuiCard-root')) return;
-    
-    setIsDragging(true);
-    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
-    setScrollLeft(scrollContainerRef.current.scrollLeft);
-    setDragDistance(0); // ドラッグ距離をリセット
-    scrollContainerRef.current.style.cursor = 'grabbing';
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-    setDragDistance(0);
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.style.cursor = 'grab';
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setDragDistance(0);
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.style.cursor = 'grab';
-    }
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging || !scrollContainerRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // スクロール速度調整
-    const currentDragDistance = Math.abs(walk);
-    setDragDistance(currentDragDistance);
-    scrollContainerRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  // 記事クリック時の処理
-  const handleArticleClick = (article) => {
-    console.log('🔍 handleArticleClick が呼ばれました');
-    console.log('🔍 isDragging:', isDragging, 'dragDistance:', dragDistance);
-    console.log('🔍 article:', article);
-    
-    // 実際のドラッグ（5px以上移動）の場合のみクリックを無効化
-    if (isDragging && dragDistance > 5) {
-      console.log('🚫 ドラッグ中のためクリックを無効化');
-      return;
-    }
-    
-    // openreview.jpサイトの記事URLを生成
-    let articleUrl;
-    
-    if (article.slug) {
-      // slugがある場合はslugを使用
-      articleUrl = `https://openreview.jp/blog/${article.slug}`;
-    } else {
-      // slugがない場合はIDを使用
-      articleUrl = `https://openreview.jp/blog/${article.id}`;
-    }
-    
-    console.log('✅ 記事クリック:', article.title);
-    console.log('🔗 URL:', articleUrl);
-    console.log('🌐 window.openを実行中...');
-    
-    // 新しいタブで記事を開く
-    try {
-      const newWindow = window.open(articleUrl, '_blank', 'noopener,noreferrer');
-      console.log('🎯 window.open結果:', newWindow);
-      if (!newWindow) {
-        console.error('❌ ポップアップがブロックされました');
-      }
-    } catch (error) {
-      console.error('❌ window.open実行エラー:', error);
-    }
-  };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -449,202 +239,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
           px: 0
         }}
       >
-
-        {/* 記事一覧セクション */}
-        <Container maxWidth="xl" sx={{ mt: 1, mb: 6 }}>
-          {/* セクションヘッダー */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center',
-            mb: 4 
-          }}>
-            <Box>
-              <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: 700,
-                  color: '#1a202c',
-                  mb: 0.5,
-                  fontSize: '1.75rem'
-                }}
-              >
-                記事一覧
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: 'text.secondary',
-                  fontSize: '0.875rem'
-                }}
-              >
-                OpenReview Blogの記事の一覧
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* ローディング状態 */}
-          {articlesLoading && (
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center',
-              minHeight: '400px' 
-            }}>
-              <CircularProgress 
-                sx={{ 
-                  color: '#5e17eb',
-                  '& .MuiCircularProgress-circle': {
-                    strokeLinecap: 'round',
-                  }
-                }} 
-              />
-            </Box>
-          )}
-
-          {/* エラー状態 */}
-          {articlesError && (
-            <Box sx={{ 
-              textAlign: 'center', 
-              py: 6,
-              color: 'text.secondary'
-            }}>
-              <Typography variant="body1">
-                記事の読み込みに失敗しました: {articlesError}
-              </Typography>
-            </Box>
-          )}
-
-          {/* 記事一覧（横スクロール） */}
-          {!articlesLoading && !articlesError && articles && articles.length > 0 && (
-            <Box
-              ref={scrollContainerRef}
-              onMouseDown={handleMouseDown}
-              onMouseLeave={handleMouseLeave}
-              onMouseUp={handleMouseUp}
-              onMouseMove={handleMouseMove}
-              sx={{
-                display: 'flex',
-                gap: 2,
-                overflowX: 'auto',
-                overflowY: 'hidden',
-                pb: 2,
-                cursor: 'grab',
-                userSelect: 'none',
-                '&::-webkit-scrollbar': {
-                  display: 'none',
-                },
-                msOverflowStyle: 'none',
-                scrollbarWidth: 'none',
-              }}
-            >
-              {articles.map((article, index) => (
-                <Box
-                  key={article.id}
-                  sx={{
-                    flex: '0 0 auto',
-                    animation: `${fadeInUp} 0.3s ease-out ${index * 0.1}s both`,
-                  }}
-                >
-                  <ArticleCard 
-                    onClick={(e) => {
-                      console.log('🎯 ArticleCard onClick発火');
-                      console.log('🎯 event:', e);
-                      console.log('🎯 記事:', article.title);
-                      e.stopPropagation();
-                      handleArticleClick(article);
-                    }}
-                  >
-                    <ArticleImage
-                      className="article-image"
-                      component="img"
-                      image={article.thumbnail_url}
-                      alt={article.title}
-                    />
-                    <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                      <Box sx={{ mb: 2 }}>
-                        <CategoryChip
-                          label={article.category_name}
-                          categorycolor={article.category_color}
-                          size="small"
-                          sx={{ mb: 1 }}
-                        />
-                        <StatsChip 
-                          label={`${article.read_time_minutes}分で読了`}
-                          size="small"
-                        />
-                      </Box>
-                      
-                      <Typography 
-                        variant="h6" 
-                        component="h3" 
-                        sx={{ 
-                          fontWeight: 600,
-                          mb: 1,
-                          lineHeight: 1.3,
-                          fontSize: '1rem',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}
-                      >
-                        {article.title}
-                      </Typography>
-                      
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          color: 'text.secondary',
-                          fontSize: '0.75rem'
-                        }}
-                      >
-                        {formatDate(article.published_at)}
-                      </Typography>
-                    </CardContent>
-                  </ArticleCard>
-                </Box>
-              ))}
-            </Box>
-          )}
-
-          {/* 記事が0件の場合 */}
-          {!articlesLoading && !articlesError && (!articles || articles.length === 0) && (
-            <Box sx={{ 
-              textAlign: 'center', 
-              py: 8,
-              px: 4,
-              backgroundColor: 'rgba(248, 249, 250, 0.8)',
-              borderRadius: 4,
-              border: '2px dashed rgba(0, 0, 0, 0.1)'
-            }}>
-              <Description sx={{ 
-                fontSize: 64, 
-                color: 'text.disabled',
-                mb: 2 
-              }} />
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  fontWeight: 600, 
-                  color: 'text.secondary',
-                  mb: 1 
-                }}
-              >
-                記事がありません
-              </Typography>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: 'text.secondary' 
-                }}
-              >
-                記事が公開されるまでお待ちください
-              </Typography>
-            </Box>
-          )}
-        </Container>
 
         {/* フォーム一覧セクション */}
         <Container maxWidth="xl" sx={{ mt: 4, mb: 6 }}>
