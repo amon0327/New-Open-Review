@@ -295,12 +295,56 @@ export class FormDataService {
 
   /**
    * ユーザーのフォーム一覧を取得（質問数も含む）
+   * company_memberships経由で所属会社のフォームも取得
    * @param {string} userId - ユーザーID
    * @returns {Promise<Object>} フォーム一覧
    */
   static async getUserForms(userId) {
     try {
-      const { data, error } = await supabase
+      // 1. ユーザーが所属する会社を取得
+      const { data: memberships, error: membershipError } = await supabase
+        .from('company_memberships')
+        .select('company_id')
+        .eq('business_user_id', userId);
+
+      if (membershipError) {
+        console.error('Membership fetch error:', membershipError);
+      }
+
+      // 2. 所属会社の店舗IDを取得
+      let storeIds = [];
+      if (memberships && memberships.length > 0) {
+        const companyIds = memberships.map(m => m.company_id);
+
+        const { data: stores, error: storesError } = await supabase
+          .from('stores')
+          .select('id')
+          .in('company_id', companyIds);
+
+        if (storesError) {
+          console.error('Stores fetch error:', storesError);
+        } else if (stores) {
+          storeIds = stores.map(s => s.id);
+        }
+      }
+
+      // 3. store_review_forms経由でフォームIDを取得
+      let companyFormIds = [];
+      if (storeIds.length > 0) {
+        const { data: storeReviewForms, error: srfError } = await supabase
+          .from('store_review_forms')
+          .select('review_form_id')
+          .in('store_id', storeIds);
+
+        if (srfError) {
+          console.error('Store review forms fetch error:', srfError);
+        } else if (storeReviewForms) {
+          companyFormIds = storeReviewForms.map(srf => srf.review_form_id);
+        }
+      }
+
+      // 4. フォームを取得（自分が作成したもの + 所属会社のもの）
+      let query = supabase
         .from('review_forms')
         .select(`
           *,
@@ -312,8 +356,19 @@ export class FormDataService {
             id
           )
         `)
-        .eq('business_users', userId)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
+
+      // 自分が作成したフォーム OR 所属会社のフォーム
+      if (companyFormIds.length > 0) {
+        // 両方の条件を含むフィルター
+        query = query.or(`business_users.eq.${userId},id.in.(${companyFormIds.join(',')})`);
+      } else {
+        // 会社のフォームがない場合は自分が作成したもののみ
+        query = query.eq('business_users', userId);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         throw new Error(`フォーム取得エラー: ${error.message}`);
