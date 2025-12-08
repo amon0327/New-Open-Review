@@ -411,7 +411,7 @@ https://store.openreview.jp/staff-invitation/${invitationData?.token}`}
 
             {/* フォーム */}
             <Box component="form" onSubmit={handleSubmit}>
-              <Stack spacing={3}>
+              <Stack spacing={3} sx={{ pt: 2 }}>
                 {/* 招待者名 */}
                 <TextField
                   label="招待者の名前"
