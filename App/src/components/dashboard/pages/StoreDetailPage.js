@@ -34,11 +34,13 @@ import {
   AdminPanelSettings,
   WorkOutline,
   Email,
-  Schedule
+  Schedule,
+  Delete
 } from '@mui/icons-material';
 // import { useParams, useNavigate } from 'react-router-dom'; // TODO: React Router設定後に有効化
 import { supabase } from '../../../lib/supabase';
 import StaffInvitationForm from '../../StaffInvitationForm';
+import toast from 'react-hot-toast';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -175,7 +177,61 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
       url = `http://localhost:3000/staff-invitation/${token}`;
     }
     navigator.clipboard.writeText(url);
-    // TODO: トースト通知を表示
+    toast.success(environment === 'production' ? '本番版URLをコピーしました' : '開発版URLをコピーしました');
+  };
+
+  // スタッフメンバーを削除
+  const handleDeleteMember = async (memberId, memberName) => {
+    if (!window.confirm(`${memberName}さんをスタッフから削除しますか？`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('store_memberships')
+        .delete()
+        .eq('id', memberId);
+
+      if (error) {
+        console.error('メンバー削除エラー:', error);
+        toast.error('メンバーの削除に失敗しました');
+        return;
+      }
+
+      toast.success(`${memberName}さんをスタッフから削除しました`);
+      // リストを更新
+      await fetchStoreData();
+    } catch (error) {
+      console.error('メンバー削除エラー:', error);
+      toast.error('メンバーの削除に失敗しました');
+    }
+  };
+
+  // 招待を削除
+  const handleDeleteInvitation = async (invitationId, invitationName) => {
+    if (!window.confirm(`${invitationName}さんへの招待を削除しますか？`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('store_invitations')
+        .delete()
+        .eq('id', invitationId);
+
+      if (error) {
+        console.error('招待削除エラー:', error);
+        toast.error('招待の削除に失敗しました');
+        return;
+      }
+
+      toast.success('招待を削除しました');
+      // リストを更新
+      await fetchStoreData();
+    } catch (error) {
+      console.error('招待削除エラー:', error);
+      toast.error('招待の削除に失敗しました');
+    }
   };
 
   if (loading) {
@@ -316,6 +372,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                       <TableCell>メールアドレス</TableCell>
                       <TableCell>ロール</TableCell>
                       <TableCell>参加日</TableCell>
+                      <TableCell align="center">操作</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -324,7 +381,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <Avatar sx={{ mr: 2 }}>
-                              {member.business_users?.name?.charAt(0) || 
+                              {member.business_users?.name?.charAt(0) ||
                                member.business_users?.email?.charAt(0)}
                             </Avatar>
                             <Typography variant="body2">
@@ -346,6 +403,21 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                         </TableCell>
                         <TableCell>
                           {new Date(member.created_at).toLocaleDateString('ja-JP')}
+                        </TableCell>
+                        <TableCell align="center">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteMember(member.id, member.business_users?.name || 'ユーザー')}
+                            sx={{
+                              color: '#94a3b8',
+                              '&:hover': {
+                                color: '#ef4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                              }
+                            }}
+                          >
+                            <Delete sx={{ fontSize: 20 }} />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -430,6 +502,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                       <TableCell>ステータス</TableCell>
                       <TableCell>招待日</TableCell>
                       <TableCell>招待URL</TableCell>
+                      <TableCell align="center">操作</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -467,7 +540,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                                 size="small"
                                 variant="outlined"
                                 onClick={() => copyInvitationUrl(invitation.token, 'dev')}
-                                sx={{ 
+                                sx={{
                                   textTransform: 'none',
                                   borderColor: '#5e17eb',
                                   color: '#5e17eb',
@@ -485,7 +558,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                                 size="small"
                                 variant="outlined"
                                 onClick={() => copyInvitationUrl(invitation.token, 'production')}
-                                sx={{ 
+                                sx={{
                                   textTransform: 'none',
                                   borderColor: '#10b981',
                                   color: '#10b981',
@@ -501,6 +574,21 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                               </Button>
                             </Box>
                           )}
+                        </TableCell>
+                        <TableCell align="center">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteInvitation(invitation.id, invitation.name)}
+                            sx={{
+                              color: '#94a3b8',
+                              '&:hover': {
+                                color: '#ef4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                              }
+                            }}
+                          >
+                            <Delete sx={{ fontSize: 20 }} />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))}
