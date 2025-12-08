@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Dialog,
@@ -20,10 +20,7 @@ import {
   IconButton,
   Card,
   CardContent,
-  Divider,
-  Select,
-  MenuItem,
-  InputLabel
+  Divider
 } from '@mui/material';
 import {
   PersonAdd,
@@ -33,8 +30,7 @@ import {
   WorkOutline,
   Send,
   ContentCopy,
-  Link,
-  Badge
+  Link
 } from '@mui/icons-material';
 import { supabase } from '../lib/supabase';
 
@@ -46,49 +42,12 @@ export default function StaffInvitationForm({
 }) {
   const [formData, setFormData] = useState({
     name: '',
-    role: 'STAFF',
-    shiftName: ''
+    role: 'STAFF'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [invitationData, setInvitationData] = useState(null);
-  const [staffNames, setStaffNames] = useState([]);
-  const [loadingStaffNames, setLoadingStaffNames] = useState(true);
-
-  // shift テーブルから staff_name を取得
-  useEffect(() => {
-    const fetchStaffNames = async () => {
-      try {
-        setLoadingStaffNames(true);
-
-        // shiftテーブルから、指定されたstore_idに紐づく重複なしのstaff_nameを取得
-        const { data, error } = await supabase
-          .from('shift')
-          .select('staff_name')
-          .eq('store_id', storeId);
-
-        if (error) {
-          console.error('スタッフ名の取得に失敗:', error);
-          setStaffNames([]);
-          return;
-        }
-
-        // 重複を除去してアルファベット順にソート
-        const uniqueNames = [...new Set(data.map(item => item.staff_name))].sort();
-        setStaffNames(uniqueNames);
-      } catch (err) {
-        console.error('スタッフ名取得エラー:', err);
-        setStaffNames([]);
-      } finally {
-        setLoadingStaffNames(false);
-      }
-    };
-
-    if (storeId) {
-      fetchStaffNames();
-    }
-  }, [storeId]);
 
   const handleInputChange = (field) => (event) => {
     setFormData(prev => ({
@@ -121,8 +80,7 @@ export default function StaffInvitationForm({
         body: {
           storeId: storeId,
           role: formData.role,
-          name: formData.name.trim(),
-          shiftName: formData.shiftName || null
+          name: formData.name.trim()
         },
         headers: {
           Authorization: `Bearer ${sessionData.session.access_token}`,
@@ -506,60 +464,6 @@ https://store.openreview.jp/staff-invitation/${invitationData?.token}`}
                       }}
                     />
                   </RadioGroup>
-                </FormControl>
-
-                {/* シフト名選択 */}
-                <FormControl fullWidth>
-                  <InputLabel
-                    id="shift-name-label"
-                    sx={{
-                      '&.Mui-focused': { color: '#5e17eb' }
-                    }}
-                  >
-                    シフト名（任意）
-                  </InputLabel>
-                  <Select
-                    labelId="shift-name-label"
-                    value={formData.shiftName}
-                    onChange={handleInputChange('shiftName')}
-                    disabled={isSubmitting || loadingStaffNames}
-                    label="シフト名（任意）"
-                    startAdornment={
-                      <Badge sx={{ color: '#64748b', ml: 1, mr: 0.5 }} />
-                    }
-                    sx={{
-                      borderRadius: 2,
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#5e17eb',
-                      }
-                    }}
-                  >
-                    <MenuItem value="">
-                      <em>選択しない</em>
-                    </MenuItem>
-                    {loadingStaffNames ? (
-                      <MenuItem disabled>
-                        <CircularProgress size={20} sx={{ mr: 1 }} />
-                        読み込み中...
-                      </MenuItem>
-                    ) : staffNames.length === 0 ? (
-                      <MenuItem disabled>
-                        <em>シフトデータがありません</em>
-                      </MenuItem>
-                    ) : (
-                      staffNames.map((name) => (
-                        <MenuItem key={name} value={name}>
-                          {name}
-                        </MenuItem>
-                      ))
-                    )}
-                  </Select>
-                  <Typography
-                    variant="caption"
-                    sx={{ color: '#64748b', mt: 1, ml: 1.5 }}
-                  >
-                    シフトテーブルから登録されているスタッフ名を選択できます
-                  </Typography>
                 </FormControl>
               </Stack>
             </Box>
