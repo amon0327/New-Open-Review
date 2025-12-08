@@ -106,6 +106,33 @@ export default function CompanyAdminPage({ companyId, companyName }) {
     }
   };
 
+  // メンバーを削除
+  const handleDeleteMember = async (memberId, memberName) => {
+    if (!window.confirm(`${memberName}さんをメンバーから削除しますか？`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('company_memberships')
+        .delete()
+        .eq('id', memberId);
+
+      if (error) {
+        console.error('メンバー削除エラー:', error);
+        toast.error('メンバーの削除に失敗しました');
+        return;
+      }
+
+      toast.success(`${memberName}さんをメンバーから削除しました`);
+      // リストを更新
+      await fetchMembersAndInvitations();
+    } catch (error) {
+      console.error('メンバー削除エラー:', error);
+      toast.error('メンバーの削除に失敗しました');
+    }
+  };
+
   // 初回ロード時にメンバー・招待を取得
   useEffect(() => {
     fetchMembersAndInvitations();
@@ -208,6 +235,21 @@ export default function CompanyAdminPage({ companyId, companyName }) {
                             py: 2,
                             px: 3
                           }}
+                          secondaryAction={
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDeleteMember(member.id, member.business_users?.name || '名前なし')}
+                              sx={{
+                                color: '#94a3b8',
+                                '&:hover': {
+                                  color: '#ef4444',
+                                  backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                                }
+                              }}
+                            >
+                              <Delete sx={{ fontSize: 20 }} />
+                            </IconButton>
+                          }
                         >
                           <ListItemAvatar>
                             <Avatar
