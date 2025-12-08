@@ -77,6 +77,31 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
     { key: 'groupC', months: [3, 6, 9, 12], label: '3・6・9・12月' }
   ];
 
+  // サイクル設定変更ハンドラー（重複を許さない）
+  const handleCycleChange = (groupKey, newType) => {
+    // 現在の設定から、newTypeを持っている他のグループを探す
+    const otherGroupWithSameType = Object.entries(surveyCycleConfig).find(
+      ([key, type]) => key !== groupKey && type === newType
+    );
+
+    if (otherGroupWithSameType) {
+      // 交換する：選択したグループに新しいタイプを、元のグループに現在のタイプを
+      const [otherGroupKey] = otherGroupWithSameType;
+      const currentType = surveyCycleConfig[groupKey];
+      setSurveyCycleConfig(prev => ({
+        ...prev,
+        [groupKey]: newType,
+        [otherGroupKey]: currentType
+      }));
+    } else {
+      // 重複がない場合はそのまま設定
+      setSurveyCycleConfig(prev => ({
+        ...prev,
+        [groupKey]: newType
+      }));
+    }
+  };
+
   // フォーム一覧を取得
   useEffect(() => {
     const fetchForms = async () => {
@@ -328,7 +353,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                       return (
                         <Box
                           key={type.id}
-                          onClick={() => setSurveyCycleConfig(prev => ({ ...prev, [group.key]: type.id }))}
+                          onClick={() => handleCycleChange(group.key, type.id)}
                           sx={{
                             flex: 1,
                             py: 1.5,
