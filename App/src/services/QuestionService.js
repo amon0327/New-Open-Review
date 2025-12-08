@@ -1186,6 +1186,244 @@ export const getQuestionAnalyticsStats = async (questionId, isTestMode = false) 
   }
 };
 
+// 企業が過去に作成した全ての質問を取得する関数（オプション付き）
+export const getCompanyPastQuestions = async (businessUserId) => {
+  try {
+    // 1. ユーザーが作成したフォームIDを取得
+    const { data: forms, error: formsError } = await supabase
+      .from('review_forms')
+      .select('id, title')
+      .eq('business_users', businessUserId)
+      .eq('is_deleted', false);
+
+    if (formsError) {
+      throw formsError;
+    }
+
+    if (!forms || forms.length === 0) {
+      return [];
+    }
+
+    const formIds = forms.map(f => f.id);
+    const formMap = forms.reduce((acc, f) => {
+      acc[f.id] = f.title;
+      return acc;
+    }, {});
+
+    // 2. フォームに関連する全ての質問を取得
+    const { data: questions, error: questionsError } = await supabase
+      .from('review_questions')
+      .select(`
+        id,
+        review_fome_id,
+        question_types_id,
+        question_text,
+        question_detail_text,
+        is_required,
+        is_detail_enabled,
+        question_categories_id,
+        question_subcategories_id,
+        template_review_questions_id,
+        created_at
+      `)
+      .in('review_fome_id', formIds)
+      .not('question_text', 'eq', '')
+      .order('created_at', { ascending: false });
+
+    if (questionsError) {
+      throw questionsError;
+    }
+
+    if (!questions || questions.length === 0) {
+      return [];
+    }
+
+    // 3. 各質問のオプションを取得
+    const questionIds = questions.map(q => q.id);
+
+    // 選択肢を一括取得
+    const { data: allChoices, error: choicesError } = await supabase
+      .from('question_option_choices')
+      .select('*')
+      .in('review_questions_id', questionIds)
+      .order('choice_number');
+
+    if (choicesError) {
+      console.error('選択肢取得エラー:', choicesError);
+    }
+
+    // リニアスケール設定を一括取得
+    const { data: allScales, error: scalesError } = await supabase
+      .from('question_option_linear_scale')
+      .select('*')
+      .in('review_questions_id', questionIds);
+
+    if (scalesError) {
+      console.error('スケール設定取得エラー:', scalesError);
+    }
+
+    // カテゴリとサブカテゴリを取得
+    const categoryIds = [...new Set(questions.map(q => q.question_categories_id).filter(Boolean))];
+    const subcategoryIds = [...new Set(questions.map(q => q.question_subcategories_id).filter(Boolean))];
+
+    let categoriesMap = {};
+    let subcategoriesMap = {};
+
+    if (categoryIds.length > 0) {
+      const { data: categories } = await supabase
+        .from('question_categories')
+        .select('id, japanese_name')
+        .in('id', categoryIds);
+
+      if (categories) {
+        categoriesMap = categories.reduce((acc, c) => {
+          acc[c.id] = c.japanese_name;
+          return acc;
+        }, {});
+      }
+    }
+
+    if (subcategoryIds.length > 0) {
+      const { data: subcategories } = await supabase
+        .from('question_subcategories')
+        .select('id, japanese_name')
+        .in('id', subcategoryIds);
+
+      if (subcategories) {
+        subcategoriesMap = subcategories.reduce((acc, s) => {
+          acc[s.id] = s.japanese_name;
+          return acc;
+        }, {});
+      }
+    }
+
+    // 4. 質問データを整形
+    const formattedQuestions = questions.map(question => {
+      // 選択肢データ
+      const questionChoices = (allChoices || [])
+        .filter(c => c.review_questions_id === question.id)
+        .sort((a, b) => a.choice_number - b.choice_number)
+        .map(c => c.choice_name);
+
+      // スケール設定
+      const scaleData = (allScales || []).find(s => s.review_questions_id === question.id);
+
+      return {
+        id: question.id,
+        originalQuestionId: question.id, // 元の質問IDを保持
+        question_types_id: question.question_types_id,
+        question: question.question_text,
+        question_text: question.question_text,
+        detail: question.question_detail_text || '',
+        required: question.is_required,
+        is_detail_enabled: question.is_detail_enabled,
+        choices: questionChoices.length > 0 ? questionChoices : null,
+        scale_settings: scaleData ? {
+          minValue: scaleData.loyalty_score_flags ? 0 : 1,
+          maxValue: scaleData.loyalty_score_flags ? 10 : 5,
+          minLabel: scaleData.min_text,
+          maxLabel: scaleData.max_text
+        } : null,
+        formTitle: formMap[question.review_fome_id] || '',
+        formId: question.review_fome_id,
+        categoryName: categoriesMap[question.question_categories_id] || null,
+        subcategoryName: subcategoriesMap[question.question_subcategories_id] || null,
+        question_categories_id: question.question_categories_id,
+        question_subcategories_id: question.question_subcategories_id,
+        template_review_questions_id: question.template_review_questions_id,
+        isPastQuestion: true, // 過去の質問であることを示すフラグ
+        created_at: question.created_at
+      };
+    });
+
+    // 5. 重複を除去（同じ質問テキストの場合は最新のものを保持）
+    const uniqueQuestions = [];
+    const seenTexts = new Set();
+
+    for (const q of formattedQuestions) {
+      if (!seenTexts.has(q.question_text)) {
+        seenTexts.add(q.question_text);
+        uniqueQuestions.push(q);
+      }
+    }
+
+    return uniqueQuestions;
+
+  } catch (error) {
+    console.error('Error fetching company past questions:', error);
+    return [];
+  }
+};
+
+// 既存の質問を参照として新しいフォームに追加する関数（同じIDを保持）
+export const addExistingQuestionReference = async ({
+  originalQuestionId,
+  reviewFormId,
+  reviewFormPagesId,
+  questionNumber
+}) => {
+  try {
+    // 1. 元の質問データを取得
+    const { data: originalQuestion, error: fetchError } = await supabase
+      .from('review_questions')
+      .select('*')
+      .eq('id', originalQuestionId)
+      .single();
+
+    if (fetchError || !originalQuestion) {
+      throw new Error('元の質問が見つかりません');
+    }
+
+    // 2. 新しいフォームに同じ質問を作成（元のIDではなく、新しいIDで作成）
+    // ただし、template_review_questions_idやcategory/subcategoryは継承
+    const { data: newQuestion, error: insertError } = await supabase
+      .from('review_questions')
+      .insert({
+        review_fome_id: reviewFormId,
+        question_types_id: originalQuestion.question_types_id,
+        review_form_pages_id: reviewFormPagesId,
+        question_number: questionNumber,
+        question_text: originalQuestion.question_text,
+        question_detail_text: originalQuestion.question_detail_text,
+        is_required: originalQuestion.is_required,
+        is_detail_enabled: originalQuestion.is_detail_enabled,
+        question_categories_id: originalQuestion.question_categories_id,
+        question_subcategories_id: originalQuestion.question_subcategories_id,
+        template_review_questions_id: originalQuestion.template_review_questions_id || originalQuestion.id
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      throw insertError;
+    }
+
+    // 3. 選択肢をコピー
+    const questionTypeId = originalQuestion.question_types_id;
+
+    if ([3, 4, 5, 6, 8, 10].includes(questionTypeId)) {
+      const originalChoices = await getQuestionChoiceOptions(originalQuestionId);
+      if (originalChoices.length > 0) {
+        await createChoiceOptionsFromTemplate(newQuestion.id, originalChoices);
+      }
+    }
+
+    // 4. リニアスケール設定をコピー
+    if ([7, 9].includes(questionTypeId)) {
+      const originalScale = await getQuestionLinearScaleOption(originalQuestionId);
+      if (originalScale) {
+        await createLinearScaleOptionFromTemplate(newQuestion.id, originalScale, questionTypeId);
+      }
+    }
+
+    return newQuestion;
+
+  } catch (error) {
+    console.error('Error adding existing question reference:', error);
+    throw error;
+  }
+};
+
 // 質問複製関数
 export const duplicateQuestionWithOptions = async (formId, pageId, originalQuestionId) => {
   try {

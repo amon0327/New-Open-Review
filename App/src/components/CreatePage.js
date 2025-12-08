@@ -15,7 +15,7 @@ import { leftNavigationItems, questionTypes, questionTemplates, settingsCategori
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import FormDataService from '../services/FormDataService';
-import { createQuestionWithOptions, createTemplateQuestionWithOptions, updateReviewQuestion } from '../services/QuestionService';
+import { createQuestionWithOptions, createTemplateQuestionWithOptions, updateReviewQuestion, getCompanyPastQuestions, addExistingQuestionReference } from '../services/QuestionService';
 // import CompletionScreenService from '../services/CompletionScreenService'; // FormDataServiceを使用するため削除
 import { supabase } from '../lib/supabase';
 import {
@@ -229,6 +229,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
   });
   const [isLoadingTemplateQuestions, setIsLoadingTemplateQuestions] = useState(false);
 
+  // 過去の質問データ
+  const [pastQuestions, setPastQuestions] = useState([]);
+  const [isLoadingPastQuestions, setIsLoadingPastQuestions] = useState(false);
+
   // ログイン画面設定の状態
   const [loginScreenSettings, setLoginScreenSettings] = useState({
     background_image_url: 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg',
@@ -395,6 +399,25 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
     loadTemplateQuestions();
   }, []);
+
+  // 過去の質問を読み込み
+  useEffect(() => {
+    const loadPastQuestions = async () => {
+      if (!user?.id) return;
+
+      setIsLoadingPastQuestions(true);
+      try {
+        const questions = await getCompanyPastQuestions(user.id);
+        setPastQuestions(questions);
+      } catch (error) {
+        console.error('Past questions loading error:', error);
+      } finally {
+        setIsLoadingPastQuestions(false);
+      }
+    };
+
+    loadPastQuestions();
+  }, [user?.id]);
 
   // フォーム設定を読み込み
   useEffect(() => {
@@ -776,11 +799,28 @@ export default function CreatePage({ onBackClick, user, formId }) {
         });
       }
 
+      // 過去の質問の場合は内容をコピー
+      if (draggedData.isPastQuestion) {
+        optimisticQuestion.question_types_id = draggedData.question_types_id;
+        optimisticQuestion.is_required = draggedData.required !== undefined ? draggedData.required : true;
+
+        if (draggedData.detail) {
+          optimisticQuestion.question_detail_text = draggedData.detail;
+        }
+
+        if (draggedData.choices && Array.isArray(draggedData.choices) && draggedData.choices.length > 0) {
+          optimisticQuestion.choices = JSON.stringify(draggedData.choices);
+        }
+
+        if (draggedData.scale_settings) {
+          optimisticQuestion.scale_settings = JSON.stringify(draggedData.scale_settings);
+        }
+      }
       // テンプレート質問の場合は内容をコピー
-      if (draggedData.isTemplate) {
+      else if (draggedData.isTemplate) {
         optimisticQuestion.question_types_id = draggedData.question_types_id || getQuestionTypeId(draggedData.type);
         optimisticQuestion.is_required = draggedData.required !== undefined ? draggedData.required : true;
-        
+
         if (draggedData.detail) {
           optimisticQuestion.question_detail_text = draggedData.detail;
         }
@@ -800,11 +840,19 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // 即座にローカル状態を更新（楽観的更新）
       const optimisticQuestions = [...currentQuestions, optimisticQuestion];
       handleQuestionsUpdate(selectedPage.id, optimisticQuestions);
-      
+
       // バックグラウンドでSupabaseに質問を作成
       let supabaseQuestion;
       try {
-        if (draggedData.isTemplate) {
+        if (draggedData.isPastQuestion) {
+          // 過去の質問を参照として追加（元の質問の設定を継承）
+          supabaseQuestion = await addExistingQuestionReference({
+            originalQuestionId: draggedData.originalQuestionId || draggedData.id,
+            reviewFormId: formId,
+            reviewFormPagesId: selectedPage.id,
+            questionNumber: questionNumber
+          });
+        } else if (draggedData.isTemplate) {
           supabaseQuestion = await createTemplateQuestionWithOptions({
             reviewFormId: formId,
             questionTypesId: questionTypeId,
@@ -2628,12 +2676,14 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   </>
                 ) : (
                   // 通常の質問作成ツール
-                  <QuestionToolsSidebar 
+                  <QuestionToolsSidebar
                     questionTypes={convertedQuestionTypes}
                     questionTemplates={convertedQuestionTemplates}
                     expandedTemplates={expandedTemplates}
                     toggleExpanded={toggleExpanded}
                     setSelectedTool={setSelectedTool}
+                    pastQuestions={pastQuestions}
+                    isLoadingPastQuestions={isLoadingPastQuestions}
                   />
                 )}
                 </Paper>
