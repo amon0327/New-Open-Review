@@ -134,6 +134,7 @@ serve(async (req) => {
     }
 
     // レビューフォームを作成（サービスロールで）
+    // company_idを含めて作成することで、同じ会社のメンバーやパートナーがアクセス可能になる
     const { data: reviewFormData, error: reviewFormError } = await supabaseAdmin
       .from('review_forms')
       .insert([
@@ -141,10 +142,11 @@ serve(async (req) => {
           business_users: user.id,
           title: reviewFormTitle,
           is_published: false,
-          is_deleted: false
+          is_deleted: false,
+          company_id: companyId
         }
       ])
-      .select('id, title, created_at')
+      .select('id, title, created_at, company_id')
 
     if (reviewFormError) {
       throw new Error(`レビューフォームの作成に失敗: ${reviewFormError.message}`)

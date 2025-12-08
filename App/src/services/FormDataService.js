@@ -295,55 +295,56 @@ export class FormDataService {
 
   /**
    * ユーザーのフォーム一覧を取得（質問数も含む）
-   * company_memberships経由で所属会社のフォームも取得
+   * company_idベースで所属会社のフォームを取得
+   * パートナーメンバーシップ経由のアクセスにも対応
    * @param {string} userId - ユーザーID
    * @returns {Promise<Object>} フォーム一覧
    */
   static async getUserForms(userId) {
     try {
-      // 1. ユーザーが所属する会社を取得
-      const { data: memberships, error: membershipError } = await supabase
+      // アクセス可能な会社IDを収集
+      let accessibleCompanyIds = [];
+
+      // 1. ユーザーが所属する会社を取得（company_memberships）
+      const { data: companyMemberships, error: companyMembershipError } = await supabase
         .from('company_memberships')
         .select('company_id')
         .eq('business_user_id', userId);
 
-      if (membershipError) {
-        console.error('Membership fetch error:', membershipError);
+      if (companyMembershipError) {
+        console.error('Company membership fetch error:', companyMembershipError);
+      } else if (companyMemberships && companyMemberships.length > 0) {
+        accessibleCompanyIds.push(...companyMemberships.map(m => m.company_id));
       }
 
-      // 2. 所属会社の店舗IDを取得
-      let storeIds = [];
-      if (memberships && memberships.length > 0) {
-        const companyIds = memberships.map(m => m.company_id);
+      // 2. パートナーメンバーシップ経由でアクセス可能な会社を取得
+      const { data: partnerMemberships, error: partnerMembershipError } = await supabase
+        .from('partner_memberships')
+        .select('partner_company_id')
+        .eq('business_users_id', userId);
 
-        const { data: stores, error: storesError } = await supabase
-          .from('stores')
-          .select('id')
-          .in('company_id', companyIds);
+      if (partnerMembershipError) {
+        console.error('Partner membership fetch error:', partnerMembershipError);
+      } else if (partnerMemberships && partnerMemberships.length > 0) {
+        const partnerCompanyIds = partnerMemberships.map(m => m.partner_company_id);
 
-        if (storesError) {
-          console.error('Stores fetch error:', storesError);
-        } else if (stores) {
-          storeIds = stores.map(s => s.id);
+        // パートナー企業が管理する企業（affiliate companies）を取得
+        const { data: affiliateCompanies, error: affiliateError } = await supabase
+          .from('partner_affiliate_companies')
+          .select('companies_id')
+          .in('partner_company_id', partnerCompanyIds);
+
+        if (affiliateError) {
+          console.error('Affiliate companies fetch error:', affiliateError);
+        } else if (affiliateCompanies && affiliateCompanies.length > 0) {
+          accessibleCompanyIds.push(...affiliateCompanies.map(ac => ac.companies_id));
         }
       }
 
-      // 3. store_review_forms経由でフォームIDを取得
-      let companyFormIds = [];
-      if (storeIds.length > 0) {
-        const { data: storeReviewForms, error: srfError } = await supabase
-          .from('store_review_forms')
-          .select('review_form_id')
-          .in('store_id', storeIds);
+      // 重複を除去
+      accessibleCompanyIds = [...new Set(accessibleCompanyIds)];
 
-        if (srfError) {
-          console.error('Store review forms fetch error:', srfError);
-        } else if (storeReviewForms) {
-          companyFormIds = storeReviewForms.map(srf => srf.review_form_id);
-        }
-      }
-
-      // 4. フォームを取得（自分が作成したもの + 所属会社のもの）
+      // 3. フォームを取得
       let query = supabase
         .from('review_forms')
         .select(`
@@ -359,12 +360,13 @@ export class FormDataService {
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
-      // 自分が作成したフォーム OR 所属会社のフォーム
-      if (companyFormIds.length > 0) {
-        // 両方の条件を含むフィルター
-        query = query.or(`business_users.eq.${userId},id.in.(${companyFormIds.join(',')})`);
+      // アクセス可能なフォームを取得
+      // - 自分が作成したフォーム（business_users = userId）
+      // - アクセス可能な会社のフォーム（company_id in accessibleCompanyIds）
+      if (accessibleCompanyIds.length > 0) {
+        query = query.or(`business_users.eq.${userId},company_id.in.(${accessibleCompanyIds.join(',')})`);
       } else {
-        // 会社のフォームがない場合は自分が作成したもののみ
+        // 会社への所属がない場合は自分が作成したもののみ
         query = query.eq('business_users', userId);
       }
 
