@@ -175,7 +175,7 @@ const QuestionToolsSidebar = ({
         <Tab
           icon={<History sx={{ fontSize: 16 }} />}
           iconPosition="start"
-          label="過去の質問"
+          label="作成済みの質問"
           sx={{
             minHeight: 36,
             fontSize: '0.75rem',
@@ -215,7 +215,7 @@ const QuestionToolsSidebar = ({
             <Box sx={{ textAlign: 'center', py: 4, color: '#94a3b8' }}>
               <History sx={{ fontSize: 40, mb: 1, opacity: 0.5 }} />
               <Typography variant="body2">
-                過去の質問がありません
+                作成済みの質問がありません
               </Typography>
               <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
                 フォームを作成すると質問が表示されます
