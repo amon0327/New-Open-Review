@@ -67,6 +67,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
     groupC: 'Cleanliness'   // 3月, 6月, 9月, 12月
   });
   const [showCycleSettings, setShowCycleSettings] = useState(false);
+  const [cycleConfirmDialogOpen, setCycleConfirmDialogOpen] = useState(false);
 
   const surveyTypes = [
     { id: 'Quality', label: 'Q', fullLabel: 'Quality', color: '#6366f1', bgColor: '#eef2ff' },
@@ -495,11 +496,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                       <Button
                         variant="contained"
                         size="small"
-                        onClick={() => {
-                          // TODO: サイクル設定をDBに保存する処理
-                          toast.success('設定を保存しました');
-                          setShowCycleSettings(false);
-                        }}
+                        onClick={() => setCycleConfirmDialogOpen(true)}
                         sx={{
                           background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
                           borderRadius: 0.5,
@@ -1098,6 +1095,79 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                 }}
               >
                 {isDeleting ? '削除中...' : '削除する'}
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* サイクル設定確認ダイアログ */}
+          <Dialog
+            open={cycleConfirmDialogOpen}
+            onClose={() => setCycleConfirmDialogOpen(false)}
+            PaperProps={{
+              sx: {
+                borderRadius: 2,
+                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
+                maxWidth: 440
+              }
+            }}
+          >
+            <DialogTitle sx={{
+              fontWeight: 700,
+              fontSize: '1.1rem',
+              color: '#1a202c',
+              pb: 1
+            }}>
+              設定変更の確認
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText sx={{
+                color: '#4b5563',
+                fontSize: '0.9rem',
+                lineHeight: 1.7
+              }}>
+                今月（{currentYear}年{currentMonth}月）は既に「<strong style={{ color: currentSurveyType?.color }}>{currentSurveyType?.fullLabel}</strong>」の項目で回答が収集されています。
+                <br /><br />
+                この設定は<strong>来月から</strong>適用されます。よろしいですか？
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+              <Button
+                onClick={() => setCycleConfirmDialogOpen(false)}
+                sx={{
+                  color: '#6b7280',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  px: 3,
+                  py: 1,
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: 'rgba(107, 114, 128, 0.08)'
+                  }
+                }}
+              >
+                キャンセル
+              </Button>
+              <Button
+                onClick={() => {
+                  // TODO: サイクル設定をDBに保存する処理
+                  toast.success('設定を保存しました（来月から適用）');
+                  setCycleConfirmDialogOpen(false);
+                  setShowCycleSettings(false);
+                }}
+                sx={{
+                  background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                  color: 'white',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  px: 3,
+                  py: 1,
+                  borderRadius: 1,
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                  }
+                }}
+              >
+                保存する
               </Button>
             </DialogActions>
           </Dialog>
