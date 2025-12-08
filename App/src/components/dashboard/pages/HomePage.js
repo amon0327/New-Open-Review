@@ -286,6 +286,30 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
 
         {/* アンケートサイクル設定セクション */}
         <Container maxWidth="xl" sx={{ mt: 2, mb: 3 }}>
+          {/* セクションヘッダー */}
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: '#1a202c',
+                mb: 0.5,
+                fontSize: '1.75rem'
+              }}
+            >
+              アンケートサイクル設定
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.875rem'
+              }}
+            >
+              各月に実施するアンケートの種類を設定
+            </Typography>
+          </Box>
+
           <Paper
             elevation={0}
             sx={{
@@ -294,16 +318,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
               overflow: 'hidden'
             }}
           >
-            {/* ヘッダー */}
-            <Box sx={{ px: 3, py: 2, bgcolor: '#f8fafc', borderBottom: '1px solid #e5e7eb' }}>
-              <Typography sx={{ fontWeight: 600, color: '#1a202c', fontSize: '0.95rem' }}>
-                アンケートサイクル設定
-              </Typography>
-              <Typography sx={{ color: '#64748b', fontSize: '0.8rem', mt: 0.5 }}>
-                各月にどのアンケートを実施するか設定します
-              </Typography>
-            </Box>
-
             {/* 設定テーブル */}
             <Box sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -399,10 +413,34 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                 })}
               </Box>
 
-              {/* 説明文 */}
-              <Typography sx={{ mt: 2, fontSize: '0.75rem', color: '#94a3b8' }}>
-                ※ 各アンケートタイプは重複できません。選択すると自動的に入れ替わります。
-              </Typography>
+              {/* 説明文と確定ボタン */}
+              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                  ※ 各アンケートタイプは重複できません。選択すると自動的に入れ替わります。
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    // TODO: サイクル設定をDBに保存する処理
+                    toast.success('アンケートサイクルを保存しました');
+                  }}
+                  sx={{
+                    background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                    borderRadius: 2,
+                    px: 4,
+                    py: 1,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    boxShadow: '0 4px 15px rgba(94, 23, 235, 0.25)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.35)',
+                    }
+                  }}
+                >
+                  設定を保存
+                </Button>
+              </Box>
             </Box>
           </Paper>
         </Container>
