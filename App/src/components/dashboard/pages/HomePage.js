@@ -58,6 +58,25 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  // アンケートサイクル設定
+  const [surveyCycleConfig, setSurveyCycleConfig] = useState({
+    groupA: 'Quality',      // 1月, 4月, 7月, 10月
+    groupB: 'Service',      // 2月, 5月, 8月, 11月
+    groupC: 'Cleanliness'   // 3月, 6月, 9月, 12月
+  });
+
+  const surveyTypes = [
+    { id: 'Quality', label: 'Q', fullLabel: 'Quality', color: '#6366f1', bgColor: '#eef2ff' },
+    { id: 'Service', label: 'S', fullLabel: 'Service', color: '#10b981', bgColor: '#ecfdf5' },
+    { id: 'Cleanliness', label: 'C', fullLabel: 'Cleanliness', color: '#f59e0b', bgColor: '#fffbeb' }
+  ];
+
+  const cycleGroups = [
+    { key: 'groupA', months: [1, 4, 7, 10], label: '1・4・7・10月' },
+    { key: 'groupB', months: [2, 5, 8, 11], label: '2・5・8・11月' },
+    { key: 'groupC', months: [3, 6, 9, 12], label: '3・6・9・12月' }
+  ];
+
   // フォーム一覧を取得
   useEffect(() => {
     const fetchForms = async () => {
@@ -239,6 +258,123 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
           px: 0
         }}
       >
+
+        {/* アンケートサイクル設定セクション */}
+        <Container maxWidth="xl" sx={{ mt: 2, mb: 3 }}>
+          <Box sx={{ mb: 2 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                color: '#1a202c',
+                fontSize: '1rem',
+                mb: 0.5
+              }}
+            >
+              アンケートサイクル設定
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: '#64748b', fontSize: '0.8rem' }}
+            >
+              3ヶ月周期でQuality・Service・Cleanlinessを設定
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            {cycleGroups.map((group) => {
+              const selectedType = surveyTypes.find(t => t.id === surveyCycleConfig[group.key]);
+              return (
+                <Paper
+                  key={group.key}
+                  elevation={0}
+                  sx={{
+                    flex: 1,
+                    borderRadius: 2,
+                    border: '1px solid #e5e7eb',
+                    overflow: 'hidden',
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      borderColor: '#d1d5db',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                    }
+                  }}
+                >
+                  {/* ヘッダー部分 */}
+                  <Box
+                    sx={{
+                      px: 2,
+                      py: 1.5,
+                      bgcolor: selectedType?.bgColor || '#f8fafc',
+                      borderBottom: '1px solid #e5e7eb'
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: '#64748b',
+                        letterSpacing: 0.3
+                      }}
+                    >
+                      {group.label}
+                    </Typography>
+                  </Box>
+
+                  {/* 選択ボタン部分 */}
+                  <Box sx={{ p: 2, display: 'flex', gap: 1 }}>
+                    {surveyTypes.map((type) => {
+                      const isSelected = surveyCycleConfig[group.key] === type.id;
+                      return (
+                        <Box
+                          key={type.id}
+                          onClick={() => setSurveyCycleConfig(prev => ({ ...prev, [group.key]: type.id }))}
+                          sx={{
+                            flex: 1,
+                            py: 1.5,
+                            borderRadius: 1.5,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            bgcolor: isSelected ? type.color : '#f8fafc',
+                            border: `2px solid ${isSelected ? type.color : '#e5e7eb'}`,
+                            transition: 'all 0.15s',
+                            '&:hover': {
+                              bgcolor: isSelected ? type.color : type.bgColor,
+                              borderColor: type.color
+                            }
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              fontSize: '1.25rem',
+                              fontWeight: 700,
+                              color: isSelected ? '#fff' : type.color,
+                              lineHeight: 1
+                            }}
+                          >
+                            {type.label}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: '0.65rem',
+                              fontWeight: 500,
+                              color: isSelected ? 'rgba(255,255,255,0.8)' : '#94a3b8',
+                              mt: 0.5
+                            }}
+                          >
+                            {type.fullLabel}
+                          </Typography>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                </Paper>
+              );
+            })}
+          </Box>
+        </Container>
 
         {/* フォーム一覧セクション */}
         <Container maxWidth="xl" sx={{ mt: 2, mb: 6 }}>
