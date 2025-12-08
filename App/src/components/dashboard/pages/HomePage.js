@@ -302,7 +302,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
         }}
       >
 
-        {/* アンケートサイクルセクション */}
+        {/* 今月の評価項目セクション */}
         <Container maxWidth="xl" sx={{ mt: 2, mb: 3 }}>
           {/* セクションヘッダー */}
           <Box sx={{ mb: 4 }}>
@@ -315,7 +315,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                 fontSize: '1.75rem'
               }}
             >
-              アンケートサイクル
+              今月の評価項目
             </Typography>
             <Typography
               variant="body2"
@@ -324,94 +324,67 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                 fontSize: '0.875rem'
               }}
             >
-              今月実施するアンケートの種類を確認
+              3ヶ月サイクルで Quality・Service・Cleanliness を順番に評価
             </Typography>
           </Box>
 
-          {/* 現在の月のアンケート表示 */}
-          <Paper
-            elevation={0}
-            sx={{
-              borderRadius: 2,
-              border: '1px solid #e5e7eb',
-              overflow: 'hidden',
-              mb: 2
-            }}
-          >
-            <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                {/* 現在の年月 */}
-                <Box>
-                  <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8', mb: 0.5 }}>
-                    現在
-                  </Typography>
-                  <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: '#1a202c' }}>
-                    {currentYear}年{currentMonth}月
-                  </Typography>
-                </Box>
-
-                {/* 矢印 */}
-                <Typography sx={{ color: '#d1d5db', fontSize: '1.5rem' }}>→</Typography>
-
-                {/* アンケートタイプ */}
-                {currentSurveyType && (
+          {/* 現在の評価項目表示 */}
+          {currentSurveyType && (
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 2,
+                border: '1px solid #e5e7eb',
+                overflow: 'hidden',
+                mb: 2
+              }}
+            >
+              <Box
+                sx={{
+                  p: 2.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {/* カラーインジケーター */}
                   <Box
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      px: 3,
-                      py: 1.5,
-                      borderRadius: 2,
-                      bgcolor: currentSurveyType.bgColor,
-                      border: `2px solid ${currentSurveyType.color}`
+                      width: 4,
+                      height: 48,
+                      borderRadius: 1,
+                      bgcolor: currentSurveyType.color
                     }}
-                  >
-                    <Box
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: '50%',
-                        bgcolor: currentSurveyType.color
-                      }}
-                    />
-                    <Typography
-                      sx={{
-                        fontSize: '1.25rem',
-                        fontWeight: 700,
-                        color: currentSurveyType.color
-                      }}
-                    >
+                  />
+
+                  {/* 年月と評価項目 */}
+                  <Box>
+                    <Typography sx={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>
+                      {currentYear}年{currentMonth}月
+                    </Typography>
+                    <Typography sx={{ fontSize: '1.5rem', fontWeight: 700, color: currentSurveyType.color }}>
                       {currentSurveyType.fullLabel}
                     </Typography>
                   </Box>
-                )}
-              </Box>
+                </Box>
 
-              {/* 設定ボタン */}
-              <Button
-                variant="outlined"
-                startIcon={<Settings />}
-                onClick={() => setShowCycleSettings(!showCycleSettings)}
-                sx={{
-                  borderColor: '#e5e7eb',
-                  color: '#64748b',
-                  borderRadius: 2,
-                  px: 2.5,
-                  py: 1,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  '&:hover': {
-                    borderColor: '#5e17eb',
-                    color: '#5e17eb',
-                    bgcolor: 'rgba(94, 23, 235, 0.04)'
-                  }
-                }}
-              >
-                サイクル設定
-              </Button>
-            </Box>
-          </Paper>
+                {/* 設定ボタン */}
+                <IconButton
+                  onClick={() => setShowCycleSettings(!showCycleSettings)}
+                  sx={{
+                    color: '#94a3b8',
+                    '&:hover': {
+                      color: '#5e17eb',
+                      bgcolor: 'rgba(94, 23, 235, 0.04)'
+                    }
+                  }}
+                >
+                  <Settings />
+                </IconButton>
+              </Box>
+            </Paper>
+          )}
 
           {/* 設定パネル（開閉式） */}
           {showCycleSettings && (
