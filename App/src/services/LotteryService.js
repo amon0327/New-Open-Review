@@ -27,13 +27,12 @@ export class LotteryService {
   static async updateLotterySettings(formId, settings) {
     try {
       const { max_wins_per_month, win_rate_divisor } = settings;
-      
+
       const { data, error } = await supabase
         .from('lottery')
         .update({
           max_wins_per_month,
-          win_rate_divisor,
-          updated_at: new Date().toISOString()
+          win_rate_divisor
         })
         .eq('review_form_id', formId)
         .select()

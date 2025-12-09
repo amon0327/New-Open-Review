@@ -8,9 +8,10 @@ import {
   Grid,
   Divider,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Button
 } from '@mui/material';
-import { CasinoOutlined } from '@mui/icons-material';
+import { CasinoOutlined, SaveOutlined } from '@mui/icons-material';
 import { LotteryService } from '../../services/LotteryService';
 
 const LotterySettings = ({
@@ -20,14 +21,24 @@ const LotterySettings = ({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [lotteryData, setLotteryData] = useState({
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // 元データ（保存済みデータ）
+  const [originalData, setOriginalData] = useState({
     maxWinsPerMonth: 1,
     winRateDivisor: 1000,
     currentWins: 0,
     currentTrials: 0
   });
 
-  const [debounceTimeout, setDebounceTimeout] = useState(null);
+  // 編集中データ
+  const [lotteryData, setLotteryData] = useState({
+    maxWinsPerMonth: 1,
+    winRateDivisor: 1000,
+    currentWins: 0,
+    currentTrials: 0
+  });
 
   useEffect(() => {
     if (formId) {
@@ -39,25 +50,30 @@ const LotterySettings = ({
     try {
       setLoading(true);
       setError(null);
-      
+
       const lottery = await LotteryService.getLotteryByFormId(formId);
-      
+
       if (lottery) {
-        setLotteryData({
+        const data = {
           maxWinsPerMonth: lottery.max_wins_per_month,
           winRateDivisor: lottery.win_rate_divisor,
           currentWins: lottery.current_wins,
           currentTrials: lottery.current_trials
-        });
+        };
+        setLotteryData(data);
+        setOriginalData(data);
       } else {
         const newLottery = await LotteryService.createLotteryForForm(formId);
-        setLotteryData({
+        const data = {
           maxWinsPerMonth: newLottery.max_wins_per_month,
           winRateDivisor: newLottery.win_rate_divisor,
           currentWins: newLottery.current_wins,
           currentTrials: newLottery.current_trials
-        });
+        };
+        setLotteryData(data);
+        setOriginalData(data);
       }
+      setHasChanges(false);
     } catch (err) {
       setError('抽選設定の読み込みに失敗しました');
       console.error('Lottery data load error:', err);
@@ -68,43 +84,46 @@ const LotterySettings = ({
 
   const handleSettingChange = (field, value) => {
     const numericValue = parseInt(value) || 0;
-    
+
     // バリデーション
     if (field === 'maxWinsPerMonth' && numericValue < 1) return;
     if (field === 'winRateDivisor' && numericValue < 1) return;
-    
+
     const newData = {
       ...lotteryData,
       [field]: numericValue
     };
-    
+
     setLotteryData(newData);
+    setSuccessMessage(null);
 
-    // 既存のタイムアウトをクリア
-    if (debounceTimeout) {
-      clearTimeout(debounceTimeout);
-    }
-
-    // 500ms後にAPIで保存
-    const timeout = setTimeout(async () => {
-      await saveLotterySettings(newData);
-    }, 500);
-
-    setDebounceTimeout(timeout);
+    // 変更があるかチェック
+    const changed =
+      newData.maxWinsPerMonth !== originalData.maxWinsPerMonth ||
+      newData.winRateDivisor !== originalData.winRateDivisor;
+    setHasChanges(changed);
   };
 
-  const saveLotterySettings = async (data) => {
+  const handleSave = async () => {
     try {
       setSaving(true);
       setError(null);
-      
+      setSuccessMessage(null);
+
       await LotteryService.updateLotterySettings(formId, {
-        max_wins_per_month: data.maxWinsPerMonth,
-        win_rate_divisor: data.winRateDivisor
+        max_wins_per_month: lotteryData.maxWinsPerMonth,
+        win_rate_divisor: lotteryData.winRateDivisor
       });
-      
+
+      // 保存成功後、元データを更新
+      setOriginalData({
+        ...lotteryData
+      });
+      setHasChanges(false);
+      setSuccessMessage('抽選設定を保存しました');
+
       if (onLotteryUpdate) {
-        await onLotteryUpdate(data);
+        await onLotteryUpdate(lotteryData);
       }
     } catch (err) {
       setError('抽選設定の保存に失敗しました');
@@ -112,6 +131,13 @@ const LotterySettings = ({
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    setLotteryData({ ...originalData });
+    setHasChanges(false);
+    setError(null);
+    setSuccessMessage(null);
   };
 
   const calculateWinRate = () => {
@@ -172,9 +198,6 @@ const LotterySettings = ({
               フォーム回答者向けの抽選機能を設定
             </Typography>
           </Box>
-          {saving && (
-            <CircularProgress size={16} sx={{ color: '#5e17eb' }} />
-          )}
         </Box>
 
         {error && (
@@ -183,12 +206,18 @@ const LotterySettings = ({
           </Alert>
         )}
 
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            {successMessage}
+          </Alert>
+        )}
+
         {/* 設定項目 */}
         <Grid container spacing={3}>
           {/* 月最大当選回数 */}
           <Grid item xs={12} md={6}>
-            <Typography 
-              variant="subtitle2" 
+            <Typography
+              variant="subtitle2"
               sx={{ mb: 2, fontWeight: 600, color: '#374151' }}
             >
               月最大当選回数
@@ -220,8 +249,8 @@ const LotterySettings = ({
                 }
               }}
             />
-            <Typography 
-              variant="caption" 
+            <Typography
+              variant="caption"
               sx={{ color: '#94a3b8', mt: 1, display: 'block' }}
             >
               1ヶ月あたりの最大当選回数
@@ -230,8 +259,8 @@ const LotterySettings = ({
 
           {/* 当選確率 */}
           <Grid item xs={12} md={6}>
-            <Typography 
-              variant="subtitle2" 
+            <Typography
+              variant="subtitle2"
               sx={{ mb: 2, fontWeight: 600, color: '#374151' }}
             >
               当選確率分母
@@ -263,8 +292,8 @@ const LotterySettings = ({
                 }
               }}
             />
-            <Typography 
-              variant="caption" 
+            <Typography
+              variant="caption"
               sx={{ color: '#94a3b8', mt: 1, display: 'block' }}
             >
               1/{lotteryData.winRateDivisor} = {calculateWinRate()} の確率
@@ -272,16 +301,55 @@ const LotterySettings = ({
           </Grid>
         </Grid>
 
+        {/* 保存ボタン */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
+          {hasChanges && (
+            <Button
+              variant="outlined"
+              onClick={handleCancel}
+              sx={{
+                borderColor: '#e2e8f0',
+                color: '#64748b',
+                '&:hover': {
+                  borderColor: '#cbd5e1',
+                  backgroundColor: '#f8fafc'
+                }
+              }}
+            >
+              キャンセル
+            </Button>
+          )}
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            disabled={!hasChanges || saving}
+            startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveOutlined />}
+            sx={{
+              background: hasChanges ? 'linear-gradient(135deg, #5e17eb 0%, #7c3aed 100%)' : '#e2e8f0',
+              color: hasChanges ? 'white' : '#94a3b8',
+              '&:hover': {
+                background: hasChanges ? 'linear-gradient(135deg, #4c0fd9 0%, #6d28d9 100%)' : '#e2e8f0'
+              },
+              '&.Mui-disabled': {
+                background: '#e2e8f0',
+                color: '#94a3b8'
+              }
+            }}
+          >
+            {saving ? '保存中...' : '設定を保存'}
+          </Button>
+        </Box>
+
         <Divider sx={{ my: 3 }} />
 
         {/* 統計情報 */}
-        <Typography 
-          variant="subtitle2" 
+        <Typography
+          variant="subtitle2"
           sx={{ mb: 2, fontWeight: 600, color: '#374151' }}
         >
           今月の統計
         </Typography>
-        
+
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <Box
