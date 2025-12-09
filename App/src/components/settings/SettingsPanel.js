@@ -5,39 +5,21 @@ import {
   Typography,
   Stack
 } from '@mui/material';
-import ThemeSettings from './ThemeSettings';
-import ProjectSettings from './ProjectSettings';
 import PublishSettings from './PublishSettings';
 import LotterySettings from './LotterySettings';
 import QSCThemeSettings from './QSCThemeSettings';
 
 const SettingsPanel = ({
-  // テーマ設定のprops
-  selectedColor,
-  setSelectedColor,
-  selectedFont,
-  setSelectedFont,
-  logoImage,
-  setLogoImage,
-  
-  // プロジェクト設定のprops
-  projectTitle,
-  setProjectTitle,
-  
   // 公開設定のprops
   isPublished,
   setIsPublished,
-  onPublishClick, // HeaderBarの公開処理を呼び出すためのコールバック関数
+  onPublishClick,
   formId,
   formData,
-  
-  // Supabase連携用のprops
-  onThemeColorUpdate,
-  onLogoImageUpdate,
-  onProjectTitleUpdate,
-  
+  projectTitle,
+
   // アクティブセクション指定用
-  activeSection = 'all', // 'all', 'design', 'project', 'publish', 'lottery', 'qsc', 'login', 'completion'
+  activeSection = 'all', // 'all', 'publish', 'lottery', 'qsc', 'login', 'completion'
 
   // 抽選設定用のprops
   onLotteryUpdate,
@@ -75,29 +57,6 @@ const SettingsPanel = ({
 
         {/* 設定カード */}
         <Stack spacing={3} sx={{ width: '100%' }}>
-          {/* テーマ設定 */}
-          {(activeSection === 'all' || activeSection === 'design') && (
-            <ThemeSettings
-              selectedColor={selectedColor}
-              setSelectedColor={setSelectedColor}
-              selectedFont={selectedFont}
-              setSelectedFont={setSelectedFont}
-              logoImage={logoImage}
-              setLogoImage={setLogoImage}
-              onThemeColorUpdate={onThemeColorUpdate}
-              onLogoImageUpdate={onLogoImageUpdate}
-            />
-          )}
-
-          {/* プロジェクト設定 */}
-          {(activeSection === 'all' || activeSection === 'project') && (
-            <ProjectSettings
-              projectTitle={projectTitle}
-              setProjectTitle={setProjectTitle}
-              onProjectTitleUpdate={onProjectTitleUpdate}
-            />
-          )}
-
           {/* 公開設定 */}
           {(activeSection === 'all' || activeSection === 'publish') && (
             <PublishSettings
