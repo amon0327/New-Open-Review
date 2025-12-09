@@ -7,21 +7,18 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // バージョン確認用ログ（この行が表示されれば最新版）
-  console.log('=== create-review-form v2.1 - company_id support ===')
+  console.log('=== create-review-form v3.0 WITH COMPANY_ID ===')
 
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // サービスロール用のSupabaseクライアントを作成
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 認証用のSupabaseクライアント（JWTトークン検証用）
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -32,7 +29,6 @@ serve(async (req) => {
       }
     )
 
-    // JWTトークンからユーザー情報を取得
     const token = req.headers.get('Authorization')?.replace('Bearer ', '')
     if (!token) {
       throw new Error('認証トークンが必要です')
@@ -43,65 +39,75 @@ serve(async (req) => {
       throw new Error('認証に失敗しました')
     }
 
-    // リクエストボディから必要な情報を取得
     const { title, storeId, companyId: requestedCompanyId } = await req.json()
-
-    // タイトルが指定されていない場合はデフォルトを使用
     const reviewFormTitle = title || '新規レビューフォーム'
 
     let companyId = null
 
-    // ケース1: companyIdが明示的に指定されている場合（パートナーユーザー用）
+    // ケース1: companyIdが明示的に指定されている場合
     if (requestedCompanyId) {
-      console.log('Checking partner access for companyId:', requestedCompanyId, 'userId:', user.id)
+      console.log('Checking access for requested companyId:', requestedCompanyId)
 
-      // まずユーザーのパートナー企業IDを取得
-      const { data: partnerMemberships, error: membershipError } = await supabaseAdmin
-        .from('partner_memberships')
-        .select('partner_company_id')
-        .eq('business_users_id', user.id)
+      // 1-A: まず企業メンバーシップをチェック（company_memberships）
+      const { data: directMembership, error: directMembershipError } = await supabaseAdmin
+        .from('company_memberships')
+        .select('company_id')
+        .eq('business_user_id', user.id)
+        .eq('company_id', requestedCompanyId)
 
-      console.log('Partner memberships:', partnerMemberships, 'error:', membershipError)
-
-      if (membershipError) {
-        throw new Error(`パートナーメンバーシップ取得に失敗: ${membershipError.message}`)
+      if (directMembershipError) {
+        console.error('Company membership check error:', directMembershipError)
       }
 
-      // パートナー企業IDのリストを作成
-      if (partnerMemberships && partnerMemberships.length > 0) {
-        const partnerCompanyIds = partnerMemberships.map(m => m.partner_company_id)
-        console.log('Partner company IDs:', partnerCompanyIds)
+      if (directMembership && directMembership.length > 0) {
+        companyId = requestedCompanyId
+        console.log('Direct company membership found, companyId:', companyId)
+      }
 
-        // そのパートナー企業が指定された会社にアクセスできるかチェック
-        const { data: affiliateCompanies, error: affiliateError } = await supabaseAdmin
-          .from('partner_affiliate_companies')
-          .select('companies_id')
-          .eq('companies_id', requestedCompanyId)
-          .in('partner_company_id', partnerCompanyIds)
+      // 1-B: 企業メンバーシップがない場合、パートナーメンバーシップをチェック
+      if (!companyId) {
+        console.log('Checking partner access for companyId:', requestedCompanyId)
 
-        console.log('Affiliate companies:', affiliateCompanies, 'error:', affiliateError)
+        const { data: partnerMemberships, error: membershipError } = await supabaseAdmin
+          .from('partner_memberships')
+          .select('partner_company_id')
+          .eq('business_users_id', user.id)
 
-        if (affiliateError) {
-          throw new Error(`提携企業チェックに失敗: ${affiliateError.message}`)
+        if (membershipError) {
+          throw new Error(`パートナーメンバーシップ取得に失敗: ${membershipError.message}`)
         }
 
-        if (affiliateCompanies && affiliateCompanies.length > 0) {
-          console.log('Partner access granted for company:', requestedCompanyId)
-          companyId = requestedCompanyId
+        if (partnerMemberships && partnerMemberships.length > 0) {
+          const partnerCompanyIds = partnerMemberships.map(m => m.partner_company_id)
+
+          const { data: affiliateCompanies, error: affiliateError } = await supabaseAdmin
+            .from('partner_affiliate_companies')
+            .select('companies_id')
+            .eq('companies_id', requestedCompanyId)
+            .in('partner_company_id', partnerCompanyIds)
+
+          if (affiliateError) {
+            throw new Error(`提携企業チェックに失敗: ${affiliateError.message}`)
+          }
+
+          if (affiliateCompanies && affiliateCompanies.length > 0) {
+            companyId = requestedCompanyId
+            console.log('Partner access granted for company:', companyId)
+          }
         }
       }
     }
 
-    // ケース2: 通常の会社メンバーとしてのアクセス
-    if (!companyId) {
-      console.log('Checking company membership for userId:', user.id)
+    // ケース2: companyIdが指定されていない場合、通常の会社メンバーとしてのアクセス
+    if (!companyId && !requestedCompanyId) {
+      console.log('No companyId requested, checking company membership for userId:', user.id)
 
       const { data: companyMembership, error: membershipError } = await supabaseAdmin
         .from('company_memberships')
         .select('company_id')
         .eq('business_user_id', user.id)
 
-      console.log('Company memberships:', companyMembership, 'error:', membershipError)
+      console.log('Company memberships:', companyMembership)
 
       if (membershipError) {
         throw new Error(`会社情報の取得に失敗: ${membershipError.message}`)
@@ -113,44 +119,37 @@ serve(async (req) => {
       }
     }
 
-    // ケース3: パートナーメンバーシップのユーザーがcompanyIdを指定せずにフォーム作成
-    // パートナーが管理する最初の企業を自動選択
+    // ケース3: パートナーメンバーシップから自動選択
     if (!companyId) {
-      console.log('Checking partner membership for auto-select company, userId:', user.id)
+      console.log('Checking partner membership for auto-select')
 
       const { data: partnerMemberships, error: partnerError } = await supabaseAdmin
         .from('partner_memberships')
         .select('partner_company_id')
         .eq('business_users_id', user.id)
 
-      console.log('Partner memberships for auto-select:', partnerMemberships, 'error:', partnerError)
-
       if (!partnerError && partnerMemberships && partnerMemberships.length > 0) {
         const partnerCompanyIds = partnerMemberships.map(m => m.partner_company_id)
 
-        // パートナー企業が管理する企業を取得
         const { data: affiliateCompanies, error: affiliateError } = await supabaseAdmin
           .from('partner_affiliate_companies')
           .select('companies_id')
           .in('partner_company_id', partnerCompanyIds)
           .limit(1)
 
-        console.log('Affiliate companies for auto-select:', affiliateCompanies, 'error:', affiliateError)
-
         if (!affiliateError && affiliateCompanies && affiliateCompanies.length > 0) {
           companyId = affiliateCompanies[0].companies_id
-          console.log('Auto-selected company from partner affiliation:', companyId)
+          console.log('Auto-selected company:', companyId)
         }
       }
     }
 
-    // どちらの方法でも会社が見つからない場合
     if (!companyId) {
-      console.error('No company access found for user:', user.id, 'requestedCompanyId:', requestedCompanyId)
+      console.error('No company access found for user:', user.id)
       throw new Error('会社に所属していないか、アクセス権限がありません')
     }
 
-    // storeIdが指定されている場合、そのstoreが会社に属するかチェック
+    // storeIdチェック
     if (storeId) {
       const { data: storeData, error: storeError } = await supabaseAdmin
         .from('stores')
@@ -167,30 +166,26 @@ serve(async (req) => {
       }
     }
 
-    // レビューフォームを作成（サービスロールで）
-    // company_idを含めて作成することで、同じ会社のメンバーやパートナーがアクセス可能になる
-    console.log('Creating review form with company_id:', companyId, 'user_id:', user.id)
-
-    const insertData = {
-      business_users: user.id,
-      title: reviewFormTitle,
-      is_published: false,
-      is_deleted: false,
-      company_id: companyId
-    }
-    console.log('Insert data:', JSON.stringify(insertData))
+    // レビューフォームを作成 - company_idを含める
+    console.log('INSERTING review form with company_id:', companyId)
 
     const { data: reviewFormData, error: reviewFormError } = await supabaseAdmin
       .from('review_forms')
-      .insert([insertData])
+      .insert([
+        {
+          business_users: user.id,
+          title: reviewFormTitle,
+          is_published: false,
+          is_deleted: false,
+          company_id: companyId
+        }
+      ])
       .select('id, title, created_at, company_id')
 
     if (reviewFormError) {
-      console.error('Review form creation error:', reviewFormError)
+      console.error('Review form insert error:', reviewFormError)
       throw new Error(`レビューフォームの作成に失敗: ${reviewFormError.message}`)
     }
-
-    console.log('Review form created successfully:', JSON.stringify(reviewFormData))
 
     if (!reviewFormData || reviewFormData.length === 0) {
       throw new Error('レビューフォームデータの取得に失敗しました')
@@ -199,30 +194,16 @@ serve(async (req) => {
     const reviewForm = reviewFormData[0]
     console.log('Created review form:', JSON.stringify(reviewForm))
 
-    // 作成されたフォームのcompany_idを検証
-    if (reviewForm.company_id !== companyId) {
-      console.error('WARNING: company_id mismatch! Expected:', companyId, 'Got:', reviewForm.company_id)
-    } else {
-      console.log('SUCCESS: company_id correctly saved:', reviewForm.company_id)
-    }
-
-    // store_review_formsテーブルに関連付けを作成（サービスロールで）
+    // store_review_forms作成
     if (storeId) {
-      const { data: storeReviewFormData, error: storeReviewFormError } = await supabaseAdmin
+      const { error: storeReviewFormError } = await supabaseAdmin
         .from('store_review_forms')
-        .insert([
-          {
-            store_id: storeId,
-            review_form_id: reviewForm.id
-          }
-        ])
-        .select('id')
+        .insert([{ store_id: storeId, review_form_id: reviewForm.id }])
 
       if (storeReviewFormError) {
         throw new Error(`店舗とレビューフォームの関連付けに失敗: ${storeReviewFormError.message}`)
       }
     } else {
-      // storeIdが指定されていない場合は、会社の最初の店舗を使用
       const { data: firstStore, error: firstStoreError } = await supabaseAdmin
         .from('stores')
         .select('id')
@@ -237,37 +218,30 @@ serve(async (req) => {
         throw new Error('店舗が見つかりません。先に店舗を作成してください')
       }
 
-      const { data: storeReviewFormData, error: storeReviewFormError } = await supabaseAdmin
+      const { error: storeReviewFormError } = await supabaseAdmin
         .from('store_review_forms')
-        .insert([
-          {
-            store_id: firstStore[0].id,
-            review_form_id: reviewForm.id
-          }
-        ])
-        .select('id')
+        .insert([{ store_id: firstStore[0].id, review_form_id: reviewForm.id }])
 
       if (storeReviewFormError) {
         throw new Error(`店舗とレビューフォームの関連付けに失敗: ${storeReviewFormError.message}`)
       }
     }
 
-    const { data: lotteryData, error: lotteryError } = await supabaseAdmin
+    // lottery作成
+    const { error: lotteryError } = await supabaseAdmin
       .from('lottery')
-      .insert([
-        {
-          review_form_id: reviewForm.id,
-          max_wins_per_month: 1,
-          win_rate_divisor: 1000,
-          current_wins: 0,
-          current_trials: 0
-        }
-      ])
-      .select('id')
+      .insert([{
+        review_form_id: reviewForm.id,
+        max_wins_per_month: 1,
+        win_rate_divisor: 1000,
+        current_wins: 0,
+        current_trials: 0
+      }])
 
     if (lotteryError) {
       throw new Error(`抽選設定の作成に失敗: ${lotteryError.message}`)
     }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -276,7 +250,7 @@ serve(async (req) => {
           id: reviewForm.id,
           title: reviewForm.title,
           created_at: reviewForm.created_at,
-          company_id: companyId
+          company_id: reviewForm.company_id
         }
       }),
       {
