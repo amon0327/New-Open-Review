@@ -228,6 +228,13 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
     setDeleteDialogOpen(false);
   };
 
+  // QSCテーマの設定
+  const qscThemeConfig = {
+    quality: { label: 'Q', fullLabel: 'Quality', color: '#10b981', bgColor: '#ecfdf5' },
+    service: { label: 'S', fullLabel: 'Service', color: '#3b82f6', bgColor: '#eff6ff' },
+    cleanliness: { label: 'C', fullLabel: 'Cleanliness', color: '#8b5cf6', bgColor: '#f5f3ff' }
+  };
+
   // フォームデータの変換
   const formatFormData = (form) => ({
     id: form.id,
@@ -240,6 +247,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
     category: 'レビュー',
     themeColor: form.review_form_settings?.[0]?.theme_color || '#5e17eb',
     createdAt: new Date(form.created_at).toLocaleDateString('ja-JP'),
+    qscTheme: form.qsc_theme, // QSCテーマを追加
     // ソート用の生データも保持
     created_at: form.created_at,
     updated_at: form.updated_at
@@ -738,6 +746,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                           />
                         </TableCell>
                         <TableCell>フォーム名</TableCell>
+                        <TableCell align="center">QSC</TableCell>
                         <TableCell align="center">ステータス</TableCell>
                         <TableCell 
                           align="center"
@@ -859,6 +868,35 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                                   {formattedForm.title}
                                 </Typography>
                               </Box>
+                            </TableCell>
+
+                            {/* QSCテーマ */}
+                            <TableCell align="center" sx={{ py: 2 }}>
+                              {formattedForm.qscTheme && qscThemeConfig[formattedForm.qscTheme] ? (
+                                <Chip
+                                  label={qscThemeConfig[formattedForm.qscTheme].fullLabel}
+                                  size="small"
+                                  sx={{
+                                    backgroundColor: qscThemeConfig[formattedForm.qscTheme].bgColor,
+                                    color: qscThemeConfig[formattedForm.qscTheme].color,
+                                    fontWeight: 700,
+                                    fontSize: '0.7rem',
+                                    height: 24,
+                                    borderRadius: 1,
+                                    border: `1px solid ${qscThemeConfig[formattedForm.qscTheme].color}20`,
+                                    '& .MuiChip-label': {
+                                      px: 1
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <Typography
+                                  variant="caption"
+                                  sx={{ color: '#9ca3af', fontSize: '0.75rem' }}
+                                >
+                                  未設定
+                                </Typography>
+                              )}
                             </TableCell>
 
                             {/* ステータス */}
