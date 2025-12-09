@@ -18,8 +18,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
-  Tooltip
+  TableRow
 } from '@mui/material';
 import {
   Settings,
@@ -57,11 +56,11 @@ export default function FormPublishPage({ user }) {
 
   // 店舗データ（ダミーデータ）
   const [stores, setStores] = useState([
-    { id: '1', name: '渋谷店', companyName: 'サンプル株式会社', formId: 'abc123' },
-    { id: '2', name: '新宿店', companyName: 'サンプル株式会社', formId: 'def456' },
-    { id: '3', name: '池袋店', companyName: 'サンプル株式会社', formId: 'ghi789' },
-    { id: '4', name: '品川店', companyName: 'サンプル株式会社', formId: 'jkl012' },
-    { id: '5', name: '東京駅店', companyName: 'サンプル株式会社', formId: 'mno345' }
+    { id: '1', name: '渋谷店', address: '東京都渋谷区道玄坂1-1-1', companyName: 'サンプル株式会社', formId: 'abc123' },
+    { id: '2', name: '新宿店', address: '東京都新宿区西新宿2-2-2', companyName: 'サンプル株式会社', formId: 'def456' },
+    { id: '3', name: '池袋店', address: '東京都豊島区東池袋3-3-3', companyName: 'サンプル株式会社', formId: 'ghi789' },
+    { id: '4', name: '品川店', address: '東京都港区港南4-4-4', companyName: 'サンプル株式会社', formId: 'jkl012' },
+    { id: '5', name: '東京駅店', address: '東京都千代田区丸の内5-5-5', companyName: 'サンプル株式会社', formId: 'mno345' }
   ]);
 
   const surveyTypes = [
@@ -736,6 +735,7 @@ export default function FormPublishPage({ user }) {
                       店舗名
                     </Box>
                   </TableCell>
+                  <TableCell>住所</TableCell>
                   <TableCell>フォームURL</TableCell>
                   <TableCell align="center" sx={{ width: 180 }}>アクション</TableCell>
                 </TableRow>
@@ -767,16 +767,28 @@ export default function FormPublishPage({ user }) {
                       </Typography>
                     </TableCell>
 
-                    {/* URL */}
+                    {/* 住所 */}
                     <TableCell sx={{ py: 2 }}>
                       <Typography
                         sx={{
                           fontSize: '0.8rem',
+                          color: '#64748b'
+                        }}
+                      >
+                        {store.address}
+                      </Typography>
+                    </TableCell>
+
+                    {/* URL */}
+                    <TableCell sx={{ py: 2 }}>
+                      <Typography
+                        sx={{
+                          fontSize: '0.75rem',
                           color: '#64748b',
                           fontFamily: 'monospace',
                           bgcolor: '#f8fafc',
-                          px: 1.5,
-                          py: 0.75,
+                          px: 1,
+                          py: 0.5,
                           borderRadius: 0.5,
                           display: 'inline-block',
                           border: '1px solid #e5e7eb'
@@ -789,38 +801,52 @@ export default function FormPublishPage({ user }) {
                     {/* アクションボタン */}
                     <TableCell align="center" sx={{ py: 2 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                        <Tooltip title="URLをコピー">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleCopyUrl(store)}
-                            sx={{
-                              color: '#64748b',
-                              bgcolor: '#f1f5f9',
-                              '&:hover': {
-                                color: '#5e17eb',
-                                bgcolor: 'rgba(94, 23, 235, 0.1)'
-                              }
-                            }}
-                          >
-                            <ContentCopy sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="QRコードをダウンロード">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDownloadQR(store)}
-                            sx={{
-                              color: '#64748b',
-                              bgcolor: '#f1f5f9',
-                              '&:hover': {
-                                color: '#10b981',
-                                bgcolor: 'rgba(16, 185, 129, 0.1)'
-                              }
-                            }}
-                          >
-                            <QrCode2 sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Tooltip>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<ContentCopy sx={{ fontSize: 14 }} />}
+                          onClick={() => handleCopyUrl(store)}
+                          sx={{
+                            color: '#64748b',
+                            borderColor: '#e5e7eb',
+                            borderRadius: 0.5,
+                            textTransform: 'none',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            px: 1.5,
+                            py: 0.5,
+                            '&:hover': {
+                              color: '#5e17eb',
+                              borderColor: '#5e17eb',
+                              bgcolor: 'rgba(94, 23, 235, 0.04)'
+                            }
+                          }}
+                        >
+                          URLコピー
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<QrCode2 sx={{ fontSize: 14 }} />}
+                          onClick={() => handleDownloadQR(store)}
+                          sx={{
+                            color: '#64748b',
+                            borderColor: '#e5e7eb',
+                            borderRadius: 0.5,
+                            textTransform: 'none',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            px: 1.5,
+                            py: 0.5,
+                            '&:hover': {
+                              color: '#10b981',
+                              borderColor: '#10b981',
+                              bgcolor: 'rgba(16, 185, 129, 0.04)'
+                            }
+                          }}
+                        >
+                          QRダウンロード
+                        </Button>
                       </Box>
                     </TableCell>
                   </TableRow>
