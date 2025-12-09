@@ -9,6 +9,7 @@ import ThemeSettings from './ThemeSettings';
 import ProjectSettings from './ProjectSettings';
 import PublishSettings from './PublishSettings';
 import LotterySettings from './LotterySettings';
+import QSCThemeSettings from './QSCThemeSettings';
 
 const SettingsPanel = ({
   // テーマ設定のprops
@@ -36,10 +37,13 @@ const SettingsPanel = ({
   onProjectTitleUpdate,
   
   // アクティブセクション指定用
-  activeSection = 'all', // 'all', 'design', 'project', 'publish', 'lottery', 'login', 'completion'
-  
+  activeSection = 'all', // 'all', 'design', 'project', 'publish', 'lottery', 'qsc', 'login', 'completion'
+
   // 抽選設定用のprops
-  onLotteryUpdate
+  onLotteryUpdate,
+
+  // QSCテーマ設定用のprops
+  onQSCThemeUpdate
 }) => {
   return (
     <Box
@@ -111,6 +115,14 @@ const SettingsPanel = ({
             <LotterySettings
               formId={formId}
               onLotteryUpdate={onLotteryUpdate}
+            />
+          )}
+
+          {/* QSCテーマ設定 */}
+          {(activeSection === 'all' || activeSection === 'qsc') && (
+            <QSCThemeSettings
+              formId={formId}
+              onThemeUpdate={onQSCThemeUpdate}
             />
           )}
 
