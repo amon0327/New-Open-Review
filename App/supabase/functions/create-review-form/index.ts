@@ -110,6 +110,37 @@ serve(async (req) => {
       }
     }
 
+    // ケース3: パートナーメンバーシップのユーザーがcompanyIdを指定せずにフォーム作成
+    // パートナーが管理する最初の企業を自動選択
+    if (!companyId) {
+      console.log('Checking partner membership for auto-select company, userId:', user.id)
+
+      const { data: partnerMemberships, error: partnerError } = await supabaseAdmin
+        .from('partner_memberships')
+        .select('partner_company_id')
+        .eq('business_users_id', user.id)
+
+      console.log('Partner memberships for auto-select:', partnerMemberships, 'error:', partnerError)
+
+      if (!partnerError && partnerMemberships && partnerMemberships.length > 0) {
+        const partnerCompanyIds = partnerMemberships.map(m => m.partner_company_id)
+
+        // パートナー企業が管理する企業を取得
+        const { data: affiliateCompanies, error: affiliateError } = await supabaseAdmin
+          .from('partner_affiliate_companies')
+          .select('companies_id')
+          .in('partner_company_id', partnerCompanyIds)
+          .limit(1)
+
+        console.log('Affiliate companies for auto-select:', affiliateCompanies, 'error:', affiliateError)
+
+        if (!affiliateError && affiliateCompanies && affiliateCompanies.length > 0) {
+          companyId = affiliateCompanies[0].companies_id
+          console.log('Auto-selected company from partner affiliation:', companyId)
+        }
+      }
+    }
+
     // どちらの方法でも会社が見つからない場合
     if (!companyId) {
       console.error('No company access found for user:', user.id, 'requestedCompanyId:', requestedCompanyId)
@@ -135,28 +166,35 @@ serve(async (req) => {
 
     // レビューフォームを作成（サービスロールで）
     // company_idを含めて作成することで、同じ会社のメンバーやパートナーがアクセス可能になる
+    console.log('Creating review form with company_id:', companyId, 'user_id:', user.id)
+
+    const insertData = {
+      business_users: user.id,
+      title: reviewFormTitle,
+      is_published: false,
+      is_deleted: false,
+      company_id: companyId
+    }
+    console.log('Insert data:', JSON.stringify(insertData))
+
     const { data: reviewFormData, error: reviewFormError } = await supabaseAdmin
       .from('review_forms')
-      .insert([
-        {
-          business_users: user.id,
-          title: reviewFormTitle,
-          is_published: false,
-          is_deleted: false,
-          company_id: companyId
-        }
-      ])
+      .insert([insertData])
       .select('id, title, created_at, company_id')
 
     if (reviewFormError) {
+      console.error('Review form creation error:', reviewFormError)
       throw new Error(`レビューフォームの作成に失敗: ${reviewFormError.message}`)
     }
+
+    console.log('Review form created successfully:', JSON.stringify(reviewFormData))
 
     if (!reviewFormData || reviewFormData.length === 0) {
       throw new Error('レビューフォームデータの取得に失敗しました')
     }
 
     const reviewForm = reviewFormData[0]
+    console.log('Created review form:', JSON.stringify(reviewForm))
 
     // store_review_formsテーブルに関連付けを作成（サービスロールで）
     if (storeId) {
