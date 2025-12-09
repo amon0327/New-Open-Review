@@ -33,7 +33,8 @@ import {
   Business,
   Apps,
   ArrowBack,
-  People
+  People,
+  Publish
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
@@ -50,12 +51,14 @@ import SettingsPage from './dashboard/pages/SettingsPage';
 import StoresManagementPage from './dashboard/pages/StoresManagementPage';
 import AppPage from './dashboard/pages/AppPage';
 import CompanyAdminPage from './dashboard/pages/CompanyAdminPage';
+import FormPublishPage from './dashboard/pages/FormPublishPage';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
 
 const navigationItems = [
   { text: 'ホーム', icon: <Home />, component: HomePage },
+  { text: 'フォーム公開', icon: <Publish />, component: FormPublishPage },
   { text: '店舗管理', icon: <Business />, component: StoresManagementPage },
   { text: '管理メンバー', icon: <People />, component: CompanyAdminPage },
   { text: 'アプリ表示', icon: <Apps />, component: AppPage },
