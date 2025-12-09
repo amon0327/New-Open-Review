@@ -100,7 +100,7 @@ export default function FormPublishPage({ user }) {
   // 当選確率を計算
   const calculateWinRate = () => {
     if (lotterySettings.winRateDivisor <= 0) return 0;
-    return (1 / lotterySettings.winRateDivisor * 100).toFixed(1);
+    return (1 / lotterySettings.winRateDivisor * 100).toFixed(3);
   };
 
   return (
