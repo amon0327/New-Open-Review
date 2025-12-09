@@ -18,7 +18,11 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  Select,
+  MenuItem,
+  FormControl,
+  Chip
 } from '@mui/material';
 import {
   Settings,
@@ -26,7 +30,9 @@ import {
   ContentCopy,
   Download,
   QrCode2,
-  Store
+  Store,
+  Description,
+  KeyboardArrowDown
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import QRCode from 'qrcode';
@@ -40,6 +46,33 @@ export default function FormPublishPage({ user }) {
   });
   const [showCycleSettings, setShowCycleSettings] = useState(false);
   const [cycleConfirmDialogOpen, setCycleConfirmDialogOpen] = useState(false);
+
+  // 各QSCテーマに紐づくレビューフォーム選択
+  const [selectedForms, setSelectedForms] = useState({
+    Quality: '',
+    Service: '',
+    Cleanliness: ''
+  });
+  const [showFormSettings, setShowFormSettings] = useState(false);
+
+  // レビューフォームデータ（ダミーデータ - QSCテーマ別）
+  const [reviewForms, setReviewForms] = useState({
+    Quality: [
+      { id: 'q1', name: '品質チェックフォームA', description: '商品品質の総合評価' },
+      { id: 'q2', name: '品質チェックフォームB', description: '料理の味・見た目評価' },
+      { id: 'q3', name: '品質チェックフォームC', description: '提供スピード評価' }
+    ],
+    Service: [
+      { id: 's1', name: 'サービス評価フォームA', description: '接客態度の評価' },
+      { id: 's2', name: 'サービス評価フォームB', description: 'スタッフ対応評価' },
+      { id: 's3', name: 'サービス評価フォームC', description: '電話対応評価' }
+    ],
+    Cleanliness: [
+      { id: 'c1', name: '清潔度チェックフォームA', description: '店内清掃状態の評価' },
+      { id: 'c2', name: '清潔度チェックフォームB', description: 'トイレ清潔度評価' },
+      { id: 'c3', name: '清潔度チェックフォームC', description: '厨房衛生評価' }
+    ]
+  });
 
   // 抽選設定
   const [showLotterySettings, setShowLotterySettings] = useState(false);
@@ -154,6 +187,21 @@ export default function FormPublishPage({ user }) {
         [groupKey]: newType
       }));
     }
+  };
+
+  // フォーム選択変更ハンドラー
+  const handleFormSelect = (themeId, formId) => {
+    setSelectedForms(prev => ({
+      ...prev,
+      [themeId]: formId
+    }));
+  };
+
+  // 選択されたフォーム情報を取得
+  const getSelectedFormInfo = (themeId) => {
+    const formId = selectedForms[themeId];
+    if (!formId) return null;
+    return reviewForms[themeId]?.find(f => f.id === formId);
   };
 
   // 抽選設定変更ハンドラー
@@ -407,6 +455,255 @@ export default function FormPublishPage({ user }) {
               )}
             </Paper>
           )}
+        </Container>
+
+        {/* 公開フォーム選択セクション */}
+        <Container maxWidth="xl" sx={{ mb: 3 }}>
+          {/* セクションヘッダー */}
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: '#1a202c',
+                mb: 0.5,
+                fontSize: '1.75rem'
+              }}
+            >
+              公開フォーム設定
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.875rem'
+              }}
+            >
+              各QSCテーマで公開するレビューフォームを選択
+            </Typography>
+          </Box>
+
+          {/* QSCフォーム選択カード */}
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: 0.5,
+              border: '1px solid rgba(0, 0, 0, 0.06)',
+              overflow: 'hidden'
+            }}
+          >
+            {/* メイン表示部分 */}
+            <Box
+              sx={{
+                p: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                {/* カラーインジケーター */}
+                <Box
+                  sx={{
+                    width: 4,
+                    height: 40,
+                    borderRadius: 0.5,
+                    bgcolor: '#8b5cf6'
+                  }}
+                />
+
+                {/* フォーム設定情報 */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                    レビューフォーム
+                  </Typography>
+                  <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: '#8b5cf6' }}>
+                    QSC別フォーム設定
+                  </Typography>
+                </Box>
+
+                {/* 選択状況 */}
+                <Box sx={{ ml: 4, display: 'flex', gap: 1 }}>
+                  {surveyTypes.map((type) => {
+                    const selectedForm = getSelectedFormInfo(type.id);
+                    return (
+                      <Chip
+                        key={type.id}
+                        label={`${type.label}: ${selectedForm ? '設定済' : '未設定'}`}
+                        size="small"
+                        sx={{
+                          bgcolor: selectedForm ? type.bgColor : '#f1f5f9',
+                          color: selectedForm ? type.color : '#94a3b8',
+                          fontWeight: 600,
+                          fontSize: '0.7rem',
+                          border: `1px solid ${selectedForm ? type.color : '#e5e7eb'}`,
+                          '& .MuiChip-label': {
+                            px: 1
+                          }
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
+              </Box>
+
+              {/* 設定ボタン */}
+              <IconButton
+                onClick={() => setShowFormSettings(!showFormSettings)}
+                sx={{
+                  color: showFormSettings ? '#5e17eb' : '#94a3b8',
+                  bgcolor: showFormSettings ? 'rgba(94, 23, 235, 0.08)' : 'transparent',
+                  '&:hover': {
+                    color: '#5e17eb',
+                    bgcolor: 'rgba(94, 23, 235, 0.08)'
+                  }
+                }}
+              >
+                {showFormSettings ? <Close /> : <Settings />}
+              </IconButton>
+            </Box>
+
+            {/* フォーム選択パネル（開閉式） */}
+            {showFormSettings && (
+              <Box sx={{ borderTop: '1px solid #e5e7eb' }}>
+                <Box sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {surveyTypes.map((type) => (
+                      <Box
+                        key={type.id}
+                        sx={{
+                          p: 2,
+                          borderRadius: 1,
+                          bgcolor: '#fafafa',
+                          border: `1px solid ${selectedForms[type.id] ? type.color : '#e5e7eb'}`,
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {/* テーマヘッダー */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                          <Box
+                            sx={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 1,
+                              bgcolor: type.color,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>
+                              {type.label}
+                            </Typography>
+                          </Box>
+                          <Box>
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a202c' }}>
+                              {type.fullLabel}
+                            </Typography>
+                            <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>
+                              このテーマで公開するフォームを選択
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        {/* フォーム選択ドロップダウン */}
+                        <FormControl fullWidth size="small">
+                          <Select
+                            value={selectedForms[type.id]}
+                            onChange={(e) => handleFormSelect(type.id, e.target.value)}
+                            displayEmpty
+                            IconComponent={KeyboardArrowDown}
+                            sx={{
+                              bgcolor: '#fff',
+                              borderRadius: 0.5,
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#e5e7eb'
+                              },
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: type.color
+                              },
+                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: type.color
+                              }
+                            }}
+                          >
+                            <MenuItem value="" disabled>
+                              <Typography sx={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                                フォームを選択してください
+                              </Typography>
+                            </MenuItem>
+                            {reviewForms[type.id]?.map((form) => (
+                              <MenuItem key={form.id} value={form.id}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                  <Description sx={{ fontSize: 16, color: type.color }} />
+                                  <Box>
+                                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                                      {form.name}
+                                    </Typography>
+                                    <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>
+                                      {form.description}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+
+                        {/* 選択されたフォーム情報 */}
+                        {selectedForms[type.id] && (
+                          <Box
+                            sx={{
+                              mt: 1.5,
+                              p: 1.5,
+                              borderRadius: 0.5,
+                              bgcolor: type.bgColor,
+                              border: `1px solid ${type.color}20`
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Description sx={{ fontSize: 14, color: type.color }} />
+                              <Typography sx={{ fontSize: '0.75rem', color: type.color, fontWeight: 600 }}>
+                                選択中: {getSelectedFormInfo(type.id)?.name}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        )}
+                      </Box>
+                    ))}
+                  </Box>
+
+                  {/* 保存ボタン */}
+                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => {
+                        toast.success('公開フォーム設定を保存しました');
+                        setShowFormSettings(false);
+                      }}
+                      sx={{
+                        background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                        borderRadius: 0.5,
+                        px: 2.5,
+                        py: 0.75,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        boxShadow: 'none',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                          boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
+                        }
+                      }}
+                    >
+                      保存
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
+            )}
+          </Paper>
         </Container>
 
         {/* 抽選設定セクション */}
