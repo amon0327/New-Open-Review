@@ -11,11 +11,15 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  DialogContentText
+  DialogContentText,
+  TextField,
+  InputAdornment,
+  Slider
 } from '@mui/material';
 import {
   Settings,
-  Close
+  Close,
+  CardGiftcard
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 
@@ -28,6 +32,13 @@ export default function FormPublishPage({ user }) {
   });
   const [showCycleSettings, setShowCycleSettings] = useState(false);
   const [cycleConfirmDialogOpen, setCycleConfirmDialogOpen] = useState(false);
+
+  // 抽選設定
+  const [showLotterySettings, setShowLotterySettings] = useState(false);
+  const [lotterySettings, setLotterySettings] = useState({
+    maxWinsPerMonth: 100,
+    winRateDivisor: 10
+  });
 
   const surveyTypes = [
     { id: 'Quality', label: 'Q', fullLabel: 'Quality', color: '#6366f1', bgColor: '#eef2ff' },
@@ -81,6 +92,20 @@ export default function FormPublishPage({ user }) {
     }
   };
 
+  // 抽選設定変更ハンドラー
+  const handleLotterySettingChange = (field, value) => {
+    setLotterySettings(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // 当選確率を計算
+  const calculateWinRate = () => {
+    if (lotterySettings.winRateDivisor <= 0) return 0;
+    return (1 / lotterySettings.winRateDivisor * 100).toFixed(1);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -101,43 +126,17 @@ export default function FormPublishPage({ user }) {
           px: 0
         }}
       >
-        {/* ページヘッダー */}
-        <Container maxWidth="xl" sx={{ mt: 2, mb: 3 }}>
-          <Box sx={{ mb: 4 }}>
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                color: '#1a202c',
-                mb: 1,
-                fontSize: '2rem'
-              }}
-            >
-              フォーム公開
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: 'text.secondary',
-                fontSize: '1rem'
-              }}
-            >
-              レビューフォームの公開設定と評価サイクルを管理
-            </Typography>
-          </Box>
-        </Container>
-
         {/* 今月の評価項目セクション */}
-        <Container maxWidth="xl" sx={{ mb: 4 }}>
+        <Container maxWidth="xl" sx={{ mt: 2, mb: 3 }}>
           {/* セクションヘッダー */}
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 4 }}>
             <Typography
               variant="h5"
               sx={{
                 fontWeight: 700,
                 color: '#1a202c',
                 mb: 0.5,
-                fontSize: '1.5rem'
+                fontSize: '1.75rem'
               }}
             >
               今月の評価項目
@@ -158,7 +157,7 @@ export default function FormPublishPage({ user }) {
             <Paper
               elevation={0}
               sx={{
-                borderRadius: 2,
+                borderRadius: 0.5,
                 border: '1px solid rgba(0, 0, 0, 0.06)',
                 overflow: 'hidden'
               }}
@@ -166,33 +165,30 @@ export default function FormPublishPage({ user }) {
               {/* メイン表示部分 */}
               <Box
                 sx={{
-                  p: 3,
+                  p: 2,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between'
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   {/* カラーインジケーター */}
                   <Box
                     sx={{
-                      width: 6,
-                      height: 60,
-                      borderRadius: 1,
+                      width: 4,
+                      height: 40,
+                      borderRadius: 0.5,
                       bgcolor: currentSurveyType.color
                     }}
                   />
 
                   {/* 年月と評価項目 */}
                   <Box>
-                    <Typography sx={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 500, mb: 0.5 }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
                       {currentYear}年{currentMonth}月
                     </Typography>
-                    <Typography sx={{ fontSize: '1.75rem', fontWeight: 700, color: currentSurveyType.color }}>
+                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: currentSurveyType.color }}>
                       {currentSurveyType.fullLabel}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.8rem', color: '#94a3b8', mt: 0.5 }}>
-                      今月の評価テーマ
                     </Typography>
                   </Box>
                 </Box>
@@ -203,8 +199,6 @@ export default function FormPublishPage({ user }) {
                   sx={{
                     color: showCycleSettings ? '#5e17eb' : '#94a3b8',
                     bgcolor: showCycleSettings ? 'rgba(94, 23, 235, 0.08)' : 'transparent',
-                    width: 48,
-                    height: 48,
                     '&:hover': {
                       color: '#5e17eb',
                       bgcolor: 'rgba(94, 23, 235, 0.08)'
@@ -218,11 +212,8 @@ export default function FormPublishPage({ user }) {
               {/* 設定パネル（開閉式） */}
               {showCycleSettings && (
                 <Box sx={{ borderTop: '1px solid #e5e7eb' }}>
-                  <Box sx={{ p: 3 }}>
-                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: '#374151', mb: 2 }}>
-                      サイクル設定
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Box sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       {cycleGroups.map((group) => {
                         const selectedType = surveyTypes.find(t => t.id === surveyCycleConfig[group.key]);
                         return (
@@ -231,21 +222,21 @@ export default function FormPublishPage({ user }) {
                             sx={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: 3,
-                              p: 2,
-                              borderRadius: 1.5,
+                              gap: 2,
+                              p: 1.5,
+                              borderRadius: 0.5,
                               bgcolor: '#fafafa'
                             }}
                           >
                             {/* 月表示 */}
-                            <Box sx={{ display: 'flex', gap: 0.75, minWidth: 160 }}>
+                            <Box sx={{ display: 'flex', gap: 0.5, minWidth: 140 }}>
                               {group.months.map((month) => (
                                 <Box
                                   key={month}
                                   sx={{
-                                    width: 36,
-                                    height: 36,
-                                    borderRadius: 1,
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 0.5,
                                     bgcolor: month === currentMonth ? '#1a202c' : '#fff',
                                     border: month === currentMonth ? 'none' : '1px solid #e5e7eb',
                                     display: 'flex',
@@ -255,7 +246,7 @@ export default function FormPublishPage({ user }) {
                                 >
                                   <Typography
                                     sx={{
-                                      fontSize: '0.8rem',
+                                      fontSize: '0.75rem',
                                       fontWeight: 600,
                                       color: month === currentMonth ? '#fff' : '#374151'
                                     }}
@@ -267,10 +258,10 @@ export default function FormPublishPage({ user }) {
                             </Box>
 
                             {/* 矢印 */}
-                            <Typography sx={{ color: '#d1d5db', fontSize: '1.25rem' }}>→</Typography>
+                            <Typography sx={{ color: '#d1d5db', fontSize: '1rem' }}>→</Typography>
 
                             {/* アンケート種類選択 */}
-                            <Box sx={{ display: 'flex', gap: 1 }}>
+                            <Box sx={{ display: 'flex', gap: 0.75 }}>
                               {surveyTypes.map((type) => {
                                 const isSelected = surveyCycleConfig[group.key] === type.id;
                                 return (
@@ -278,16 +269,16 @@ export default function FormPublishPage({ user }) {
                                     key={type.id}
                                     onClick={() => handleCycleChange(group.key, type.id)}
                                     sx={{
-                                      px: 2,
-                                      py: 1,
-                                      borderRadius: 1,
+                                      px: 1.5,
+                                      py: 0.75,
+                                      borderRadius: 0.5,
                                       cursor: 'pointer',
                                       bgcolor: isSelected ? type.color : '#fff',
-                                      border: `2px solid ${isSelected ? type.color : '#e5e7eb'}`,
+                                      border: `1.5px solid ${isSelected ? type.color : '#e5e7eb'}`,
                                       transition: 'all 0.15s',
                                       display: 'flex',
                                       alignItems: 'center',
-                                      gap: 1,
+                                      gap: 0.75,
                                       '&:hover': {
                                         borderColor: type.color,
                                         bgcolor: isSelected ? type.color : type.bgColor
@@ -296,15 +287,15 @@ export default function FormPublishPage({ user }) {
                                   >
                                     <Box
                                       sx={{
-                                        width: 8,
-                                        height: 8,
+                                        width: 6,
+                                        height: 6,
                                         borderRadius: '50%',
                                         bgcolor: isSelected ? '#fff' : type.color
                                       }}
                                     />
                                     <Typography
                                       sx={{
-                                        fontSize: '0.85rem',
+                                        fontSize: '0.75rem',
                                         fontWeight: 600,
                                         color: isSelected ? '#fff' : type.color
                                       }}
@@ -321,30 +312,30 @@ export default function FormPublishPage({ user }) {
                     </Box>
 
                     {/* 説明文と確定ボタン */}
-                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
                         ※ 各項目は重複不可。選択すると自動で入れ替わります。
                       </Typography>
                       <Button
                         variant="contained"
-                        size="medium"
+                        size="small"
                         onClick={() => setCycleConfirmDialogOpen(true)}
                         sx={{
                           background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                          borderRadius: 1.5,
-                          px: 4,
-                          py: 1,
+                          borderRadius: 0.5,
+                          px: 2.5,
+                          py: 0.75,
                           textTransform: 'none',
                           fontWeight: 600,
-                          fontSize: '0.9rem',
+                          fontSize: '0.8rem',
                           boxShadow: 'none',
                           '&:hover': {
                             background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-                            boxShadow: '0 4px 12px rgba(94, 23, 235, 0.3)',
+                            boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
                           }
                         }}
                       >
-                        設定を保存
+                        保存
                       </Button>
                     </Box>
                   </Box>
@@ -354,13 +345,233 @@ export default function FormPublishPage({ user }) {
           )}
         </Container>
 
+        {/* 抽選設定セクション */}
+        <Container maxWidth="xl" sx={{ mb: 3 }}>
+          {/* セクションヘッダー */}
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: '#1a202c',
+                mb: 0.5,
+                fontSize: '1.75rem'
+              }}
+            >
+              抽選設定
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.875rem'
+              }}
+            >
+              レビュー回答者への抽選プレゼントの設定
+            </Typography>
+          </Box>
+
+          {/* 抽選設定カード */}
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: 0.5,
+              border: '1px solid rgba(0, 0, 0, 0.06)',
+              overflow: 'hidden'
+            }}
+          >
+            {/* メイン表示部分 */}
+            <Box
+              sx={{
+                p: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                {/* カラーインジケーター */}
+                <Box
+                  sx={{
+                    width: 4,
+                    height: 40,
+                    borderRadius: 0.5,
+                    bgcolor: '#f59e0b'
+                  }}
+                />
+
+                {/* 抽選情報 */}
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                    当選確率
+                  </Typography>
+                  <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: '#f59e0b' }}>
+                    {calculateWinRate()}%
+                  </Typography>
+                </Box>
+
+                {/* 月間当選上限 */}
+                <Box sx={{ ml: 4 }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                    月間上限
+                  </Typography>
+                  <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: '#374151' }}>
+                    {lotterySettings.maxWinsPerMonth}名
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* 設定ボタン */}
+              <IconButton
+                onClick={() => setShowLotterySettings(!showLotterySettings)}
+                sx={{
+                  color: showLotterySettings ? '#5e17eb' : '#94a3b8',
+                  bgcolor: showLotterySettings ? 'rgba(94, 23, 235, 0.08)' : 'transparent',
+                  '&:hover': {
+                    color: '#5e17eb',
+                    bgcolor: 'rgba(94, 23, 235, 0.08)'
+                  }
+                }}
+              >
+                {showLotterySettings ? <Close /> : <Settings />}
+              </IconButton>
+            </Box>
+
+            {/* 設定パネル（開閉式） */}
+            {showLotterySettings && (
+              <Box sx={{ borderTop: '1px solid #e5e7eb' }}>
+                <Box sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {/* 月間当選上限 */}
+                    <Box>
+                      <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', mb: 1.5 }}>
+                        月間当選上限
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <TextField
+                          type="number"
+                          value={lotterySettings.maxWinsPerMonth}
+                          onChange={(e) => handleLotterySettingChange('maxWinsPerMonth', parseInt(e.target.value) || 0)}
+                          size="small"
+                          InputProps={{
+                            endAdornment: <InputAdornment position="end">名</InputAdornment>,
+                          }}
+                          sx={{
+                            width: 120,
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 0.5,
+                              fontSize: '0.9rem',
+                              '& fieldset': {
+                                borderColor: '#e5e7eb'
+                              },
+                              '&:hover fieldset': {
+                                borderColor: '#d1d5db'
+                              },
+                              '&.Mui-focused fieldset': {
+                                borderColor: '#5e17eb'
+                              }
+                            }
+                          }}
+                        />
+                        <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+                          毎月この人数まで当選が可能
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* 当選確率 */}
+                    <Box>
+                      <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', mb: 1.5 }}>
+                        当選確率（1/{lotterySettings.winRateDivisor}）
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 1 }}>
+                        <Slider
+                          value={lotterySettings.winRateDivisor}
+                          onChange={(e, value) => handleLotterySettingChange('winRateDivisor', value)}
+                          min={2}
+                          max={100}
+                          step={1}
+                          sx={{
+                            flex: 1,
+                            color: '#f59e0b',
+                            '& .MuiSlider-thumb': {
+                              width: 16,
+                              height: 16,
+                              '&:hover, &.Mui-focusVisible': {
+                                boxShadow: '0 0 0 8px rgba(245, 158, 11, 0.16)'
+                              }
+                            },
+                            '& .MuiSlider-track': {
+                              height: 4
+                            },
+                            '& .MuiSlider-rail': {
+                              height: 4,
+                              bgcolor: '#e5e7eb'
+                            }
+                          }}
+                        />
+                        <Box
+                          sx={{
+                            minWidth: 80,
+                            px: 1.5,
+                            py: 0.75,
+                            bgcolor: '#fffbeb',
+                            borderRadius: 0.5,
+                            border: '1px solid #fbbf24',
+                            textAlign: 'center'
+                          }}
+                        >
+                          <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: '#f59e0b' }}>
+                            {calculateWinRate()}%
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', mt: 1 }}>
+                        数値が大きいほど当選確率が下がります（2〜100の範囲）
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* 保存ボタン */}
+                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => {
+                        toast.success('抽選設定を保存しました');
+                        setShowLotterySettings(false);
+                      }}
+                      sx={{
+                        background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                        borderRadius: 0.5,
+                        px: 2.5,
+                        py: 0.75,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        boxShadow: 'none',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                          boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
+                        }
+                      }}
+                    >
+                      保存
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
+            )}
+          </Paper>
+        </Container>
+
         {/* サイクル設定確認ダイアログ */}
         <Dialog
           open={cycleConfirmDialogOpen}
           onClose={() => setCycleConfirmDialogOpen(false)}
           PaperProps={{
             sx: {
-              borderRadius: 3,
+              borderRadius: 2,
               boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
               maxWidth: 440
             }
@@ -394,7 +605,7 @@ export default function FormPublishPage({ user }) {
                 textTransform: 'none',
                 px: 3,
                 py: 1,
-                borderRadius: 1.5,
+                borderRadius: 1,
                 '&:hover': {
                   backgroundColor: 'rgba(107, 114, 128, 0.08)'
                 }
@@ -416,7 +627,7 @@ export default function FormPublishPage({ user }) {
                 textTransform: 'none',
                 px: 3,
                 py: 1,
-                borderRadius: 1.5,
+                borderRadius: 1,
                 '&:hover': {
                   background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
                 }
