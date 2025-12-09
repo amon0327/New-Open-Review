@@ -12,13 +12,25 @@ import {
   DialogContent,
   DialogActions,
   DialogContentText,
-  Slider
+  Slider,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip
 } from '@mui/material';
 import {
   Settings,
-  Close
+  Close,
+  ContentCopy,
+  Download,
+  QrCode2,
+  Store
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
+import QRCode from 'qrcode';
 
 export default function FormPublishPage({ user }) {
   // アンケートサイクル設定
@@ -36,6 +48,21 @@ export default function FormPublishPage({ user }) {
     maxWinsPerMonth: 1,
     winRateDivisor: 1000
   });
+
+  // 今月の抽選統計（ダミーデータ）
+  const [lotteryStats, setLotteryStats] = useState({
+    totalAttempts: 245,
+    totalWins: 0
+  });
+
+  // 店舗データ（ダミーデータ）
+  const [stores, setStores] = useState([
+    { id: '1', name: '渋谷店', companyName: 'サンプル株式会社', formId: 'abc123' },
+    { id: '2', name: '新宿店', companyName: 'サンプル株式会社', formId: 'def456' },
+    { id: '3', name: '池袋店', companyName: 'サンプル株式会社', formId: 'ghi789' },
+    { id: '4', name: '品川店', companyName: 'サンプル株式会社', formId: 'jkl012' },
+    { id: '5', name: '東京駅店', companyName: 'サンプル株式会社', formId: 'mno345' }
+  ]);
 
   const surveyTypes = [
     { id: 'Quality', label: 'Q', fullLabel: 'Quality', color: '#6366f1', bgColor: '#eef2ff' },
@@ -64,15 +91,57 @@ export default function FormPublishPage({ user }) {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
 
+  // ベースURL
+  const baseUrl = 'https://review.example.com/form';
+
+  // 店舗のレビューフォームURLを生成
+  const getStoreFormUrl = (store) => {
+    return `${baseUrl}/${store.formId}`;
+  };
+
+  // URLをクリップボードにコピー
+  const handleCopyUrl = (store) => {
+    const url = getStoreFormUrl(store);
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success(`${store.name}のURLをコピーしました`);
+    }).catch(() => {
+      toast.error('コピーに失敗しました');
+    });
+  };
+
+  // QRコードをダウンロード
+  const handleDownloadQR = async (store) => {
+    try {
+      const url = getStoreFormUrl(store);
+      const qrDataUrl = await QRCode.toDataURL(url, {
+        width: 512,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      });
+
+      // ダウンロードリンクを作成
+      const link = document.createElement('a');
+      link.download = `${store.name}_${store.companyName}_QR.png`;
+      link.href = qrDataUrl;
+      link.click();
+
+      toast.success(`${store.name}のQRコードをダウンロードしました`);
+    } catch (error) {
+      console.error('QR code generation error:', error);
+      toast.error('QRコードの生成に失敗しました');
+    }
+  };
+
   // サイクル設定変更ハンドラー（重複を許さない）
   const handleCycleChange = (groupKey, newType) => {
-    // 現在の設定から、newTypeを持っている他のグループを探す
     const otherGroupWithSameType = Object.entries(surveyCycleConfig).find(
       ([key, type]) => key !== groupKey && type === newType
     );
 
     if (otherGroupWithSameType) {
-      // 交換する：選択したグループに新しいタイプを、元のグループに現在のタイプを
       const [otherGroupKey] = otherGroupWithSameType;
       const currentType = surveyCycleConfig[groupKey];
       setSurveyCycleConfig(prev => ({
@@ -81,7 +150,6 @@ export default function FormPublishPage({ user }) {
         [otherGroupKey]: currentType
       }));
     } else {
-      // 重複がない場合はそのまま設定
       setSurveyCycleConfig(prev => ({
         ...prev,
         [groupKey]: newType
@@ -419,6 +487,29 @@ export default function FormPublishPage({ user }) {
                     {lotterySettings.maxWinsPerMonth}名
                   </Typography>
                 </Box>
+
+                {/* 今月の試行回数 */}
+                <Box sx={{ ml: 4 }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                    今月の試行回数
+                  </Typography>
+                  <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: '#3b82f6' }}>
+                    {lotteryStats.totalAttempts}回
+                  </Typography>
+                </Box>
+
+                {/* 今月の当選回数 */}
+                <Box sx={{ ml: 4 }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                    今月の当選回数
+                  </Typography>
+                  <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: '#10b981' }}>
+                    {lotteryStats.totalWins}回
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                    (残り{lotterySettings.maxWinsPerMonth - lotteryStats.totalWins}回)
+                  </Typography>
+                </Box>
               </Box>
 
               {/* 設定ボタン */}
@@ -587,6 +678,188 @@ export default function FormPublishPage({ user }) {
               </Box>
             )}
           </Paper>
+        </Container>
+
+        {/* 店舗別フォームURLセクション */}
+        <Container maxWidth="xl" sx={{ mb: 6 }}>
+          {/* セクションヘッダー */}
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: '#1a202c',
+                mb: 0.5,
+                fontSize: '1.75rem'
+              }}
+            >
+              店舗別フォームURL
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.875rem'
+              }}
+            >
+              各店舗のレビューフォームURLとQRコードを管理
+            </Typography>
+          </Box>
+
+          {/* 店舗一覧テーブル */}
+          <TableContainer
+            component={Paper}
+            elevation={0}
+            sx={{
+              borderRadius: 0.5,
+              border: '1px solid rgba(0, 0, 0, 0.06)',
+              overflow: 'hidden'
+            }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow
+                  sx={{
+                    backgroundColor: '#f8fafc',
+                    '& .MuiTableCell-head': {
+                      fontWeight: 700,
+                      fontSize: '0.8rem',
+                      color: '#374151',
+                      borderBottom: '1px solid #e5e7eb',
+                      py: 1.5
+                    }
+                  }}
+                >
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Store sx={{ fontSize: 16, color: '#64748b' }} />
+                      店舗名
+                    </Box>
+                  </TableCell>
+                  <TableCell>フォームURL</TableCell>
+                  <TableCell align="center" sx={{ width: 180 }}>アクション</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {stores.map((store) => (
+                  <TableRow
+                    key={store.id}
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: 'rgba(94, 23, 235, 0.02)'
+                      },
+                      '&:last-child td': {
+                        border: 0
+                      },
+                      borderBottom: '1px solid rgba(0, 0, 0, 0.04)'
+                    }}
+                  >
+                    {/* 店舗名 */}
+                    <TableCell sx={{ py: 2 }}>
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '0.9rem',
+                          color: '#1a202c'
+                        }}
+                      >
+                        {store.name}
+                      </Typography>
+                    </TableCell>
+
+                    {/* URL */}
+                    <TableCell sx={{ py: 2 }}>
+                      <Typography
+                        sx={{
+                          fontSize: '0.8rem',
+                          color: '#64748b',
+                          fontFamily: 'monospace',
+                          bgcolor: '#f8fafc',
+                          px: 1.5,
+                          py: 0.75,
+                          borderRadius: 0.5,
+                          display: 'inline-block',
+                          border: '1px solid #e5e7eb'
+                        }}
+                      >
+                        {getStoreFormUrl(store)}
+                      </Typography>
+                    </TableCell>
+
+                    {/* アクションボタン */}
+                    <TableCell align="center" sx={{ py: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                        <Tooltip title="URLをコピー">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCopyUrl(store)}
+                            sx={{
+                              color: '#64748b',
+                              bgcolor: '#f1f5f9',
+                              '&:hover': {
+                                color: '#5e17eb',
+                                bgcolor: 'rgba(94, 23, 235, 0.1)'
+                              }
+                            }}
+                          >
+                            <ContentCopy sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="QRコードをダウンロード">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDownloadQR(store)}
+                            sx={{
+                              color: '#64748b',
+                              bgcolor: '#f1f5f9',
+                              '&:hover': {
+                                color: '#10b981',
+                                bgcolor: 'rgba(16, 185, 129, 0.1)'
+                              }
+                            }}
+                          >
+                            <QrCode2 sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {/* 一括ダウンロードボタン */}
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              startIcon={<Download />}
+              onClick={async () => {
+                for (const store of stores) {
+                  await handleDownloadQR(store);
+                  // 少し待機して連続ダウンロードを安定させる
+                  await new Promise(resolve => setTimeout(resolve, 300));
+                }
+              }}
+              sx={{
+                borderColor: '#e5e7eb',
+                color: '#374151',
+                borderRadius: 0.5,
+                px: 2,
+                py: 0.75,
+                textTransform: 'none',
+                fontWeight: 600,
+                fontSize: '0.8rem',
+                '&:hover': {
+                  borderColor: '#5e17eb',
+                  color: '#5e17eb',
+                  bgcolor: 'rgba(94, 23, 235, 0.04)'
+                }
+              }}
+            >
+              全店舗のQRコードを一括ダウンロード
+            </Button>
+          </Box>
         </Container>
 
         {/* サイクル設定確認ダイアログ */}
