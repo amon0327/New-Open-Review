@@ -811,10 +811,11 @@ export default function FormPublishPage({ user }) {
                             borderColor: '#e5e7eb',
                             borderRadius: 0.5,
                             textTransform: 'none',
-                            fontSize: '0.75rem',
+                            fontSize: '0.7rem',
                             fontWeight: 600,
-                            px: 1.5,
+                            px: 1,
                             py: 0.5,
+                            minWidth: 'auto',
                             '&:hover': {
                               color: '#5e17eb',
                               borderColor: '#5e17eb',
@@ -822,7 +823,7 @@ export default function FormPublishPage({ user }) {
                             }
                           }}
                         >
-                          URLコピー
+                          コピー
                         </Button>
                         <Button
                           size="small"
@@ -834,10 +835,11 @@ export default function FormPublishPage({ user }) {
                             borderColor: '#e5e7eb',
                             borderRadius: 0.5,
                             textTransform: 'none',
-                            fontSize: '0.75rem',
+                            fontSize: '0.7rem',
                             fontWeight: 600,
-                            px: 1.5,
+                            px: 1,
                             py: 0.5,
+                            minWidth: 'auto',
                             '&:hover': {
                               color: '#10b981',
                               borderColor: '#10b981',
@@ -845,7 +847,7 @@ export default function FormPublishPage({ user }) {
                             }
                           }}
                         >
-                          QRダウンロード
+                          QR
                         </Button>
                       </Box>
                     </TableCell>
