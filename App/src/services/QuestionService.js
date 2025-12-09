@@ -1221,8 +1221,6 @@ export const getCompanyPastQuestions = async (businessUserId) => {
         question_detail_text,
         is_required,
         is_detail_enabled,
-        question_categories_id,
-        question_subcategories_id,
         template_review_questions_id,
         created_at
       `)
@@ -1262,41 +1260,6 @@ export const getCompanyPastQuestions = async (businessUserId) => {
       console.error('スケール設定取得エラー:', scalesError);
     }
 
-    // カテゴリとサブカテゴリを取得
-    const categoryIds = [...new Set(questions.map(q => q.question_categories_id).filter(Boolean))];
-    const subcategoryIds = [...new Set(questions.map(q => q.question_subcategories_id).filter(Boolean))];
-
-    let categoriesMap = {};
-    let subcategoriesMap = {};
-
-    if (categoryIds.length > 0) {
-      const { data: categories } = await supabase
-        .from('question_categories')
-        .select('id, japanese_name')
-        .in('id', categoryIds);
-
-      if (categories) {
-        categoriesMap = categories.reduce((acc, c) => {
-          acc[c.id] = c.japanese_name;
-          return acc;
-        }, {});
-      }
-    }
-
-    if (subcategoryIds.length > 0) {
-      const { data: subcategories } = await supabase
-        .from('question_subcategories')
-        .select('id, japanese_name')
-        .in('id', subcategoryIds);
-
-      if (subcategories) {
-        subcategoriesMap = subcategories.reduce((acc, s) => {
-          acc[s.id] = s.japanese_name;
-          return acc;
-        }, {});
-      }
-    }
-
     // 4. 質問データを整形
     const formattedQuestions = questions.map(question => {
       // 選択肢データ
@@ -1326,10 +1289,6 @@ export const getCompanyPastQuestions = async (businessUserId) => {
         } : null,
         formTitle: formMap[question.review_fome_id] || '',
         formId: question.review_fome_id,
-        categoryName: categoriesMap[question.question_categories_id] || null,
-        subcategoryName: subcategoriesMap[question.question_subcategories_id] || null,
-        question_categories_id: question.question_categories_id,
-        question_subcategories_id: question.question_subcategories_id,
         template_review_questions_id: question.template_review_questions_id,
         isPastQuestion: true, // 過去の質問であることを示すフラグ
         created_at: question.created_at
@@ -1375,7 +1334,7 @@ export const addExistingQuestionReference = async ({
     }
 
     // 2. 新しいフォームに同じ質問を作成（元のIDではなく、新しいIDで作成）
-    // ただし、template_review_questions_idやcategory/subcategoryは継承
+    // ただし、template_review_questions_idは継承
     const { data: newQuestion, error: insertError } = await supabase
       .from('review_questions')
       .insert({
@@ -1387,8 +1346,6 @@ export const addExistingQuestionReference = async ({
         question_detail_text: originalQuestion.question_detail_text,
         is_required: originalQuestion.is_required,
         is_detail_enabled: originalQuestion.is_detail_enabled,
-        question_categories_id: originalQuestion.question_categories_id,
-        question_subcategories_id: originalQuestion.question_subcategories_id,
         template_review_questions_id: originalQuestion.template_review_questions_id || originalQuestion.id
       })
       .select()

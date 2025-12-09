@@ -7,6 +7,9 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // バージョン確認用ログ（この行が表示されれば最新版）
+  console.log('=== create-review-form v2.1 - company_id support ===')
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -195,6 +198,13 @@ serve(async (req) => {
 
     const reviewForm = reviewFormData[0]
     console.log('Created review form:', JSON.stringify(reviewForm))
+
+    // 作成されたフォームのcompany_idを検証
+    if (reviewForm.company_id !== companyId) {
+      console.error('WARNING: company_id mismatch! Expected:', companyId, 'Got:', reviewForm.company_id)
+    } else {
+      console.log('SUCCESS: company_id correctly saved:', reviewForm.company_id)
+    }
 
     // store_review_formsテーブルに関連付けを作成（サービスロールで）
     if (storeId) {
