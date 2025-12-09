@@ -1187,28 +1187,70 @@ export const getQuestionAnalyticsStats = async (questionId, isTestMode = false) 
 };
 
 // 企業が過去に作成した全ての質問を取得する関数（オプション付き）
-export const getCompanyPastQuestions = async (businessUserId) => {
+// companyIdが指定されている場合は同じcompany_idの全フォームから質問を取得
+export const getCompanyPastQuestions = async (businessUserId, companyId = null) => {
   try {
-    // 1. ユーザーが作成したフォームIDを取得
-    const { data: forms, error: formsError } = await supabase
-      .from('review_forms')
-      .select('id, title')
-      .eq('business_users', businessUserId)
-      .eq('is_deleted', false);
+    let formIds = [];
+    let formMap = {};
 
-    if (formsError) {
-      throw formsError;
+    if (companyId) {
+      // companyIdが指定されている場合: company_review_formsから同じcompanyのフォームを取得
+      const { data: companyForms, error: companyFormsError } = await supabase
+        .from('company_review_forms')
+        .select(`
+          review_form_id,
+          review_forms:review_form_id (
+            id,
+            title,
+            is_deleted
+          )
+        `)
+        .eq('company_id', companyId);
+
+      if (companyFormsError) {
+        console.error('company_review_forms取得エラー:', companyFormsError);
+        // フォールバック: 元の方法で取得
+      } else if (companyForms && companyForms.length > 0) {
+        // 削除されていないフォームのみをフィルタ
+        const validForms = companyForms
+          .filter(cf => cf.review_forms && !cf.review_forms.is_deleted)
+          .map(cf => cf.review_forms);
+
+        formIds = validForms.map(f => f.id);
+        formMap = validForms.reduce((acc, f) => {
+          acc[f.id] = f.title;
+          return acc;
+        }, {});
+      }
     }
 
-    if (!forms || forms.length === 0) {
+    // companyIdが指定されていない、または取得に失敗した場合は元の方法で取得
+    if (formIds.length === 0) {
+      // 1. ユーザーが作成したフォームIDを取得
+      const { data: forms, error: formsError } = await supabase
+        .from('review_forms')
+        .select('id, title')
+        .eq('business_users', businessUserId)
+        .eq('is_deleted', false);
+
+      if (formsError) {
+        throw formsError;
+      }
+
+      if (!forms || forms.length === 0) {
+        return [];
+      }
+
+      formIds = forms.map(f => f.id);
+      formMap = forms.reduce((acc, f) => {
+        acc[f.id] = f.title;
+        return acc;
+      }, {});
+    }
+
+    if (formIds.length === 0) {
       return [];
     }
-
-    const formIds = forms.map(f => f.id);
-    const formMap = forms.reduce((acc, f) => {
-      acc[f.id] = f.title;
-      return acc;
-    }, {});
 
     // 2. フォームに関連する全ての質問を取得
     const { data: questions, error: questionsError } = await supabase

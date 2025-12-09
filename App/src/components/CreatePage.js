@@ -400,14 +400,29 @@ export default function CreatePage({ onBackClick, user, formId }) {
     loadTemplateQuestions();
   }, []);
 
-  // 過去の質問を読み込み
+  // 過去の質問を読み込み（formIdからcompany_idを取得して同じ企業の質問を取得）
   useEffect(() => {
     const loadPastQuestions = async () => {
       if (!user?.id) return;
 
       setIsLoadingPastQuestions(true);
       try {
-        const questions = await getCompanyPastQuestions(user.id);
+        // formIdからcompany_idを取得
+        let companyId = null;
+        if (formId) {
+          const { data: companyForm, error: companyFormError } = await supabase
+            .from('company_review_forms')
+            .select('company_id')
+            .eq('review_form_id', formId)
+            .single();
+
+          if (!companyFormError && companyForm) {
+            companyId = companyForm.company_id;
+          }
+        }
+
+        // companyIdが取得できた場合は同じ企業の全質問を取得、なければユーザーの質問のみ
+        const questions = await getCompanyPastQuestions(user.id, companyId);
         setPastQuestions(questions);
       } catch (error) {
         console.error('Past questions loading error:', error);
@@ -417,7 +432,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     };
 
     loadPastQuestions();
-  }, [user?.id]);
+  }, [user?.id, formId]);
 
   // フォーム設定を読み込み
   useEffect(() => {

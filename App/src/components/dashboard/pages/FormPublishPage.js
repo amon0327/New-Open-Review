@@ -529,7 +529,7 @@ export default function FormPublishPage({ user }) {
                     return (
                       <Chip
                         key={type.id}
-                        label={`${type.label}: ${selectedForm ? '設定済' : '未設定'}`}
+                        label={`${type.label}: ${selectedForm ? selectedForm.name : '未設定'}`}
                         size="small"
                         sx={{
                           bgcolor: selectedForm ? type.bgColor : '#f1f5f9',
@@ -539,6 +539,12 @@ export default function FormPublishPage({ user }) {
                           border: `1px solid ${selectedForm ? type.color : '#e5e7eb'}`,
                           '& .MuiChip-label': {
                             px: 1
+                          },
+                          maxWidth: 200,
+                          '& .MuiChip-label': {
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
                           }
                         }}
                       />
@@ -650,25 +656,6 @@ export default function FormPublishPage({ user }) {
                           </Select>
                         </FormControl>
 
-                        {/* 選択されたフォーム情報 */}
-                        {selectedForms[type.id] && (
-                          <Box
-                            sx={{
-                              mt: 1.5,
-                              p: 1.5,
-                              borderRadius: 0.5,
-                              bgcolor: type.bgColor,
-                              border: `1px solid ${type.color}20`
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Description sx={{ fontSize: 14, color: type.color }} />
-                              <Typography sx={{ fontSize: '0.75rem', color: type.color, fontWeight: 600 }}>
-                                選択中: {getSelectedFormInfo(type.id)?.name}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        )}
                       </Box>
                     ))}
                   </Box>
