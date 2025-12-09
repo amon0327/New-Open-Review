@@ -12,14 +12,11 @@ import {
   DialogContent,
   DialogActions,
   DialogContentText,
-  TextField,
-  InputAdornment,
   Slider
 } from '@mui/material';
 import {
   Settings,
-  Close,
-  CardGiftcard
+  Close
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 
@@ -36,8 +33,8 @@ export default function FormPublishPage({ user }) {
   // 抽選設定
   const [showLotterySettings, setShowLotterySettings] = useState(false);
   const [lotterySettings, setLotterySettings] = useState({
-    maxWinsPerMonth: 100,
-    winRateDivisor: 10
+    maxWinsPerMonth: 1,
+    winRateDivisor: 1000
   });
 
   const surveyTypes = [
@@ -406,7 +403,10 @@ export default function FormPublishPage({ user }) {
                     当選確率
                   </Typography>
                   <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: '#f59e0b' }}>
-                    {calculateWinRate()}%
+                    1/{lotterySettings.winRateDivisor}
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                    ({calculateWinRate()}%)
                   </Typography>
                 </Box>
 
@@ -445,52 +445,73 @@ export default function FormPublishPage({ user }) {
                     {/* 月間当選上限 */}
                     <Box>
                       <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', mb: 1.5 }}>
-                        月間当選上限
+                        月間当選上限（1〜10名）
                       </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <TextField
-                          type="number"
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 1 }}>
+                        <Slider
                           value={lotterySettings.maxWinsPerMonth}
-                          onChange={(e) => handleLotterySettingChange('maxWinsPerMonth', parseInt(e.target.value) || 0)}
-                          size="small"
-                          InputProps={{
-                            endAdornment: <InputAdornment position="end">名</InputAdornment>,
-                          }}
+                          onChange={(e, value) => handleLotterySettingChange('maxWinsPerMonth', value)}
+                          min={1}
+                          max={10}
+                          step={1}
+                          marks
                           sx={{
-                            width: 120,
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 0.5,
-                              fontSize: '0.9rem',
-                              '& fieldset': {
-                                borderColor: '#e5e7eb'
-                              },
-                              '&:hover fieldset': {
-                                borderColor: '#d1d5db'
-                              },
-                              '&.Mui-focused fieldset': {
-                                borderColor: '#5e17eb'
+                            flex: 1,
+                            color: '#5e17eb',
+                            '& .MuiSlider-thumb': {
+                              width: 16,
+                              height: 16,
+                              '&:hover, &.Mui-focusVisible': {
+                                boxShadow: '0 0 0 8px rgba(94, 23, 235, 0.16)'
                               }
+                            },
+                            '& .MuiSlider-track': {
+                              height: 4
+                            },
+                            '& .MuiSlider-rail': {
+                              height: 4,
+                              bgcolor: '#e5e7eb'
+                            },
+                            '& .MuiSlider-mark': {
+                              bgcolor: '#d1d5db',
+                              height: 8,
+                              width: 2
                             }
                           }}
                         />
-                        <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
-                          毎月この人数まで当選が可能
-                        </Typography>
+                        <Box
+                          sx={{
+                            minWidth: 60,
+                            px: 1.5,
+                            py: 0.75,
+                            bgcolor: '#f3f4f6',
+                            borderRadius: 0.5,
+                            border: '1px solid #e5e7eb',
+                            textAlign: 'center'
+                          }}
+                        >
+                          <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: '#374151' }}>
+                            {lotterySettings.maxWinsPerMonth}名
+                          </Typography>
+                        </Box>
                       </Box>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', mt: 1 }}>
+                        毎月この人数まで当選が可能
+                      </Typography>
                     </Box>
 
                     {/* 当選確率 */}
                     <Box>
                       <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', mb: 1.5 }}>
-                        当選確率（1/{lotterySettings.winRateDivisor}）
+                        当選確率
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 1 }}>
                         <Slider
                           value={lotterySettings.winRateDivisor}
                           onChange={(e, value) => handleLotterySettingChange('winRateDivisor', value)}
-                          min={2}
-                          max={100}
-                          step={1}
+                          min={100}
+                          max={10000}
+                          step={100}
                           sx={{
                             flex: 1,
                             color: '#f59e0b',
@@ -512,7 +533,7 @@ export default function FormPublishPage({ user }) {
                         />
                         <Box
                           sx={{
-                            minWidth: 80,
+                            minWidth: 100,
                             px: 1.5,
                             py: 0.75,
                             bgcolor: '#fffbeb',
@@ -522,12 +543,15 @@ export default function FormPublishPage({ user }) {
                           }}
                         >
                           <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: '#f59e0b' }}>
-                            {calculateWinRate()}%
+                            1/{lotterySettings.winRateDivisor}
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                            ({calculateWinRate()}%)
                           </Typography>
                         </Box>
                       </Box>
                       <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', mt: 1 }}>
-                        数値が大きいほど当選確率が下がります（2〜100の範囲）
+                        数値が大きいほど当選確率が下がります（100〜10000の範囲）
                       </Typography>
                     </Box>
                   </Box>
