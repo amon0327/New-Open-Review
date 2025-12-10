@@ -122,6 +122,7 @@ export default function FormPublishPage({ user }) {
 
         if (membershipError) {
           console.error('会社情報取得エラー:', membershipError);
+          setIsLoading(false);
           return;
         }
 
@@ -167,48 +168,60 @@ export default function FormPublishPage({ user }) {
           })));
         }
 
-        // 4. QSCフォーム設定を取得
-        const { data: formSettings, error: formSettingsError } = await supabase
-          .from('company_qsc_form_settings')
-          .select('*')
-          .eq('company_id', fetchedCompanyId)
-          .single();
+        // 4. QSCフォーム設定を取得（テーブルが存在しない場合はスキップ）
+        try {
+          const { data: formSettings, error: formSettingsError } = await supabase
+            .from('company_qsc_form_settings')
+            .select('*')
+            .eq('company_id', fetchedCompanyId)
+            .single();
 
-        if (!formSettingsError && formSettings) {
-          setSelectedForms({
-            Quality: formSettings.quality_form_id || '',
-            Service: formSettings.service_form_id || '',
-            Cleanliness: formSettings.cleanliness_form_id || ''
-          });
+          if (!formSettingsError && formSettings) {
+            setSelectedForms({
+              Quality: formSettings.quality_form_id || '',
+              Service: formSettings.service_form_id || '',
+              Cleanliness: formSettings.cleanliness_form_id || ''
+            });
+          }
+        } catch (e) {
+          console.log('QSCフォーム設定テーブルが未作成:', e);
         }
 
-        // 5. QSCローテーション設定を取得
-        const { data: rotationSettings, error: rotationError } = await supabase
-          .from('company_qsc_rotation_settings')
-          .select('*')
-          .eq('company_id', fetchedCompanyId)
-          .single();
+        // 5. QSCローテーション設定を取得（テーブルが存在しない場合はスキップ）
+        try {
+          const { data: rotationSettings, error: rotationError } = await supabase
+            .from('company_qsc_rotation_settings')
+            .select('*')
+            .eq('company_id', fetchedCompanyId)
+            .single();
 
-        if (!rotationError && rotationSettings) {
-          setSurveyCycleConfig({
-            groupA: rotationSettings.group_a_type,
-            groupB: rotationSettings.group_b_type,
-            groupC: rotationSettings.group_c_type
-          });
+          if (!rotationError && rotationSettings) {
+            setSurveyCycleConfig({
+              groupA: rotationSettings.group_a_type,
+              groupB: rotationSettings.group_b_type,
+              groupC: rotationSettings.group_c_type
+            });
+          }
+        } catch (e) {
+          console.log('QSCローテーション設定テーブルが未作成:', e);
         }
 
-        // 6. 今月のロック状態を確認
-        const { data: monthLock, error: lockError } = await supabase
-          .from('company_qsc_monthly_locks')
-          .select('*')
-          .eq('company_id', fetchedCompanyId)
-          .eq('target_year', currentYear)
-          .eq('target_month', currentMonth)
-          .single();
+        // 6. 今月のロック状態を確認（テーブルが存在しない場合はスキップ）
+        try {
+          const { data: monthLock, error: lockError } = await supabase
+            .from('company_qsc_monthly_locks')
+            .select('*')
+            .eq('company_id', fetchedCompanyId)
+            .eq('target_year', currentYear)
+            .eq('target_month', currentMonth)
+            .single();
 
-        if (!lockError && monthLock) {
-          setCurrentMonthLock(monthLock);
-          setIsCurrentMonthLocked(true);
+          if (!lockError && monthLock) {
+            setCurrentMonthLock(monthLock);
+            setIsCurrentMonthLocked(true);
+          }
+        } catch (e) {
+          console.log('QSC月次ロックテーブルが未作成:', e);
         }
 
       } catch (error) {
