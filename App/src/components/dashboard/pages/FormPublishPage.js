@@ -44,7 +44,7 @@ import { supabase } from '../../../lib/supabase';
 
 export default function FormPublishPage({ user }) {
   // ローディング・エラー状態
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [companyId, setCompanyId] = useState(null);
   const [companyName, setCompanyName] = useState('');
