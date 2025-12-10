@@ -258,16 +258,9 @@ export default function StaffInvitationLogin() {
                 >
                   招待が無効です
                 </Typography>
-                <Typography variant="body1" sx={{ color: '#64748b', mb: 3 }}>
+                <Typography variant="body1" sx={{ color: '#64748b' }}>
                   {error}
                 </Typography>
-                <Button
-                  variant="outlined"
-                  onClick={() => window.location.href = '/'}
-                  sx={{ borderColor: '#cbd5e1', color: '#64748b' }}
-                >
-                  ホームページに戻る
-                </Button>
               </CardContent>
             </Card>
           </motion.div>
