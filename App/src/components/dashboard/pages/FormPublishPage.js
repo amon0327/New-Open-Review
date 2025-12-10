@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Box,
@@ -23,7 +23,9 @@ import {
   MenuItem,
   FormControl,
   Chip,
-  TextField
+  TextField,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import {
   Settings,
@@ -33,12 +35,24 @@ import {
   QrCode2,
   Store,
   Description,
-  KeyboardArrowDown
+  KeyboardArrowDown,
+  Warning
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import QRCode from 'qrcode';
+import { supabase } from '../../../lib/supabase';
 
 export default function FormPublishPage({ user }) {
+  // ローディング・エラー状態
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [companyId, setCompanyId] = useState(null);
+  const [companyName, setCompanyName] = useState('');
+
+  // 今月のロック状態（回答があった場合、設定変更は来月から適用）
+  const [currentMonthLock, setCurrentMonthLock] = useState(null);
+  const [isCurrentMonthLocked, setIsCurrentMonthLocked] = useState(false);
+
   // アンケートサイクル設定
   const [surveyCycleConfig, setSurveyCycleConfig] = useState({
     groupA: 'Quality',      // 1月, 4月, 7月, 10月
@@ -56,24 +70,8 @@ export default function FormPublishPage({ user }) {
   });
   const [showFormSettings, setShowFormSettings] = useState(false);
 
-  // レビューフォームデータ（ダミーデータ - QSCテーマ別）
-  const [reviewForms, setReviewForms] = useState({
-    Quality: [
-      { id: 'q1', name: '品質チェックフォームA', description: '商品品質の総合評価' },
-      { id: 'q2', name: '品質チェックフォームB', description: '料理の味・見た目評価' },
-      { id: 'q3', name: '品質チェックフォームC', description: '提供スピード評価' }
-    ],
-    Service: [
-      { id: 's1', name: 'サービス評価フォームA', description: '接客態度の評価' },
-      { id: 's2', name: 'サービス評価フォームB', description: 'スタッフ対応評価' },
-      { id: 's3', name: 'サービス評価フォームC', description: '電話対応評価' }
-    ],
-    Cleanliness: [
-      { id: 'c1', name: '清潔度チェックフォームA', description: '店内清掃状態の評価' },
-      { id: 'c2', name: '清潔度チェックフォームB', description: 'トイレ清潔度評価' },
-      { id: 'c3', name: '清潔度チェックフォームC', description: '厨房衛生評価' }
-    ]
-  });
+  // レビューフォームデータ（Supabaseから取得）
+  const [reviewForms, setReviewForms] = useState([]);
 
   // 抽選設定
   const [showLotterySettings, setShowLotterySettings] = useState(false);
@@ -88,14 +86,8 @@ export default function FormPublishPage({ user }) {
     totalWins: 0
   });
 
-  // 店舗データ（ダミーデータ）
-  const [stores, setStores] = useState([
-    { id: '1', name: '渋谷店', address: '東京都渋谷区道玄坂1-1-1', companyName: 'サンプル株式会社', formId: 'abc123' },
-    { id: '2', name: '新宿店', address: '東京都新宿区西新宿2-2-2', companyName: 'サンプル株式会社', formId: 'def456' },
-    { id: '3', name: '池袋店', address: '東京都豊島区東池袋3-3-3', companyName: 'サンプル株式会社', formId: 'ghi789' },
-    { id: '4', name: '品川店', address: '東京都港区港南4-4-4', companyName: 'サンプル株式会社', formId: 'jkl012' },
-    { id: '5', name: '東京駅店', address: '東京都千代田区丸の内5-5-5', companyName: 'サンプル株式会社', formId: 'mno345' }
-  ]);
+  // 店舗データ（Supabaseから取得）
+  const [stores, setStores] = useState([]);
 
   const surveyTypes = [
     { id: 'Quality', label: 'Q', fullLabel: 'クオリティ', color: '#6366f1', bgColor: '#eef2ff' },
@@ -109,9 +101,204 @@ export default function FormPublishPage({ user }) {
     { key: 'groupC', months: [3, 6, 9, 12], label: '3・6・9・12月' }
   ];
 
-  // 現在の月からアンケートタイプを取得
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+
+  // ============================================================================
+  // Supabaseからデータ取得
+  // ============================================================================
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user?.id) return;
+
+      setIsLoading(true);
+      try {
+        // 1. ユーザーの所属会社を取得
+        const { data: membership, error: membershipError } = await supabase
+          .from('company_memberships')
+          .select('company_id, companies(id, name)')
+          .eq('business_user_id', user.id)
+          .single();
+
+        if (membershipError) {
+          console.error('会社情報取得エラー:', membershipError);
+          return;
+        }
+
+        const fetchedCompanyId = membership.company_id;
+        setCompanyId(fetchedCompanyId);
+        setCompanyName(membership.companies?.name || '');
+
+        // 2. 会社のレビューフォーム一覧を取得
+        const { data: forms, error: formsError } = await supabase
+          .from('company_review_forms')
+          .select(`
+            review_form_id,
+            review_forms:review_form_id (
+              id,
+              title,
+              is_deleted
+            )
+          `)
+          .eq('company_id', fetchedCompanyId);
+
+        if (!formsError && forms) {
+          const activeFormsData = forms
+            .filter(f => f.review_forms && !f.review_forms.is_deleted)
+            .map(f => ({
+              id: f.review_forms.id,
+              name: f.review_forms.title,
+              description: ''
+            }));
+          setReviewForms(activeFormsData);
+        }
+
+        // 3. 会社の店舗一覧を取得
+        const { data: storesData, error: storesError } = await supabase
+          .from('stores')
+          .select('id, name, address')
+          .eq('company_id', fetchedCompanyId)
+          .eq('is_active', true);
+
+        if (!storesError && storesData) {
+          setStores(storesData.map(s => ({
+            ...s,
+            companyName: membership.companies?.name || ''
+          })));
+        }
+
+        // 4. QSCフォーム設定を取得
+        const { data: formSettings, error: formSettingsError } = await supabase
+          .from('company_qsc_form_settings')
+          .select('*')
+          .eq('company_id', fetchedCompanyId)
+          .single();
+
+        if (!formSettingsError && formSettings) {
+          setSelectedForms({
+            Quality: formSettings.quality_form_id || '',
+            Service: formSettings.service_form_id || '',
+            Cleanliness: formSettings.cleanliness_form_id || ''
+          });
+        }
+
+        // 5. QSCローテーション設定を取得
+        const { data: rotationSettings, error: rotationError } = await supabase
+          .from('company_qsc_rotation_settings')
+          .select('*')
+          .eq('company_id', fetchedCompanyId)
+          .single();
+
+        if (!rotationError && rotationSettings) {
+          setSurveyCycleConfig({
+            groupA: rotationSettings.group_a_type,
+            groupB: rotationSettings.group_b_type,
+            groupC: rotationSettings.group_c_type
+          });
+        }
+
+        // 6. 今月のロック状態を確認
+        const { data: monthLock, error: lockError } = await supabase
+          .from('company_qsc_monthly_locks')
+          .select('*')
+          .eq('company_id', fetchedCompanyId)
+          .eq('target_year', currentYear)
+          .eq('target_month', currentMonth)
+          .single();
+
+        if (!lockError && monthLock) {
+          setCurrentMonthLock(monthLock);
+          setIsCurrentMonthLocked(true);
+        }
+
+      } catch (error) {
+        console.error('データ取得エラー:', error);
+        toast.error('データの取得に失敗しました');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user?.id, currentYear, currentMonth]);
+
+  // ============================================================================
+  // QSCフォーム設定を保存
+  // ============================================================================
+  const saveQscFormSettings = useCallback(async () => {
+    if (!companyId) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('company_qsc_form_settings')
+        .upsert({
+          company_id: companyId,
+          quality_form_id: selectedForms.Quality || null,
+          service_form_id: selectedForms.Service || null,
+          cleanliness_form_id: selectedForms.Cleanliness || null,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'company_id'
+        });
+
+      if (error) throw error;
+
+      if (isCurrentMonthLocked) {
+        toast.success('設定を保存しました（来月から適用されます）');
+      } else {
+        toast.success('設定を保存しました');
+      }
+    } catch (error) {
+      console.error('QSCフォーム設定保存エラー:', error);
+      toast.error('設定の保存に失敗しました');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [companyId, selectedForms, isCurrentMonthLocked]);
+
+  // ============================================================================
+  // QSCローテーション設定を保存
+  // ============================================================================
+  const saveQscRotationSettings = useCallback(async () => {
+    if (!companyId) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('company_qsc_rotation_settings')
+        .upsert({
+          company_id: companyId,
+          group_a_type: surveyCycleConfig.groupA,
+          group_b_type: surveyCycleConfig.groupB,
+          group_c_type: surveyCycleConfig.groupC,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'company_id'
+        });
+
+      if (error) throw error;
+
+      if (isCurrentMonthLocked) {
+        toast.success('設定を保存しました（来月から適用されます）');
+      } else {
+        toast.success('設定を保存しました');
+      }
+    } catch (error) {
+      console.error('QSCローテーション設定保存エラー:', error);
+      toast.error('設定の保存に失敗しました');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [companyId, surveyCycleConfig, isCurrentMonthLocked]);
+
+  // 現在の月からアンケートタイプを取得（ロック状態を考慮）
   const getCurrentSurveyType = () => {
-    const currentMonth = new Date().getMonth() + 1;
+    // 今月ロックされている場合はロック時の設定を使用
+    if (isCurrentMonthLocked && currentMonthLock) {
+      return surveyTypes.find(t => t.id === currentMonthLock.locked_qsc_type);
+    }
+
     const group = cycleGroups.find(g => g.months.includes(currentMonth));
     if (group) {
       const typeId = surveyCycleConfig[group.key];
@@ -121,15 +308,13 @@ export default function FormPublishPage({ user }) {
   };
 
   const currentSurveyType = getCurrentSurveyType();
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1;
 
-  // ベースURL
-  const baseUrl = 'https://review.example.com/form';
+  // ベースURL（店舗IDベース）
+  const baseUrl = 'https://review.example.com/store';
 
-  // 店舗のレビューフォームURLを生成
+  // 店舗のレビューフォームURLを生成（店舗IDベース）
   const getStoreFormUrl = (store) => {
-    return `${baseUrl}/${store.formId}`;
+    return `${baseUrl}/${store.id}`;
   };
 
   // URLをクリップボードにコピー
@@ -202,7 +387,7 @@ export default function FormPublishPage({ user }) {
   const getSelectedFormInfo = (themeId) => {
     const formId = selectedForms[themeId];
     if (!formId) return null;
-    return reviewForms[themeId]?.find(f => f.id === formId);
+    return reviewForms.find(f => f.id === formId);
   };
 
   // 抽選設定変更ハンドラー
@@ -239,6 +424,16 @@ export default function FormPublishPage({ user }) {
           px: 0
         }}
       >
+        {/* ローディング表示 */}
+        {isLoading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+            <CircularProgress sx={{ color: '#5e17eb' }} />
+          </Box>
+        )}
+
+        {/* メインコンテンツ（ローディング完了後に表示） */}
+        {!isLoading && (
+          <>
         {/* 今月の評価項目セクション */}
         <Container maxWidth="xl" sx={{ mt: 2, mb: 3 }}>
           {/* セクションヘッダー */}
@@ -424,6 +619,26 @@ export default function FormPublishPage({ user }) {
                       })}
                     </Box>
 
+                    {/* ロック状態の警告 */}
+                    {isCurrentMonthLocked && (
+                      <Alert
+                        severity="warning"
+                        icon={<Warning sx={{ fontSize: 18 }} />}
+                        sx={{
+                          mt: 2,
+                          borderRadius: 1,
+                          bgcolor: '#fffbeb',
+                          border: '1px solid #fbbf24',
+                          '& .MuiAlert-message': {
+                            fontSize: '0.8rem',
+                            color: '#92400e'
+                          }
+                        }}
+                      >
+                        今月は既に回答があるため、設定変更は来月から適用されます
+                      </Alert>
+                    )}
+
                     {/* 説明文と確定ボタン */}
                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
@@ -432,7 +647,15 @@ export default function FormPublishPage({ user }) {
                       <Button
                         variant="contained"
                         size="small"
-                        onClick={() => setCycleConfirmDialogOpen(true)}
+                        disabled={isSaving}
+                        onClick={() => {
+                          if (isCurrentMonthLocked) {
+                            setCycleConfirmDialogOpen(true);
+                          } else {
+                            saveQscRotationSettings();
+                            setShowCycleSettings(false);
+                          }
+                        }}
                         sx={{
                           background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
                           borderRadius: 0.5,
@@ -445,10 +668,13 @@ export default function FormPublishPage({ user }) {
                           '&:hover': {
                             background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
                             boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
+                          },
+                          '&:disabled': {
+                            opacity: 0.7
                           }
                         }}
                       >
-                        保存
+                        {isSaving ? '保存中...' : '保存'}
                       </Button>
                     </Box>
                   </Box>
@@ -639,16 +865,13 @@ export default function FormPublishPage({ user }) {
                                 フォームを選択してください
                               </Typography>
                             </MenuItem>
-                            {reviewForms[type.id]?.map((form) => (
+                            {reviewForms.map((form) => (
                               <MenuItem key={form.id} value={form.id}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                   <Description sx={{ fontSize: 16, color: type.color }} />
                                   <Box>
                                     <Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>
                                       {form.name}
-                                    </Typography>
-                                    <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>
-                                      {form.description}
                                     </Typography>
                                   </Box>
                                 </Box>
@@ -661,13 +884,34 @@ export default function FormPublishPage({ user }) {
                     ))}
                   </Box>
 
+                  {/* ロック状態の警告 */}
+                  {isCurrentMonthLocked && (
+                    <Alert
+                      severity="warning"
+                      icon={<Warning sx={{ fontSize: 18 }} />}
+                      sx={{
+                        mt: 2,
+                        borderRadius: 1,
+                        bgcolor: '#fffbeb',
+                        border: '1px solid #fbbf24',
+                        '& .MuiAlert-message': {
+                          fontSize: '0.8rem',
+                          color: '#92400e'
+                        }
+                      }}
+                    >
+                      今月は既に回答があるため、設定変更は来月から適用されます
+                    </Alert>
+                  )}
+
                   {/* 保存ボタン */}
                   <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
                     <Button
                       variant="contained"
                       size="small"
-                      onClick={() => {
-                        toast.success('公開フォーム設定を保存しました');
+                      disabled={isSaving}
+                      onClick={async () => {
+                        await saveQscFormSettings();
                         setShowFormSettings(false);
                       }}
                       sx={{
@@ -682,10 +926,13 @@ export default function FormPublishPage({ user }) {
                         '&:hover': {
                           background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
                           boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
+                        },
+                        '&:disabled': {
+                          opacity: 0.7
                         }
                       }}
                     >
-                      保存
+                      {isSaving ? '保存中...' : '保存'}
                     </Button>
                   </Box>
                 </Box>
@@ -1208,6 +1455,9 @@ export default function FormPublishPage({ user }) {
           </Box>
         </Container>
 
+          </>
+        )}
+
         {/* サイクル設定確認ダイアログ */}
         <Dialog
           open={cycleConfirmDialogOpen}
@@ -1257,12 +1507,12 @@ export default function FormPublishPage({ user }) {
               キャンセル
             </Button>
             <Button
-              onClick={() => {
-                // TODO: サイクル設定をDBに保存する処理
-                toast.success('設定を保存しました（来月から適用）');
+              onClick={async () => {
+                await saveQscRotationSettings();
                 setCycleConfirmDialogOpen(false);
                 setShowCycleSettings(false);
               }}
+              disabled={isSaving}
               sx={{
                 background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
                 color: 'white',
@@ -1273,10 +1523,13 @@ export default function FormPublishPage({ user }) {
                 borderRadius: 1,
                 '&:hover': {
                   background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                },
+                '&:disabled': {
+                  opacity: 0.7
                 }
               }}
             >
-              保存する
+              {isSaving ? '保存中...' : '保存する'}
             </Button>
           </DialogActions>
         </Dialog>
