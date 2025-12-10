@@ -1536,11 +1536,319 @@ export const duplicateQuestionWithOptions = async (formId, pageId, originalQuest
     // 6. 完全なデータを再取得して返す
     const finalQuestions = await getQuestionsWithOptions(formId, pageId);
     const finalQuestion = finalQuestions.find(q => q.id === duplicatedQuestion.id);
-    
+
     return finalQuestion;
-    
+
   } catch (error) {
     console.error('Error duplicating question:', error);
+    throw error;
+  }
+};
+
+// ============================================================================
+// 共有質問（Shared Questions）関連の関数
+// ============================================================================
+
+/**
+ * 共有質問を作成する
+ * @param {Object} params - 作成パラメータ
+ * @param {string} params.companyId - 会社ID
+ * @param {string} params.questionText - 質問テキスト
+ * @param {number} params.questionTypesId - 質問タイプID
+ * @param {string} [params.questionDetailText] - 質問詳細テキスト
+ * @param {boolean} [params.isRequired] - 必須かどうか
+ * @param {boolean} [params.isDetailEnabled] - 詳細入力有効か
+ * @param {Array} [params.choices] - 選択肢（選択型の場合）
+ * @param {Object} [params.scaleSettings] - スケール設定（スケール型の場合）
+ * @returns {Promise<Object>} 作成された共有質問
+ */
+export const createSharedQuestion = async ({
+  companyId,
+  questionText,
+  questionTypesId,
+  questionDetailText = '',
+  isRequired = true,
+  isDetailEnabled = false,
+  choices = [],
+  scaleSettings = null
+}) => {
+  try {
+    // 1. 共有質問を作成
+    const { data: sharedQuestion, error: insertError } = await supabase
+      .from('shared_questions')
+      .insert({
+        company_id: companyId,
+        question_text: questionText,
+        question_detail_text: questionDetailText,
+        question_types_id: questionTypesId,
+        is_required: isRequired,
+        is_detail_enabled: isDetailEnabled
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('共有質問作成エラー:', insertError);
+      throw insertError;
+    }
+
+    // 2. 選択肢が必要な質問タイプの場合、選択肢を作成
+    if ([3, 4, 5, 6, 8, 10].includes(questionTypesId) && choices.length > 0) {
+      const choiceRecords = choices.map((choice, index) => ({
+        shared_question_id: sharedQuestion.id,
+        choice_name: typeof choice === 'string' ? choice : choice.choice_name,
+        choice_number: index + 1
+      }));
+
+      const { error: choicesError } = await supabase
+        .from('shared_question_option_choices')
+        .insert(choiceRecords);
+
+      if (choicesError) {
+        console.error('共有質問選択肢作成エラー:', choicesError);
+        // 共有質問を削除してロールバック
+        await supabase.from('shared_questions').delete().eq('id', sharedQuestion.id);
+        throw choicesError;
+      }
+    }
+
+    // 3. スケール設定が必要な質問タイプの場合
+    if ([7, 9].includes(questionTypesId)) {
+      const scaleRecord = {
+        shared_question_id: sharedQuestion.id,
+        min_text: scaleSettings?.minLabel || '',
+        max_text: scaleSettings?.maxLabel || '',
+        loyalty_score_flags: questionTypesId === 9
+      };
+
+      const { error: scaleError } = await supabase
+        .from('shared_question_option_linear_scale')
+        .insert(scaleRecord);
+
+      if (scaleError) {
+        console.error('共有質問スケール作成エラー:', scaleError);
+        await supabase.from('shared_questions').delete().eq('id', sharedQuestion.id);
+        throw scaleError;
+      }
+    }
+
+    return sharedQuestion;
+
+  } catch (error) {
+    console.error('Error creating shared question:', error);
+    throw error;
+  }
+};
+
+/**
+ * 会社の共有質問一覧を取得する
+ * @param {string} companyId - 会社ID
+ * @returns {Promise<Array>} 共有質問一覧
+ */
+export const getSharedQuestions = async (companyId) => {
+  try {
+    const { data: questions, error } = await supabase
+      .from('shared_questions')
+      .select(`
+        *,
+        shared_question_option_choices (
+          id,
+          choice_name,
+          choice_number
+        ),
+        shared_question_option_linear_scale (
+          id,
+          min_text,
+          max_text,
+          loyalty_score_flags
+        )
+      `)
+      .eq('company_id', companyId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('共有質問取得エラー:', error);
+      throw error;
+    }
+
+    // データを整形
+    return questions.map(q => ({
+      id: q.id,
+      question_text: q.question_text,
+      question_detail_text: q.question_detail_text,
+      question_types_id: q.question_types_id,
+      is_required: q.is_required,
+      is_detail_enabled: q.is_detail_enabled,
+      choices: q.shared_question_option_choices?.sort((a, b) => a.choice_number - b.choice_number) || [],
+      scale_settings: q.shared_question_option_linear_scale?.[0] || null,
+      created_at: q.created_at,
+      isSharedQuestion: true
+    }));
+
+  } catch (error) {
+    console.error('Error getting shared questions:', error);
+    throw error;
+  }
+};
+
+/**
+ * 共有質問からフォームに質問を追加する（共有質問への参照を維持）
+ * @param {Object} params - パラメータ
+ * @param {string} params.sharedQuestionId - 共有質問ID
+ * @param {string} params.reviewFormId - レビューフォームID
+ * @param {string} params.reviewFormPagesId - ページID
+ * @param {number} params.questionNumber - 質問番号
+ * @returns {Promise<Object>} 作成された質問
+ */
+export const addSharedQuestionToForm = async ({
+  sharedQuestionId,
+  reviewFormId,
+  reviewFormPagesId,
+  questionNumber
+}) => {
+  try {
+    // 1. 共有質問を取得
+    const { data: sharedQuestion, error: fetchError } = await supabase
+      .from('shared_questions')
+      .select(`
+        *,
+        shared_question_option_choices (
+          choice_name,
+          choice_number
+        ),
+        shared_question_option_linear_scale (
+          min_text,
+          max_text,
+          loyalty_score_flags
+        )
+      `)
+      .eq('id', sharedQuestionId)
+      .single();
+
+    if (fetchError || !sharedQuestion) {
+      throw new Error('共有質問が見つかりません');
+    }
+
+    // 2. review_questionsに新しいレコードを作成（shared_question_idを参照）
+    const { data: newQuestion, error: insertError } = await supabase
+      .from('review_questions')
+      .insert({
+        review_fome_id: reviewFormId,
+        review_form_pages_id: reviewFormPagesId,
+        question_types_id: sharedQuestion.question_types_id,
+        question_number: questionNumber,
+        question_text: sharedQuestion.question_text,
+        question_detail_text: sharedQuestion.question_detail_text,
+        is_required: sharedQuestion.is_required,
+        is_detail_enabled: sharedQuestion.is_detail_enabled,
+        shared_question_id: sharedQuestionId  // 共有質問への参照
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('質問追加エラー:', insertError);
+      throw insertError;
+    }
+
+    // 3. 選択肢をコピー
+    const questionTypeId = sharedQuestion.question_types_id;
+    if ([3, 4, 5, 6, 8, 10].includes(questionTypeId)) {
+      const choices = sharedQuestion.shared_question_option_choices || [];
+      if (choices.length > 0) {
+        const choiceRecords = choices.map(c => ({
+          review_questions_id: newQuestion.id,
+          choice_name: c.choice_name,
+          choice_number: c.choice_number
+        }));
+
+        await supabase
+          .from('question_option_choices')
+          .insert(choiceRecords);
+      }
+    }
+
+    // 4. スケール設定をコピー
+    if ([7, 9].includes(questionTypeId)) {
+      const scale = sharedQuestion.shared_question_option_linear_scale?.[0];
+      if (scale) {
+        await supabase
+          .from('question_option_linear_scale')
+          .insert({
+            review_questions_id: newQuestion.id,
+            min_text: scale.min_text || '',
+            max_text: scale.max_text || '',
+            loyalty_score_flags: scale.loyalty_score_flags || false
+          });
+      }
+    }
+
+    return newQuestion;
+
+  } catch (error) {
+    console.error('Error adding shared question to form:', error);
+    throw error;
+  }
+};
+
+/**
+ * 既存の質問を共有質問として登録する
+ * @param {string} questionId - 元の質問ID
+ * @param {string} companyId - 会社ID
+ * @returns {Promise<Object>} 作成された共有質問
+ */
+export const convertToSharedQuestion = async (questionId, companyId) => {
+  try {
+    // 1. 元の質問を取得
+    const { data: originalQuestion, error: fetchError } = await supabase
+      .from('review_questions')
+      .select(`
+        *,
+        question_option_choices (
+          choice_name,
+          choice_number
+        ),
+        question_option_linear_scale (
+          min_text,
+          max_text,
+          loyalty_score_flags
+        )
+      `)
+      .eq('id', questionId)
+      .single();
+
+    if (fetchError || !originalQuestion) {
+      throw new Error('元の質問が見つかりません');
+    }
+
+    // 2. 共有質問を作成
+    const choices = originalQuestion.question_option_choices?.map(c => c.choice_name) || [];
+    const scale = originalQuestion.question_option_linear_scale?.[0];
+
+    const sharedQuestion = await createSharedQuestion({
+      companyId,
+      questionText: originalQuestion.question_text,
+      questionTypesId: originalQuestion.question_types_id,
+      questionDetailText: originalQuestion.question_detail_text,
+      isRequired: originalQuestion.is_required,
+      isDetailEnabled: originalQuestion.is_detail_enabled,
+      choices,
+      scaleSettings: scale ? {
+        minLabel: scale.min_text,
+        maxLabel: scale.max_text
+      } : null
+    });
+
+    // 3. 元の質問にshared_question_idを設定
+    await supabase
+      .from('review_questions')
+      .update({ shared_question_id: sharedQuestion.id })
+      .eq('id', questionId);
+
+    return sharedQuestion;
+
+  } catch (error) {
+    console.error('Error converting to shared question:', error);
     throw error;
   }
 };

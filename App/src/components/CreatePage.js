@@ -15,7 +15,7 @@ import { leftNavigationItems, questionTypes, settingsCategories } from '../const
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import FormDataService from '../services/FormDataService';
-import { createQuestionWithOptions, updateReviewQuestion, getCompanyPastQuestions, addExistingQuestionReference } from '../services/QuestionService';
+import { createQuestionWithOptions, updateReviewQuestion, getCompanyPastQuestions, addExistingQuestionReference, getSharedQuestions, addSharedQuestionToForm, convertToSharedQuestion } from '../services/QuestionService';
 // import CompletionScreenService from '../services/CompletionScreenService'; // FormDataServiceを使用するため削除
 import { supabase } from '../lib/supabase';
 import {
@@ -222,6 +222,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const [pastQuestions, setPastQuestions] = useState([]);
   const [isLoadingPastQuestions, setIsLoadingPastQuestions] = useState(false);
 
+  // 共有質問データ
+  const [sharedQuestions, setSharedQuestions] = useState([]);
+  const [isLoadingSharedQuestions, setIsLoadingSharedQuestions] = useState(false);
+
   // ログイン画面設定の状態
   const [loginScreenSettings, setLoginScreenSettings] = useState({
     background_image_url: 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg',
@@ -384,6 +388,41 @@ export default function CreatePage({ onBackClick, user, formId }) {
     };
 
     loadPastQuestions();
+  }, [user?.id]);
+
+  // 共有質問を読み込み（会社に紐付く共有質問を取得）
+  useEffect(() => {
+    const loadSharedQuestions = async () => {
+      if (!user?.id) return;
+
+      setIsLoadingSharedQuestions(true);
+      try {
+        // ユーザーが所属する会社IDを取得
+        const { data: memberships, error: membershipError } = await supabase
+          .from('company_memberships')
+          .select('company_id')
+          .eq('business_user_id', user.id)
+          .limit(1)
+          .single();
+
+        if (membershipError || !memberships) {
+          console.log('会社メンバーシップが見つかりません');
+          setSharedQuestions([]);
+          return;
+        }
+
+        const companyId = memberships.company_id;
+        const questions = await getSharedQuestions(companyId);
+        setSharedQuestions(questions);
+      } catch (error) {
+        console.error('Shared questions loading error:', error);
+        setSharedQuestions([]);
+      } finally {
+        setIsLoadingSharedQuestions(false);
+      }
+    };
+
+    loadSharedQuestions();
   }, [user?.id]);
 
   // フォーム設定を読み込み
@@ -740,7 +779,15 @@ export default function CreatePage({ onBackClick, user, formId }) {
       // バックグラウンドでSupabaseに質問を作成
       let supabaseQuestion;
       try {
-        if (draggedData.isPastQuestion) {
+        if (draggedData.isSharedQuestion) {
+          // 共有質問からフォームに追加（shared_question_idを参照として維持）
+          supabaseQuestion = await addSharedQuestionToForm({
+            sharedQuestionId: draggedData.id,
+            reviewFormId: formId,
+            reviewFormPagesId: selectedPage.id,
+            questionNumber: questionNumber
+          });
+        } else if (draggedData.isPastQuestion) {
           // 過去の質問を参照として追加（元の質問の設定を継承）
           supabaseQuestion = await addExistingQuestionReference({
             originalQuestionId: draggedData.originalQuestionId || draggedData.id,
@@ -774,8 +821,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
         );
         handleQuestionsUpdate(selectedPage.id, finalQuestions);
 
-        // 新しい質問を作成済みの質問リストに追加（過去の質問からドラッグした場合は追加しない）
-        if (!draggedData.isPastQuestion) {
+        // 新しい質問を作成済みの質問リストに追加（過去の質問・共有質問からドラッグした場合は追加しない）
+        if (!draggedData.isPastQuestion && !draggedData.isSharedQuestion) {
           const newPastQuestion = {
             id: supabaseQuestion.id,
             formId: formId,
@@ -2596,6 +2643,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     setSelectedTool={setSelectedTool}
                     pastQuestions={pastQuestions}
                     isLoadingPastQuestions={isLoadingPastQuestions}
+                    sharedQuestions={sharedQuestions}
+                    isLoadingSharedQuestions={isLoadingSharedQuestions}
                   />
                 )}
                 </Paper>

@@ -12,14 +12,17 @@ import {
 import {
   TextFields,
   ExpandMore as ExpandMoreIcon,
-  History
+  History,
+  Share
 } from '@mui/icons-material';
 
 const QuestionToolsSidebar = ({
   questionTypes,
   setSelectedTool,
   pastQuestions = [],
-  isLoadingPastQuestions = false
+  isLoadingPastQuestions = false,
+  sharedQuestions = [],
+  isLoadingSharedQuestions = false
 }) => {
   const [expandedForms, setExpandedForms] = useState({});
 
@@ -150,6 +153,112 @@ const QuestionToolsSidebar = ({
           </Grid>
         ))}
       </Grid>
+
+      {/* 共有質問セクション */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <Share sx={{ fontSize: 18, color: '#3b82f6' }} />
+        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#64748b' }}>
+          共有質問
+        </Typography>
+      </Box>
+
+      <Box sx={{ mb: 3 }}>
+        {isLoadingSharedQuestions ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+            <CircularProgress size={20} sx={{ color: '#3b82f6' }} />
+          </Box>
+        ) : sharedQuestions.length === 0 ? (
+          <Box sx={{ textAlign: 'center', py: 2, color: '#94a3b8' }}>
+            <Share sx={{ fontSize: 32, mb: 0.5, opacity: 0.5 }} />
+            <Typography variant="caption" sx={{ display: 'block' }}>
+              共有質問がありません
+            </Typography>
+          </Box>
+        ) : (
+          sharedQuestions.map((question, qIndex) => (
+            <motion.div
+              key={question.id}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.2, delay: qIndex * 0.03 }}
+            >
+              <Box
+                draggable
+                onDragStart={(e) => handleDragStart(e, { ...question, isSharedQuestion: true })}
+                onDragEnd={handleDragEnd}
+                onClick={() => setSelectedTool({ ...question, isSharedQuestion: true })}
+                sx={{
+                  p: 1.5,
+                  mb: 1,
+                  cursor: 'grab',
+                  borderRadius: 1,
+                  position: 'relative',
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  border: '1px solid rgba(59, 130, 246, 0.2)',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  '&:hover': {
+                    backgroundColor: 'rgba(59, 130, 246, 0.04)',
+                    borderColor: 'rgba(59, 130, 246, 0.4)',
+                    transform: 'translateX(3px)',
+                    boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
+                  },
+                  '&:active': {
+                    cursor: 'grabbing'
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {/* 左側: アイコン */}
+                <Box
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 1,
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                  }}
+                >
+                  {React.cloneElement(
+                    questionTypes.find(qt => qt.question_types_id === question.question_types_id)?.icon || <TextFields />,
+                    {
+                      sx: {
+                        color: 'white',
+                        fontSize: '1rem'
+                      }
+                    }
+                  )}
+                </Box>
+
+                {/* 右側: テキスト（最大2行） */}
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontSize: '0.8rem',
+                    lineHeight: 1.3,
+                    color: '#2d3748',
+                    fontWeight: 500,
+                    flex: 1,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {question.question_text}
+                </Typography>
+              </Box>
+            </motion.div>
+          ))
+        )}
+      </Box>
 
       {/* 作成済みの質問セクション */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
