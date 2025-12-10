@@ -367,16 +367,20 @@ export default function CreatePage({ onBackClick, user, formId }) {
     loadQuestionTypes();
   }, []);
 
-  // 過去の質問を読み込み（ユーザーが作成した質問を取得）
+  // 過去の質問を読み込み（ユーザーが作成した質問を取得、現在編集中のフォームは除外）
   useEffect(() => {
     const loadPastQuestions = async () => {
       if (!user?.id) return;
 
       setIsLoadingPastQuestions(true);
       try {
-        // ユーザーの質問を取得（company_review_formsテーブルは使用しない）
+        // ユーザーの質問を取得
         const questions = await getCompanyPastQuestions(user.id, null);
-        setPastQuestions(questions);
+        // 現在編集中のフォームの質問を除外
+        const filteredQuestions = formId
+          ? questions.filter(q => q.formId !== formId)
+          : questions;
+        setPastQuestions(filteredQuestions);
       } catch (error) {
         console.error('Past questions loading error:', error);
       } finally {
@@ -385,7 +389,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
     };
 
     loadPastQuestions();
-  }, [user?.id]);
+  }, [user?.id, formId]);
 
   // フォーム設定を読み込み
   useEffect(() => {
