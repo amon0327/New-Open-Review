@@ -117,25 +117,20 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
       try {
         const fetchedCompanyId = propCompanyId;
 
-        // 1. 会社のレビューフォーム一覧を取得
+        // 1. 会社のレビューフォーム一覧を取得（review_formsテーブルから直接取得）
         const { data: forms, error: formsError } = await supabase
-          .from('company_review_forms')
-          .select(`
-            review_form_id,
-            review_forms:review_form_id (
-              id,
-              title,
-              is_deleted
-            )
-          `)
+          .from('review_forms')
+          .select('id, title, is_deleted')
           .eq('company_id', fetchedCompanyId);
+
+        console.log('レビューフォームデータ取得:', { forms, formsError, fetchedCompanyId });
 
         if (!formsError && forms) {
           const activeFormsData = forms
-            .filter(f => f.review_forms && !f.review_forms.is_deleted)
+            .filter(f => !f.is_deleted)
             .map(f => ({
-              id: f.review_forms.id,
-              name: f.review_forms.title,
+              id: f.id,
+              name: f.title,
               description: ''
             }));
           setReviewForms(activeFormsData);
