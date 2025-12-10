@@ -309,6 +309,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} />;
     } else if (navigationItems[activeTab].text === '管理メンバー') {
       return <ActiveComponent companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
+    } else if (navigationItems[activeTab].text === 'フォーム公開') {
+      return <ActiveComponent user={user} />;
     }
     return <ActiveComponent />;
   };
