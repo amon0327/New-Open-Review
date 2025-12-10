@@ -16,9 +16,6 @@ export const useCreatePageState = () => {
     }
   }, [previewMode]);
   
-  // テンプレート関連
-  const [expandedTemplates, setExpandedTemplates] = useState({}); // テンプレートの展開状態
-  
   // ページ管理関連
   const [showPageManager, setShowPageManager] = useState(false); // ページ管理UI表示状態
   const [draggedPage, setDraggedPage] = useState(null); // ドラッグ中のページ
@@ -55,11 +52,7 @@ export const useCreatePageState = () => {
     setPreviewMode,
     zoom,
     setZoom,
-    
-    // テンプレート関連
-    expandedTemplates,
-    setExpandedTemplates,
-    
+
     // ページ管理関連
     showPageManager,
     setShowPageManager,

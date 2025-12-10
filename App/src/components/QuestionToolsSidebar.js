@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   Box,
   Paper,
   Typography,
   Grid,
   Collapse,
-  Tabs,
-  Tab,
   CircularProgress,
   Chip,
   Tooltip
@@ -15,20 +13,15 @@ import {
 import {
   TextFields,
   ExpandMore as ExpandMoreIcon,
-  History,
-  AutoAwesome
+  History
 } from '@mui/icons-material';
 
 const QuestionToolsSidebar = ({
   questionTypes,
-  questionTemplates,
-  expandedTemplates,
-  toggleExpanded,
   setSelectedTool,
   pastQuestions = [],
   isLoadingPastQuestions = false
 }) => {
-  const [activeTab, setActiveTab] = useState(0);
   const [expandedForms, setExpandedForms] = useState({});
 
   // ドラッグ開始時の処理
@@ -159,434 +152,208 @@ const QuestionToolsSidebar = ({
         ))}
       </Grid>
 
-      {/* タブ切り替え */}
-      <Tabs
-        value={activeTab}
-        onChange={(e, newValue) => setActiveTab(newValue)}
-        sx={{
-          minHeight: 36,
-          mb: 2,
-          '& .MuiTabs-indicator': {
-            backgroundColor: '#5e17eb',
-            height: 2
-          }
-        }}
-      >
-        <Tab
-          icon={<History sx={{ fontSize: 16 }} />}
-          iconPosition="start"
-          label="作成済みの質問"
-          sx={{
-            minHeight: 36,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            textTransform: 'none',
-            color: activeTab === 0 ? '#5e17eb' : '#64748b',
-            '&.Mui-selected': {
-              color: '#5e17eb'
-            }
-          }}
-        />
-        <Tab
-          icon={<AutoAwesome sx={{ fontSize: 16 }} />}
-          iconPosition="start"
-          label="テンプレート"
-          sx={{
-            minHeight: 36,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            textTransform: 'none',
-            color: activeTab === 1 ? '#5e17eb' : '#64748b',
-            '&.Mui-selected': {
-              color: '#5e17eb'
-            }
-          }}
-        />
-      </Tabs>
+      {/* 作成済みの質問セクション */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <History sx={{ fontSize: 18, color: '#5e17eb' }} />
+        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#64748b' }}>
+          作成済みの質問
+        </Typography>
+      </Box>
 
-      {/* 過去の質問タブ */}
-      {activeTab === 0 && (
-        <Box sx={{ flex: 1 }}>
-          {isLoadingPastQuestions ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress size={24} sx={{ color: '#5e17eb' }} />
-            </Box>
-          ) : pastQuestions.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 4, color: '#94a3b8' }}>
-              <History sx={{ fontSize: 40, mb: 1, opacity: 0.5 }} />
-              <Typography variant="body2">
-                作成済みの質問がありません
-              </Typography>
-              <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                フォームを作成すると質問が表示されます
-              </Typography>
-            </Box>
-          ) : (
-            groupedPastQuestions.map((formGroup, formIndex) => (
-              <Box key={formGroup.formId} sx={{ mb: 2 }}>
-                {/* フォームヘッダー（トグル機能付き） */}
-                <Box
-                  onClick={() => toggleFormExpanded(formGroup.formId)}
-                  sx={{
-                    p: 1.5,
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    borderRadius: 1,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    border: '1px solid rgba(94, 23, 235, 0.1)',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                      borderColor: 'rgba(94, 23, 235, 0.2)',
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
-                    }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
-                    <Box
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: 1,
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                        flexShrink: 0
-                      }}
-                    />
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: '0.8rem',
-                        color: '#2d3748',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {formGroup.formTitle}
-                    </Typography>
-                    <Chip
-                      label={`${formGroup.questions.length}件`}
-                      size="small"
-                      sx={{
-                        height: 18,
-                        fontSize: '0.65rem',
-                        backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                        color: '#5e17eb',
-                        flexShrink: 0
-                      }}
-                    />
-                  </Box>
-                  <ExpandMoreIcon
+      <Box sx={{ flex: 1 }}>
+        {isLoadingPastQuestions ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress size={24} sx={{ color: '#5e17eb' }} />
+          </Box>
+        ) : pastQuestions.length === 0 ? (
+          <Box sx={{ textAlign: 'center', py: 4, color: '#94a3b8' }}>
+            <History sx={{ fontSize: 40, mb: 1, opacity: 0.5 }} />
+            <Typography variant="body2">
+              作成済みの質問がありません
+            </Typography>
+            <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+              フォームを作成すると質問が表示されます
+            </Typography>
+          </Box>
+        ) : (
+          groupedPastQuestions.map((formGroup, formIndex) => (
+            <Box key={formGroup.formId} sx={{ mb: 2 }}>
+              {/* フォームヘッダー（トグル機能付き） */}
+              <Box
+                onClick={() => toggleFormExpanded(formGroup.formId)}
+                sx={{
+                  p: 1.5,
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  borderRadius: 1,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  border: '1px solid rgba(94, 23, 235, 0.1)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                    borderColor: 'rgba(94, 23, 235, 0.2)',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
+                  }
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
+                  <Box
                     sx={{
-                      fontSize: '1rem',
+                      width: 8,
+                      height: 8,
+                      borderRadius: 1,
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      flexShrink: 0
+                    }}
+                  />
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8rem',
+                      color: '#2d3748',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {formGroup.formTitle}
+                  </Typography>
+                  <Chip
+                    label={`${formGroup.questions.length}件`}
+                    size="small"
+                    sx={{
+                      height: 18,
+                      fontSize: '0.65rem',
+                      backgroundColor: 'rgba(94, 23, 235, 0.1)',
                       color: '#5e17eb',
-                      transform: expandedForms[formGroup.formId] ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.3s ease',
                       flexShrink: 0
                     }}
                   />
                 </Box>
-
-                {/* 質問リスト */}
-                <Collapse in={expandedForms[formGroup.formId] || false}>
-                  <Box sx={{ pt: 1, pl: 2 }}>
-                    {formGroup.questions.map((question, qIndex) => (
-                      <motion.div
-                        key={question.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.2, delay: qIndex * 0.03 }}
-                      >
-                        <Tooltip
-                          title={
-                            <Box>
-                              <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                                ID: {question.id}
-                              </Typography>
-                              {question.categoryName && (
-                                <Typography variant="caption" sx={{ display: 'block' }}>
-                                  カテゴリ: {question.categoryName}
-                                </Typography>
-                              )}
-                            </Box>
-                          }
-                          arrow
-                          placement="right"
-                        >
-                          <Box
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, { ...question, isPastQuestion: true })}
-                            onDragEnd={handleDragEnd}
-                            onClick={() => setSelectedTool({ ...question, isPastQuestion: true })}
-                            sx={{
-                              p: 1.5,
-                              mb: 1,
-                              cursor: 'grab',
-                              borderRadius: 1,
-                              position: 'relative',
-                              backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                              border: '1px solid rgba(16, 185, 129, 0.2)',
-                              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1.5,
-                              '&:hover': {
-                                backgroundColor: 'rgba(16, 185, 129, 0.04)',
-                                borderColor: 'rgba(16, 185, 129, 0.4)',
-                                transform: 'translateX(3px)',
-                                boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
-                              },
-                              '&:active': {
-                                cursor: 'grabbing'
-                              },
-                              transition: 'all 0.3s ease'
-                            }}
-                          >
-                            {/* 左側: アイコン */}
-                            <Box
-                              sx={{
-                                width: 32,
-                                height: 32,
-                                borderRadius: 1,
-                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0,
-                                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
-                              }}
-                            >
-                              {React.cloneElement(
-                                questionTypes.find(qt => qt.question_types_id === question.question_types_id)?.icon || <TextFields />,
-                                {
-                                  sx: {
-                                    color: 'white',
-                                    fontSize: '1rem'
-                                  }
-                                }
-                              )}
-                            </Box>
-
-                            {/* 右側: テキスト（最大2行） */}
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontSize: '0.8rem',
-                                lineHeight: 1.3,
-                                color: '#2d3748',
-                                fontWeight: 500,
-                                flex: 1,
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                              }}
-                            >
-                              {question.question}
-                            </Typography>
-                          </Box>
-                        </Tooltip>
-                      </motion.div>
-                    ))}
-                  </Box>
-                </Collapse>
-              </Box>
-            ))
-          )}
-        </Box>
-      )}
-
-      {/* テンプレート質問タブ */}
-      {activeTab === 1 && (
-        <Box sx={{ flex: 1 }}>
-          {questionTemplates.map((majorCategory, index) => (
-            <Box key={majorCategory.id} sx={{ mb: 3 }}>
-              {/* 大区分ヘッダー（テキスト表示のみ） */}
-              <Box sx={{ mb: 2 }}>
-                <Typography
-                  variant="h6"
+                <ExpandMoreIcon
                   sx={{
-                    fontWeight: 700,
-                    fontSize: '0.9rem',
-                    color: '#1a202c',
-                    letterSpacing: '0.02em',
-                    mb: 0.5
-                  }}
-                >
-                  {majorCategory.title}
-                </Typography>
-                <Box
-                  sx={{
-                    width: '100%',
-                    height: 2,
-                    background: 'linear-gradient(90deg, #5e17eb 0%, #764ba2 100%)',
-                    borderRadius: 0.5,
-                    opacity: 0.3
+                    fontSize: '1rem',
+                    color: '#5e17eb',
+                    transform: expandedForms[formGroup.formId] ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.3s ease',
+                    flexShrink: 0
                   }}
                 />
               </Box>
 
-              {/* 中区分とテンプレート質問 */}
-              <Box sx={{ pl: 0 }}>
-                {majorCategory.categories.map((category, catIndex) => (
-                  <Box key={category.id} sx={{ mb: 2 }}>
-                    {/* 中区分ヘッダー（トグル機能付き） */}
-                    <Box
-                      onClick={() => toggleExpanded(`${majorCategory.id}-${category.id}`)}
-                      sx={{
-                        p: 1.5,
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                        borderRadius: 1,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        border: '1px solid rgba(94, 23, 235, 0.1)',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                          borderColor: 'rgba(94, 23, 235, 0.2)',
-                          transform: 'translateY(-1px)',
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
-                        }
-                      }}
+              {/* 質問リスト */}
+              <Collapse in={expandedForms[formGroup.formId] || false}>
+                <Box sx={{ pt: 1, pl: 2 }}>
+                  {formGroup.questions.map((question, qIndex) => (
+                    <motion.div
+                      key={question.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2, delay: qIndex * 0.03 }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Tooltip
+                        title={
+                          <Box>
+                            <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                              ID: {question.id}
+                            </Typography>
+                            {question.categoryName && (
+                              <Typography variant="caption" sx={{ display: 'block' }}>
+                                カテゴリ: {question.categoryName}
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                        arrow
+                        placement="right"
+                      >
                         <Box
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, { ...question, isPastQuestion: true })}
+                          onDragEnd={handleDragEnd}
+                          onClick={() => setSelectedTool({ ...question, isPastQuestion: true })}
                           sx={{
-                            width: 8,
-                            height: 8,
+                            p: 1.5,
+                            mb: 1,
+                            cursor: 'grab',
                             borderRadius: 1,
-                            background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
-                            boxShadow: '0 2px 4px rgba(94, 23, 235, 0.3)'
-                          }}
-                        />
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: '0.8rem',
-                            color: '#2d3748'
+                            position: 'relative',
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            border: '1px solid rgba(16, 185, 129, 0.2)',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1.5,
+                            '&:hover': {
+                              backgroundColor: 'rgba(16, 185, 129, 0.04)',
+                              borderColor: 'rgba(16, 185, 129, 0.4)',
+                              transform: 'translateX(3px)',
+                              boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
+                            },
+                            '&:active': {
+                              cursor: 'grabbing'
+                            },
+                            transition: 'all 0.3s ease'
                           }}
                         >
-                          {category.title}
-                        </Typography>
-                      </Box>
-                      <ExpandMoreIcon
-                        sx={{
-                          fontSize: '1rem',
-                          color: '#5e17eb',
-                          transform: expandedTemplates[`${majorCategory.id}-${category.id}`] ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.3s ease'
-                        }}
-                      />
-                    </Box>
-
-                    {/* テンプレート質問リスト */}
-                    <Collapse in={expandedTemplates[`${majorCategory.id}-${category.id}`] || false}>
-                      <Box sx={{ pt: 1, pl: 2 }}>
-                        {category.templates.map((temp, tempIndex) => (
-                          <motion.div
-                            key={temp.id}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.2, delay: tempIndex * 0.05 }}
+                          {/* 左側: アイコン */}
+                          <Box
+                            sx={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 1,
+                              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                            }}
                           >
-                            <Box
-                              draggable
-                              onDragStart={(e) => handleDragStart(e, { ...temp, isTemplate: true })}
-                              onDragEnd={handleDragEnd}
-                              onClick={() => setSelectedTool({ ...temp, isTemplate: true })}
-                              sx={{
-                                p: 1.5,
-                                mb: 1,
-                                cursor: 'grab',
-                                borderRadius: 1,
-                                position: 'relative',
-                                backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                border: '1px solid rgba(0, 0, 0, 0.06)',
-                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1.5,
-                                '&:hover': {
-                                  backgroundColor: 'rgba(94, 23, 235, 0.04)',
-                                  borderColor: 'rgba(94, 23, 235, 0.15)',
-                                  transform: 'translateX(3px)',
-                                  boxShadow: '0 3px 12px rgba(0, 0, 0, 0.1)'
-                                },
-                                '&:active': {
-                                  cursor: 'grabbing'
-                                },
-                                transition: 'all 0.3s ease'
-                              }}
-                            >
-                              {/* 左側: アイコン */}
-                              <Box
-                                sx={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 1,
-                                  background: `linear-gradient(135deg, ${
-                                    ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][tempIndex % 7]
-                                  } 0%, ${
-                                    ['#764ba2', '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][tempIndex % 7]
-                                  } 100%)`,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  flexShrink: 0,
-                                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
-                                }}
-                              >
-                                {React.cloneElement(
-                                  questionTypes.find(qt => qt.type === temp.type)?.icon || <TextFields />,
-                                  {
-                                    sx: {
-                                      color: 'white',
-                                      fontSize: '1rem'
-                                    }
-                                  }
-                                )}
-                              </Box>
+                            {React.cloneElement(
+                              questionTypes.find(qt => qt.question_types_id === question.question_types_id)?.icon || <TextFields />,
+                              {
+                                sx: {
+                                  color: 'white',
+                                  fontSize: '1rem'
+                                }
+                              }
+                            )}
+                          </Box>
 
-                              {/* 右側: テキスト（最大2行） */}
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  fontSize: '0.8rem',
-                                  lineHeight: 1.3,
-                                  color: '#2d3748',
-                                  fontWeight: 500,
-                                  flex: 1,
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: 'vertical',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis'
-                                }}
-                              >
-                                {temp.question}
-                              </Typography>
-                            </Box>
-                          </motion.div>
-                        ))}
-                      </Box>
-                    </Collapse>
-                  </Box>
-                ))}
-              </Box>
+                          {/* 右側: テキスト（最大2行） */}
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontSize: '0.8rem',
+                              lineHeight: 1.3,
+                              color: '#2d3748',
+                              fontWeight: 500,
+                              flex: 1,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}
+                          >
+                            {question.question}
+                          </Typography>
+                        </Box>
+                      </Tooltip>
+                    </motion.div>
+                  ))}
+                </Box>
+              </Collapse>
             </Box>
-          ))}
-        </Box>
-      )}
+          ))
+        )}
+      </Box>
     </>
   );
 };

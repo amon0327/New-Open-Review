@@ -11,11 +11,11 @@ import SettingsPanel from './settings/SettingsPanel';
 import SvgIcon from './SvgIcon';
 import { useCreatePageState } from '../hooks/useCreatePageState';
 import useQuestionData from '../hooks/useQuestionData';
-import { leftNavigationItems, questionTypes, questionTemplates, settingsCategories } from '../constants/createPageData';
+import { leftNavigationItems, questionTypes, settingsCategories } from '../constants/createPageData';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import FormDataService from '../services/FormDataService';
-import { createQuestionWithOptions, createTemplateQuestionWithOptions, updateReviewQuestion, getCompanyPastQuestions, addExistingQuestionReference } from '../services/QuestionService';
+import { createQuestionWithOptions, updateReviewQuestion, getCompanyPastQuestions, addExistingQuestionReference } from '../services/QuestionService';
 // import CompletionScreenService from '../services/CompletionScreenService'; // FormDataServiceを使用するため削除
 import { supabase } from '../lib/supabase';
 import {
@@ -149,7 +149,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
     selectedTool, setSelectedTool,
     previewMode, setPreviewMode,
     zoom, setZoom,
-    expandedTemplates, setExpandedTemplates,
     showPageManager, setShowPageManager,
     draggedPage, setDraggedPage,
     deleteMode, setDeleteMode,
@@ -218,16 +217,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
   // 質問タイプデータ（Supabaseから取得）
   const [questionTypesData, setQuestionTypesData] = useState([]);
   const [isLoadingQuestionTypes, setIsLoadingQuestionTypes] = useState(false);
-
-  // テンプレート質問データ（Supabaseから取得）
-  const [templateQuestionsData, setTemplateQuestionsData] = useState({
-    categories: [],
-    subcategories: [],
-    templateQuestions: [],
-    choices: [],
-    scaleSettings: []
-  });
-  const [isLoadingTemplateQuestions, setIsLoadingTemplateQuestions] = useState(false);
 
   // 過去の質問データ
   const [pastQuestions, setPastQuestions] = useState([]);
@@ -376,28 +365,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
     };
 
     loadQuestionTypes();
-  }, []);
-
-  // テンプレート質問を読み込み
-  useEffect(() => {
-    const loadTemplateQuestions = async () => {
-      setIsLoadingTemplateQuestions(true);
-      try {
-        const result = await FormDataService.getTemplateQuestions();
-        if (result.success) {
-          setTemplateQuestionsData(result.data);
-        } else {
-          toast.error('テンプレート質問の読み込みに失敗しました');
-        }
-      } catch (error) {
-        console.error('Template questions loading error:', error);
-        toast.error('テンプレート質問の読み込み中にエラーが発生しました');
-      } finally {
-        setIsLoadingTemplateQuestions(false);
-      }
-    };
-
-    loadTemplateQuestions();
   }, []);
 
   // 過去の質問を読み込み（formIdからcompany_idを取得して同じ企業の質問を取得）
@@ -642,57 +609,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
     description: qType.description
   }));
 
-  // Supabaseから取得したテンプレート質問データを既存フォーマットに変換
-  const convertedQuestionTemplates = templateQuestionsData.categories.map(category => {
-    const categorySubcategories = templateQuestionsData.subcategories
-      .filter(sub => sub.category_id === category.id)
-      .map(subcategory => {
-        const subcategoryQuestions = templateQuestionsData.templateQuestions
-          .filter(q => q.question_subcategories_id === subcategory.id)
-          .map(question => {
-            // 選択肢データを取得
-            const questionChoices = templateQuestionsData.choices
-              .filter(choice => choice.template_review_questions_id === question.id)
-              .sort((a, b) => a.choice_number - b.choice_number)
-              .map(choice => choice.choice_name);
-
-            // スケール設定を取得
-            const scaleData = templateQuestionsData.scaleSettings
-              .find(scale => scale.template_review_questions_id === question.id);
-
-            return {
-              id: question.id,
-              question: question.question_text,
-              type: questionTypesData.find(qt => qt.id === question.question_types_id)?.name || 'text',
-              question_types_id: question.question_types_id,
-              detail: question.is_detail_enabled ? question.question_detail_text : '',
-              required: question.is_required,
-              choices: questionChoices.length > 0 ? questionChoices : null,
-              scale_settings: scaleData ? {
-                minValue: 1,
-                maxValue: 5,
-                minLabel: scaleData.min_text,
-                maxLabel: scaleData.max_text
-              } : null,
-              isTemplate: true
-            };
-          });
-
-        return {
-          id: subcategory.id,
-          title: subcategory.japanese_name,
-          expanded: false,
-          templates: subcategoryQuestions
-        };
-      });
-
-    return {
-      id: category.id,
-      title: category.japanese_name,
-      expanded: false,
-      categories: categorySubcategories
-    };
-  });
 
   // 質問データ関連のハンドラ
   const handleQuestionsUpdate = (pageId, questions) => {
@@ -831,26 +747,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
           optimisticQuestion.scale_settings = JSON.stringify(draggedData.scale_settings);
         }
       }
-      // テンプレート質問の場合は内容をコピー
-      else if (draggedData.isTemplate) {
-        optimisticQuestion.question_types_id = draggedData.question_types_id || getQuestionTypeId(draggedData.type);
-        optimisticQuestion.is_required = draggedData.required !== undefined ? draggedData.required : true;
-
-        if (draggedData.detail) {
-          optimisticQuestion.question_detail_text = draggedData.detail;
-        }
-
-        if (draggedData.choices && Array.isArray(draggedData.choices) && draggedData.choices.length > 0) {
-          optimisticQuestion.choices = JSON.stringify(draggedData.choices);
-        } else if ([3, 4, 8, 10].includes(optimisticQuestion.question_types_id)) {
-          // テンプレート質問でも選択肢が空の場合はデフォルト選択肢を作成
-          optimisticQuestion.choices = JSON.stringify(['選択肢1']);
-        }
-
-        if (draggedData.scale_settings) {
-          optimisticQuestion.scale_settings = JSON.stringify(draggedData.scale_settings);
-        }
-      }
 
       // 即座にローカル状態を更新（楽観的更新）
       const optimisticQuestions = [...currentQuestions, optimisticQuestion];
@@ -877,17 +773,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
               scale_settings: draggedData.scale_settings,
               template_review_questions_id: draggedData.template_review_questions_id
             }
-          });
-        } else if (draggedData.isTemplate) {
-          supabaseQuestion = await createTemplateQuestionWithOptions({
-            reviewFormId: formId,
-            questionTypesId: questionTypeId,
-            reviewFormPagesId: selectedPage.id,
-            questionNumber: questionNumber,
-            questionText: optimisticQuestion.question_text,
-            questionCategoriesId: draggedData.question_categories_id || null,
-            questionSubcategoriesId: draggedData.question_subcategories_id || null,
-            templateReviewQuestionsId: draggedData.id || null
           });
         } else {
           supabaseQuestion = await createQuestionWithOptions({
@@ -939,13 +824,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
     }
   };
 
-  // テンプレート展開制御
-  const toggleExpanded = (key) => {
-    setExpandedTemplates(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
 
   // ページ管理ハンドラ（楽観的更新）
   const handleDeletePage = async (pageId) => {
@@ -2704,9 +2582,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   // 通常の質問作成ツール
                   <QuestionToolsSidebar
                     questionTypes={convertedQuestionTypes}
-                    questionTemplates={convertedQuestionTemplates}
-                    expandedTemplates={expandedTemplates}
-                    toggleExpanded={toggleExpanded}
                     setSelectedTool={setSelectedTool}
                     pastQuestions={pastQuestions}
                     isLoadingPastQuestions={isLoadingPastQuestions}
