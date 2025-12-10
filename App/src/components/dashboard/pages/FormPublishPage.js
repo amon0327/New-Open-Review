@@ -22,7 +22,8 @@ import {
   Select,
   MenuItem,
   FormControl,
-  Chip
+  Chip,
+  TextField
 } from '@mui/material';
 import {
   Settings,
@@ -881,11 +882,11 @@ export default function FormPublishPage({ user }) {
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 1 }}>
                         <Slider
-                          value={lotterySettings.winRateDivisor}
+                          value={Math.min(Math.max(lotterySettings.winRateDivisor, 1), 10000)}
                           onChange={(e, value) => handleLotterySettingChange('winRateDivisor', value)}
-                          min={100}
+                          min={1}
                           max={10000}
-                          step={100}
+                          step={1}
                           sx={{
                             flex: 1,
                             color: '#f59e0b',
@@ -905,28 +906,56 @@ export default function FormPublishPage({ user }) {
                             }
                           }}
                         />
-                        <Box
-                          sx={{
-                            minWidth: 100,
-                            px: 1.5,
-                            py: 0.75,
-                            bgcolor: '#fffbeb',
-                            borderRadius: 0.5,
-                            border: '1px solid #fbbf24',
-                            textAlign: 'center'
-                          }}
-                        >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: '#f59e0b' }}>
-                            1/{lotterySettings.winRateDivisor}
+                            1/
                           </Typography>
-                          <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-                            ({calculateWinRate()}%)
-                          </Typography>
+                          <TextField
+                            type="number"
+                            value={lotterySettings.winRateDivisor}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value, 10);
+                              if (!isNaN(value) && value >= 1) {
+                                handleLotterySettingChange('winRateDivisor', value);
+                              }
+                            }}
+                            inputProps={{
+                              min: 1,
+                              style: { textAlign: 'center' }
+                            }}
+                            sx={{
+                              width: 80,
+                              '& .MuiOutlinedInput-root': {
+                                height: 36,
+                                bgcolor: '#fffbeb',
+                                '& fieldset': {
+                                  borderColor: '#fbbf24'
+                                },
+                                '&:hover fieldset': {
+                                  borderColor: '#f59e0b'
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: '#f59e0b'
+                                }
+                              },
+                              '& input': {
+                                fontSize: '0.9rem',
+                                fontWeight: 700,
+                                color: '#f59e0b',
+                                padding: '6px 8px'
+                              }
+                            }}
+                          />
                         </Box>
                       </Box>
-                      <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', mt: 1 }}>
-                        数値が大きいほど当選確率が下がります（100〜10000の範囲）
-                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                        <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                          数値が大きいほど当選確率が下がります（1以上の整数）
+                        </Typography>
+                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#f59e0b' }}>
+                          ({calculateWinRate()}%)
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
 
