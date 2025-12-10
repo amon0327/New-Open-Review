@@ -743,6 +743,15 @@ export default function CreatePage({ onBackClick, user, formId }) {
         if (draggedData.isPastQuestion) {
           // 過去の質問を中間テーブル経由でリンク（新しいレコードを作成せず、既存の質問IDを共有）
           const originalQuestionId = draggedData.originalQuestionId || draggedData.id;
+
+          // 既に現在のページに同じ質問が存在するかチェック
+          const existingQuestion = currentQuestions.find(q => q.id === originalQuestionId);
+          if (existingQuestion) {
+            toast.error('この質問は既にこのページに追加されています');
+            handleQuestionsUpdate(selectedPage.id, currentQuestions);
+            return;
+          }
+
           await linkQuestionToForm({
             reviewQuestionId: originalQuestionId,
             reviewFormId: formId,
