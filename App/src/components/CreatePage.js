@@ -865,7 +865,18 @@ export default function CreatePage({ onBackClick, user, formId }) {
             originalQuestionId: draggedData.originalQuestionId || draggedData.id,
             reviewFormId: formId,
             reviewFormPagesId: selectedPage.id,
-            questionNumber: questionNumber
+            questionNumber: questionNumber,
+            // フォールバックデータ（RLSで元の質問が取得できない場合に使用）
+            fallbackData: {
+              question_types_id: draggedData.question_types_id,
+              question_text: draggedData.question_text || draggedData.question,
+              detail: draggedData.detail,
+              required: draggedData.required,
+              is_detail_enabled: draggedData.is_detail_enabled,
+              choices: draggedData.choices,
+              scale_settings: draggedData.scale_settings,
+              template_review_questions_id: draggedData.template_review_questions_id
+            }
           });
         } else if (draggedData.isTemplate) {
           supabaseQuestion = await createTemplateQuestionWithOptions({

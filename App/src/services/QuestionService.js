@@ -1356,27 +1356,81 @@ export const getCompanyPastQuestions = async (businessUserId, companyId = null) 
   }
 };
 
-// 既存の質問を参照として新しいフォームに追加する関数（同じIDを保持）
+// 既存の質問を参照として新しいフォームに追加する関数（完全コピー）
 export const addExistingQuestionReference = async ({
   originalQuestionId,
   reviewFormId,
   reviewFormPagesId,
-  questionNumber
+  questionNumber,
+  // フォールバック用のデータ（元の質問が取得できない場合に使用）
+  fallbackData = null
 }) => {
   try {
-    // 1. 元の質問データを取得
-    const { data: originalQuestion, error: fetchError } = await supabase
-      .from('review_questions')
-      .select('*')
-      .eq('id', originalQuestionId)
-      .single();
+    console.log('addExistingQuestionReference開始:', { originalQuestionId, reviewFormId, reviewFormPagesId, questionNumber });
 
-    if (fetchError || !originalQuestion) {
-      throw new Error('元の質問が見つかりません');
+    // 1. 元の質問データを取得
+    let originalQuestion = null;
+    let originalChoices = [];
+    let originalScale = null;
+
+    if (originalQuestionId) {
+      const { data: fetchedQuestion, error: fetchError } = await supabase
+        .from('review_questions')
+        .select('*')
+        .eq('id', originalQuestionId)
+        .single();
+
+      if (!fetchError && fetchedQuestion) {
+        originalQuestion = fetchedQuestion;
+        console.log('元の質問を取得:', originalQuestion);
+
+        // 選択肢を取得
+        originalChoices = await getQuestionChoiceOptions(originalQuestionId);
+        console.log('元の選択肢を取得:', originalChoices);
+
+        // リニアスケール設定を取得
+        originalScale = await getQuestionLinearScaleOption(originalQuestionId);
+        console.log('元のスケール設定を取得:', originalScale);
+      } else {
+        console.warn('元の質問が見つかりません、フォールバックデータを使用:', fetchError);
+      }
+    }
+
+    // フォールバック: 元の質問が取得できない場合はfallbackDataを使用
+    if (!originalQuestion && fallbackData) {
+      console.log('フォールバックデータを使用:', fallbackData);
+      originalQuestion = {
+        question_types_id: fallbackData.question_types_id,
+        question_text: fallbackData.question_text || fallbackData.question || '',
+        question_detail_text: fallbackData.detail || fallbackData.question_detail_text || '',
+        is_required: fallbackData.required !== undefined ? fallbackData.required : true,
+        is_detail_enabled: fallbackData.is_detail_enabled || false,
+        template_review_questions_id: fallbackData.template_review_questions_id || null
+      };
+
+      // フォールバックの選択肢
+      if (fallbackData.choices && Array.isArray(fallbackData.choices)) {
+        originalChoices = fallbackData.choices.map((choice, index) => ({
+          choice_name: typeof choice === 'string' ? choice : choice.choice_name,
+          choice_number: index + 1
+        }));
+      }
+
+      // フォールバックのスケール設定
+      if (fallbackData.scale_settings) {
+        originalScale = {
+          min_text: fallbackData.scale_settings.minLabel || '',
+          max_text: fallbackData.scale_settings.maxLabel || '',
+          loyalty_score_flags: fallbackData.question_types_id === 9
+        };
+      }
+    }
+
+    if (!originalQuestion) {
+      throw new Error('元の質問データが見つかりません');
     }
 
     // 2. 新しいフォームに同じ質問を作成（元のIDではなく、新しいIDで作成）
-    // ただし、template_review_questions_idは継承
     const { data: newQuestion, error: insertError } = await supabase
       .from('review_questions')
       .insert({
@@ -1388,31 +1442,30 @@ export const addExistingQuestionReference = async ({
         question_detail_text: originalQuestion.question_detail_text,
         is_required: originalQuestion.is_required,
         is_detail_enabled: originalQuestion.is_detail_enabled,
-        template_review_questions_id: originalQuestion.template_review_questions_id || originalQuestion.id
+        template_review_questions_id: originalQuestion.template_review_questions_id || originalQuestionId
       })
       .select()
       .single();
 
     if (insertError) {
+      console.error('質問挿入エラー:', insertError);
       throw insertError;
     }
+
+    console.log('新しい質問を作成:', newQuestion);
 
     // 3. 選択肢をコピー
     const questionTypeId = originalQuestion.question_types_id;
 
-    if ([3, 4, 5, 6, 8, 10].includes(questionTypeId)) {
-      const originalChoices = await getQuestionChoiceOptions(originalQuestionId);
-      if (originalChoices.length > 0) {
-        await createChoiceOptionsFromTemplate(newQuestion.id, originalChoices);
-      }
+    if ([3, 4, 5, 6, 8, 10].includes(questionTypeId) && originalChoices.length > 0) {
+      console.log('選択肢をコピー:', originalChoices);
+      await createChoiceOptionsFromTemplate(newQuestion.id, originalChoices);
     }
 
     // 4. リニアスケール設定をコピー
-    if ([7, 9].includes(questionTypeId)) {
-      const originalScale = await getQuestionLinearScaleOption(originalQuestionId);
-      if (originalScale) {
-        await createLinearScaleOptionFromTemplate(newQuestion.id, originalScale, questionTypeId);
-      }
+    if ([7, 9].includes(questionTypeId) && originalScale) {
+      console.log('スケール設定をコピー:', originalScale);
+      await createLinearScaleOptionFromTemplate(newQuestion.id, originalScale, questionTypeId);
     }
 
     return newQuestion;
