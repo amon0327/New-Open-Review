@@ -194,19 +194,21 @@ export default function StoreRegistrationForm({ onStoreRegistered, onCancel }) {
               <Stack direction="row" spacing={1.5} sx={{ mt: 3 }}>
                 {onCancel && (
                   <Button
-                    variant="text"
+                    variant="outlined"
                     size="medium"
+                    fullWidth
                     onClick={onCancel}
                     disabled={isSubmitting}
                     sx={{
-                      px: 2,
-                      py: 0.75,
+                      py: 1,
                       borderRadius: 1,
                       fontWeight: 500,
                       fontSize: '0.875rem',
+                      borderColor: '#e2e8f0',
                       color: '#64748b',
                       '&:hover': {
-                        backgroundColor: '#f1f5f9'
+                        borderColor: '#cbd5e1',
+                        backgroundColor: '#f8fafc'
                       }
                     }}
                   >
@@ -217,6 +219,7 @@ export default function StoreRegistrationForm({ onStoreRegistered, onCancel }) {
                   type="submit"
                   variant="contained"
                   size="medium"
+                  fullWidth
                   disabled={isSubmitting || !formData.name.trim() || !formData.address.trim()}
                   startIcon={
                     isSubmitting ? (
@@ -226,8 +229,7 @@ export default function StoreRegistrationForm({ onStoreRegistered, onCancel }) {
                     )
                   }
                   sx={{
-                    px: 2.5,
-                    py: 0.75,
+                    py: 1,
                     borderRadius: 1,
                     fontWeight: 500,
                     fontSize: '0.875rem',
