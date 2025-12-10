@@ -97,9 +97,9 @@ export default function FormPublishPage({ user }) {
   ]);
 
   const surveyTypes = [
-    { id: 'Quality', label: 'Q', fullLabel: 'Quality', color: '#6366f1', bgColor: '#eef2ff' },
-    { id: 'Service', label: 'S', fullLabel: 'Service', color: '#10b981', bgColor: '#ecfdf5' },
-    { id: 'Cleanliness', label: 'C', fullLabel: 'Cleanliness', color: '#f59e0b', bgColor: '#fffbeb' }
+    { id: 'Quality', label: 'Q', fullLabel: 'クオリティ', color: '#6366f1', bgColor: '#eef2ff' },
+    { id: 'Service', label: 'S', fullLabel: 'サービス', color: '#10b981', bgColor: '#ecfdf5' },
+    { id: 'Cleanliness', label: 'C', fullLabel: 'クリンリネス', color: '#f59e0b', bgColor: '#fffbeb' }
   ];
 
   const cycleGroups = [
@@ -260,7 +260,7 @@ export default function FormPublishPage({ user }) {
                 fontSize: '0.875rem'
               }}
             >
-              3ヶ月サイクルで Quality・Service・Cleanliness を順番に評価
+              3ヶ月サイクルで クオリティ・サービス・クリンリネス を順番に評価
             </Typography>
           </Box>
 
