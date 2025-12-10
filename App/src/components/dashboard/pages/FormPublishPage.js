@@ -139,15 +139,13 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
         // 3. 会社の店舗一覧を取得
         const { data: storesData, error: storesError } = await supabase
           .from('stores')
-          .select('id, name, address, is_active')
+          .select('id, name, address')
           .eq('company_id', fetchedCompanyId);
 
         console.log('店舗データ取得:', { storesData, storesError, fetchedCompanyId });
 
         if (!storesError && storesData) {
-          // is_activeがnullまたはtrueの店舗のみフィルタ（is_activeが設定されていない店舗も表示）
-          const activeStores = storesData.filter(s => s.is_active !== false);
-          setStores(activeStores.map(s => ({
+          setStores(storesData.map(s => ({
             ...s,
             companyName: propCompanyName || ''
           })));
@@ -159,7 +157,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
             .from('company_qsc_form_settings')
             .select('*')
             .eq('company_id', fetchedCompanyId)
-            .single();
+            .maybeSingle();
 
           if (!formSettingsError && formSettings) {
             setSelectedForms({
@@ -178,7 +176,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
             .from('company_qsc_rotation_settings')
             .select('*')
             .eq('company_id', fetchedCompanyId)
-            .single();
+            .maybeSingle();
 
           if (!rotationError && rotationSettings) {
             setSurveyCycleConfig({
@@ -199,7 +197,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
             .eq('company_id', fetchedCompanyId)
             .eq('target_year', currentYear)
             .eq('target_month', currentMonth)
-            .single();
+            .maybeSingle();
 
           if (!lockError && monthLock) {
             setCurrentMonthLock(monthLock);
