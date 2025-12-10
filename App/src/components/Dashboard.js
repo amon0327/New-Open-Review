@@ -310,7 +310,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     } else if (navigationItems[activeTab].text === '管理メンバー') {
       return <ActiveComponent companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     } else if (navigationItems[activeTab].text === 'フォーム公開') {
-      return <ActiveComponent user={user} />;
+      return <ActiveComponent user={user} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     }
     return <ActiveComponent />;
   };

@@ -42,12 +42,10 @@ import { toast } from 'react-hot-toast';
 import QRCode from 'qrcode';
 import { supabase } from '../../../lib/supabase';
 
-export default function FormPublishPage({ user }) {
+export default function FormPublishPage({ user, companyId: propCompanyId, companyName: propCompanyName }) {
   // ローディング・エラー状態
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [companyId, setCompanyId] = useState(null);
-  const [companyName, setCompanyName] = useState('');
 
   // 今月のロック状態（回答があった場合、設定変更は来月から適用）
   const [currentMonthLock, setCurrentMonthLock] = useState(null);
@@ -109,28 +107,17 @@ export default function FormPublishPage({ user }) {
   // ============================================================================
   useEffect(() => {
     const fetchData = async () => {
-      if (!user?.id) return;
+      // propsからcompanyIdを取得（Dashboardから渡される）
+      if (!propCompanyId) {
+        console.log('companyIdがpropsから渡されていません');
+        return;
+      }
 
       setIsLoading(true);
       try {
-        // 1. ユーザーの所属会社を取得
-        const { data: membership, error: membershipError } = await supabase
-          .from('company_memberships')
-          .select('company_id, companies(id, name)')
-          .eq('business_user_id', user.id)
-          .single();
+        const fetchedCompanyId = propCompanyId;
 
-        if (membershipError) {
-          console.error('会社情報取得エラー:', membershipError);
-          setIsLoading(false);
-          return;
-        }
-
-        const fetchedCompanyId = membership.company_id;
-        setCompanyId(fetchedCompanyId);
-        setCompanyName(membership.companies?.name || '');
-
-        // 2. 会社のレビューフォーム一覧を取得
+        // 1. 会社のレビューフォーム一覧を取得
         const { data: forms, error: formsError } = await supabase
           .from('company_review_forms')
           .select(`
@@ -167,7 +154,7 @@ export default function FormPublishPage({ user }) {
           const activeStores = storesData.filter(s => s.is_active !== false);
           setStores(activeStores.map(s => ({
             ...s,
-            companyName: membership.companies?.name || ''
+            companyName: propCompanyName || ''
           })));
         }
 
@@ -236,20 +223,20 @@ export default function FormPublishPage({ user }) {
     };
 
     fetchData();
-  }, [user?.id, currentYear, currentMonth]);
+  }, [propCompanyId, propCompanyName, currentYear, currentMonth]);
 
   // ============================================================================
   // QSCフォーム設定を保存
   // ============================================================================
   const saveQscFormSettings = useCallback(async () => {
-    if (!companyId) return;
+    if (!propCompanyId) return;
 
     setIsSaving(true);
     try {
       const { error } = await supabase
         .from('company_qsc_form_settings')
         .upsert({
-          company_id: companyId,
+          company_id: propCompanyId,
           quality_form_id: selectedForms.Quality || null,
           service_form_id: selectedForms.Service || null,
           cleanliness_form_id: selectedForms.Cleanliness || null,
@@ -271,20 +258,20 @@ export default function FormPublishPage({ user }) {
     } finally {
       setIsSaving(false);
     }
-  }, [companyId, selectedForms, isCurrentMonthLocked]);
+  }, [propCompanyId, selectedForms, isCurrentMonthLocked]);
 
   // ============================================================================
   // QSCローテーション設定を保存
   // ============================================================================
   const saveQscRotationSettings = useCallback(async () => {
-    if (!companyId) return;
+    if (!propCompanyId) return;
 
     setIsSaving(true);
     try {
       const { error } = await supabase
         .from('company_qsc_rotation_settings')
         .upsert({
-          company_id: companyId,
+          company_id: propCompanyId,
           group_a_type: surveyCycleConfig.groupA,
           group_b_type: surveyCycleConfig.groupB,
           group_c_type: surveyCycleConfig.groupC,
@@ -306,7 +293,7 @@ export default function FormPublishPage({ user }) {
     } finally {
       setIsSaving(false);
     }
-  }, [companyId, surveyCycleConfig, isCurrentMonthLocked]);
+  }, [propCompanyId, surveyCycleConfig, isCurrentMonthLocked]);
 
   // 現在の月からアンケートタイプを取得（ロック状態を考慮）
   const getCurrentSurveyType = () => {
