@@ -157,12 +157,15 @@ export default function FormPublishPage({ user }) {
         // 3. 会社の店舗一覧を取得
         const { data: storesData, error: storesError } = await supabase
           .from('stores')
-          .select('id, name, address')
-          .eq('company_id', fetchedCompanyId)
-          .eq('is_active', true);
+          .select('id, name, address, is_active')
+          .eq('company_id', fetchedCompanyId);
+
+        console.log('店舗データ取得:', { storesData, storesError, fetchedCompanyId });
 
         if (!storesError && storesData) {
-          setStores(storesData.map(s => ({
+          // is_activeがnullまたはtrueの店舗のみフィルタ（is_activeが設定されていない店舗も表示）
+          const activeStores = storesData.filter(s => s.is_active !== false);
+          setStores(activeStores.map(s => ({
             ...s,
             companyName: membership.companies?.name || ''
           })));
