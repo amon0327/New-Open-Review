@@ -84,11 +84,17 @@ export default function CompanyInvitationLogin() {
           ]);
 
           if (error) {
-            throw new Error(`招待情報の取得に失敗しました: ${error.message}`);
+            // ユーザーフレンドリーなエラーメッセージに変換
+            console.error('Edge Function error:', error.message);
+            throw new Error('この招待は無効になっているか、既に使用済みの可能性があります。招待元にお問い合わせください。');
           }
 
           if (!data.success) {
-            throw new Error(data.error || '招待情報の取得に失敗しました');
+            // サーバーからのエラーメッセージがある場合はそれを使用、なければ汎用メッセージ
+            const userFriendlyError = data.error && !data.error.includes('Edge Function')
+              ? data.error
+              : 'この招待は無効になっているか、既に使用済みの可能性があります。招待元にお問い合わせください。';
+            throw new Error(userFriendlyError);
           }
 
           console.log('招待データ取得成功:', data.invitation);
