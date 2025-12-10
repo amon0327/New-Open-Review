@@ -794,7 +794,13 @@ export default function CreatePage({ onBackClick, user, formId }) {
         console.error('質問作成エラー:', error);
         // エラー時：楽観的更新を取り消し
         handleQuestionsUpdate(selectedPage.id, currentQuestions);
-        toast.error('質問の追加に失敗しました');
+
+        // 重複エラーの場合は専用メッセージ
+        if (error.code === '23505') {
+          toast.error('この質問は既にこのページに追加されています');
+        } else {
+          toast.error('質問の追加に失敗しました');
+        }
       }
       
     } catch (error) {
