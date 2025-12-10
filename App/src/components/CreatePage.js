@@ -769,13 +769,22 @@ export default function CreatePage({ onBackClick, user, formId }) {
         }
 
         // 成功時：一時IDを実際のIDに置き換え
-        const finalQuestions = optimisticQuestions.map(q => 
+        const finalQuestions = optimisticQuestions.map(q =>
           q.id === tempId ? { ...q, id: supabaseQuestion.id } : q
         );
         handleQuestionsUpdate(selectedPage.id, finalQuestions);
-        
-        // 質問追加成功時は通知なし
-        
+
+        // 新しい質問を作成済みの質問リストに追加
+        const newPastQuestion = {
+          id: supabaseQuestion.id,
+          formId: formId,
+          formTitle: projectTitle || 'フォーム',
+          question: supabaseQuestion.question_text || '',
+          question_types_id: supabaseQuestion.question_types_id,
+          originalQuestionId: supabaseQuestion.id
+        };
+        setPastQuestions(prev => [newPastQuestion, ...prev]);
+
       } catch (error) {
         console.error('質問作成エラー:', error);
         // エラー時：楽観的更新を取り消し
@@ -1138,15 +1147,24 @@ export default function CreatePage({ onBackClick, user, formId }) {
   // 質問更新ハンドラー（楽観的UI更新）
   const handleQuestionUpdate = async (questionId, updates) => {
     if (!selectedPage) return;
-    
+
     // 即座にローカル状態を更新（楽観的更新）
     const currentQuestions = getQuestionsForPage(selectedPage.id);
-    const optimisticQuestions = currentQuestions.map(q => 
+    const optimisticQuestions = currentQuestions.map(q =>
       q.id === questionId ? { ...q, ...updates } : q
     );
     handleQuestionsUpdate(selectedPage.id, optimisticQuestions);
     setIsSaving(true);
-    
+
+    // 作成済みの質問リストも更新（質問テキストが変更された場合）
+    if (updates.question_text !== undefined) {
+      setPastQuestions(prev => prev.map(q =>
+        q.id === questionId
+          ? { ...q, question: updates.question_text }
+          : q
+      ));
+    }
+
     // バックグラウンドでSupabaseに同期
     try {
       await updateQuestion(selectedPage.id, questionId, updates);
