@@ -942,7 +942,12 @@ export default function FormPublishPage({ user }) {
                                 fontSize: '0.9rem',
                                 fontWeight: 700,
                                 color: '#f59e0b',
-                                padding: '6px 8px'
+                                padding: '6px 8px',
+                                MozAppearance: 'textfield'
+                              },
+                              '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': {
+                                WebkitAppearance: 'none',
+                                margin: 0
                               }
                             }}
                           />
