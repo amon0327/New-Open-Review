@@ -313,13 +313,11 @@ export const getQuestionLinearScaleOption = async (reviewQuestionsId) => {
       .from('question_option_linear_scale')
       .select('*')
       .eq('review_questions_id', reviewQuestionsId)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return null; // データが存在しない場合
-      }
-      throw error;
+      console.warn('リニアスケールオプション取得エラー:', error);
+      return null;
     }
 
     return data;
@@ -1442,7 +1440,7 @@ export const addExistingQuestionReference = async ({
         question_detail_text: originalQuestion.question_detail_text,
         is_required: originalQuestion.is_required,
         is_detail_enabled: originalQuestion.is_detail_enabled,
-        template_review_questions_id: originalQuestion.template_review_questions_id || originalQuestionId
+        template_review_questions_id: originalQuestion.template_review_questions_id || null
       })
       .select()
       .single();
