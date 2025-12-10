@@ -14,8 +14,7 @@ import {
 import {
   Store,
   LocationOn,
-  Save,
-  Cancel
+  Save
 } from '@mui/icons-material';
 import { supabase } from '../lib/supabase';
 
@@ -192,66 +191,61 @@ export default function StoreRegistrationForm({ onStoreRegistered, onCancel }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.4 }}
             >
-              <Stack direction="row" spacing={2} sx={{ mt: 4 }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  disabled={isSubmitting || !formData.name.trim() || !formData.address.trim()}
-                  startIcon={
-                    isSubmitting ? (
-                      <CircularProgress size={20} color="inherit" />
-                    ) : (
-                      <Save />
-                    )
-                  }
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    fontWeight: 600,
-                    fontSize: '1rem',
-                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                    boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
-                    },
-                    '&:disabled': {
-                      background: '#e2e8f0',
-                      color: '#94a3b8',
-                      boxShadow: 'none',
-                      transform: 'none'
-                    }
-                  }}
-                >
-                  {isSubmitting ? '登録中...' : '店舗を登録'}
-                </Button>
-
+              <Stack direction="row" spacing={1.5} sx={{ mt: 3 }}>
                 {onCancel && (
                   <Button
-                    variant="outlined"
-                    size="large"
+                    variant="text"
+                    size="medium"
                     onClick={onCancel}
                     disabled={isSubmitting}
-                    startIcon={<Cancel />}
                     sx={{
-                      py: 1.5,
-                      borderRadius: 2,
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      borderColor: '#cbd5e1',
+                      px: 2,
+                      py: 0.75,
+                      borderRadius: 1,
+                      fontWeight: 500,
+                      fontSize: '0.875rem',
                       color: '#64748b',
                       '&:hover': {
-                        borderColor: '#94a3b8',
-                        backgroundColor: '#f8fafc'
+                        backgroundColor: '#f1f5f9'
                       }
                     }}
                   >
                     キャンセル
                   </Button>
                 )}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="medium"
+                  disabled={isSubmitting || !formData.name.trim() || !formData.address.trim()}
+                  startIcon={
+                    isSubmitting ? (
+                      <CircularProgress size={16} color="inherit" />
+                    ) : (
+                      <Save sx={{ fontSize: 18 }} />
+                    )
+                  }
+                  sx={{
+                    px: 2.5,
+                    py: 0.75,
+                    borderRadius: 1,
+                    fontWeight: 500,
+                    fontSize: '0.875rem',
+                    background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                    boxShadow: 'none',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
+                    },
+                    '&:disabled': {
+                      background: '#e2e8f0',
+                      color: '#94a3b8',
+                      boxShadow: 'none'
+                    }
+                  }}
+                >
+                  {isSubmitting ? '登録中...' : '登録'}
+                </Button>
               </Stack>
             </motion.div>
           </Stack>
