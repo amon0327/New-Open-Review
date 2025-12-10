@@ -774,7 +774,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
         );
         handleQuestionsUpdate(selectedPage.id, finalQuestions);
 
-        // 新しい質問を作成済みの質問リストに追加
+        // 新しい質問を作成済みの質問リストに追加（重複チェック）
         const newPastQuestion = {
           id: supabaseQuestion.id,
           formId: formId,
@@ -783,7 +783,13 @@ export default function CreatePage({ onBackClick, user, formId }) {
           question_types_id: supabaseQuestion.question_types_id,
           originalQuestionId: supabaseQuestion.id
         };
-        setPastQuestions(prev => [newPastQuestion, ...prev]);
+        setPastQuestions(prev => {
+          // 既に同じIDが存在する場合は追加しない
+          if (prev.some(q => q.id === supabaseQuestion.id)) {
+            return prev;
+          }
+          return [newPastQuestion, ...prev];
+        });
 
       } catch (error) {
         console.error('質問作成エラー:', error);
