@@ -7,8 +7,7 @@ import {
   Grid,
   Collapse,
   CircularProgress,
-  Chip,
-  Tooltip
+  Chip
 } from '@mui/material';
 import {
   TextFields,
@@ -256,22 +255,6 @@ const QuestionToolsSidebar = ({
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: qIndex * 0.03 }}
                     >
-                      <Tooltip
-                        title={
-                          <Box>
-                            <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                              ID: {question.id}
-                            </Typography>
-                            {question.categoryName && (
-                              <Typography variant="caption" sx={{ display: 'block' }}>
-                                カテゴリ: {question.categoryName}
-                              </Typography>
-                            )}
-                          </Box>
-                        }
-                        arrow
-                        placement="right"
-                      >
                         <Box
                           draggable
                           onDragStart={(e) => handleDragStart(e, { ...question, isPastQuestion: true })}
@@ -345,7 +328,6 @@ const QuestionToolsSidebar = ({
                             {question.question}
                           </Typography>
                         </Box>
-                      </Tooltip>
                     </motion.div>
                   ))}
                 </Box>
