@@ -252,7 +252,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                 mb: 1
               }}
             >
-              初期化中...
+              読み込み中...
             </Typography>
             <Typography
               variant="body2"

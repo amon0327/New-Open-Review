@@ -237,13 +237,7 @@ export default function CompanyInvitationLogin() {
                 mb: 1
               }}
             >
-              招待を確認中...
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: '#64748b' }}
-            >
-              招待情報を検証しています
+              読み込み中...
             </Typography>
           </CardContent>
         </Card>
