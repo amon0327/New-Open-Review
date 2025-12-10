@@ -819,14 +819,14 @@ export default function FormPublishPage({ user }) {
                     {/* 月間当選上限 */}
                     <Box>
                       <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', mb: 1.5 }}>
-                        月間当選上限（1〜10名）
+                        月間当選上限（0〜20名）
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 1 }}>
                         <Slider
                           value={lotterySettings.maxWinsPerMonth}
                           onChange={(e, value) => handleLotterySettingChange('maxWinsPerMonth', value)}
-                          min={1}
-                          max={10}
+                          min={0}
+                          max={20}
                           step={1}
                           marks
                           sx={{
