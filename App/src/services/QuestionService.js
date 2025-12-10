@@ -435,9 +435,49 @@ export const updateReviewQuestion = async (questionId, updates) => {
   }
 };
 
-// 質問を削除する関数
-export const deleteReviewQuestion = async (questionId) => {
+// 質問を削除する関数（フォームからのリンク解除または完全削除）
+export const deleteReviewQuestion = async (questionId, formId = null, pageId = null) => {
   try {
+    // 中間テーブルにリンクがあるか確認
+    const { data: links, error: linkError } = await supabase
+      .from('review_question_form_links')
+      .select('id, review_form_id, review_form_pages_id')
+      .eq('review_question_id', questionId);
+
+    if (linkError) {
+      console.error('Error checking links:', linkError);
+    }
+
+    // 現在のフォーム/ページへのリンクがある場合
+    if (links && links.length > 0 && formId && pageId) {
+      // 該当するリンクを探す
+      const targetLink = links.find(
+        link => link.review_form_id === formId && link.review_form_pages_id === pageId
+      );
+
+      if (targetLink) {
+        // リンクのみ削除（質問本体は残す）
+        const { error: deleteLinkError } = await supabase
+          .from('review_question_form_links')
+          .delete()
+          .eq('id', targetLink.id);
+
+        if (deleteLinkError) {
+          throw deleteLinkError;
+        }
+
+        console.log('Link deleted, question preserved for other forms');
+        return true;
+      }
+    }
+
+    // リンクがない場合、または元のフォームでの削除の場合は質問本体を削除
+    // まず、この質問への全てのリンクを削除
+    await supabase
+      .from('review_question_form_links')
+      .delete()
+      .eq('review_question_id', questionId);
+
     // 1. 関連する選択肢オプションを削除
     await supabase
       .from('question_option_choices')

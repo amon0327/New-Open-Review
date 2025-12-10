@@ -120,17 +120,18 @@ const useQuestionData = (formId) => {
   }, []);
 
   // 質問を削除（楽観的更新対応）
+  // リンク経由の質問の場合はリンクのみ削除、元の質問は残す
   const deleteQuestion = useCallback(async (pageId, questionId) => {
     // 楽観的更新用：ローカル状態の更新は呼び出し元で行う
     // ここではSupabaseとの同期のみ実行
     try {
-      await deleteReviewQuestion(questionId);
+      await deleteReviewQuestion(questionId, formId, pageId);
       return true;
     } catch (error) {
       console.error('Error deleting question:', error);
       throw error; // エラーを呼び出し元に伝播
     }
-  }, []);
+  }, [formId]);
 
   // 質問を複製（Supabaseへの登録も含む）
   const duplicateQuestion = useCallback(async (pageId, questionId) => {
