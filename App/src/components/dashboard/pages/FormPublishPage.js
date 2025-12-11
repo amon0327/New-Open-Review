@@ -78,11 +78,13 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     winRateDivisor: 1000
   });
 
-  // 今月の抽選統計（ダミーデータ）
+  // 今月の抽選統計
   const [lotteryStats, setLotteryStats] = useState({
-    totalAttempts: 245,
+    totalAttempts: 0,
     totalWins: 0
   });
+  // 抽選設定保存状態
+  const [isSavingLottery, setIsSavingLottery] = useState(false);
 
   // 店舗データ（Supabaseから取得）
   const [stores, setStores] = useState([]);
@@ -208,6 +210,44 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           console.log('QSC月次ロックテーブルが未作成:', e);
         }
 
+        // 7. 企業の抽選設定を取得
+        try {
+          const { data: lotterySettingsData, error: lotterySettingsError } = await supabase
+            .from('company_lottery_settings')
+            .select('*')
+            .eq('company_id', fetchedCompanyId)
+            .maybeSingle();
+
+          if (!lotterySettingsError && lotterySettingsData) {
+            setLotterySettings({
+              maxWinsPerMonth: lotterySettingsData.max_wins_per_month,
+              winRateDivisor: lotterySettingsData.win_rate_divisor
+            });
+          }
+        } catch (e) {
+          console.log('企業抽選設定テーブルが未作成:', e);
+        }
+
+        // 8. 今月の抽選統計を取得
+        try {
+          const { data: lotteryStatsData, error: lotteryStatsError } = await supabase
+            .from('company_lottery_monthly_stats')
+            .select('*')
+            .eq('company_id', fetchedCompanyId)
+            .eq('target_year', currentYear)
+            .eq('target_month', currentMonth)
+            .maybeSingle();
+
+          if (!lotteryStatsError && lotteryStatsData) {
+            setLotteryStats({
+              totalAttempts: lotteryStatsData.total_attempts,
+              totalWins: lotteryStatsData.total_wins
+            });
+          }
+        } catch (e) {
+          console.log('抽選統計テーブルが未作成:', e);
+        }
+
       } catch (error) {
         console.error('データ取得エラー:', error);
         toast.error('データの取得に失敗しました');
@@ -288,6 +328,37 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
       setIsSaving(false);
     }
   }, [propCompanyId, surveyCycleConfig, isCurrentMonthLocked]);
+
+  // ============================================================================
+  // 企業抽選設定を保存
+  // ============================================================================
+  const saveLotterySettings = useCallback(async () => {
+    if (!propCompanyId) return;
+
+    setIsSavingLottery(true);
+    try {
+      const { error } = await supabase
+        .from('company_lottery_settings')
+        .upsert({
+          company_id: propCompanyId,
+          win_rate_divisor: lotterySettings.winRateDivisor,
+          max_wins_per_month: lotterySettings.maxWinsPerMonth,
+          is_enabled: true,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'company_id'
+        });
+
+      if (error) throw error;
+
+      toast.success('抽選設定を保存しました');
+    } catch (error) {
+      console.error('抽選設定保存エラー:', error);
+      toast.error('抽選設定の保存に失敗しました');
+    } finally {
+      setIsSavingLottery(false);
+    }
+  }, [propCompanyId, lotterySettings]);
 
   // 現在の月からアンケートタイプを取得（ロック状態を考慮）
   const getCurrentSurveyType = () => {
@@ -1223,10 +1294,8 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                     <Button
                       variant="contained"
                       size="small"
-                      onClick={() => {
-                        toast.success('抽選設定を保存しました');
-                        setShowLotterySettings(false);
-                      }}
+                      onClick={saveLotterySettings}
+                      disabled={isSavingLottery}
                       sx={{
                         background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
                         borderRadius: 0.5,
@@ -1239,10 +1308,13 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                         '&:hover': {
                           background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
                           boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
+                        },
+                        '&:disabled': {
+                          opacity: 0.7
                         }
                       }}
                     >
-                      保存
+                      {isSavingLottery ? '保存中...' : '保存'}
                     </Button>
                   </Box>
                 </Box>
