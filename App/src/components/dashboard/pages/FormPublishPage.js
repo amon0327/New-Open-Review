@@ -117,10 +117,10 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
       try {
         const fetchedCompanyId = propCompanyId;
 
-        // 1. 会社のレビューフォーム一覧を取得（review_formsテーブルから直接取得）
+        // 1. 会社のレビューフォーム一覧を取得（review_formsテーブルから直接取得、qsc_theme含む）
         const { data: forms, error: formsError } = await supabase
           .from('review_forms')
-          .select('id, title, is_deleted')
+          .select('id, title, is_deleted, qsc_theme')
           .eq('company_id', fetchedCompanyId);
 
         console.log('レビューフォームデータ取得:', { forms, formsError, fetchedCompanyId });
@@ -131,6 +131,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
             .map(f => ({
               id: f.id,
               name: f.title,
+              qscTheme: f.qsc_theme, // 'quality', 'service', 'cleanliness' または null
               description: ''
             }));
           setReviewForms(activeFormsData);
@@ -384,6 +385,14 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     const formId = selectedForms[themeId];
     if (!formId) return null;
     return reviewForms.find(f => f.id === formId);
+  };
+
+  // QSCテーマIDに対応するフォームをフィルタリング
+  // themeId: 'Quality', 'Service', 'Cleanliness' (大文字始まり)
+  // qscTheme: 'quality', 'service', 'cleanliness' (小文字)
+  const getFormsForTheme = (themeId) => {
+    const themeKey = themeId.toLowerCase(); // 'Quality' -> 'quality'
+    return reviewForms.filter(f => f.qscTheme === themeKey);
   };
 
   // 抽選設定変更ハンドラー
@@ -858,10 +867,12 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                           >
                             <MenuItem value="" disabled>
                               <Typography sx={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-                                フォームを選択してください
+                                {getFormsForTheme(type.id).length === 0
+                                  ? `${type.fullLabel}テーマのフォームがありません`
+                                  : 'フォームを選択してください'}
                               </Typography>
                             </MenuItem>
-                            {reviewForms.map((form) => (
+                            {getFormsForTheme(type.id).map((form) => (
                               <MenuItem key={form.id} value={form.id}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                   <Description sx={{ fontSize: 16, color: type.color }} />
