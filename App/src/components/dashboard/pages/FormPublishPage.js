@@ -140,10 +140,10 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           setReviewForms(activeFormsData);
         }
 
-        // 3. 会社の店舗一覧を取得
+        // 3. 会社の店舗一覧を取得（store_url_codeを含む）
         const { data: storesData, error: storesError } = await supabase
           .from('stores')
-          .select('id, name, address')
+          .select('id, name, address, store_url_code')
           .eq('company_id', fetchedCompanyId);
 
         console.log('店舗データ取得:', { storesData, storesError, fetchedCompanyId });
@@ -378,12 +378,14 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
 
   const currentSurveyType = getCurrentSurveyType();
 
-  // ベースURL（店舗IDベース）
-  const baseUrl = 'https://review.example.com/store';
-
-  // 店舗のレビューフォームURLを生成（店舗IDベース）
+  // 店舗のレビューフォームURLを生成（store_url_codeベース）
+  // QSCローテーションに基づいて自動的に適切なフォームにリダイレクトされる
   const getStoreFormUrl = (store) => {
-    return `${baseUrl}/${store.id}`;
+    if (store.store_url_code) {
+      return `https://reviewform.openreview.jp/s/${store.store_url_code}`;
+    }
+    // store_url_codeがない場合はフォールバック（通常は発生しない）
+    return `https://reviewform.openreview.jp/s/${store.id}`;
   };
 
   // URLをクリップボードにコピー
