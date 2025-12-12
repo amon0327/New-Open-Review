@@ -24,7 +24,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  DialogContentText
+  DialogContentText,
+  Skeleton
 } from '@mui/material';
 import {
   Add,
@@ -338,23 +339,77 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
             </Box>
           </Box>
 
-          {/* ローディング状態 */}
+          {/* ローディング状態（スケルトンスクリーン） */}
           {loading && (
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center',
-              minHeight: '300px' 
-            }}>
-              <CircularProgress 
-                sx={{ 
-                  color: '#5e17eb',
-                  '& .MuiCircularProgress-circle': {
-                    strokeLinecap: 'round',
-                  }
-                }} 
-              />
-            </Box>
+            <TableContainer
+              component={Paper}
+              sx={{
+                borderRadius: 0.5,
+                boxShadow: 'none',
+                border: '1px solid rgba(0, 0, 0, 0.06)',
+                overflow: 'hidden'
+              }}
+            >
+              <Table sx={{ minWidth: 650 }}>
+                <TableHead>
+                  <TableRow
+                    sx={{
+                      backgroundColor: '#f8fafc',
+                      '& .MuiTableCell-head': {
+                        fontWeight: 700,
+                        fontSize: '0.875rem',
+                        color: '#374151',
+                        borderBottom: '2px solid #e5e7eb',
+                        py: 2
+                      }
+                    }}
+                  >
+                    <TableCell><Skeleton variant="rectangular" width={20} height={20} /></TableCell>
+                    <TableCell>フォーム名</TableCell>
+                    <TableCell align="center">QSC</TableCell>
+                    <TableCell align="center">ステータス</TableCell>
+                    <TableCell align="center">質問数</TableCell>
+                    <TableCell align="center">回答数</TableCell>
+                    <TableCell align="center">作成日</TableCell>
+                    <TableCell align="center">更新日</TableCell>
+                    <TableCell align="center">アクション</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {[1, 2, 3, 4, 5].map((row) => (
+                    <TableRow key={row} sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.04)' }}>
+                      <TableCell sx={{ py: 2 }}>
+                        <Skeleton variant="rectangular" width={20} height={20} sx={{ borderRadius: 0.5 }} />
+                      </TableCell>
+                      <TableCell sx={{ py: 2 }}>
+                        <Skeleton variant="text" width={180} height={24} />
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 2 }}>
+                        <Skeleton variant="rounded" width={80} height={24} sx={{ mx: 'auto' }} />
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 2 }}>
+                        <Skeleton variant="rounded" width={60} height={28} sx={{ mx: 'auto' }} />
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 2 }}>
+                        <Skeleton variant="text" width={30} height={24} sx={{ mx: 'auto' }} />
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 2 }}>
+                        <Skeleton variant="text" width={30} height={24} sx={{ mx: 'auto' }} />
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 2 }}>
+                        <Skeleton variant="text" width={80} height={24} sx={{ mx: 'auto' }} />
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 2 }}>
+                        <Skeleton variant="text" width={80} height={24} sx={{ mx: 'auto' }} />
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 2 }}>
+                        <Skeleton variant="circular" width={28} height={28} sx={{ mx: 'auto' }} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           )}
 
           {/* エラー状態 */}

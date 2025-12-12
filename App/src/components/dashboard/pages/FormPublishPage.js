@@ -538,7 +538,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                 fontSize: '0.875rem'
               }}
             >
-              3ヶ月サイクルで クオリティ・サービス・クリンリネス を順番に評価
+              3ヶ月サイクルで クオリティ、サービス、クリンリネス を順番に評価
             </Typography>
           </Box>
 
