@@ -2192,44 +2192,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
               {showSettings ? (
                 /* 設定画面 */
                 <SettingsPanel
-                  // テーマ設定のprops
-                  selectedColor={formSettings.theme_color}
-                  setSelectedColor={setSelectedColor}
-                  selectedFont={selectedFont}
-                  setSelectedFont={setSelectedFont}
-                  logoImage={formSettings.logo_image_url}
-                  setLogoImage={setLogoImage}
-                  
-                  // プロジェクト設定のprops
-                  projectTitle={projectTitle}
-                  setProjectTitle={setProjectTitle}
-                  
-                  // 公開設定のprops
-                  isPublished={isPublished}
-                  setIsPublished={setIsPublished}
-                  onPublishClick={handlePublishClick}
                   formId={formId}
-                  formData={{
-                    questions: allQuestions,
-                    pages,
-                    formSettings,
-                    loginScreenSettings,
-                    completionScreenSettings,
-                    loginTitle,
-                    loginDetail,
-                    completionTitle,
-                    completionDetail,
-                    logoImage: headerImage?.logo || logoImage,
-                    headerImage,
-                    completionBackground
-                  }}
-                  
-                  // Supabase連携用のprops
-                  onThemeColorUpdate={handleThemeColorUpdate}
-                  onLogoImageUpdate={handleLogoImageFileUpload}
-                  onProjectTitleUpdate={handleProjectTitleUpdate}
-                  onLotteryUpdate={handleLotteryUpdate}
-                  
+
                   // アクティブセクション
                   activeSection={activeSection}
                 />

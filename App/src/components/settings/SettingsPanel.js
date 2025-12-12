@@ -5,24 +5,13 @@ import {
   Typography,
   Stack
 } from '@mui/material';
-import PublishSettings from './PublishSettings';
-import LotterySettings from './LotterySettings';
 import QSCThemeSettings from './QSCThemeSettings';
 
 const SettingsPanel = ({
-  // 公開設定のprops
-  isPublished,
-  setIsPublished,
-  onPublishClick,
   formId,
-  formData,
-  projectTitle,
 
   // アクティブセクション指定用
-  activeSection = 'all', // 'all', 'publish', 'lottery', 'qsc', 'login', 'completion'
-
-  // 抽選設定用のprops
-  onLotteryUpdate,
+  activeSection = 'all', // 'all', 'qsc'
 
   // QSCテーマ設定用のprops
   onQSCThemeUpdate
@@ -57,26 +46,6 @@ const SettingsPanel = ({
 
         {/* 設定カード */}
         <Stack spacing={3} sx={{ width: '100%' }}>
-          {/* 公開設定 */}
-          {(activeSection === 'all' || activeSection === 'publish') && (
-            <PublishSettings
-              isPublished={isPublished}
-              setIsPublished={setIsPublished}
-              projectTitle={projectTitle}
-              formId={formId}
-              formData={formData}
-              onPublishClick={onPublishClick}
-            />
-          )}
-
-          {/* 抽選設定 */}
-          {(activeSection === 'all' || activeSection === 'lottery') && (
-            <LotterySettings
-              formId={formId}
-              onLotteryUpdate={onLotteryUpdate}
-            />
-          )}
-
           {/* QSCテーマ設定 */}
           {(activeSection === 'all' || activeSection === 'qsc') && (
             <QSCThemeSettings
