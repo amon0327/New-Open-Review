@@ -486,6 +486,30 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     return (1 / lotterySettings.winRateDivisor * 100).toFixed(3);
   };
 
+  // 未設定項目のチェック
+  const getSetupWarnings = () => {
+    const warnings = [];
+
+    // QSCフォーム設定のチェック
+    const qscFormsNotSet = [];
+    if (!selectedForms.Quality) qscFormsNotSet.push('クオリティ');
+    if (!selectedForms.Service) qscFormsNotSet.push('サービス');
+    if (!selectedForms.Cleanliness) qscFormsNotSet.push('クリンリネス');
+
+    if (qscFormsNotSet.length > 0) {
+      warnings.push({
+        type: 'qsc_forms',
+        message: `公開フォームが未設定です（${qscFormsNotSet.join('、')}）`,
+        action: '公開フォーム設定'
+      });
+    }
+
+    return warnings;
+  };
+
+  const setupWarnings = getSetupWarnings();
+  const hasSetupWarnings = setupWarnings.length > 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -516,6 +540,95 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
         {/* メインコンテンツ（ローディング完了後に表示） */}
         {!isLoading && (
           <>
+        {/* 未設定項目の警告バナー */}
+        {hasSetupWarnings && (
+          <Container maxWidth="xl" sx={{ mt: 2, mb: 0 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                borderRadius: 2,
+                bgcolor: '#FEF3C7',
+                border: '1px solid #F59E0B',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 2
+              }}
+            >
+              <Warning sx={{ color: '#D97706', fontSize: 28, mt: 0.5 }} />
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    color: '#92400E',
+                    fontSize: '1rem',
+                    mb: 1
+                  }}
+                >
+                  初期設定が完了していません
+                </Typography>
+                <Typography
+                  sx={{
+                    color: '#B45309',
+                    fontSize: '0.875rem',
+                    mb: 2,
+                    lineHeight: 1.6
+                  }}
+                >
+                  店舗URLからフォームを公開するには、以下の設定が必要です。
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {setupWarnings.map((warning, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        p: 1.5,
+                        bgcolor: 'rgba(255, 255, 255, 0.7)',
+                        borderRadius: 1,
+                        border: '1px solid rgba(217, 119, 6, 0.3)'
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: '50%',
+                          bgcolor: '#D97706'
+                        }}
+                      />
+                      <Typography sx={{ color: '#92400E', fontSize: '0.875rem', flex: 1 }}>
+                        {warning.message}
+                      </Typography>
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          if (warning.type === 'qsc_forms') {
+                            setShowFormSettings(true);
+                          }
+                        }}
+                        sx={{
+                          color: '#D97706',
+                          fontWeight: 600,
+                          fontSize: '0.8rem',
+                          textTransform: 'none',
+                          '&:hover': {
+                            bgcolor: 'rgba(217, 119, 6, 0.1)'
+                          }
+                        }}
+                      >
+                        設定する →
+                      </Button>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </Paper>
+          </Container>
+        )}
+
         {/* 今月の評価項目セクション */}
         <Container maxWidth="xl" sx={{ mt: 2, mb: 3 }}>
           {/* セクションヘッダー */}
