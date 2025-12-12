@@ -382,10 +382,10 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
   // QSCローテーションに基づいて自動的に適切なフォームにリダイレクトされる
   const getStoreFormUrl = (store) => {
     if (store.store_url_code) {
-      return `https://reviewform.openreview.jp/s/${store.store_url_code}`;
+      return `https://reviewform.openreview.jp/form/${store.store_url_code}`;
     }
     // store_url_codeがない場合はフォールバック（通常は発生しない）
-    return `https://reviewform.openreview.jp/s/${store.id}`;
+    return `https://reviewform.openreview.jp/form/${store.id}`;
   };
 
   // URLをクリップボードにコピー
