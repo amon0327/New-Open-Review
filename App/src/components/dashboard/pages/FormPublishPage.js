@@ -136,6 +136,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
               qscTheme: f.qsc_theme, // 'quality', 'service', 'cleanliness' または null
               description: ''
             }));
+          console.log('QSCテーマ付きフォーム一覧:', activeFormsData.map(f => ({ name: f.name, qscTheme: f.qscTheme })));
           setReviewForms(activeFormsData);
         }
 
@@ -460,10 +461,13 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
 
   // QSCテーマIDに対応するフォームをフィルタリング
   // themeId: 'Quality', 'Service', 'Cleanliness' (大文字始まり)
-  // qscTheme: 'quality', 'service', 'cleanliness' (小文字)
+  // qscTheme: 'quality', 'service', 'cleanliness' または 'Quality', 'Service', 'Cleanliness'
   const getFormsForTheme = (themeId) => {
     const themeKey = themeId.toLowerCase(); // 'Quality' -> 'quality'
-    return reviewForms.filter(f => f.qscTheme === themeKey);
+    // 大文字小文字を区別しない比較
+    const filtered = reviewForms.filter(f => f.qscTheme && f.qscTheme.toLowerCase() === themeKey);
+    console.log(`getFormsForTheme(${themeId}) -> themeKey: ${themeKey}, found: ${filtered.length} forms`, filtered);
+    return filtered;
   };
 
   // 抽選設定変更ハンドラー
