@@ -48,16 +48,36 @@ serve(async (req) => {
       )
     }
 
-    // 1. 店舗情報を取得
-    const { data: store, error: storeError } = await supabaseAdmin
-      .from('stores')
-      .select('id, company_id, name')
-      .eq('store_url_code', storeCode)
-      .single()
+    // UUID形式かどうかを判定
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(storeCode)
+
+    // 1. 店舗情報を取得（store_url_code または id で検索）
+    let store = null
+    let storeError = null
+
+    if (isUUID) {
+      // UUIDの場合はidで検索
+      const result = await supabaseAdmin
+        .from('stores')
+        .select('id, company_id, name, store_url_code')
+        .eq('id', storeCode)
+        .single()
+      store = result.data
+      storeError = result.error
+    } else {
+      // 短いコードの場合はstore_url_codeで検索
+      const result = await supabaseAdmin
+        .from('stores')
+        .select('id, company_id, name, store_url_code')
+        .eq('store_url_code', storeCode)
+        .single()
+      store = result.data
+      storeError = result.error
+    }
 
     if (storeError || !store) {
       return new Response(
-        JSON.stringify({ error: 'Store not found', code: storeCode }),
+        JSON.stringify({ error: 'Store not found', code: storeCode, isUUID }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 404
@@ -153,8 +173,9 @@ serve(async (req) => {
       )
     }
 
-    // 5. リダイレクトURLを生成
-    const redirectUrl = `https://reviewform.openreview.jp/?reviewFormId=${formId}&storeCode=${storeCode}`
+    // 5. リダイレクトURLを生成（store_url_codeを使用）
+    const actualStoreCode = store.store_url_code || storeCode
+    const redirectUrl = `https://reviewform.openreview.jp/?reviewFormId=${formId}&storeCode=${actualStoreCode}`
 
     return new Response(
       JSON.stringify({
