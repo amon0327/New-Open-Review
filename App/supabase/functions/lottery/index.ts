@@ -192,6 +192,8 @@ serve(async (req) => {
           success: true,
           submissionId,
           isWinner: false,
+          isEligible: true, // 回答は有効（抽選が無効なだけ）
+          winnerId: null,
           message: 'Lottery is disabled'
         }),
         {
@@ -282,7 +284,10 @@ serve(async (req) => {
         success: true,
         submissionId,
         isWinner,
-        winnerToken,
+        isEligible: true, // 回答は有効
+        winnerId: winnerToken, // 回答アプリはwinnerIdを期待
+        winnerToken, // 後方互換性のため
+        message: isWinner ? 'Congratulations! You won!' : 'Better luck next time',
         stats: {
           totalAttempts,
           totalWins,
