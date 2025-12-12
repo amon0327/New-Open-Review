@@ -546,22 +546,24 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                         return (
                           <TableRow
                             key={formattedForm.id}
+                            onClick={() => navigate(`/create?formId=${formattedForm.id}`)}
                             sx={{
+                              cursor: 'pointer',
                               '&:hover': {
-                                backgroundColor: 'rgba(94, 23, 235, 0.02)',
+                                backgroundColor: 'rgba(94, 23, 235, 0.04)',
                                 '& .action-buttons': {
                                   opacity: 1,
                                 }
                               },
-                              '&:last-child td, &:last-child th': { 
-                                border: 0 
+                              '&:last-child td, &:last-child th': {
+                                border: 0
                               },
                               transition: 'all 0.2s ease',
                               borderBottom: '1px solid rgba(0, 0, 0, 0.04)'
                             }}
                           >
                             {/* チェックボックス */}
-                            <TableCell sx={{ py: 2 }}>
+                            <TableCell sx={{ py: 2 }} onClick={(e) => e.stopPropagation()}>
                               <Checkbox
                                 size="small"
                                 checked={selectedForms.has(formattedForm.id)}
@@ -695,12 +697,12 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                             </TableCell>
 
                             {/* アクション */}
-                            <TableCell align="center" sx={{ py: 2 }}>
-                              <Box 
+                            <TableCell align="center" sx={{ py: 2 }} onClick={(e) => e.stopPropagation()}>
+                              <Box
                                 className="action-buttons"
-                                sx={{ 
-                                  display: 'flex', 
-                                  gap: 0.5, 
+                                sx={{
+                                  display: 'flex',
+                                  gap: 0.5,
                                   justifyContent: 'center',
                                   opacity: 0.7,
                                   transition: 'opacity 0.2s ease'
