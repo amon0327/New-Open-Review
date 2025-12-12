@@ -1626,7 +1626,7 @@ const QuestionSettingsMenu = ({
                                   />
                                 )}
                                 {/* 回答数表示（999がMAX） */}
-                                {questionAnswerCounts[question.id] !== undefined && (
+                                {questionAnswerCounts[question.id] >= 0 && (
                                   <Chip
                                     label={`${Math.min(questionAnswerCounts[question.id], 999)}件`}
                                     size="small"
