@@ -302,9 +302,7 @@ const QuestionSettingsMenu = ({
   setCompletionBackground,
   questionErrorHighlight,
   loginErrorHighlight,
-  completionErrorHighlight,
-  // 質問ごとの回答数 { [questionId]: count }
-  questionAnswerCounts = {}
+  completionErrorHighlight
 }) => {
   const [editingChoices, setEditingChoices] = useState({});
   const [selectedTab, setSelectedTab] = useState(2); // デフォルトで基本設定タブ
@@ -1619,24 +1617,6 @@ const QuestionSettingsMenu = ({
                                       backgroundColor: '#FEF3C7',
                                       color: '#D97706',
                                       flexShrink: 0, // チップの縮小を防止
-                                      '& .MuiChip-label': {
-                                        px: 0.8
-                                      }
-                                    }}
-                                  />
-                                )}
-                                {/* 回答数表示（999がMAX） */}
-                                {questionAnswerCounts[question.id] >= 0 && (
-                                  <Chip
-                                    label={`${Math.min(questionAnswerCounts[question.id], 999)}件`}
-                                    size="small"
-                                    sx={{
-                                      height: 14,
-                                      fontSize: '0.6rem',
-                                      fontWeight: 600,
-                                      backgroundColor: '#E0E7FF',
-                                      color: '#4F46E5',
-                                      flexShrink: 0,
                                       '& .MuiChip-label': {
                                         px: 0.8
                                       }

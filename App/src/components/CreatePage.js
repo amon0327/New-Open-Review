@@ -190,9 +190,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
     updateLinearScaleOptions
   } = useQuestionData(formId);
 
-  // 質問ごとの回答数
-  const [questionAnswerCounts, setQuestionAnswerCounts] = useState({});
-
   // 設定関連の追加状態
   const [logoImage, setLogoImage] = useState(null);
 
@@ -634,52 +631,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
     
     return allQuestionsArray;
   }, [pages, questionsData]);
-
-  // 質問ごとの回答数を取得
-  useEffect(() => {
-    const loadQuestionAnswerCounts = async () => {
-      if (!allQuestions || allQuestions.length === 0) {
-        console.log('🔍 回答数取得: 質問がありません');
-        return;
-      }
-
-      try {
-        const questionIds = allQuestions.map(q => q.id);
-        console.log('🔍 回答数取得: 質問IDs', questionIds);
-
-        // 各質問の回答数を取得
-        const { data, error } = await supabase
-          .from('review_question_answers')
-          .select('review_questions_id')
-          .in('review_questions_id', questionIds);
-
-        console.log('🔍 回答数取得: Supabaseレスポンス', { data, error });
-
-        if (error) {
-          console.error('質問回答数取得エラー:', error);
-          return;
-        }
-
-        // 質問ごとの回答数をカウント
-        const counts = {};
-        // 全ての質問IDを0で初期化
-        questionIds.forEach(id => {
-          counts[id] = 0;
-        });
-        // 実際の回答数をカウント
-        (data || []).forEach(answer => {
-          counts[answer.review_questions_id] = (counts[answer.review_questions_id] || 0) + 1;
-        });
-
-        console.log('🔍 回答数取得: カウント結果', counts);
-        setQuestionAnswerCounts(counts);
-      } catch (error) {
-        console.error('質問回答数取得処理エラー:', error);
-      }
-    };
-
-    loadQuestionAnswerCounts();
-  }, [allQuestions]);
 
   // デバッグ用：質問データの変化をログ出力（selectedPageが変更された時のみ）
   useEffect(() => {
@@ -2657,7 +2608,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     selectedElement={selectedElement}
                     selectedPage={selectedPage}
                     questionTypesData={questionTypesData}
-                    questionAnswerCounts={questionAnswerCounts}
                     headerImage={headerImage}
                     logoImage={logoImageState}
                     onHeaderImageChange={handleHeaderImageChange}
