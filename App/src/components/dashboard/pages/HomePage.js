@@ -181,13 +181,11 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
     status: form.is_published ? '公開中' : '下書き',
     responses: 0, // TODO: 実際の回答数を取得
     questionCount: form.review_questions ? form.review_questions.length : 0, // 質問数を追加
-    lastModified: new Date(form.updated_at).toISOString().split('T')[0],
+    lastModified: new Date(form.updated_at).toLocaleDateString('ja-JP'), // 日本時間で表示
     category: 'レビュー',
     themeColor: form.review_form_settings?.[0]?.theme_color || '#5e17eb',
-    createdAt: new Date(form.created_at).toLocaleDateString('ja-JP'),
     qscTheme: form.qsc_theme, // QSCテーマを追加
     // ソート用の生データも保持
-    created_at: form.created_at,
     updated_at: form.updated_at
   });
 
@@ -207,10 +205,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
         case 'responses':
           valueA = a.responses;
           valueB = b.responses;
-          break;
-        case 'created_at':
-          valueA = new Date(a.created_at);
-          valueB = new Date(b.created_at);
           break;
         case 'updated_at':
           valueA = new Date(a.updated_at);
@@ -370,7 +364,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                     <TableCell align="center">ステータス</TableCell>
                     <TableCell align="center">質問数</TableCell>
                     <TableCell align="center">回答数</TableCell>
-                    <TableCell align="center">作成日</TableCell>
                     <TableCell align="center">更新日</TableCell>
                     <TableCell align="center">アクション</TableCell>
                   </TableRow>
@@ -395,9 +388,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                       </TableCell>
                       <TableCell align="center" sx={{ py: 2 }}>
                         <Skeleton variant="text" width={30} height={24} sx={{ mx: 'auto' }} />
-                      </TableCell>
-                      <TableCell align="center" sx={{ py: 2 }}>
-                        <Skeleton variant="text" width={80} height={24} sx={{ mx: 'auto' }} />
                       </TableCell>
                       <TableCell align="center" sx={{ py: 2 }}>
                         <Skeleton variant="text" width={80} height={24} sx={{ mx: 'auto' }} />
@@ -557,27 +547,9 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                             )}
                           </Box>
                         </TableCell>
-                        <TableCell 
+                        <TableCell
                           align="center"
-                          sx={{ 
-                            cursor: 'pointer',
-                            '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.05)' },
-                            userSelect: 'none'
-                          }}
-                          onClick={() => handleSort('created_at')}
-                        >
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-                            作成日
-                            {sortField === 'created_at' && (
-                              sortDirection === 'desc' ? 
-                                <KeyboardArrowDown sx={{ fontSize: 16 }} /> : 
-                                <KeyboardArrowUp sx={{ fontSize: 16 }} />
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell 
-                          align="center"
-                          sx={{ 
+                          sx={{
                             cursor: 'pointer',
                             '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.05)' },
                             userSelect: 'none'
@@ -725,19 +697,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                               </Typography>
                             </TableCell>
 
-                            {/* 作成日 */}
-                            <TableCell align="center" sx={{ py: 2 }}>
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  color: 'text.secondary',
-                                  fontSize: '0.875rem'
-                                }}
-                              >
-                                {formattedForm.createdAt}
-                              </Typography>
-                            </TableCell>
-
                             {/* 更新日 */}
                             <TableCell align="center" sx={{ py: 2 }}>
                               <Typography
@@ -747,7 +706,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                                   fontSize: '0.875rem'
                                 }}
                               >
-                                {new Date(formattedForm.lastModified).toLocaleDateString('ja-JP')}
+                                {formattedForm.lastModified}
                               </Typography>
                             </TableCell>
 
