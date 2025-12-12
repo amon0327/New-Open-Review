@@ -378,6 +378,21 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
 
   const currentSurveyType = getCurrentSurveyType();
 
+  // 次月のアンケートタイプを取得
+  const getNextMonthSurveyType = () => {
+    const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+    const group = cycleGroups.find(g => g.months.includes(nextMonth));
+    if (group) {
+      const typeId = surveyCycleConfig[group.key];
+      return surveyTypes.find(t => t.id === typeId);
+    }
+    return null;
+  };
+
+  const nextMonthSurveyType = getNextMonthSurveyType();
+  const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+  const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
+
   // 店舗のレビューフォームURLを生成（store_url_codeベース）
   // QSCローテーションに基づいて自動的に適切なフォームにリダイレクトされる
   const getStoreFormUrl = (store) => {
@@ -552,7 +567,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                 overflow: 'hidden'
               }}
             >
-              {/* メイン表示部分 */}
+              {/* メイン表示部分 - 今月と来月を横並び */}
               <Box
                 sx={{
                   p: 2,
@@ -561,26 +576,56 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                   justifyContent: 'space-between'
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  {/* カラーインジケーター */}
-                  <Box
-                    sx={{
-                      width: 4,
-                      height: 40,
-                      borderRadius: 0.5,
-                      bgcolor: currentSurveyType.color
-                    }}
-                  />
-
-                  {/* 年月と評価項目 */}
-                  <Box>
-                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
-                      {currentYear}年{currentMonth}月
-                    </Typography>
-                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: currentSurveyType.color }}>
-                      {currentSurveyType.fullLabel}
-                    </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                  {/* 今月の評価項目 */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    {/* カラーインジケーター */}
+                    <Box
+                      sx={{
+                        width: 4,
+                        height: 40,
+                        borderRadius: 0.5,
+                        bgcolor: currentSurveyType.color
+                      }}
+                    />
+                    {/* 年月と評価項目 */}
+                    <Box>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 500 }}>
+                        {currentYear}年{currentMonth}月（今月）
+                      </Typography>
+                      <Typography sx={{ fontSize: '1.1rem', fontWeight: 700, color: currentSurveyType.color }}>
+                        {currentSurveyType.fullLabel}
+                      </Typography>
+                    </Box>
                   </Box>
+
+                  {/* 矢印 */}
+                  <Typography sx={{ color: '#94a3b8', fontSize: '1.2rem' }}>→</Typography>
+
+                  {/* 来月の評価項目 */}
+                  {nextMonthSurveyType && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      {/* カラーインジケーター */}
+                      <Box
+                        sx={{
+                          width: 4,
+                          height: 40,
+                          borderRadius: 0.5,
+                          bgcolor: nextMonthSurveyType.color,
+                          opacity: 0.6
+                        }}
+                      />
+                      {/* 年月と評価項目 */}
+                      <Box>
+                        <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>
+                          {nextYear}年{nextMonth}月（来月）
+                        </Typography>
+                        <Typography sx={{ fontSize: '1.1rem', fontWeight: 700, color: nextMonthSurveyType.color, opacity: 0.7 }}>
+                          {nextMonthSurveyType.fullLabel}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
 
                 {/* 設定ボタン */}
