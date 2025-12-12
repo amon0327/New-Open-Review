@@ -25,7 +25,8 @@ import {
   Chip,
   TextField,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Skeleton
 } from '@mui/material';
 import {
   Settings,
@@ -530,11 +531,122 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           px: 0
         }}
       >
-        {/* ローディング表示 */}
+        {/* ローディング表示（スケルトンスクリーン） */}
         {isLoading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-            <CircularProgress sx={{ color: '#5e17eb' }} />
-          </Box>
+          <Container maxWidth="xl" sx={{ mt: 2 }}>
+            {/* 今月の評価項目セクション スケルトン */}
+            <Box sx={{ mb: 4 }}>
+              <Skeleton variant="text" width={200} height={36} sx={{ mb: 0.5 }} />
+              <Skeleton variant="text" width={350} height={20} />
+            </Box>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 0.5,
+                border: '1px solid rgba(0, 0, 0, 0.06)',
+                p: 2,
+                mb: 4
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Skeleton variant="rectangular" width={4} height={40} sx={{ borderRadius: 0.5 }} />
+                  <Box>
+                    <Skeleton variant="text" width={80} height={16} />
+                    <Skeleton variant="text" width={120} height={28} />
+                  </Box>
+                </Box>
+                <Skeleton variant="circular" width={40} height={40} />
+              </Box>
+            </Paper>
+
+            {/* 公開フォーム設定セクション スケルトン */}
+            <Box sx={{ mb: 4 }}>
+              <Skeleton variant="text" width={180} height={36} sx={{ mb: 0.5 }} />
+              <Skeleton variant="text" width={300} height={20} />
+            </Box>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 0.5,
+                border: '1px solid rgba(0, 0, 0, 0.06)',
+                p: 2,
+                mb: 4
+              }}
+            >
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {[1, 2, 3].map((i) => (
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Skeleton variant="circular" width={32} height={32} />
+                      <Skeleton variant="text" width={100} height={24} />
+                    </Box>
+                    <Skeleton variant="rectangular" width={200} height={40} sx={{ borderRadius: 1 }} />
+                  </Box>
+                ))}
+              </Box>
+            </Paper>
+
+            {/* 抽選設定セクション スケルトン */}
+            <Box sx={{ mb: 4 }}>
+              <Skeleton variant="text" width={120} height={36} sx={{ mb: 0.5 }} />
+              <Skeleton variant="text" width={280} height={20} />
+            </Box>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 0.5,
+                border: '1px solid rgba(0, 0, 0, 0.06)',
+                p: 2,
+                mb: 4
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Skeleton variant="text" width={100} height={24} />
+                  <Skeleton variant="text" width={150} height={24} />
+                </Box>
+                <Skeleton variant="circular" width={40} height={40} />
+              </Box>
+            </Paper>
+
+            {/* 店舗別QRコードセクション スケルトン */}
+            <Box sx={{ mb: 4 }}>
+              <Skeleton variant="text" width={160} height={36} sx={{ mb: 0.5 }} />
+              <Skeleton variant="text" width={320} height={20} />
+            </Box>
+            <Paper
+              elevation={0}
+              sx={{
+                borderRadius: 0.5,
+                border: '1px solid rgba(0, 0, 0, 0.06)',
+                overflow: 'hidden'
+              }}
+            >
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                      <TableCell><Skeleton variant="text" width={60} height={20} /></TableCell>
+                      <TableCell><Skeleton variant="text" width={80} height={20} /></TableCell>
+                      <TableCell align="center"><Skeleton variant="text" width={60} height={20} sx={{ mx: 'auto' }} /></TableCell>
+                      <TableCell align="center"><Skeleton variant="text" width={80} height={20} sx={{ mx: 'auto' }} /></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {[1, 2, 3].map((i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton variant="text" width={120} height={24} /></TableCell>
+                        <TableCell><Skeleton variant="text" width={200} height={20} /></TableCell>
+                        <TableCell align="center"><Skeleton variant="rectangular" width={80} height={32} sx={{ mx: 'auto', borderRadius: 1 }} /></TableCell>
+                        <TableCell align="center"><Skeleton variant="rectangular" width={100} height={32} sx={{ mx: 'auto', borderRadius: 1 }} /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Container>
         )}
 
         {/* メインコンテンツ（ローディング完了後に表示） */}
