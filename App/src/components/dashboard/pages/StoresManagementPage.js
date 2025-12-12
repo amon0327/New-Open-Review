@@ -275,14 +275,20 @@ export default function StoresManagementPage() {
                   >
                     <CardContent sx={{ p: 3 }}>
                       {/* 店舗名 */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Store sx={{ color: '#5e17eb', mr: 1 }} />
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2, minHeight: 56 }}>
+                        <Store sx={{ color: '#5e17eb', mr: 1, mt: 0.5, flexShrink: 0 }} />
                         <Typography
                           variant="h6"
                           sx={{
                             fontWeight: 600,
                             color: '#1a202c',
-                            flex: 1
+                            flex: 1,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            lineHeight: 1.4
                           }}
                         >
                           {store.name}
@@ -290,13 +296,18 @@ export default function StoresManagementPage() {
                       </Box>
 
                       {/* 住所 */}
-                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
-                        <LocationOn sx={{ color: '#64748b', mr: 1, mt: 0.5, fontSize: 20 }} />
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3, minHeight: 48 }}>
+                        <LocationOn sx={{ color: '#64748b', mr: 1, mt: 0.5, fontSize: 20, flexShrink: 0 }} />
                         <Typography
                           variant="body2"
                           sx={{
                             color: '#64748b',
-                            lineHeight: 1.5
+                            lineHeight: 1.5,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
                           }}
                         >
                           {store.address}
