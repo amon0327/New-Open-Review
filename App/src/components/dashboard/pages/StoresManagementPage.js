@@ -17,7 +17,8 @@ import {
   DialogActions,
   CircularProgress,
   Alert,
-  Fab
+  Fab,
+  Skeleton
 } from '@mui/material';
 import {
   Store,
@@ -140,15 +141,63 @@ export default function StoresManagementPage() {
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <CircularProgress size={50} sx={{ color: '#5e17eb' }} />
+      <Box sx={{ height: '100%', overflow: 'auto', bgcolor: '#f8fafc' }}>
+        <Container maxWidth="xl" sx={{ py: 4 }}>
+          {/* ヘッダー スケルトン */}
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Skeleton variant="circular" width={32} height={32} sx={{ mr: 2 }} />
+              <Skeleton variant="text" width={150} height={40} />
+            </Box>
+            <Skeleton variant="text" width={250} height={24} sx={{ mb: 3 }} />
+            <Skeleton variant="rectangular" width={140} height={40} sx={{ borderRadius: 1 }} />
+          </Box>
+
+          {/* 店舗カード スケルトン */}
+          <Grid container spacing={3}>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Grid item xs={12} sm={6} md={4} key={i}>
+                <Card
+                  sx={{
+                    height: '100%',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                >
+                  <CardContent sx={{ p: 3 }}>
+                    {/* 店舗名 */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Skeleton variant="circular" width={24} height={24} sx={{ mr: 1 }} />
+                      <Skeleton variant="text" width="70%" height={28} />
+                    </Box>
+
+                    {/* 住所 */}
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
+                      <Skeleton variant="circular" width={20} height={20} sx={{ mr: 1, mt: 0.5 }} />
+                      <Box sx={{ flex: 1 }}>
+                        <Skeleton variant="text" width="100%" height={20} />
+                        <Skeleton variant="text" width="60%" height={20} />
+                      </Box>
+                    </Box>
+
+                    {/* 登録日 */}
+                    <Box sx={{ mb: 2 }}>
+                      <Skeleton variant="rectangular" width={120} height={24} sx={{ borderRadius: 2 }} />
+                    </Box>
+
+                    {/* アクションボタン */}
+                    <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                      <Skeleton variant="circular" width={32} height={32} />
+                      <Skeleton variant="circular" width={32} height={32} />
+                      <Skeleton variant="circular" width={32} height={32} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
       </Box>
     );
   }
