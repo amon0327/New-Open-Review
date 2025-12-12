@@ -10,6 +10,7 @@ interface LotteryRequest {
   reviewFormId: string
   userId: string
   answersData: Record<string, any>
+  storeCode?: string  // 店舗URLからアクセスした場合に渡されるストアコード
 }
 
 serve(async (req) => {
@@ -31,11 +32,13 @@ serve(async (req) => {
       }
     )
 
-    const { reviewFormId, userId, answersData }: LotteryRequest = await req.json()
+    const { reviewFormId, userId, answersData, storeCode }: LotteryRequest = await req.json()
 
     if (!reviewFormId || !userId) {
       throw new Error('reviewFormId and userId are required')
     }
+
+    console.log('Lottery request received:', { reviewFormId, userId, storeCode: storeCode || 'none' })
 
     // 1. レビューフォームからcompany_idを取得
     const { data: reviewForm, error: formError } = await supabaseAdmin
@@ -63,14 +66,38 @@ serve(async (req) => {
     const isEnabled = lotterySettings?.is_enabled ?? true
 
     // 3. store_idを取得
-    const { data: storeReviewForm, error: storeError } = await supabaseAdmin
-      .from('store_review_forms')
-      .select('store_id')
-      .eq('review_form_id', reviewFormId)
-      .maybeSingle()
+    // storeCodeが渡された場合は、そのstoreCodeからstore_idを取得（店舗URLアクセスの場合）
+    let storeId: string | null = null
 
-    // store_idがない場合はフォールバック
-    const storeId = storeReviewForm?.store_id ?? '00000000-0000-0000-0000-000000000001'
+    if (storeCode) {
+      // storeCodeから店舗を検索
+      const { data: storeByCode, error: storeCodeError } = await supabaseAdmin
+        .from('stores')
+        .select('id')
+        .eq('store_url_code', storeCode.toLowerCase())
+        .single()
+
+      if (storeByCode && !storeCodeError) {
+        storeId = storeByCode.id
+        console.log('Store found by storeCode:', { storeCode, storeId })
+      } else {
+        console.log('Store not found by storeCode, will use fallback:', storeCode)
+      }
+    }
+
+    // storeCodeで見つからなかった場合は、従来のstore_review_formsから取得を試みる
+    if (!storeId) {
+      const { data: storeReviewForm, error: storeError } = await supabaseAdmin
+        .from('store_review_forms')
+        .select('store_id')
+        .eq('review_form_id', reviewFormId)
+        .maybeSingle()
+
+      storeId = storeReviewForm?.store_id ?? null
+    }
+
+    // それでも見つからない場合はnullのまま（store_idはNULLABLE）
+    console.log('Final storeId:', storeId || 'null')
 
     // 4. 回答を保存（review_form_submissions）
     const { data: submissionData, error: submissionError } = await supabaseAdmin
