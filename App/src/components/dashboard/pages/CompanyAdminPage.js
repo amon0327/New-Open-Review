@@ -15,7 +15,8 @@ import {
   IconButton,
   Tabs,
   Tab,
-  Chip
+  Chip,
+  Skeleton
 } from '@mui/material';
 import {
   PersonAdd,
@@ -211,9 +212,32 @@ export default function CompanyAdminPage({ companyId, companyName }) {
 
           <CardContent sx={{ p: 0 }}>
             {isLoadingMembers ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 6 }}>
-                <CircularProgress sx={{ color: '#5e17eb' }} />
-              </Box>
+              <List sx={{ p: 0 }}>
+                {[1, 2, 3].map((i) => (
+                  <ListItem
+                    key={i}
+                    sx={{
+                      borderBottom: i < 3 ? '1px solid #f1f5f9' : 'none',
+                      py: 2,
+                      px: 3
+                    }}
+                  >
+                    <ListItemAvatar>
+                      <Skeleton variant="circular" width={48} height={48} />
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={<Skeleton variant="text" width={120} height={24} />}
+                      secondary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                          <Skeleton variant="circular" width={16} height={16} />
+                          <Skeleton variant="text" width={180} height={20} />
+                        </Box>
+                      }
+                    />
+                    <Skeleton variant="circular" width={32} height={32} />
+                  </ListItem>
+                ))}
+              </List>
             ) : (
               <>
                 {/* メンバー一覧 */}
