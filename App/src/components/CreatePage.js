@@ -312,6 +312,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
   const [publishDialogErrors, setPublishDialogErrors] = useState([]);
   const [publishDialogWarnings, setPublishDialogWarnings] = useState([]);
 
+  // 質問ごとの回答数
+  const [questionAnswerCounts, setQuestionAnswerCounts] = useState({});
+
   // 質問タイプの文字列を数値IDにマッピング（Supabaseのデータを優先）
   const getQuestionTypeId = (typeString) => {
     // まずSupabaseから取得したデータで検索
@@ -486,6 +489,40 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
     loadCompletionScreenSettings();
   }, [formId]);
+
+  // 質問ごとの回答数を取得
+  useEffect(() => {
+    const loadQuestionAnswerCounts = async () => {
+      if (!allQuestions || allQuestions.length === 0) return;
+
+      try {
+        const questionIds = allQuestions.map(q => q.id);
+
+        // 各質問の回答数を取得
+        const { data, error } = await supabase
+          .from('review_question_answers')
+          .select('review_questions_id')
+          .in('review_questions_id', questionIds);
+
+        if (error) {
+          console.error('質問回答数取得エラー:', error);
+          return;
+        }
+
+        // 質問ごとの回答数をカウント
+        const counts = {};
+        (data || []).forEach(answer => {
+          counts[answer.review_questions_id] = (counts[answer.review_questions_id] || 0) + 1;
+        });
+
+        setQuestionAnswerCounts(counts);
+      } catch (error) {
+        console.error('質問回答数取得処理エラー:', error);
+      }
+    };
+
+    loadQuestionAnswerCounts();
+  }, [allQuestions]);
 
   // フォームIDが存在する場合にページを読み込み
   useEffect(() => {
@@ -2608,6 +2645,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     selectedElement={selectedElement}
                     selectedPage={selectedPage}
                     questionTypesData={questionTypesData}
+                    questionAnswerCounts={questionAnswerCounts}
                     headerImage={headerImage}
                     logoImage={logoImageState}
                     onHeaderImageChange={handleHeaderImageChange}
