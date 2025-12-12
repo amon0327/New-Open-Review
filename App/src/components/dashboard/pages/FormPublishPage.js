@@ -542,7 +542,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           <>
         {/* 未設定項目の警告バナー */}
         {hasSetupWarnings && (
-          <Container maxWidth="xl" sx={{ mt: 2, mb: 0 }}>
+          <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
             <Paper
               elevation={0}
               sx={{
