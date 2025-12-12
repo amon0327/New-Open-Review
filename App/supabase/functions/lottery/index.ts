@@ -185,7 +185,7 @@ serve(async (req) => {
       }
     }
 
-    // 6. 抽選が無効の場合はここで終了
+    // 6. 抽選が無効の場合はここで終了（ログは記録しない）
     if (!isEnabled) {
       return new Response(
         JSON.stringify({
@@ -203,65 +203,59 @@ serve(async (req) => {
       )
     }
 
-    // 7. 今月の抽選統計を取得・更新
+    // 7. 今月の当選数を集計（ログテーブルから取得）
     const now = new Date()
     const currentYear = now.getFullYear()
     const currentMonth = now.getMonth() + 1
+    const monthStart = new Date(currentYear, currentMonth - 1, 1).toISOString()
+    const monthEnd = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999).toISOString()
 
-    const { data: monthlyStats, error: statsError } = await supabaseAdmin
-      .from('company_lottery_monthly_stats')
-      .select('*')
+    const { count: currentMonthWins } = await supabaseAdmin
+      .from('company_lottery_logs')
+      .select('*', { count: 'exact', head: true })
       .eq('company_id', companyId)
-      .eq('target_year', currentYear)
-      .eq('target_month', currentMonth)
-      .maybeSingle()
+      .eq('is_winner', true)
+      .gte('created_at', monthStart)
+      .lte('created_at', monthEnd)
 
-    let totalAttempts = (monthlyStats?.total_attempts ?? 0) + 1
-    let totalWins = monthlyStats?.total_wins ?? 0
+    const totalWinsThisMonth = currentMonthWins ?? 0
 
     // 8. 当選判定
     let isWinner = false
+    let winnerToken: string | null = null
 
     // 月間上限を超えていなければ抽選実行
-    if (totalWins < maxWinsPerMonth) {
+    if (totalWinsThisMonth < maxWinsPerMonth) {
       // 1/N の確率で当選
       const randomValue = Math.floor(Math.random() * winRateDivisor)
       isWinner = randomValue === 0
 
       if (isWinner) {
-        totalWins++
+        // ユニークなトークンを生成
+        winnerToken = crypto.randomUUID()
       }
     }
 
-    // 9. 統計を更新
-    if (monthlyStats) {
-      await supabaseAdmin
-        .from('company_lottery_monthly_stats')
-        .update({
-          total_attempts: totalAttempts,
-          total_wins: totalWins,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', monthlyStats.id)
-    } else {
-      await supabaseAdmin
-        .from('company_lottery_monthly_stats')
-        .insert([{
-          company_id: companyId,
-          target_year: currentYear,
-          target_month: currentMonth,
-          total_attempts: totalAttempts,
-          total_wins: totalWins
-        }])
+    // 9. 抽選ログを記録
+    const { error: logError } = await supabaseAdmin
+      .from('company_lottery_logs')
+      .insert([{
+        company_id: companyId,
+        review_form_id: reviewFormId,
+        submission_id: submissionId,
+        user_id: userId,
+        is_winner: isWinner,
+        win_rate_divisor: winRateDivisor,
+        max_wins_per_month: maxWinsPerMonth,
+        winner_token: winnerToken
+      }])
+
+    if (logError) {
+      console.error('Failed to insert lottery log:', logError)
     }
 
-    // 10. 当選の場合はwinnerレコードを作成
-    let winnerToken = null
-    if (isWinner) {
-      // ユニークなトークンを生成
-      winnerToken = crypto.randomUUID()
-
-      // winnersテーブルに記録（存在する場合）
+    // 10. 当選の場合はlottery_winnersにも記録（後方互換性）
+    if (isWinner && winnerToken) {
       try {
         await supabaseAdmin
           .from('lottery_winners')
@@ -287,12 +281,7 @@ serve(async (req) => {
         isEligible: true, // 回答は有効
         winnerId: winnerToken, // 回答アプリはwinnerIdを期待
         winnerToken, // 後方互換性のため
-        message: isWinner ? 'Congratulations! You won!' : 'Better luck next time',
-        stats: {
-          totalAttempts,
-          totalWins,
-          remainingWins: maxWinsPerMonth - totalWins
-        }
+        message: isWinner ? 'Congratulations! You won!' : 'Better luck next time'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

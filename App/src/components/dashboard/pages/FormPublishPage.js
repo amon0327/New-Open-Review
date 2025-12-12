@@ -229,10 +229,10 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           console.log('企業抽選設定テーブルが未作成:', e);
         }
 
-        // 8. 今月の抽選統計を取得
+        // 8. 今月の抽選統計を取得（ビューから集計）
         try {
           const { data: lotteryStatsData, error: lotteryStatsError } = await supabase
-            .from('company_lottery_monthly_stats')
+            .from('company_lottery_monthly_summary')
             .select('*')
             .eq('company_id', fetchedCompanyId)
             .eq('target_year', currentYear)
@@ -246,7 +246,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
             });
           }
         } catch (e) {
-          console.log('抽選統計テーブルが未作成:', e);
+          console.log('抽選統計ビューが未作成:', e);
         }
 
       } catch (error) {
