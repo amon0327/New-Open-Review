@@ -104,12 +104,12 @@ const StoreByStoreTab = ({ companyId }) => {
     detractors: 20    // 批判者 (0-6)
   }), []);
 
-  // NPSスコアとトレンド
+  // 推奨スコアとトレンド（移動平均との差分）
   const currentNps = useMemo(() => {
     const latest = sampleNpsData[sampleNpsData.length - 1]?.nps || 0;
-    const previous = sampleNpsData[sampleNpsData.length - 2]?.nps || 0;
-    const change = latest - previous;
-    return { score: latest, change, trend: change > 0 ? 'up' : change < 0 ? 'down' : 'flat' };
+    const latestMA = sampleNpsData[sampleNpsData.length - 1]?.movingAverage || 0;
+    const diff = latestMA ? latest - latestMA : 0;
+    return { score: latest, diff, trend: diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat' };
   }, [sampleNpsData]);
 
   // 店舗データを取得
@@ -265,42 +265,53 @@ const StoreByStoreTab = ({ companyId }) => {
       </Box>
 
       {/* 指標エリア */}
-      <Box sx={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      <Box sx={{
+        display: 'flex',
+        gap: 0,
+        flexWrap: 'wrap',
+        borderTop: '1px solid #e2e8f0',
+        pt: 3
+      }}>
         {/* 左側: スコア分布（横棒グラフ） */}
-        <Box sx={{ flex: 1, minWidth: 280 }}>
-          <Typography variant="subtitle2" sx={{ mb: 3, fontWeight: 600, color: '#1e293b', letterSpacing: '0.05em' }}>
+        <Box sx={{
+          flex: 1,
+          minWidth: 280,
+          pr: 4,
+          borderRight: '1px solid #e2e8f0'
+        }}>
+          <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.08em', display: 'block', mb: 2, textTransform: 'uppercase' }}>
             スコア分布
           </Typography>
 
           {/* 推奨 */}
-          <Box sx={{ mb: 2.5 }}>
+          <Box sx={{ mb: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
               <Typography variant="body2" sx={{ color: '#64748b', fontSize: 13 }}>推奨</Typography>
               <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 600, fontSize: 13 }}>{scoreDistribution.promoters}%</Typography>
             </Box>
-            <Box sx={{ height: 8, backgroundColor: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
+            <Box sx={{ height: 6, backgroundColor: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
               <Box sx={{
                 width: `${scoreDistribution.promoters}%`,
                 height: '100%',
                 backgroundColor: '#22c55e',
-                borderRadius: 4,
+                borderRadius: 3,
                 transition: 'width 0.4s ease'
               }} />
             </Box>
           </Box>
 
           {/* 中立 */}
-          <Box sx={{ mb: 2.5 }}>
+          <Box sx={{ mb: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
               <Typography variant="body2" sx={{ color: '#64748b', fontSize: 13 }}>中立</Typography>
               <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 600, fontSize: 13 }}>{scoreDistribution.passives}%</Typography>
             </Box>
-            <Box sx={{ height: 8, backgroundColor: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
+            <Box sx={{ height: 6, backgroundColor: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
               <Box sx={{
                 width: `${scoreDistribution.passives}%`,
                 height: '100%',
                 backgroundColor: '#94a3b8',
-                borderRadius: 4,
+                borderRadius: 3,
                 transition: 'width 0.4s ease'
               }} />
             </Box>
@@ -312,27 +323,27 @@ const StoreByStoreTab = ({ companyId }) => {
               <Typography variant="body2" sx={{ color: '#64748b', fontSize: 13 }}>批判</Typography>
               <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 600, fontSize: 13 }}>{scoreDistribution.detractors}%</Typography>
             </Box>
-            <Box sx={{ height: 8, backgroundColor: '#f1f5f9', borderRadius: 4, overflow: 'hidden' }}>
+            <Box sx={{ height: 6, backgroundColor: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
               <Box sx={{
                 width: `${scoreDistribution.detractors}%`,
                 height: '100%',
                 backgroundColor: '#ef4444',
-                borderRadius: 4,
+                borderRadius: 3,
                 transition: 'width 0.4s ease'
               }} />
             </Box>
           </Box>
         </Box>
 
-        {/* 右側: NPS・リピート率・再来意向率 */}
-        <Box sx={{ display: 'flex', gap: 5 }}>
-          {/* 現在のNPS */}
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.05em', display: 'block', mb: 1 }}>
-              NPS
+        {/* 右側: 推奨スコア・リピート率・再来意向率 */}
+        <Box sx={{ display: 'flex', flex: 1, justifyContent: 'space-around', pl: 4 }}>
+          {/* 推奨スコア */}
+          <Box sx={{ textAlign: 'center', py: 1 }}>
+            <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.08em', display: 'block', mb: 1.5, textTransform: 'uppercase' }}>
+              推奨スコア
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-              <Typography sx={{ fontSize: 36, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+              <Typography sx={{ fontSize: 32, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
                 {currentNps.score}
               </Typography>
               {getTrendIcon(currentNps.trend)}
@@ -340,33 +351,47 @@ const StoreByStoreTab = ({ companyId }) => {
             <Typography
               variant="caption"
               sx={{
-                color: currentNps.change > 0 ? '#22c55e' : currentNps.change < 0 ? '#ef4444' : '#94a3b8',
-                fontWeight: 500
+                color: currentNps.diff > 0 ? '#22c55e' : currentNps.diff < 0 ? '#ef4444' : '#94a3b8',
+                fontWeight: 500,
+                display: 'block',
+                mt: 0.5
               }}
             >
-              {currentNps.change > 0 ? '+' : ''}{currentNps.change}
+              移動平均比 {currentNps.diff > 0 ? '+' : ''}{currentNps.diff}
             </Typography>
           </Box>
+
+          {/* 区切り線 */}
+          <Box sx={{ width: '1px', backgroundColor: '#e2e8f0', mx: 2 }} />
 
           {/* リピート率 */}
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.05em', display: 'block', mb: 1 }}>
+          <Box sx={{ textAlign: 'center', py: 1 }}>
+            <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.08em', display: 'block', mb: 1.5, textTransform: 'uppercase' }}>
               リピート率
             </Typography>
-            <Typography sx={{ fontSize: 36, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+            <Typography sx={{ fontSize: 32, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
               {additionalMetrics.repeatRate}
-              <Typography component="span" sx={{ fontSize: 16, fontWeight: 500, color: '#64748b' }}>%</Typography>
+              <Typography component="span" sx={{ fontSize: 14, fontWeight: 500, color: '#64748b' }}>%</Typography>
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'transparent', display: 'block', mt: 0.5 }}>
+              -
             </Typography>
           </Box>
 
+          {/* 区切り線 */}
+          <Box sx={{ width: '1px', backgroundColor: '#e2e8f0', mx: 2 }} />
+
           {/* 3ヶ月以内再来意向率 */}
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.05em', display: 'block', mb: 1 }}>
+          <Box sx={{ textAlign: 'center', py: 1 }}>
+            <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.08em', display: 'block', mb: 1.5, textTransform: 'uppercase' }}>
               3ヶ月以内再来意向
             </Typography>
-            <Typography sx={{ fontSize: 36, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+            <Typography sx={{ fontSize: 32, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
               {additionalMetrics.revisitIntention}
-              <Typography component="span" sx={{ fontSize: 16, fontWeight: 500, color: '#64748b' }}>%</Typography>
+              <Typography component="span" sx={{ fontSize: 14, fontWeight: 500, color: '#64748b' }}>%</Typography>
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'transparent', display: 'block', mt: 0.5 }}>
+              -
             </Typography>
           </Box>
         </Box>
