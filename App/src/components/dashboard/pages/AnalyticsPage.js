@@ -215,281 +215,267 @@ const StoreByStoreTab = ({ companyId }) => {
         </FormControl>
       </Box>
 
-      {/* NPSトレンドグラフ */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#1e293b', letterSpacing: '0.05em' }}>
-          推奨スコアトレンド
-        </Typography>
-        <Box sx={{ height: 280 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={sampleNpsData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 11, fill: '#94a3b8' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                domain={yAxisDomain}
-                tick={{ fontSize: 11, fill: '#94a3b8' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1e293b',
-                  border: 'none',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  color: '#fff'
-                }}
-                formatter={(value, name) => [
-                  `${value}`,
-                  name === 'nps' ? 'スコア' : '移動平均'
-                ]}
-              />
-              <Line
-                type="monotone"
-                dataKey="nps"
-                stroke="#5e17eb"
-                strokeWidth={2}
-                dot={{ r: 4, fill: '#5e17eb', strokeWidth: 0 }}
-                activeDot={{ r: 6, fill: '#5e17eb' }}
-              />
-              <Line
-                type="monotone"
-                dataKey="movingAverage"
-                stroke="#94a3b8"
-                strokeWidth={1.5}
-                strokeDasharray="4 4"
-                dot={false}
-                connectNulls
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 4, mt: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 16, height: 2, backgroundColor: '#5e17eb' }} />
-            <Typography variant="caption" sx={{ color: '#94a3b8' }}>スコア</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 16, height: 2, backgroundColor: '#94a3b8', borderStyle: 'dashed' }} />
-            <Typography variant="caption" sx={{ color: '#94a3b8' }}>5期移動平均</Typography>
-          </Box>
-        </Box>
-      </Box>
-
-      {/* 指標エリア: 右側にスコア分布、下に3つの指標 */}
-      <Box sx={{ display: 'flex', gap: 4, borderTop: '1px solid #e2e8f0', pt: 3 }}>
-        {/* 左側: 推奨スコアトレンドグラフ（空きスペース - グラフは上にあるので説明のみ） */}
+      {/* メインコンテンツエリア: 左にグラフ、右にスコア分布と指標 */}
+      <Box sx={{ display: 'flex', gap: 4 }}>
+        {/* 左側: 推奨スコアトレンドグラフ */}
         <Box sx={{ flex: 1 }}>
-          {/* 移動平均の説明 */}
-          <Box sx={{
-            backgroundColor: '#f8fafc',
-            borderRadius: 2,
-            p: 2,
-            border: '1px solid #e2e8f0'
-          }}>
-            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 1, fontWeight: 600 }}>
-              移動平均について
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#94a3b8', lineHeight: 1.6 }}>
-              5期移動平均は直近5回分のスコアの平均値です。短期的な変動を平滑化し、トレンドを把握しやすくします。
-            </Typography>
+          <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#1e293b', letterSpacing: '0.05em' }}>
+            推奨スコアトレンド
+          </Typography>
+          <Box sx={{ height: 320 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={sampleNpsData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  domain={yAxisDomain}
+                  tick={{ fontSize: 11, fill: '#94a3b8' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1e293b',
+                    border: 'none',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    color: '#fff'
+                  }}
+                  formatter={(value, name) => [
+                    `${value}`,
+                    name === 'nps' ? 'スコア' : '移動平均'
+                  ]}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="nps"
+                  stroke="#5e17eb"
+                  strokeWidth={2}
+                  dot={{ r: 4, fill: '#5e17eb', strokeWidth: 0 }}
+                  activeDot={{ r: 6, fill: '#5e17eb' }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="movingAverage"
+                  stroke="#94a3b8"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 4"
+                  dot={false}
+                  connectNulls
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 4, mt: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ width: 16, height: 2, backgroundColor: '#5e17eb' }} />
+              <Typography variant="caption" sx={{ color: '#94a3b8' }}>スコア</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ width: 16, height: 2, backgroundColor: '#94a3b8', borderStyle: 'dashed' }} />
+              <Typography variant="caption" sx={{ color: '#94a3b8' }}>5期移動平均</Typography>
+            </Box>
           </Box>
         </Box>
 
-        {/* 右側: スコア分布（横棒グラフ） */}
-        <Box sx={{ width: 320 }}>
-          <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.08em', display: 'block', mb: 2, textTransform: 'uppercase' }}>
-            スコア分布
-          </Typography>
+        {/* 右側: スコア分布 + 3つの指標 */}
+        <Box sx={{ width: 320, borderLeft: '1px solid #e2e8f0', pl: 4 }}>
+          {/* スコア分布（横棒グラフ） */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.08em', display: 'block', mb: 2, textTransform: 'uppercase' }}>
+              スコア分布
+            </Typography>
 
-          {/* 推奨 */}
-          <Box sx={{ mb: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-              <Typography variant="body2" sx={{ color: '#64748b', fontSize: 13 }}>推奨</Typography>
-              <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 600, fontSize: 13 }}>{scoreDistribution.promoters}%</Typography>
+            {/* 推奨 */}
+            <Box sx={{ mb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ color: '#64748b', fontSize: 13 }}>推奨</Typography>
+                <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 600, fontSize: 13 }}>{scoreDistribution.promoters}%</Typography>
+              </Box>
+              <Box sx={{ height: 6, backgroundColor: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                <Box sx={{
+                  width: `${scoreDistribution.promoters}%`,
+                  height: '100%',
+                  backgroundColor: '#22c55e',
+                  borderRadius: 3,
+                  transition: 'width 0.4s ease'
+                }} />
+              </Box>
             </Box>
-            <Box sx={{ height: 6, backgroundColor: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-              <Box sx={{
-                width: `${scoreDistribution.promoters}%`,
-                height: '100%',
-                backgroundColor: '#22c55e',
-                borderRadius: 3,
-                transition: 'width 0.4s ease'
-              }} />
+
+            {/* 中立 */}
+            <Box sx={{ mb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ color: '#64748b', fontSize: 13 }}>中立</Typography>
+                <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 600, fontSize: 13 }}>{scoreDistribution.passives}%</Typography>
+              </Box>
+              <Box sx={{ height: 6, backgroundColor: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                <Box sx={{
+                  width: `${scoreDistribution.passives}%`,
+                  height: '100%',
+                  backgroundColor: '#94a3b8',
+                  borderRadius: 3,
+                  transition: 'width 0.4s ease'
+                }} />
+              </Box>
+            </Box>
+
+            {/* 批判 */}
+            <Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ color: '#64748b', fontSize: 13 }}>批判</Typography>
+                <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 600, fontSize: 13 }}>{scoreDistribution.detractors}%</Typography>
+              </Box>
+              <Box sx={{ height: 6, backgroundColor: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                <Box sx={{
+                  width: `${scoreDistribution.detractors}%`,
+                  height: '100%',
+                  backgroundColor: '#ef4444',
+                  borderRadius: 3,
+                  transition: 'width 0.4s ease'
+                }} />
+              </Box>
             </Box>
           </Box>
 
-          {/* 中立 */}
-          <Box sx={{ mb: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-              <Typography variant="body2" sx={{ color: '#64748b', fontSize: 13 }}>中立</Typography>
-              <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 600, fontSize: 13 }}>{scoreDistribution.passives}%</Typography>
-            </Box>
-            <Box sx={{ height: 6, backgroundColor: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-              <Box sx={{
-                width: `${scoreDistribution.passives}%`,
-                height: '100%',
-                backgroundColor: '#94a3b8',
-                borderRadius: 3,
-                transition: 'width 0.4s ease'
-              }} />
-            </Box>
-          </Box>
-
-          {/* 批判 */}
+          {/* 3つの指標（縦並び） */}
           <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-              <Typography variant="body2" sx={{ color: '#64748b', fontSize: 13 }}>批判</Typography>
-              <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 600, fontSize: 13 }}>{scoreDistribution.detractors}%</Typography>
+            {/* 推奨スコア */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>
+              <Box>
+                <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.05em', fontSize: 10 }}>
+                  推奨スコア
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', fontSize: 9 }}>
+                  推奨者% − 批判者%
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  backgroundColor: currentNps.diff > 0 ? '#dcfce7' : currentNps.diff < 0 ? '#fee2e2' : '#f1f5f9',
+                  px: 1,
+                  py: 0.25,
+                  borderRadius: 1
+                }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: 9 }}>移動平均</Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: currentNps.diff > 0 ? '#16a34a' : currentNps.diff < 0 ? '#dc2626' : '#64748b',
+                      fontWeight: 600,
+                      fontSize: 10
+                    }}
+                  >
+                    {currentNps.diff > 0 ? '+' : ''}{currentNps.diff}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography sx={{ fontSize: 24, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+                    {currentNps.score}
+                  </Typography>
+                  {getTrendIcon(currentNps.trend)}
+                </Box>
+              </Box>
             </Box>
-            <Box sx={{ height: 6, backgroundColor: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-              <Box sx={{
-                width: `${scoreDistribution.detractors}%`,
-                height: '100%',
-                backgroundColor: '#ef4444',
-                borderRadius: 3,
-                transition: 'width 0.4s ease'
-              }} />
+
+            {/* 区切り線 */}
+            <Box sx={{ height: '1px', backgroundColor: '#f1f5f9' }} />
+
+            {/* リピート率 */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>
+              <Box>
+                <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.05em', fontSize: 10 }}>
+                  リピート率
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', fontSize: 9 }}>
+                  2回以上来店
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  backgroundColor: additionalMetrics.repeatRate.change > 0 ? '#dcfce7' : additionalMetrics.repeatRate.change < 0 ? '#fee2e2' : '#f1f5f9',
+                  px: 1,
+                  py: 0.25,
+                  borderRadius: 1
+                }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: 9 }}>前期比</Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: additionalMetrics.repeatRate.change > 0 ? '#16a34a' : additionalMetrics.repeatRate.change < 0 ? '#dc2626' : '#64748b',
+                      fontWeight: 600,
+                      fontSize: 10
+                    }}
+                  >
+                    {additionalMetrics.repeatRate.change > 0 ? '+' : ''}{additionalMetrics.repeatRate.change}%
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography sx={{ fontSize: 24, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+                    {additionalMetrics.repeatRate.value}
+                    <Typography component="span" sx={{ fontSize: 12, fontWeight: 500, color: '#64748b' }}>%</Typography>
+                  </Typography>
+                  {getTrendIcon(additionalMetrics.repeatRate.trend)}
+                </Box>
+              </Box>
+            </Box>
+
+            {/* 区切り線 */}
+            <Box sx={{ height: '1px', backgroundColor: '#f1f5f9' }} />
+
+            {/* 3ヶ月以内再来意向率 */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>
+              <Box>
+                <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.05em', fontSize: 10 }}>
+                  3ヶ月以内再来意向
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', fontSize: 9 }}>
+                  また来たいと回答
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  backgroundColor: additionalMetrics.revisitIntention.change > 0 ? '#dcfce7' : additionalMetrics.revisitIntention.change < 0 ? '#fee2e2' : '#f1f5f9',
+                  px: 1,
+                  py: 0.25,
+                  borderRadius: 1
+                }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: 9 }}>前期比</Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: additionalMetrics.revisitIntention.change > 0 ? '#16a34a' : additionalMetrics.revisitIntention.change < 0 ? '#dc2626' : '#64748b',
+                      fontWeight: 600,
+                      fontSize: 10
+                    }}
+                  >
+                    {additionalMetrics.revisitIntention.change > 0 ? '+' : ''}{additionalMetrics.revisitIntention.change}%
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Typography sx={{ fontSize: 24, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+                    {additionalMetrics.revisitIntention.value}
+                    <Typography component="span" sx={{ fontSize: 12, fontWeight: 500, color: '#64748b' }}>%</Typography>
+                  </Typography>
+                  {getTrendIcon(additionalMetrics.revisitIntention.trend)}
+                </Box>
+              </Box>
             </Box>
           </Box>
-        </Box>
-      </Box>
-
-      {/* 下部: 推奨スコア・リピート率・再来意向率 */}
-      <Box sx={{
-        display: 'flex',
-        borderTop: '1px solid #e2e8f0',
-        mt: 3,
-        pt: 3
-      }}>
-        {/* 推奨スコア */}
-        <Box sx={{ flex: 1, textAlign: 'center', py: 1 }}>
-          <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.08em', display: 'block', mb: 1, textTransform: 'uppercase', fontSize: 10 }}>
-            推奨スコア
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mb: 1 }}>
-            <Typography sx={{ fontSize: 40, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
-              {currentNps.score}
-            </Typography>
-            {getTrendIcon(currentNps.trend)}
-          </Box>
-          <Box sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 0.5,
-            backgroundColor: currentNps.diff > 0 ? '#dcfce7' : currentNps.diff < 0 ? '#fee2e2' : '#f1f5f9',
-            px: 1.5,
-            py: 0.5,
-            borderRadius: 1
-          }}>
-            <Typography variant="caption" sx={{ color: '#64748b', fontSize: 10 }}>
-              移動平均
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                color: currentNps.diff > 0 ? '#16a34a' : currentNps.diff < 0 ? '#dc2626' : '#64748b',
-                fontWeight: 600,
-                fontSize: 11
-              }}
-            >
-              {currentNps.diff > 0 ? '+' : ''}{currentNps.diff}
-            </Typography>
-          </Box>
-          <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mt: 1, fontSize: 10 }}>
-            推奨者% − 批判者%
-          </Typography>
-        </Box>
-
-        {/* 区切り線 */}
-        <Box sx={{ width: '1px', backgroundColor: '#e2e8f0' }} />
-
-        {/* リピート率 */}
-        <Box sx={{ flex: 1, textAlign: 'center', py: 1 }}>
-          <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.08em', display: 'block', mb: 1, textTransform: 'uppercase', fontSize: 10 }}>
-            リピート率
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mb: 1 }}>
-            <Typography sx={{ fontSize: 40, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
-              {additionalMetrics.repeatRate.value}
-              <Typography component="span" sx={{ fontSize: 18, fontWeight: 500, color: '#64748b' }}>%</Typography>
-            </Typography>
-            {getTrendIcon(additionalMetrics.repeatRate.trend)}
-          </Box>
-          <Box sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 0.5,
-            backgroundColor: additionalMetrics.repeatRate.change > 0 ? '#dcfce7' : additionalMetrics.repeatRate.change < 0 ? '#fee2e2' : '#f1f5f9',
-            px: 1.5,
-            py: 0.5,
-            borderRadius: 1
-          }}>
-            <Typography variant="caption" sx={{ color: '#64748b', fontSize: 10 }}>
-              前期比
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                color: additionalMetrics.repeatRate.change > 0 ? '#16a34a' : additionalMetrics.repeatRate.change < 0 ? '#dc2626' : '#64748b',
-                fontWeight: 600,
-                fontSize: 11
-              }}
-            >
-              {additionalMetrics.repeatRate.change > 0 ? '+' : ''}{additionalMetrics.repeatRate.change}%
-            </Typography>
-          </Box>
-          <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mt: 1, fontSize: 10 }}>
-            2回以上来店した顧客の割合
-          </Typography>
-        </Box>
-
-        {/* 区切り線 */}
-        <Box sx={{ width: '1px', backgroundColor: '#e2e8f0' }} />
-
-        {/* 3ヶ月以内再来意向率 */}
-        <Box sx={{ flex: 1, textAlign: 'center', py: 1 }}>
-          <Typography variant="caption" sx={{ color: '#94a3b8', letterSpacing: '0.08em', display: 'block', mb: 1, textTransform: 'uppercase', fontSize: 10 }}>
-            3ヶ月以内再来意向
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mb: 1 }}>
-            <Typography sx={{ fontSize: 40, fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
-              {additionalMetrics.revisitIntention.value}
-              <Typography component="span" sx={{ fontSize: 18, fontWeight: 500, color: '#64748b' }}>%</Typography>
-            </Typography>
-            {getTrendIcon(additionalMetrics.revisitIntention.trend)}
-          </Box>
-          <Box sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 0.5,
-            backgroundColor: additionalMetrics.revisitIntention.change > 0 ? '#dcfce7' : additionalMetrics.revisitIntention.change < 0 ? '#fee2e2' : '#f1f5f9',
-            px: 1.5,
-            py: 0.5,
-            borderRadius: 1
-          }}>
-            <Typography variant="caption" sx={{ color: '#64748b', fontSize: 10 }}>
-              前期比
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                color: additionalMetrics.revisitIntention.change > 0 ? '#16a34a' : additionalMetrics.revisitIntention.change < 0 ? '#dc2626' : '#64748b',
-                fontWeight: 600,
-                fontSize: 11
-              }}
-            >
-              {additionalMetrics.revisitIntention.change > 0 ? '+' : ''}{additionalMetrics.revisitIntention.change}%
-            </Typography>
-          </Box>
-          <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mt: 1, fontSize: 10 }}>
-            また来たいと回答した割合
-          </Typography>
         </Box>
       </Box>
     </Box>
