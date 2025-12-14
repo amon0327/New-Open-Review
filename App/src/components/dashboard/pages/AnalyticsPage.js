@@ -80,19 +80,19 @@ const StoreByStoreTab = ({ companyId }) => {
     { value: 'cleanliness', label: 'Cleanliness（清潔さ）' }
   ];
 
-  // サンプルNPSデータ（2週間間隔）
+  // サンプルNPSデータ（2週間間隔）- NPSは推奨者% - 批判者%で-100〜+100の範囲
   const sampleNpsData = useMemo(() => {
     const baseData = [
-      { date: '10/1', nps: 35 },
-      { date: '10/15', nps: 42 },
-      { date: '10/29', nps: 38 },
-      { date: '11/12', nps: 45 },
-      { date: '11/26', nps: 52 },
-      { date: '12/10', nps: 48 },
-      { date: '12/24', nps: 55 },
-      { date: '1/7', nps: 50 },
-      { date: '1/21', nps: 58 },
-      { date: '2/4', nps: 62 },
+      { date: '10/1', nps: 15 },
+      { date: '10/15', nps: 22 },
+      { date: '10/29', nps: 18 },
+      { date: '11/12', nps: 25 },
+      { date: '11/26', nps: 32 },
+      { date: '12/10', nps: 28 },
+      { date: '12/24', nps: 35 },
+      { date: '1/7', nps: 30 },
+      { date: '1/21', nps: 38 },
+      { date: '2/4', nps: 25 },  // 最新値は scoreDistribution から計算（45% - 20% = 25）
     ];
     return calculateMovingAverage(baseData);
   }, []);
@@ -104,21 +104,22 @@ const StoreByStoreTab = ({ companyId }) => {
     detractors: 20    // 批判者 (0-6)
   }), []);
 
-  // 推奨スコアとトレンド（移動平均との差分）
+  // 推奨スコアとトレンド（移動平均との差分）- NPS = 推奨者% - 批判者%
   const currentNps = useMemo(() => {
-    const latest = sampleNpsData[sampleNpsData.length - 1]?.nps || 0;
+    // 推奨スコアは推奨者% - 批判者%で計算
+    const calculatedNps = scoreDistribution.promoters - scoreDistribution.detractors;
     const latestMA = sampleNpsData[sampleNpsData.length - 1]?.movingAverage || 0;
-    const diff = latestMA ? latest - latestMA : 0;
-    return { score: latest, diff, trend: diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat' };
-  }, [sampleNpsData]);
+    const diff = latestMA ? calculatedNps - latestMA : 0;
+    return { score: calculatedNps, diff, trend: diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat' };
+  }, [sampleNpsData, scoreDistribution]);
 
-  // グラフの縦軸範囲を動的に計算（データに合わせて最大限変動を見せる）
+  // グラフの縦軸範囲を動的に計算（データに合わせて最大限変動を見せる）- NPSは-100〜+100
   const yAxisDomain = useMemo(() => {
     const npsValues = sampleNpsData.map(d => d.nps);
     const minValue = Math.min(...npsValues);
     const maxValue = Math.max(...npsValues);
     const padding = Math.ceil((maxValue - minValue) * 0.15);
-    return [Math.max(0, minValue - padding), Math.min(100, maxValue + padding)];
+    return [Math.max(-100, minValue - padding), Math.min(100, maxValue + padding)];
   }, [sampleNpsData]);
 
   // 店舗データを取得
