@@ -379,7 +379,7 @@ const StoreByStoreTab = ({ companyId }) => {
               </Typography>
             </Box>
             <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mt: 1, fontSize: 10 }}>
-              推奨者% − 批判者%
+              -100〜+100で評価
             </Typography>
           </Box>
 
