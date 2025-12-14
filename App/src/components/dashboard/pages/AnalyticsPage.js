@@ -7,7 +7,9 @@ import {
   FormControl,
   Select,
   MenuItem,
-  InputLabel
+  InputLabel,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import {
   Comment,
@@ -72,6 +74,16 @@ const StoreByStoreTab = ({ companyId }) => {
   const [selectedStore, setSelectedStore] = useState('');
   const [selectedQSC, setSelectedQSC] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+
+  // QSCスコアの表示/非表示状態
+  const [visibleQscLines, setVisibleQscLines] = useState({
+    quality: true,
+    taste: true,
+    priceValue: true,
+    servingQuality: true,
+    menuQuality: true,
+    uniqueness: true
+  });
 
   // QSCオプション
   const qscOptions = [
@@ -174,6 +186,50 @@ const StoreByStoreTab = ({ companyId }) => {
       trend: 'down'
     }
   }), []);
+
+  // QSCスコアの線の設定（Qualityの場合）
+  const qscLineConfig = useMemo(() => [
+    { key: 'quality', label: 'クオリティ', color: '#5e17eb' },
+    { key: 'taste', label: '味・美味しさ', color: '#22c55e' },
+    { key: 'priceValue', label: '価格納得感', color: '#f59e0b' },
+    { key: 'servingQuality', label: '提供品質', color: '#3b82f6' },
+    { key: 'menuQuality', label: 'メニュー品質', color: '#ec4899' },
+    { key: 'uniqueness', label: '独自性・記憶', color: '#8b5cf6' }
+  ], []);
+
+  // QSCスコアのサンプルデータ（2週間間隔）
+  const qscScoreData = useMemo(() => [
+    { date: '10/1', quality: 72, taste: 78, priceValue: 65, servingQuality: 70, menuQuality: 68, uniqueness: 60 },
+    { date: '10/15', quality: 74, taste: 76, priceValue: 68, servingQuality: 72, menuQuality: 70, uniqueness: 62 },
+    { date: '10/29', quality: 71, taste: 80, priceValue: 66, servingQuality: 69, menuQuality: 72, uniqueness: 58 },
+    { date: '11/12', quality: 76, taste: 82, priceValue: 70, servingQuality: 74, menuQuality: 71, uniqueness: 65 },
+    { date: '11/26', quality: 78, taste: 79, priceValue: 72, servingQuality: 76, menuQuality: 74, uniqueness: 68 },
+    { date: '12/10', quality: 75, taste: 81, priceValue: 69, servingQuality: 73, menuQuality: 76, uniqueness: 66 },
+    { date: '12/24', quality: 80, taste: 84, priceValue: 74, servingQuality: 78, menuQuality: 75, uniqueness: 70 },
+    { date: '1/7', quality: 77, taste: 82, priceValue: 71, servingQuality: 75, menuQuality: 78, uniqueness: 67 },
+    { date: '1/21', quality: 82, taste: 85, priceValue: 76, servingQuality: 80, menuQuality: 77, uniqueness: 72 },
+    { date: '2/4', quality: 79, taste: 83, priceValue: 73, servingQuality: 77, menuQuality: 80, uniqueness: 69 }
+  ], []);
+
+  // QSCスコアグラフのY軸範囲を動的に計算
+  const qscYAxisDomain = useMemo(() => {
+    const allValues = qscScoreData.flatMap(d =>
+      qscLineConfig.filter(line => visibleQscLines[line.key]).map(line => d[line.key])
+    );
+    if (allValues.length === 0) return [0, 100];
+    const minValue = Math.min(...allValues);
+    const maxValue = Math.max(...allValues);
+    const padding = Math.ceil((maxValue - minValue) * 0.15);
+    return [Math.max(0, minValue - padding), Math.min(100, maxValue + padding)];
+  }, [qscScoreData, qscLineConfig, visibleQscLines]);
+
+  // チェックボックスの切り替え
+  const handleQscLineToggle = (key) => {
+    setVisibleQscLines(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
 
   return (
     <Box sx={{ p: 3 }}>
@@ -468,6 +524,100 @@ const StoreByStoreTab = ({ companyId }) => {
               また来たいと回答した割合
             </Typography>
           </Box>
+        </Box>
+      </Box>
+
+      {/* QSCスコアトレンドグラフ */}
+      <Box sx={{ mt: 4, borderTop: '1px solid #e2e8f0', pt: 3 }}>
+        <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#1e293b', letterSpacing: '0.05em' }}>
+          QSCスコアトレンド
+        </Typography>
+
+        {/* チェックボックスエリア */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+          {qscLineConfig.map((line) => (
+            <FormControlLabel
+              key={line.key}
+              control={
+                <Checkbox
+                  checked={visibleQscLines[line.key]}
+                  onChange={() => handleQscLineToggle(line.key)}
+                  size="small"
+                  sx={{
+                    color: line.color,
+                    '&.Mui-checked': {
+                      color: line.color
+                    },
+                    padding: '4px'
+                  }}
+                />
+              }
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Box sx={{ width: 12, height: 2, backgroundColor: line.color, borderRadius: 1 }} />
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: 11 }}>
+                    {line.label}
+                  </Typography>
+                </Box>
+              }
+              sx={{
+                margin: 0,
+                backgroundColor: visibleQscLines[line.key] ? `${line.color}10` : 'transparent',
+                borderRadius: 1,
+                px: 1,
+                py: 0.25,
+                border: `1px solid ${visibleQscLines[line.key] ? line.color : '#e2e8f0'}`,
+                transition: 'all 0.2s ease'
+              }}
+            />
+          ))}
+        </Box>
+
+        {/* グラフ */}
+        <Box sx={{ height: 280 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={qscScoreData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11, fill: '#94a3b8' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                domain={qscYAxisDomain}
+                tick={{ fontSize: 11, fill: '#94a3b8' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#1e293b',
+                  border: 'none',
+                  borderRadius: 6,
+                  fontSize: 12,
+                  color: '#fff'
+                }}
+                formatter={(value, name) => {
+                  const lineConfig = qscLineConfig.find(l => l.key === name);
+                  return [`${value}点`, lineConfig?.label || name];
+                }}
+              />
+              {qscLineConfig.map((line) => (
+                visibleQscLines[line.key] && (
+                  <Line
+                    key={line.key}
+                    type="monotone"
+                    dataKey={line.key}
+                    stroke={line.color}
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: line.color, strokeWidth: 0 }}
+                    activeDot={{ r: 5, fill: line.color }}
+                  />
+                )
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
         </Box>
       </Box>
     </Box>
