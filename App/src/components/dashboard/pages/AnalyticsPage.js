@@ -98,9 +98,6 @@ const StoreByStoreTab = ({ companyId }) => {
             onChange={(e) => setSelectedStore(e.target.value)}
             disabled={isLoading}
           >
-            <MenuItem value="">
-              <em>すべての店舗</em>
-            </MenuItem>
             {stores.map((store) => (
               <MenuItem key={store.id} value={store.id}>
                 {store.name}
@@ -117,9 +114,6 @@ const StoreByStoreTab = ({ companyId }) => {
             label="QSCを選択"
             onChange={(e) => setSelectedQSC(e.target.value)}
           >
-            <MenuItem value="">
-              <em>すべて</em>
-            </MenuItem>
             {qscOptions.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}
@@ -137,8 +131,8 @@ const StoreByStoreTab = ({ companyId }) => {
         textAlign: 'center'
       }}>
         <Typography variant="body1" sx={{ color: '#64748b' }}>
-          {selectedStore || selectedQSC
-            ? `選択中: ${stores.find(s => s.id === selectedStore)?.name || 'すべての店舗'} / ${qscOptions.find(q => q.value === selectedQSC)?.label || 'すべてのQSC'}`
+          {selectedStore && selectedQSC
+            ? `選択中: ${stores.find(s => s.id === selectedStore)?.name} / ${qscOptions.find(q => q.value === selectedQSC)?.label}`
             : '店舗とQSCを選択してください'}
         </Typography>
       </Box>
