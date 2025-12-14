@@ -8,7 +8,7 @@ import {
 import {
   Comment,
   Store,
-  Business
+  LocationCity
 } from '@mui/icons-material';
 
 // タブパネルコンポーネント
@@ -107,7 +107,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
           }}
         >
           <Tab
-            icon={<Business sx={{ fontSize: 20 }} />}
+            icon={<LocationCity sx={{ fontSize: 20 }} />}
             iconPosition="start"
             label="全店舗"
           />
