@@ -7,8 +7,8 @@ import {
 } from '@mui/material';
 import {
   Comment,
-  Assessment,
-  CompareArrows
+  Store,
+  Storefront
 } from '@mui/icons-material';
 
 // タブパネルコンポーネント
@@ -25,29 +25,29 @@ const TabPanel = ({ children, value, index, ...other }) => (
   </Box>
 );
 
-// 比較データタブの内容
-const CompareDataTab = () => (
+// 全店舗タブの内容
+const AllStoresTab = () => (
   <Box sx={{ p: 3 }}>
     <Typography variant="h6" sx={{ color: '#64748b' }}>
-      比較データ機能は開発中です
+      全店舗機能は開発中です
     </Typography>
   </Box>
 );
 
-// 分析レポートタブの内容
-const AnalysisReportTab = () => (
+// 店舗別タブの内容
+const StoreByStoreTab = () => (
   <Box sx={{ p: 3 }}>
     <Typography variant="h6" sx={{ color: '#64748b' }}>
-      分析レポート機能は開発中です
+      店舗別機能は開発中です
     </Typography>
   </Box>
 );
 
-// コメントタブの内容
-const CommentTab = () => (
+// リアルタイムタブの内容
+const RealtimeTab = () => (
   <Box sx={{ p: 3 }}>
     <Typography variant="h6" sx={{ color: '#64748b' }}>
-      コメント機能は開発中です
+      リアルタイム機能は開発中です
     </Typography>
   </Box>
 );
@@ -107,19 +107,19 @@ export default function AnalyticsPage({ onNavCollapse }) {
           }}
         >
           <Tab
-            icon={<CompareArrows sx={{ fontSize: 20 }} />}
+            icon={<Storefront sx={{ fontSize: 20 }} />}
             iconPosition="start"
-            label="比較データ"
+            label="全店舗"
           />
           <Tab
-            icon={<Assessment sx={{ fontSize: 20 }} />}
+            icon={<Store sx={{ fontSize: 20 }} />}
             iconPosition="start"
-            label="分析レポート"
+            label="店舗別"
           />
           <Tab
             icon={<Comment sx={{ fontSize: 20 }} />}
             iconPosition="start"
-            label="コメント"
+            label="リアルタイム"
           />
         </Tabs>
       </Box>
@@ -127,13 +127,13 @@ export default function AnalyticsPage({ onNavCollapse }) {
       {/* タブコンテンツ */}
       <Box sx={{ flex: 1, overflow: 'hidden' }}>
         <TabPanel value={activeTab} index={0}>
-          <CompareDataTab />
+          <AllStoresTab />
         </TabPanel>
         <TabPanel value={activeTab} index={1}>
-          <AnalysisReportTab />
+          <StoreByStoreTab />
         </TabPanel>
         <TabPanel value={activeTab} index={2}>
-          <CommentTab />
+          <RealtimeTab />
         </TabPanel>
       </Box>
     </Box>
