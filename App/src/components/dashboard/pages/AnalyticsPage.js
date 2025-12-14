@@ -7,7 +7,8 @@ import {
 } from '@mui/material';
 import {
   Comment,
-  Assessment
+  Assessment,
+  CompareArrows
 } from '@mui/icons-material';
 
 // タブパネルコンポーネント
@@ -24,11 +25,20 @@ const TabPanel = ({ children, value, index, ...other }) => (
   </Box>
 );
 
-// レポートタブの内容
-const ReportTab = () => (
+// 比較データタブの内容
+const CompareDataTab = () => (
   <Box sx={{ p: 3 }}>
     <Typography variant="h6" sx={{ color: '#64748b' }}>
-      レポート機能は開発中です
+      比較データ機能は開発中です
+    </Typography>
+  </Box>
+);
+
+// 分析レポートタブの内容
+const AnalysisReportTab = () => (
+  <Box sx={{ p: 3 }}>
+    <Typography variant="h6" sx={{ color: '#64748b' }}>
+      分析レポート機能は開発中です
     </Typography>
   </Box>
 );
@@ -97,9 +107,14 @@ export default function AnalyticsPage({ onNavCollapse }) {
           }}
         >
           <Tab
+            icon={<CompareArrows sx={{ fontSize: 20 }} />}
+            iconPosition="start"
+            label="比較データ"
+          />
+          <Tab
             icon={<Assessment sx={{ fontSize: 20 }} />}
             iconPosition="start"
-            label="レポート"
+            label="分析レポート"
           />
           <Tab
             icon={<Comment sx={{ fontSize: 20 }} />}
@@ -112,9 +127,12 @@ export default function AnalyticsPage({ onNavCollapse }) {
       {/* タブコンテンツ */}
       <Box sx={{ flex: 1, overflow: 'hidden' }}>
         <TabPanel value={activeTab} index={0}>
-          <ReportTab />
+          <CompareDataTab />
         </TabPanel>
         <TabPanel value={activeTab} index={1}>
+          <AnalysisReportTab />
+        </TabPanel>
+        <TabPanel value={activeTab} index={2}>
           <CommentTab />
         </TabPanel>
       </Box>
