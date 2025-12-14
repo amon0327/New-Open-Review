@@ -3,13 +3,18 @@ import {
   Box,
   Tabs,
   Tab,
-  Typography
+  Typography,
+  FormControl,
+  Select,
+  MenuItem,
+  InputLabel
 } from '@mui/material';
 import {
   Comment,
   Store,
   LocationCity
 } from '@mui/icons-material';
+import { supabase } from '../../../lib/supabase';
 
 // タブパネルコンポーネント
 const TabPanel = ({ children, value, index, ...other }) => (
@@ -35,13 +40,111 @@ const AllStoresTab = () => (
 );
 
 // 店舗別タブの内容
-const StoreByStoreTab = () => (
-  <Box sx={{ p: 3 }}>
-    <Typography variant="h6" sx={{ color: '#64748b' }}>
-      店舗別機能は開発中です
-    </Typography>
-  </Box>
-);
+const StoreByStoreTab = ({ companyId }) => {
+  const [stores, setStores] = useState([]);
+  const [selectedStore, setSelectedStore] = useState('');
+  const [selectedQSC, setSelectedQSC] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // QSCオプション
+  const qscOptions = [
+    { value: 'quality', label: 'Quality（品質）' },
+    { value: 'service', label: 'Service（サービス）' },
+    { value: 'cleanliness', label: 'Cleanliness（清潔さ）' }
+  ];
+
+  // 店舗データを取得
+  useEffect(() => {
+    const fetchStores = async () => {
+      if (!companyId) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('stores')
+          .select('id, name')
+          .eq('company_id', companyId)
+          .order('name');
+
+        if (error) throw error;
+        setStores(data || []);
+      } catch (error) {
+        console.error('Error fetching stores:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStores();
+  }, [companyId]);
+
+  return (
+    <Box sx={{ p: 3 }}>
+      {/* ドロップダウンエリア */}
+      <Box sx={{
+        display: 'flex',
+        gap: 2,
+        mb: 3,
+        flexWrap: 'wrap'
+      }}>
+        {/* 店舗選択ドロップダウン */}
+        <FormControl sx={{ minWidth: 200 }} size="small">
+          <InputLabel>店舗を選択</InputLabel>
+          <Select
+            value={selectedStore}
+            label="店舗を選択"
+            onChange={(e) => setSelectedStore(e.target.value)}
+            disabled={isLoading}
+          >
+            <MenuItem value="">
+              <em>すべての店舗</em>
+            </MenuItem>
+            {stores.map((store) => (
+              <MenuItem key={store.id} value={store.id}>
+                {store.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* QSC選択ドロップダウン */}
+        <FormControl sx={{ minWidth: 200 }} size="small">
+          <InputLabel>QSCを選択</InputLabel>
+          <Select
+            value={selectedQSC}
+            label="QSCを選択"
+            onChange={(e) => setSelectedQSC(e.target.value)}
+          >
+            <MenuItem value="">
+              <em>すべて</em>
+            </MenuItem>
+            {qscOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
+      {/* コンテンツエリア（今後開発） */}
+      <Box sx={{
+        p: 4,
+        backgroundColor: '#f8fafc',
+        borderRadius: 2,
+        textAlign: 'center'
+      }}>
+        <Typography variant="body1" sx={{ color: '#64748b' }}>
+          {selectedStore || selectedQSC
+            ? `選択中: ${stores.find(s => s.id === selectedStore)?.name || 'すべての店舗'} / ${qscOptions.find(q => q.value === selectedQSC)?.label || 'すべてのQSC'}`
+            : '店舗とQSCを選択してください'}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
 
 // リアルタイムタブの内容
 const RealtimeTab = () => (
@@ -52,7 +155,7 @@ const RealtimeTab = () => (
   </Box>
 );
 
-export default function AnalyticsPage({ onNavCollapse }) {
+export default function AnalyticsPage({ onNavCollapse, companyId }) {
   const [activeTab, setActiveTab] = useState(0);
 
   // マウント時にサイドバーを縮める
@@ -130,7 +233,7 @@ export default function AnalyticsPage({ onNavCollapse }) {
           <AllStoresTab />
         </TabPanel>
         <TabPanel value={activeTab} index={1}>
-          <StoreByStoreTab />
+          <StoreByStoreTab companyId={companyId} />
         </TabPanel>
         <TabPanel value={activeTab} index={2}>
           <RealtimeTab />

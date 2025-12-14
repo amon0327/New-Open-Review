@@ -306,7 +306,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     } else if (navigationItems[activeTab].text === 'ホーム') {
       return <ActiveComponent user={user} onCreateFormClick={onCreateClick} onCreateForm={onCreateForm} isCreatingForm={isCreatingForm} />;
     } else if (navigationItems[activeTab].text === '分析') {
-      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} />;
+      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
     } else if (navigationItems[activeTab].text === '管理メンバー') {
       return <ActiveComponent companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     } else if (navigationItems[activeTab].text === 'フォーム公開') {
