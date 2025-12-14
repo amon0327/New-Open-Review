@@ -52,9 +52,24 @@ import CompanyAdminPage from './dashboard/pages/CompanyAdminPage';
 import FormPublishPage from './dashboard/pages/FormPublishPage';
 
 // 空の分析ページコンポーネント
-const EmptyAnalyticsPage = () => (
-  <Box sx={{ width: '100%', height: '100%', backgroundColor: '#fff' }} />
-);
+const EmptyAnalyticsPage = ({ onNavCollapse }) => {
+  // マウント時にサイドバーを縮める
+  React.useEffect(() => {
+    if (onNavCollapse) {
+      onNavCollapse(true);
+    }
+    // アンマウント時にサイドバーを元に戻す
+    return () => {
+      if (onNavCollapse) {
+        onNavCollapse(false);
+      }
+    };
+  }, [onNavCollapse]);
+
+  return (
+    <Box sx={{ width: '100%', height: '100%', backgroundColor: '#fff' }} />
+  );
+};
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
