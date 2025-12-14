@@ -45,12 +45,16 @@ import { supabase } from '../lib/supabase';
 // 分離したページコンポーネントをインポート
 import HomePage from './dashboard/pages/HomePage';
 import CreatePagePlaceholder from './dashboard/pages/CreatePagePlaceholder';
-import AnalyticsPage from './dashboard/pages/AnalyticsPage';
 import SettingsPage from './dashboard/pages/SettingsPage';
 import StoresManagementPage from './dashboard/pages/StoresManagementPage';
 import AppPage from './dashboard/pages/AppPage';
 import CompanyAdminPage from './dashboard/pages/CompanyAdminPage';
 import FormPublishPage from './dashboard/pages/FormPublishPage';
+
+// 空の分析ページコンポーネント
+const EmptyAnalyticsPage = () => (
+  <Box sx={{ width: '100%', height: '100%', backgroundColor: '#fff' }} />
+);
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
@@ -61,7 +65,7 @@ const navigationItems = [
   { text: '店舗管理', icon: <Business />, component: StoresManagementPage },
   { text: '管理メンバー', icon: <People />, component: CompanyAdminPage },
   { text: 'アプリ表示', icon: <Apps />, component: AppPage },
-  { text: '分析', icon: <Analytics />, component: AnalyticsPage },
+  { text: '分析', icon: <Analytics />, component: EmptyAnalyticsPage },
   { text: '設定', icon: <Settings />, component: SettingsPage },
 ];
 
