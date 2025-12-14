@@ -50,26 +50,7 @@ import StoresManagementPage from './dashboard/pages/StoresManagementPage';
 import AppPage from './dashboard/pages/AppPage';
 import CompanyAdminPage from './dashboard/pages/CompanyAdminPage';
 import FormPublishPage from './dashboard/pages/FormPublishPage';
-
-// 空の分析ページコンポーネント
-const EmptyAnalyticsPage = ({ onNavCollapse }) => {
-  // マウント時にサイドバーを縮める
-  React.useEffect(() => {
-    if (onNavCollapse) {
-      onNavCollapse(true);
-    }
-    // アンマウント時にサイドバーを元に戻す
-    return () => {
-      if (onNavCollapse) {
-        onNavCollapse(false);
-      }
-    };
-  }, [onNavCollapse]);
-
-  return (
-    <Box sx={{ width: '100%', height: '100%', backgroundColor: '#fff' }} />
-  );
-};
+import AnalyticsPage from './dashboard/pages/AnalyticsPage';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
@@ -80,7 +61,7 @@ const navigationItems = [
   { text: '店舗管理', icon: <Business />, component: StoresManagementPage },
   { text: '管理メンバー', icon: <People />, component: CompanyAdminPage },
   { text: 'アプリ表示', icon: <Apps />, component: AppPage },
-  { text: '分析', icon: <Analytics />, component: EmptyAnalyticsPage },
+  { text: '分析', icon: <Analytics />, component: AnalyticsPage },
   { text: '設定', icon: <Settings />, component: SettingsPage },
 ];
 
