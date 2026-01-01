@@ -283,7 +283,7 @@ const StoreByStoreTab = ({ companyId }) => {
       {/* KPIカード */}
       <Grid numItems={1} numItemsSm={2} numItemsLg={4} className="gap-4 mb-6">
         {kpiCards.map((kpi, index) => (
-          <Card key={index} className="shadow-xl hover:shadow-2xl transition-shadow duration-300" decoration="top" decorationColor="indigo">
+          <Card key={index} className="shadow-xl hover:shadow-2xl transition-shadow duration-300" decoration="top" decorationColor="blue">
             <Flex>
               <div className="w-full">
                 <Text>{kpi.title}</Text>
@@ -298,7 +298,7 @@ const StoreByStoreTab = ({ companyId }) => {
                   data={kpi.sparklineData.map((value, i) => ({ value, index: i }))}
                   categories={["value"]}
                   index="index"
-                  colors={["indigo"]}
+                  colors={["blue"]}
                   className="h-12 w-20"
                   showGradient={false}
                   showYAxis={false}
@@ -307,7 +307,7 @@ const StoreByStoreTab = ({ companyId }) => {
                 />
               </div>
             </Flex>
-            <ProgressBar value={kpi.progress} className="mt-3" color="indigo" />
+            <ProgressBar value={kpi.progress} className="mt-3" color="blue" />
             <Text className="text-xs text-gray-500 mt-1">
               目標: {kpi.target} ({kpi.progress}%)
             </Text>
@@ -334,7 +334,7 @@ const StoreByStoreTab = ({ companyId }) => {
                     data={hourlyPerformance}
                     index="hour"
                     categories={["sales"]}
-                    colors={["indigo"]}
+                    colors={["blue"]}
                     valueFormatter={(value) => `¥${(value / 1000).toFixed(0)}K`}
                     showLegend={false}
                     showYAxis={true}
@@ -348,7 +348,7 @@ const StoreByStoreTab = ({ companyId }) => {
                     data={hourlyPerformance}
                     index="hour"
                     categories={["orders"]}
-                    colors={["emerald"]}
+                    colors={["green"]}
                     valueFormatter={(value) => `${value}件`}
                     showLegend={false}
                   />
@@ -359,7 +359,7 @@ const StoreByStoreTab = ({ companyId }) => {
                     data={hourlyPerformance}
                     index="hour"
                     categories={["satisfaction"]}
-                    colors={["amber"]}
+                    colors={["yellow"]}
                     valueFormatter={(value) => `${value}%`}
                     yAxisWidth={40}
                     showLegend={false}
@@ -406,7 +406,7 @@ const StoreByStoreTab = ({ companyId }) => {
                 </Flex>
                 <ProgressBar
                   value={store.score}
-                  color={store.score >= 90 ? "emerald" : store.score >= 80 ? "amber" : "red"}
+                  color={store.score >= 90 ? "green" : store.score >= 80 ? "yellow" : "red"}
                   className="mt-1"
                 />
               </div>
@@ -436,7 +436,7 @@ const StoreByStoreTab = ({ companyId }) => {
               category="value"
               index="name"
               valueFormatter={(value) => `${value}%`}
-              colors={["indigo", "cyan", "amber", "emerald", "rose"]}
+              colors={["blue", "cyan", "yellow", "green", "rose"]}
               className="h-64"
               showLabel={true}
             />
@@ -449,13 +449,13 @@ const StoreByStoreTab = ({ companyId }) => {
         <Card className="shadow-xl">
           <Title>アラート & 通知</Title>
           <div className="mt-4 space-y-3">
-            <Callout title="在庫アラート" icon={ExclamationTriangleIcon} color="amber">
+            <Callout title="在庫アラート" icon={ExclamationTriangleIcon} color="yellow">
               渋谷店でカフェラテの材料が残り20%です
             </Callout>
             <Callout title="混雑予測" icon={ClockIcon} color="blue">
               12:00-13:00に混雑が予想されます
             </Callout>
-            <Callout title="達成通知" icon={CheckCircleIcon} color="emerald">
+            <Callout title="達成通知" icon={CheckCircleIcon} color="green">
               本日の売上目標を80%達成しました
             </Callout>
           </div>
@@ -466,7 +466,7 @@ const StoreByStoreTab = ({ companyId }) => {
           <List className="mt-4">
             <ListItem>
               <Flex justifyContent="start" className="truncate space-x-2.5">
-                <Icon icon={LightBulbIcon} variant="light" color="amber" size="sm" />
+                <Icon icon={LightBulbIcon} variant="light" color="yellow" size="sm" />
                 <div className="truncate">
                   <Text className="truncate">
                     <Bold>売上予測</Bold>
@@ -479,7 +479,7 @@ const StoreByStoreTab = ({ companyId }) => {
             </ListItem>
             <ListItem>
               <Flex justifyContent="start" className="truncate space-x-2.5">
-                <Icon icon={ArrowTrendingUpIcon} variant="light" color="emerald" size="sm" />
+                <Icon icon={ArrowTrendingUpIcon} variant="light" color="green" size="sm" />
                 <div className="truncate">
                   <Text className="truncate">
                     <Bold>トレンド分析</Bold>
@@ -492,7 +492,7 @@ const StoreByStoreTab = ({ companyId }) => {
             </ListItem>
             <ListItem>
               <Flex justifyContent="start" className="truncate space-x-2.5">
-                <Icon icon={UserGroupIcon} variant="light" color="indigo" size="sm" />
+                <Icon icon={UserGroupIcon} variant="light" color="blue" size="sm" />
                 <div className="truncate">
                   <Text className="truncate">
                     <Bold>顧客行動</Bold>
