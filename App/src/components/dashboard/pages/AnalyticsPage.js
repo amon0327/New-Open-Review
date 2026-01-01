@@ -227,13 +227,9 @@ const StoreByStoreTab = ({ companyId }) => {
   ];
 
   return (
-    <Box sx={{ 
-      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-      minHeight: '100vh',
-      p: 3
-    }}>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 p-6">
       {/* ヘッダー */}
-      <Card className="mb-6">
+      <Card className="mb-6 shadow-lg bg-white">
         <Flex justifyContent="between" alignItems="start">
           <div>
             <Title className="text-gray-900">店舗パフォーマンス分析</Title>
@@ -259,7 +255,7 @@ const StoreByStoreTab = ({ companyId }) => {
       </Card>
 
       {/* リアルタイムステータスバー */}
-      <Card className="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+      <div className="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg shadow-lg p-6">
         <Grid numItems={4} className="gap-4">
           <div className="text-center">
             <Text className="text-white/80">アクティブユーザー</Text>
@@ -282,12 +278,12 @@ const StoreByStoreTab = ({ companyId }) => {
             <Text className="text-white/60 text-xs">本日平均</Text>
           </div>
         </Grid>
-      </Card>
+      </div>
 
       {/* KPIカード */}
       <Grid numItems={1} numItemsSm={2} numItemsLg={4} className="gap-4 mb-6">
         {kpiCards.map((kpi, index) => (
-          <Card key={index} decoration="top" decorationColor="indigo">
+          <Card key={index} className="shadow-xl hover:shadow-2xl transition-shadow duration-300" decoration="top" decorationColor="indigo">
             <Flex>
               <div className="w-full">
                 <Text>{kpi.title}</Text>
@@ -323,7 +319,7 @@ const StoreByStoreTab = ({ companyId }) => {
       <Grid numItems={1} numItemsLg={3} className="gap-6 mb-6">
         {/* 時間帯別売上トレンド */}
         <Col numColSpan={1} numColSpanLg={2}>
-          <Card>
+          <Card className="shadow-xl">
             <Title>時間帯別パフォーマンス</Title>
             <TabGroup className="mt-2">
               <TabList variant="solid">
@@ -375,7 +371,7 @@ const StoreByStoreTab = ({ companyId }) => {
         </Col>
 
         {/* トップ商品 */}
-        <Card>
+        <Card className="shadow-xl">
           <Title>売上トップ5商品</Title>
           <Flex className="mt-6">
             <Text className="text-xs font-medium">商品名</Text>
@@ -396,7 +392,7 @@ const StoreByStoreTab = ({ companyId }) => {
       </Grid>
 
       {/* 店舗比較セクション */}
-      <Card className="mb-6">
+      <Card className="mb-6 shadow-xl">
         <Title>店舗間パフォーマンス比較</Title>
         <Grid numItems={1} numItemsLg={3} className="gap-6 mt-6">
           {/* スコア比較 */}
@@ -450,7 +446,7 @@ const StoreByStoreTab = ({ companyId }) => {
 
       {/* アラートとインサイト */}
       <Grid numItems={1} numItemsLg={2} className="gap-6">
-        <Card>
+        <Card className="shadow-xl">
           <Title>アラート & 通知</Title>
           <div className="mt-4 space-y-3">
             <Callout title="在庫アラート" icon={ExclamationTriangleIcon} color="amber">
@@ -465,7 +461,7 @@ const StoreByStoreTab = ({ companyId }) => {
           </div>
         </Card>
 
-        <Card>
+        <Card className="shadow-xl">
           <Title>AIインサイト</Title>
           <List className="mt-4">
             <ListItem>
@@ -510,7 +506,7 @@ const StoreByStoreTab = ({ companyId }) => {
           </List>
         </Card>
       </Grid>
-    </Box>
+    </div>
   );
 };
 
