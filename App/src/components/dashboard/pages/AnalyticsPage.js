@@ -58,7 +58,7 @@ import {
   CalendarIcon,
   TrendingUpIcon,
   ExclamationIcon
-} from '@heroicons/react/outline';
+} from '@heroicons/react/24/outline';
 import { format, subDays } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
