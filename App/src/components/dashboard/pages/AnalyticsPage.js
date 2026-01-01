@@ -31,16 +31,15 @@ import {
   Tab as TremorTab,
   TabPanels,
   TabPanel as TremorTabPanel,
-  SelectBox,
-  SelectBoxItem,
-  MultiSelectBox,
-  MultiSelectBoxItem,
+  Select,
+  SelectItem,
+  MultiSelect,
+  MultiSelectItem,
   DateRangePicker,
-  DateRangePickerValue,
+  DateRangePickerItem,
   LineChart as TremorLineChart,
   ProgressBar,
   Callout,
-  KpiCard,
   Subtitle,
   Divider,
   BarChart,
@@ -249,17 +248,17 @@ const StoreByStoreTab = ({ companyId }) => {
           <Text className="mt-1">リアルタイムデータと詳細な分析指標</Text>
         </div>
         <Flex justifyContent="end" className="space-x-2">
-          <SelectBox
+          <Select
             value={selectedStore}
             onValueChange={setSelectedStore}
             placeholder="店舗を選択"
             className="w-56"
           >
-            <SelectBoxItem value="all" text="全店舗" />
+            <SelectItem value="all" text="全店舗" />
             {stores.map((store) => (
-              <SelectBoxItem key={store.id} value={store.id} text={store.name} />
+              <SelectItem key={store.id} value={store.id} text={store.name} />
             ))}
-          </SelectBox>
+          </Select>
           <DateRangePicker
             value={dateRange}
             onValueChange={setDateRange}
@@ -442,7 +441,7 @@ const StoreByStoreTab = ({ companyId }) => {
         <Card>
           <Title>リアルタイムメトリクス</Title>
           <Grid numItemsLg={2} className="mt-4 gap-4">
-            <KpiCard>
+            <Card decoration="left" decorationColor="emerald">
               <Flex alignItems="start">
                 <div>
                   <Text>現在の来店客数</Text>
@@ -450,8 +449,8 @@ const StoreByStoreTab = ({ companyId }) => {
                 </div>
                 <BadgeDelta deltaType="moderateIncrease">12%</BadgeDelta>
               </Flex>
-            </KpiCard>
-            <KpiCard>
+            </Card>
+            <Card decoration="left" decorationColor="red">
               <Flex alignItems="start">
                 <div>
                   <Text>平均滞在時間</Text>
@@ -459,8 +458,8 @@ const StoreByStoreTab = ({ companyId }) => {
                 </div>
                 <BadgeDelta deltaType="moderateDecrease">-5%</BadgeDelta>
               </Flex>
-            </KpiCard>
-            <KpiCard>
+            </Card>
+            <Card decoration="left" decorationColor="gray">
               <Flex alignItems="start">
                 <div>
                   <Text>待ち時間</Text>
@@ -468,8 +467,8 @@ const StoreByStoreTab = ({ companyId }) => {
                 </div>
                 <BadgeDelta deltaType="unchanged">0%</BadgeDelta>
               </Flex>
-            </KpiCard>
-            <KpiCard>
+            </Card>
+            <Card decoration="left" decorationColor="emerald">
               <Flex alignItems="start">
                 <div>
                   <Text>スタッフ稼働率</Text>
@@ -477,7 +476,7 @@ const StoreByStoreTab = ({ companyId }) => {
                 </div>
                 <BadgeDelta deltaType="moderateIncrease">3%</BadgeDelta>
               </Flex>
-            </KpiCard>
+            </Card>
           </Grid>
         </Card>
       </Grid>
