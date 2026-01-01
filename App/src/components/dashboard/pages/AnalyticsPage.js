@@ -11,64 +11,58 @@ import {
   LocationCity
 } from '@mui/icons-material';
 import { supabase } from '../../../lib/supabase';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../ui/card';
+import { Badge } from '../../ui/badge';
+import { Button } from '../../ui/button';
+import { Progress } from '../../ui/progress';
+import { Separator } from '../../ui/separator';
+import { Skeleton } from '../../ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '../../ui/alert';
+import { Tabs as ShadcnTabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import {
-  Card,
-  Metric,
-  Text,
-  Title,
-  BarList,
-  Flex,
-  Grid,
-  Col,
-  DonutChart,
-  AreaChart,
-  BadgeDelta,
-  DeltaType,
-  CategoryBar,
-  Legend,
-  TabGroup,
-  TabList,
-  Tab as TremorTab,
-  TabPanels,
-  TabPanel as TremorTabPanel,
   Select,
+  SelectContent,
+  SelectGroup,
   SelectItem,
-  MultiSelect,
-  MultiSelectItem,
-  DateRangePicker,
-  DateRangePickerItem,
-  LineChart,
-  SparkAreaChart,
-  SparkLineChart,
-  ProgressBar,
-  Callout,
-  Subtitle,
-  Divider,
-  BarChart,
-  Tracker,
-  NumberInput,
-  List,
-  ListItem,
-  Icon,
-  Bold
-} from '@tremor/react';
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '../../ui/select';
 import {
-  ArrowUpIcon,
-  ArrowDownIcon,
-  ArrowRightIcon,
-  ChartBarIcon,
-  ClockIcon,
-  UserGroupIcon,
-  ShoppingCartIcon,
-  CurrencyYenIcon,
-  CalendarIcon,
-  ArrowTrendingUpIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  LightBulbIcon
-} from '@heroicons/react/24/outline';
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  DollarSign,
+  Users,
+  ShoppingCart,
+  Clock,
+  AlertTriangle,
+  CheckCircle,
+  Lightbulb,
+  BarChart3,
+  Calendar,
+  ArrowUpRight,
+  ArrowDownRight
+} from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
 
 // タブパネルコンポーネント
 const TabPanel = ({ children, value, index, ...other }) => (
@@ -99,6 +93,26 @@ const deltaTypes = {
   decrease: 'moderateDecrease',
   unchanged: 'unchanged'
 };
+
+// Custom tooltip for charts
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-background p-3 border rounded-lg shadow-lg">
+        <p className="text-sm font-medium">{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} className="text-sm" style={{ color: entry.color }}>
+            {entry.name}: {entry.value.toLocaleString()}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+// Chart colors
+const COLORS = ['#5e17eb', '#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe', '#fa709a', '#fee140'];
 
 // 店舗別タブの内容 - 超モダンなダッシュボード
 const StoreByStoreTab = ({ companyId }) => {
@@ -227,285 +241,394 @@ const StoreByStoreTab = ({ companyId }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 p-6">
       {/* ヘッダー */}
-      <Card className="mb-6 shadow-lg bg-white">
-        <Flex justifyContent="between" alignItems="start">
-          <div>
-            <Title className="text-gray-900">店舗パフォーマンス分析</Title>
-            <Text className="mt-1">
-              リアルタイムデータと詳細な分析
-            </Text>
+      <Card className="mb-6 border-0 shadow-xl bg-white/80 backdrop-blur">
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                店舗パフォーマンス分析
+              </CardTitle>
+              <CardDescription className="mt-2">
+                リアルタイムデータと詳細な分析
+              </CardDescription>
+            </div>
+            <div className="flex gap-3">
+              <Select value={selectedStore} onValueChange={setSelectedStore}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="店舗を選択" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全店舗</SelectItem>
+                  {stores.map((store) => (
+                    <SelectItem key={store.id} value={store.id}>
+                      {store.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="期間を選択" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="today">本日</SelectItem>
+                  <SelectItem value="week">今週</SelectItem>
+                  <SelectItem value="month">今月</SelectItem>
+                  <SelectItem value="quarter">四半期</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <Flex className="gap-3">
-            <Select value={selectedStore} onValueChange={setSelectedStore}>
-              <SelectItem value="all" text="全店舗" />
-              {stores.map((store) => (
-                <SelectItem key={store.id} value={store.id} text={store.name} />
-              ))}
-            </Select>
-            <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectItem value="today" text="本日" />
-              <SelectItem value="week" text="今週" />
-              <SelectItem value="month" text="今月" />
-              <SelectItem value="quarter" text="四半期" />
-            </Select>
-          </Flex>
-        </Flex>
+        </CardHeader>
       </Card>
 
       {/* リアルタイムステータスバー */}
-      <div className="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg shadow-lg p-6">
-        <Grid numItems={4} className="gap-4">
+      <div className="mb-6 bg-gradient-to-r from-primary via-purple-600 to-pink-600 text-white rounded-2xl shadow-2xl p-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center">
-            <Text className="text-white/80">アクティブユーザー</Text>
-            <Metric className="text-white">{realtimeData.activeUsers}</Metric>
-            <Text className="text-white/60 text-xs">リアルタイム</Text>
+            <div className="text-white/80 text-sm font-medium mb-1">アクティブユーザー</div>
+            <div className="text-4xl font-bold">{realtimeData.activeUsers}</div>
+            <div className="text-white/60 text-xs mt-1">リアルタイム</div>
           </div>
           <div className="text-center">
-            <Text className="text-white/80">注文/分</Text>
-            <Metric className="text-white">{realtimeData.ordersPerMinute}</Metric>
-            <Text className="text-white/60 text-xs">過去5分平均</Text>
+            <div className="text-white/80 text-sm font-medium mb-1">注文/分</div>
+            <div className="text-4xl font-bold">{realtimeData.ordersPerMinute}</div>
+            <div className="text-white/60 text-xs mt-1">過去5分平均</div>
           </div>
           <div className="text-center">
-            <Text className="text-white/80">平均待ち時間</Text>
-            <Metric className="text-white">{realtimeData.avgWaitTime}分</Metric>
-            <Text className="text-white/60 text-xs">現在</Text>
+            <div className="text-white/80 text-sm font-medium mb-1">平均待ち時間</div>
+            <div className="text-4xl font-bold">{realtimeData.avgWaitTime}分</div>
+            <div className="text-white/60 text-xs mt-1">現在</div>
           </div>
           <div className="text-center">
-            <Text className="text-white/80">満足度スコア</Text>
-            <Metric className="text-white">{realtimeData.satisfaction}%</Metric>
-            <Text className="text-white/60 text-xs">本日平均</Text>
+            <div className="text-white/80 text-sm font-medium mb-1">満足度スコア</div>
+            <div className="text-4xl font-bold">{realtimeData.satisfaction}%</div>
+            <div className="text-white/60 text-xs mt-1">本日平均</div>
           </div>
-        </Grid>
+        </div>
       </div>
 
       {/* KPIカード */}
-      <Grid numItems={1} numItemsSm={2} numItemsLg={4} className="gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {kpiCards.map((kpi, index) => (
-          <Card key={index} className="shadow-xl hover:shadow-2xl transition-shadow duration-300" decoration="top" decorationColor="blue">
-            <Flex>
-              <div className="w-full">
-                <Text>{kpi.title}</Text>
-                <Metric className="mt-2">{kpi.metric}</Metric>
-                <Flex className="mt-4" justifyContent="start">
-                  <BadgeDelta deltaType={kpi.deltaType}>{kpi.delta}</BadgeDelta>
-                  <Text className="ml-2 text-xs">vs 前日</Text>
-                </Flex>
+          <Card key={index} className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 bg-white/80 backdrop-blur">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{kpi.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-between items-start">
+                <div className="space-y-2">
+                  <div className="text-3xl font-bold">{kpi.metric}</div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={kpi.deltaType === 'increase' ? 'default' : 'destructive'} className="gap-1">
+                      {kpi.deltaType === 'increase' ? (
+                        <ArrowUpRight className="w-3 h-3" />
+                      ) : (
+                        <ArrowDownRight className="w-3 h-3" />
+                      )}
+                      {kpi.delta}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">vs 前日</span>
+                  </div>
+                </div>
+                <div className="w-20 h-12">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={kpi.sparklineData.map((value, i) => ({ value }))}>
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke={COLORS[index % COLORS.length]}
+                        fill={COLORS[index % COLORS.length]}
+                        fillOpacity={0.2}
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <div>
-                <SparkAreaChart
-                  data={kpi.sparklineData.map((value, i) => ({ value, index: i }))}
-                  categories={["value"]}
-                  index="index"
-                  colors={["blue"]}
-                  className="h-12 w-20"
-                  showGradient={false}
-                  showYAxis={false}
-                  showXAxis={false}
-                  showTooltip={false}
-                />
+              <div className="mt-4 space-y-2">
+                <Progress value={kpi.progress} className="h-2" />
+                <div className="text-xs text-muted-foreground">
+                  目標: {kpi.target} ({kpi.progress}%)
+                </div>
               </div>
-            </Flex>
-            <ProgressBar value={kpi.progress} className="mt-3" color="blue" />
-            <Text className="text-xs text-gray-500 mt-1">
-              目標: {kpi.target} ({kpi.progress}%)
-            </Text>
+            </CardContent>
           </Card>
         ))}
-      </Grid>
+      </div>
 
       {/* メインチャートセクション */}
-      <Grid numItems={1} numItemsLg={3} className="gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* 時間帯別売上トレンド */}
-        <Col numColSpan={1} numColSpanLg={2}>
-          <Card className="shadow-xl">
-            <Title>時間帯別パフォーマンス</Title>
-            <TabGroup className="mt-2">
-              <TabList variant="solid">
-                <TremorTab>売上高</TremorTab>
-                <TremorTab>注文数</TremorTab>
-                <TremorTab>満足度</TremorTab>
-              </TabList>
-              <TabPanels>
-                <TremorTabPanel>
-                  <AreaChart
-                    className="h-80 mt-4"
-                    data={hourlyPerformance}
-                    index="hour"
-                    categories={["sales"]}
-                    colors={["blue"]}
-                    valueFormatter={(value) => `¥${(value / 1000).toFixed(0)}K`}
-                    showLegend={false}
-                    showYAxis={true}
-                    showGradient={true}
-                    curveType="natural"
-                  />
-                </TremorTabPanel>
-                <TremorTabPanel>
-                  <BarChart
-                    className="h-80 mt-4"
-                    data={hourlyPerformance}
-                    index="hour"
-                    categories={["orders"]}
-                    colors={["green"]}
-                    valueFormatter={(value) => `${value}件`}
-                    showLegend={false}
-                  />
-                </TremorTabPanel>
-                <TremorTabPanel>
-                  <LineChart
-                    className="h-80 mt-4"
-                    data={hourlyPerformance}
-                    index="hour"
-                    categories={["satisfaction"]}
-                    colors={["yellow"]}
-                    valueFormatter={(value) => `${value}%`}
-                    yAxisWidth={40}
-                    showLegend={false}
-                  />
-                </TremorTabPanel>
-              </TabPanels>
-            </TabGroup>
+        <div className="lg:col-span-2">
+          <Card className="border-0 shadow-xl bg-white/80 backdrop-blur h-full">
+            <CardHeader>
+              <CardTitle>時間帯別パフォーマンス</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ShadcnTabs defaultValue="sales" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="sales">売上高</TabsTrigger>
+                  <TabsTrigger value="orders">注文数</TabsTrigger>
+                  <TabsTrigger value="satisfaction">満足度</TabsTrigger>
+                </TabsList>
+                <TabsContent value="sales" className="mt-4">
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={hourlyPerformance}>
+                        <defs>
+                          <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={COLORS[0]} stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor={COLORS[0]} stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="hour" className="text-xs" />
+                        <YAxis className="text-xs" tickFormatter={(value) => `¥${(value / 1000).toFixed(0)}K`} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area 
+                          type="monotone" 
+                          dataKey="sales" 
+                          stroke={COLORS[0]}
+                          fillOpacity={1} 
+                          fill="url(#colorSales)" 
+                          strokeWidth={2}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
+                <TabsContent value="orders" className="mt-4">
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={hourlyPerformance}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="hour" className="text-xs" />
+                        <YAxis className="text-xs" />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar dataKey="orders" fill={COLORS[1]} radius={[8, 8, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
+                <TabsContent value="satisfaction" className="mt-4">
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={hourlyPerformance}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="hour" className="text-xs" />
+                        <YAxis className="text-xs" domain={[80, 100]} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Line 
+                          type="monotone" 
+                          dataKey="satisfaction" 
+                          stroke={COLORS[2]} 
+                          strokeWidth={3}
+                          dot={{ fill: COLORS[2], r: 4 }}
+                          activeDot={{ r: 6 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
+              </ShadcnTabs>
+            </CardContent>
           </Card>
-        </Col>
+        </div>
 
         {/* トップ商品 */}
-        <Card className="shadow-xl">
-          <Title>売上トップ5商品</Title>
-          <Flex className="mt-6">
-            <Text className="text-xs font-medium">商品名</Text>
-            <Text className="text-xs font-medium">売上</Text>
-          </Flex>
-          <BarList
-            data={topProducts.map(product => ({
-              name: product.name,
-              value: product.sales,
-              units: `${product.units}個`,
-              deltaType: product.growth > 0 ? "increase" : "decrease",
-              growth: `${product.growth > 0 ? '+' : ''}${product.growth}%`
-            }))}
-            valueFormatter={(value) => `¥${(value / 1000).toFixed(0)}K`}
-            className="mt-3"
-          />
+        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur h-full">
+          <CardHeader>
+            <CardTitle>売上トップ5商品</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {topProducts.map((product, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{product.name}</p>
+                      <p className="text-xs text-muted-foreground">{product.units}個販売</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold">¥{(product.sales / 1000).toFixed(0)}K</p>
+                      <Badge 
+                        variant={product.growth > 0 ? "default" : "destructive"} 
+                        className="text-xs gap-1"
+                      >
+                        {product.growth > 0 ? (
+                          <TrendingUp className="w-3 h-3" />
+                        ) : (
+                          <TrendingDown className="w-3 h-3" />
+                        )}
+                        {product.growth > 0 ? '+' : ''}{product.growth}%
+                      </Badge>
+                    </div>
+                  </div>
+                  <Progress 
+                    value={(product.sales / topProducts[0].sales) * 100} 
+                    className="h-2"
+                  />
+                </div>
+              ))}
+            </div>
+          </CardContent>
         </Card>
-      </Grid>
+      </div>
 
       {/* 店舗比較セクション */}
-      <Card className="mb-6 shadow-xl">
-        <Title>店舗間パフォーマンス比較</Title>
-        <Grid numItems={1} numItemsLg={3} className="gap-6 mt-6">
-          {/* スコア比較 */}
-          <div>
-            <Text className="text-sm font-medium mb-3">総合スコア</Text>
-            {storeComparison.map((store, index) => (
-              <div key={index} className="mb-3">
-                <Flex>
-                  <Text className="text-sm">{store.store}</Text>
-                  <Text className="text-sm font-medium">{store.score}点</Text>
-                </Flex>
-                <ProgressBar
-                  value={store.score}
-                  color={store.score >= 90 ? "green" : store.score >= 80 ? "yellow" : "red"}
-                  className="mt-1"
-                />
+      <Card className="mb-6 border-0 shadow-xl bg-white/80 backdrop-blur">
+        <CardHeader>
+          <CardTitle>店舗間パフォーマンス比較</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* スコア比較 */}
+            <div>
+              <h4 className="text-sm font-semibold mb-4">総合スコア</h4>
+              <div className="space-y-3">
+                {storeComparison.map((store, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">{store.store}</span>
+                      <span className="text-sm font-bold">{store.score}点</span>
+                    </div>
+                    <Progress 
+                      value={store.score} 
+                      className={`h-2 ${
+                        store.score >= 90 ? '[&>*]:bg-green-500' : 
+                        store.score >= 80 ? '[&>*]:bg-yellow-500' : 
+                        '[&>*]:bg-red-500'
+                      }`}
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* 売上比較 */}
-          <div>
-            <Text className="text-sm font-medium mb-3">売上高</Text>
-            <BarChart
-              data={storeComparison}
-              index="store"
-              categories={["sales"]}
-              colors={["indigo"]}
-              valueFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`}
-              showYAxis={false}
-              showLegend={false}
-              className="h-64"
-            />
-          </div>
+            {/* 売上比較 */}
+            <div>
+              <h4 className="text-sm font-semibold mb-4">売上高</h4>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={storeComparison}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="store" className="text-xs" angle={-45} textAnchor="end" height={60} />
+                    <YAxis className="text-xs" tickFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="sales" fill={COLORS[3]} radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
 
-          {/* 効率性比較 */}
-          <div>
-            <Text className="text-sm font-medium mb-3">運営効率性</Text>
-            <DonutChart
-              data={storeComparison.map(s => ({ name: s.store, value: s.efficiency }))}
-              category="value"
-              index="name"
-              valueFormatter={(value) => `${value}%`}
-              colors={["blue", "cyan", "yellow", "green", "rose"]}
-              className="h-64"
-              showLabel={true}
-            />
+            {/* 効率性比較 */}
+            <div>
+              <h4 className="text-sm font-semibold mb-4">運営効率性</h4>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={storeComparison.map(s => ({ name: s.store, value: s.efficiency }))}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {storeComparison.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
-        </Grid>
+        </CardContent>
       </Card>
 
       {/* アラートとインサイト */}
-      <Grid numItems={1} numItemsLg={2} className="gap-6">
-        <Card className="shadow-xl">
-          <Title>アラート & 通知</Title>
-          <div className="mt-4 space-y-3">
-            <Callout title="在庫アラート" icon={ExclamationTriangleIcon} color="yellow">
-              渋谷店でカフェラテの材料が残り20%です
-            </Callout>
-            <Callout title="混雑予測" icon={ClockIcon} color="blue">
-              12:00-13:00に混雑が予想されます
-            </Callout>
-            <Callout title="達成通知" icon={CheckCircleIcon} color="green">
-              本日の売上目標を80%達成しました
-            </Callout>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur">
+          <CardHeader>
+            <CardTitle>アラート & 通知</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Alert className="border-yellow-200 bg-yellow-50">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <AlertTitle className="text-yellow-800">在庫アラート</AlertTitle>
+              <AlertDescription className="text-yellow-700">
+                渋谷店でカフェラテの材料が残り20%です
+              </AlertDescription>
+            </Alert>
+            <Alert className="border-blue-200 bg-blue-50">
+              <Clock className="h-4 w-4 text-blue-600" />
+              <AlertTitle className="text-blue-800">混雑予測</AlertTitle>
+              <AlertDescription className="text-blue-700">
+                12:00-13:00に混雑が予想されます
+              </AlertDescription>
+            </Alert>
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertTitle className="text-green-800">達成通知</AlertTitle>
+              <AlertDescription className="text-green-700">
+                本日の売上目標を80%達成しました
+              </AlertDescription>
+            </Alert>
+          </CardContent>
         </Card>
 
-        <Card className="shadow-xl">
-          <Title>AIインサイト</Title>
-          <List className="mt-4">
-            <ListItem>
-              <Flex justifyContent="start" className="truncate space-x-2.5">
-                <Icon icon={LightBulbIcon} variant="light" color="yellow" size="sm" />
-                <div className="truncate">
-                  <Text className="truncate">
-                    <Bold>売上予測</Bold>
-                  </Text>
-                  <Text className="truncate text-gray-500">
+        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur">
+          <CardHeader>
+            <CardTitle>AIインサイト</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center shrink-0">
+                  <Lightbulb className="w-5 h-5 text-yellow-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-semibold">売上予測</h4>
+                  <p className="text-sm text-muted-foreground">
                     現在のペースで本日¥5.2M達成見込み
-                  </Text>
+                  </p>
                 </div>
-              </Flex>
-            </ListItem>
-            <ListItem>
-              <Flex justifyContent="start" className="truncate space-x-2.5">
-                <Icon icon={ArrowTrendingUpIcon} variant="light" color="green" size="sm" />
-                <div className="truncate">
-                  <Text className="truncate">
-                    <Bold>トレンド分析</Bold>
-                  </Text>
-                  <Text className="truncate text-gray-500">
+              </div>
+              <Separator />
+              <div className="flex gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-semibold">トレンド分析</h4>
+                  <p className="text-sm text-muted-foreground">
                     抹茶系商品の需要が前週比15%上昇
-                  </Text>
+                  </p>
                 </div>
-              </Flex>
-            </ListItem>
-            <ListItem>
-              <Flex justifyContent="start" className="truncate space-x-2.5">
-                <Icon icon={UserGroupIcon} variant="light" color="blue" size="sm" />
-                <div className="truncate">
-                  <Text className="truncate">
-                    <Bold>顧客行動</Bold>
-                  </Text>
-                  <Text className="truncate text-gray-500">
+              </div>
+              <Separator />
+              <div className="flex gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
+                  <Users className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-semibold">顧客行動</h4>
+                  <p className="text-sm text-muted-foreground">
                     午後の来店客の70%がリピーター
-                  </Text>
+                  </p>
                 </div>
-              </Flex>
-            </ListItem>
-          </List>
+              </div>
+            </div>
+          </CardContent>
         </Card>
-      </Grid>
+      </div>
     </div>
   );
 };
