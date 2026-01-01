@@ -56,8 +56,8 @@ import {
   ShoppingCartIcon,
   CurrencyYenIcon,
   CalendarIcon,
-  TrendingUpIcon,
-  ExclamationIcon
+  ArrowTrendingUpIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { format, subDays } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -273,7 +273,7 @@ const StoreByStoreTab = ({ companyId }) => {
       <Callout
         className="mb-6"
         title="本日のアラート"
-        icon={ExclamationIcon}
+        icon={ExclamationTriangleIcon}
         color="yellow"
       >
         <Text>渋谷店で在庫不足、新宿店でスタッフ不足が発生しています。</Text>
