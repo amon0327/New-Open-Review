@@ -3,33 +3,65 @@ import {
   Box,
   Tabs,
   Tab,
-  Typography,
-  FormControl,
-  Select,
-  MenuItem,
-  InputLabel,
-  Checkbox,
-  FormControlLabel
+  Typography
 } from '@mui/material';
 import {
   Comment,
   Store,
-  LocationCity,
-  TrendingUp,
-  TrendingDown,
-  TrendingFlat
+  LocationCity
 } from '@mui/icons-material';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine
-} from 'recharts';
 import { supabase } from '../../../lib/supabase';
+import {
+  Card,
+  Metric,
+  Text,
+  Title,
+  BarList,
+  Flex,
+  Grid,
+  Col,
+  DonutChart,
+  AreaChart,
+  BadgeDelta,
+  DeltaType,
+  CategoryBar,
+  Legend,
+  TabGroup,
+  TabList,
+  Tab as TremorTab,
+  TabPanels,
+  TabPanel as TremorTabPanel,
+  SelectBox,
+  SelectBoxItem,
+  MultiSelectBox,
+  MultiSelectBoxItem,
+  DateRangePicker,
+  DateRangePickerValue,
+  LineChart as TremorLineChart,
+  ProgressBar,
+  Callout,
+  KpiCard,
+  Subtitle,
+  Divider,
+  BarChart,
+  Tracker,
+  NumberInput
+} from '@tremor/react';
+import {
+  ArrowUpIcon,
+  ArrowDownIcon,
+  ArrowRightIcon,
+  ChartBarIcon,
+  ClockIcon,
+  UserGroupIcon,
+  ShoppingCartIcon,
+  CurrencyYenIcon,
+  CalendarIcon,
+  TrendingUpIcon,
+  ExclamationIcon
+} from '@heroicons/react/outline';
+import { format, subDays } from 'date-fns';
+import { ja } from 'date-fns/locale';
 
 // タブパネルコンポーネント
 const TabPanel = ({ children, value, index, ...other }) => (
@@ -54,26 +86,22 @@ const AllStoresTab = () => (
   </Box>
 );
 
-// 5点移動平均を計算する関数
-const calculateMovingAverage = (data, windowSize = 5) => {
-  return data.map((item, index) => {
-    if (index < windowSize - 1) {
-      // 最初のwindowSize-1個は十分なデータがないのでnull
-      return { ...item, movingAverage: null };
-    }
-    const sum = data
-      .slice(index - windowSize + 1, index + 1)
-      .reduce((acc, curr) => acc + curr.nps, 0);
-    return { ...item, movingAverage: Math.round(sum / windowSize) };
-  });
+// KPIデータのタイプ定義
+const deltaTypes = {
+  increase: 'moderateIncrease',
+  decrease: 'moderateDecrease',
+  unchanged: 'unchanged'
 };
 
 // 店舗別タブの内容
 const StoreByStoreTab = ({ companyId }) => {
   const [stores, setStores] = useState([]);
-  const [selectedStore, setSelectedStore] = useState('');
+  const [selectedStore, setSelectedStore] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('30days');
+  const [dateRange, setDateRange] = useState({
+    from: subDays(new Date(), 30),
+    to: new Date()
+  });
 
   // 店舗データを取得
   useEffect(() => {
@@ -92,9 +120,6 @@ const StoreByStoreTab = ({ companyId }) => {
 
         if (error) throw error;
         setStores(data || []);
-        if (data && data.length > 0) {
-          setSelectedStore(data[0].id);
-        }
       } catch (error) {
         console.error('Error fetching stores:', error);
       } finally {
@@ -105,387 +130,357 @@ const StoreByStoreTab = ({ companyId }) => {
     fetchStores();
   }, [companyId]);
 
-  // サンプルデータ
-  const metricsData = {
-    totalVisits: 30624,
-    avgRating: 4.3,
-    conversionRate: 67.4,
-    activeUsers: 126,
-    monthlyGrowth: 12.5,
-    quarterlyGrowth: 28.3
-  };
+  // KPIデータ
+  const kpiData = [
+    {
+      title: '総売上高',
+      metric: '¥3,456,890',
+      progress: 78.9,
+      target: '¥4,000,000',
+      delta: '12.3%',
+      deltaType: 'moderateIncrease',
+      icon: CurrencyYenIcon
+    },
+    {
+      title: '来店客数',
+      metric: '12,450',
+      progress: 65.2,
+      target: '15,000',
+      delta: '23.1%',
+      deltaType: 'moderateIncrease',
+      icon: UserGroupIcon
+    },
+    {
+      title: '平均客単価',
+      metric: '¥2,780',
+      progress: 92.5,
+      target: '¥3,000',
+      delta: '-3.2%',
+      deltaType: 'moderateDecrease',
+      icon: ShoppingCartIcon
+    },
+    {
+      title: '顧客満足度',
+      metric: '4.6',
+      progress: 92,
+      target: '5.0',
+      delta: '8.5%',
+      deltaType: 'moderateIncrease',
+      icon: ChartBarIcon
+    }
+  ];
 
-  // 週次トレンドデータ
-  const weeklyTrend = [
-    { name: '月', visits: 4200, satisfaction: 85, conversion: 68 },
-    { name: '火', visits: 3800, satisfaction: 82, conversion: 65 },
-    { name: '水', visits: 4100, satisfaction: 88, conversion: 70 },
-    { name: '木', visits: 4500, satisfaction: 87, conversion: 72 },
-    { name: '金', visits: 5200, satisfaction: 90, conversion: 75 },
-    { name: '土', visits: 6800, satisfaction: 89, conversion: 73 },
-    { name: '日', visits: 7024, satisfaction: 91, conversion: 74 }
+  // 売上トレンドデータ
+  const salesTrendData = [
+    { date: '2024-01-01', 売上高: 2890000, 前年同期: 2390000, 客数: 890 },
+    { date: '2024-01-02', 売上高: 3120000, 前年同期: 2790000, 客数: 920 },
+    { date: '2024-01-03', 売上高: 3456000, 前年同期: 3100000, 客数: 1050 },
+    { date: '2024-01-04', 売上高: 3890000, 前年同期: 3290000, 客数: 1180 },
+    { date: '2024-01-05', 売上高: 4120000, 前年同期: 3590000, 客数: 1320 },
+    { date: '2024-01-06', 売上高: 4560000, 前年同期: 3890000, 客数: 1450 },
+    { date: '2024-01-07', 売上高: 4890000, 前年同期: 4190000, 客数: 1580 }
+  ];
+
+  // カテゴリ別売上
+  const categorySales = [
+    { name: 'ドリンク', value: 45678900, share: 35 },
+    { name: 'フード', value: 38902340, share: 30 },
+    { name: 'デザート', value: 25678900, share: 20 },
+    { name: 'その他', value: 19456780, share: 15 }
+  ];
+
+  // 店舗パフォーマンス
+  const storePerformance = [
+    { name: '渋谷店', sales: 8900000, target: 9000000, satisfaction: 4.5 },
+    { name: '新宿店', sales: 7800000, target: 8000000, satisfaction: 4.3 },
+    { name: '池袋店', sales: 6500000, target: 7000000, satisfaction: 4.6 },
+    { name: '品川店', sales: 5200000, target: 6000000, satisfaction: 4.4 },
+    { name: '上野店', sales: 4300000, target: 5000000, satisfaction: 4.7 }
   ];
 
   // 時間帯別データ
-  const hourlyData = [
-    { hour: '10時', count: 120, rate: 65 },
-    { hour: '11時', count: 180, rate: 68 },
-    { hour: '12時', count: 320, rate: 72 },
-    { hour: '13時', count: 280, rate: 70 },
-    { hour: '14時', count: 210, rate: 69 },
-    { hour: '15時', count: 190, rate: 67 },
-    { hour: '16時', count: 220, rate: 68 },
-    { hour: '17時', count: 260, rate: 71 },
-    { hour: '18時', count: 340, rate: 73 },
-    { hour: '19時', count: 380, rate: 75 },
-    { hour: '20時', count: 290, rate: 72 },
-    { hour: '21時', count: 150, rate: 68 }
-  ];
-
-  // カテゴリ別スコア
-  const categoryScores = [
-    { category: '品質満足度', score: 88, trend: 'up', change: 3.2 },
-    { category: '価格満足度', score: 75, trend: 'stable', change: 0.5 },
-    { category: 'サービス品質', score: 92, trend: 'up', change: 4.1 },
-    { category: '清潔感', score: 94, trend: 'up', change: 2.8 },
-    { category: '利便性', score: 81, trend: 'down', change: -1.2 },
-    { category: '独自性', score: 78, trend: 'up', change: 5.6 }
+  const hourlyPerformance = [
+    { hour: '10:00', orders: 45, revenue: 156000 },
+    { hour: '11:00', orders: 78, revenue: 234000 },
+    { hour: '12:00', orders: 156, revenue: 467000 },
+    { hour: '13:00', orders: 134, revenue: 402000 },
+    { hour: '14:00', orders: 89, revenue: 267000 },
+    { hour: '15:00', orders: 67, revenue: 201000 },
+    { hour: '16:00', orders: 78, revenue: 234000 },
+    { hour: '17:00', orders: 112, revenue: 336000 },
+    { hour: '18:00', orders: 189, revenue: 567000 },
+    { hour: '19:00', orders: 223, revenue: 669000 },
+    { hour: '20:00', orders: 178, revenue: 534000 },
+    { hour: '21:00', orders: 89, revenue: 267000 }
   ];
 
   // 顧客セグメント
   const customerSegments = [
-    { name: '新規顧客', value: 35, color: '#5e17eb' },
-    { name: 'リピーター', value: 45, color: '#22c55e' },
-    { name: '常連客', value: 20, color: '#f59e0b' }
+    { segment: '新規顧客', value: 35, count: 4358 },
+    { segment: 'リピーター', value: 45, count: 5603 },
+    { segment: '常連客', value: 20, count: 2489 }
+  ];
+
+  // Trackerデータ（アラート表示用）
+  const alertsData = [
+    { color: 'emerald', tooltip: '正常' },
+    { color: 'emerald', tooltip: '正常' },
+    { color: 'yellow', tooltip: '在庫少' },
+    { color: 'emerald', tooltip: '正常' },
+    { color: 'red', tooltip: 'スタッフ不足' },
+    { color: 'emerald', tooltip: '正常' },
+    { color: 'emerald', tooltip: '正常' },
+    { color: 'yellow', tooltip: '混雑' },
+    { color: 'emerald', tooltip: '正常' },
+    { color: 'emerald', tooltip: '正常' }
   ];
 
   return (
     <Box sx={{ 
-      p: 2,
-      backgroundColor: '#f8fafc',
+      p: 3,
+      backgroundColor: '#f9fafb',
       minHeight: '100%',
       overflowY: 'auto'
     }}>
-      {/* ヘッダー部分 */}
-      <Box sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        mb: 3,
-        backgroundColor: '#fff',
-        p: 2.5,
-        borderRadius: 2,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-      }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#1e293b', mb: 0.5 }}>
-            店舗分析ダッシュボード
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#64748b' }}>
-            リアルタイムデータと詳細な分析指標
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <Select
-              value={selectedStore}
-              onChange={(e) => setSelectedStore(e.target.value)}
-              disabled={isLoading}
-              sx={{ backgroundColor: '#fff' }}
-            >
-              {stores.map((store) => (
-                <MenuItem key={store.id} value={store.id}>
-                  {store.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <Select
-              value={timeRange}
-              onChange={(e) => setTimeRange(e.target.value)}
-              sx={{ backgroundColor: '#fff' }}
-            >
-              <MenuItem value="7days">過去7日間</MenuItem>
-              <MenuItem value="30days">過去30日間</MenuItem>
-              <MenuItem value="90days">過去90日間</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      </Box>
-
-      {/* メトリクスカード */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 2, mb: 3 }}>
-        {[
-          { label: '総訪問数', value: metricsData.totalVisits.toLocaleString(), change: '+12.5%', icon: '👥', color: '#5e17eb' },
-          { label: '平均評価', value: metricsData.avgRating, change: '+0.3', icon: '⭐', color: '#f59e0b' },
-          { label: 'コンバージョン率', value: `${metricsData.conversionRate}%`, change: '+5.2%', icon: '📈', color: '#22c55e' },
-          { label: 'アクティブユーザー', value: metricsData.activeUsers, change: '+8', icon: '👤', color: '#3b82f6' }
-        ].map((metric, index) => (
-          <Box
-            key={index}
-            sx={{
-              backgroundColor: '#fff',
-              p: 2.5,
-              borderRadius: 2,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-              }
-            }}
+      {/* ヘッダーセクション */}
+      <Flex justifyContent="between" alignItems="center" className="mb-6">
+        <div>
+          <Title>店舗分析ダッシュボード</Title>
+          <Text className="mt-1">リアルタイムデータと詳細な分析指標</Text>
+        </div>
+        <Flex justifyContent="end" className="space-x-2">
+          <SelectBox
+            value={selectedStore}
+            onValueChange={setSelectedStore}
+            placeholder="店舗を選択"
+            className="w-56"
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 500 }}>
-                {metric.label}
-              </Typography>
-              <Box sx={{ 
-                width: 40, 
-                height: 40, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                borderRadius: '10px',
-                backgroundColor: `${metric.color}15`,
-                fontSize: '20px'
-              }}>
-                {metric.icon}
-              </Box>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                {metric.value}
-              </Typography>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: metric.change.startsWith('+') ? '#22c55e' : '#ef4444',
-                  fontWeight: 600,
-                  backgroundColor: metric.change.startsWith('+') ? '#22c55e15' : '#ef444415',
-                  px: 1,
-                  py: 0.3,
-                  borderRadius: 1,
-                  fontSize: '0.75rem'
-                }}
-              >
-                {metric.change}
-              </Typography>
-            </Box>
-          </Box>
-        ))}
-      </Box>
+            <SelectBoxItem value="all" text="全店舗" />
+            {stores.map((store) => (
+              <SelectBoxItem key={store.id} value={store.id} text={store.name} />
+            ))}
+          </SelectBox>
+          <DateRangePicker
+            value={dateRange}
+            onValueChange={setDateRange}
+            placeholder="期間を選択"
+            className="w-72"
+            locale={ja}
+          />
+        </Flex>
+      </Flex>
+
+      {/* アラート表示 */}
+      <Callout
+        className="mb-6"
+        title="本日のアラート"
+        icon={ExclamationIcon}
+        color="yellow"
+      >
+        <Text>渋谷店で在庫不足、新宿店でスタッフ不足が発生しています。</Text>
+        <Tracker data={alertsData} className="mt-3" />
+      </Callout>
+
+      {/* KPIカード */}
+      <Grid numItemsSm={2} numItemsLg={4} className="gap-6 mb-6">
+        {kpiData.map((kpi) => {
+          const Icon = kpi.icon;
+          return (
+            <Card key={kpi.title} decoration="top" decorationColor="indigo">
+              <Flex justifyContent="start" className="space-x-4">
+                <Icon className="h-12 w-12 text-indigo-600" />
+                <div className="truncate">
+                  <Text>{kpi.title}</Text>
+                  <Metric className="truncate">{kpi.metric}</Metric>
+                </div>
+              </Flex>
+              <Flex className="mt-4 space-x-2">
+                <BadgeDelta deltaType={kpi.deltaType} size="xs">
+                  {kpi.delta}
+                </BadgeDelta>
+                <Text className="truncate text-xs">目標: {kpi.target}</Text>
+              </Flex>
+              <ProgressBar
+                value={kpi.progress}
+                className="mt-3"
+                color="indigo"
+              />
+            </Card>
+          );
+        })}
+      </Grid>
 
       {/* メインチャートエリア */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1fr' }, gap: 2, mb: 3 }}>
-        {/* 週次トレンドチャート */}
-        <Box sx={{
-          backgroundColor: '#fff',
-          p: 3,
-          borderRadius: 2,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-        }}>
-          <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#1e293b' }}>
-            週次パフォーマンストレンド
-          </Typography>
-          <Box sx={{ height: 300 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={weeklyTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
-                <YAxis stroke="#94a3b8" fontSize={12} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1e293b', 
-                    border: 'none', 
-                    borderRadius: 8,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                  }}
-                  itemStyle={{ color: '#fff' }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="visits" 
-                  stroke="#5e17eb" 
-                  strokeWidth={3}
-                  dot={{ fill: '#5e17eb', r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="satisfaction" 
-                  stroke="#22c55e" 
-                  strokeWidth={3}
-                  dot={{ fill: '#22c55e', r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </Box>
-        </Box>
+      <Grid numItemsSm={1} numItemsLg={3} className="gap-6 mb-6">
+        {/* 売上トレンド */}
+        <Col numColSpan={1} numColSpanLg={2}>
+          <Card>
+            <Title>売上トレンド</Title>
+            <Subtitle>前年同期比較</Subtitle>
+            <AreaChart
+              className="h-80 mt-4"
+              data={salesTrendData}
+              index="date"
+              categories={["売上高", "前年同期"]}
+              colors={["indigo", "gray"]}
+              valueFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`}
+              showLegend
+              showYAxis
+              showGradient
+              curveType="natural"
+            />
+          </Card>
+        </Col>
 
-        {/* 顧客セグメント円グラフ */}
-        <Box sx={{
-          backgroundColor: '#fff',
-          p: 3,
-          borderRadius: 2,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-        }}>
-          <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#1e293b' }}>
-            顧客セグメント分布
-          </Typography>
-          <Box sx={{ position: 'relative', height: 300 }}>
-            <Box sx={{ 
-              position: 'absolute', 
-              top: '50%', 
-              left: '50%', 
-              transform: 'translate(-50%, -50%)',
-              textAlign: 'center'
-            }}>
-              <Typography variant="h3" sx={{ fontWeight: 700, color: '#1e293b' }}>
-                {customerSegments.reduce((acc, seg) => acc + seg.value, 0)}%
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#64748b' }}>
-                総計
-              </Typography>
-            </Box>
-            {/* 円グラフ風の表示 */}
-            <Box sx={{ mt: 8 }}>
-              {customerSegments.map((segment, index) => (
-                <Box key={index} sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: segment.color }} />
-                      <Typography variant="body2" sx={{ color: '#64748b' }}>
-                        {segment.name}
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b' }}>
-                      {segment.value}%
-                    </Typography>
-                  </Box>
-                  <Box sx={{ 
-                    width: '100%', 
-                    height: 8, 
-                    backgroundColor: '#f1f5f9', 
-                    borderRadius: 4,
-                    overflow: 'hidden'
-                  }}>
-                    <Box sx={{ 
-                      width: `${segment.value}%`, 
-                      height: '100%', 
-                      backgroundColor: segment.color,
-                      borderRadius: 4,
-                      transition: 'width 0.6s ease'
-                    }} />
-                  </Box>
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        </Box>
-      </Box>
+        {/* カテゴリ別売上 */}
+        <Card>
+          <Title>カテゴリ別売上</Title>
+          <DonutChart
+            className="h-80 mt-4"
+            data={categorySales}
+            category="share"
+            index="name"
+            valueFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`}
+            colors={["indigo", "cyan", "amber", "emerald"]}
+            showLabel
+            showTooltip
+          />
+          <Legend
+            categories={categorySales.map(c => c.name)}
+            colors={["indigo", "cyan", "amber", "emerald"]}
+            className="mt-3"
+          />
+        </Card>
+      </Grid>
 
-      {/* カテゴリ別スコアと時間帯別分析 */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, gap: 2 }}>
-        {/* カテゴリ別スコア */}
-        <Box sx={{
-          backgroundColor: '#fff',
-          p: 3,
-          borderRadius: 2,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-        }}>
-          <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#1e293b' }}>
-            カテゴリ別パフォーマンス
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {categoryScores.map((category, index) => (
-              <Box key={index}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2" sx={{ color: '#64748b', fontWeight: 500 }}>
-                    {category.category}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b' }}>
-                      {category.score}%
-                    </Typography>
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        color: category.trend === 'up' ? '#22c55e' : category.trend === 'down' ? '#ef4444' : '#94a3b8',
-                        fontWeight: 600
-                      }}
-                    >
-                      {category.trend === 'up' ? '↑' : category.trend === 'down' ? '↓' : '→'} {Math.abs(category.change)}%
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box sx={{ 
-                  width: '100%', 
-                  height: 6, 
-                  backgroundColor: '#f1f5f9', 
-                  borderRadius: 3,
-                  overflow: 'hidden'
-                }}>
-                  <Box sx={{ 
-                    width: `${category.score}%`, 
-                    height: '100%', 
-                    backgroundColor: category.score >= 90 ? '#22c55e' : category.score >= 80 ? '#3b82f6' : category.score >= 70 ? '#f59e0b' : '#ef4444',
-                    borderRadius: 3,
-                    transition: 'width 0.6s ease'
-                  }} />
-                </Box>
-              </Box>
-            ))}
-          </Box>
-        </Box>
+      {/* 店舗パフォーマンス */}
+      <Card className="mb-6">
+        <Title>店舗別パフォーマンス</Title>
+        <TabGroup className="mt-2">
+          <TabList>
+            <TremorTab>売上達成率</TremorTab>
+            <TremorTab>顧客満足度</TremorTab>
+            <TremorTab>時間帯別パフォーマンス</TremorTab>
+          </TabList>
+          <TabPanels>
+            <TremorTabPanel>
+              <Card className="mt-4">
+                <BarList
+                  data={storePerformance.map(store => ({
+                    name: store.name,
+                    value: (store.sales / store.target) * 100,
+                    sales: `¥${(store.sales / 1000000).toFixed(1)}M`,
+                    target: `¥${(store.target / 1000000).toFixed(1)}M`
+                  }))}
+                  valueFormatter={(value) => `${value.toFixed(1)}%`}
+                  color="indigo"
+                  showAnimation
+                />
+              </Card>
+            </TremorTabPanel>
+            <TremorTabPanel>
+              <Card className="mt-4">
+                <BarList
+                  data={storePerformance.map(store => ({
+                    name: store.name,
+                    value: store.satisfaction,
+                    rating: store.satisfaction
+                  }))}
+                  valueFormatter={(value) => value.toFixed(1)}
+                  color="emerald"
+                  showAnimation
+                />
+              </Card>
+            </TremorTabPanel>
+            <TremorTabPanel>
+              <Card className="mt-4">
+                <BarChart
+                  className="h-80"
+                  data={hourlyPerformance}
+                  index="hour"
+                  categories={["orders", "revenue"]}
+                  colors={["indigo", "emerald"]}
+                  valueFormatter={(value) => 
+                    typeof value === 'number' && value > 1000 
+                      ? `¥${(value / 1000).toFixed(0)}K` 
+                      : value.toString()
+                  }
+                  showLegend
+                  showYAxis={false}
+                  showGridLines
+                  stack={false}
+                />
+              </Card>
+            </TremorTabPanel>
+          </TabPanels>
+        </TabGroup>
+      </Card>
 
-        {/* 時間帯別分析 */}
-        <Box sx={{
-          backgroundColor: '#fff',
-          p: 3,
-          borderRadius: 2,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
-        }}>
-          <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#1e293b' }}>
-            時間帯別アクティビティ
-          </Typography>
-          <Box sx={{ height: 280 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={hourlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="hour" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#1e293b', 
-                    border: 'none', 
-                    borderRadius: 8,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                  }}
-                  itemStyle={{ color: '#fff' }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="count" 
-                  stroke="#5e17eb" 
-                  strokeWidth={2}
-                  dot={{ fill: '#5e17eb', r: 3 }}
-                  activeDot={{ r: 5 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="rate" 
-                  stroke="#f59e0b" 
-                  strokeWidth={2}
-                  dot={{ fill: '#f59e0b', r: 3 }}
-                  activeDot={{ r: 5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </Box>
-        </Box>
-      </Box>
+      {/* 顧客分析セクション */}
+      <Grid numItemsSm={1} numItemsLg={2} className="gap-6">
+        {/* 顧客セグメント */}
+        <Card>
+          <Title>顧客セグメント分析</Title>
+          <Flex className="mt-4">
+            <Text>合計顧客数</Text>
+            <Text className="font-semibold">{customerSegments.reduce((acc, seg) => acc + seg.count, 0).toLocaleString()}</Text>
+          </Flex>
+          <CategoryBar
+            values={customerSegments.map(seg => seg.value)}
+            colors={["amber", "emerald", "indigo"]}
+            markerValue={0}
+            className="mt-3"
+          />
+          <Legend
+            categories={customerSegments.map(seg => `${seg.segment} (${seg.count.toLocaleString()}人)`)}
+            colors={["amber", "emerald", "indigo"]}
+            className="mt-3"
+          />
+        </Card>
+
+        {/* リアルタイムメトリクス */}
+        <Card>
+          <Title>リアルタイムメトリクス</Title>
+          <Grid numItemsLg={2} className="mt-4 gap-4">
+            <KpiCard>
+              <Flex alignItems="start">
+                <div>
+                  <Text>現在の来店客数</Text>
+                  <Metric>234</Metric>
+                </div>
+                <BadgeDelta deltaType="moderateIncrease">12%</BadgeDelta>
+              </Flex>
+            </KpiCard>
+            <KpiCard>
+              <Flex alignItems="start">
+                <div>
+                  <Text>平均滞在時間</Text>
+                  <Metric>42分</Metric>
+                </div>
+                <BadgeDelta deltaType="moderateDecrease">-5%</BadgeDelta>
+              </Flex>
+            </KpiCard>
+            <KpiCard>
+              <Flex alignItems="start">
+                <div>
+                  <Text>待ち時間</Text>
+                  <Metric>8分</Metric>
+                </div>
+                <BadgeDelta deltaType="unchanged">0%</BadgeDelta>
+              </Flex>
+            </KpiCard>
+            <KpiCard>
+              <Flex alignItems="start">
+                <div>
+                  <Text>スタッフ稼働率</Text>
+                  <Metric>87%</Metric>
+                </div>
+                <BadgeDelta deltaType="moderateIncrease">3%</BadgeDelta>
+              </Flex>
+            </KpiCard>
+          </Grid>
+        </Card>
+      </Grid>
     </Box>
   );
 };
