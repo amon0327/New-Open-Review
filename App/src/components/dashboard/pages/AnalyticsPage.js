@@ -145,26 +145,6 @@ const StoreByStoreTab = ({ companyId }) => {
     fetchStores();
   }, [companyId]);
 
-  // リアルタイムメトリクスデータ
-  const [realtimeData, setRealtimeData] = useState({
-    activeUsers: 342,
-    ordersPerMinute: 12.5,
-    avgWaitTime: 3.2,
-    satisfaction: 94.5
-  });
-
-  // リアルタイム更新シミュレーション
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRealtimeData(prev => ({
-        activeUsers: Math.max(0, prev.activeUsers + Math.floor(Math.random() * 21) - 10),
-        ordersPerMinute: Math.max(0, +(prev.ordersPerMinute + (Math.random() * 2 - 1)).toFixed(1)),
-        avgWaitTime: Math.max(0, +(prev.avgWaitTime + (Math.random() * 0.4 - 0.2)).toFixed(1)),
-        satisfaction: Math.min(100, Math.max(80, +(prev.satisfaction + (Math.random() * 1 - 0.5)).toFixed(1)))
-      }));
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   // KPIカード設定
   const kpiCards = [
@@ -284,31 +264,6 @@ const StoreByStoreTab = ({ companyId }) => {
         </CardHeader>
       </Card>
 
-      {/* リアルタイムステータスバー */}
-      <div className="mb-6 bg-gradient-to-r from-primary via-purple-600 to-pink-600 text-white rounded-2xl shadow-2xl p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-white/80 text-sm font-medium mb-1">アクティブユーザー</div>
-            <div className="text-4xl font-bold">{realtimeData.activeUsers}</div>
-            <div className="text-white/60 text-xs mt-1">リアルタイム</div>
-          </div>
-          <div className="text-center">
-            <div className="text-white/80 text-sm font-medium mb-1">注文/分</div>
-            <div className="text-4xl font-bold">{realtimeData.ordersPerMinute}</div>
-            <div className="text-white/60 text-xs mt-1">過去5分平均</div>
-          </div>
-          <div className="text-center">
-            <div className="text-white/80 text-sm font-medium mb-1">平均待ち時間</div>
-            <div className="text-4xl font-bold">{realtimeData.avgWaitTime}分</div>
-            <div className="text-white/60 text-xs mt-1">現在</div>
-          </div>
-          <div className="text-center">
-            <div className="text-white/80 text-sm font-medium mb-1">満足度スコア</div>
-            <div className="text-4xl font-bold">{realtimeData.satisfaction}%</div>
-            <div className="text-white/60 text-xs mt-1">本日平均</div>
-          </div>
-        </div>
-      </div>
 
       {/* KPIカード */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
