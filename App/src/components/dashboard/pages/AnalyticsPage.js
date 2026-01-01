@@ -483,7 +483,7 @@ const StoreByStoreTab = ({ companyId }) => {
             </ListItem>
             <ListItem>
               <Flex justifyContent="start" className="truncate space-x-2.5">
-                <Icon icon={TrendingUpIcon} variant="light" color="emerald" size="sm" />
+                <Icon icon={ArrowTrendingUpIcon} variant="light" color="emerald" size="sm" />
                 <div className="truncate">
                   <Text className="truncate">
                     <Bold>トレンド分析</Bold>
