@@ -53,6 +53,31 @@ export default function CRMPage({ companyId }) {
   const [showFilters, setShowFilters] = useState(false);
   const itemsPerPage = 50;
 
+  // 相対時間を計算する関数
+  const getRelativeTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return '今日';
+    } else if (diffDays === 1) {
+      return '昨日';
+    } else if (diffDays < 7) {
+      return `${diffDays}日前`;
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `${weeks}週間前`;
+    } else if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      return `${months}ヶ月前`;
+    } else {
+      const years = Math.floor(diffDays / 365);
+      return `${years}年前`;
+    }
+  };
+
   // ダミーデータを生成
   const generateDummyCustomers = () => {
     const genders = ['男性', '女性', 'その他'];
@@ -476,7 +501,7 @@ export default function CRMPage({ companyId }) {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {customer.lastVisit}
+                      {getRelativeTime(customer.lastVisit)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
