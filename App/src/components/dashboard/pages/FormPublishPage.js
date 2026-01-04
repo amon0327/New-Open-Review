@@ -46,40 +46,49 @@ import QRCode from 'qrcode';
 import { supabase } from '../../../lib/supabase';
 
 export default function FormPublishPage({ user, companyId: propCompanyId, companyName: propCompanyName }) {
-  // 抽選設定を取得する関数
+  // 抽選設定を取得する関数（Edge Function経由）
   const fetchLotterySettings = useCallback(async (formId) => {
     try {
-      const { data: lotteryData, error } = await supabase
-        .from('lottery')
-        .select('*')
-        .eq('review_form_id', formId)
-        .maybeSingle();
-
-      if (!error && lotteryData) {
-        setLotterySettings({
-          maxWinsPerMonth: lotteryData.max_wins_per_month || 1,
-          winRateDivisor: lotteryData.win_rate_divisor || 1000
-        });
-        
-        setLotteryStats({
-          totalAttempts: lotteryData.current_trials || 0,
-          totalWins: lotteryData.current_wins || 0
-        });
-      } else {
-        // デフォルト値にリセット
-        setLotterySettings({
-          maxWinsPerMonth: 1,
-          winRateDivisor: 1000
-        });
-        setLotteryStats({
-          totalAttempts: 0,
-          totalWins: 0
-        });
+      // セッションを取得して認証ヘッダーを設定
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('セッションが見つかりません。');
       }
+
+      // Edge Function経由でデータを再取得
+      const { data, error } = await supabase.functions.invoke('get-form-publish-data', {
+        body: {
+          companyId: propCompanyId
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data.success) {
+        throw new Error(data.error || 'データの取得に失敗しました');
+      }
+
+      const { lotterySettings: lotteryData } = data.data;
+
+      // 抽選設定をセット
+      setLotterySettings({
+        maxWinsPerMonth: lotteryData.maxWinsPerMonth,
+        winRateDivisor: lotteryData.winRateDivisor
+      });
+      
+      setLotteryStats({
+        totalAttempts: lotteryData.currentTrials,
+        totalWins: lotteryData.currentWins
+      });
     } catch (e) {
       console.error('抽選設定取得エラー:', e);
+      toast.error('抽選設定の取得に失敗しました');
     }
-  }, []);
+  }, [propCompanyId]);
   // ローディング・エラー状態
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -121,7 +130,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
 
 
   // ============================================================================
-  // Supabaseからデータ取得
+  // Edge Function経由でデータ取得
   // ============================================================================
   useEffect(() => {
     const fetchData = async () => {
@@ -133,109 +142,75 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
 
       setIsLoading(true);
       try {
-        const fetchedCompanyId = propCompanyId;
+        // セッションを取得して認証ヘッダーを設定
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          throw new Error('セッションが見つかりません。再度ログインしてください。');
+        }
 
-        // 1. 会社のレビューフォーム一覧を取得（is_publishedフィールドも取得）
-        const { data: forms, error: formsError } = await supabase
-          .from('review_forms')
-          .select('id, title, is_deleted, is_published')
-          .eq('company_id', fetchedCompanyId);
-
-        console.log('レビューフォームデータ取得:', { forms, formsError, fetchedCompanyId });
-
-        if (!formsError && forms) {
-          const activeFormsData = forms
-            .filter(f => !f.is_deleted)
-            .map(f => ({
-              id: f.id,
-              name: f.title,
-              description: '',
-              is_published: f.is_published
-            }));
-          console.log('フォーム一覧:', activeFormsData.map(f => ({ name: f.name, is_published: f.is_published })));
-          setReviewForms(activeFormsData);
-
-          // is_published=trueのフォームがあればそれを選択
-          const publishedForm = activeFormsData.find(f => f.is_published);
-          if (publishedForm) {
-            setSelectedPublicFormId(publishedForm.id);
-            setSavedPublicFormId(publishedForm.id);
-          } else if (activeFormsData.length > 0 && !selectedPublicFormId) {
-            // 公開中のフォームがない場合は最初のフォームをデフォルト選択
-            setSelectedPublicFormId(activeFormsData[0].id);
+        // Edge Function経由でデータを取得
+        const { data, error } = await supabase.functions.invoke('get-form-publish-data', {
+          body: {
+            companyId: propCompanyId
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
           }
+        });
+
+        if (error) throw error;
+
+        if (!data.success) {
+          throw new Error(data.error || 'データの取得に失敗しました');
         }
 
-        // 3. 会社の店舗一覧を取得（store_url_codeを含む）
-        const { data: storesData, error: storesError } = await supabase
-          .from('stores')
-          .select('id, name, address, store_url_code')
-          .eq('company_id', fetchedCompanyId);
+        const { forms, stores: storesData, publishedFormId, selectedFormId, lotterySettings: lotteryData } = data.data;
 
-        console.log('店舗データ取得:', { storesData, storesError, fetchedCompanyId });
+        // フォームデータをセット
+        const activeFormsData = forms.map(f => ({
+          id: f.id,
+          name: f.title,
+          description: '',
+          is_published: f.is_published
+        }));
+        setReviewForms(activeFormsData);
 
-        if (!storesError && storesData) {
-          setStores(storesData.map(s => ({
-            ...s,
-            companyName: propCompanyName || ''
-          })));
+        // 選択されたフォームをセット
+        if (publishedFormId) {
+          setSelectedPublicFormId(publishedFormId);
+          setSavedPublicFormId(publishedFormId);
+        } else if (selectedFormId) {
+          setSelectedPublicFormId(selectedFormId);
         }
 
-        // 4. 公開フォーム設定を取得
-        try {
-          const { data: publicFormSettings, error: publicFormError } = await supabase
-            .from('company_public_form_settings')
-            .select('*')
-            .eq('company_id', fetchedCompanyId)
-            .maybeSingle();
+        // 店舗データをセット
+        setStores(storesData.map(s => ({
+          ...s,
+          companyName: propCompanyName || ''
+        })));
 
-          if (!publicFormError && publicFormSettings) {
-            setSelectedPublicFormId(publicFormSettings.public_form_id);
-            setSavedPublicFormId(publicFormSettings.public_form_id);
-          }
-        } catch (e) {
-          console.log('公開フォーム設定テービルが未作成:', e);
-        }
-
-        // store_review_formsテーブルから公開中のフォームを確認（デバッグ用）
-        if (storesData && storesData.length > 0) {
-          try {
-            const { data: storeFormData, error: storeFormError } = await supabase
-              .from('store_review_forms')
-              .select('*')
-              .eq('store_id', storesData[0].id)
-              .eq('is_published', true);
-            
-            if (storeFormError) {
-              console.error('Store form error:', storeFormError);
-              if (storeFormError.message.includes('403')) {
-                console.log('⚠️ store_review_formsテーブルへのアクセス権限がありません。RLSポリシーの設定が必要です。');
-              }
-            } else {
-              console.log('Published store forms:', { storeFormData, storeId: storesData[0].id });
-            }
-          } catch (e) {
-            console.error('Store form fetch error:', e);
-          }
-        }
-
-        // 7. 選択されたフォームの抽選設定を取得
-        // activeFormsDataとpublishedFormは上のスコープで定義済み
-        if (activeFormsData && activeFormsData.length > 0) {
-          const targetFormId = publishedForm?.id || activeFormsData[0].id;
-          await fetchLotterySettings(targetFormId);
-        }
+        // 抽選設定をセット
+        setLotterySettings({
+          maxWinsPerMonth: lotteryData.maxWinsPerMonth,
+          winRateDivisor: lotteryData.winRateDivisor
+        });
+        
+        setLotteryStats({
+          totalAttempts: lotteryData.currentTrials,
+          totalWins: lotteryData.currentWins
+        });
 
       } catch (error) {
         console.error('データ取得エラー:', error);
-        toast.error('データの取得に失敗しました');
+        toast.error(error.message || 'データの取得に失敗しました');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [propCompanyId, propCompanyName, fetchLotterySettings]);
+  }, [propCompanyId, propCompanyName]);
 
 
   // ============================================================================
@@ -748,13 +723,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                     <Button
                       variant="contained"
                       size="small"
-                      onClick={async () => {
-                        await savePublicFormSettings();
-                        // フォーム変更後に抽選設定を再取得
-                        if (selectedPublicFormId !== savedPublicFormId) {
-                          await fetchLotterySettings(selectedPublicFormId);
-                        }
-                      }}
+                      onClick={savePublicFormSettings}
                       disabled={isSaving || !selectedPublicFormId}
                       sx={{
                         background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
