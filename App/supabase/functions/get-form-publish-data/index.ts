@@ -9,6 +9,19 @@ serve(async (req) => {
   }
 
   try {
+    // Create Supabase client with service role for server-side operations
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+
+    // Create Supabase client for auth
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -41,8 +54,8 @@ serve(async (req) => {
       )
     }
 
-    // 1. レビューフォーム一覧を取得
-    const { data: forms, error: formsError } = await supabaseClient
+    // 1. レビューフォーム一覧を取得（管理者権限で）
+    const { data: forms, error: formsError } = await supabaseAdmin
       .from('review_forms')
       .select('id, title, is_deleted, is_published')
       .eq('company_id', companyId)
@@ -57,7 +70,7 @@ serve(async (req) => {
     // 3. 抽選設定を取得（選択されたフォームの設定）
     let lotterySettings = null
     if (selectedFormId) {
-      const { data: lotteryData } = await supabaseClient
+      const { data: lotteryData } = await supabaseAdmin
         .from('lottery')
         .select('*')
         .eq('review_form_id', selectedFormId)
@@ -67,7 +80,7 @@ serve(async (req) => {
     }
 
     // 4. 店舗一覧を取得
-    const { data: stores, error: storesError } = await supabaseClient
+    const { data: stores, error: storesError } = await supabaseAdmin
       .from('stores')
       .select('id, name, address, store_url_code')
       .eq('company_id', companyId)
@@ -75,7 +88,7 @@ serve(async (req) => {
     if (storesError) throw storesError
 
     // 5. 公開フォーム設定を取得（互換性のため）
-    const { data: publicFormSettings } = await supabaseClient
+    const { data: publicFormSettings } = await supabaseAdmin
       .from('company_public_form_settings')
       .select('*')
       .eq('company_id', companyId)
