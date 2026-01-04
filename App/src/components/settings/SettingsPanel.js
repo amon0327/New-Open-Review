@@ -5,17 +5,8 @@ import {
   Typography,
   Stack
 } from '@mui/material';
-import QSCThemeSettings from './QSCThemeSettings';
 
-const SettingsPanel = ({
-  formId,
-
-  // アクティブセクション指定用
-  activeSection = 'all', // 'all', 'qsc'
-
-  // QSCテーマ設定用のprops
-  onQSCThemeUpdate
-}) => {
+const SettingsPanel = ({ formId }) => {
   return (
     <Box
       sx={{
@@ -45,16 +36,11 @@ const SettingsPanel = ({
       <Box sx={{ px: 4, py: 4, width: '100%' }}>
 
         {/* 設定カード */}
-        <Stack spacing={3} sx={{ width: '100%' }}>
-          {/* QSCテーマ設定 */}
-          {(activeSection === 'all' || activeSection === 'qsc') && (
-            <QSCThemeSettings
-              formId={formId}
-              onThemeUpdate={onQSCThemeUpdate}
-            />
-          )}
-
-        </Stack>
+        <Box sx={{ width: '100%' }}>
+          <Typography sx={{ color: '#64748b', textAlign: 'center', py: 4 }}>
+            設定項目はありません
+          </Typography>
+        </Box>
 
         {/* フッター余白 */}
         <Box sx={{ height: 60 }} />

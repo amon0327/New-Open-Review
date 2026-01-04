@@ -47,10 +47,9 @@ import HomePage from './dashboard/pages/HomePage';
 import CreatePagePlaceholder from './dashboard/pages/CreatePagePlaceholder';
 import SettingsPage from './dashboard/pages/SettingsPage';
 import StoresManagementPage from './dashboard/pages/StoresManagementPage';
-import AppPage from './dashboard/pages/AppPage';
-import CompanyAdminPage from './dashboard/pages/CompanyAdminPage';
 import FormPublishPage from './dashboard/pages/FormPublishPage';
 import AnalyticsPage from './dashboard/pages/AnalyticsPage';
+import CRMPage from './dashboard/pages/CRMPage';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
@@ -58,10 +57,9 @@ const collapsedDrawerWidth = 72;
 const navigationItems = [
   { text: 'ホーム', icon: <Home />, component: HomePage },
   { text: 'フォーム公開', icon: <Rocket />, component: FormPublishPage },
-  { text: '店舗管理', icon: <Business />, component: StoresManagementPage },
-  { text: '管理メンバー', icon: <People />, component: CompanyAdminPage },
-  { text: 'アプリ表示', icon: <Apps />, component: AppPage },
+  { text: '顧客管理(CRM)', icon: <People />, component: CRMPage },
   { text: '分析', icon: <Analytics />, component: AnalyticsPage },
+  { text: '店舗情報', icon: <Business />, component: StoresManagementPage },
   { text: '設定', icon: <Settings />, component: SettingsPage },
 ];
 
@@ -302,13 +300,11 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
       return null;
     }
     if (navigationItems[activeTab].text === '設定') {
-      return <ActiveComponent user={user} onLogout={onLogout} />;
+      return <ActiveComponent user={user} onLogout={onLogout} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     } else if (navigationItems[activeTab].text === 'ホーム') {
       return <ActiveComponent user={user} onCreateFormClick={onCreateClick} onCreateForm={onCreateForm} isCreatingForm={isCreatingForm} />;
     } else if (navigationItems[activeTab].text === '分析') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
-    } else if (navigationItems[activeTab].text === '管理メンバー') {
-      return <ActiveComponent companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     } else if (navigationItems[activeTab].text === 'フォーム公開') {
       return <ActiveComponent user={user} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     }

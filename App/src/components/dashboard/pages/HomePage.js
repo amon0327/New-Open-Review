@@ -37,7 +37,8 @@ import {
   Analytics,
   ContentCopy,
   KeyboardArrowUp,
-  KeyboardArrowDown
+  KeyboardArrowDown,
+  Warning
 } from '@mui/icons-material';
 import FormDataService from '../../../services/FormDataService';
 import { toast } from 'react-hot-toast';
@@ -59,149 +60,181 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // フォーム一覧を取得
   useEffect(() => {
-    const fetchForms = async () => {
-      if (!user?.id) return;
-      
-      setLoading(true);
-      try {
-        const result = await FormDataService.getUserForms(user.id);
-        if (result.success) {
-          setForms(result.data);
-        } else {
-          setError(result.error);
-        }
-      } catch (err) {
-        setError('フォームの取得に失敗しました');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchForms();
-  }, [user?.id]);
+  }, [user]);
 
-  // メニューハンドラー
+  const fetchForms = async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const result = await FormDataService.getUserForms(user.id);
+      
+      if (result.success) {
+        setForms(result.data);
+      } else {
+        setError(result.error);
+        setForms([]);
+      }
+      setSelectedForms(new Set());
+    } catch (err) {
+      console.error('フォーム取得エラー:', err);
+      setError('フォームの取得に失敗しました');
+      setForms([]);
+      setSelectedForms(new Set());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFormClick = (form) => {
+    console.log('📝 HomePage - handleFormClick:', form);
+    
+    if (!form || !form.id) {
+      console.error('❌ HomePage - Invalid form data:', form);
+      toast.error('フォーム情報が正しくありません');
+      return;
+    }
+
+    const formId = form.id;
+    console.log('🚀 HomePage - Navigating to formId:', formId);
+    
+    navigate(`/create?formId=${formId}`);
+    
+    if (onCreateFormClick) {
+      onCreateFormClick(formId);
+    }
+  };
+
   const handleMenuClick = (event, form) => {
+    event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setSelectedForm(form);
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-    setSelectedForm(null);
   };
 
+  const handleEdit = () => {
+    if (selectedForm) {
+      handleFormClick(selectedForm);
+    }
+    handleMenuClose();
+  };
 
-  // ソートハンドラー
+  const handleAnalytics = () => {
+    if (selectedForm) {
+      navigate(`/analytics/${selectedForm.id}`);
+    }
+    handleMenuClose();
+  };
+
+  const handleShare = () => {
+    if (selectedForm) {
+      const url = `${window.location.origin}/review/${selectedForm.id}`;
+      navigator.clipboard.writeText(url)
+        .then(() => {
+          toast.success('共有URLをコピーしました');
+        })
+        .catch(() => {
+          toast.error('URLのコピーに失敗しました');
+        });
+    }
+    handleMenuClose();
+  };
+
   const handleSort = (field) => {
     if (sortField === field) {
-      // 同じフィールドをクリックした場合は方向を切り替え
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      // 違うフィールドをクリックした場合は新しいフィールドを設定し、降順から開始
       setSortField(field);
       setSortDirection('desc');
     }
   };
 
-  // チェックボックス関連のハンドラー
-  const handleSelectForm = (formId) => {
-    const newSelected = new Set(selectedForms);
-    if (newSelected.has(formId)) {
-      newSelected.delete(formId);
-    } else {
-      newSelected.add(formId);
-    }
-    setSelectedForms(newSelected);
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
   };
 
-  const handleSelectAll = () => {
-    if (selectedForms.size === sortedForms.length) {
+  const handleSelectAll = (event) => {
+    if (event.target.checked) {
+      const allFormIds = forms.map(form => form.id);
+      setSelectedForms(new Set(allFormIds));
+    } else {
       setSelectedForms(new Set());
-    } else {
-      setSelectedForms(new Set(sortedForms.map(form => form.id)));
     }
   };
 
-  // 削除関連のハンドラー
+  const handleSelectForm = (formId) => {
+    const newSelectedForms = new Set(selectedForms);
+    if (newSelectedForms.has(formId)) {
+      newSelectedForms.delete(formId);
+    } else {
+      newSelectedForms.add(formId);
+    }
+    setSelectedForms(newSelectedForms);
+  };
+
   const handleBulkDelete = () => {
-    if (selectedForms.size === 0) return;
     setDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = async () => {
+  const confirmBulkDelete = async () => {
     setIsDeleting(true);
+    
     try {
-      const deletePromises = Array.from(selectedForms).map(formId => 
+      const deletePromises = Array.from(selectedForms).map(formId =>
         FormDataService.deleteForm(formId)
       );
       
-      const results = await Promise.all(deletePromises);
-      const failedDeletes = results.filter(result => !result.success);
+      await Promise.all(deletePromises);
       
-      if (failedDeletes.length === 0) {
-        toast.success(`${selectedForms.size}件のフォームを削除しました`);
-        // フォーム一覧を再取得
-        const result = await FormDataService.getUserForms(user.id);
-        if (result.success) {
-          setForms(result.data);
-        }
-        setSelectedForms(new Set());
-      } else {
-        toast.error(`${failedDeletes.length}件のフォーム削除に失敗しました`);
-        console.error('Failed deletes:', failedDeletes);
-      }
+      toast.success(`${selectedForms.size}件のフォームを削除しました`);
+      
+      setDeleteDialogOpen(false);
+      setSelectedForms(new Set());
+      
+      await fetchForms();
     } catch (error) {
-      toast.error('削除処理中にエラーが発生しました');
-      console.error('Bulk delete error:', error);
+      console.error('フォーム削除エラー:', error);
+      toast.error('フォームの削除に失敗しました');
     } finally {
       setIsDeleting(false);
-      setDeleteDialogOpen(false);
     }
   };
 
-  const handleDeleteCancel = () => {
-    setDeleteDialogOpen(false);
-  };
-
-  // QSCテーマの設定
-  const qscThemeConfig = {
-    quality: { label: 'Q', fullLabel: 'Quality', color: '#10b981', bgColor: '#ecfdf5' },
-    service: { label: 'S', fullLabel: 'Service', color: '#3b82f6', bgColor: '#eff6ff' },
-    cleanliness: { label: 'C', fullLabel: 'Cleanliness', color: '#8b5cf6', bgColor: '#f5f3ff' }
-  };
-
-  // フォームデータの変換
-  const formatFormData = (form) => ({
-    id: form.id,
-    title: form.title || '名称未設定',
-    description: 'レビューフォーム',
-    status: form.is_published ? '公開中' : '下書き',
-    responses: 0, // TODO: 実際の回答数を取得
-    questionCount: form.review_questions ? form.review_questions.length : 0, // 質問数を追加
-    lastModified: new Date(form.updated_at).toLocaleDateString('ja-JP'), // 日本時間で表示
-    category: 'レビュー',
-    themeColor: form.review_form_settings?.[0]?.theme_color || '#5e17eb',
-    qscTheme: form.qsc_theme, // QSCテーマを追加
-    // ソート用の生データも保持
-    updated_at: form.updated_at
-  });
-
-  // ソートされたフォームデータを生成
   const sortedForms = useMemo(() => {
-    if (!forms.length) return [];
+    if (!forms || forms.length === 0) return [];
     
-    const formattedFormsWithOriginal = forms.map(form => ({
-      ...formatFormData(form),
-      originalForm: form // 元のformオブジェクトも保持
-    }));
-    
-    return [...formattedFormsWithOriginal].sort((a, b) => {
+    return [...forms].sort((a, b) => {
       let valueA, valueB;
       
       switch (sortField) {
+        case 'title':
+          valueA = a.title || '';
+          valueB = b.title || '';
+          break;
+        case 'status':
+          valueA = a.is_published ? 1 : 0;
+          valueB = b.is_published ? 1 : 0;
+          break;
+        case 'questions':
+          valueA = a.questions || 0;
+          valueB = b.questions || 0;
+          break;
         case 'responses':
           valueA = a.responses;
           valueB = b.responses;
@@ -228,23 +261,16 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      style={{ width: '100%' }}
     >
       <Box
         sx={{
-          width: '100%',
           minHeight: '100vh',
-          backgroundColor: '#ffffff',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          pt: 2,
-          px: 0
+          overflow: 'auto',
+          background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+          py: 4
         }}
       >
-
-        {/* フォーム一覧セクション */}
-        <Container maxWidth="xl" sx={{ mt: 2, mb: 6 }}>
+        <Container maxWidth="xl">
           {/* セクションヘッダー */}
           <Box sx={{ 
             display: 'flex', 
@@ -333,7 +359,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
             </Box>
           </Box>
 
-          {/* ローディング状態（スケルトンスクリーン） */}
+          {/* ローディング状態 */}
           {loading && (
             <TableContainer
               component={Paper}
@@ -360,7 +386,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                   >
                     <TableCell><Skeleton variant="rectangular" width={20} height={20} /></TableCell>
                     <TableCell>フォーム名</TableCell>
-                    <TableCell align="center">QSC</TableCell>
                     <TableCell align="center">ステータス</TableCell>
                     <TableCell align="center">質問数</TableCell>
                     <TableCell align="center">回答数</TableCell>
@@ -376,9 +401,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                       </TableCell>
                       <TableCell sx={{ py: 2 }}>
                         <Skeleton variant="text" width={180} height={24} />
-                      </TableCell>
-                      <TableCell align="center" sx={{ py: 2 }}>
-                        <Skeleton variant="rounded" width={80} height={24} sx={{ mx: 'auto' }} />
                       </TableCell>
                       <TableCell align="center" sx={{ py: 2 }}>
                         <Skeleton variant="rounded" width={60} height={28} sx={{ mx: 'auto' }} />
@@ -465,6 +487,12 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                       py: 1,
                       textTransform: 'none',
                       fontWeight: 600,
+                      boxShadow: '0 3px 15px rgba(94, 23, 235, 0.3)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 5px 20px rgba(94, 23, 235, 0.4)',
+                      },
                       '&.Mui-disabled': {
                         opacity: 0.7,
                         background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
@@ -476,19 +504,20 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                   </Button>
                 </Box>
               ) : (
-                <TableContainer 
-                  component={Paper} 
-                  sx={{ 
+                // フォーム一覧テーブル
+                <TableContainer
+                  component={Paper}
+                  sx={{
                     borderRadius: 0.5,
                     boxShadow: 'none',
                     border: '1px solid rgba(0, 0, 0, 0.06)',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
                   }}
                 >
                   <Table sx={{ minWidth: 650 }}>
                     <TableHead>
-                      <TableRow 
-                        sx={{ 
+                      <TableRow
+                        sx={{
                           backgroundColor: '#f8fafc',
                           '& .MuiTableCell-head': {
                             fontWeight: 700,
@@ -499,69 +528,98 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                           }
                         }}
                       >
-                        <TableCell>
+                        <TableCell padding="checkbox" sx={{ width: '48px' }}>
                           <Checkbox
-                            size="small"
-                            checked={selectedForms.size === sortedForms.length && sortedForms.length > 0}
-                            indeterminate={selectedForms.size > 0 && selectedForms.size < sortedForms.length}
+                            indeterminate={selectedForms.size > 0 && selectedForms.size < forms.length}
+                            checked={forms.length > 0 && selectedForms.size === forms.length}
                             onChange={handleSelectAll}
-                            sx={{ p: 0.5 }}
+                            sx={{
+                              color: '#9ca3af',
+                              '&.Mui-checked': {
+                                color: '#5e17eb',
+                              },
+                              '&.MuiCheckbox-indeterminate': {
+                                color: '#5e17eb',
+                              }
+                            }}
                           />
                         </TableCell>
-                        <TableCell>フォーム名</TableCell>
-                        <TableCell align="center">QSC</TableCell>
-                        <TableCell align="center">ステータス</TableCell>
                         <TableCell 
-                          align="center"
                           sx={{ 
-                            cursor: 'pointer',
-                            '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.05)' },
-                            userSelect: 'none'
+                            cursor: 'pointer', 
+                            userSelect: 'none',
+                            '&:hover': { color: '#5e17eb' }
                           }}
-                          onClick={() => handleSort('questionCount')}
+                          onClick={() => handleSort('title')}
                         >
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
-                            質問数
-                            {sortField === 'questionCount' && (
-                              sortDirection === 'desc' ? 
-                                <KeyboardArrowDown sx={{ fontSize: 16 }} /> : 
-                                <KeyboardArrowUp sx={{ fontSize: 16 }} />
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            フォーム名
+                            {sortField === 'title' && (
+                              sortDirection === 'asc' ? <KeyboardArrowUp fontSize="small" /> : <KeyboardArrowDown fontSize="small" />
                             )}
                           </Box>
                         </TableCell>
                         <TableCell 
                           align="center"
                           sx={{ 
-                            cursor: 'pointer',
-                            '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.05)' },
-                            userSelect: 'none'
+                            cursor: 'pointer', 
+                            userSelect: 'none',
+                            '&:hover': { color: '#5e17eb' }
+                          }}
+                          onClick={() => handleSort('status')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                            ステータス
+                            {sortField === 'status' && (
+                              sortDirection === 'asc' ? <KeyboardArrowUp fontSize="small" /> : <KeyboardArrowDown fontSize="small" />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell 
+                          align="center"
+                          sx={{ 
+                            cursor: 'pointer', 
+                            userSelect: 'none',
+                            '&:hover': { color: '#5e17eb' }
+                          }}
+                          onClick={() => handleSort('questions')}
+                        >
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                            質問数
+                            {sortField === 'questions' && (
+                              sortDirection === 'asc' ? <KeyboardArrowUp fontSize="small" /> : <KeyboardArrowDown fontSize="small" />
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell 
+                          align="center"
+                          sx={{ 
+                            cursor: 'pointer', 
+                            userSelect: 'none',
+                            '&:hover': { color: '#5e17eb' }
                           }}
                           onClick={() => handleSort('responses')}
                         >
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                             回答数
                             {sortField === 'responses' && (
-                              sortDirection === 'desc' ? 
-                                <KeyboardArrowDown sx={{ fontSize: 16 }} /> : 
-                                <KeyboardArrowUp sx={{ fontSize: 16 }} />
+                              sortDirection === 'asc' ? <KeyboardArrowUp fontSize="small" /> : <KeyboardArrowDown fontSize="small" />
                             )}
                           </Box>
                         </TableCell>
-                        <TableCell
+                        <TableCell 
                           align="center"
-                          sx={{
-                            cursor: 'pointer',
-                            '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.05)' },
-                            userSelect: 'none'
+                          sx={{ 
+                            cursor: 'pointer', 
+                            userSelect: 'none',
+                            '&:hover': { color: '#5e17eb' }
                           }}
                           onClick={() => handleSort('updated_at')}
                         >
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
                             更新日
                             {sortField === 'updated_at' && (
-                              sortDirection === 'desc' ? 
-                                <KeyboardArrowDown sx={{ fontSize: 16 }} /> : 
-                                <KeyboardArrowUp sx={{ fontSize: 16 }} />
+                              sortDirection === 'asc' ? <KeyboardArrowUp fontSize="small" /> : <KeyboardArrowDown fontSize="small" />
                             )}
                           </Box>
                         </TableCell>
@@ -569,178 +627,90 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {sortedForms.map((formattedForm) => {
-                        return (
-                          <TableRow
-                            key={formattedForm.id}
-                            onClick={() => navigate(`/create?formId=${formattedForm.id}`)}
-                            sx={{
-                              cursor: 'pointer',
-                              '&:hover': {
-                                backgroundColor: 'rgba(94, 23, 235, 0.04)',
-                                '& .action-buttons': {
-                                  opacity: 1,
+                      {sortedForms.map((form) => (
+                        <TableRow
+                          key={form.id}
+                          sx={{
+                            cursor: 'pointer',
+                            '&:hover': {
+                              backgroundColor: 'rgba(94, 23, 235, 0.02)'
+                            },
+                            borderBottom: '1px solid rgba(0, 0, 0, 0.04)'
+                          }}
+                          onClick={() => handleFormClick(form)}
+                        >
+                          <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedForms.has(form.id)}
+                              onChange={() => handleSelectForm(form.id)}
+                              sx={{
+                                color: '#9ca3af',
+                                '&.Mui-checked': {
+                                  color: '#5e17eb',
                                 }
-                              },
-                              '&:last-child td, &:last-child th': {
-                                border: 0
-                              },
-                              transition: 'all 0.2s ease',
-                              borderBottom: '1px solid rgba(0, 0, 0, 0.04)'
-                            }}
-                          >
-                            {/* チェックボックス */}
-                            <TableCell sx={{ py: 2 }} onClick={(e) => e.stopPropagation()}>
-                              <Checkbox
-                                size="small"
-                                checked={selectedForms.has(formattedForm.id)}
-                                onChange={() => handleSelectForm(formattedForm.id)}
-                                sx={{ p: 0.5 }}
-                              />
-                            </TableCell>
-
-                            {/* フォーム名 */}
-                            <TableCell sx={{ py: 2 }}>
-                              <Box>
-                                <Typography
-                                  variant="body1"
-                                  sx={{
-                                    fontWeight: 600,
-                                    color: '#1a202c',
-                                    fontSize: '0.95rem',
-                                    lineHeight: 1.2,
-                                    mb: 0.5
-                                  }}
-                                >
-                                  {formattedForm.title}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-
-                            {/* QSCテーマ */}
-                            <TableCell align="center" sx={{ py: 2 }}>
-                              {formattedForm.qscTheme && qscThemeConfig[formattedForm.qscTheme] ? (
-                                <Chip
-                                  label={qscThemeConfig[formattedForm.qscTheme].fullLabel}
-                                  size="small"
-                                  sx={{
-                                    backgroundColor: qscThemeConfig[formattedForm.qscTheme].bgColor,
-                                    color: qscThemeConfig[formattedForm.qscTheme].color,
-                                    fontWeight: 700,
-                                    fontSize: '0.7rem',
-                                    height: 24,
-                                    borderRadius: 1,
-                                    border: `1px solid ${qscThemeConfig[formattedForm.qscTheme].color}20`,
-                                    '& .MuiChip-label': {
-                                      px: 1
-                                    }
-                                  }}
-                                />
-                              ) : (
-                                <Typography
-                                  variant="caption"
-                                  sx={{ color: '#9ca3af', fontSize: '0.75rem' }}
-                                >
-                                  未設定
-                                </Typography>
-                              )}
-                            </TableCell>
-
-                            {/* ステータス */}
-                            <TableCell align="center" sx={{ py: 2 }}>
-                              <Chip
-                                label={formattedForm.status}
-                                size="small"
-                                sx={{
-                                  backgroundColor: formattedForm.status === '公開中' 
-                                    ? 'rgba(76, 175, 80, 0.12)' 
-                                    : 'rgba(255, 152, 0, 0.12)',
-                                  color: formattedForm.status === '公開中' 
-                                    ? '#2e7d32' 
-                                    : '#ed6c02',
-                                  fontWeight: 600,
-                                  fontSize: '0.75rem',
-                                  height: 28,
-                                  borderRadius: 6,
-                                  border: `1px solid ${formattedForm.status === '公開中' 
-                                    ? 'rgba(76, 175, 80, 0.2)' 
-                                    : 'rgba(255, 152, 0, 0.2)'}`,
-                                }}
-                              />
-                            </TableCell>
-
-                            {/* 質問数 */}
-                            <TableCell align="center" sx={{ py: 2 }}>
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell sx={{ py: 2.5 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              <Description sx={{ color: '#9ca3af', fontSize: 20 }} />
                               <Typography
-                                variant="body2"
+                                variant="body1"
                                 sx={{
                                   fontWeight: 600,
-                                  color: '#6b7280',
+                                  color: '#1f2937',
                                   fontSize: '0.95rem'
                                 }}
                               >
-                                {formattedForm.questionCount}
+                                {form.title || 'フォーム'}
                               </Typography>
-                            </TableCell>
-
-                            {/* 回答数 */}
-                            <TableCell align="center" sx={{ py: 2 }}>
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  fontWeight: 600,
-                                  color: '#5e17eb',
-                                  fontSize: '1rem'
-                                }}
-                              >
-                                {formattedForm.responses}
-                              </Typography>
-                            </TableCell>
-
-                            {/* 更新日 */}
-                            <TableCell align="center" sx={{ py: 2 }}>
-                              <Typography
-                                variant="body2"
-                                sx={{
-                                  color: 'text.secondary',
-                                  fontSize: '0.875rem'
-                                }}
-                              >
-                                {formattedForm.lastModified}
-                              </Typography>
-                            </TableCell>
-
-                            {/* アクション */}
-                            <TableCell align="center" sx={{ py: 2 }} onClick={(e) => e.stopPropagation()}>
-                              <Box
-                                className="action-buttons"
-                                sx={{
-                                  display: 'flex',
-                                  gap: 0.5,
-                                  justifyContent: 'center',
-                                  opacity: 0.7,
-                                  transition: 'opacity 0.2s ease'
-                                }}
-                              >
-                                <Tooltip title="その他">
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => handleMenuClick(e, formattedForm.originalForm)}
-                                    sx={{
-                                      color: '#64748b',
-                                      '&:hover': {
-                                        backgroundColor: 'rgba(100, 116, 139, 0.1)',
-                                      }
-                                    }}
-                                  >
-                                    <MoreVert sx={{ fontSize: 18 }} />
-                                  </IconButton>
-                                </Tooltip>
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center" sx={{ py: 2.5 }}>
+                            <Chip
+                              label={form.is_published ? '公開中' : '下書き'}
+                              size="small"
+                              sx={{
+                                backgroundColor: form.is_published ? '#d1fae5' : '#f3f4f6',
+                                color: form.is_published ? '#065f46' : '#6b7280',
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                height: 28
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell align="center" sx={{ py: 2.5 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151' }}>
+                              {form.questions || 0}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="center" sx={{ py: 2.5 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151' }}>
+                              {form.responses || 0}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="center" sx={{ py: 2.5 }}>
+                            <Typography variant="body2" sx={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                              {formatDate(form.updated_at)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="center" sx={{ py: 2.5 }} onClick={(e) => e.stopPropagation()}>
+                            <IconButton
+                              size="small"
+                              onClick={(e) => handleMenuClick(e, form)}
+                              sx={{
+                                color: '#6b7280',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(94, 23, 235, 0.08)',
+                                  color: '#5e17eb'
+                                }
+                              }}
+                            >
+                              <MoreVert fontSize="small" />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </TableContainer>
@@ -753,101 +723,78 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
             PaperProps={{
               sx: {
-                borderRadius: 1,
-                boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
-                border: '1px solid rgba(0, 0, 0, 0.06)',
-                mt: 1
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                borderRadius: 2,
+                minWidth: 180
               }
             }}
           >
-            <MenuItem 
-              onClick={() => {
-                console.log('🔍 HomePage - 編集ボタンがクリックされました');
-                console.log('🔍 HomePage - selectedForm:', selectedForm);
-                console.log('🔍 HomePage - selectedForm.id:', selectedForm?.id);
-                handleMenuClose();
-                if (selectedForm) {
-                  console.log('📝 HomePage - Navigating to edit form:', selectedForm.id);
-                  navigate(`/create?formId=${selectedForm.id}`);
-                }
-              }} 
-              sx={{ py: 1, px: 2 }}
-            >
-              <Edit sx={{ mr: 1.5, fontSize: 18, color: '#5e17eb' }} />
-              編集
+            <MenuItem onClick={handleEdit} sx={{ gap: 1.5, py: 1.5 }}>
+              <Edit fontSize="small" sx={{ color: '#6b7280' }} />
+              <Typography variant="body2">編集</Typography>
             </MenuItem>
-            <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
-              <Analytics sx={{ mr: 1.5, fontSize: 18, color: '#059669' }} />
-              分析
+            <MenuItem onClick={handleAnalytics} sx={{ gap: 1.5, py: 1.5 }}>
+              <Analytics fontSize="small" sx={{ color: '#6b7280' }} />
+              <Typography variant="body2">分析</Typography>
             </MenuItem>
-            <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
-              <Share sx={{ mr: 1.5, fontSize: 18, color: '#0ea5e9' }} />
-              共有
-            </MenuItem>
-            <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
-              <ContentCopy sx={{ mr: 1.5, fontSize: 18, color: '#6b7280' }} />
-              複製
-            </MenuItem>
-            <MenuItem onClick={handleMenuClose} sx={{ py: 1, px: 2 }}>
-              <Delete sx={{ mr: 1.5, fontSize: 18, color: '#ef4444' }} />
-              削除
+            <MenuItem onClick={handleShare} sx={{ gap: 1.5, py: 1.5 }}>
+              <Share fontSize="small" sx={{ color: '#6b7280' }} />
+              <Typography variant="body2">共有</Typography>
             </MenuItem>
           </Menu>
 
           {/* 削除確認ダイアログ */}
           <Dialog
             open={deleteDialogOpen}
-            onClose={handleDeleteCancel}
+            onClose={() => setDeleteDialogOpen(false)}
             PaperProps={{
               sx: {
                 borderRadius: 3,
-                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
-                maxWidth: 480
+                p: 2
               }
             }}
           >
-            <DialogTitle sx={{ 
-              fontWeight: 700, 
-              fontSize: '1.25rem',
-              color: '#1a202c',
-              pb: 1
-            }}>
-              フォームの削除確認
+            <DialogTitle sx={{ pb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Warning sx={{ color: '#ef4444', fontSize: 28 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  フォームの削除確認
+                </Typography>
+              </Box>
             </DialogTitle>
             <DialogContent>
-              <DialogContentText sx={{ 
-                color: '#6b7280',
-                fontSize: '0.95rem',
-                lineHeight: 1.6
-              }}>
-                選択した<strong>{selectedForms.size}件</strong>のレビューフォームを削除しますか？
-                <br />
-                この操作は取り消すことができません。
+              <DialogContentText sx={{ color: '#374151', fontSize: '0.95rem' }}>
+                選択した{selectedForms.size}件のフォームを削除します。
+                この操作は取り消せません。本当に削除しますか？
               </DialogContentText>
             </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-              <Button
-                onClick={handleDeleteCancel}
+            <DialogActions sx={{ pt: 2, px: 3, pb: 1 }}>
+              <Button 
+                onClick={() => setDeleteDialogOpen(false)}
                 sx={{
                   color: '#6b7280',
-                  fontWeight: 600,
                   textTransform: 'none',
-                  px: 3,
-                  py: 1,
-                  borderRadius: 2,
-                  '&:hover': {
-                    backgroundColor: 'rgba(107, 114, 128, 0.08)'
-                  }
+                  fontWeight: 600,
+                  px: 2
                 }}
               >
                 キャンセル
               </Button>
               <Button
-                onClick={handleDeleteConfirm}
+                onClick={confirmBulkDelete}
+                variant="contained"
                 disabled={isDeleting}
-                startIcon={isDeleting ? <CircularProgress size={16} /> : <Delete />}
+                startIcon={isDeleting ? <CircularProgress size={16} /> : null}
                 sx={{
                   backgroundColor: '#ef4444',
                   color: 'white',
@@ -870,7 +817,6 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
               </Button>
             </DialogActions>
           </Dialog>
-
         </Container>
       </Box>
     </motion.div>

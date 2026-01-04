@@ -8,7 +8,8 @@ import {
 import {
   Comment,
   Store,
-  LocationCity
+  LocationCity,
+  Close
 } from '@mui/icons-material';
 import { supabase } from '../../../lib/supabase';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../ui/card';
@@ -18,6 +19,7 @@ import { Progress } from '../../ui/progress';
 import { Separator } from '../../ui/separator';
 import { Skeleton } from '../../ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '../../ui/alert';
+import { InfoTooltip } from '../../ui/info-tooltip';
 import { Tabs as ShadcnTabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import {
   Select,
@@ -42,7 +44,12 @@ import {
   BarChart3,
   Calendar,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  ChevronDown,
+  ChevronUp,
+  User,
+  UtensilsCrossed,
+  Sparkles
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -59,9 +66,15 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
+  ComposedChart,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar
 } from 'recharts';
 
 // タブパネルコンポーネント
@@ -80,11 +93,23 @@ const TabPanel = ({ children, value, index, ...other }) => (
 
 // 全店舗タブの内容
 const AllStoresTab = () => (
-  <Box sx={{ p: 3 }}>
-    <Typography variant="h6" sx={{ color: '#64748b' }}>
-      全店舗機能は開発中です
-    </Typography>
-  </Box>
+  <div className="min-h-[calc(100vh-300px)] flex items-center justify-center">
+    <div className="text-center">
+      <Store className="w-16 h-16 text-gray-300 mx-auto mb-6" />
+      
+      <h3 className="text-xl font-medium text-gray-900 mb-2">
+        全店舗分析機能
+      </h3>
+      
+      <p className="text-gray-500 mb-1">
+        2店舗以上のデータが必要です
+      </p>
+      
+      <p className="text-sm text-gray-400">
+        複数店舗を登録すると、店舗間の比較分析が可能になります
+      </p>
+    </div>
+  </div>
 );
 
 // KPIデータのタイプ定義
@@ -111,16 +136,1130 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-// Chart colors
-const COLORS = ['#5e17eb', '#667eea', '#764ba2', '#f093fb', '#4facfe', '#00f2fe', '#fa709a', '#fee140'];
+// Modern gradient colors
+const COLORS = [
+  '#3b82f6', // Blue - 推奨スコア
+  '#10b981', // Emerald - リピート率
+  '#f59e0b', // Amber - リピーター再来店
+  '#8b5cf6'  // Violet - 新規再来店
+];
+
+// AI分析タブ
+const AIAnalysisTab = ({ selectedStore, selectedPeriod }) => {
+  // AIが生成したタスクのサンプルデータ
+  const aiGeneratedTasks = [
+    {
+      id: 1,
+      priority: 'high',
+      category: 'customer',
+      title: '新規離脱率の改善',
+      description: '新規顧客の離脱率が17%と高水準。初回体験の改善が急務',
+      insights: [
+        '新規顧客の再来店意向が88.5%と目標を下回る',
+        '待ち時間に対する不満が新規顧客で特に顕著（85%がネガティブ）',
+        '初回来店時のサービス説明不足が主要因'
+      ],
+      actions: [
+        '新規顧客専用のファストレーンを設置',
+        '初回来店客向けウェルカムプログラムの導入',
+        'スタッフへの新規客対応研修の実施'
+      ],
+      impact: {
+        revenue: '+¥2.4M/月',
+        nps: '+5pt',
+        timeframe: '3週間'
+      },
+      dataSource: ['顧客傾向', '売上影響', 'コメント分析']
+    },
+    {
+      id: 2,
+      priority: 'high',
+      category: 'operation',
+      title: 'ピークタイム効率化',
+      description: '12-13時の待ち時間が平均15分を超過。オペレーション改善が必要',
+      insights: [
+        'ランチタイムの注文処理能力が需要の70%に留まる',
+        '事前注文システムの未活用（利用率3%）',
+        'レジ待ち時間が全体の40%を占める'
+      ],
+      actions: [
+        'モバイルオーダーシステムの積極的プロモーション',
+        'ピークタイム専用スタッフの配置最適化',
+        'セルフレジの導入検討'
+      ],
+      impact: {
+        revenue: '+¥3.8M/月',
+        satisfaction: '+12%',
+        timeframe: '2週間'
+      },
+      dataSource: ['店舗評価', '概要', 'コメント分析']
+    },
+    {
+      id: 3,
+      priority: 'medium',
+      category: 'quality',
+      title: '商品品質の一貫性向上',
+      description: '味の一貫性スコアが93%。競合他社平均の96%を下回る',
+      insights: [
+        '午後の時間帯で品質評価が5%低下',
+        '特定スタッフの調理時に品質バラつきが発生',
+        '温度管理に関するネガティブフィードバックが増加'
+      ],
+      actions: [
+        '調理マニュアルの標準化と徹底',
+        '品質管理チェックリストの導入',
+        'スタッフ間の技術共有セッション開催'
+      ],
+      impact: {
+        nps: '+3pt',
+        retention: '+5%',
+        timeframe: '4週間'
+      },
+      dataSource: ['店舗評価', 'コメント分析']
+    },
+    {
+      id: 4,
+      priority: 'medium',
+      category: 'marketing',
+      title: 'リピーター特典プログラム',
+      description: '安定リピーターの構成比39%を45%まで引き上げる施策',
+      insights: [
+        'リピート率78.5%は好調だが、頻度に改善余地あり',
+        '競合店のロイヤリティプログラムへの流出懸念',
+        'リピーター向け特典の認知度が低い（23%）'
+      ],
+      actions: [
+        'デジタルスタンプカードの導入',
+        'リピーター限定メニューの開発',
+        'バースデー特典の充実化'
+      ],
+      impact: {
+        revenue: '+¥1.6M/月',
+        frequency: '+0.8回/月',
+        timeframe: '6週間'
+      },
+      dataSource: ['売上影響', '顧客傾向']
+    },
+    {
+      id: 5,
+      priority: 'low',
+      category: 'facility',
+      title: '店内環境の改善',
+      description: '清潔さスコアが4.6/5.0。特にトイレ・ゴミ箱周辺の改善が必要',
+      insights: [
+        'トイレの清潔さが91%と相対的に低評価',
+        'ゴミ箱周辺の管理が88%と要改善',
+        '午後の時間帯で清掃頻度不足'
+      ],
+      actions: [
+        '清掃スケジュールの見直し（1時間毎→30分毎）',
+        '清掃チェックリストのデジタル化',
+        '消耗品の自動補充システム導入'
+      ],
+      impact: {
+        satisfaction: '+8%',
+        complaints: '-15%',
+        timeframe: '1週間'
+      },
+      dataSource: ['店舗評価', 'コメント分析']
+    }
+  ];
+
+  // カテゴリーごとのアイコンとカラー
+  const categoryConfig = {
+    customer: { icon: Users, color: 'blue', label: '顧客体験' },
+    operation: { icon: Activity, color: 'green', label: 'オペレーション' },
+    quality: { icon: ShoppingCart, color: 'purple', label: '商品品質' },
+    marketing: { icon: TrendingUp, color: 'orange', label: 'マーケティング' },
+    facility: { icon: CheckCircle, color: 'teal', label: '施設管理' }
+  };
+
+  // 優先度ごとのスタイル
+  const priorityStyles = {
+    high: 'border-red-200 bg-red-50',
+    medium: 'border-yellow-200 bg-yellow-50',
+    low: 'border-gray-200 bg-gray-50'
+  };
+
+  return (
+    <div className="p-6">
+      {/* ヘッダー */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">AI統合分析</h2>
+        <p className="text-gray-600">全データソースを統合し、優先度順に改善タスクを提案</p>
+      </div>
+
+      {/* サマリーカード */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-red-500 to-rose-600 text-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-red-100 text-sm">緊急タスク</p>
+                <p className="text-2xl font-bold">2件</p>
+              </div>
+              <AlertTriangle className="w-8 h-8 text-red-200" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-500 to-amber-600 text-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-yellow-100 text-sm">中優先度</p>
+                <p className="text-2xl font-bold">2件</p>
+              </div>
+              <Clock className="w-8 h-8 text-yellow-200" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-gray-500 to-slate-600 text-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-100 text-sm">低優先度</p>
+                <p className="text-2xl font-bold">1件</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-gray-200" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-100 text-sm">期待収益改善</p>
+                <p className="text-2xl font-bold">+¥9.2M</p>
+              </div>
+              <DollarSign className="w-8 h-8 text-green-200" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* タスクリスト */}
+      <div className="space-y-4">
+        {aiGeneratedTasks.map((task) => {
+          const config = categoryConfig[task.category];
+          const Icon = config.icon;
+          
+          return (
+            <Card key={task.id} className={`border-2 shadow-lg hover:shadow-xl transition-all ${priorityStyles[task.priority]}`}>
+              <CardContent className="p-6">
+                <div className="flex items-start gap-6">
+                  {/* アイコン部分 */}
+                  <div className={`w-12 h-12 rounded-lg bg-${config.color}-100 flex items-center justify-center flex-shrink-0`}>
+                    <Icon className={`w-6 h-6 text-${config.color}-600`} />
+                  </div>
+                  
+                  {/* メインコンテンツ */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-bold text-gray-900">{task.title}</h3>
+                      <Badge variant="outline" className={`text-xs px-2 py-0.5 bg-${config.color}-50 text-${config.color}-700 border-${config.color}-200`}>
+                        {config.label}
+                      </Badge>
+                      {task.priority === 'high' && (
+                        <Badge variant="destructive" className="text-xs px-2 py-0.5">
+                          緊急
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <p className="text-gray-600 mb-4">{task.description}</p>
+                    
+                    {/* インサイト */}
+                    <div className="mb-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4 text-yellow-500" />
+                        AIが検出した課題
+                      </h4>
+                      <ul className="space-y-1">
+                        {task.insights.map((insight, idx) => (
+                          <li key={idx} className="text-sm text-gray-600 flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0" />
+                            {insight}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    {/* 推奨アクション */}
+                    <div className="mb-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4 text-blue-500" />
+                        推奨アクション
+                      </h4>
+                      <ul className="space-y-1">
+                        {task.actions.map((action, idx) => (
+                          <li key={idx} className="text-sm text-gray-600 flex items-start gap-2">
+                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            {action}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    {/* インパクトと期間 */}
+                    <div className="flex flex-wrap gap-4 pt-3 border-t">
+                      {task.impact.revenue && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <DollarSign className="w-4 h-4 text-green-600" />
+                          <span className="font-semibold text-green-700">{task.impact.revenue}</span>
+                        </div>
+                      )}
+                      {task.impact.nps && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <TrendingUp className="w-4 h-4 text-blue-600" />
+                          <span className="font-semibold text-blue-700">NPS {task.impact.nps}</span>
+                        </div>
+                      )}
+                      {task.impact.satisfaction && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="w-4 h-4 text-purple-600" />
+                          <span className="font-semibold text-purple-700">満足度 {task.impact.satisfaction}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-sm ml-auto">
+                        <Clock className="w-4 h-4 text-gray-500" />
+                        <span className="text-gray-600">実施期間: {task.impact.timeframe}</span>
+                      </div>
+                    </div>
+                    
+                    {/* データソース */}
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                      <span className="text-xs text-gray-500">データソース:</span>
+                      <div className="flex gap-2">
+                        {task.dataSource.map((source, idx) => (
+                          <span key={idx} className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
+                            {source}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// タスクタブ
+const TasksTab = ({ selectedStore, selectedPeriod }) => {
+  const [expandedCards, setExpandedCards] = useState([]);
+  const [activeTaskType, setActiveTaskType] = useState('evaluation'); // 'evaluation' or 'comments'
+
+  // 店舗評価から抽出した30項目のタスクデータ（改善効果の高い順）
+  const evaluationTaskItems = [
+    { 
+      id: 1, 
+      category: 'S', 
+      name: '待ち時間', 
+      negativeCount: 291, 
+      totalCount: 342, 
+      npsDistribution: { promoter: 8, passive: 27, detractor: 65 },
+      customerSegments: { newChurn: 42, newRepeater: 18, stableRepeater: 15, repeaterChurn: 25 },
+      improvementImpact: 'high',
+      comments: [
+        { type: '長時間待機', count: 156, sample: 'ランチタイムに15分以上待たされました。' },
+        { type: 'スタッフ不足', count: 89, sample: 'レジが1台しか稼働していなくて非効率的でした。' },
+        { type: '注文ミス', count: 45, sample: '注文を取り違えられて、さらに待ち時間が増えました。' },
+        { type: 'システム遅延', count: 52, sample: 'タブレット注文の反映が遅く、確認に時間がかかりました。' }
+      ]
+    },
+    {
+      id: 2,
+      category: 'C',
+      name: 'トイレの清潔さ',
+      negativeCount: 237,
+      totalCount: 289,
+      npsDistribution: { promoter: 5, passive: 15, detractor: 80 },
+      customerSegments: { newChurn: 28, newRepeater: 17, stableRepeater: 30, repeaterChurn: 25 },
+      improvementImpact: 'high',
+      comments: [
+        { type: '清掃不足', count: 145, sample: 'トイレットペーパーが切れていて不快でした。' },
+        { type: '悪臭', count: 78, sample: '換気が悪く、臭いがこもっていました。' },
+        { type: '設備故障', count: 66, sample: '手洗い場の石鹸が出ませんでした。' }
+      ]
+    },
+    {
+      id: 3,
+      category: 'Q',
+      name: '価格と品質のバランス',
+      negativeCount: 321,
+      totalCount: 412,
+      npsDistribution: { promoter: 10, passive: 25, detractor: 65 },
+      customerSegments: { newChurn: 45, newRepeater: 23, stableRepeater: 20, repeaterChurn: 12 },
+      improvementImpact: 'high',
+      comments: [
+        { type: '割高感', count: 234, sample: 'この品質でこの価格は高すぎます。' },
+        { type: '量が少ない', count: 112, sample: '以前より明らかに量が減っています。' },
+        { type: '競合比較', count: 66, sample: '近くの店の方が安くて美味しいです。' }
+      ]
+    },
+    {
+      id: 4,
+      category: 'S',
+      name: 'レジ対応の速さ',
+      negativeCount: 145,
+      totalCount: 198,
+      npsDistribution: { promoter: 12, passive: 33, detractor: 55 },
+      customerSegments: { newChurn: 30, newRepeater: 22, stableRepeater: 28, repeaterChurn: 20 },
+      improvementImpact: 'high',
+      comments: [
+        { type: '処理速度', count: 89, sample: '会計処理が遅く、行列ができていました。' },
+        { type: '操作ミス', count: 67, sample: 'スタッフが操作に慣れていない様子でした。' },
+        { type: 'システムエラー', count: 42, sample: 'カード決済でエラーが頻発していました。' }
+      ]
+    },
+    {
+      id: 5,
+      category: 'Q',
+      name: '温度管理',
+      negativeCount: 190,
+      totalCount: 267,
+      npsDistribution: { promoter: 8, passive: 22, detractor: 70 },
+      customerSegments: { newChurn: 25, newRepeater: 16, stableRepeater: 35, repeaterChurn: 24 },
+      improvementImpact: 'high',
+      comments: [
+        { type: '冷めた料理', count: 156, sample: 'ホットコーヒーがぬるくて残念でした。' },
+        { type: '過熱', count: 78, sample: 'パンが焦げていて食べられませんでした。' },
+        { type: '保温不足', count: 33, sample: 'スープが冷めていました。' }
+      ]
+    },
+    {
+      id: 6,
+      category: 'C',
+      name: 'ゴミ箱周辺の管理',
+      negativeCount: 99,
+      totalCount: 145,
+      npsDistribution: { promoter: 15, passive: 30, detractor: 55 },
+      customerSegments: { newChurn: 22, newRepeater: 16, stableRepeater: 40, repeaterChurn: 22 },
+      improvementImpact: 'medium',
+      comments: [
+        { type: '溢れている', count: 89, sample: 'ゴミ箱が満杯で周りに散らかっていました。' },
+        { type: '分別不明', count: 56, sample: '分別表示がわかりにくいです。' }
+      ]
+    },
+    {
+      id: 7,
+      category: 'S',
+      name: 'スタッフの知識',
+      negativeCount: 116,
+      totalCount: 178,
+      npsDistribution: { promoter: 18, passive: 37, detractor: 45 },
+      customerSegments: { newChurn: 35, newRepeater: 23, stableRepeater: 25, repeaterChurn: 17 },
+      improvementImpact: 'medium',
+      comments: [
+        { type: 'メニュー不理解', count: 98, sample: '新商品について質問しても答えられませんでした。' },
+        { type: 'アレルギー対応', count: 80, sample: 'アレルギー成分を把握していませんでした。' }
+      ]
+    },
+    {
+      id: 8,
+      category: 'Q',
+      name: 'メニューの豊富さ',
+      negativeCount: 145,
+      totalCount: 234,
+      npsDistribution: { promoter: 20, passive: 35, detractor: 45 },
+      customerSegments: { newChurn: 45, newRepeater: 26, stableRepeater: 18, repeaterChurn: 11 },
+      improvementImpact: 'medium',
+      comments: [
+        { type: '選択肢不足', count: 145, sample: 'ベジタリアン向けメニューがありません。' },
+        { type: '季節商品少ない', count: 89, sample: '季節限定メニューがマンネリ化しています。' }
+      ]
+    },
+    {
+      id: 9,
+      category: 'C',
+      name: '換気・空気の質',
+      negativeCount: 73,
+      totalCount: 123,
+      npsDistribution: { promoter: 10, passive: 25, detractor: 65 },
+      customerSegments: { newChurn: 27, newRepeater: 16, stableRepeater: 35, repeaterChurn: 22 },
+      improvementImpact: 'medium',
+      comments: [
+        { type: '空気がこもる', count: 78, sample: '店内の空気が悪く、長居できません。' },
+        { type: 'タバコ臭', count: 45, sample: '分煙が不十分でタバコの臭いが気になります。' }
+      ]
+    },
+    {
+      id: 10,
+      category: 'S',
+      name: '問題解決能力',
+      negativeCount: 55,
+      totalCount: 98,
+      npsDistribution: { promoter: 12, passive: 28, detractor: 60 },
+      customerSegments: { newChurn: 38, newRepeater: 24, stableRepeater: 22, repeaterChurn: 16 },
+      improvementImpact: 'medium',
+      comments: [
+        { type: '対応力不足', count: 67, sample: 'クレーム対応が不適切でした。' },
+        { type: '権限不足', count: 31, sample: '責任者を呼ぶまで何も解決しませんでした。' }
+      ]
+    },
+    // 残り20項目も同様の形式で続く（省略）
+    { id: 11, category: 'Q', name: '分量の適切さ', negativeCount: 99, totalCount: 187, npsDistribution: { promoter: 22, passive: 38, detractor: 40 }, customerSegments: { newChurn: 28, newRepeater: 20, stableRepeater: 32, repeaterChurn: 20 }, improvementImpact: 'medium' },
+    { id: 12, category: 'C', name: '床の清潔さ', negativeCount: 57, totalCount: 112, npsDistribution: { promoter: 18, passive: 35, detractor: 47 }, customerSegments: { newChurn: 20, newRepeater: 15, stableRepeater: 42, repeaterChurn: 23 }, improvementImpact: 'medium' },
+    { id: 13, category: 'S', name: '特別な要望への対応', negativeCount: 36, totalCount: 76, npsDistribution: { promoter: 25, passive: 40, detractor: 35 }, customerSegments: { newChurn: 40, newRepeater: 25, stableRepeater: 20, repeaterChurn: 15 }, improvementImpact: 'medium' },
+    { id: 14, category: 'Q', name: '季節商品の魅力', negativeCount: 70, totalCount: 156, npsDistribution: { promoter: 30, passive: 35, detractor: 35 }, customerSegments: { newChurn: 45, newRepeater: 27, stableRepeater: 18, repeaterChurn: 10 }, improvementImpact: 'medium' },
+    { id: 15, category: 'C', name: '備品の整理整頓', negativeCount: 38, totalCount: 89, npsDistribution: { promoter: 20, passive: 45, detractor: 35 }, customerSegments: { newChurn: 25, newRepeater: 16, stableRepeater: 38, repeaterChurn: 21 }, improvementImpact: 'low' },
+    { id: 16, category: 'S', name: 'チームワーク', negativeCount: 27, totalCount: 67, npsDistribution: { promoter: 28, passive: 42, detractor: 30 }, customerSegments: { newChurn: 22, newRepeater: 16, stableRepeater: 40, repeaterChurn: 22 }, improvementImpact: 'low' },
+    { id: 17, category: 'Q', name: '味の一貫性', negativeCount: 89, totalCount: 234, npsDistribution: { promoter: 25, passive: 35, detractor: 40 }, customerSegments: { newChurn: 27, newRepeater: 18, stableRepeater: 35, repeaterChurn: 20 }, improvementImpact: 'low' },
+    { id: 18, category: 'C', name: '窓・ガラスの清潔さ', negativeCount: 20, totalCount: 56, npsDistribution: { promoter: 22, passive: 48, detractor: 30 }, customerSegments: { newChurn: 18, newRepeater: 14, stableRepeater: 45, repeaterChurn: 23 }, improvementImpact: 'low' },
+    { id: 19, category: 'S', name: '注文の正確性', negativeCount: 46, totalCount: 145, npsDistribution: { promoter: 30, passive: 35, detractor: 35 }, customerSegments: { newChurn: 35, newRepeater: 23, stableRepeater: 25, repeaterChurn: 17 }, improvementImpact: 'low' },
+    { id: 20, category: 'Q', name: '特別メニューの満足度', negativeCount: 28, totalCount: 98, npsDistribution: { promoter: 35, passive: 40, detractor: 25 }, customerSegments: { newChurn: 42, newRepeater: 26, stableRepeater: 20, repeaterChurn: 12 }, improvementImpact: 'low' },
+    { id: 21, category: 'C', name: 'テーブルの清潔さ', negativeCount: 49, totalCount: 187, npsDistribution: { promoter: 28, passive: 40, detractor: 32 }, customerSegments: { newChurn: 25, newRepeater: 17, stableRepeater: 36, repeaterChurn: 22 }, improvementImpact: 'low' },
+    { id: 22, category: 'S', name: '笑顔・親切さ', negativeCount: 54, totalCount: 234, npsDistribution: { promoter: 40, passive: 35, detractor: 25 }, customerSegments: { newChurn: 30, newRepeater: 21, stableRepeater: 30, repeaterChurn: 19 }, improvementImpact: 'low' },
+    { id: 23, category: 'Q', name: '見た目・盛り付け', negativeCount: 33, totalCount: 156, npsDistribution: { promoter: 32, passive: 43, detractor: 25 }, customerSegments: { newChurn: 28, newRepeater: 20, stableRepeater: 32, repeaterChurn: 20 }, improvementImpact: 'low' },
+    { id: 24, category: 'C', name: '外観・入口の清潔さ', negativeCount: 14, totalCount: 78, npsDistribution: { promoter: 35, passive: 45, detractor: 20 }, customerSegments: { newChurn: 32, newRepeater: 23, stableRepeater: 28, repeaterChurn: 17 }, improvementImpact: 'low' },
+    { id: 25, category: 'S', name: '接客態度', negativeCount: 47, totalCount: 312, npsDistribution: { promoter: 45, passive: 35, detractor: 20 }, customerSegments: { newChurn: 22, newRepeater: 16, stableRepeater: 40, repeaterChurn: 22 }, improvementImpact: 'low' },
+    { id: 26, category: 'Q', name: '商品の鮮度', negativeCount: 32, totalCount: 267, npsDistribution: { promoter: 38, passive: 40, detractor: 22 }, customerSegments: { newChurn: 25, newRepeater: 17, stableRepeater: 36, repeaterChurn: 22 }, improvementImpact: 'low' },
+    { id: 27, category: 'C', name: '店内の清潔さ', negativeCount: 31, totalCount: 345, npsDistribution: { promoter: 42, passive: 38, detractor: 20 }, customerSegments: { newChurn: 20, newRepeater: 15, stableRepeater: 42, repeaterChurn: 23 }, improvementImpact: 'low' },
+    { id: 28, category: 'S', name: 'スタッフの清潔感', negativeCount: 17, totalCount: 289, npsDistribution: { promoter: 48, passive: 37, detractor: 15 }, customerSegments: { newChurn: 24, newRepeater: 17, stableRepeater: 38, repeaterChurn: 21 }, improvementImpact: 'low' },
+    { id: 29, category: 'Q', name: '食材の品質', negativeCount: 16, totalCount: 412, npsDistribution: { promoter: 50, passive: 35, detractor: 15 }, customerSegments: { newChurn: 22, newRepeater: 17, stableRepeater: 40, repeaterChurn: 21 }, improvementImpact: 'low' },
+    { id: 30, category: 'C', name: '厨房の衛生管理', negativeCount: 8, totalCount: 378, npsDistribution: { promoter: 55, passive: 35, detractor: 10 }, customerSegments: { newChurn: 20, newRepeater: 16, stableRepeater: 42, repeaterChurn: 22 }, improvementImpact: 'low' }
+  ];
+
+  // コメントから抽出した改善タスクデータ
+  const commentTaskItems = [
+    {
+      id: 1,
+      taskName: 'Wi-Fi環境の改善',
+      mentionCount: 234, // 言及件数
+      mentionRate: 26.2, // ネガティブコメント内での言及率
+      urgency: 'high',
+      npsDistribution: { promoter: 15, passive: 25, detractor: 60 }, // 推奨者、中立者、批判者の割合
+      customerSegments: { 
+        newChurn: 18,        // 新規離脱
+        newRepeater: 12,     // 新規リピーター  
+        stableRepeater: 45,  // 安定リピーター
+        repeaterChurn: 25    // リピーター離脱
+      },
+      keyPhrases: [
+        { phrase: 'Wi-Fiが繋がらない', count: 89, sample: 'Wi-Fiが全く繋がらず仕事ができませんでした。' },
+        { phrase: '速度が遅い', count: 67, sample: 'ネット速度が遅すぎて動画が見れません。' },
+        { phrase: 'パスワードがわからない', count: 45, sample: 'Wi-Fiのパスワードがどこにも書いていない。' },
+        { phrase: '途切れる', count: 33, sample: '頻繁に接続が切れて不便です。' }
+      ]
+    },
+    {
+      id: 2,
+      taskName: '混雑時の座席管理改善',
+      mentionCount: 189,
+      mentionRate: 21.2,
+      urgency: 'high',
+      npsDistribution: { promoter: 8, passive: 32, detractor: 60 },
+      customerSegments: { newChurn: 28, newRepeater: 15, stableRepeater: 35, repeaterChurn: 22 },
+      keyPhrases: [
+        { phrase: '席が見つからない', count: 98, sample: 'ランチタイムで20分も席を探し回りました。' },
+        { phrase: '予約ができない', count: 56, sample: '予約システムがないので確実に座れません。' },
+        { phrase: '相席の強要', count: 35, sample: '混んでいるからと無理やり相席にされました。' }
+      ]
+    },
+    {
+      id: 3,
+      taskName: '騒音対策の実施',
+      mentionCount: 156,
+      mentionRate: 17.5,
+      urgency: 'high',
+      npsDistribution: { promoter: 5, passive: 20, detractor: 75 },
+      customerSegments: { newChurn: 15, newRepeater: 8, stableRepeater: 52, repeaterChurn: 25 },
+      keyPhrases: [
+        { phrase: 'うるさすぎる', count: 78, sample: '隣の会話が丸聞こえで集中できません。' },
+        { phrase: '音楽が大きい', count: 45, sample: 'BGMの音量が大きすぎます。' },
+        { phrase: '子供の騒ぎ声', count: 33, sample: '子供が走り回っていても注意されません。' }
+      ]
+    },
+    {
+      id: 4,
+      taskName: '決済方法の多様化',
+      mentionCount: 145,
+      mentionRate: 16.3,
+      urgency: 'medium',
+      npsDistribution: { promoter: 10, passive: 30, detractor: 60 },
+      customerSegments: { newChurn: 35, newRepeater: 22, stableRepeater: 28, repeaterChurn: 15 },
+      keyPhrases: [
+        { phrase: 'PayPayが使えない', count: 67, sample: 'PayPayが使えないので不便です。' },
+        { phrase: 'クレジットカード非対応', count: 45, sample: '現金のみは時代遅れです。' },
+        { phrase: '電子マネー非対応', count: 33, sample: 'Suicaで払えないのが残念。' }
+      ]
+    },
+    {
+      id: 5,
+      taskName: 'メニューの視認性向上',
+      mentionCount: 134,
+      mentionRate: 15.0,
+      urgency: 'medium',
+      npsDistribution: { promoter: 15, passive: 25, detractor: 60 },
+      customerSegments: { newChurn: 42, newRepeater: 25, stableRepeater: 20, repeaterChurn: 13 },
+      keyPhrases: [
+        { phrase: '文字が小さい', count: 56, sample: 'メニューの文字が小さすぎて読めません。' },
+        { phrase: '写真がない', count: 45, sample: '料理の写真がないので選びにくい。' },
+        { phrase: 'アレルギー表示', count: 33, sample: 'アレルギー情報がわかりにくい。' }
+      ]
+    },
+    {
+      id: 6,
+      taskName: '駐車場の案内改善',
+      mentionCount: 123,
+      mentionRate: 13.8,
+      urgency: 'medium',
+      npsDistribution: { promoter: 12, passive: 33, detractor: 55 },
+      customerSegments: { newChurn: 28, newRepeater: 15, stableRepeater: 40, repeaterChurn: 17 },
+      keyPhrases: [
+        { phrase: '駐車場がわからない', count: 67, sample: '提携駐車場の場所がわかりませんでした。' },
+        { phrase: '満車が多い', count: 34, sample: 'いつも満車で困ります。' },
+        { phrase: '料金が高い', count: 22, sample: '駐車料金のサービスがないのが残念。' }
+      ]
+    },
+    {
+      id: 7,
+      taskName: '営業時間の延長検討',
+      mentionCount: 112,
+      mentionRate: 12.6,
+      urgency: 'medium',
+      npsDistribution: { promoter: 18, passive: 27, detractor: 55 },
+      customerSegments: { newChurn: 12, newRepeater: 8, stableRepeater: 65, repeaterChurn: 15 },
+      keyPhrases: [
+        { phrase: '閉店が早い', count: 78, sample: '20時閉店は早すぎます。' },
+        { phrase: '朝開いていない', count: 34, sample: '朝7時から開けてほしい。' }
+      ]
+    },
+    {
+      id: 8,
+      taskName: 'テイクアウト容器の改良',
+      mentionCount: 98,
+      mentionRate: 11.0,
+      urgency: 'medium',
+      npsDistribution: { promoter: 8, passive: 22, detractor: 70 },
+      customerSegments: { newChurn: 22, newRepeater: 15, stableRepeater: 45, repeaterChurn: 18 },
+      keyPhrases: [
+        { phrase: '容器が漏れる', count: 45, sample: 'スープが漏れて鞄が汚れました。' },
+        { phrase: 'エコじゃない', count: 33, sample: 'プラスチック容器は環境に悪い。' },
+        { phrase: '温度が保てない', count: 20, sample: '家に着く頃には冷めています。' }
+      ]
+    },
+    {
+      id: 9,
+      taskName: '商品説明の充実',
+      mentionCount: 87,
+      mentionRate: 9.8,
+      urgency: 'low',
+      npsDistribution: { promoter: 22, passive: 48, detractor: 30 },
+      customerSegments: { newChurn: 38, newRepeater: 25, stableRepeater: 22, repeaterChurn: 15 },
+      keyPhrases: [
+        { phrase: '内容がわからない', count: 45, sample: '新商品の説明が不十分です。' },
+        { phrase: 'カロリー表示', count: 23, sample: 'カロリー表示がないので困ります。' },
+        { phrase: '産地表示', count: 19, sample: '食材の産地を知りたいです。' }
+      ]
+    },
+    {
+      id: 10,
+      taskName: 'BGMの見直し',
+      mentionCount: 76,
+      mentionRate: 8.5,
+      urgency: 'low',
+      npsDistribution: { promoter: 25, passive: 35, detractor: 40 },
+      customerSegments: { newChurn: 8, newRepeater: 5, stableRepeater: 72, repeaterChurn: 15 },
+      keyPhrases: [
+        { phrase: '音楽が合わない', count: 34, sample: '店の雰囲気に合わない音楽です。' },
+        { phrase: '同じ曲ばかり', count: 23, sample: 'いつも同じ曲でうんざりします。' },
+        { phrase: '音量調整', count: 19, sample: '時間帯で音量を変えてほしい。' }
+      ]
+    },
+    // 残り20項目
+    { id: 11, taskName: '照明の調整', mentionCount: 65, mentionRate: 7.3, urgency: 'low', npsDistribution: { promoter: 20, passive: 40, detractor: 40 }, customerSegments: { newChurn: 10, newRepeater: 15, stableRepeater: 55, repeaterChurn: 20 } },
+    { id: 12, taskName: '従業員研修の強化', mentionCount: 58, mentionRate: 6.5, urgency: 'low', npsDistribution: { promoter: 10, passive: 35, detractor: 55 }, customerSegments: { newChurn: 35, newRepeater: 20, stableRepeater: 25, repeaterChurn: 20 } },
+    { id: 13, taskName: 'ポイントカードの導入', mentionCount: 54, mentionRate: 6.1, urgency: 'low', npsDistribution: { promoter: 45, passive: 35, detractor: 20 }, customerSegments: { newChurn: 5, newRepeater: 8, stableRepeater: 75, repeaterChurn: 12 } },
+    { id: 14, taskName: '季節メニューの充実', mentionCount: 48, mentionRate: 5.4, urgency: 'low', npsDistribution: { promoter: 35, passive: 40, detractor: 25 }, customerSegments: { newChurn: 15, newRepeater: 18, stableRepeater: 55, repeaterChurn: 12 } },
+    { id: 15, taskName: '子供向けサービス', mentionCount: 45, mentionRate: 5.0, urgency: 'low', npsDistribution: { promoter: 25, passive: 45, detractor: 30 }, customerSegments: { newChurn: 40, newRepeater: 25, stableRepeater: 20, repeaterChurn: 15 } },
+    { id: 16, taskName: 'SNS活用の改善', mentionCount: 41, mentionRate: 4.6, urgency: 'low', npsDistribution: { promoter: 40, passive: 35, detractor: 25 }, customerSegments: { newChurn: 45, newRepeater: 30, stableRepeater: 15, repeaterChurn: 10 } },
+    { id: 17, taskName: '荷物置き場の設置', mentionCount: 38, mentionRate: 4.3, urgency: 'low', npsDistribution: { promoter: 20, passive: 45, detractor: 35 }, customerSegments: { newChurn: 20, newRepeater: 12, stableRepeater: 48, repeaterChurn: 20 } },
+    { id: 18, taskName: '分煙対策の強化', mentionCount: 35, mentionRate: 3.9, urgency: 'low', npsDistribution: { promoter: 15, passive: 25, detractor: 60 }, customerSegments: { newChurn: 30, newRepeater: 15, stableRepeater: 35, repeaterChurn: 20 } },
+    { id: 19, taskName: 'アプリの開発', mentionCount: 32, mentionRate: 3.6, urgency: 'low', npsDistribution: { promoter: 55, passive: 30, detractor: 15 }, customerSegments: { newChurn: 8, newRepeater: 10, stableRepeater: 68, repeaterChurn: 14 } },
+    { id: 20, taskName: 'デリバリー対応', mentionCount: 29, mentionRate: 3.3, urgency: 'low', npsDistribution: { promoter: 35, passive: 40, detractor: 25 }, customerSegments: { newChurn: 25, newRepeater: 18, stableRepeater: 42, repeaterChurn: 15 } },
+    { id: 21, taskName: 'コンセント増設', mentionCount: 27, mentionRate: 3.0, urgency: 'low', npsDistribution: { promoter: 30, passive: 40, detractor: 30 }, customerSegments: { newChurn: 30, newRepeater: 22, stableRepeater: 30, repeaterChurn: 18 } },
+    { id: 22, taskName: '入口の改善', mentionCount: 24, mentionRate: 2.7, urgency: 'low', npsDistribution: { promoter: 15, passive: 35, detractor: 50 }, customerSegments: { newChurn: 45, newRepeater: 28, stableRepeater: 15, repeaterChurn: 12 } },
+    { id: 23, taskName: '会員特典の充実', mentionCount: 21, mentionRate: 2.4, urgency: 'low', npsDistribution: { promoter: 60, passive: 30, detractor: 10 }, customerSegments: { newChurn: 3, newRepeater: 5, stableRepeater: 85, repeaterChurn: 7 } },
+    { id: 24, taskName: 'ペット同伴対応', mentionCount: 19, mentionRate: 2.1, urgency: 'low', npsDistribution: { promoter: 30, passive: 35, detractor: 35 }, customerSegments: { newChurn: 35, newRepeater: 22, stableRepeater: 28, repeaterChurn: 15 } },
+    { id: 25, taskName: '多言語対応', mentionCount: 17, mentionRate: 1.9, urgency: 'low', npsDistribution: { promoter: 25, passive: 40, detractor: 35 }, customerSegments: { newChurn: 55, newRepeater: 32, stableRepeater: 8, repeaterChurn: 5 } },
+    { id: 26, taskName: '制服のリニューアル', mentionCount: 15, mentionRate: 1.7, urgency: 'low', npsDistribution: { promoter: 35, passive: 45, detractor: 20 }, customerSegments: { newChurn: 15, newRepeater: 12, stableRepeater: 58, repeaterChurn: 15 } },
+    { id: 27, taskName: '音響設備の更新', mentionCount: 13, mentionRate: 1.5, urgency: 'low', npsDistribution: { promoter: 25, passive: 50, detractor: 25 }, customerSegments: { newChurn: 10, newRepeater: 8, stableRepeater: 65, repeaterChurn: 17 } },
+    { id: 28, taskName: '休憩スペース設置', mentionCount: 11, mentionRate: 1.2, urgency: 'low', npsDistribution: { promoter: 30, passive: 40, detractor: 30 }, customerSegments: { newChurn: 28, newRepeater: 15, stableRepeater: 40, repeaterChurn: 17 } },
+    { id: 29, taskName: 'イベント開催', mentionCount: 9, mentionRate: 1.0, urgency: 'low', npsDistribution: { promoter: 50, passive: 35, detractor: 15 }, customerSegments: { newChurn: 12, newRepeater: 10, stableRepeater: 60, repeaterChurn: 18 } },
+    { id: 30, taskName: 'エコ活動の推進', mentionCount: 7, mentionRate: 0.8, urgency: 'low', npsDistribution: { promoter: 40, passive: 40, detractor: 20 }, customerSegments: { newChurn: 25, newRepeater: 20, stableRepeater: 35, repeaterChurn: 20 } }
+  ];
+
+  const toggleCard = (id) => {
+    setExpandedCards(prev => 
+      prev.includes(id) 
+        ? prev.filter(cardId => cardId !== id)
+        : [...prev, id]
+    );
+  };
+
+  // カテゴリーごとの設定
+  const categoryConfig = {
+    Q: { label: 'Quality', color: 'purple', bgClass: 'bg-purple-600', iconBgClass: 'bg-purple-100', iconColorClass: 'text-purple-600', icon: UtensilsCrossed },
+    S: { label: 'Service', color: 'blue', bgClass: 'bg-blue-600', iconBgClass: 'bg-blue-100', iconColorClass: 'text-blue-600', icon: Users },
+    C: { label: 'Cleanliness', color: 'emerald', bgClass: 'bg-emerald-600', iconBgClass: 'bg-emerald-100', iconColorClass: 'text-emerald-600', icon: Sparkles }
+  };
+
+  // 選択されたタスクタイプに基づいてデータを切り替え
+  const taskItems = activeTaskType === 'evaluation' ? evaluationTaskItems : commentTaskItems;
+
+  // 緊急度の設定
+  const urgencyConfig = {
+    high: { label: '高', color: 'text-red-600', bg: 'bg-red-100' },
+    medium: { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-100' },
+    low: { label: '低', color: 'text-green-600', bg: 'bg-green-100' }
+  };
+
+  // 難易度の設定
+  const difficultyConfig = {
+    easy: { label: '簡単', color: 'text-green-600', bg: 'bg-green-100' },
+    medium: { label: '普通', color: 'text-yellow-600', bg: 'bg-yellow-100' },
+    hard: { label: '困難', color: 'text-red-600', bg: 'bg-red-100' }
+  };
+
+  return (
+    <div className="p-6">
+      {/* ヘッダー */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">改善タスク一覧</h2>
+        <p className="text-gray-600">
+          {activeTaskType === 'evaluation' 
+            ? 'ネガティブ評価の高い項目から優先的に改善効果を表示' 
+            : 'コメント分析から抽出した改善タスクを緊急度順に表示'}
+        </p>
+      </div>
+
+      {/* タブ切り替え */}
+      <div className="mb-4">
+        <div className="flex gap-1 p-1 bg-gray-100 rounded-lg w-fit">
+          <button
+            onClick={() => {setActiveTaskType('evaluation'); setExpandedCards([]);}}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              activeTaskType === 'evaluation'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            店舗評価から抽出
+          </button>
+          <button
+            onClick={() => {setActiveTaskType('comments'); setExpandedCards([]);}}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+              activeTaskType === 'comments'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            コメントから抽出
+          </button>
+        </div>
+      </div>
+
+      {/* タスクテーブル */}
+      <Card className="border-0 shadow-lg overflow-hidden">
+        {/* テーブルヘッダー */}
+        {activeTaskType === 'evaluation' ? (
+          <div className="px-6 py-4 bg-white border-b border-gray-200">
+            <div className="grid grid-cols-11 gap-4 text-sm font-medium text-gray-700 items-center h-12">
+              <div className="col-span-2 flex items-center h-full">項目名</div>
+              <div className="col-span-1 flex flex-col items-center justify-center h-full text-center">
+                <span>ネガティブ</span>
+                <span>件数</span>
+              </div>
+              <div className="col-span-1 flex items-center justify-center h-full">改善効果</div>
+              <div className="col-span-1 flex flex-col items-center justify-center h-full text-center">
+                <span>新規</span>
+                <span>離脱</span>
+              </div>
+              <div className="col-span-1 flex flex-col items-center justify-center h-full text-center">
+                <span>新規</span>
+                <span>リピーター</span>
+              </div>
+              <div className="col-span-1 flex flex-col items-center justify-center h-full text-center">
+                <span>安定</span>
+                <span>リピーター</span>
+              </div>
+              <div className="col-span-1 flex flex-col items-center justify-center h-full text-center">
+                <span>リピーター</span>
+                <span>離脱</span>
+              </div>
+              <div className="col-span-1 flex items-center justify-center h-full">推奨者</div>
+              <div className="col-span-1 flex items-center justify-center h-full">中立者</div>
+              <div className="col-span-1 flex items-center justify-center h-full">批判者</div>
+            </div>
+          </div>
+        ) : (
+          <div className="px-6 py-4 bg-white border-b border-gray-200">
+            <div className="grid grid-cols-11 gap-4 text-sm font-medium text-gray-700 items-center h-12">
+              <div className="col-span-2 flex items-center h-full">タスク名</div>
+              <div className="col-span-1 flex items-center justify-center h-full">件数</div>
+              <div className="col-span-1 flex items-center justify-center h-full">改善効果</div>
+              <div className="col-span-1 flex flex-col items-center justify-center h-full text-center">
+                <span>新規</span>
+                <span>離脱</span>
+              </div>
+              <div className="col-span-1 flex flex-col items-center justify-center h-full text-center">
+                <span>新規</span>
+                <span>リピーター</span>
+              </div>
+              <div className="col-span-1 flex flex-col items-center justify-center h-full text-center">
+                <span>安定</span>
+                <span>リピーター</span>
+              </div>
+              <div className="col-span-1 flex flex-col items-center justify-center h-full text-center">
+                <span>リピーター</span>
+                <span>離脱</span>
+              </div>
+              <div className="col-span-1 flex items-center justify-center h-full">推奨者</div>
+              <div className="col-span-1 flex items-center justify-center h-full">中立者</div>
+              <div className="col-span-1 flex items-center justify-center h-full">批判者</div>
+            </div>
+          </div>
+        )}
+        
+        {/* タスクリスト */}
+        {activeTaskType === 'evaluation' ? (
+          // 店舗評価タスクの表示
+          evaluationTaskItems.map((item, index) => {
+          const config = categoryConfig[item.category];
+          const Icon = config.icon;
+          const isExpanded = expandedCards.includes(item.id);
+          
+          const impactConfig = {
+            high: { label: '高', color: 'text-red-600', bg: 'bg-red-100' },
+            medium: { label: '中', color: 'text-yellow-600', bg: 'bg-yellow-100' },
+            low: { label: '低', color: 'text-green-600', bg: 'bg-green-100' }
+          };
+          
+          // 各列の最大値を判定
+          const customerMax = Math.max(
+            item.customerSegments.newChurn,
+            item.customerSegments.newRepeater,
+            item.customerSegments.stableRepeater,
+            item.customerSegments.repeaterChurn
+          );
+          const npsMax = Math.max(
+            item.npsDistribution.promoter,
+            item.npsDistribution.passive,
+            item.npsDistribution.detractor
+          );
+
+          return (
+            <div key={item.id} className={`${index !== 0 ? 'border-t' : ''}`}>
+              <div 
+                className={`px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+                  isExpanded ? 'bg-gray-50' : ''
+                }`}
+                onClick={() => toggleCard(item.id)}
+              >
+                <div className="grid grid-cols-11 gap-4 items-center">
+                  {/* 項目名 */}
+                  <div className="col-span-2 flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg ${config.iconBgClass} flex items-center justify-center flex-shrink-0`}>
+                      <Icon className={`w-5 h-5 ${config.iconColorClass}`} />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">{item.name}</div>
+                      <div className="text-xs text-gray-500">#{index + 1} 優先度</div>
+                    </div>
+                  </div>
+                  
+                  {/* ネガティブ件数 */}
+                  <div className="col-span-1 text-center">
+                    <div className="flex flex-col items-center">
+                      <span className="text-base font-bold text-gray-900">
+                        {item.negativeCount}
+                      </span>
+                      <span className="text-xs text-gray-500">({Math.round((item.negativeCount / item.totalCount) * 100)}%)</span>
+                    </div>
+                  </div>
+                  
+                  {/* 改善効果 */}
+                  <div className="col-span-1 text-center">
+                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${impactConfig[item.improvementImpact].bg} ${impactConfig[item.improvementImpact].color}`}>
+                      {impactConfig[item.improvementImpact].label}
+                    </div>
+                  </div>
+                  
+                  {/* 新規離脱 */}
+                  <div className="col-span-1 text-center">
+                    <span className={`text-sm ${
+                      item.customerSegments.newChurn === customerMax ? 'font-bold text-red-600' : 'text-gray-700'
+                    }`}>
+                      {item.customerSegments.newChurn}%
+                    </span>
+                  </div>
+                  
+                  {/* 新規リピーター */}
+                  <div className="col-span-1 text-center">
+                    <span className={`text-sm ${
+                      item.customerSegments.newRepeater === customerMax ? 'font-bold text-blue-600' : 'text-gray-700'
+                    }`}>
+                      {item.customerSegments.newRepeater}%
+                    </span>
+                  </div>
+                  
+                  {/* 安定リピーター */}
+                  <div className="col-span-1 text-center">
+                    <span className={`text-sm ${
+                      item.customerSegments.stableRepeater === customerMax ? 'font-bold text-green-600' : 'text-gray-700'
+                    }`}>
+                      {item.customerSegments.stableRepeater}%
+                    </span>
+                  </div>
+                  
+                  {/* リピーター離脱 */}
+                  <div className="col-span-1 text-center">
+                    <span className={`text-sm ${
+                      item.customerSegments.repeaterChurn === customerMax ? 'font-bold text-orange-600' : 'text-gray-700'
+                    }`}>
+                      {item.customerSegments.repeaterChurn}%
+                    </span>
+                  </div>
+                  
+                  {/* 推奨者 */}
+                  <div className="col-span-1 text-center">
+                    <span className={`text-sm ${
+                      item.npsDistribution.promoter === npsMax ? 'font-bold text-emerald-600' : 'text-gray-700'
+                    }`}>
+                      {item.npsDistribution.promoter}%
+                    </span>
+                  </div>
+                  
+                  {/* 中立者 */}
+                  <div className="col-span-1 text-center">
+                    <span className={`text-sm ${
+                      item.npsDistribution.passive === npsMax ? 'font-bold text-amber-600' : 'text-gray-700'
+                    }`}>
+                      {item.npsDistribution.passive}%
+                    </span>
+                  </div>
+                  
+                  {/* 批判者 */}
+                  <div className="col-span-1 text-center">
+                    <span className={`text-sm ${
+                      item.npsDistribution.detractor === npsMax ? 'font-bold text-red-600' : 'text-gray-700'
+                    }`}>
+                      {item.npsDistribution.detractor}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* 展開時の詳細 */}
+              {isExpanded && item.comments && (
+                <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">コメント分類</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                    {item.comments.map((comment, idx) => (
+                      <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-gray-800">{comment.type}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {comment.count}件
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600 italic">
+                          "{comment.sample}"
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      改善計画を作成
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Users className="w-4 h-4 mr-2" />
+                      担当者を割り当て
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })
+        ) : (
+          // コメントタスクの表示
+          commentTaskItems.map((item, index) => {
+            const isExpanded = expandedCards.includes(item.id);
+            
+            // 各列の最大値を判定
+            const customerMax = Math.max(
+              item.customerSegments.newChurn,
+              item.customerSegments.newRepeater,
+              item.customerSegments.stableRepeater,
+              item.customerSegments.repeaterChurn
+            );
+            const npsMax = Math.max(
+              item.npsDistribution.promoter,
+              item.npsDistribution.passive,
+              item.npsDistribution.detractor
+            );
+            
+            return (
+              <div key={item.id} className={`${index !== 0 ? 'border-t' : ''}`}>
+                <div 
+                  className={`px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+                    isExpanded ? 'bg-gray-50' : ''
+                  }`}
+                  onClick={() => toggleCard(item.id)}
+                >
+                  <div className="grid grid-cols-11 gap-4 items-center">
+                    {/* タスク名 */}
+                    <div className="col-span-2 flex items-center gap-3">
+                      <div>
+                        <div className="font-medium text-gray-900">{item.taskName}</div>
+                        <span className="text-xs text-gray-500">#{index + 1} 優先度</span>
+                      </div>
+                    </div>
+                    
+                    {/* 件数（言及率） */}
+                    <div className="col-span-1 text-center">
+                      <div className="flex flex-col items-center">
+                        <span className="text-base font-bold text-gray-900">{item.mentionCount}</span>
+                        <span className="text-xs text-gray-500">({item.mentionRate}%)</span>
+                      </div>
+                    </div>
+                    
+                    {/* 改善効果 */}
+                    <div className="col-span-1 text-center">
+                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${urgencyConfig[item.urgency].bg} ${urgencyConfig[item.urgency].color}`}>
+                        {urgencyConfig[item.urgency].label}
+                      </div>
+                    </div>
+                    
+                    {/* 新規離脱 */}
+                    <div className="col-span-1 text-center">
+                      <span className={`text-sm ${
+                        item.customerSegments.newChurn === customerMax ? 'font-bold text-red-600' : 'text-gray-700'
+                      }`}>
+                        {item.customerSegments.newChurn}%
+                      </span>
+                    </div>
+                    
+                    {/* 新規リピーター */}
+                    <div className="col-span-1 text-center">
+                      <span className={`text-sm ${
+                        item.customerSegments.newRepeater === customerMax ? 'font-bold text-blue-600' : 'text-gray-700'
+                      }`}>
+                        {item.customerSegments.newRepeater}%
+                      </span>
+                    </div>
+                    
+                    {/* 安定リピーター */}
+                    <div className="col-span-1 text-center">
+                      <span className={`text-sm ${
+                        item.customerSegments.stableRepeater === customerMax ? 'font-bold text-green-600' : 'text-gray-700'
+                      }`}>
+                        {item.customerSegments.stableRepeater}%
+                      </span>
+                    </div>
+                    
+                    {/* リピーター離脱 */}
+                    <div className="col-span-1 text-center">
+                      <span className={`text-sm ${
+                        item.customerSegments.repeaterChurn === customerMax ? 'font-bold text-orange-600' : 'text-gray-700'
+                      }`}>
+                        {item.customerSegments.repeaterChurn}%
+                      </span>
+                    </div>
+                    
+                    {/* 推奨者 */}
+                    <div className="col-span-1 text-center">
+                      <span className={`text-sm ${
+                        item.npsDistribution.promoter === npsMax ? 'font-bold text-emerald-600' : 'text-gray-700'
+                      }`}>
+                        {item.npsDistribution.promoter}%
+                      </span>
+                    </div>
+                    
+                    {/* 中立者 */}
+                    <div className="col-span-1 text-center">
+                      <span className={`text-sm ${
+                        item.npsDistribution.passive === npsMax ? 'font-bold text-amber-600' : 'text-gray-700'
+                      }`}>
+                        {item.npsDistribution.passive}%
+                      </span>
+                    </div>
+                    
+                    {/* 批判者 */}
+                    <div className="col-span-1 text-center">
+                      <span className={`text-sm ${
+                        item.npsDistribution.detractor === npsMax ? 'font-bold text-red-600' : 'text-gray-700'
+                      }`}>
+                        {item.npsDistribution.detractor}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 展開時の詳細 */}
+                {isExpanded && item.keyPhrases && (
+                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                    <div className="mb-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">主要な顧客の声</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {item.keyPhrases.map((phrase, idx) => (
+                          <div key={idx} className="bg-white p-3 rounded-lg border border-gray-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-medium text-gray-800">{phrase.phrase}</span>
+                              <Badge variant="secondary" className="text-xs">
+                                {phrase.count}件
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 italic">
+                              "{phrase.sample}"
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    
+                    <div className="flex items-center gap-3">
+                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">
+                        <Lightbulb className="w-4 h-4 mr-2" />
+                        改善アクション作成
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        <Activity className="w-4 h-4 mr-2" />
+                        詳細分析を見る
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </Card>
+    </div>
+  );
+};
 
 // 店舗別タブの内容 - 超モダンなダッシュボード
 const StoreByStoreTab = ({ companyId }) => {
+  const [activeSubTab, setActiveSubTab] = useState(0);
   const [stores, setStores] = useState([]);
-  const [selectedStore, setSelectedStore] = useState('all');
-  const [selectedPeriod, setSelectedPeriod] = useState('today');
+  const [selectedStore, setSelectedStore] = useState('');
+  const [selectedPeriod, setSelectedPeriod] = useState('2025/12');
   const [isLoading, setIsLoading] = useState(true);
-
+  
   // 店舗データ取得
   useEffect(() => {
     const fetchStores = async () => {
@@ -136,6 +1275,10 @@ const StoreByStoreTab = ({ companyId }) => {
           .order('name');
         if (error) throw error;
         setStores(data || []);
+        // 最初の店舗を選択
+        if (data && data.length > 0 && !selectedStore) {
+          setSelectedStore(data[0].id);
+        }
       } catch (error) {
         console.error('Error:', error);
       } finally {
@@ -144,72 +1287,200 @@ const StoreByStoreTab = ({ companyId }) => {
     };
     fetchStores();
   }, [companyId]);
+  
+  const handleSubTabChange = (event, newValue) => {
+    setActiveSubTab(newValue);
+  };
+
+  return (
+    <Box sx={{ 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column',
+      backgroundColor: '#f8fafc'
+    }}>
+      {/* サブタブヘッダー */}
+      <Box sx={{
+        backgroundColor: '#fff',
+        borderBottom: '1px solid #e2e8f0',
+        px: 3,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <Tabs
+          value={activeSubTab}
+          onChange={handleSubTabChange}
+          sx={{
+            minHeight: 48,
+            '& .MuiTab-root': {
+              textTransform: 'none',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              minHeight: 48,
+              px: 3,
+              color: '#64748b',
+              '&.Mui-selected': {
+                color: '#5e17eb'
+              }
+            },
+            '& .MuiTabs-indicator': {
+              backgroundColor: '#5e17eb',
+              height: 3
+            }
+          }}
+        >
+          <Tab label="概要" />
+          <Tab label="タスク" />
+          <Tab label="売上影響" />
+          <Tab label="店舗評価" />
+          <Tab label="顧客傾向" />
+          <Tab label="コメント" />
+        </Tabs>
+        
+        {/* 店舗選択 */}
+        <div className="flex gap-3">
+          <Select value={selectedStore} onValueChange={setSelectedStore}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="店舗を選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {stores.map((store) => (
+                <SelectItem key={store.id} value={store.id}>
+                  {store.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="期間を選択" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="2025/12">2025/12</SelectItem>
+              <SelectItem value="2025/11">2025/11</SelectItem>
+              <SelectItem value="2025/10">2025/10</SelectItem>
+              <SelectItem value="2025/09">2025/09</SelectItem>
+              <SelectItem value="2025/08">2025/08</SelectItem>
+              <SelectItem value="2025/07">2025/07</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </Box>
+
+      {/* サブタブコンテンツ */}
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
+        <TabPanel value={activeSubTab} index={0}>
+          <StoreOverviewTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} stores={stores} />
+        </TabPanel>
+        <TabPanel value={activeSubTab} index={1}>
+          <TasksTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+        </TabPanel>
+        <TabPanel value={activeSubTab} index={2}>
+          <SalesImpactTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+        </TabPanel>
+        <TabPanel value={activeSubTab} index={3}>
+          <StoreEvaluationTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+        </TabPanel>
+        <TabPanel value={activeSubTab} index={4}>
+          <CustomerTrendsTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+        </TabPanel>
+        <TabPanel value={activeSubTab} index={5}>
+          <CommentsTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+        </TabPanel>
+      </Box>
+    </Box>
+  );
+};
+
+// 店舗概要タブ
+const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) => {
+  const [isComparisonOpen, setIsComparisonOpen] = useState(true);
+  const [isAlertsOpen, setIsAlertsOpen] = useState(true);
+  const [isInsightsOpen, setIsInsightsOpen] = useState(true);
 
 
   // KPIカード設定
   const kpiCards = [
     {
-      title: "本日の売上",
-      metric: "¥4,892,450",
-      progress: 82,
-      target: "¥6,000,000",
-      delta: "+23.5%",
+      title: "推奨スコア",
+      metric: "+42pt",
+      progress: 84,
+      target: "+50pt",
+      delta: "+8pt",
       deltaType: "increase",
-      sparklineData: [30, 35, 40, 38, 45, 50, 48, 55, 60, 58, 65, 70]
+      sparklineData: [41, 42, 42]  // 10月, 11月, 12月の3ヶ月分
     },
     {
-      title: "来店客数",
-      metric: "2,847",
-      progress: 71,
-      target: "4,000",
-      delta: "+12.3%",
+      title: "リピート率",
+      metric: "78.5%",
+      progress: 87,
+      target: "90%",
+      delta: "+5.2%",
       deltaType: "increase",
-      sparklineData: [20, 25, 23, 30, 35, 33, 40, 38, 45, 50, 48, 55]
+      sparklineData: [78, 78.3, 78.5]  // 10月, 11月, 12月の3ヶ月分
     },
     {
-      title: "平均客単価",
-      metric: "¥1,719",
+      title: "3ヶ月以内再来店意向（リピーター）",
+      metric: "95.2%",
       progress: 95,
-      target: "¥1,800",
-      delta: "+5.8%",
+      target: "100%",
+      delta: "+2.1%",
       deltaType: "increase",
-      sparklineData: [1600, 1650, 1620, 1680, 1700, 1690, 1710, 1705, 1720, 1715, 1719, 1719]
+      sparklineData: [94.9, 95.1, 95.2]  // 10月, 11月, 12月の3ヶ月分
     },
     {
-      title: "顧客満足度",
-      metric: "4.8",
-      progress: 96,
-      target: "5.0",
-      delta: "+0.3",
+      title: "3ヶ月以内再来店意向（新規）",
+      metric: "88.5%",
+      progress: 88,
+      target: "100%",
+      delta: "+4.2%",
       deltaType: "increase",
-      sparklineData: [4.5, 4.6, 4.5, 4.7, 4.7, 4.8, 4.7, 4.8, 4.8, 4.9, 4.8, 4.8]
+      sparklineData: [88.3, 88.4, 88.5]  // 10月, 11月, 12月の3ヶ月分
     }
   ];
 
-  // 時間帯別パフォーマンスデータ
-  const hourlyPerformance = [
-    { hour: "9:00", sales: 234000, orders: 45, satisfaction: 92 },
-    { hour: "10:00", sales: 456000, orders: 89, satisfaction: 94 },
-    { hour: "11:00", sales: 678000, orders: 134, satisfaction: 91 },
-    { hour: "12:00", sales: 892000, orders: 187, satisfaction: 89 },
-    { hour: "13:00", sales: 756000, orders: 156, satisfaction: 87 },
-    { hour: "14:00", sales: 534000, orders: 98, satisfaction: 93 },
-    { hour: "15:00", sales: 445000, orders: 87, satisfaction: 95 },
-    { hour: "16:00", sales: 567000, orders: 112, satisfaction: 94 },
-    { hour: "17:00", sales: 789000, orders: 156, satisfaction: 92 },
-    { hour: "18:00", sales: 923000, orders: 189, satisfaction: 90 },
-    { hour: "19:00", sales: 834000, orders: 167, satisfaction: 88 },
-    { hour: "20:00", sales: 645000, orders: 128, satisfaction: 91 }
+  // 5ヶ月移動平均を計算する関数
+  const calculateMovingAverage = (data, key, windowSize = 5) => {
+    return data.map((item, index) => {
+      if (index < windowSize - 1) {
+        return null;
+      }
+      const sum = data.slice(index - windowSize + 1, index + 1).reduce((acc, d) => acc + d[key], 0);
+      return sum / windowSize;
+    });
+  };
+
+  // 月別パフォーマンスデータ
+  const monthlyPerformanceRaw = [
+    { month: "1月", nps: 35, repeatRate: 72, repeatVisit: 93, newVisit: 85 },
+    { month: "2月", nps: 37, repeatRate: 73, repeatVisit: 93.5, newVisit: 85.5 },
+    { month: "3月", nps: 38, repeatRate: 74, repeatVisit: 94, newVisit: 86 },
+    { month: "4月", nps: 36, repeatRate: 74.5, repeatVisit: 93.8, newVisit: 86.5 },
+    { month: "5月", nps: 39, repeatRate: 75, repeatVisit: 94.2, newVisit: 87 },
+    { month: "6月", nps: 40, repeatRate: 76, repeatVisit: 94.5, newVisit: 87.5 },
+    { month: "7月", nps: 39, repeatRate: 76.5, repeatVisit: 94.3, newVisit: 87.8 },
+    { month: "8月", nps: 41, repeatRate: 77, repeatVisit: 94.8, newVisit: 88 },
+    { month: "9月", nps: 42, repeatRate: 77.5, repeatVisit: 95, newVisit: 88.2 },
+    { month: "10月", nps: 41, repeatRate: 78, repeatVisit: 94.9, newVisit: 88.3 },
+    { month: "11月", nps: 42, repeatRate: 78.3, repeatVisit: 95.1, newVisit: 88.4 },
+    { month: "12月", nps: 42, repeatRate: 78.5, repeatVisit: 95.2, newVisit: 88.5 }
   ];
 
-  // トップ商品データ
-  const topProducts = [
-    { name: "カフェラテ", sales: 892340, units: 456, growth: 12.3 },
-    { name: "アメリカーノ", sales: 734560, units: 523, growth: 8.7 },
-    { name: "キャラメルマキアート", sales: 623890, units: 234, growth: 15.2 },
-    { name: "抹茶ラテ", sales: 556780, units: 312, growth: -2.1 },
-    { name: "チーズケーキ", sales: 445670, units: 189, growth: 22.5 }
-  ];
+  // 移動平均を追加
+  const npsMA = calculateMovingAverage(monthlyPerformanceRaw, 'nps');
+  const repeatRateMA = calculateMovingAverage(monthlyPerformanceRaw, 'repeatRate');
+  const repeatVisitMA = calculateMovingAverage(monthlyPerformanceRaw, 'repeatVisit');
+  const newVisitMA = calculateMovingAverage(monthlyPerformanceRaw, 'newVisit');
+
+  const monthlyPerformance = monthlyPerformanceRaw.map((item, index) => ({
+    ...item,
+    npsMA: npsMA[index],
+    repeatRateMA: repeatRateMA[index],
+    repeatVisitMA: repeatVisitMA[index],
+    newVisitMA: newVisitMA[index]
+  }));
+
 
   // 店舗比較データ
   const storeComparison = [
@@ -221,48 +1492,7 @@ const StoreByStoreTab = ({ companyId }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 p-6">
-      {/* ヘッダー */}
-      <Card className="mb-6 border-0 shadow-xl bg-white/80 backdrop-blur">
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                店舗パフォーマンス分析
-              </CardTitle>
-              <CardDescription className="mt-2">
-                リアルタイムデータと詳細な分析
-              </CardDescription>
-            </div>
-            <div className="flex gap-3">
-              <Select value={selectedStore} onValueChange={setSelectedStore}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="店舗を選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全店舗</SelectItem>
-                  {stores.map((store) => (
-                    <SelectItem key={store.id} value={store.id}>
-                      {store.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="期間を選択" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="today">本日</SelectItem>
-                  <SelectItem value="week">今週</SelectItem>
-                  <SelectItem value="month">今月</SelectItem>
-                  <SelectItem value="quarter">四半期</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 p-6 pb-0">
 
 
       {/* KPIカード */}
@@ -277,7 +1507,14 @@ const StoreByStoreTab = ({ companyId }) => {
                 <div className="space-y-2">
                   <div className="text-3xl font-bold">{kpi.metric}</div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={kpi.deltaType === 'increase' ? 'default' : 'destructive'} className="gap-1">
+                    <Badge 
+                      variant={kpi.deltaType === 'increase' ? 'outline' : 'destructive'} 
+                      className="gap-1 border-0 text-white font-semibold"
+                      style={{
+                        backgroundColor: kpi.deltaType === 'increase' ? COLORS[index] : undefined,
+                        color: kpi.deltaType === 'increase' ? 'white' : undefined
+                      }}
+                    >
                       {kpi.deltaType === 'increase' ? (
                         <ArrowUpRight className="w-3 h-3" />
                       ) : (
@@ -285,28 +1522,37 @@ const StoreByStoreTab = ({ companyId }) => {
                       )}
                       {kpi.delta}
                     </Badge>
-                    <span className="text-xs text-muted-foreground">vs 前日</span>
+                    <span className="text-xs text-muted-foreground">vs 先月</span>
                   </div>
                 </div>
                 <div className="w-20 h-12">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={kpi.sparklineData.map((value, i) => ({ value }))}>
+                    <AreaChart 
+                      data={kpi.sparklineData.map((value, i) => ({ value }))}
+                      margin={{ top: 2, right: 2, left: 2, bottom: 2 }}
+                    >
+                      <defs>
+                        <linearGradient id={`kpiGradient${index}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={COLORS[index]} stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor={COLORS[index]} stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <YAxis 
+                        hide 
+                        domain={[
+                          (dataMin) => Math.floor(dataMin * 0.98),
+                          (dataMax) => Math.ceil(dataMax * 1.02)
+                        ]} 
+                      />
                       <Area
                         type="monotone"
                         dataKey="value"
-                        stroke={COLORS[index % COLORS.length]}
-                        fill={COLORS[index % COLORS.length]}
-                        fillOpacity={0.2}
+                        stroke={COLORS[index]}
+                        fill={`url(#kpiGradient${index})`}
                         strokeWidth={2}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
-                </div>
-              </div>
-              <div className="mt-4 space-y-2">
-                <Progress value={kpi.progress} className="h-2" />
-                <div className="text-xs text-muted-foreground">
-                  目標: {kpi.target} ({kpi.progress}%)
                 </div>
               </div>
             </CardContent>
@@ -316,75 +1562,253 @@ const StoreByStoreTab = ({ companyId }) => {
 
       {/* メインチャートセクション */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* 時間帯別売上トレンド */}
-        <div className="lg:col-span-2">
-          <Card className="border-0 shadow-xl bg-white/80 backdrop-blur h-full">
-            <CardHeader>
-              <CardTitle>時間帯別パフォーマンス</CardTitle>
+        {/* NPS詳細分析 - 左側に配置 */}
+        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur h-[400px] flex flex-col">
+          <CardHeader className="pb-1">
+            <CardTitle className="text-base">推奨スコア詳細分析</CardTitle>
+            <CardDescription className="text-xs">推奨者・中立者・批判者の内訳</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 pt-0 pb-3 flex flex-col justify-between">
+            <div className="space-y-2">
+              {/* 半円グラフ */}
+              <div className="relative h-40 -my-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <defs>
+                      <linearGradient id="promoterGradient" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#34d399" stopOpacity={1} />
+                      </linearGradient>
+                      <linearGradient id="passiveGradient" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#f59e0b" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#fbbf24" stopOpacity={1} />
+                      </linearGradient>
+                      <linearGradient id="detractorGradient" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#ef4444" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#f87171" stopOpacity={1} />
+                      </linearGradient>
+                    </defs>
+                    <Pie
+                      data={[
+                        { name: '推奨者', value: 58, fill: 'url(#promoterGradient)' },
+                        { name: '中立者', value: 26, fill: 'url(#passiveGradient)' },
+                        { name: '批判者', value: 16, fill: 'url(#detractorGradient)' }
+                      ]}
+                      cx="50%"
+                      cy="85%"
+                      startAngle={180}
+                      endAngle={0}
+                      outerRadius={95}
+                      innerRadius={55}
+                      dataKey="value"
+                      strokeWidth={2}
+                      stroke="#ffffff"
+                      style={chartStyle}
+                    >
+                      <Cell style={chartStyle} />
+                      <Cell style={chartStyle} />
+                      <Cell style={chartStyle} />
+                    </Pie>
+                    <RechartsTooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-background p-2 border rounded shadow-lg">
+                              <p className="text-sm font-medium">{payload[0].name}</p>
+                              <p className="text-sm">{payload[0].value}%</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              
+              {/* 詳細データ */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 border border-green-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-gradient-to-br from-green-500 to-green-400"></div>
+                    <span className="text-sm font-medium">推奨者（9-10点）</span>
+                  </div>
+                  <span className="text-sm font-bold text-green-700">58%</span>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-gradient-to-br from-amber-500 to-amber-400"></div>
+                    <span className="text-sm font-medium">中立者（7-8点）</span>
+                  </div>
+                  <span className="text-sm font-bold text-amber-700">26%</span>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 border border-red-200">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-gradient-to-br from-red-500 to-red-400"></div>
+                    <span className="text-sm font-medium">批判者（0-6点）</span>
+                  </div>
+                  <span className="text-sm font-bold text-red-700">16%</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 月別トレンド - 右側に配置 */}
+        <div className="lg:col-span-2 h-[400px]">
+          <Card className="border-0 shadow-xl bg-white/80 backdrop-blur h-full flex flex-col">
+            <CardHeader className="pb-2 shrink-0">
+              <CardTitle className="text-lg">店舗パフォーマンス</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ShadcnTabs defaultValue="sales" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="sales">売上高</TabsTrigger>
-                  <TabsTrigger value="orders">注文数</TabsTrigger>
-                  <TabsTrigger value="satisfaction">満足度</TabsTrigger>
+            <CardContent className="flex-1 pb-4 overflow-hidden">
+              <ShadcnTabs defaultValue="nps" className="w-full h-full flex flex-col">
+                <TabsList className="grid w-full grid-cols-4 shrink-0">
+                  <TabsTrigger value="nps">推奨スコア</TabsTrigger>
+                  <TabsTrigger value="repeat">リピート率</TabsTrigger>
+                  <TabsTrigger value="repeatVisit">再来店意向（リピーター）</TabsTrigger>
+                  <TabsTrigger value="newVisit">再来店意向（新規）</TabsTrigger>
                 </TabsList>
-                <TabsContent value="sales" className="mt-4">
-                  <div className="h-80">
+                <TabsContent value="nps" className="mt-2 flex-1 overflow-hidden">
+                  <div className="h-full">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={hourlyPerformance}>
+                      <ComposedChart data={monthlyPerformance}>
                         <defs>
-                          <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                          <linearGradient id="colorNPS" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor={COLORS[0]} stopOpacity={0.8}/>
                             <stop offset="95%" stopColor={COLORS[0]} stopOpacity={0}/>
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis dataKey="hour" className="text-xs" />
-                        <YAxis className="text-xs" tickFormatter={(value) => `¥${(value / 1000).toFixed(0)}K`} />
-                        <Tooltip content={<CustomTooltip />} />
+                        <XAxis dataKey="month" className="text-xs" />
+                        <YAxis className="text-xs" domain={[30, 45]} tickFormatter={(value) => `+${value}pt`} />
+                        <RechartsTooltip content={<CustomTooltip />} />
                         <Area 
                           type="monotone" 
-                          dataKey="sales" 
+                          dataKey="nps" 
                           stroke={COLORS[0]}
                           fillOpacity={1} 
-                          fill="url(#colorSales)" 
+                          fill="url(#colorNPS)" 
                           strokeWidth={2}
                         />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </TabsContent>
-                <TabsContent value="orders" className="mt-4">
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={hourlyPerformance}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis dataKey="hour" className="text-xs" />
-                        <YAxis className="text-xs" />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Bar dataKey="orders" fill={COLORS[1]} radius={[8, 8, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </TabsContent>
-                <TabsContent value="satisfaction" className="mt-4">
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={hourlyPerformance}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis dataKey="hour" className="text-xs" />
-                        <YAxis className="text-xs" domain={[80, 100]} />
-                        <Tooltip content={<CustomTooltip />} />
-                        <Line 
-                          type="monotone" 
-                          dataKey="satisfaction" 
-                          stroke={COLORS[2]} 
+                        <Line
+                          type="monotone"
+                          dataKey="npsMA"
+                          stroke="#6b7280"
                           strokeWidth={3}
-                          dot={{ fill: COLORS[2], r: 4 }}
-                          activeDot={{ r: 6 }}
+                          strokeDasharray="5 5"
+                          dot={false}
+                          opacity={0.8}
+                          name="5ヶ月移動平均"
                         />
-                      </LineChart>
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
+                <TabsContent value="repeat" className="mt-2 flex-1 overflow-hidden">
+                  <div className="h-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={monthlyPerformance}>
+                        <defs>
+                          <linearGradient id="colorRepeat" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={COLORS[1]} stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor={COLORS[1]} stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="month" className="text-xs" />
+                        <YAxis className="text-xs" domain={[71, 79]} tickFormatter={(value) => `${value}%`} />
+                        <RechartsTooltip content={<CustomTooltip />} />
+                        <Area 
+                          type="monotone" 
+                          dataKey="repeatRate" 
+                          stroke={COLORS[1]}
+                          fillOpacity={1} 
+                          fill="url(#colorRepeat)" 
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="repeatRateMA"
+                          stroke="#6b7280"
+                          strokeWidth={3}
+                          strokeDasharray="5 5"
+                          dot={false}
+                          opacity={0.8}
+                          name="5ヶ月移動平均"
+                        />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
+                <TabsContent value="repeatVisit" className="mt-2 flex-1 overflow-hidden">
+                  <div className="h-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={monthlyPerformance}>
+                        <defs>
+                          <linearGradient id="colorRepeatVisit" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={COLORS[2]} stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor={COLORS[2]} stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="month" className="text-xs" />
+                        <YAxis className="text-xs" domain={[92, 96]} tickFormatter={(value) => `${value}%`} />
+                        <RechartsTooltip content={<CustomTooltip />} />
+                        <Area 
+                          type="monotone" 
+                          dataKey="repeatVisit" 
+                          stroke={COLORS[2]}
+                          fillOpacity={1} 
+                          fill="url(#colorRepeatVisit)" 
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="repeatVisitMA"
+                          stroke="#6b7280"
+                          strokeWidth={3}
+                          strokeDasharray="5 5"
+                          dot={false}
+                          opacity={0.8}
+                          name="5ヶ月移動平均"
+                        />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </TabsContent>
+                <TabsContent value="newVisit" className="mt-2 flex-1 overflow-hidden">
+                  <div className="h-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={monthlyPerformance}>
+                        <defs>
+                          <linearGradient id="colorNewVisit" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={COLORS[3]} stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor={COLORS[3]} stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="month" className="text-xs" />
+                        <YAxis className="text-xs" domain={[84, 89]} tickFormatter={(value) => `${value}%`} />
+                        <RechartsTooltip content={<CustomTooltip />} />
+                        <Area 
+                          type="monotone" 
+                          dataKey="newVisit" 
+                          stroke={COLORS[3]}
+                          fillOpacity={1} 
+                          fill="url(#colorNewVisit)" 
+                          strokeWidth={2}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="newVisitMA"
+                          stroke="#6b7280"
+                          strokeWidth={3}
+                          strokeDasharray="5 5"
+                          dot={false}
+                          opacity={0.8}
+                          name="5ヶ月移動平均"
+                        />
+                      </ComposedChart>
                     </ResponsiveContainer>
                   </div>
                 </TabsContent>
@@ -392,210 +1816,2911 @@ const StoreByStoreTab = ({ companyId }) => {
             </CardContent>
           </Card>
         </div>
+      </div>
 
-        {/* トップ商品 */}
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur h-full">
-          <CardHeader>
-            <CardTitle>売上トップ5商品</CardTitle>
+    </div>
+  );
+};
+
+// チャート共通スタイル
+const chartStyle = { outline: 'none' };
+
+// 売上影響タブ
+const SalesImpactTab = ({ selectedStore, selectedPeriod }) => {
+  // サンプルデータ（実際のアンケート結果を想定）
+  const segments = [
+    { id: 1, nps: '推奨者', revisitIntent: 'あり', experience: 'リピーター', impact: 3, group: 'A', count: 45 },
+    { id: 2, nps: '推奨者', revisitIntent: 'あり', experience: '新規', impact: 2, group: 'A', count: 23 },
+    { id: 3, nps: '中立者', revisitIntent: 'あり', experience: '新規', impact: 0, group: 'A', count: 18 },
+    { id: 4, nps: '中立者', revisitIntent: 'なし', experience: 'リピーター', impact: -2, group: 'B', count: 12 },
+    { id: 5, nps: '中立者', revisitIntent: 'なし', experience: '新規', impact: 0, group: 'B', count: 8 },
+    { id: 6, nps: '批判者', revisitIntent: 'あり', experience: '新規', impact: 0, group: 'B', count: 5 },
+    { id: 7, nps: '批判者', revisitIntent: 'なし', experience: 'リピーター', impact: -3, group: 'B', count: 15 },
+    { id: 8, nps: '批判者', revisitIntent: 'なし', experience: '新規', impact: -2, group: 'B', count: 10 },
+    { id: 9, nps: '推奨者', revisitIntent: 'なし', experience: 'リピーター', impact: 1, group: 'C', count: 7 },
+    { id: 10, nps: '推奨者', revisitIntent: 'なし', experience: '新規', impact: 0, group: 'C', count: 4 },
+    { id: 11, nps: '中立者', revisitIntent: 'あり', experience: 'リピーター', impact: 2, group: 'C', count: 22 },
+    { id: 12, nps: '批判者', revisitIntent: 'あり', experience: 'リピーター', impact: -2, group: 'C', count: 6 }
+  ];
+
+  // 時系列データ（売上影響の推移）
+  const trendData = [
+    { month: '8月', score: 82, positive: 185, negative: 98 },
+    { month: '9月', score: 78, positive: 172, negative: 105 },
+    { month: '10月', score: 85, positive: 195, negative: 92 },
+    { month: '11月', score: 88, positive: 203, negative: 85 },
+    { month: '12月', score: 92, positive: 215, negative: 78 },
+    { month: '1月', score: 95, positive: 225, negative: 72 }
+  ];
+
+  // 6ヶ月平均計算
+  const sixMonthAvg = Math.round(trendData.reduce((sum, d) => sum + d.score, 0) / trendData.length);
+  const lastMonthScore = trendData[trendData.length - 1].score;
+  const previousMonthScore = trendData[trendData.length - 2].score;
+  const monthlyChange = lastMonthScore - previousMonthScore;
+
+  // 総合スコア計算（影響度 × 人数の合計）
+  const totalScore = segments.reduce((sum, seg) => sum + (seg.impact * seg.count), 0);
+  
+  // プラス・マイナス別の集計
+  const positiveScore = segments
+    .filter(s => s.impact > 0)
+    .reduce((sum, s) => sum + (s.impact * s.count), 0);
+  const negativeScore = segments
+    .filter(s => s.impact < 0)
+    .reduce((sum, s) => sum + (Math.abs(s.impact) * s.count), 0);
+  const totalCount = segments.reduce((sum, s) => sum + s.count, 0);
+  
+  // スコアの正規化（0〜100のスケールに）
+  const maxPossibleScore = segments.reduce((sum, s) => sum + (3 * s.count), 0);
+  const normalizedScore = ((totalScore + maxPossibleScore) / (2 * maxPossibleScore)) * 100;
+
+  // 状態判定
+  const getStatus = (score) => {
+    if (score >= 65) return { label: '好調', color: 'text-green-600', bg: 'bg-green-50', gradient: 'from-green-500 to-emerald-500' };
+    if (score >= 50) return { label: 'やや好調', color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500 to-teal-500' };
+    if (score >= 40) return { label: 'やや注意', color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500 to-orange-500' };
+    return { label: '要改善', color: 'text-red-600', bg: 'bg-red-50', gradient: 'from-red-500 to-rose-500' };
+  };
+
+  const status = getStatus(normalizedScore);
+
+  // 影響度の大きいセグメントを抽出
+  const topImpacts = [...segments]
+    .map(s => ({ ...s, totalImpact: s.impact * s.count }))
+    .sort((a, b) => Math.abs(b.totalImpact) - Math.abs(a.totalImpact))
+    .slice(0, 4);
+
+  // 影響度ラベル
+  const getImpactLabel = (impact) => {
+    if (impact === 3) return { label: '非常に高い', color: 'text-green-600' };
+    if (impact === 2) return { label: '高い', color: 'text-emerald-600' };
+    if (impact === 1) return { label: 'やや高い', color: 'text-green-500' };
+    if (impact === -1) return { label: 'やや低い', color: 'text-orange-600' };
+    if (impact === -2) return { label: '低い', color: 'text-red-600' };
+    if (impact === -3) return { label: '非常に低い', color: 'text-red-700' };
+    return { label: '中立', color: 'text-gray-600' };
+  };
+
+  // 顧客カテゴリー別の集計
+  const customerCategories = {
+    newRepeaters: segments.filter(s => s.experience === '新規' && s.revisitIntent === 'あり'),
+    stableRepeaters: segments.filter(s => s.experience === 'リピーター' && s.revisitIntent === 'あり'),
+    churnRisk: segments.filter(s => s.experience === 'リピーター' && s.revisitIntent === 'なし'),
+    newChurn: segments.filter(s => s.experience === '新規' && s.revisitIntent === 'なし')
+  };
+
+  // カテゴリー別の集計データ
+  const categoryData = {
+    newRepeaters: {
+      count: customerCategories.newRepeaters.reduce((sum, s) => sum + s.count, 0),
+      impact: customerCategories.newRepeaters.reduce((sum, s) => sum + (s.impact * s.count), 0),
+      avgImpact: customerCategories.newRepeaters.length > 0 ? 
+        customerCategories.newRepeaters.reduce((sum, s) => sum + s.impact, 0) / customerCategories.newRepeaters.length : 0,
+      nps: {
+        promoters: customerCategories.newRepeaters.filter(s => s.nps === '推奨者').reduce((sum, s) => sum + s.count, 0),
+        neutrals: customerCategories.newRepeaters.filter(s => s.nps === '中立者').reduce((sum, s) => sum + s.count, 0),
+        detractors: customerCategories.newRepeaters.filter(s => s.nps === '批判者').reduce((sum, s) => sum + s.count, 0)
+      }
+    },
+    stableRepeaters: {
+      count: customerCategories.stableRepeaters.reduce((sum, s) => sum + s.count, 0),
+      impact: customerCategories.stableRepeaters.reduce((sum, s) => sum + (s.impact * s.count), 0),
+      avgImpact: customerCategories.stableRepeaters.length > 0 ?
+        customerCategories.stableRepeaters.reduce((sum, s) => sum + s.impact, 0) / customerCategories.stableRepeaters.length : 0,
+      nps: {
+        promoters: customerCategories.stableRepeaters.filter(s => s.nps === '推奨者').reduce((sum, s) => sum + s.count, 0),
+        neutrals: customerCategories.stableRepeaters.filter(s => s.nps === '中立者').reduce((sum, s) => sum + s.count, 0),
+        detractors: customerCategories.stableRepeaters.filter(s => s.nps === '批判者').reduce((sum, s) => sum + s.count, 0)
+      }
+    },
+    churnRisk: {
+      count: customerCategories.churnRisk.reduce((sum, s) => sum + s.count, 0),
+      impact: customerCategories.churnRisk.reduce((sum, s) => sum + (s.impact * s.count), 0),
+      avgImpact: customerCategories.churnRisk.length > 0 ?
+        customerCategories.churnRisk.reduce((sum, s) => sum + s.impact, 0) / customerCategories.churnRisk.length : 0,
+      nps: {
+        promoters: customerCategories.churnRisk.filter(s => s.nps === '推奨者').reduce((sum, s) => sum + s.count, 0),
+        neutrals: customerCategories.churnRisk.filter(s => s.nps === '中立者').reduce((sum, s) => sum + s.count, 0),
+        detractors: customerCategories.churnRisk.filter(s => s.nps === '批判者').reduce((sum, s) => sum + s.count, 0)
+      }
+    },
+    newChurn: {
+      count: customerCategories.newChurn.reduce((sum, s) => sum + s.count, 0),
+      impact: customerCategories.newChurn.reduce((sum, s) => sum + (s.impact * s.count), 0),
+      avgImpact: customerCategories.newChurn.length > 0 ?
+        customerCategories.newChurn.reduce((sum, s) => sum + s.impact, 0) / customerCategories.newChurn.length : 0,
+      nps: {
+        promoters: customerCategories.newChurn.filter(s => s.nps === '推奨者').reduce((sum, s) => sum + s.count, 0),
+        neutrals: customerCategories.newChurn.filter(s => s.nps === '中立者').reduce((sum, s) => sum + s.count, 0),
+        detractors: customerCategories.newChurn.filter(s => s.nps === '批判者').reduce((sum, s) => sum + s.count, 0)
+      }
+    }
+  };
+
+  // セグメントごとの構成比を計算
+  const segmentsWithPercentage = segments.map(seg => ({
+    ...seg,
+    percentage: ((seg.count / totalCount) * 100).toFixed(1),
+    salesImpact: seg.impact === 0 ? '±0%' : `${seg.impact > 0 ? '+' : ''}${(seg.impact * 3)}%`
+  })).sort((a, b) => b.percentage - a.percentage);
+
+  // スパークラインデータ（3ヶ月分のダミーデータ）
+  const sparklineData = {
+    newRepeaters: [38, 42, 46],
+    stableRepeaters: [65, 67, 67],
+    newChurn: [15, 16, 18],
+    churnRisk: [32, 30, 27]
+  };
+
+  // 各カテゴリーの割合を計算
+  const totalCustomers = categoryData.newRepeaters.count + categoryData.stableRepeaters.count + 
+                        categoryData.newChurn.count + categoryData.churnRisk.count;
+  
+  const percentages = {
+    newRepeaters: ((categoryData.newRepeaters.count / totalCustomers) * 100).toFixed(1),
+    stableRepeaters: ((categoryData.stableRepeaters.count / totalCustomers) * 100).toFixed(1),
+    newChurn: ((categoryData.newChurn.count / totalCustomers) * 100).toFixed(1),
+    churnRisk: ((categoryData.churnRisk.count / totalCustomers) * 100).toFixed(1)
+  };
+
+  return (
+    <div className="p-4 space-y-4">
+      {/* 顧客カテゴリー別分析 - 概要スタイル */}
+      <div className="grid grid-cols-4 gap-4">
+        {/* 新規離脱 */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">新規離脱</CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">再来店意向なし</p>
+              </div>
+              <div className="w-16 h-10">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={sparklineData.newChurn.map((value, index) => ({ value, index }))}>
+                    <defs>
+                      <linearGradient id="grayGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#6b7280" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#6b7280" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <Area 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#6b7280" 
+                      fill="url(#grayGradient)"
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {topProducts.map((product, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.units}個販売</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold">¥{(product.sales / 1000).toFixed(0)}K</p>
-                      <Badge 
-                        variant={product.growth > 0 ? "default" : "destructive"} 
-                        className="text-xs gap-1"
-                      >
-                        {product.growth > 0 ? (
-                          <TrendingUp className="w-3 h-3" />
-                        ) : (
-                          <TrendingDown className="w-3 h-3" />
-                        )}
-                        {product.growth > 0 ? '+' : ''}{product.growth}%
-                      </Badge>
-                    </div>
-                  </div>
-                  <Progress 
-                    value={(product.sales / topProducts[0].sales) * 100} 
-                    className="h-2"
-                  />
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold">{categoryData.newChurn.count}</span>
+                  <span className="text-sm text-muted-foreground">人</span>
                 </div>
-              ))}
+                <Progress value={parseFloat(percentages.newChurn)} className="h-2 mt-2 [&>*]:bg-gray-500" />
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">構成比</span>
+                <span className="font-medium text-gray-600">{percentages.newChurn}%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* 新規→リピーター（増加分） */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">新規リピーター</CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">再来店意向あり</p>
+              </div>
+              <div className="w-16 h-10">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={sparklineData.newRepeaters.map((value, index) => ({ value, index }))}>
+                    <defs>
+                      <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <Area 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#3b82f6" 
+                      fill="url(#blueGradient)"
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold">{categoryData.newRepeaters.count}</span>
+                  <span className="text-sm text-muted-foreground">人</span>
+                </div>
+                <Progress value={parseFloat(percentages.newRepeaters)} className="h-2 mt-2 [&>*]:bg-blue-500" />
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">構成比</span>
+                <span className="font-medium text-blue-600">{percentages.newRepeaters}%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* 安定リピーター */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">安定リピーター</CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">継続的な来店</p>
+              </div>
+              <div className="w-16 h-10">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={sparklineData.stableRepeaters.map((value, index) => ({ value, index }))}>
+                    <defs>
+                      <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <Area 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#22c55e" 
+                      fill="url(#greenGradient)"
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold">{categoryData.stableRepeaters.count}</span>
+                  <span className="text-sm text-muted-foreground">人</span>
+                </div>
+                <Progress value={parseFloat(percentages.stableRepeaters)} className="h-2 mt-2 [&>*]:bg-green-500" />
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">構成比</span>
+                <span className="font-medium text-green-600">{percentages.stableRepeaters}%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* リピーター離脱 */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">リピーター離脱</CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">再来店意向なし</p>
+              </div>
+              <div className="w-16 h-10">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={sparklineData.churnRisk.map((value, index) => ({ value, index }))}>
+                    <defs>
+                      <linearGradient id="orangeGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <Area 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#f97316" 
+                      fill="url(#orangeGradient)"
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold">{categoryData.churnRisk.count}</span>
+                  <span className="text-sm text-muted-foreground">人</span>
+                </div>
+                <Progress value={parseFloat(percentages.churnRisk)} className="h-2 mt-2 [&>*]:bg-orange-500" />
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">構成比</span>
+                <span className="font-medium text-orange-600">{percentages.churnRisk}%</span>
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* 店舗比較セクション */}
-      <Card className="mb-6 border-0 shadow-xl bg-white/80 backdrop-blur">
+      {/* 顧客構成比較 */}
+      <Card className="border-0 shadow-lg bg-white overflow-hidden">
+        <CardContent className="p-4">
+          <div>
+            {/* ヘッダー */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">顧客構成比較</h3>
+              {/* 凡例 */}
+              <div className="flex gap-4 text-xs">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-gray-500 rounded-sm"></div>
+                  <span className="text-gray-600">新規離脱</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-blue-500 rounded-sm"></div>
+                  <span className="text-gray-600">新規リピーター</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-green-500 rounded-sm"></div>
+                  <span className="text-gray-600">安定リピーター</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-orange-500 rounded-sm"></div>
+                  <span className="text-gray-600">リピーター離脱</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 横棒グラフ */}
+            <div className="space-y-4">
+              {/* 今月 */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-700">今月</span>
+                  <span className="text-xs text-gray-500">100%</span>
+                </div>
+                <div className="flex h-6 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="bg-gray-500 transition-all duration-500" style={{ width: '17%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">17%</span>
+                  </div>
+                  <div className="bg-blue-500 transition-all duration-500" style={{ width: '26%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">26%</span>
+                  </div>
+                  <div className="bg-green-500 transition-all duration-500" style={{ width: '39%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">39%</span>
+                  </div>
+                  <div className="bg-orange-500 transition-all duration-500" style={{ width: '18%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">18%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 先月 */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-700">先月</span>
+                  <span className="text-xs text-gray-500">100%</span>
+                </div>
+                <div className="flex h-6 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="bg-gray-500 transition-all duration-500" style={{ width: '16%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">16%</span>
+                  </div>
+                  <div className="bg-blue-500 transition-all duration-500" style={{ width: '23%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">23%</span>
+                  </div>
+                  <div className="bg-green-500 transition-all duration-500" style={{ width: '41%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">41%</span>
+                  </div>
+                  <div className="bg-orange-500 transition-all duration-500" style={{ width: '20%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">20%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 6ヶ月平均 */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-700">6ヶ月平均</span>
+                  <span className="text-xs text-gray-500">100%</span>
+                </div>
+                <div className="flex h-6 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="bg-gray-500 transition-all duration-500" style={{ width: '17%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">17%</span>
+                  </div>
+                  <div className="bg-blue-500 transition-all duration-500" style={{ width: '24%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">24%</span>
+                  </div>
+                  <div className="bg-green-500 transition-all duration-500" style={{ width: '40%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">40%</span>
+                  </div>
+                  <div className="bg-orange-500 transition-all duration-500" style={{ width: '19%' }}>
+                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">19%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </CardContent>
+      </Card>
+
+
+      {/* セグメント詳細テーブル */}
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-bold">セグメント別詳細分析</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-3 font-medium text-sm text-gray-600">推奨度</th>
+                  <th className="text-left p-3 font-medium text-sm text-gray-600">再来店意向</th>
+                  <th className="text-left p-3 font-medium text-sm text-gray-600">顧客タイプ</th>
+                  <th className="text-left p-3 font-medium text-sm text-gray-600">影響度</th>
+                  <th className="text-right p-3 font-medium text-sm text-gray-600">先月比</th>
+                  <th className="text-center p-3 font-medium text-sm text-gray-600">構成比</th>
+                </tr>
+              </thead>
+              <tbody>
+                {segmentsWithPercentage.map((segment, index) => (
+                  <tr key={index} className="border-b hover:bg-gray-50 transition-colors">
+                    <td className="p-3">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-bold text-white ${
+                        segment.nps === '推奨者' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                        segment.nps === '批判者' ? 'bg-gradient-to-r from-red-500 to-red-400' : 
+                        'bg-gradient-to-r from-amber-500 to-orange-400'
+                      }`}>
+                        {segment.nps}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <span className={`text-sm ${
+                        segment.revisitIntent === 'あり' ? 'text-green-600 font-medium' : 'text-gray-500'
+                      }`}>
+                        {segment.revisitIntent}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      {segment.experience === 'リピーター' ? (
+                        <div className="flex items-center">
+                          <CheckCircle className="w-4 h-4 text-green-600 mr-1" />
+                          <span className="text-sm text-green-700">リピーター</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <User className="w-4 h-4 text-gray-400 mr-1" />
+                          <span className="text-sm text-gray-500">新規</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-3">
+                      <span className={`text-sm ${getImpactLabel(segment.impact).color}`}>
+                        {getImpactLabel(segment.impact).label}
+                      </span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <span className={`text-sm font-medium ${
+                        segment.impact > 0 ? 'text-green-600' :
+                        segment.impact < 0 ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        {segment.salesImpact}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-20 bg-gray-200 rounded-full h-1.5">
+                          <div 
+                            className="bg-gray-600 h-1.5 rounded-full"
+                            style={{ width: `${segment.percentage}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-gray-600 w-12 text-right">{segment.percentage}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// 店舗評価タブ
+const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
+  // QSCスコアデータ
+  const qscScores = {
+    Q: { label: 'クオリティ', score: 4.7, trend: 0.2, icon: UtensilsCrossed, color: 'violet' },
+    S: { label: 'サービス', score: 4.8, trend: 0.1, icon: Users, color: 'blue' },
+    C: { label: 'クレンリネス', score: 4.6, trend: -0.1, icon: Sparkles, color: 'emerald' }
+  };
+
+  // カラーマッピング
+  const colorMap = {
+    violet: 'from-violet-500 to-purple-500',
+    blue: 'from-blue-500 to-indigo-500',
+    emerald: 'from-emerald-500 to-teal-500'
+  };
+
+  // QSC詳細データ（各カテゴリ10項目）
+  // ポジティブ回答者のサンプルデータ
+  const positiveQscData = {
+    Q: {
+      positiveResponseCount: 1135,
+      negativeResponseCount: 99,
+      items: [
+        { label: '商品の鮮度', positive: 95, negative: 5 },
+        { label: '味の一貫性', positive: 93, negative: 7 },
+        { label: '温度管理', positive: 91, negative: 9 },
+        { label: '見た目・盛り付け', positive: 94, negative: 6 },
+        { label: '分量の適切さ', positive: 92, negative: 8 },
+        { label: '食材の品質', positive: 96, negative: 4 },
+        { label: 'メニューの豊富さ', positive: 88, negative: 12 },
+        { label: '季節商品の魅力', positive: 90, negative: 10 },
+        { label: '価格と品質のバランス', positive: 87, negative: 13 },
+        { label: '特別メニューの満足度', positive: 89, negative: 11 }
+      ]
+    },
+    S: {
+      positiveResponseCount: 1077,
+      negativeResponseCount: 112,
+      items: [
+        { label: '接客態度', positive: 97, negative: 3 },
+        { label: '注文の正確性', positive: 95, negative: 5 },
+        { label: '待ち時間', positive: 89, negative: 11 },
+        { label: 'スタッフの知識', positive: 94, negative: 6 },
+        { label: '問題解決能力', positive: 92, negative: 8 },
+        { label: 'レジ対応の速さ', positive: 91, negative: 9 },
+        { label: '笑顔・親切さ', positive: 96, negative: 4 },
+        { label: '特別な要望への対応', positive: 93, negative: 7 },
+        { label: 'スタッフの清潔感', positive: 98, negative: 2 },
+        { label: 'チームワーク', positive: 94, negative: 6 }
+      ]
+    },
+    C: {
+      positiveResponseCount: 1018,
+      negativeResponseCount: 138,
+      items: [
+        { label: '店内の清潔さ', positive: 94, negative: 6 },
+        { label: 'テーブルの清潔さ', positive: 93, negative: 7 },
+        { label: 'トイレの清潔さ', positive: 91, negative: 9 },
+        { label: '床の清潔さ', positive: 92, negative: 8 },
+        { label: '窓・ガラスの清潔さ', positive: 91, negative: 9 },
+        { label: '厨房の衛生管理', positive: 96, negative: 4 },
+        { label: 'ゴミ箱周辺の管理', positive: 88, negative: 12 },
+        { label: '換気・空気の質', positive: 87, negative: 13 },
+        { label: '備品の整理整頓', positive: 90, negative: 10 },
+        { label: '外観・入口の清潔さ', positive: 93, negative: 7 }
+      ]
+    }
+  };
+
+  // ネガティブ回答者のサンプルデータ
+  const negativeQscData = {
+    Q: {
+      positiveResponseCount: 1135,
+      negativeResponseCount: 99,
+      items: [
+        { label: '商品の鮮度', positive: 35, negative: 65 },
+        { label: '味の一貫性', positive: 28, negative: 72 },
+        { label: '温度管理', positive: 22, negative: 78 },
+        { label: '見た目・盛り付け', positive: 40, negative: 60 },
+        { label: '分量の適切さ', positive: 33, negative: 67 },
+        { label: '食材の品質', positive: 38, negative: 62 },
+        { label: 'メニューの豊富さ', positive: 45, negative: 55 },
+        { label: '季節商品の魅力', positive: 42, negative: 58 },
+        { label: '価格と品質のバランス', positive: 18, negative: 82 },
+        { label: '特別メニューの満足度', positive: 30, negative: 70 }
+      ]
+    },
+    S: {
+      positiveResponseCount: 1077,
+      negativeResponseCount: 112,
+      items: [
+        { label: '接客態度', positive: 25, negative: 75 },
+        { label: '注文の正確性', positive: 20, negative: 80 },
+        { label: '待ち時間', positive: 15, negative: 85 },
+        { label: 'スタッフの知識', positive: 32, negative: 68 },
+        { label: '問題解決能力', positive: 28, negative: 72 },
+        { label: 'レジ対応の速さ', positive: 18, negative: 82 },
+        { label: '笑顔・親切さ', positive: 35, negative: 65 },
+        { label: '特別な要望への対応', positive: 22, negative: 78 },
+        { label: 'スタッフの清潔感', positive: 45, negative: 55 },
+        { label: 'チームワーク', positive: 30, negative: 70 }
+      ]
+    },
+    C: {
+      positiveResponseCount: 1018,
+      negativeResponseCount: 138,
+      items: [
+        { label: '店内の清潔さ', positive: 28, negative: 72 },
+        { label: 'テーブルの清潔さ', positive: 25, negative: 75 },
+        { label: 'トイレの清潔さ', positive: 15, negative: 85 },
+        { label: '床の清潔さ', positive: 30, negative: 70 },
+        { label: '窓・ガラスの清潔さ', positive: 35, negative: 65 },
+        { label: '厨房の衛生管理', positive: 40, negative: 60 },
+        { label: 'ゴミ箱周辺の管理', positive: 20, negative: 80 },
+        { label: '換気・空気の質', positive: 18, negative: 82 },
+        { label: '備品の整理整頓', positive: 25, negative: 75 },
+        { label: '外観・入口の清潔さ', positive: 32, negative: 68 }
+      ]
+    }
+  };
+
+
+  // 平均スコア計算（itemsの構造を考慮）
+  const calculateAverage = (data, mode) => {
+    const items = data.items || data;
+    const sum = items.reduce((acc, item) => acc + (mode === 'positive' ? item.positive : item.negative), 0);
+    return Math.round(sum / items.length);
+  };
+
+  // 最高スコア取得
+  const getTopItem = (data, mode) => {
+    const items = data.items || data;
+    const values = items.map(item => mode === 'positive' ? item.positive : item.negative);
+    return Math.max(...values);
+  };
+
+  // 最低スコア取得
+  const getBottomItem = (data, mode) => {
+    const items = data.items || data;
+    const values = items.map(item => mode === 'positive' ? item.positive : item.negative);
+    return Math.min(...values);
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* QSCスコアカード - スマートでコンパクトなデザイン */}
+      <Card className="border-0 shadow-xl bg-white overflow-hidden">
+        <CardContent className="p-0">
+          <div className="grid grid-cols-3 divide-x divide-gray-100">
+            {Object.entries(qscScores).map(([key, data], index) => {
+              const Icon = data.icon;
+              const isPositive = data.trend > 0;
+              const gradientColor = colorMap[data.color];
+              
+              return (
+                <div key={key} className="relative group">
+                  {/* 背景グラデーション */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${gradientColor} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+                  
+                  <div className="p-6 space-y-3">
+                    {/* ヘッダー部分 */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg bg-gradient-to-br ${gradientColor} bg-opacity-10`}>
+                          <Icon className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900">{
+                          key === 'Q' ? 'Quality' : key === 'S' ? 'Service' : 'Cleanliness'
+                        }</h3>
+                          <p className="text-xs text-muted-foreground">{data.label}</p>
+                        </div>
+                      </div>
+                      <Badge 
+                        variant="secondary"
+                        className={`text-xs px-2 py-0.5 ${
+                          isPositive ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'
+                        }`}
+                      >
+                        {isPositive ? '↑' : '↓'} {Math.abs(data.trend).toFixed(1)}
+                      </Badge>
+                    </div>
+                    
+                    {/* スコア表示 */}
+                    <div className="flex items-end justify-between">
+                      <div className="flex items-baseline gap-1">
+                        <span className={`text-3xl font-bold bg-gradient-to-r ${gradientColor} bg-clip-text text-transparent`}>
+                          {data.score.toFixed(1)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">/ 5.0</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs text-muted-foreground">達成率</div>
+                        <div className="text-sm font-semibold text-gray-700">
+                          {((data.score / 5) * 100).toFixed(0)}%
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* プログレスバー */}
+                    <div className="relative h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className={`absolute inset-y-0 left-0 bg-gradient-to-r ${gradientColor} rounded-full transition-all duration-700 ease-out`}
+                        style={{ width: `${(data.score / 5) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* QSC詳細評価 */}
+      <Card className="border-0 shadow-xl bg-white">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">QSC項目別評価</CardTitle>
+        </CardHeader>
+        <CardContent className="pb-6">
+          <ShadcnTabs defaultValue="positive" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="positive" className="text-sm">
+                <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                ポジティブ回答
+              </TabsTrigger>
+              <TabsTrigger value="negative" className="text-sm">
+                <AlertTriangle className="w-4 h-4 mr-2 text-red-600" />
+                ネガティブ回答
+              </TabsTrigger>
+            </TabsList>
+            
+            {/* ポジティブ回答タブ */}
+            <TabsContent value="positive" className="mt-0">
+              <div className="grid grid-cols-3 gap-6">
+                {Object.entries(positiveQscData).map(([category, data]) => (
+                  <div key={category} className="space-y-3">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        {category === 'Q' && <UtensilsCrossed className="w-5 h-5 text-violet-600" />}
+                        {category === 'S' && <Users className="w-5 h-5 text-blue-600" />}
+                        {category === 'C' && <Sparkles className="w-5 h-5 text-emerald-600" />}
+                        <h3 className="font-semibold text-gray-900">
+                          {category === 'Q' ? 'Quality' : category === 'S' ? 'Service' : 'Cleanliness'}
+                        </h3>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        n={data.positiveResponseCount.toLocaleString()}
+                      </span>
+                    </div>
+                    
+                    {data.items.map((item, index) => {
+                      const positivePercentage = item.positive;
+                      const negativePercentage = item.negative;
+                      const positiveCount = Math.round(data.positiveResponseCount * (item.positive / 100));
+                      const negativeCount = Math.round(data.positiveResponseCount * (item.negative / 100));
+                      const totalCount = positiveCount + negativeCount;
+                      
+                      return (
+                        <div key={index} className="group mb-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors">
+                              {item.label}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              n={totalCount.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="relative h-6 bg-gray-50 rounded overflow-hidden border border-gray-200">
+                            {/* ポジティブ部分 */}
+                            <div
+                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-700 ease-out"
+                              style={{ width: `${positivePercentage}%` }}
+                            >
+                              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                            </div>
+                            {/* ネガティブ部分 */}
+                            <div
+                              className="absolute inset-y-0 right-0 bg-gradient-to-l from-red-500 to-rose-400 transition-all duration-700 ease-out"
+                              style={{ width: `${negativePercentage}%` }}
+                            >
+                              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                            </div>
+                          </div>
+                          <div className="flex justify-between text-xs mt-1">
+                            <span className="text-green-600 font-medium">{positivePercentage}%</span>
+                            <span className="text-red-600 font-medium">{negativePercentage}%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            {/* ネガティブ回答タブ */}
+            <TabsContent value="negative" className="mt-0">
+              <div className="grid grid-cols-3 gap-6">
+                {Object.entries(negativeQscData).map(([category, data]) => (
+                  <div key={category} className="space-y-3">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        {category === 'Q' && <UtensilsCrossed className="w-5 h-5 text-violet-600" />}
+                        {category === 'S' && <Users className="w-5 h-5 text-blue-600" />}
+                        {category === 'C' && <Sparkles className="w-5 h-5 text-emerald-600" />}
+                        <h3 className="font-semibold text-gray-900">
+                          {category === 'Q' ? 'Quality' : category === 'S' ? 'Service' : 'Cleanliness'}
+                        </h3>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        n={data.negativeResponseCount.toLocaleString()}
+                      </span>
+                    </div>
+                    
+                    {data.items.map((item, index) => {
+                      const positivePercentage = item.positive;
+                      const negativePercentage = item.negative;
+                      const positiveCount = Math.round(data.positiveResponseCount * (item.positive / 100));
+                      const negativeCount = Math.round(data.positiveResponseCount * (item.negative / 100));
+                      const totalCount = positiveCount + negativeCount;
+                      
+                      return (
+                        <div key={index} className="group mb-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors">
+                              {item.label}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              n={totalCount.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="relative h-6 bg-gray-50 rounded overflow-hidden border border-gray-200">
+                            {/* ポジティブ部分 */}
+                            <div
+                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-700 ease-out"
+                              style={{ width: `${positivePercentage}%` }}
+                            >
+                              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                            </div>
+                            {/* ネガティブ部分 */}
+                            <div
+                              className="absolute inset-y-0 right-0 bg-gradient-to-l from-red-500 to-rose-400 transition-all duration-700 ease-out"
+                              style={{ width: `${negativePercentage}%` }}
+                            >
+                              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                            </div>
+                          </div>
+                          <div className="flex justify-between text-xs mt-1">
+                            <span className="text-green-600 font-medium">{positivePercentage}%</span>
+                            <span className="text-red-600 font-medium">{negativePercentage}%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+          </ShadcnTabs>
+        </CardContent>
+      </Card>
+
+    </div>
+  );
+};
+
+// 顧客傾向タブ
+const CustomerTrendsTab = ({ selectedStore, selectedPeriod }) => {
+  // レーダーチャート用の生データ（1位票、2位票）
+  const rawData = [
+    { 
+      category: '品質',
+      total: { first: 30, second: 25 },      // スコア: 30*2 + 25*1 = 85
+      repeater: { first: 40, second: 12 },   // スコア: 40*2 + 12*1 = 92
+      newCustomer: { first: 28, second: 22 } // スコア: 28*2 + 22*1 = 78
+    },
+    { 
+      category: '接客',
+      total: { first: 34, second: 20 },      // スコア: 34*2 + 20*1 = 88
+      repeater: { first: 35, second: 20 },   // スコア: 35*2 + 20*1 = 90
+      newCustomer: { first: 31, second: 20 } // スコア: 31*2 + 20*1 = 82
+    },
+    { 
+      category: '空間',
+      total: { first: 32, second: 18 },      // スコア: 32*2 + 18*1 = 82
+      repeater: { first: 33, second: 19 },   // スコア: 33*2 + 19*1 = 85
+      newCustomer: { first: 28, second: 20 } // スコア: 28*2 + 20*1 = 76
+    },
+    { 
+      category: '衛生',
+      total: { first: 35, second: 20 },      // スコア: 35*2 + 20*1 = 90
+      repeater: { first: 38, second: 17 },   // スコア: 38*2 + 17*1 = 93
+      newCustomer: { first: 33, second: 19 } // スコア: 33*2 + 19*1 = 85
+    },
+    { 
+      category: '価格感度',
+      total: { first: 25, second: 25 },      // スコア: 25*2 + 25*1 = 75
+      repeater: { first: 27, second: 26 },   // スコア: 27*2 + 26*1 = 80
+      newCustomer: { first: 22, second: 24 } // スコア: 22*2 + 24*1 = 68
+    }
+  ];
+
+  // スコア計算関数（1位×2 + 2位×1）
+  const calculateScore = (data) => {
+    return data.first * 2 + data.second * 1;
+  };
+
+  // 全てのスコアを計算して最大値を見つける
+  const allScores = [];
+  rawData.forEach(item => {
+    allScores.push(calculateScore(item.total));
+    allScores.push(calculateScore(item.repeater));
+    allScores.push(calculateScore(item.newCustomer));
+  });
+  const maxScore = Math.max(...allScores);
+
+  // 正規化されたレーダーチャート用データ
+  const radarData = rawData.map(item => ({
+    category: item.category,
+    total: Math.round((calculateScore(item.total) / maxScore) * 100),
+    repeater: Math.round((calculateScore(item.repeater) / maxScore) * 100),
+    newCustomer: Math.round((calculateScore(item.newCustomer) / maxScore) * 100)
+  }));
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* 基本属性分析 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* 性別比率 */}
+        <Card className="border-0 shadow-xl bg-white overflow-hidden">
+          <CardHeader className="pb-0">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-600" />
+              性別比率
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-1 pb-2">
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                  <Pie
+                    data={[
+                      { name: '男性', value: 45, fill: '#3b82f6' },
+                      { name: '女性', value: 55, fill: '#ec4899' }
+                    ]}
+                    cx="50%"
+                    cy="90%"
+                    startAngle={180}
+                    endAngle={0}
+                    outerRadius={60}
+                    innerRadius={35}
+                    dataKey="value"
+                    style={chartStyle}
+                  >
+                    {[
+                      { name: '男性', value: 45, fill: '#3b82f6' },
+                      { name: '女性', value: 55, fill: '#ec4899' }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} style={chartStyle} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex justify-center gap-4 mt-1 text-xs">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span>男性 45%</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-pink-500 rounded-full"></div>
+                  <span>女性 55%</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* リピーター・新規比率 */}
+        <Card className="border-0 shadow-xl bg-white overflow-hidden">
+          <CardHeader className="pb-0">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Activity className="w-4 h-4 text-green-600" />
+              顧客タイプ
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-1 pb-2">
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                  <Pie
+                    data={[
+                      { name: 'リピーター', value: 72, fill: '#10b981' },
+                      { name: '新規', value: 28, fill: '#f59e0b' }
+                    ]}
+                    cx="50%"
+                    cy="90%"
+                    startAngle={180}
+                    endAngle={0}
+                    outerRadius={60}
+                    innerRadius={35}
+                    dataKey="value"
+                    style={chartStyle}
+                  >
+                    {[
+                      { name: 'リピーター', value: 72, fill: '#10b981' },
+                      { name: '新規', value: 28, fill: '#f59e0b' }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} style={chartStyle} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex justify-center gap-4 mt-1 text-xs">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span>リピーター 72%</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                  <span>新規 28%</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 年齢層 */}
+        <Card className="border-0 shadow-xl bg-white overflow-hidden">
+          <CardHeader className="pb-0">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-purple-600" />
+              年齢層
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-1 pb-4">
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart margin={{ top: 25, right: 40, bottom: 25, left: 40 }}>
+                  <Pie
+                    data={[
+                      { name: '20代', value: 15, fill: '#8b5cf6' },
+                      { name: '30代', value: 28, fill: '#6366f1' },
+                      { name: '40代', value: 32, fill: '#3b82f6' },
+                      { name: '50代', value: 18, fill: '#0ea5e9' },
+                      { name: '60代+', value: 7, fill: '#06b6d4' }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={40}
+                    dataKey="value"
+                    label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
+                      const RADIAN = Math.PI / 180;
+                      const radius = outerRadius + 25;
+                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                      const labels = ['20代', '30代', '40代', '50代', '60代+'];
+                      return (
+                        <text x={x} y={y} fontSize={10} fill="#6b7280" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+                          {`${labels[index]} ${value}%`}
+                        </text>
+                      );
+                    }}
+                  >
+                    {[
+                      { name: '20代', value: 15, fill: '#8b5cf6' },
+                      { name: '30代', value: 28, fill: '#6366f1' },
+                      { name: '40代', value: 32, fill: '#3b82f6' },
+                      { name: '50代', value: 18, fill: '#0ea5e9' },
+                      { name: '60代+', value: 7, fill: '#06b6d4' }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} style={chartStyle} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 来店目的 */}
+        <Card className="border-0 shadow-xl bg-white overflow-hidden">
+          <CardHeader className="pb-0">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <ShoppingCart className="w-4 h-4 text-orange-600" />
+              来店目的
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-1 pb-4">
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart margin={{ top: 25, right: 40, bottom: 25, left: 40 }}>
+                  <Pie
+                    data={[
+                      { name: '仕事・勉強', value: 35, fill: '#f97316' },
+                      { name: '友人との会話', value: 28, fill: '#fb923c' },
+                      { name: 'リラックス', value: 22, fill: '#fdba74' },
+                      { name: 'テイクアウト', value: 15, fill: '#fed7aa' }
+                    ]}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={40}
+                    dataKey="value"
+                    label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
+                      const RADIAN = Math.PI / 180;
+                      const radius = outerRadius + 25;
+                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                      const labels = ['仕事', '会話', 'リラックス', 'テイク'];
+                      return (
+                        <text x={x} y={y} fontSize={10} fill="#6b7280" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+                          {`${labels[index]} ${value}%`}
+                        </text>
+                      );
+                    }}
+                  >
+                    {[
+                      { name: '仕事・勉強', value: 35, fill: '#f97316' },
+                      { name: '友人との会話', value: 28, fill: '#fb923c' },
+                      { name: 'リラックス', value: 22, fill: '#fdba74' },
+                      { name: 'テイクアウト', value: 15, fill: '#fed7aa' }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} style={chartStyle} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 顧客傾向 */}
+      <Card className="border-0 shadow-xl bg-white">
         <CardHeader>
-          <CardTitle>店舗間パフォーマンス比較</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            顧客傾向
+            <InfoTooltip content="1位票×2 + 2位票×1のスコアを最大値で正規化（最高値=100）" />
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* スコア比較 */}
-            <div>
-              <h4 className="text-sm font-semibold mb-4">総合スコア</h4>
-              <div className="space-y-3">
-                {storeComparison.map((store, index) => (
-                  <div key={index} className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">{store.store}</span>
-                      <span className="text-sm font-bold">{store.score}点</span>
-                    </div>
-                    <Progress 
-                      value={store.score} 
-                      className={`h-2 ${
-                        store.score >= 90 ? '[&>*]:bg-green-500' : 
-                        store.score >= 80 ? '[&>*]:bg-yellow-500' : 
-                        '[&>*]:bg-red-500'
-                      }`}
+            {/* 全体の傾向 */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-center text-gray-700">全体の傾向</h3>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={radarData}>
+                    <PolarGrid 
+                      stroke="#e5e7eb"
+                      strokeDasharray="3 3"
+                      radialLines={true}
                     />
+                    <PolarAngleAxis 
+                      dataKey="category"
+                      tick={{ fontSize: 12, fill: '#6b7280' }}
+                      className="text-xs"
+                    />
+                    <PolarRadiusAxis
+                      angle={90}
+                      domain={[0, 100]}
+                      tickCount={6}
+                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                    />
+                    <Radar
+                      name="全体"
+                      dataKey="total"
+                      stroke="#3b82f6"
+                      fill="#3b82f6"
+                      fillOpacity={0.4}
+                      strokeWidth={2}
+                    />
+                    <RechartsTooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        fontSize: '12px'
+                      }}
+                      formatter={(value) => [`${value}`, '正規化スコア']}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="space-y-1 px-4">
+                {[...radarData].sort((a, b) => b.total - a.total).map((item, index) => (
+                  <div key={index} className="flex items-center justify-between text-xs">
+                    <span className="text-gray-600">
+                      <span className="font-semibold">{index + 1}位</span> {item.category}
+                    </span>
+                    <span className="font-semibold text-blue-600">{item.total}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* 売上比較 */}
-            <div>
-              <h4 className="text-sm font-semibold mb-4">売上高</h4>
-              <div className="h-64">
+            {/* リピーターの傾向 */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-center text-gray-700">リピーターの傾向</h3>
+              <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={storeComparison}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="store" className="text-xs" angle={-45} textAnchor="end" height={60} />
-                    <YAxis className="text-xs" tickFormatter={(value) => `¥${(value / 1000000).toFixed(1)}M`} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="sales" fill={COLORS[3]} radius={[8, 8, 0, 0]} />
-                  </BarChart>
+                  <RadarChart data={radarData}>
+                    <PolarGrid 
+                      stroke="#e5e7eb"
+                      strokeDasharray="3 3"
+                      radialLines={true}
+                    />
+                    <PolarAngleAxis 
+                      dataKey="category"
+                      tick={{ fontSize: 12, fill: '#6b7280' }}
+                      className="text-xs"
+                    />
+                    <PolarRadiusAxis
+                      angle={90}
+                      domain={[0, 100]}
+                      tickCount={6}
+                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                    />
+                    <Radar
+                      name="リピーター"
+                      dataKey="repeater"
+                      stroke="#10b981"
+                      fill="#10b981"
+                      fillOpacity={0.4}
+                      strokeWidth={2}
+                    />
+                    <RechartsTooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        fontSize: '12px'
+                      }}
+                      formatter={(value) => [`${value}`, '正規化スコア']}
+                    />
+                  </RadarChart>
                 </ResponsiveContainer>
+              </div>
+              <div className="space-y-1 px-4">
+                {[...radarData].sort((a, b) => b.repeater - a.repeater).map((item, index) => (
+                  <div key={index} className="flex items-center justify-between text-xs">
+                    <span className="text-gray-600">
+                      <span className="font-semibold">{index + 1}位</span> {item.category}
+                    </span>
+                    <span className="font-semibold text-green-600">{item.repeater}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* 効率性比較 */}
-            <div>
-              <h4 className="text-sm font-semibold mb-4">運営効率性</h4>
-              <div className="h-64">
+            {/* 新規の傾向 */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-center text-gray-700">新規顧客の傾向</h3>
+              <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={storeComparison.map(s => ({ name: s.store, value: s.efficiency }))}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${value}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {storeComparison.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
+                  <RadarChart data={radarData}>
+                    <PolarGrid 
+                      stroke="#e5e7eb"
+                      strokeDasharray="3 3"
+                      radialLines={true}
+                    />
+                    <PolarAngleAxis 
+                      dataKey="category"
+                      tick={{ fontSize: 12, fill: '#6b7280' }}
+                      className="text-xs"
+                    />
+                    <PolarRadiusAxis
+                      angle={90}
+                      domain={[0, 100]}
+                      tickCount={6}
+                      tick={{ fontSize: 10, fill: '#9ca3af' }}
+                    />
+                    <Radar
+                      name="新規"
+                      dataKey="newCustomer"
+                      stroke="#f59e0b"
+                      fill="#f59e0b"
+                      fillOpacity={0.4}
+                      strokeWidth={2}
+                    />
+                    <RechartsTooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '6px',
+                        fontSize: '12px'
+                      }}
+                      formatter={(value) => [`${value}`, '正規化スコア']}
+                    />
+                  </RadarChart>
                 </ResponsiveContainer>
               </div>
+              <div className="space-y-1 px-4">
+                {[...radarData].sort((a, b) => b.newCustomer - a.newCustomer).map((item, index) => (
+                  <div key={index} className="flex items-center justify-between text-xs">
+                    <span className="text-gray-600">
+                      <span className="font-semibold">{index + 1}位</span> {item.category}
+                    </span>
+                    <span className="font-semibold text-amber-600">{item.newCustomer}</span>
+                  </div>
+                ))}
+              </div>
             </div>
+          </div>
+
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// コメントタブ
+const CommentsTab = ({ selectedStore, selectedPeriod }) => {
+  const [expandedIssue, setExpandedIssue] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
+  
+  // フィルター状態
+  const [filters, setFilters] = useState({
+    gender: [],
+    age: [],
+    npsType: [],
+    isRepeater: [],
+    revisitIntent: [],
+    hasIssue: [],
+    tags: [],
+    commentSearch: ''
+  });
+  const [tempFilters, setTempFilters] = useState({
+    gender: [],
+    age: [],
+    npsType: [],
+    isRepeater: [],
+    revisitIntent: [],
+    hasIssue: [],
+    tags: [],
+    commentSearch: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // ダミーデータ（実際のアプリケーションではもっと多くのデータがある想定）
+  const generateDummyData = () => {
+    const baseComments = [
+    {
+      id: 1,
+      gender: "女性",
+      age: "30代",
+      npsType: "推奨者",
+      isRepeater: true,
+      revisitIntent: "あり",
+      hasIssue: false,
+      difficulty: null,
+      tags: [
+        { name: "接客", sentiment: "positive" },
+        { name: "品質", sentiment: "positive" }
+      ],
+      sentiment: { positive: true, negative: false },
+      comment: "スタッフの対応が素晴らしく、商品の品質も最高でした。また利用したいです。",
+      date: "2024-01-27 14:30"
+    },
+    {
+      id: 2,
+      gender: "男性",
+      age: "40代",
+      npsType: "批判者",
+      isRepeater: false,
+      revisitIntent: "なし",
+      hasIssue: true,
+      difficulty: "高",
+      aiAnalysis: "待ち時間の問題は人員配置の見直しが必要です。ピーク時間帯の分析と適切なシフト管理により改善可能です。価格については競合他社との比較検証をお勧めします。",
+      tags: [
+        { name: "待ち時間", sentiment: "negative" },
+        { name: "価格", sentiment: "negative" }
+      ],
+      sentiment: { positive: false, negative: true },
+      comment: "待ち時間が長すぎて、価格に見合わないサービスでした。",
+      date: "2024-01-27 13:15"
+    },
+    {
+      id: 3,
+      gender: "女性",
+      age: "20代",
+      npsType: "中立者",
+      isRepeater: true,
+      revisitIntent: "あり",
+      hasIssue: true,
+      difficulty: "中",
+      aiAnalysis: "店内の騒音問題はレイアウト変更や防音素材の導入で改善可能です。BGMの音量調整や静かなエリアの設置も検討してください。",
+      tags: [
+        { name: "品質", sentiment: "positive" },
+        { name: "雰囲気", sentiment: "negative" }
+      ],
+      sentiment: { positive: true, negative: true },
+      comment: "商品の品質は良かったですが、店内が少し騒がしくて落ち着きませんでした。",
+      date: "2024-01-27 12:45"
+    },
+    {
+      id: 4,
+      gender: "男性",
+      age: "50代",
+      npsType: "推奨者",
+      isRepeater: true,
+      revisitIntent: "あり",
+      hasIssue: false,
+      difficulty: null,
+      tags: [
+        { name: "接客", sentiment: "positive" },
+        { name: "清潔さ", sentiment: "positive" },
+        { name: "品質", sentiment: "positive" }
+      ],
+      sentiment: { positive: true, negative: false },
+      comment: "いつも清潔で気持ちよく利用できます。スタッフも親切で安心です。",
+      date: "2024-01-27 11:20"
+    },
+    {
+      id: 5,
+      gender: "女性",
+      age: "30代",
+      npsType: "中立者",
+      isRepeater: false,
+      revisitIntent: "なし",
+      hasIssue: true,
+      difficulty: "低",
+      aiAnalysis: "価格設定の見直しやバリューメニューの提案を検討してください。立地の利点を活かしたプロモーションも効果的です。",
+      tags: [
+        { name: "価格", sentiment: "neutral" },
+        { name: "立地", sentiment: "neutral" }
+      ],
+      sentiment: { positive: false, negative: false },
+      comment: "価格は普通ですが、立地が良いので利用しました。特に不満はありません。",
+      date: "2024-01-27 10:30"
+    },
+    {
+      id: 6,
+      gender: "その他",
+      age: "20代",
+      npsType: "推奨者",
+      isRepeater: true,
+      revisitIntent: "あり",
+      hasIssue: false,
+      difficulty: null,
+      tags: [
+        { name: "接客", sentiment: "positive" },
+        { name: "多様性", sentiment: "positive" }
+      ],
+      sentiment: { positive: true, negative: false },
+      comment: "多様性に配慮した素晴らしい対応でした。とても居心地が良かったです。",
+      date: "2024-01-27 09:45"
+    },
+    {
+      id: 7,
+      gender: "その他",
+      age: "30代",
+      npsType: "中立者",
+      isRepeater: false,
+      revisitIntent: "あり",
+      hasIssue: false,
+      difficulty: null,
+      tags: [
+        { name: "品質", sentiment: "positive" },
+        { name: "雰囲気", sentiment: "neutral" }
+      ],
+      sentiment: { positive: true, negative: false },
+      comment: "商品の品質は良いが、もう少しインクルーシブな空間になると嬉しいです。",
+      date: "2024-01-27 09:00"
+    }
+    ];
+    
+    // 100件のダミーデータを生成
+    const allComments = [];
+    for (let i = 0; i < 100; i++) {
+      const baseComment = baseComments[i % baseComments.length];
+      allComments.push({
+        ...baseComment,
+        id: i + 1,
+        date: new Date(Date.now() - i * 3600000).toLocaleString('ja-JP', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      });
+    }
+    return allComments;
+  };
+  
+  const allComments = generateDummyData();
+  
+  // フィルタリング処理
+  const filteredComments = allComments.filter(comment => {
+    // 性別フィルター
+    if (filters.gender.length > 0 && !filters.gender.includes(comment.gender)) return false;
+    
+    // 年齢フィルター
+    if (filters.age.length > 0 && !filters.age.includes(comment.age)) return false;
+    
+    // NPSタイプフィルター
+    if (filters.npsType.length > 0 && !filters.npsType.includes(comment.npsType)) return false;
+    
+    // リピーターフィルター
+    if (filters.isRepeater.length > 0) {
+      const repeaterStatus = comment.isRepeater ? 'リピーター' : '新規';
+      if (!filters.isRepeater.includes(repeaterStatus)) return false;
+    }
+    
+    // 再来店意向フィルター
+    if (filters.revisitIntent.length > 0 && !filters.revisitIntent.includes(comment.revisitIntent)) return false;
+    
+    // 課題フィルター
+    if (filters.hasIssue.length > 0) {
+      const issueStatus = comment.hasIssue ? '課題あり' : '課題なし';
+      if (!filters.hasIssue.includes(issueStatus)) return false;
+    }
+    
+    // タグフィルター
+    if (filters.tags.length > 0) {
+      const hasAnyTag = comment.tags.some(tag => filters.tags.includes(tag.name));
+      if (!hasAnyTag) return false;
+    }
+    
+    // コメント検索
+    if (filters.commentSearch) {
+      const searchLower = filters.commentSearch.toLowerCase();
+      if (!comment.comment.toLowerCase().includes(searchLower)) return false;
+    }
+    
+    return true;
+  });
+  
+  // 現在のページのデータを取得
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentComments = filteredComments.slice(indexOfFirstItem, indexOfLastItem);
+  
+  // ページ数を計算
+  const totalPages = Math.ceil(filteredComments.length / itemsPerPage);
+  
+  // フィルター変更時の処理（一時的な変更）
+  const handleTempFilterChange = (filterName, value, isChecked) => {
+    if (filterName === 'commentSearch') {
+      setTempFilters(prev => ({ ...prev, commentSearch: value }));
+    } else {
+      setTempFilters(prev => {
+        const currentValues = [...prev[filterName]];
+        if (isChecked) {
+          if (!currentValues.includes(value)) {
+            currentValues.push(value);
+          }
+        } else {
+          const index = currentValues.indexOf(value);
+          if (index > -1) {
+            currentValues.splice(index, 1);
+          }
+        }
+        return { ...prev, [filterName]: currentValues };
+      });
+    }
+  };
+  
+  // 検索ボックスの変更（即座に反映）
+  const handleSearchChange = (value) => {
+    setFilters(prev => ({ ...prev, commentSearch: value }));
+    setTempFilters(prev => ({ ...prev, commentSearch: value }));
+    setCurrentPage(1);
+    setExpandedIssue(null);
+  };
+  
+  // フィルター適用
+  const applyFilters = () => {
+    setFilters(tempFilters);
+    setCurrentPage(1);
+    setExpandedIssue(null);
+    setShowFilters(false);
+  };
+  
+  // フィルターを開く時に一時フィルターを現在のフィルターと同期
+  const toggleFilters = () => {
+    if (!showFilters) {
+      setTempFilters(filters);
+    }
+    setShowFilters(!showFilters);
+  };
+  
+  // ページネーション制御
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    setExpandedIssue(null); // ページ変更時に展開された行をリセット
+  };
+  
+  // 使用可能なタグを抽出
+  const availableTags = [...new Set(allComments.flatMap(comment => comment.tags.map(tag => tag.name)))];
+
+  // NPSタイプのカラー設定
+  const getNPSBadge = (type) => {
+    switch (type) {
+      case "推奨者":
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold text-white bg-gradient-to-r from-green-500 to-emerald-500">
+            推奨者
+          </span>
+        );
+      case "批判者":
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold text-white bg-gradient-to-r from-red-500 to-red-400">
+            批判者
+          </span>
+        );
+      case "中立者":
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-orange-400">
+            中立者
+          </span>
+        );
+      default:
+        return <Badge>{type}</Badge>;
+    }
+  };
+
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* テーブル */}
+      <Card className="border-0 shadow-xl bg-white overflow-hidden">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span>顧客コメント分析</span>
+              <span className="text-sm font-normal text-gray-600">
+                {filteredComments.length} 件の結果
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              {/* 検索ボックス */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="コメントを検索..."
+                  value={filters.commentSearch}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-64 px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                />
+                {filters.commentSearch && (
+                  <button
+                    onClick={() => handleSearchChange('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <Close className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {/* フィルター開閉ボタン */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleFilters}
+                className={`flex items-center gap-2 ${showFilters ? 'bg-purple-50 border-purple-300' : ''}`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                フィルター
+                {Object.entries(filters).filter(([key, value]) => 
+                  key === 'commentSearch' ? value !== '' : value.length > 0
+                ).length > 0 && (
+                  <span className="ml-1 px-2 py-0.5 text-xs bg-purple-500 text-white rounded-full">
+                    {Object.entries(filters).filter(([key, value]) => 
+                      key === 'commentSearch' ? value !== '' : value.length > 0
+                    ).length}
+                  </span>
+                )}
+              </Button>
+            </div>
+          </CardTitle>
+          
+          {/* フィルターセクション */}
+          {showFilters && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="space-y-4">
+                {/* 性別フィルター */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">性別</p>
+                  <div className="flex flex-wrap gap-3">
+                    {['男性', '女性', 'その他'].map(gender => (
+                      <label key={gender} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={tempFilters.gender.includes(gender)}
+                          onChange={(e) => handleTempFilterChange('gender', gender, e.target.checked)}
+                          className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">{gender}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 年齢フィルター */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">年齢</p>
+                  <div className="flex flex-wrap gap-3">
+                    {['20代', '30代', '40代', '50代', '60代'].map(age => (
+                      <label key={age} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={tempFilters.age.includes(age)}
+                          onChange={(e) => handleTempFilterChange('age', age, e.target.checked)}
+                          className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">{age}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 推奨度フィルター */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">推奨度</p>
+                  <div className="flex flex-wrap gap-3">
+                    {['推奨者', '中立者', '批判者'].map(nps => (
+                      <label key={nps} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={tempFilters.npsType.includes(nps)}
+                          onChange={(e) => handleTempFilterChange('npsType', nps, e.target.checked)}
+                          className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">{nps}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* リピーター・再来店意向・課題 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* リピーター */}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">リピーター</p>
+                    <div className="space-y-2">
+                      {['リピーター', '新規'].map(status => (
+                        <label key={status} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={tempFilters.isRepeater.includes(status)}
+                            onChange={(e) => handleTempFilterChange('isRepeater', status, e.target.checked)}
+                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                          />
+                          <span className="text-sm text-gray-700">{status}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 再来店意向 */}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">再来店意向</p>
+                    <div className="space-y-2">
+                      {['あり', 'なし'].map(intent => (
+                        <label key={intent} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={tempFilters.revisitIntent.includes(intent)}
+                            onChange={(e) => handleTempFilterChange('revisitIntent', intent, e.target.checked)}
+                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                          />
+                          <span className="text-sm text-gray-700">{intent}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 課題 */}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">課題</p>
+                    <div className="space-y-2">
+                      {['課題あり', '課題なし'].map(issue => (
+                        <label key={issue} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={tempFilters.hasIssue.includes(issue)}
+                            onChange={(e) => handleTempFilterChange('hasIssue', issue, e.target.checked)}
+                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                          />
+                          <span className="text-sm text-gray-700">{issue}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* タグフィルター */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">タグ</p>
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags.map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => {
+                          const isSelected = tempFilters.tags.includes(tag);
+                          handleTempFilterChange('tags', tag, !isSelected);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                          tempFilters.tags.includes(tag)
+                            ? 'bg-purple-500 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* フィルター適用・リセットボタン */}
+                <div className="pt-4 flex items-center justify-between border-t border-gray-200">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={applyFilters}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      フィルターを適用
+                    </Button>
+                    {Object.entries(tempFilters).some(([key, value]) => 
+                      key === 'commentSearch' ? value !== '' : value.length > 0
+                    ) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setTempFilters({
+                            gender: [],
+                            age: [],
+                            npsType: [],
+                            isRepeater: [],
+                            revisitIntent: [],
+                            hasIssue: [],
+                            tags: [],
+                            commentSearch: filters.commentSearch
+                          });
+                        }}
+                        className="text-sm"
+                      >
+                        クリア
+                      </Button>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <Close className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    性別
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    年齢
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    推奨度
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    リピーター
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    再来店意向
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    課題
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    タグ
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    コメント
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {currentComments.map((comment) => (
+                  <React.Fragment key={comment.id}>
+                  <tr 
+                    className={comment.hasIssue ? 'cursor-pointer' : ''}
+                    onClick={() => {
+                      if (comment.hasIssue) {
+                        setExpandedIssue(expandedIssue === comment.id ? null : comment.id);
+                      }
+                    }}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                          comment.gender === "女性" ? "bg-pink-100 text-pink-700" : 
+                          comment.gender === "男性" ? "bg-blue-100 text-blue-700" :
+                          "bg-purple-100 text-purple-700"
+                        }`}>
+                          {comment.gender === "女性" ? "女" : 
+                           comment.gender === "男性" ? "男" : "他"}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-900">{comment.age}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getNPSBadge(comment.npsType)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {comment.isRepeater ? (
+                        <div className="flex items-center">
+                          <CheckCircle className="w-4 h-4 text-green-600 mr-1" />
+                          <span className="text-sm text-green-700">リピーター</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <User className="w-4 h-4 text-gray-400 mr-1" />
+                          <span className="text-sm text-gray-500">新規</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`text-sm font-medium ${
+                        comment.revisitIntent === 'あり' ? 'text-green-600' : 'text-gray-500'
+                      }`}>
+                        {comment.revisitIntent}
+                      </span>
+                    </td>
+                    <td 
+                      className="px-6 py-4 text-center"
+                      style={{ minHeight: '60px' }}
+                    >
+                      {comment.hasIssue ? (
+                        <div className="flex justify-center items-center h-full">
+                          <AlertTriangle className="w-5 h-5 text-red-500" />
+                        </div>
+                      ) : (
+                        <div style={{ height: '20px' }}></div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1 max-w-[200px]">
+                        {comment.tags.map((tag, index) => {
+                          // センチメントに基づいて色を設定
+                          const getTagStyle = (sentiment) => {
+                            switch (sentiment) {
+                              case "positive":
+                                return "bg-green-50 text-green-700 border-green-200";
+                              case "negative":
+                                return "bg-red-50 text-red-700 border-red-200";
+                              case "neutral":
+                              default:
+                                return "bg-gray-50 text-gray-700 border-gray-200";
+                            }
+                          };
+                          
+                          return (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className={`text-xs ${getTagStyle(tag.sentiment)}`}
+                            >
+                              {tag.name}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="max-w-md">
+                        <p className="text-sm text-gray-900 line-clamp-2">
+                          {comment.comment}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {comment.date}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                  {/* AI分析表示行 */}
+                  {expandedIssue === comment.id && comment.aiAnalysis && (
+                    <tr>
+                      <td colSpan="8" className="px-6 py-4 bg-gray-50">
+                        <div className="flex items-start gap-3">
+                          <Lightbulb className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm font-semibold text-gray-700 mb-1">AI分析・改善提案</p>
+                            <p className="text-sm text-gray-600">{comment.aiAnalysis}</p>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>
 
-      {/* アラートとインサイト */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur">
-          <CardHeader>
-            <CardTitle>アラート & 通知</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Alert className="border-yellow-200 bg-yellow-50">
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              <AlertTitle className="text-yellow-800">在庫アラート</AlertTitle>
-              <AlertDescription className="text-yellow-700">
-                渋谷店でカフェラテの材料が残り20%です
-              </AlertDescription>
-            </Alert>
-            <Alert className="border-blue-200 bg-blue-50">
-              <Clock className="h-4 w-4 text-blue-600" />
-              <AlertTitle className="text-blue-800">混雑予測</AlertTitle>
-              <AlertDescription className="text-blue-700">
-                12:00-13:00に混雑が予想されます
-              </AlertDescription>
-            </Alert>
-            <Alert className="border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertTitle className="text-green-800">達成通知</AlertTitle>
-              <AlertDescription className="text-green-700">
-                本日の売上目標を80%達成しました
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-xl bg-white/80 backdrop-blur">
-          <CardHeader>
-            <CardTitle>AIインサイト</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex gap-3">
-                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center shrink-0">
-                  <Lightbulb className="w-5 h-5 text-yellow-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold">売上予測</h4>
-                  <p className="text-sm text-muted-foreground">
-                    現在のペースで本日¥5.2M達成見込み
-                  </p>
-                </div>
-              </div>
-              <Separator />
-              <div className="flex gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold">トレンド分析</h4>
-                  <p className="text-sm text-muted-foreground">
-                    抹茶系商品の需要が前週比15%上昇
-                  </p>
-                </div>
-              </div>
-              <Separator />
-              <div className="flex gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                  <Users className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold">顧客行動</h4>
-                  <p className="text-sm text-muted-foreground">
-                    午後の来店客の70%がリピーター
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* ページネーション */}
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-gray-600">
+          全 {filteredComments.length} 件中 {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredComments.length)} 件を表示
+        </p>
+        <div className="flex gap-2 items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1"
+          >
+            <ChevronDown className="w-4 h-4 rotate-90" />
+            前へ
+          </Button>
+          
+          <div className="flex gap-1">
+            {[...Array(totalPages)].map((_, index) => {
+              const page = index + 1;
+              // 現在のページの前後2ページまで表示
+              if (
+                page === 1 ||
+                page === totalPages ||
+                (page >= currentPage - 1 && page <= currentPage + 1)
+              ) {
+                return (
+                  <Button
+                    key={page}
+                    variant={page === currentPage ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(page)}
+                    className={`w-10 h-10 p-0 ${
+                      page === currentPage
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
+                        : ''
+                    }`}
+                  >
+                    {page}
+                  </Button>
+                );
+              } else if (
+                (page === currentPage - 2 && page > 1) ||
+                (page === currentPage + 2 && page < totalPages)
+              ) {
+                return (
+                  <span key={page} className="px-2 text-gray-400">
+                    ...
+                  </span>
+                );
+              }
+              return null;
+            })}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1"
+          >
+            次へ
+            <ChevronUp className="w-4 h-4 rotate-90" />
+          </Button>
+        </div>
       </div>
     </div>
   );
 };
 
 // リアルタイムタブの内容
-const RealtimeTab = () => (
-  <Box sx={{ p: 3 }}>
-    <Typography variant="h6" sx={{ color: '#64748b' }}>
-      リアルタイム機能は開発中です
-    </Typography>
-  </Box>
-);
+const RealtimeTab = ({ companyId }) => {
+  const [expandedIssue, setExpandedIssue] = useState(null);
+  const [selectedStore, setSelectedStore] = useState('all');
+  const [selectedPeriod, setSelectedPeriod] = useState('2025/12');
+  const [stores, setStores] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
+  
+  // フィルター状態
+  const [filters, setFilters] = useState({
+    gender: [],
+    age: [],
+    npsType: [],
+    isRepeater: [],
+    revisitIntent: [],
+    hasIssue: [],
+    tags: [],
+    commentSearch: ''
+  });
+  const [tempFilters, setTempFilters] = useState({
+    gender: [],
+    age: [],
+    npsType: [],
+    isRepeater: [],
+    revisitIntent: [],
+    hasIssue: [],
+    tags: [],
+    commentSearch: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
+
+  // 店舗データを取得
+  useEffect(() => {
+    const fetchStores = async () => {
+      if (!companyId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('stores')
+          .select('id, name')
+          .eq('company_id', companyId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setStores(data || []);
+      } catch (error) {
+        console.error('店舗データの取得エラー:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStores();
+  }, [companyId]);
+  
+  // リアルタイムデータを生成
+  const generateRealtimeData = () => {
+    const baseComments = [
+      {
+        gender: "女性",
+        age: "20代",
+        npsType: "推奨者",
+        isRepeater: false,
+        revisitIntent: "あり",
+        hasIssue: false,
+        tags: [
+          { name: "新商品", sentiment: "positive" },
+          { name: "接客", sentiment: "positive" }
+        ],
+        comment: "新商品を試してみました！スタッフの説明も丁寧で良かったです。"
+      },
+      {
+        gender: "男性",
+        age: "30代",
+        npsType: "中立者",
+        isRepeater: true,
+        revisitIntent: "あり",
+        hasIssue: true,
+        aiAnalysis: "Wi-Fi環境の改善が必要です。ルーターの増設や通信速度の向上を検討してください。",
+        tags: [
+          { name: "Wi-Fi", sentiment: "negative" },
+          { name: "品質", sentiment: "positive" }
+        ],
+        comment: "いつも利用していますが、今日はWi-Fiが繋がりにくかったです。"
+      },
+      {
+        gender: "その他",
+        age: "40代",
+        npsType: "推奨者",
+        isRepeater: true,
+        revisitIntent: "あり",
+        hasIssue: false,
+        tags: [
+          { name: "雰囲気", sentiment: "positive" },
+          { name: "スタッフ", sentiment: "positive" }
+        ],
+        comment: "落ち着いた雰囲気で仕事がはかどりました。スタッフも親切です。"
+      },
+      {
+        gender: "女性",
+        age: "50代",
+        npsType: "批判者",
+        isRepeater: false,
+        revisitIntent: "なし",
+        hasIssue: true,
+        aiAnalysis: "音量管理の改善が必要です。BGMの音量調整やピーク時間帯の騒音対策を検討してください。",
+        tags: [
+          { name: "騒音", sentiment: "negative" },
+          { name: "価格", sentiment: "neutral" }
+        ],
+        comment: "店内が騒がしすぎて落ち着けませんでした。"
+      },
+      {
+        gender: "男性",
+        age: "20代",
+        npsType: "推奨者",
+        isRepeater: true,
+        revisitIntent: "あり",
+        hasIssue: false,
+        tags: [
+          { name: "コーヒー", sentiment: "positive" },
+          { name: "価格", sentiment: "positive" }
+        ],
+        comment: "美味しいコーヒーをリーズナブルな価格で楽しめます。"
+      }
+    ];
+    
+    // 100件のデータを生成
+    const allComments = [];
+    const now = Date.now();
+    for (let i = 0; i < 100; i++) {
+      const baseComment = baseComments[i % baseComments.length];
+      allComments.push({
+        ...baseComment,
+        id: i + 1,
+        date: new Date(now - i * 180000).toLocaleString('ja-JP', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      });
+    }
+    return allComments;
+  };
+  
+  const allRealtimeComments = generateRealtimeData();
+  
+  // フィルタリング処理
+  const filteredComments = allRealtimeComments.filter(comment => {
+    // 性別フィルター
+    if (filters.gender.length > 0 && !filters.gender.includes(comment.gender)) return false;
+    
+    // 年齢フィルター
+    if (filters.age.length > 0 && !filters.age.includes(comment.age)) return false;
+    
+    // NPSタイプフィルター
+    if (filters.npsType.length > 0 && !filters.npsType.includes(comment.npsType)) return false;
+    
+    // リピーターフィルター
+    if (filters.isRepeater.length > 0) {
+      const repeaterStatus = comment.isRepeater ? 'リピーター' : '新規';
+      if (!filters.isRepeater.includes(repeaterStatus)) return false;
+    }
+    
+    // 再来店意向フィルター
+    if (filters.revisitIntent.length > 0 && !filters.revisitIntent.includes(comment.revisitIntent)) return false;
+    
+    // 課題フィルター
+    if (filters.hasIssue.length > 0) {
+      const issueStatus = comment.hasIssue ? '課題あり' : '課題なし';
+      if (!filters.hasIssue.includes(issueStatus)) return false;
+    }
+    
+    // タグフィルター
+    if (filters.tags.length > 0) {
+      const hasAnyTag = comment.tags.some(tag => filters.tags.includes(tag.name));
+      if (!hasAnyTag) return false;
+    }
+    
+    // コメント検索
+    if (filters.commentSearch) {
+      const searchLower = filters.commentSearch.toLowerCase();
+      if (!comment.comment.toLowerCase().includes(searchLower)) return false;
+    }
+    
+    return true;
+  });
+  
+  // 現在のページのデータを取得
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentComments = filteredComments.slice(indexOfFirstItem, indexOfLastItem);
+  
+  // ページ数を計算
+  const totalPages = Math.ceil(filteredComments.length / itemsPerPage);
+  
+  // フィルター変更時の処理（一時的な変更）
+  const handleTempFilterChange = (filterName, value, isChecked) => {
+    if (filterName === 'commentSearch') {
+      setTempFilters(prev => ({ ...prev, commentSearch: value }));
+    } else {
+      setTempFilters(prev => {
+        const currentValues = [...prev[filterName]];
+        if (isChecked) {
+          if (!currentValues.includes(value)) {
+            currentValues.push(value);
+          }
+        } else {
+          const index = currentValues.indexOf(value);
+          if (index > -1) {
+            currentValues.splice(index, 1);
+          }
+        }
+        return { ...prev, [filterName]: currentValues };
+      });
+    }
+  };
+  
+  // 検索ボックスの変更（即座に反映）
+  const handleSearchChange = (value) => {
+    setFilters(prev => ({ ...prev, commentSearch: value }));
+    setTempFilters(prev => ({ ...prev, commentSearch: value }));
+    setCurrentPage(1);
+    setExpandedIssue(null);
+  };
+  
+  // フィルター適用
+  const applyFilters = () => {
+    setFilters(tempFilters);
+    setCurrentPage(1);
+    setExpandedIssue(null);
+    setShowFilters(false);
+  };
+  
+  // フィルターを開く時に一時フィルターを現在のフィルターと同期
+  const toggleFilters = () => {
+    if (!showFilters) {
+      setTempFilters(filters);
+    }
+    setShowFilters(!showFilters);
+  };
+  
+  // ページネーション制御
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    setExpandedIssue(null);
+  };
+  
+  // 使用可能なタグを抽出
+  const availableTags = [...new Set(allRealtimeComments.flatMap(comment => comment.tags.map(tag => tag.name)))];
+
+  // NPSタイプのカラー設定
+  const getNPSBadge = (type) => {
+    switch (type) {
+      case "推奨者":
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold text-white bg-gradient-to-r from-green-500 to-emerald-500">
+            推奨者
+          </span>
+        );
+      case "批判者":
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold text-white bg-gradient-to-r from-red-500 to-red-400">
+            批判者
+          </span>
+        );
+      case "中立者":
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-orange-400">
+            中立者
+          </span>
+        );
+      default:
+        return <Badge>{type}</Badge>;
+    }
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* フィルターセレクター */}
+      <div className="flex gap-3 items-center">
+        {/* 店舗選択 */}
+        <Select value={selectedStore} onValueChange={setSelectedStore}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="店舗を選択" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>店舗選択</SelectLabel>
+              <SelectItem value="all">全店舗</SelectItem>
+              {stores.map((store) => (
+                <SelectItem key={store.id} value={store.id}>
+                  {store.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
+        {/* 期間選択 */}
+        <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="期間を選択" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>期間選択</SelectLabel>
+              <SelectItem value="2025/12">2025/12</SelectItem>
+              <SelectItem value="2025/11">2025/11</SelectItem>
+              <SelectItem value="2025/10">2025/10</SelectItem>
+              <SelectItem value="2025/09">2025/09</SelectItem>
+              <SelectItem value="2025/08">2025/08</SelectItem>
+              <SelectItem value="2025/07">2025/07</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* テーブル */}
+      <Card className="border-0 shadow-xl bg-white overflow-hidden">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span>リアルタイム顧客コメント</span>
+              <span className="text-sm font-normal text-gray-600">
+                {filteredComments.length} 件の結果
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              {/* 検索ボックス */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="コメントを検索..."
+                  value={filters.commentSearch}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-64 px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                />
+                {filters.commentSearch && (
+                  <button
+                    onClick={() => handleSearchChange('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <Close className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {/* フィルター開閉ボタン */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleFilters}
+                className={`flex items-center gap-2 ${showFilters ? 'bg-purple-50 border-purple-300' : ''}`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                フィルター
+                {Object.entries(filters).filter(([key, value]) => 
+                  key === 'commentSearch' ? value !== '' : value.length > 0
+                ).length > 0 && (
+                  <span className="ml-1 px-2 py-0.5 text-xs bg-purple-500 text-white rounded-full">
+                    {Object.entries(filters).filter(([key, value]) => 
+                      key === 'commentSearch' ? value !== '' : value.length > 0
+                    ).length}
+                  </span>
+                )}
+              </Button>
+            </div>
+          </CardTitle>
+          
+          {/* フィルターセクション */}
+          {showFilters && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <div className="space-y-4">
+                {/* 性別フィルター */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">性別</p>
+                  <div className="flex flex-wrap gap-3">
+                    {['男性', '女性', 'その他'].map(gender => (
+                      <label key={gender} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={tempFilters.gender.includes(gender)}
+                          onChange={(e) => handleTempFilterChange('gender', gender, e.target.checked)}
+                          className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">{gender}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 年齢フィルター */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">年齢</p>
+                  <div className="flex flex-wrap gap-3">
+                    {['20代', '30代', '40代', '50代', '60代'].map(age => (
+                      <label key={age} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={tempFilters.age.includes(age)}
+                          onChange={(e) => handleTempFilterChange('age', age, e.target.checked)}
+                          className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">{age}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 推奨度フィルター */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">推奨度</p>
+                  <div className="flex flex-wrap gap-3">
+                    {['推奨者', '中立者', '批判者'].map(nps => (
+                      <label key={nps} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={tempFilters.npsType.includes(nps)}
+                          onChange={(e) => handleTempFilterChange('npsType', nps, e.target.checked)}
+                          className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">{nps}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* リピーター・再来店意向・課題 */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* リピーター */}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">リピーター</p>
+                    <div className="space-y-2">
+                      {['リピーター', '新規'].map(status => (
+                        <label key={status} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={tempFilters.isRepeater.includes(status)}
+                            onChange={(e) => handleTempFilterChange('isRepeater', status, e.target.checked)}
+                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                          />
+                          <span className="text-sm text-gray-700">{status}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 再来店意向 */}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">再来店意向</p>
+                    <div className="space-y-2">
+                      {['あり', 'なし'].map(intent => (
+                        <label key={intent} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={tempFilters.revisitIntent.includes(intent)}
+                            onChange={(e) => handleTempFilterChange('revisitIntent', intent, e.target.checked)}
+                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                          />
+                          <span className="text-sm text-gray-700">{intent}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 課題 */}
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">課題</p>
+                    <div className="space-y-2">
+                      {['課題あり', '課題なし'].map(issue => (
+                        <label key={issue} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={tempFilters.hasIssue.includes(issue)}
+                            onChange={(e) => handleTempFilterChange('hasIssue', issue, e.target.checked)}
+                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                          />
+                          <span className="text-sm text-gray-700">{issue}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* タグフィルター */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">タグ</p>
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags.map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => {
+                          const isSelected = tempFilters.tags.includes(tag);
+                          handleTempFilterChange('tags', tag, !isSelected);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                          tempFilters.tags.includes(tag)
+                            ? 'bg-purple-500 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* フィルター適用・リセットボタン */}
+                <div className="pt-4 flex items-center justify-between border-t border-gray-200">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={applyFilters}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      フィルターを適用
+                    </Button>
+                    {Object.entries(tempFilters).some(([key, value]) => 
+                      key === 'commentSearch' ? value !== '' : value.length > 0
+                    ) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setTempFilters({
+                            gender: [],
+                            age: [],
+                            npsType: [],
+                            isRepeater: [],
+                            revisitIntent: [],
+                            hasIssue: [],
+                            tags: [],
+                            commentSearch: filters.commentSearch
+                          });
+                        }}
+                        className="text-sm"
+                      >
+                        クリア
+                      </Button>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <Close className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    性別
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    年齢
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    推奨度
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    リピーター
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    再来店意向
+                  </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    課題
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    タグ
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    コメント
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {currentComments.map((comment) => (
+                  <React.Fragment key={comment.id}>
+                  <tr 
+                    className={comment.hasIssue ? 'cursor-pointer' : ''}
+                    onClick={() => {
+                      if (comment.hasIssue) {
+                        setExpandedIssue(expandedIssue === comment.id ? null : comment.id);
+                      }
+                    }}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                          comment.gender === "女性" ? "bg-pink-100 text-pink-700" : 
+                          comment.gender === "男性" ? "bg-blue-100 text-blue-700" :
+                          "bg-purple-100 text-purple-700"
+                        }`}>
+                          {comment.gender === "女性" ? "女" : 
+                           comment.gender === "男性" ? "男" : "他"}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-900">{comment.age}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getNPSBadge(comment.npsType)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {comment.isRepeater ? (
+                        <div className="flex items-center">
+                          <CheckCircle className="w-4 h-4 text-green-600 mr-1" />
+                          <span className="text-sm text-green-700">リピーター</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center">
+                          <User className="w-4 h-4 text-gray-400 mr-1" />
+                          <span className="text-sm text-gray-500">新規</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`text-sm font-medium ${
+                        comment.revisitIntent === 'あり' ? 'text-green-600' : 'text-gray-500'
+                      }`}>
+                        {comment.revisitIntent}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {comment.hasIssue ? (
+                        <div className="flex justify-center items-center">
+                          <AlertTriangle className="w-5 h-5 text-red-500" />
+                        </div>
+                      ) : (
+                        <div style={{ height: '20px' }}></div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1 max-w-[200px]">
+                        {comment.tags.map((tag, index) => {
+                          const getTagStyle = (sentiment) => {
+                            switch (sentiment) {
+                              case "positive":
+                                return "bg-green-50 text-green-700 border-green-200";
+                              case "negative":
+                                return "bg-red-50 text-red-700 border-red-200";
+                              case "neutral":
+                              default:
+                                return "bg-gray-50 text-gray-700 border-gray-200";
+                            }
+                          };
+                          
+                          return (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className={`text-xs ${getTagStyle(tag.sentiment)}`}
+                            >
+                              {tag.name}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="max-w-md">
+                        <p className="text-sm text-gray-900 line-clamp-2">
+                          {comment.comment}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {comment.date}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                  {/* AI分析表示行 */}
+                  {expandedIssue === comment.id && comment.aiAnalysis && (
+                    <tr>
+                      <td colSpan="8" className="px-6 py-4 bg-gray-50">
+                        <div className="flex items-start gap-3">
+                          <Lightbulb className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-sm font-semibold text-gray-700 mb-1">AI分析・改善提案</p>
+                            <p className="text-sm text-gray-600">{comment.aiAnalysis}</p>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ページネーション */}
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-gray-600">
+          全 {filteredComments.length} 件中 {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredComments.length)} 件を表示
+        </p>
+        <div className="flex gap-2 items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1"
+          >
+            <ChevronDown className="w-4 h-4 rotate-90" />
+            前へ
+          </Button>
+          
+          <div className="flex gap-1">
+            {[...Array(totalPages)].map((_, index) => {
+              const page = index + 1;
+              if (
+                page === 1 ||
+                page === totalPages ||
+                (page >= currentPage - 1 && page <= currentPage + 1)
+              ) {
+                return (
+                  <Button
+                    key={page}
+                    variant={page === currentPage ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(page)}
+                    className={`w-10 h-10 p-0 ${
+                      page === currentPage
+                        ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
+                        : ''
+                    }`}
+                  >
+                    {page}
+                  </Button>
+                );
+              } else if (
+                (page === currentPage - 2 && page > 1) ||
+                (page === currentPage + 2 && page < totalPages)
+              ) {
+                return (
+                  <span key={page} className="px-2 text-gray-400">
+                    ...
+                  </span>
+                );
+              }
+              return null;
+            })}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1"
+          >
+            次へ
+            <ChevronUp className="w-4 h-4 rotate-90" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 export default function AnalyticsPage({ onNavCollapse, companyId }) {
   const [activeTab, setActiveTab] = useState(0);
@@ -678,7 +4803,7 @@ export default function AnalyticsPage({ onNavCollapse, companyId }) {
           <StoreByStoreTab companyId={companyId} />
         </TabPanel>
         <TabPanel value={activeTab} index={2}>
-          <RealtimeTab />
+          <RealtimeTab companyId={companyId} />
         </TabPanel>
       </Box>
     </Box>

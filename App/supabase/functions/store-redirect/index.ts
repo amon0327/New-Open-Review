@@ -6,15 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// 月グループを判定する関数
-// groupA: 1,4,7,10月 → 0
-// groupB: 2,5,8,11月 → 1
-// groupC: 3,6,9,12月 → 2
-function getMonthGroup(month: number): 'A' | 'B' | 'C' {
-  const groupIndex = (month - 1) % 3
-  return ['A', 'B', 'C'][groupIndex] as 'A' | 'B' | 'C'
-}
-
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -77,85 +68,41 @@ serve(async (req) => {
     }
 
     const companyId = store.company_id
-    const now = new Date()
-    const currentYear = now.getFullYear()
-    const currentMonth = now.getMonth() + 1
 
-    // 2. 今月のロック設定を確認
-    const { data: monthLock } = await supabaseAdmin
-      .from('company_qsc_monthly_locks')
-      .select('locked_form_id, locked_qsc_type')
+    // 2. 会社の公開フォーム設定を取得
+    const { data: publicFormSettings, error: settingsError } = await supabaseAdmin
+      .from('company_public_form_settings')
+      .select('public_form_id')
       .eq('company_id', companyId)
-      .eq('target_year', currentYear)
-      .eq('target_month', currentMonth)
-      .maybeSingle()
+      .single()
 
     let formId: string | null = null
-    let qscType: string | null = null
 
-    if (monthLock) {
-      // ロックがある場合はロックされたフォームを使用
-      formId = monthLock.locked_form_id
-      qscType = monthLock.locked_qsc_type
+    if (!settingsError && publicFormSettings) {
+      // 公開フォーム設定がある場合はそれを使用
+      formId = publicFormSettings.public_form_id
     } else {
-      // 3. ロックがない場合はローテーション設定から今月のQSCを判定
-      const { data: rotationSettings } = await supabaseAdmin
-        .from('company_qsc_rotation_settings')
-        .select('group_a_type, group_b_type, group_c_type')
+      // 設定がない場合は会社の最新のレビューフォームを使用（フォールバック）
+      const { data: reviewForm, error: formError } = await supabaseAdmin
+        .from('review_forms')
+        .select('id')
         .eq('company_id', companyId)
-        .maybeSingle()
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
 
-      // デフォルトのローテーション設定
-      const groupAType = rotationSettings?.group_a_type ?? 'Quality'
-      const groupBType = rotationSettings?.group_b_type ?? 'Service'
-      const groupCType = rotationSettings?.group_c_type ?? 'Cleanliness'
-
-      // 今月のグループを判定
-      const monthGroup = getMonthGroup(currentMonth)
-
-      switch (monthGroup) {
-        case 'A':
-          qscType = groupAType
-          break
-        case 'B':
-          qscType = groupBType
-          break
-        case 'C':
-          qscType = groupCType
-          break
-      }
-
-      // 4. QSCフォーム設定から対応するフォームIDを取得
-      const { data: formSettings } = await supabaseAdmin
-        .from('company_qsc_form_settings')
-        .select('quality_form_id, service_form_id, cleanliness_form_id')
-        .eq('company_id', companyId)
-        .maybeSingle()
-
-      if (formSettings) {
-        switch (qscType) {
-          case 'Quality':
-            formId = formSettings.quality_form_id
-            break
-          case 'Service':
-            formId = formSettings.service_form_id
-            break
-          case 'Cleanliness':
-            formId = formSettings.cleanliness_form_id
-            break
-        }
+      if (!formError && reviewForm) {
+        formId = reviewForm.id
       }
     }
 
-    // フォームIDが見つからない場合
     if (!formId) {
       return new Response(
         JSON.stringify({
-          error: 'No form configured for this store',
+          error: 'No review form configured for this company',
           storeCode,
-          companyId,
-          currentMonth,
-          qscType
+          companyId
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -164,7 +111,7 @@ serve(async (req) => {
       )
     }
 
-    // 5. リダイレクトURLを生成（store_url_codeを使用）
+    // 3. リダイレクトURLを生成（store_url_codeを使用）
     const actualStoreCode = store.store_url_code || storeCode
     const redirectUrl = `https://reviewform.openreview.jp/?reviewFormId=${formId}&storeCode=${actualStoreCode}`
 
@@ -174,10 +121,7 @@ serve(async (req) => {
         redirectUrl,
         storeId: store.id,
         storeName: store.name,
-        formId,
-        qscType,
-        currentMonth,
-        monthGroup: getMonthGroup(currentMonth)
+        formId: formId
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

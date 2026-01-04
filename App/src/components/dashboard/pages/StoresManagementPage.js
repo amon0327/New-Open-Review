@@ -24,8 +24,6 @@ import {
   Store,
   Add,
   LocationOn,
-  Edit,
-  Delete,
   Close,
   Visibility,
   People
@@ -224,7 +222,7 @@ export default function StoresManagementPage() {
                   WebkitTextFillColor: 'transparent'
                 }}
               >
-                店舗管理
+                店舗情報
               </Typography>
             </Box>
             <Typography variant="body1" sx={{ color: '#64748b', mb: 3 }}>
@@ -342,7 +340,7 @@ export default function StoresManagementPage() {
                       </Box>
 
                       {/* 住所 */}
-                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3, minHeight: 48 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1.5, minHeight: 48 }}>
                         <LocationOn sx={{ color: '#64748b', mr: 1, mt: 0.5, fontSize: 20, flexShrink: 0 }} />
                         <Typography
                           variant="body2"
@@ -375,43 +373,22 @@ export default function StoresManagementPage() {
 
                       {/* アクションボタン */}
                       <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                        <IconButton
+                        <Button
+                          variant="outlined"
                           size="small"
+                          startIcon={<People />}
                           onClick={() => handleViewStoreDetail(store.id)}
                           sx={{
                             color: '#5e17eb',
+                            borderColor: '#5e17eb',
                             '&:hover': {
+                              borderColor: '#5e17eb',
                               backgroundColor: 'rgba(94, 23, 235, 0.1)'
                             }
                           }}
-                          title="店舗詳細・スタッフ管理"
                         >
-                          <People />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          sx={{
-                            color: '#10b981',
-                            '&:hover': {
-                              backgroundColor: 'rgba(16, 185, 129, 0.1)'
-                            }
-                          }}
-                          title="店舗情報を編集"
-                        >
-                          <Edit />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          sx={{
-                            color: '#ef4444',
-                            '&:hover': {
-                              backgroundColor: 'rgba(239, 68, 68, 0.1)'
-                            }
-                          }}
-                          title="店舗を削除"
-                        >
-                          <Delete />
-                        </IconButton>
+                          スタッフを管理
+                        </Button>
                       </Box>
                     </CardContent>
                   </Card>

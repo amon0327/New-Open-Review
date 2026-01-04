@@ -26,7 +26,8 @@ import {
   TextField,
   Alert,
   CircularProgress,
-  Skeleton
+  Skeleton,
+  Tooltip
 } from '@mui/material';
 import {
   Settings,
@@ -37,7 +38,8 @@ import {
   Store,
   Description,
   KeyboardArrowDown,
-  Warning
+  Warning,
+  HelpOutline
 } from '@mui/icons-material';
 import { toast } from 'react-hot-toast';
 import QRCode from 'qrcode';
@@ -48,26 +50,6 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // 今月のロック状態（回答があった場合、設定変更は来月から適用）
-  const [currentMonthLock, setCurrentMonthLock] = useState(null);
-  const [isCurrentMonthLocked, setIsCurrentMonthLocked] = useState(false);
-
-  // アンケートサイクル設定
-  const [surveyCycleConfig, setSurveyCycleConfig] = useState({
-    groupA: 'Quality',      // 1月, 4月, 7月, 10月
-    groupB: 'Service',      // 2月, 5月, 8月, 11月
-    groupC: 'Cleanliness'   // 3月, 6月, 9月, 12月
-  });
-  const [showCycleSettings, setShowCycleSettings] = useState(false);
-  const [cycleConfirmDialogOpen, setCycleConfirmDialogOpen] = useState(false);
-
-  // 各QSCテーマに紐づくレビューフォーム選択
-  const [selectedForms, setSelectedForms] = useState({
-    Quality: '',
-    Service: '',
-    Cleanliness: ''
-  });
-  const [showFormSettings, setShowFormSettings] = useState(false);
 
   // レビューフォームデータ（Supabaseから取得）
   const [reviewForms, setReviewForms] = useState([]);
@@ -90,20 +72,21 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
   // 店舗データ（Supabaseから取得）
   const [stores, setStores] = useState([]);
 
-  const surveyTypes = [
-    { id: 'Quality', label: 'Q', fullLabel: 'クオリティ', color: '#6366f1', bgColor: '#eef2ff' },
-    { id: 'Service', label: 'S', fullLabel: 'サービス', color: '#10b981', bgColor: '#ecfdf5' },
-    { id: 'Cleanliness', label: 'C', fullLabel: 'クリンリネス', color: '#f59e0b', bgColor: '#fffbeb' }
-  ];
+  // 公開フォーム選択
+  const [selectedPublicFormId, setSelectedPublicFormId] = useState('');
+  const [savedPublicFormId, setSavedPublicFormId] = useState(''); // 保存済みのフォームID
+  const [showPublicFormSettings, setShowPublicFormSettings] = useState(false);
 
-  const cycleGroups = [
-    { key: 'groupA', months: [1, 4, 7, 10], label: '1・4・7・10月' },
-    { key: 'groupB', months: [2, 5, 8, 11], label: '2・5・8・11月' },
-    { key: 'groupC', months: [3, 6, 9, 12], label: '3・6・9・12月' }
-  ];
+  // LINEミニアプリURL
+  const [lineMiniAppUrl, setLineMiniAppUrl] = useState('');
+  const [savedLineMiniAppUrl, setSavedLineMiniAppUrl] = useState('');
+  const [showLineMiniAppSettings, setShowLineMiniAppSettings] = useState(false);
+  const [isSavingLineMiniApp, setIsSavingLineMiniApp] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
+
+
 
   // ============================================================================
   // Supabaseからデータ取得
@@ -120,10 +103,10 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
       try {
         const fetchedCompanyId = propCompanyId;
 
-        // 1. 会社のレビューフォーム一覧を取得（review_formsテーブルから直接取得、qsc_theme含む）
+        // 1. 会社のレビューフォーム一覧を取得
         const { data: forms, error: formsError } = await supabase
           .from('review_forms')
-          .select('id, title, is_deleted, qsc_theme')
+          .select('id, title, is_deleted')
           .eq('company_id', fetchedCompanyId);
 
         console.log('レビューフォームデータ取得:', { forms, formsError, fetchedCompanyId });
@@ -134,11 +117,16 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
             .map(f => ({
               id: f.id,
               name: f.title,
-              qscTheme: f.qsc_theme, // 'quality', 'service', 'cleanliness' または null
               description: ''
             }));
-          console.log('QSCテーマ付きフォーム一覧:', activeFormsData.map(f => ({ name: f.name, qscTheme: f.qscTheme })));
+          console.log('フォーム一覧:', activeFormsData.map(f => ({ name: f.name })));
           setReviewForms(activeFormsData);
+
+          // 最初のフォームをデフォルト選択（保存済みの設定がない場合）
+          if (activeFormsData.length > 0 && !selectedPublicFormId) {
+            setSelectedPublicFormId(activeFormsData[0].id);
+            setSavedPublicFormId(activeFormsData[0].id);
+          }
         }
 
         // 3. 会社の店舗一覧を取得（store_url_codeを含む）
@@ -156,60 +144,20 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           })));
         }
 
-        // 4. QSCフォーム設定を取得（テーブルが存在しない場合はスキップ）
+        // 4. 公開フォーム設定を取得
         try {
-          const { data: formSettings, error: formSettingsError } = await supabase
-            .from('company_qsc_form_settings')
+          const { data: publicFormSettings, error: publicFormError } = await supabase
+            .from('company_public_form_settings')
             .select('*')
             .eq('company_id', fetchedCompanyId)
             .maybeSingle();
 
-          if (!formSettingsError && formSettings) {
-            setSelectedForms({
-              Quality: formSettings.quality_form_id || '',
-              Service: formSettings.service_form_id || '',
-              Cleanliness: formSettings.cleanliness_form_id || ''
-            });
+          if (!publicFormError && publicFormSettings) {
+            setSelectedPublicFormId(publicFormSettings.public_form_id);
+            setSavedPublicFormId(publicFormSettings.public_form_id);
           }
         } catch (e) {
-          console.log('QSCフォーム設定テーブルが未作成:', e);
-        }
-
-        // 5. QSCローテーション設定を取得（テーブルが存在しない場合はスキップ）
-        try {
-          const { data: rotationSettings, error: rotationError } = await supabase
-            .from('company_qsc_rotation_settings')
-            .select('*')
-            .eq('company_id', fetchedCompanyId)
-            .maybeSingle();
-
-          if (!rotationError && rotationSettings) {
-            setSurveyCycleConfig({
-              groupA: rotationSettings.group_a_type,
-              groupB: rotationSettings.group_b_type,
-              groupC: rotationSettings.group_c_type
-            });
-          }
-        } catch (e) {
-          console.log('QSCローテーション設定テーブルが未作成:', e);
-        }
-
-        // 6. 今月のロック状態を確認（テーブルが存在しない場合はスキップ）
-        try {
-          const { data: monthLock, error: lockError } = await supabase
-            .from('company_qsc_monthly_locks')
-            .select('*')
-            .eq('company_id', fetchedCompanyId)
-            .eq('target_year', currentYear)
-            .eq('target_month', currentMonth)
-            .maybeSingle();
-
-          if (!lockError && monthLock) {
-            setCurrentMonthLock(monthLock);
-            setIsCurrentMonthLocked(true);
-          }
-        } catch (e) {
-          console.log('QSC月次ロックテーブルが未作成:', e);
+          console.log('公開フォーム設定テービルが未作成:', e);
         }
 
         // 7. 企業の抽選設定を取得
@@ -261,75 +209,6 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     fetchData();
   }, [propCompanyId, propCompanyName, currentYear, currentMonth]);
 
-  // ============================================================================
-  // QSCフォーム設定を保存
-  // ============================================================================
-  const saveQscFormSettings = useCallback(async () => {
-    if (!propCompanyId) return;
-
-    setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from('company_qsc_form_settings')
-        .upsert({
-          company_id: propCompanyId,
-          quality_form_id: selectedForms.Quality || null,
-          service_form_id: selectedForms.Service || null,
-          cleanliness_form_id: selectedForms.Cleanliness || null,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'company_id'
-        });
-
-      if (error) throw error;
-
-      if (isCurrentMonthLocked) {
-        toast.success('設定を保存しました（来月から適用されます）');
-      } else {
-        toast.success('設定を保存しました');
-      }
-    } catch (error) {
-      console.error('QSCフォーム設定保存エラー:', error);
-      toast.error('設定の保存に失敗しました');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [propCompanyId, selectedForms, isCurrentMonthLocked]);
-
-  // ============================================================================
-  // QSCローテーション設定を保存
-  // ============================================================================
-  const saveQscRotationSettings = useCallback(async () => {
-    if (!propCompanyId) return;
-
-    setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from('company_qsc_rotation_settings')
-        .upsert({
-          company_id: propCompanyId,
-          group_a_type: surveyCycleConfig.groupA,
-          group_b_type: surveyCycleConfig.groupB,
-          group_c_type: surveyCycleConfig.groupC,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'company_id'
-        });
-
-      if (error) throw error;
-
-      if (isCurrentMonthLocked) {
-        toast.success('設定を保存しました（来月から適用されます）');
-      } else {
-        toast.success('設定を保存しました');
-      }
-    } catch (error) {
-      console.error('QSCローテーション設定保存エラー:', error);
-      toast.error('設定の保存に失敗しました');
-    } finally {
-      setIsSaving(false);
-    }
-  }, [propCompanyId, surveyCycleConfig, isCurrentMonthLocked]);
 
   // ============================================================================
   // 企業抽選設定を保存
@@ -362,22 +241,40 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     }
   }, [propCompanyId, lotterySettings]);
 
-  // 現在の月からアンケートタイプを取得（ロック状態を考慮）
-  const getCurrentSurveyType = () => {
-    // 今月ロックされている場合はロック時の設定を使用
-    if (isCurrentMonthLocked && currentMonthLock) {
-      return surveyTypes.find(t => t.id === currentMonthLock.locked_qsc_type);
-    }
+  // ============================================================================
+  // 公開フォーム設定を保存
+  // ============================================================================
+  const savePublicFormSettings = useCallback(async () => {
+    if (!propCompanyId || !selectedPublicFormId) return;
 
-    const group = cycleGroups.find(g => g.months.includes(currentMonth));
-    if (group) {
-      const typeId = surveyCycleConfig[group.key];
-      return surveyTypes.find(t => t.id === typeId);
-    }
-    return null;
-  };
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('company_public_form_settings')
+        .upsert({
+          company_id: propCompanyId,
+          public_form_id: selectedPublicFormId,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'company_id'
+        });
 
-  const currentSurveyType = getCurrentSurveyType();
+      if (error) throw error;
+
+      toast.success('公開フォーム設定を保存しました');
+      setSavedPublicFormId(selectedPublicFormId); // 保存済みIDを更新
+      setShowPublicFormSettings(false);
+    } catch (error) {
+      console.error('公開フォーム設定保存エラー:', error);
+      if (error.message && error.message.includes('404')) {
+        toast.error('データベーステーブルが未作成です。SQL Editorでマイグレーションを実行してください。');
+      } else {
+        toast.error('設定の保存に失敗しました');
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }, [propCompanyId, selectedPublicFormId]);
 
   // 店舗のレビューフォームURLを生成（store_url_codeベース）
   // QSCローテーションに基づいて自動的に適切なフォームにリダイレクトされる
@@ -389,11 +286,24 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     return `https://reviewform.openreview.jp/form/${store.id}`;
   };
 
+  // LINEミニアプリURLを生成
+  const getLineMiniAppUrl = (store) => {
+    if (savedLineMiniAppUrl && store.store_url_code) {
+      return `${savedLineMiniAppUrl}?storeCode=${store.store_url_code}`;
+    }
+    return '';
+  };
+
   // URLをクリップボードにコピー
-  const handleCopyUrl = (store) => {
-    const url = getStoreFormUrl(store);
+  const handleCopyUrl = (store, isLineMiniApp = false) => {
+    const url = isLineMiniApp ? getLineMiniAppUrl(store) : getStoreFormUrl(store);
+    if (!url) {
+      toast.error('URLが設定されていません');
+      return;
+    }
     navigator.clipboard.writeText(url).then(() => {
-      toast.success(`${store.name}のURLをコピーしました`);
+      const urlType = isLineMiniApp ? 'LINEミニアプリ' : 'フォーム';
+      toast.success(`${store.name}の${urlType}URLをコピーしました`);
     }).catch(() => {
       toast.error('コピーに失敗しました');
     });
@@ -425,53 +335,6 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     }
   };
 
-  // サイクル設定変更ハンドラー（重複を許さない）
-  const handleCycleChange = (groupKey, newType) => {
-    const otherGroupWithSameType = Object.entries(surveyCycleConfig).find(
-      ([key, type]) => key !== groupKey && type === newType
-    );
-
-    if (otherGroupWithSameType) {
-      const [otherGroupKey] = otherGroupWithSameType;
-      const currentType = surveyCycleConfig[groupKey];
-      setSurveyCycleConfig(prev => ({
-        ...prev,
-        [groupKey]: newType,
-        [otherGroupKey]: currentType
-      }));
-    } else {
-      setSurveyCycleConfig(prev => ({
-        ...prev,
-        [groupKey]: newType
-      }));
-    }
-  };
-
-  // フォーム選択変更ハンドラー
-  const handleFormSelect = (themeId, formId) => {
-    setSelectedForms(prev => ({
-      ...prev,
-      [themeId]: formId
-    }));
-  };
-
-  // 選択されたフォーム情報を取得
-  const getSelectedFormInfo = (themeId) => {
-    const formId = selectedForms[themeId];
-    if (!formId) return null;
-    return reviewForms.find(f => f.id === formId);
-  };
-
-  // QSCテーマIDに対応するフォームをフィルタリング
-  // themeId: 'Quality', 'Service', 'Cleanliness' (大文字始まり)
-  // qscTheme: 'quality', 'service', 'cleanliness' または 'Quality', 'Service', 'Cleanliness'
-  const getFormsForTheme = (themeId) => {
-    const themeKey = themeId.toLowerCase(); // 'Quality' -> 'quality'
-    // 大文字小文字を区別しない比較
-    const filtered = reviewForms.filter(f => f.qscTheme && f.qscTheme.toLowerCase() === themeKey);
-    console.log(`getFormsForTheme(${themeId}) -> themeKey: ${themeKey}, found: ${filtered.length} forms`, filtered);
-    return filtered;
-  };
 
   // 抽選設定変更ハンドラー
   const handleLotterySettingChange = (field, value) => {
@@ -487,29 +350,28 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     return (1 / lotterySettings.winRateDivisor * 100).toFixed(3);
   };
 
-  // 未設定項目のチェック
-  const getSetupWarnings = () => {
-    const warnings = [];
-
-    // QSCフォーム設定のチェック
-    const qscFormsNotSet = [];
-    if (!selectedForms.Quality) qscFormsNotSet.push('クオリティ');
-    if (!selectedForms.Service) qscFormsNotSet.push('サービス');
-    if (!selectedForms.Cleanliness) qscFormsNotSet.push('クリンリネス');
-
-    if (qscFormsNotSet.length > 0) {
-      warnings.push({
-        type: 'qsc_forms',
-        message: `公開フォームが未設定です（${qscFormsNotSet.join('、')}）`,
-        action: '公開フォーム設定'
-      });
+  // LINEミニアプリURL保存
+  const saveLineMiniAppUrl = useCallback(async () => {
+    if (!propCompanyId) {
+      toast.error('企業IDが取得できません');
+      return;
     }
 
-    return warnings;
-  };
+    setIsSavingLineMiniApp(true);
+    try {
+      // TODO: 実際のデータベーステーブルが必要です
+      // 仮実装として、ローカルステートを更新
+      setSavedLineMiniAppUrl(lineMiniAppUrl);
+      toast.success('LINEミニアプリURLを保存しました');
+      setShowLineMiniAppSettings(false);
+    } catch (error) {
+      console.error('LINEミニアプリURL保存エラー:', error);
+      toast.error('設定の保存に失敗しました');
+    } finally {
+      setIsSavingLineMiniApp(false);
+    }
+  }, [propCompanyId, lineMiniAppUrl]);
 
-  const setupWarnings = getSetupWarnings();
-  const hasSetupWarnings = setupWarnings.length > 0;
 
   return (
     <motion.div
@@ -534,58 +396,6 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
         {/* ローディング表示（スケルトンスクリーン） */}
         {isLoading && (
           <Container maxWidth="xl" sx={{ mt: 2 }}>
-            {/* 今月の評価項目セクション スケルトン */}
-            <Box sx={{ mb: 4 }}>
-              <Skeleton variant="text" width={200} height={36} sx={{ mb: 0.5 }} />
-              <Skeleton variant="text" width={350} height={20} />
-            </Box>
-            <Paper
-              elevation={0}
-              sx={{
-                borderRadius: 0.5,
-                border: '1px solid rgba(0, 0, 0, 0.06)',
-                p: 2,
-                mb: 4
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Skeleton variant="rectangular" width={4} height={40} sx={{ borderRadius: 0.5 }} />
-                  <Box>
-                    <Skeleton variant="text" width={80} height={16} />
-                    <Skeleton variant="text" width={120} height={28} />
-                  </Box>
-                </Box>
-                <Skeleton variant="circular" width={40} height={40} />
-              </Box>
-            </Paper>
-
-            {/* 公開フォーム設定セクション スケルトン */}
-            <Box sx={{ mb: 4 }}>
-              <Skeleton variant="text" width={180} height={36} sx={{ mb: 0.5 }} />
-              <Skeleton variant="text" width={300} height={20} />
-            </Box>
-            <Paper
-              elevation={0}
-              sx={{
-                borderRadius: 0.5,
-                border: '1px solid rgba(0, 0, 0, 0.06)',
-                p: 2,
-                mb: 4
-              }}
-            >
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {[1, 2, 3].map((i) => (
-                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Skeleton variant="circular" width={32} height={32} />
-                      <Skeleton variant="text" width={100} height={24} />
-                    </Box>
-                    <Skeleton variant="rectangular" width={200} height={40} sx={{ borderRadius: 1 }} />
-                  </Box>
-                ))}
-              </Box>
-            </Paper>
 
             {/* 抽選設定セクション スケルトン */}
             <Box sx={{ mb: 4 }}>
@@ -652,347 +462,9 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
         {/* メインコンテンツ（ローディング完了後に表示） */}
         {!isLoading && (
           <>
-        {/* 未設定項目の警告バナー */}
-        {hasSetupWarnings && (
-          <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2.5,
-                borderRadius: 2,
-                bgcolor: '#FEF3C7',
-                border: '1px solid #F59E0B',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 2
-              }}
-            >
-              <Warning sx={{ color: '#D97706', fontSize: 28, mt: 0.5 }} />
-              <Box sx={{ flex: 1 }}>
-                <Typography
-                  sx={{
-                    fontWeight: 700,
-                    color: '#92400E',
-                    fontSize: '1rem',
-                    mb: 1
-                  }}
-                >
-                  初期設定が完了していません
-                </Typography>
-                <Typography
-                  sx={{
-                    color: '#B45309',
-                    fontSize: '0.875rem',
-                    mb: 2,
-                    lineHeight: 1.6
-                  }}
-                >
-                  店舗URLからフォームを公開するには、以下の設定が必要です。
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {setupWarnings.map((warning, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.5,
-                        p: 1.5,
-                        bgcolor: 'rgba(255, 255, 255, 0.7)',
-                        borderRadius: 1,
-                        border: '1px solid rgba(217, 119, 6, 0.3)'
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          bgcolor: '#D97706'
-                        }}
-                      />
-                      <Typography sx={{ color: '#92400E', fontSize: '0.875rem', flex: 1 }}>
-                        {warning.message}
-                      </Typography>
-                      <Button
-                        size="small"
-                        onClick={() => {
-                          if (warning.type === 'qsc_forms') {
-                            setShowFormSettings(true);
-                          }
-                        }}
-                        sx={{
-                          color: '#D97706',
-                          fontWeight: 600,
-                          fontSize: '0.8rem',
-                          textTransform: 'none',
-                          '&:hover': {
-                            bgcolor: 'rgba(217, 119, 6, 0.1)'
-                          }
-                        }}
-                      >
-                        設定する →
-                      </Button>
-                    </Box>
-                  ))}
-                </Box>
-              </Box>
-            </Paper>
-          </Container>
-        )}
-
-        {/* 今月の評価項目セクション */}
-        <Container maxWidth="xl" sx={{ mt: 2, mb: 3 }}>
-          {/* セクションヘッダー */}
-          <Box sx={{ mb: 4 }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 700,
-                color: '#1a202c',
-                mb: 0.5,
-                fontSize: '1.75rem'
-              }}
-            >
-              今月の評価項目
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: 'text.secondary',
-                fontSize: '0.875rem'
-              }}
-            >
-              3ヶ月サイクルで クオリティ、サービス、クリンリネス を順番に評価
-            </Typography>
-          </Box>
-
-          {/* 評価項目カード */}
-          {currentSurveyType && (
-            <Paper
-              elevation={0}
-              sx={{
-                borderRadius: 0.5,
-                border: '1px solid rgba(0, 0, 0, 0.06)',
-                overflow: 'hidden'
-              }}
-            >
-              {/* メイン表示部分 */}
-              <Box
-                sx={{
-                  p: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  {/* カラーインジケーター */}
-                  <Box
-                    sx={{
-                      width: 4,
-                      height: 40,
-                      borderRadius: 0.5,
-                      bgcolor: currentSurveyType.color
-                    }}
-                  />
-
-                  {/* 年月と評価項目 */}
-                  <Box>
-                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
-                      {currentYear}年{currentMonth}月
-                    </Typography>
-                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: currentSurveyType.color }}>
-                      {currentSurveyType.fullLabel}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                {/* 設定ボタン */}
-                <IconButton
-                  onClick={() => setShowCycleSettings(!showCycleSettings)}
-                  sx={{
-                    color: showCycleSettings ? '#5e17eb' : '#94a3b8',
-                    bgcolor: showCycleSettings ? 'rgba(94, 23, 235, 0.08)' : 'transparent',
-                    '&:hover': {
-                      color: '#5e17eb',
-                      bgcolor: 'rgba(94, 23, 235, 0.08)'
-                    }
-                  }}
-                >
-                  {showCycleSettings ? <Close /> : <Settings />}
-                </IconButton>
-              </Box>
-
-              {/* 設定パネル（開閉式） */}
-              {showCycleSettings && (
-                <Box sx={{ borderTop: '1px solid #e5e7eb' }}>
-                  <Box sx={{ p: 2 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      {cycleGroups.map((group) => {
-                        const selectedType = surveyTypes.find(t => t.id === surveyCycleConfig[group.key]);
-                        return (
-                          <Box
-                            key={group.key}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 2,
-                              p: 1.5,
-                              borderRadius: 0.5,
-                              bgcolor: '#fafafa'
-                            }}
-                          >
-                            {/* 月表示 */}
-                            <Box sx={{ display: 'flex', gap: 0.5, minWidth: 140 }}>
-                              {group.months.map((month) => (
-                                <Box
-                                  key={month}
-                                  sx={{
-                                    width: 32,
-                                    height: 32,
-                                    borderRadius: 0.5,
-                                    bgcolor: month === currentMonth ? '#1a202c' : '#fff',
-                                    border: month === currentMonth ? 'none' : '1px solid #e5e7eb',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                  }}
-                                >
-                                  <Typography
-                                    sx={{
-                                      fontSize: '0.75rem',
-                                      fontWeight: 600,
-                                      color: month === currentMonth ? '#fff' : '#374151'
-                                    }}
-                                  >
-                                    {month}月
-                                  </Typography>
-                                </Box>
-                              ))}
-                            </Box>
-
-                            {/* 矢印 */}
-                            <Typography sx={{ color: '#d1d5db', fontSize: '1rem' }}>→</Typography>
-
-                            {/* アンケート種類選択 */}
-                            <Box sx={{ display: 'flex', gap: 0.75 }}>
-                              {surveyTypes.map((type) => {
-                                const isSelected = surveyCycleConfig[group.key] === type.id;
-                                return (
-                                  <Box
-                                    key={type.id}
-                                    onClick={() => handleCycleChange(group.key, type.id)}
-                                    sx={{
-                                      px: 1.5,
-                                      py: 0.75,
-                                      borderRadius: 0.5,
-                                      cursor: 'pointer',
-                                      bgcolor: isSelected ? type.color : '#fff',
-                                      border: `1.5px solid ${isSelected ? type.color : '#e5e7eb'}`,
-                                      transition: 'all 0.15s',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 0.75,
-                                      '&:hover': {
-                                        borderColor: type.color,
-                                        bgcolor: isSelected ? type.color : type.bgColor
-                                      }
-                                    }}
-                                  >
-                                    <Box
-                                      sx={{
-                                        width: 6,
-                                        height: 6,
-                                        borderRadius: '50%',
-                                        bgcolor: isSelected ? '#fff' : type.color
-                                      }}
-                                    />
-                                    <Typography
-                                      sx={{
-                                        fontSize: '0.75rem',
-                                        fontWeight: 600,
-                                        color: isSelected ? '#fff' : type.color
-                                      }}
-                                    >
-                                      {type.fullLabel}
-                                    </Typography>
-                                  </Box>
-                                );
-                              })}
-                            </Box>
-                          </Box>
-                        );
-                      })}
-                    </Box>
-
-                    {/* ロック状態の警告 */}
-                    {isCurrentMonthLocked && (
-                      <Alert
-                        severity="warning"
-                        icon={<Warning sx={{ fontSize: 18 }} />}
-                        sx={{
-                          mt: 2,
-                          borderRadius: 1,
-                          bgcolor: '#fffbeb',
-                          border: '1px solid #fbbf24',
-                          '& .MuiAlert-message': {
-                            fontSize: '0.8rem',
-                            color: '#92400e'
-                          }
-                        }}
-                      >
-                        今月は既に回答があるため、設定変更は来月から適用されます
-                      </Alert>
-                    )}
-
-                    {/* 説明文と確定ボタン */}
-                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-                        ※ 各項目は重複不可。選択すると自動で入れ替わります。
-                      </Typography>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        disabled={isSaving}
-                        onClick={() => {
-                          if (isCurrentMonthLocked) {
-                            setCycleConfirmDialogOpen(true);
-                          } else {
-                            saveQscRotationSettings();
-                            setShowCycleSettings(false);
-                          }
-                        }}
-                        sx={{
-                          background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                          borderRadius: 0.5,
-                          px: 2.5,
-                          py: 0.75,
-                          textTransform: 'none',
-                          fontWeight: 600,
-                          fontSize: '0.8rem',
-                          boxShadow: 'none',
-                          '&:hover': {
-                            background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-                            boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
-                          },
-                          '&:disabled': {
-                            opacity: 0.7
-                          }
-                        }}
-                      >
-                        {isSaving ? '保存中...' : '保存'}
-                      </Button>
-                    </Box>
-                  </Box>
-                </Box>
-              )}
-            </Paper>
-          )}
-        </Container>
 
         {/* 公開フォーム選択セクション */}
-        <Container maxWidth="xl" sx={{ mb: 3 }}>
+        <Container maxWidth="xl" sx={{ mt: 2, mb: 3 }}>
           {/* セクションヘッダー */}
           <Box sx={{ mb: 4 }}>
             <Typography
@@ -1013,11 +485,11 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                 fontSize: '0.875rem'
               }}
             >
-              各QSCテーマで公開するレビューフォームを選択
+              店舗URLで公開するレビューフォームを選択
             </Typography>
           </Box>
 
-          {/* QSCフォーム選択カード */}
+          {/* 公開フォーム選択カード */}
           <Paper
             elevation={0}
             sx={{
@@ -1046,183 +518,147 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                   }}
                 />
 
-                {/* フォーム設定情報 */}
+                {/* フォーム情報 */}
                 <Box>
                   <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
                     レビューフォーム
                   </Typography>
                   <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: '#8b5cf6' }}>
-                    QSC別フォーム設定
+                    {reviewForms.find(f => f.id === savedPublicFormId)?.name || '未選択'}
                   </Typography>
-                </Box>
-
-                {/* 選択状況 */}
-                <Box sx={{ ml: 4, display: 'flex', gap: 1 }}>
-                  {surveyTypes.map((type) => {
-                    const selectedForm = getSelectedFormInfo(type.id);
-                    return (
-                      <Chip
-                        key={type.id}
-                        label={`${type.label}: ${selectedForm ? selectedForm.name : '未設定'}`}
-                        size="small"
-                        sx={{
-                          bgcolor: selectedForm ? type.bgColor : '#f1f5f9',
-                          color: selectedForm ? type.color : '#94a3b8',
-                          fontWeight: 600,
-                          fontSize: '0.7rem',
-                          border: `1px solid ${selectedForm ? type.color : '#e5e7eb'}`,
-                          '& .MuiChip-label': {
-                            px: 1
-                          },
-                          maxWidth: 200,
-                          '& .MuiChip-label': {
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }
-                        }}
-                      />
-                    );
-                  })}
                 </Box>
               </Box>
 
               {/* 設定ボタン */}
               <IconButton
-                onClick={() => setShowFormSettings(!showFormSettings)}
+                onClick={() => {
+                  if (showPublicFormSettings) {
+                    // 設定を閉じる時は保存済みのIDに戻す
+                    setSelectedPublicFormId(savedPublicFormId);
+                  }
+                  setShowPublicFormSettings(!showPublicFormSettings);
+                }}
                 sx={{
-                  color: showFormSettings ? '#5e17eb' : '#94a3b8',
-                  bgcolor: showFormSettings ? 'rgba(94, 23, 235, 0.08)' : 'transparent',
+                  color: showPublicFormSettings ? '#5e17eb' : '#94a3b8',
+                  bgcolor: showPublicFormSettings ? 'rgba(94, 23, 235, 0.08)' : 'transparent',
                   '&:hover': {
                     color: '#5e17eb',
                     bgcolor: 'rgba(94, 23, 235, 0.08)'
                   }
                 }}
               >
-                {showFormSettings ? <Close /> : <Settings />}
+                {showPublicFormSettings ? <Close /> : <Settings />}
               </IconButton>
             </Box>
 
-            {/* フォーム選択パネル（開閉式） */}
-            {showFormSettings && (
+            {/* 設定パネル（開閉式） */}
+            {showPublicFormSettings && (
               <Box sx={{ borderTop: '1px solid #e5e7eb' }}>
                 <Box sx={{ p: 2 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {surveyTypes.map((type) => (
-                      <Box
-                        key={type.id}
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1.5 }}>
+                      <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151' }}>
+                        公開するレビューフォームを選択
+                      </Typography>
+                      <Tooltip 
+                        title="このフォームが全ての店舗URLで公開されます"
+                        placement="top"
+                        arrow
                         sx={{
-                          p: 2,
-                          borderRadius: 1,
-                          bgcolor: '#fafafa',
-                          border: `1px solid ${selectedForms[type.id] ? type.color : '#e5e7eb'}`,
-                          transition: 'all 0.2s'
+                          '& .MuiTooltip-tooltip': {
+                            fontSize: '0.75rem',
+                            backgroundColor: '#374151',
+                            color: 'white',
+                            py: 1,
+                            px: 1.5
+                          },
+                          '& .MuiTooltip-arrow': {
+                            color: '#374151'
+                          }
                         }}
                       >
-                        {/* テーマヘッダー */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-                          <Box
-                            sx={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 1,
-                              bgcolor: type.color,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                          >
-                            <Typography sx={{ color: '#fff', fontWeight: 700, fontSize: '0.9rem' }}>
-                              {type.label}
-                            </Typography>
-                          </Box>
-                          <Box>
-                            <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: '#1a202c' }}>
-                              {type.fullLabel}
-                            </Typography>
-                            <Typography sx={{ fontSize: '0.7rem', color: '#64748b' }}>
-                              このテーマで公開するフォームを選択
-                            </Typography>
-                          </Box>
-                        </Box>
-
-                        {/* フォーム選択ドロップダウン */}
-                        <FormControl fullWidth size="small">
-                          <Select
-                            value={selectedForms[type.id]}
-                            onChange={(e) => handleFormSelect(type.id, e.target.value)}
-                            displayEmpty
-                            IconComponent={KeyboardArrowDown}
-                            sx={{
-                              bgcolor: '#fff',
-                              borderRadius: 0.5,
-                              '& .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#e5e7eb'
-                              },
-                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: type.color
-                              },
-                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                borderColor: type.color
-                              }
-                            }}
-                          >
-                            <MenuItem value="" disabled>
-                              <Typography sx={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-                                {getFormsForTheme(type.id).length === 0
-                                  ? `${type.fullLabel}テーマのフォームがありません`
-                                  : 'フォームを選択してください'}
+                        <HelpOutline 
+                          sx={{ 
+                            fontSize: 16, 
+                            color: '#94a3b8',
+                            cursor: 'help',
+                            '&:hover': {
+                              color: '#64748b'
+                            }
+                          }} 
+                        />
+                      </Tooltip>
+                    </Box>
+                    <FormControl fullWidth size="small">
+                      <Select
+                        value={selectedPublicFormId}
+                        onChange={(e) => setSelectedPublicFormId(e.target.value)}
+                        displayEmpty
+                        IconComponent={KeyboardArrowDown}
+                        sx={{
+                          bgcolor: '#fff',
+                          borderRadius: 0.5,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#e5e7eb'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#8b5cf6'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#8b5cf6'
+                          }
+                        }}
+                      >
+                        <MenuItem value="" disabled>
+                          <Typography sx={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                            フォームを選択してください
+                          </Typography>
+                        </MenuItem>
+                        {reviewForms.map((form) => (
+                          <MenuItem key={form.id} value={form.id}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Description sx={{ fontSize: 16, color: '#8b5cf6' }} />
+                              <Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                                {form.name}
                               </Typography>
-                            </MenuItem>
-                            {getFormsForTheme(type.id).map((form) => (
-                              <MenuItem key={form.id} value={form.id}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Description sx={{ fontSize: 16, color: type.color }} />
-                                  <Box>
-                                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                                      {form.name}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-
-                      </Box>
-                    ))}
+                            </Box>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
                   </Box>
 
-                  {/* ロック状態の警告 */}
-                  {isCurrentMonthLocked && (
-                    <Alert
-                      severity="warning"
-                      icon={<Warning sx={{ fontSize: 18 }} />}
+                  {/* 保存ボタン */}
+                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => {
+                        setSelectedPublicFormId(savedPublicFormId);
+                        setShowPublicFormSettings(false);
+                      }}
                       sx={{
-                        mt: 2,
-                        borderRadius: 1,
-                        bgcolor: '#fffbeb',
-                        border: '1px solid #fbbf24',
-                        '& .MuiAlert-message': {
-                          fontSize: '0.8rem',
-                          color: '#92400e'
+                        borderRadius: 0.5,
+                        px: 2.5,
+                        py: 0.75,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                        color: '#6b7280',
+                        borderColor: '#e5e7eb',
+                        '&:hover': {
+                          borderColor: '#d1d5db',
+                          bgcolor: 'rgba(107, 114, 128, 0.04)'
                         }
                       }}
                     >
-                      今月は既に回答があるため、設定変更は来月から適用されます
-                    </Alert>
-                  )}
-
-                  {/* 保存ボタン */}
-                  <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                      キャンセル
+                    </Button>
                     <Button
                       variant="contained"
                       size="small"
-                      disabled={isSaving}
-                      onClick={async () => {
-                        await saveQscFormSettings();
-                        setShowFormSettings(false);
-                      }}
+                      onClick={savePublicFormSettings}
+                      disabled={isSaving || !selectedPublicFormId}
                       sx={{
                         background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
                         borderRadius: 0.5,
@@ -1554,6 +990,182 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           </Paper>
         </Container>
 
+        {/* LINEミニアプリURL設定セクション */}
+        <Container maxWidth="xl" sx={{ mb: 6 }}>
+          {/* セクションヘッダー */}
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: '#1a202c',
+                mb: 0.5,
+                fontSize: '1.75rem'
+              }}
+            >
+              LINEミニアプリURL設定
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.875rem'
+              }}
+            >
+              LINEミニアプリのベースURLを設定し、店舗別のURLを生成
+            </Typography>
+          </Box>
+
+          {/* LINEミニアプリURL設定カード */}
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: 0.5,
+              border: '1px solid rgba(0, 0, 0, 0.06)',
+              overflow: 'hidden'
+            }}
+          >
+            {/* メイン表示部分 */}
+            <Box
+              sx={{
+                p: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                {/* カラーインジケーター */}
+                <Box
+                  sx={{
+                    width: 4,
+                    height: 40,
+                    borderRadius: 0.5,
+                    bgcolor: '#00b900'
+                  }}
+                />
+
+                {/* URL表示 */}
+                <Box sx={{ flex: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                      LINEミニアプリベースURL
+                    </Typography>
+                    <Tooltip 
+                      title="例: https://miniapp.line.me/xxxxxxxxxxxx-xxxxxxxxxx"
+                      arrow
+                      placement="top"
+                    >
+                      <HelpOutline sx={{ fontSize: 16, color: '#94a3b8', cursor: 'help' }} />
+                    </Tooltip>
+                  </Box>
+                  {savedLineMiniAppUrl ? (
+                    <Typography sx={{ 
+                      fontSize: '0.9rem', 
+                      color: '#374151',
+                      fontFamily: 'monospace',
+                      bgcolor: '#f8fafc',
+                      px: 1.5,
+                      py: 0.75,
+                      borderRadius: 0.5,
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      {savedLineMiniAppUrl}
+                    </Typography>
+                  ) : (
+                    <Typography sx={{ fontSize: '0.9rem', color: '#94a3b8' }}>
+                      未設定
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+
+              {/* 設定ボタン */}
+              <IconButton
+                onClick={() => setShowLineMiniAppSettings(!showLineMiniAppSettings)}
+                sx={{
+                  color: showLineMiniAppSettings ? '#5e17eb' : '#94a3b8',
+                  bgcolor: showLineMiniAppSettings ? 'rgba(94, 23, 235, 0.08)' : 'transparent',
+                  '&:hover': {
+                    color: '#5e17eb',
+                    bgcolor: 'rgba(94, 23, 235, 0.08)'
+                  }
+                }}
+              >
+                {showLineMiniAppSettings ? <Close /> : <Settings />}
+              </IconButton>
+            </Box>
+
+            {/* 設定パネル（開閉式） */}
+            {showLineMiniAppSettings && (
+              <Box sx={{ borderTop: '1px solid #e5e7eb' }}>
+                <Box sx={{ p: 2 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {/* URL入力フィールド */}
+                    <Box>
+                      <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#374151', mb: 1 }}>
+                        LINEミニアプリのベースURL
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        value={lineMiniAppUrl}
+                        onChange={(e) => setLineMiniAppUrl(e.target.value)}
+                        placeholder="https://miniapp.line.me/xxxxxxxxxxxx-xxxxxxxxxx"
+                        size="small"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            fontSize: '0.9rem',
+                            fontFamily: 'monospace',
+                            bgcolor: '#f8fafc',
+                            '& fieldset': {
+                              borderColor: '#e5e7eb',
+                            },
+                            '&:hover fieldset': {
+                              borderColor: '#5e17eb',
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#5e17eb',
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+
+                    {/* 保存ボタン */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={saveLineMiniAppUrl}
+                        disabled={isSavingLineMiniApp || !lineMiniAppUrl}
+                        sx={{
+                          background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                          borderRadius: 0.5,
+                          px: 2.5,
+                          py: 0.75,
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          fontSize: '0.8rem',
+                          boxShadow: 'none',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
+                            boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
+                          },
+                          '&:disabled': {
+                            opacity: 0.7
+                          }
+                        }}
+                      >
+                        {isSavingLineMiniApp ? '保存中...' : '保存'}
+                      </Button>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            )}
+          </Paper>
+        </Container>
+
         {/* 店舗別フォームURLセクション */}
         <Container maxWidth="xl" sx={{ mb: 6 }}>
           {/* セクションヘッダー */}
@@ -1611,8 +1223,8 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                     </Box>
                   </TableCell>
                   <TableCell>住所</TableCell>
-                  <TableCell>フォームURL</TableCell>
-                  <TableCell align="center" sx={{ width: 180 }}>アクション</TableCell>
+                  <TableCell>URL</TableCell>
+                  <TableCell align="center" sx={{ width: 240 }}>アクション</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -1654,33 +1266,77 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                       </Typography>
                     </TableCell>
 
-                    {/* URL */}
+                    {/* URL（縦配置） */}
                     <TableCell sx={{ py: 2 }}>
-                      <Typography
-                        sx={{
-                          fontSize: '0.75rem',
-                          color: '#64748b',
-                          fontFamily: 'monospace',
-                          bgcolor: '#f8fafc',
-                          px: 1,
-                          py: 0.5,
-                          borderRadius: 0.5,
-                          display: 'inline-block',
-                          border: '1px solid #e5e7eb'
-                        }}
-                      >
-                        {getStoreFormUrl(store)}
-                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {/* フォームURL */}
+                        <Box>
+                          <Typography sx={{ fontSize: '0.7rem', color: '#9ca3af', fontWeight: 500, mb: 0.25 }}>
+                            フォームURL
+                          </Typography>
+                          <Typography
+                            sx={{
+                              fontSize: '0.75rem',
+                              color: '#64748b',
+                              fontFamily: 'monospace',
+                              bgcolor: '#f8fafc',
+                              px: 1,
+                              py: 0.5,
+                              borderRadius: 0.5,
+                              display: 'inline-block',
+                              border: '1px solid #e5e7eb',
+                              maxWidth: '400px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {getStoreFormUrl(store)}
+                          </Typography>
+                        </Box>
+                        
+                        {/* LINEミニアプリURL */}
+                        <Box>
+                          <Typography sx={{ fontSize: '0.7rem', color: '#9ca3af', fontWeight: 500, mb: 0.25 }}>
+                            LINEミニアプリ本番用LIFF URL
+                          </Typography>
+                          {savedLineMiniAppUrl ? (
+                            <Typography
+                              sx={{
+                                fontSize: '0.75rem',
+                                color: '#64748b',
+                                fontFamily: 'monospace',
+                                bgcolor: '#e6f7e6',
+                                px: 1,
+                                py: 0.5,
+                                borderRadius: 0.5,
+                                display: 'inline-block',
+                                border: '1px solid #b8e0b8',
+                                maxWidth: '400px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {getLineMiniAppUrl(store)}
+                            </Typography>
+                          ) : (
+                            <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                              未設定
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
                     </TableCell>
 
                     {/* アクションボタン */}
                     <TableCell align="center" sx={{ py: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, flexWrap: 'wrap' }}>
                         <Button
                           size="small"
                           variant="outlined"
                           startIcon={<ContentCopy sx={{ fontSize: 14 }} />}
-                          onClick={() => handleCopyUrl(store)}
+                          onClick={() => handleCopyUrl(store, false)}
                           sx={{
                             color: '#64748b',
                             borderColor: '#e5e7eb',
@@ -1698,8 +1354,34 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                             }
                           }}
                         >
-                          コピー
+                          フォーム
                         </Button>
+                        {savedLineMiniAppUrl && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<ContentCopy sx={{ fontSize: 14 }} />}
+                            onClick={() => handleCopyUrl(store, true)}
+                            sx={{
+                              color: '#00b900',
+                              borderColor: '#b8e0b8',
+                              borderRadius: 0.5,
+                              textTransform: 'none',
+                              fontSize: '0.7rem',
+                              fontWeight: 600,
+                              px: 1,
+                              py: 0.5,
+                              minWidth: 'auto',
+                              '&:hover': {
+                                color: '#00a000',
+                                borderColor: '#00a000',
+                                bgcolor: 'rgba(0, 185, 0, 0.04)'
+                              }
+                            }}
+                          >
+                            LINE
+                          </Button>
+                        )}
                         <Button
                           size="small"
                           variant="outlined"
@@ -1768,81 +1450,6 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           </>
         )}
 
-        {/* サイクル設定確認ダイアログ */}
-        <Dialog
-          open={cycleConfirmDialogOpen}
-          onClose={() => setCycleConfirmDialogOpen(false)}
-          PaperProps={{
-            sx: {
-              borderRadius: 2,
-              boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
-              maxWidth: 440
-            }
-          }}
-        >
-          <DialogTitle sx={{
-            fontWeight: 700,
-            fontSize: '1.1rem',
-            color: '#1a202c',
-            pb: 1
-          }}>
-            設定変更の確認
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText sx={{
-              color: '#4b5563',
-              fontSize: '0.9rem',
-              lineHeight: 1.7
-            }}>
-              今月（{currentYear}年{currentMonth}月）は既に「<strong style={{ color: currentSurveyType?.color }}>{currentSurveyType?.fullLabel}</strong>」の項目で回答が収集されています。
-              <br /><br />
-              この設定は<strong>来月から</strong>適用されます。よろしいですか？
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-            <Button
-              onClick={() => setCycleConfirmDialogOpen(false)}
-              sx={{
-                color: '#6b7280',
-                fontWeight: 600,
-                textTransform: 'none',
-                px: 3,
-                py: 1,
-                borderRadius: 1,
-                '&:hover': {
-                  backgroundColor: 'rgba(107, 114, 128, 0.08)'
-                }
-              }}
-            >
-              キャンセル
-            </Button>
-            <Button
-              onClick={async () => {
-                await saveQscRotationSettings();
-                setCycleConfirmDialogOpen(false);
-                setShowCycleSettings(false);
-              }}
-              disabled={isSaving}
-              sx={{
-                background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-                color: 'white',
-                fontWeight: 600,
-                textTransform: 'none',
-                px: 3,
-                py: 1,
-                borderRadius: 1,
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-                },
-                '&:disabled': {
-                  opacity: 0.7
-                }
-              }}
-            >
-              {isSaving ? '保存中...' : '保存する'}
-            </Button>
-          </DialogActions>
-        </Dialog>
       </Box>
     </motion.div>
   );
