@@ -60,19 +60,14 @@ export class FormDataService {
       const reviewFormId = data.reviewForm.id;
       console.log('📝 Review Form ID:', reviewFormId);
 
-      // 2. review_form_pagesテーブルに2つのレコードを作成（固定項目ページと通常ページ）
+      // 2. review_form_pagesテーブルに固定項目ページのみ作成
       const { data: reviewFormPages, error: pageError } = await supabase
         .from('review_form_pages')
         .insert([
           {
             review_forms_id: reviewFormId,
             page_number: 1,
-            page_name: '固定項目'
-          },
-          {
-            review_forms_id: reviewFormId,
-            page_number: 2,
-            page_name: 'ページ1'
+            name: '固定項目'
           }
         ])
         .select();
