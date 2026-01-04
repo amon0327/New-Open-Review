@@ -495,16 +495,34 @@ export default function CreatePage({ onBackClick, user, formId }) {
         try {
           const result = await FormDataService.getFormPages(formId);
           if (result.success) {
-            const questionPages = result.data.map(page => ({
-              id: page.id,
-              title: page.name,
-              type: 'question',
-              icon: <Pages />,
-              canDelete: true,
-              canEdit: true,
-              questions: 0,
-              page_number: page.page_number
-            }));
+            const questionPages = result.data.map(page => {
+              // 固定項目ページの場合は特別な処理
+              if (page.name === '固定項目') {
+                return {
+                  id: page.id,
+                  title: page.name,
+                  type: 'fixed',
+                  icon: <Key />,
+                  canDelete: false,
+                  canEdit: false,
+                  questions: 0,
+                  page_number: page.page_number,
+                  isFixed: true
+                };
+              }
+              
+              // 通常のページ
+              return {
+                id: page.id,
+                title: page.name,
+                type: 'question',
+                icon: <Pages />,
+                canDelete: true,
+                canEdit: true,
+                questions: 0,
+                page_number: page.page_number
+              };
+            });
 
             // システムページと質問ページを結合
             const systemPages = [
@@ -529,12 +547,14 @@ export default function CreatePage({ onBackClick, user, formId }) {
     loadFormPages();
   }, [formId]);
 
-  // 初期化時に最初の質問ページを選択
+  // 初期化時に最初の質問ページまたは固定項目ページを選択
   useEffect(() => {
     if (!selectedPage) {
-      const firstQuestionPage = pages.find(page => page.type === 'question');
-      if (firstQuestionPage) {
-        setSelectedPage(firstQuestionPage);
+      // 固定項目ページを優先的に選択
+      const firstPage = pages.find(page => page.type === 'fixed') || 
+                        pages.find(page => page.type === 'question');
+      if (firstPage) {
+        setSelectedPage(firstPage);
       }
     }
   }, [pages, selectedPage, setSelectedPage]);
@@ -572,13 +592,13 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // 選択されたページが変更された時、質問データを読み込み
   useEffect(() => {
-    if (selectedPage && selectedPage.type === 'question' && formId) {
+    if (selectedPage && (selectedPage.type === 'question' || selectedPage.type === 'fixed') && formId) {
       // 既に読み込み済みの場合はスキップ
       if (loadedPages.current.has(selectedPage.id)) {
         return;
       }
       
-      // 質問データを読み込み
+      // 質問データを読み込み（固定項目ページも質問データを読み込む）
       loadQuestionsForPage(selectedPage.id);
       // 読み込み済みとして記録
       loadedPages.current.add(selectedPage.id);
@@ -608,14 +628,14 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // questionsをメモ化してPreviewAreaの不要な再レンダリングを防ぐ
   const currentQuestions = useMemo(() => {
-    return selectedPage && selectedPage.type === 'question' 
+    return selectedPage && (selectedPage.type === 'question' || selectedPage.type === 'fixed')
       ? getQuestionsForPage(selectedPage.id) 
       : [];
   }, [selectedPage, questionsData]);
 
   // 全ページの質問を収集（エラー検証用）
   const allQuestions = useMemo(() => {
-    const questionPages = pages.filter(page => page.type === 'question');
+    const questionPages = pages.filter(page => page.type === 'question' || page.type === 'fixed');
     const allQuestionsArray = [];
     
     questionPages.forEach(page => {
@@ -634,9 +654,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // デバッグ用：質問データの変化をログ出力（selectedPageが変更された時のみ）
   useEffect(() => {
-    if (selectedPage && selectedPage.type === 'question') {
+    if (selectedPage && (selectedPage.type === 'question' || selectedPage.type === 'fixed')) {
       console.log('CreatePage - page selected, questions:', {
         pageId: selectedPage.id,
+        pageType: selectedPage.type,
         currentPageQuestionsLength: currentQuestions.length,
         allQuestionsLength: allQuestions.length,
         currentPageQuestions: currentQuestions.map(q => ({ id: q.id, text: q.question_text })),
@@ -666,8 +687,12 @@ export default function CreatePage({ onBackClick, user, formId }) {
     e.preventDefault();
     setIsDragActive(false);
     
-    if (!selectedPage || selectedPage.type === 'system') {
-      toast.error('質問を追加できるページを選択してください');
+    if (!selectedPage || selectedPage.type === 'system' || selectedPage.type === 'fixed') {
+      if (selectedPage.type === 'fixed') {
+        toast.error('固定項目ページには質問を追加できません');
+      } else {
+        toast.error('質問を追加できるページを選択してください');
+      }
       return;
     }
 

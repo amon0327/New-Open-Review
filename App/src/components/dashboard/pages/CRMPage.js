@@ -82,8 +82,8 @@ export default function CRMPage({ companyId }) {
     }
   };
 
-  // 来店可能性を計算する関数
-  const calculateVisitProbability = (customer) => {
+  // 来店可能性スコアを計算する関数
+  const calculateVisitProbabilityScore = (customer) => {
     let score = 0;
     
     // 推奨者なら高スコア
@@ -99,7 +99,7 @@ export default function CRMPage({ companyId }) {
     // LINE友だちなら高スコア
     if (customer.isLineFriend === 'あり') score += 15;
     
-    return score >= 70; // 70点以上を高可能性とする
+    return score; // 0-100のスコアを返す
   };
 
   // アプローチ推奨を判定する関数
@@ -133,8 +133,17 @@ export default function CRMPage({ companyId }) {
 
   // ダミーデータを生成
   const generateDummyCustomers = () => {
-    const lastNames = ['佐藤', '鈴木', '高橋', '田中', '伊藤', '渡辺', '山本', '中村', '小林', '加藤', '吉田', '山田', '佐々木', '山口', '松本', '井上', '木村', '林', '斉藤', '清水'];
-    const firstNames = ['太郎', '花子', '健太', '美咲', '大輔', '愛美', '拓也', '由美', '翔太', '麻衣', '雄大', '千穂', '慎一', '彩香', '隼人', '結衣', '健一', '理恵', '和也', '明日香'];
+    // LINE風の名前（日本人名、ニックネーム、ひらがな、ローマ字を含む）
+    const lineNames = [
+      '佐藤 太郎', '鈴木 花子', '高橋', 'たかし', 'ゆう', 'Yuki', 'Ken', 'みか', 'あいちゃん',
+      '田中さん', '伊藤', 'Mika', 'しんちゃん', 'さとう', 'Taro', 'まい', 'かず', 'Rina',
+      'ゆき', 'ナオ', '山田 健一', '佐藤くん', 'みちこ', 'たけし', 'ケン', 'リュウ',
+      'ひろ', 'マコト', 'さくら', 'ゆうや', 'アキ', 'レイ', 'まさ', 'とも', 'John',
+      'さとみ', 'いちろう', 'カズキ', 'ミキ', 'ハル', 'ソウタ', 'ユウキ', 'Tom', 'リン',
+      'コウ', 'ナナ', 'ミユ', 'ショウ', 'ユウ', 'マイ', 'Amy', 'タツヤ', 'マナ',
+      'さちこ', 'かおる', 'ヨウコ', 'シンジ', 'ダイキ', 'アオイ', 'ミドリ', 'Lisa',
+      'ゆず', 'モモ', 'ひなた', 'ソラ', 'メイ', 'ジュン', 'レオ', 'カイ', 'リク'
+    ];
     const genders = ['男性', '女性', 'その他'];
     const ages = ['20代', '30代', '40代', '50代', '60代'];
     const npsTypes = ['推奨者', '中立者', '批判者'];
@@ -143,12 +152,13 @@ export default function CRMPage({ companyId }) {
     
     const dummyCustomers = [];
     for (let i = 1; i <= 200; i++) {
-      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const uuid = generateUUID();
+      const shortUuid = uuid.substring(0, 8) + '...';
       const customer = {
         id: i,
-        name: `${lastName} ${firstName}`,
-        email: `${generateUUID()}@openreview.app`,
+        name: lineNames[Math.floor(Math.random() * lineNames.length)],
+        email: `${shortUuid}`,
+        fullEmail: `${uuid}@openreview.app`,
         phone: `090-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
         gender: genders[Math.floor(Math.random() * genders.length)],
         age: ages[Math.floor(Math.random() * ages.length)],
@@ -159,7 +169,8 @@ export default function CRMPage({ companyId }) {
         lastVisit: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         isLineFriend: Math.random() > 0.5 ? 'あり' : 'なし'
       };
-      customer.highVisitProbability = calculateVisitProbability(customer);
+      customer.visitProbabilityScore = calculateVisitProbabilityScore(customer);
+      customer.highVisitProbability = customer.visitProbabilityScore >= 70;
       customer.shouldApproach = shouldApproach(customer);
       dummyCustomers.push(customer);
     }
@@ -320,7 +331,7 @@ export default function CRMPage({ companyId }) {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    {[180, 80, 80, 100, 100, 100, 100, 100].map((width, index) => (
+                    {[180, 120, 80, 80, 100, 100, 100, 100, 100].map((width, index) => (
                       <th key={index} className="px-6 py-3">
                         <Skeleton variant="text" width={width} height={20} />
                       </th>
@@ -336,10 +347,10 @@ export default function CRMPage({ companyId }) {
                             <Skeleton variant="text" width={120} height={20} />
                             <Skeleton variant="text" width={180} height={16} />
                           </div>
-                          {rowIndex % 3 === 0 && (
-                            <Skeleton variant="circular" width={20} height={20} />
-                          )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Skeleton variant="rounded" width={100} height={8} />
                       </td>
                       <td className="px-6 py-4">
                         <Skeleton variant="text" width={40} height={20} />
@@ -599,6 +610,9 @@ export default function CRMPage({ companyId }) {
                     顧客名
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    来店可能性
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     性別
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -625,29 +639,33 @@ export default function CRMPage({ companyId }) {
                 {currentCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{customer.name}</div>
-                          <div className="text-xs text-gray-500">{customer.email}</div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{customer.name}</div>
+                        <div className="text-xs text-gray-500 font-mono" title={customer.fullEmail}>{customer.email}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-gray-200 rounded-full overflow-hidden" style={{ height: '8px' }}>
+                            <div 
+                              className="h-full transition-all duration-300"
+                              style={{
+                                width: `${customer.visitProbabilityScore}%`,
+                                backgroundColor: customer.visitProbabilityScore >= 70 ? '#10b981' : 
+                                                customer.visitProbabilityScore >= 40 ? '#f59e0b' : '#ef4444'
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-semibold text-gray-700 min-w-[35px] text-right">
+                            {customer.visitProbabilityScore}%
+                          </span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          {customer.highVisitProbability && (
-                            <div className="relative group">
-                              <TrendingUp className="w-5 h-5 text-green-500" />
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                                来店可能性高
-                              </div>
-                            </div>
-                          )}
-                          {customer.shouldApproach && (
-                            <div className="relative group">
-                              <Campaign className="w-5 h-5 text-orange-500" />
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
-                                アプローチ推奨
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        {customer.shouldApproach && (
+                          <div className="text-xs text-orange-600 font-medium">
+                            アプローチ推奨
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

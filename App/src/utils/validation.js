@@ -38,18 +38,21 @@ export const validateForm = (formData) => {
     });
   }
 
-  // 2. 質問ページの存在確認
+  // 2. 質問ページの存在確認（固定項目ページがあるため、質問ページは必須ではない）
   const questionPages = pages.filter(page => page.type === 'question');
-  if (questionPages.length === 0) {
+  const fixedPages = pages.filter(page => page.type === 'fixed');
+  
+  // 固定項目ページも質問ページもない場合のみエラー
+  if (questionPages.length === 0 && fixedPages.length === 0) {
     errors.push({
       id: 'missing-question-page',
-      message: '質問ページが1つ以上必要です',
+      message: '質問ページまたは固定項目ページが1つ以上必要です',
       location: '質問設定',
       action: 'openSettings'
     });
   }
 
-  // 2.5. 各質問ページに最低1つの質問が存在するかチェック
+  // 2.5. 各質問ページに最低1つの質問が存在するかチェック（固定項目ページは除外）
   questionPages.forEach((page, pageIndex) => {
     // review_form_pages_idまたはpageIdフィールドで質問を検索
     const pageQuestions = questions.filter(q => 
