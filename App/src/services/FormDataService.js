@@ -261,24 +261,32 @@ export class FormDataService {
       }
 
       // 6. lottery テーブルの関連レコードを削除
-      const { error: lotteryError } = await supabase
+      console.log(`Deleting lottery records for form: ${formId}`);
+      const { data: deletedLottery, error: lotteryError } = await supabase
         .from('lottery')
         .delete()
-        .eq('review_form_id', formId);
+        .eq('review_form_id', formId)
+        .select();
 
       if (lotteryError) {
-        console.warn('lottery削除エラー:', lotteryError.message);
+        console.error('lottery削除エラー:', lotteryError.message);
+        throw new Error(`lottery削除エラー: ${lotteryError.message}`);
       }
+      console.log(`Deleted ${deletedLottery?.length || 0} lottery records`);
 
       // 7. store_review_forms テーブルの関連レコードを削除
-      const { error: storeReviewFormsError } = await supabase
+      console.log(`Deleting store_review_forms records for form: ${formId}`);
+      const { data: deletedStoreReviewForms, error: storeReviewFormsError } = await supabase
         .from('store_review_forms')
         .delete()
-        .eq('review_form_id', formId);
+        .eq('review_form_id', formId)
+        .select();
 
       if (storeReviewFormsError) {
-        console.warn('store_review_forms削除エラー:', storeReviewFormsError.message);
+        console.error('store_review_forms削除エラー:', storeReviewFormsError.message);
+        throw new Error(`store_review_forms削除エラー: ${storeReviewFormsError.message}`);
       }
+      console.log(`Deleted ${deletedStoreReviewForms?.length || 0} store_review_forms records`);
 
       // 8. フォームページを削除
       const { error: pagesError } = await supabase
