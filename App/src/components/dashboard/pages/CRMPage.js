@@ -38,6 +38,7 @@ export default function CRMPage({ companyId }) {
     npsType: [],
     isRepeater: [],
     revisitIntent: [],
+    isLineFriend: [],
     commentSearch: ''
   });
   const [tempFilters, setTempFilters] = useState({
@@ -46,6 +47,7 @@ export default function CRMPage({ companyId }) {
     npsType: [],
     isRepeater: [],
     revisitIntent: [],
+    isLineFriend: [],
     commentSearch: ''
   });
   const [showFilters, setShowFilters] = useState(false);
@@ -73,8 +75,7 @@ export default function CRMPage({ companyId }) {
         revisitIntent: revisitIntents[Math.floor(Math.random() * revisitIntents.length)],
         lastComment: `これはサンプルコメント${i}です。サービスの品質について...`,
         lastVisit: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        visitCount: Math.floor(Math.random() * 50) + 1,
-        totalSpent: Math.floor(Math.random() * 100000) + 1000
+        isLineFriend: Math.random() > 0.5 ? 'あり' : 'なし'
       });
     }
     return dummyCustomers;
@@ -95,6 +96,7 @@ export default function CRMPage({ companyId }) {
     if (filters.npsType.length > 0 && !filters.npsType.includes(customer.npsType)) return false;
     if (filters.isRepeater.length > 0 && !filters.isRepeater.includes(customer.isRepeater)) return false;
     if (filters.revisitIntent.length > 0 && !filters.revisitIntent.includes(customer.revisitIntent)) return false;
+    if (filters.isLineFriend.length > 0 && !filters.isLineFriend.includes(customer.isLineFriend)) return false;
     if (filters.commentSearch) {
       const searchLower = filters.commentSearch.toLowerCase();
       return customer.name.toLowerCase().includes(searchLower) || 
@@ -375,6 +377,24 @@ export default function CRMPage({ companyId }) {
                   </div>
                 </div>
 
+                {/* LINE友だち */}
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">LINE友だち</p>
+                  <div className="space-y-2">
+                    {['あり', 'なし'].map(status => (
+                      <label key={status} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={tempFilters.isLineFriend.includes(status)}
+                          onChange={(e) => handleTempFilterChange('isLineFriend', status, e.target.checked)}
+                          className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                        />
+                        <span className="text-sm text-gray-700">{status === 'あり' ? 'LINE友だち' : '未登録'}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 {/* フィルター適用ボタン */}
                 <div className="flex justify-end pt-4 border-t">
                   <ShadcnButton
@@ -417,10 +437,7 @@ export default function CRMPage({ companyId }) {
                     最終来店
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    来店回数
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    累計金額
+                    LINE友だち
                   </th>
                 </tr>
               </thead>
@@ -461,11 +478,12 @@ export default function CRMPage({ companyId }) {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {customer.lastVisit}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {customer.visitCount}回
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      ¥{customer.totalSpent.toLocaleString()}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        customer.isLineFriend === 'あり' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {customer.isLineFriend === 'あり' ? 'LINE友だち' : '未登録'}
+                      </span>
                     </td>
                   </tr>
                 ))}
