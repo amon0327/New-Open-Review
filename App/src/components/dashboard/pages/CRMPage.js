@@ -22,7 +22,8 @@ import {
   FilterList,
   ExpandMore,
   ExpandLess,
-  Close
+  Close,
+  TrendingUp
 } from '@mui/icons-material';
 import { supabase } from '../../../lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -51,6 +52,7 @@ export default function CRMPage({ companyId }) {
     commentSearch: ''
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [sortByHighProbability, setSortByHighProbability] = useState(false);
   const itemsPerPage = 50;
 
   // 相対時間を計算する関数
@@ -78,6 +80,26 @@ export default function CRMPage({ companyId }) {
     }
   };
 
+  // 来店可能性を計算する関数
+  const calculateVisitProbability = (customer) => {
+    let score = 0;
+    
+    // 推奨者なら高スコア
+    if (customer.npsType === '推奨者') score += 30;
+    else if (customer.npsType === '中立者') score += 15;
+    
+    // リピーターなら高スコア
+    if (customer.isRepeater === 'リピーター') score += 25;
+    
+    // 再来店意向ありなら高スコア
+    if (customer.revisitIntent === 'あり') score += 30;
+    
+    // LINE友だちなら高スコア
+    if (customer.isLineFriend === 'あり') score += 15;
+    
+    return score >= 70; // 70点以上を高可能性とする
+  };
+
   // ダミーデータを生成
   const generateDummyCustomers = () => {
     const genders = ['男性', '女性', 'その他'];
@@ -88,7 +110,7 @@ export default function CRMPage({ companyId }) {
     
     const dummyCustomers = [];
     for (let i = 1; i <= 200; i++) {
-      dummyCustomers.push({
+      const customer = {
         id: i,
         name: `顧客 ${i}`,
         email: `customer${i}@example.com`,
@@ -101,7 +123,9 @@ export default function CRMPage({ companyId }) {
         lastComment: `これはサンプルコメント${i}です。サービスの品質について...`,
         lastVisit: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         isLineFriend: Math.random() > 0.5 ? 'あり' : 'なし'
-      });
+      };
+      customer.highVisitProbability = calculateVisitProbability(customer);
+      dummyCustomers.push(customer);
     }
     return dummyCustomers;
   };
@@ -115,7 +139,7 @@ export default function CRMPage({ companyId }) {
   }, []);
 
   // フィルタリング処理
-  const filteredCustomers = customers.filter(customer => {
+  let filteredCustomers = customers.filter(customer => {
     if (filters.gender.length > 0 && !filters.gender.includes(customer.gender)) return false;
     if (filters.age.length > 0 && !filters.age.includes(customer.age)) return false;
     if (filters.npsType.length > 0 && !filters.npsType.includes(customer.npsType)) return false;
@@ -130,6 +154,15 @@ export default function CRMPage({ companyId }) {
     }
     return true;
   });
+
+  // 来店可能性高い順でソート
+  if (sortByHighProbability) {
+    filteredCustomers = [...filteredCustomers].sort((a, b) => {
+      if (a.highVisitProbability && !b.highVisitProbability) return -1;
+      if (!a.highVisitProbability && b.highVisitProbability) return 1;
+      return 0;
+    });
+  }
 
   // ページネーション
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -233,25 +266,6 @@ export default function CRMPage({ companyId }) {
           </h1>
           <p className="text-gray-600 mt-1">顧客情報を一元管理</p>
         </div>
-        <Button
-          variant="contained"
-          startIcon={<PersonAdd />}
-          sx={{
-            background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
-            borderRadius: 2,
-            textTransform: 'none',
-            fontWeight: 600,
-            px: 3,
-            py: 1,
-            boxShadow: 'none',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-              boxShadow: '0 4px 12px rgba(94, 23, 235, 0.3)',
-            }
-          }}
-        >
-          新規顧客登録
-        </Button>
       </div>
 
       {/* テーブル */}
@@ -263,6 +277,15 @@ export default function CRMPage({ companyId }) {
               <span className="text-sm font-normal text-gray-600">
                 {filteredCustomers.length} 件の結果
               </span>
+              <label className="flex items-center gap-2 ml-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={sortByHighProbability}
+                  onChange={(e) => setSortByHighProbability(e.target.checked)}
+                  className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
+                />
+                <span className="text-sm text-gray-700">来店可能性高い順で表示</span>
+              </label>
             </div>
             <div className="flex items-center gap-4">
               {/* 検索ボックス */}
@@ -470,9 +493,19 @@ export default function CRMPage({ companyId }) {
                 {currentCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{customer.name}</div>
-                        <div className="text-xs text-gray-500">{customer.email}</div>
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{customer.name}</div>
+                          <div className="text-xs text-gray-500">{customer.email}</div>
+                        </div>
+                        {customer.highVisitProbability && (
+                          <div className="relative group">
+                            <TrendingUp className="w-5 h-5 text-green-500" />
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                              来店可能性高
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
