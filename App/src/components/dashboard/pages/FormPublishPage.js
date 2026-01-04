@@ -220,7 +220,8 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
         }
 
         // 7. 選択されたフォームの抽選設定を取得
-        if (publishedForm || activeFormsData.length > 0) {
+        // activeFormsDataとpublishedFormは上のスコープで定義済み
+        if (activeFormsData && activeFormsData.length > 0) {
           const targetFormId = publishedForm?.id || activeFormsData[0].id;
           await fetchLotterySettings(targetFormId);
         }
