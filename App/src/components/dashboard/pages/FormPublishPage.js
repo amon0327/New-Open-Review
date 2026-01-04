@@ -103,10 +103,10 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
       try {
         const fetchedCompanyId = propCompanyId;
 
-        // 1. 会社のレビューフォーム一覧を取得
+        // 1. 会社のレビューフォーム一覧を取得（is_publishedフィールドも取得）
         const { data: forms, error: formsError } = await supabase
           .from('review_forms')
-          .select('id, title, is_deleted')
+          .select('id, title, is_deleted, is_published')
           .eq('company_id', fetchedCompanyId);
 
         console.log('レビューフォームデータ取得:', { forms, formsError, fetchedCompanyId });
@@ -117,15 +117,20 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
             .map(f => ({
               id: f.id,
               name: f.title,
-              description: ''
+              description: '',
+              is_published: f.is_published
             }));
-          console.log('フォーム一覧:', activeFormsData.map(f => ({ name: f.name })));
+          console.log('フォーム一覧:', activeFormsData.map(f => ({ name: f.name, is_published: f.is_published })));
           setReviewForms(activeFormsData);
 
-          // 最初のフォームをデフォルト選択（保存済みの設定がない場合）
-          if (activeFormsData.length > 0 && !selectedPublicFormId) {
+          // is_published=trueのフォームがあればそれを選択
+          const publishedForm = activeFormsData.find(f => f.is_published);
+          if (publishedForm) {
+            setSelectedPublicFormId(publishedForm.id);
+            setSavedPublicFormId(publishedForm.id);
+          } else if (activeFormsData.length > 0 && !selectedPublicFormId) {
+            // 公開中のフォームがない場合は最初のフォームをデフォルト選択
             setSelectedPublicFormId(activeFormsData[0].id);
-            setSavedPublicFormId(activeFormsData[0].id);
           }
         }
 
@@ -249,6 +254,33 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
 
     setIsSaving(true);
     try {
+      // 1. 以前に選択されていたフォームがあれば、is_publishedをfalseに更新
+      if (savedPublicFormId && savedPublicFormId !== selectedPublicFormId) {
+        const { error: unpublishError } = await supabase
+          .from('review_forms')
+          .update({ 
+            is_published: false,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', savedPublicFormId);
+
+        if (unpublishError) {
+          console.error('以前のフォームの公開解除エラー:', unpublishError);
+        }
+      }
+
+      // 2. 新しく選択されたフォームのis_publishedをtrueに更新
+      const { error: publishError } = await supabase
+        .from('review_forms')
+        .update({ 
+          is_published: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedPublicFormId);
+
+      if (publishError) throw publishError;
+
+      // 3. company_public_form_settingsテーブルも更新
       const { error } = await supabase
         .from('company_public_form_settings')
         .upsert({
@@ -274,7 +306,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     } finally {
       setIsSaving(false);
     }
-  }, [propCompanyId, selectedPublicFormId]);
+  }, [propCompanyId, selectedPublicFormId, savedPublicFormId]);
 
   // 店舗のレビューフォームURLを生成（store_url_codeベース）
   // QSCローテーションに基づいて自動的に適切なフォームにリダイレクトされる
