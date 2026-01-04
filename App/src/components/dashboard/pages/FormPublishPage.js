@@ -165,6 +165,28 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           console.log('公開フォーム設定テービルが未作成:', e);
         }
 
+        // store_review_formsテーブルから公開中のフォームを確認（デバッグ用）
+        if (storesData && storesData.length > 0) {
+          try {
+            const { data: storeFormData, error: storeFormError } = await supabase
+              .from('store_review_forms')
+              .select('*')
+              .eq('store_id', storesData[0].id)
+              .eq('is_published', true);
+            
+            if (storeFormError) {
+              console.error('Store form error:', storeFormError);
+              if (storeFormError.message.includes('403')) {
+                console.log('⚠️ store_review_formsテーブルへのアクセス権限がありません。RLSポリシーの設定が必要です。');
+              }
+            } else {
+              console.log('Published store forms:', { storeFormData, storeId: storesData[0].id });
+            }
+          } catch (e) {
+            console.error('Store form fetch error:', e);
+          }
+        }
+
         // 7. 企業の抽選設定を取得
         try {
           const { data: lotterySettingsData, error: lotterySettingsError } = await supabase
@@ -254,23 +276,65 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
 
     setIsSaving(true);
     try {
-      // 1. 以前に選択されていたフォームがあれば、is_publishedをfalseに更新
-      if (savedPublicFormId && savedPublicFormId !== selectedPublicFormId) {
+      // 各店舗に対してstore_review_formsを更新
+      for (const store of stores) {
+        // 1. 同じ店舗の既存の公開フォームをすべて非公開にする
         const { error: unpublishError } = await supabase
-          .from('review_forms')
-          .update({ 
-            is_published: false,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', savedPublicFormId);
+          .from('store_review_forms')
+          .update({ is_published: false })
+          .eq('store_id', store.id)
+          .neq('review_form_id', selectedPublicFormId);
 
         if (unpublishError) {
-          console.error('以前のフォームの公開解除エラー:', unpublishError);
+          console.error('Unpublish error for store:', store.id, unpublishError);
+        }
+
+        // 2. 指定された店舗とフォームの組み合わせを探す
+        const { data: existingRecord, error: searchError } = await supabase
+          .from('store_review_forms')
+          .select('*')
+          .eq('store_id', store.id)
+          .eq('review_form_id', selectedPublicFormId)
+          .maybeSingle();
+
+        if (searchError && searchError.code !== 'PGRST116') {
+          console.error('Search error:', searchError);
+          throw searchError;
+        }
+
+        if (existingRecord) {
+          // 3a. 既存のレコードがある場合は更新
+          const { error: updateError } = await supabase
+            .from('store_review_forms')
+            .update({ 
+              is_published: true,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingRecord.id);
+
+          if (updateError) {
+            console.error('Update error for store:', store.id, updateError);
+            throw updateError;
+          }
+        } else {
+          // 3b. 新規レコードを作成
+          const { error: insertError } = await supabase
+            .from('store_review_forms')
+            .insert({
+              store_id: store.id,
+              review_form_id: selectedPublicFormId,
+              is_published: true
+            });
+
+          if (insertError) {
+            console.error('Insert error for store:', store.id, insertError);
+            throw insertError;
+          }
         }
       }
 
-      // 2. 新しく選択されたフォームのis_publishedをtrueに更新
-      const { error: publishError } = await supabase
+      // 4. review_formsテーブルのis_publishedも更新（互換性のため）
+      const { error: formUpdateError } = await supabase
         .from('review_forms')
         .update({ 
           is_published: true,
@@ -278,10 +342,27 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
         })
         .eq('id', selectedPublicFormId);
 
-      if (publishError) throw publishError;
+      if (formUpdateError) {
+        console.error('Form update error:', formUpdateError);
+      }
 
-      // 3. company_public_form_settingsテーブルも更新
-      const { error } = await supabase
+      // 5. 以前に選択されていたフォームがあれば、それを非公開に
+      if (savedPublicFormId && savedPublicFormId !== selectedPublicFormId) {
+        const { error: unpublishFormError } = await supabase
+          .from('review_forms')
+          .update({ 
+            is_published: false,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', savedPublicFormId);
+
+        if (unpublishFormError) {
+          console.error('Unpublish form error:', unpublishFormError);
+        }
+      }
+
+      // 6. company_public_form_settingsテーブルも更新（互換性のため）
+      const { error: settingsError } = await supabase
         .from('company_public_form_settings')
         .upsert({
           company_id: propCompanyId,
@@ -291,10 +372,12 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           onConflict: 'company_id'
         });
 
-      if (error) throw error;
+      if (settingsError) {
+        console.error('Settings update error:', settingsError);
+      }
 
       toast.success('公開フォーム設定を保存しました');
-      setSavedPublicFormId(selectedPublicFormId); // 保存済みIDを更新
+      setSavedPublicFormId(selectedPublicFormId);
       setShowPublicFormSettings(false);
     } catch (error) {
       console.error('公開フォーム設定保存エラー:', error);
@@ -306,7 +389,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     } finally {
       setIsSaving(false);
     }
-  }, [propCompanyId, selectedPublicFormId, savedPublicFormId]);
+  }, [propCompanyId, selectedPublicFormId, savedPublicFormId, stores]);
 
   // 店舗のレビューフォームURLを生成（store_url_codeベース）
   // QSCローテーションに基づいて自動的に適切なフォームにリダイレクトされる

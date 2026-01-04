@@ -28,7 +28,50 @@ export class LotteryService {
     try {
       const { max_wins_per_month, win_rate_divisor } = settings;
 
-      const { data, error } = await supabase
+      console.log('抽選設定更新開始:', {
+        formId,
+        max_wins_per_month,
+        win_rate_divisor
+      });
+
+      // まず既存のレコードがあるか確認
+      const { data: existingData, error: checkError } = await supabase
+        .from('lottery')
+        .select('*')
+        .eq('review_form_id', formId)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('既存レコード確認エラー:', checkError);
+        throw checkError;
+      }
+
+      console.log('既存レコード:', existingData);
+
+      if (!existingData) {
+        // レコードが存在しない場合は作成
+        console.log('レコードが存在しないため作成します');
+        const { data: createdData, error: createError } = await supabase
+          .from('lottery')
+          .insert([{
+            review_form_id: formId,
+            max_wins_per_month,
+            win_rate_divisor
+          }])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('抽選設定作成エラー:', createError);
+          throw createError;
+        }
+
+        console.log('作成成功:', createdData);
+        return createdData;
+      }
+
+      // 既存レコードを更新
+      const { data, error, count } = await supabase
         .from('lottery')
         .update({
           max_wins_per_month,
@@ -42,6 +85,9 @@ export class LotteryService {
         console.error('抽選設定更新エラー:', error);
         throw error;
       }
+
+      console.log('更新成功:', data);
+      console.log('更新件数:', count);
 
       return data;
     } catch (error) {
