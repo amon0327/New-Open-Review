@@ -2063,25 +2063,11 @@ const PreviewQuestions = ({
                   ...getPageErrorHighlightStyle()
                 }}
               >
-                <Box
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 3,
-                    background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 3,
-                    border: '2px dashed #d1d5db'
-                  }}
-                >
-                  <Typography variant="h3" sx={{ opacity: 0.7 }}>📝</Typography>
-                </Box>
                 <Typography 
                   variant="h6" 
                   sx={{ 
                     mb: 2, 
+                    mt: 4,
                     fontWeight: 600,
                     color: '#374151'
                   }}

@@ -255,6 +255,102 @@ export default function CRMPage({ companyId }) {
     }
   };
 
+  // スケルトンスクリーン
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6">
+        {/* ヘッダー */}
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton variant="text" width={200} height={40} />
+            <Skeleton variant="text" width={150} height={24} />
+          </div>
+        </div>
+
+        {/* テーブル */}
+        <Card className="border-0 shadow-xl bg-white overflow-hidden">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <Skeleton variant="text" width={250} height={28} />
+              <div className="flex items-center gap-4">
+                <Skeleton variant="rectangular" width={250} height={40} className="rounded-lg" />
+                <Skeleton variant="rectangular" width={120} height={40} className="rounded-lg" />
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    {[180, 80, 80, 100, 100, 100, 100, 100].map((width, index) => (
+                      <th key={index} className="px-6 py-3">
+                        <Skeleton variant="text" width={width} height={20} />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {[...Array(10)].map((_, rowIndex) => (
+                    <tr key={rowIndex}>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <Skeleton variant="text" width={120} height={20} />
+                            <Skeleton variant="text" width={180} height={16} />
+                          </div>
+                          {rowIndex % 3 === 0 && (
+                            <Skeleton variant="circular" width={20} height={20} />
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Skeleton variant="text" width={40} height={20} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <Skeleton variant="text" width={40} height={20} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <Skeleton variant="rounded" width={60} height={24} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <Skeleton variant="rounded" width={80} height={24} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <Skeleton variant="rounded" width={50} height={24} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <Skeleton variant="text" width={60} height={20} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <Skeleton variant="rounded" width={80} height={24} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ページネーション */}
+        <div className="flex justify-between items-center">
+          <Skeleton variant="text" width={200} height={20} />
+          <div className="flex gap-2 items-center">
+            <Skeleton variant="rectangular" width={80} height={40} className="rounded" />
+            <div className="flex gap-1">
+              {[...Array(5)].map((_, index) => (
+                <Skeleton key={index} variant="rectangular" width={40} height={40} className="rounded" />
+              ))}
+            </div>
+            <Skeleton variant="rectangular" width={80} height={40} className="rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* ヘッダー */}

@@ -681,7 +681,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                           </TableCell>
                           <TableCell align="center" sx={{ py: 2.5 }}>
                             <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151' }}>
-                              {form.questions || 0}
+                              {(form.questions || 0) + 26}
                             </Typography>
                           </TableCell>
                           <TableCell align="center" sx={{ py: 2.5 }}>
