@@ -2063,50 +2063,137 @@ const PreviewQuestions = ({
                   ...getPageErrorHighlightStyle()
                 }}
               >
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 2, 
-                    mt: 4,
-                    fontWeight: 600,
-                    color: '#374151'
-                  }}
-                >
-                  質問を追加しましょう
-                </Typography>
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    mb: 3, 
-                    maxWidth: 300,
-                    lineHeight: 1.6,
-                    color: '#6b7280'
-                  }}
-                >
-                  左のツールから質問をドラッグして追加できます
-                </Typography>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    px: 3,
-                    py: 1.5,
-                    borderRadius: 2,
-                    backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                    border: '1px solid rgba(94, 23, 235, 0.1)'
-                  }}
-                >
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      color: '#5e17eb',
-                      fontWeight: 500
-                    }}
-                  >
-                    質問タイプやテンプレートから選択できます
-                  </Typography>
-                </Box>
+                {/* 固定項目ページの場合は異なる表示 */}
+                {selectedPage && selectedPage.type === 'fixed' ? (
+                  <>
+                    {/* ロックアイコン */}
+                    <Box
+                      sx={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(107, 114, 128, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mb: 3
+                      }}
+                    >
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 11H5C3.89543 11 3 11.8954 3 13V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V13C21 11.8954 20.1046 11 19 11Z" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </Box>
+                    
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        mb: 2,
+                        fontWeight: 600,
+                        color: '#374151'
+                      }}
+                    >
+                      固定項目
+                    </Typography>
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        mb: 3, 
+                        maxWidth: 350,
+                        lineHeight: 1.8,
+                        color: '#6b7280'
+                      }}
+                    >
+                      お客様の属性や店舗評価についての<br />
+                      質問が設定されています
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                        width: '100%',
+                        maxWidth: 320
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          px: 3,
+                          py: 2,
+                          borderRadius: 2,
+                          backgroundColor: 'rgba(107, 114, 128, 0.05)',
+                          border: '1px solid rgba(107, 114, 128, 0.1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5
+                        }}
+                      >
+                        <Box sx={{ 
+                          width: 8, 
+                          height: 8, 
+                          borderRadius: '50%', 
+                          backgroundColor: '#6b7280' 
+                        }} />
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: '#4b5563',
+                            fontWeight: 500
+                          }}
+                        >
+                          この項目は変更できません
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </>
+                ) : (
+                  <>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        mb: 2, 
+                        mt: 4,
+                        fontWeight: 600,
+                        color: '#374151'
+                      }}
+                    >
+                      質問を追加しましょう
+                    </Typography>
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        mb: 3, 
+                        maxWidth: 300,
+                        lineHeight: 1.6,
+                        color: '#6b7280'
+                      }}
+                    >
+                      左のツールから質問をドラッグして追加できます
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        px: 3,
+                        py: 1.5,
+                        borderRadius: 2,
+                        backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                        border: '1px solid rgba(94, 23, 235, 0.1)'
+                      }}
+                    >
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: '#5e17eb',
+                          fontWeight: 500
+                        }}
+                      >
+                        質問タイプやテンプレートから選択できます
+                      </Typography>
+                    </Box>
+                  </>
+                )}
               </Box>
             )}
 

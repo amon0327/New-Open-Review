@@ -265,7 +265,27 @@ export class FormDataService {
         console.warn('フォーム設定削除エラー:', settingsError.message);
       }
 
-      // 6. フォームページを削除
+      // 6. lottery テーブルの関連レコードを削除
+      const { error: lotteryError } = await supabase
+        .from('lottery')
+        .delete()
+        .eq('review_form_id', formId);
+
+      if (lotteryError) {
+        console.warn('lottery削除エラー:', lotteryError.message);
+      }
+
+      // 7. store_review_forms テーブルの関連レコードを削除
+      const { error: storeReviewFormsError } = await supabase
+        .from('store_review_forms')
+        .delete()
+        .eq('review_form_id', formId);
+
+      if (storeReviewFormsError) {
+        console.warn('store_review_forms削除エラー:', storeReviewFormsError.message);
+      }
+
+      // 8. フォームページを削除
       const { error: pagesError } = await supabase
         .from('review_form_pages')
         .delete()
@@ -275,7 +295,7 @@ export class FormDataService {
         console.warn('ページ削除エラー:', pagesError.message);
       }
 
-      // 7. 最後にメインフォームを削除
+      // 9. 最後にメインフォームを削除
       const { error: formError } = await supabase
         .from('review_forms')
         .delete()
@@ -534,13 +554,34 @@ export class FormDataService {
    */
   static async deleteFormPage(pageId) {
     try {
-      const { error } = await supabase
+      // まず、このページに質問が存在するかチェック
+      const { data: questions, error: checkError } = await supabase
+        .from('review_questions')
+        .select('id')
+        .eq('review_form_pages_id', pageId)
+        .limit(1);
+
+      if (checkError) {
+        throw new Error(`質問の確認中にエラーが発生しました: ${checkError.message}`);
+      }
+
+      // 質問が存在する場合はエラーを返す
+      if (questions && questions.length > 0) {
+        return {
+          success: false,
+          data: null,
+          error: '質問が設定されているため、このページを削除できません。先に質問を全て削除してください。'
+        };
+      }
+
+      // 質問がない場合のみページを削除
+      const { error: pageError } = await supabase
         .from('review_form_pages')
         .delete()
         .eq('id', pageId);
 
-      if (error) {
-        throw new Error(`ページ削除エラー: ${error.message}`);
+      if (pageError) {
+        throw new Error(`ページ削除エラー: ${pageError.message}`);
       }
 
       return {
