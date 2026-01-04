@@ -7,9 +7,10 @@ const corsHeaders = {
 }
 
 interface LotterySettingsRequest {
-  reviewFormId: string
-  maxWinsPerMonth: number
-  winRateDivisor: number
+  review_form_id: string
+  max_wins_per_month: number
+  win_rate_divisor: number
+  reset_monthly_stats?: boolean
 }
 
 serve(async (req) => {
@@ -47,18 +48,18 @@ serve(async (req) => {
 
     // Parse request body
     const requestData: LotterySettingsRequest = await req.json()
-    const { reviewFormId, maxWinsPerMonth, winRateDivisor } = requestData
+    const { review_form_id, max_wins_per_month, win_rate_divisor, reset_monthly_stats } = requestData
 
     // Validate input
-    if (!reviewFormId) {
+    if (!review_form_id) {
       throw new Error('レビューフォームIDが必要です')
     }
 
-    if (maxWinsPerMonth < 1) {
-      throw new Error('月間最大当選回数は1以上である必要があります')
+    if (max_wins_per_month < 0) {
+      throw new Error('月間最大当選回数は0以上である必要があります')
     }
 
-    if (winRateDivisor < 1) {
+    if (win_rate_divisor < 1) {
       throw new Error('当選確率分母は1以上である必要があります')
     }
 
@@ -78,7 +79,7 @@ serve(async (req) => {
           )
         )
       `)
-      .eq('id', reviewFormId)
+      .eq('id', review_form_id)
       .eq('companies.company_memberships.user_id', user.id)
       .single()
 
@@ -102,7 +103,7 @@ serve(async (req) => {
             )
           )
         `)
-        .eq('id', reviewFormId)
+        .eq('id', review_form_id)
         .eq('companies.partner_company_associations.partners.partner_memberships.user_id', user.id)
         .single()
 
@@ -115,19 +116,19 @@ serve(async (req) => {
     const { data: existingLottery, error: checkError } = await supabaseAdmin
       .from('lottery')
       .select('*')
-      .eq('review_form_id', reviewFormId)
-      .single()
+      .eq('review_form_id', review_form_id)
+      .maybeSingle()
 
     let result
 
-    if (checkError && checkError.code === 'PGRST116') {
+    if (!existingLottery && !checkError) {
       // No existing record, create new one
       const { data: newLottery, error: insertError } = await supabaseAdmin
         .from('lottery')
         .insert({
-          review_form_id: reviewFormId,
-          max_wins_per_month: maxWinsPerMonth,
-          win_rate_divisor: winRateDivisor,
+          review_form_id: review_form_id,
+          max_wins_per_month: max_wins_per_month,
+          win_rate_divisor: win_rate_divisor,
           current_wins: 0,
           current_trials: 0
         })
@@ -144,10 +145,10 @@ serve(async (req) => {
       const { data: updatedLottery, error: updateError } = await supabaseAdmin
         .from('lottery')
         .update({
-          max_wins_per_month: maxWinsPerMonth,
-          win_rate_divisor: winRateDivisor
+          max_wins_per_month: max_wins_per_month,
+          win_rate_divisor: win_rate_divisor
         })
-        .eq('review_form_id', reviewFormId)
+        .eq('review_form_id', review_form_id)
         .select()
         .single()
 
@@ -163,9 +164,9 @@ serve(async (req) => {
     // Log the update
     console.log('抽選設定更新成功:', {
       userId: user.id,
-      reviewFormId,
-      maxWinsPerMonth,
-      winRateDivisor,
+      reviewFormId: review_form_id,
+      maxWinsPerMonth: max_wins_per_month,
+      winRateDivisor: win_rate_divisor,
       action: existingLottery ? 'update' : 'create'
     })
 
