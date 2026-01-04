@@ -60,19 +60,28 @@ export class FormDataService {
       const reviewFormId = data.reviewForm.id;
       console.log('📝 Review Form ID:', reviewFormId);
 
-      // 2. review_form_pagesテーブルにレコードを作成
-      const { data: reviewFormPage, error: pageError } = await supabase
+      // 2. review_form_pagesテーブルに2つのレコードを作成（固定項目ページと通常ページ）
+      const { data: reviewFormPages, error: pageError } = await supabase
         .from('review_form_pages')
-        .insert([{
-          review_forms_id: reviewFormId,
-          page_number: 1
-        }])
-        .select()
-        .single();
+        .insert([
+          {
+            review_forms_id: reviewFormId,
+            page_number: 1,
+            page_name: '固定項目'
+          },
+          {
+            review_forms_id: reviewFormId,
+            page_number: 2,
+            page_name: 'ページ1'
+          }
+        ])
+        .select();
 
       if (pageError) {
         throw new Error(`ページ作成エラー: ${pageError.message}`);
       }
+
+      const reviewFormPage = reviewFormPages[0]; // 最初のページを返す（既存のコードとの互換性のため）
 
       // 3. review_form_settingsテーブルにレコードを作成
       const { error: settingsError } = await supabase
