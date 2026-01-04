@@ -46,6 +46,40 @@ import QRCode from 'qrcode';
 import { supabase } from '../../../lib/supabase';
 
 export default function FormPublishPage({ user, companyId: propCompanyId, companyName: propCompanyName }) {
+  // 抽選設定を取得する関数
+  const fetchLotterySettings = useCallback(async (formId) => {
+    try {
+      const { data: lotteryData, error } = await supabase
+        .from('lottery')
+        .select('*')
+        .eq('review_form_id', formId)
+        .maybeSingle();
+
+      if (!error && lotteryData) {
+        setLotterySettings({
+          maxWinsPerMonth: lotteryData.max_wins_per_month || 1,
+          winRateDivisor: lotteryData.win_rate_divisor || 1000
+        });
+        
+        setLotteryStats({
+          totalAttempts: lotteryData.current_trials || 0,
+          totalWins: lotteryData.current_wins || 0
+        });
+      } else {
+        // デフォルト値にリセット
+        setLotterySettings({
+          maxWinsPerMonth: 1,
+          winRateDivisor: 1000
+        });
+        setLotteryStats({
+          totalAttempts: 0,
+          totalWins: 0
+        });
+      }
+    } catch (e) {
+      console.error('抽選設定取得エラー:', e);
+    }
+  }, []);
   // ローディング・エラー状態
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -83,8 +117,6 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
   const [showLineMiniAppSettings, setShowLineMiniAppSettings] = useState(false);
   const [isSavingLineMiniApp, setIsSavingLineMiniApp] = useState(false);
 
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1;
 
 
 
@@ -187,42 +219,10 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           }
         }
 
-        // 7. 企業の抽選設定を取得
-        try {
-          const { data: lotterySettingsData, error: lotterySettingsError } = await supabase
-            .from('company_lottery_settings')
-            .select('*')
-            .eq('company_id', fetchedCompanyId)
-            .maybeSingle();
-
-          if (!lotterySettingsError && lotterySettingsData) {
-            setLotterySettings({
-              maxWinsPerMonth: lotterySettingsData.max_wins_per_month,
-              winRateDivisor: lotterySettingsData.win_rate_divisor
-            });
-          }
-        } catch (e) {
-          console.log('企業抽選設定テーブルが未作成:', e);
-        }
-
-        // 8. 今月の抽選統計を取得（ビューから集計）
-        try {
-          const { data: lotteryStatsData, error: lotteryStatsError } = await supabase
-            .from('company_lottery_monthly_summary')
-            .select('*')
-            .eq('company_id', fetchedCompanyId)
-            .eq('target_year', currentYear)
-            .eq('target_month', currentMonth)
-            .maybeSingle();
-
-          if (!lotteryStatsError && lotteryStatsData) {
-            setLotteryStats({
-              totalAttempts: lotteryStatsData.total_attempts,
-              totalWins: lotteryStatsData.total_wins
-            });
-          }
-        } catch (e) {
-          console.log('抽選統計ビューが未作成:', e);
+        // 7. 選択されたフォームの抽選設定を取得
+        if (publishedForm || activeFormsData.length > 0) {
+          const targetFormId = publishedForm?.id || activeFormsData[0].id;
+          await fetchLotterySettings(targetFormId);
         }
 
       } catch (error) {
@@ -234,39 +234,54 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     };
 
     fetchData();
-  }, [propCompanyId, propCompanyName, currentYear, currentMonth]);
+  }, [propCompanyId, propCompanyName, fetchLotterySettings]);
 
 
   // ============================================================================
   // 企業抽選設定を保存
   // ============================================================================
   const saveLotterySettings = useCallback(async () => {
-    if (!propCompanyId) return;
+    if (!propCompanyId || !selectedPublicFormId) return;
 
     setIsSavingLottery(true);
     try {
-      const { error } = await supabase
-        .from('company_lottery_settings')
-        .upsert({
-          company_id: propCompanyId,
-          win_rate_divisor: lotterySettings.winRateDivisor,
+      // セッションを取得して認証ヘッダーを設定
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('セッションが見つかりません。再度ログインしてください。');
+      }
+
+      // Edge Functionを呼び出して抽選設定を更新
+      const { data, error } = await supabase.functions.invoke('update-lottery-settings', {
+        body: {
+          review_form_id: selectedPublicFormId,
           max_wins_per_month: lotterySettings.maxWinsPerMonth,
-          is_enabled: true,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'company_id'
-        });
+          win_rate_divisor: lotterySettings.winRateDivisor,
+          reset_monthly_stats: false
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
 
       if (error) throw error;
 
+      if (!data.success) {
+        throw new Error(data.error || '抽選設定の更新に失敗しました');
+      }
+
       toast.success('抽選設定を保存しました');
+
+      // 保存後に最新の設定を再取得
+      await fetchLotterySettings(selectedPublicFormId);
     } catch (error) {
       console.error('抽選設定保存エラー:', error);
-      toast.error('抽選設定の保存に失敗しました');
+      toast.error(error.message || '抽選設定の保存に失敗しました');
     } finally {
       setIsSavingLottery(false);
     }
-  }, [propCompanyId, lotterySettings]);
+  }, [propCompanyId, selectedPublicFormId, lotterySettings, fetchLotterySettings]);
 
   // ============================================================================
   // 公開フォーム設定を保存
@@ -280,10 +295,20 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
       for (const store of stores) {
         console.log('Updating form publication for store:', { storeId: store.id, reviewFormId: selectedPublicFormId });
 
+        // セッションを取得して認証ヘッダーを設定
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          throw new Error('セッションが見つかりません。再度ログインしてください。');
+        }
+
         const { data, error } = await supabase.functions.invoke('update-form-publication', {
           body: {
             storeId: store.id,
             reviewFormId: selectedPublicFormId
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
           }
         });
 
@@ -722,7 +747,13 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                     <Button
                       variant="contained"
                       size="small"
-                      onClick={savePublicFormSettings}
+                      onClick={async () => {
+                        await savePublicFormSettings();
+                        // フォーム変更後に抽選設定を再取得
+                        if (selectedPublicFormId !== savedPublicFormId) {
+                          await fetchLotterySettings(selectedPublicFormId);
+                        }
+                      }}
                       disabled={isSaving || !selectedPublicFormId}
                       sx={{
                         background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
