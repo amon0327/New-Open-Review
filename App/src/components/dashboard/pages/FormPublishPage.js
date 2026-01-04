@@ -276,77 +276,30 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
 
     setIsSaving(true);
     try {
-      // 各店舗に対してstore_review_formsを更新
+      // 各店舗に対してEdge Functionを呼び出してフォーム公開設定を更新
       for (const store of stores) {
-        // 1. 同じ店舗の既存の公開フォームをすべて非公開にする
-        const { error: unpublishError } = await supabase
-          .from('store_review_forms')
-          .update({ is_published: false })
-          .eq('store_id', store.id)
-          .neq('review_form_id', selectedPublicFormId);
+        console.log('Updating form publication for store:', { storeId: store.id, reviewFormId: selectedPublicFormId });
 
-        if (unpublishError) {
-          console.error('Unpublish error for store:', store.id, unpublishError);
-        }
-
-        // 2. 指定された店舗とフォームの組み合わせを探す
-        const { data: existingRecord, error: searchError } = await supabase
-          .from('store_review_forms')
-          .select('*')
-          .eq('store_id', store.id)
-          .eq('review_form_id', selectedPublicFormId)
-          .maybeSingle();
-
-        if (searchError && searchError.code !== 'PGRST116') {
-          console.error('Search error:', searchError);
-          throw searchError;
-        }
-
-        if (existingRecord) {
-          // 3a. 既存のレコードがある場合は更新
-          const { error: updateError } = await supabase
-            .from('store_review_forms')
-            .update({ 
-              is_published: true,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', existingRecord.id);
-
-          if (updateError) {
-            console.error('Update error for store:', store.id, updateError);
-            throw updateError;
+        const { data, error } = await supabase.functions.invoke('update-form-publication', {
+          body: {
+            storeId: store.id,
+            reviewFormId: selectedPublicFormId
           }
-        } else {
-          // 3b. 新規レコードを作成
-          const { error: insertError } = await supabase
-            .from('store_review_forms')
-            .insert({
-              store_id: store.id,
-              review_form_id: selectedPublicFormId,
-              is_published: true
-            });
+        });
 
-          if (insertError) {
-            console.error('Insert error for store:', store.id, insertError);
-            throw insertError;
-          }
+        if (error) {
+          console.error('Edge function error for store:', store.id, error);
+          throw error;
         }
+        
+        if (!data.success) {
+          throw new Error(data.error || `店舗 ${store.name} のフォーム公開設定の更新に失敗しました`);
+        }
+
+        console.log('Form publication updated for store:', store.id, data);
       }
 
-      // 4. review_formsテーブルのis_publishedも更新（互換性のため）
-      const { error: formUpdateError } = await supabase
-        .from('review_forms')
-        .update({ 
-          is_published: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedPublicFormId);
-
-      if (formUpdateError) {
-        console.error('Form update error:', formUpdateError);
-      }
-
-      // 5. 以前に選択されていたフォームがあれば、それを非公開に
+      // 以前に選択されていたフォームがあれば、review_formsテーブルで非公開に
       if (savedPublicFormId && savedPublicFormId !== selectedPublicFormId) {
         const { error: unpublishFormError } = await supabase
           .from('review_forms')
@@ -361,7 +314,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
         }
       }
 
-      // 6. company_public_form_settingsテーブルも更新（互換性のため）
+      // company_public_form_settingsテーブルも更新（互換性のため）
       const { error: settingsError } = await supabase
         .from('company_public_form_settings')
         .upsert({
@@ -374,6 +327,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
 
       if (settingsError) {
         console.error('Settings update error:', settingsError);
+        // エラーをログに記録するが、処理は続行
       }
 
       toast.success('公開フォーム設定を保存しました');
@@ -381,11 +335,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
       setShowPublicFormSettings(false);
     } catch (error) {
       console.error('公開フォーム設定保存エラー:', error);
-      if (error.message && error.message.includes('404')) {
-        toast.error('データベーステーブルが未作成です。SQL Editorでマイグレーションを実行してください。');
-      } else {
-        toast.error('設定の保存に失敗しました');
-      }
+      toast.error('公開フォーム設定の保存に失敗しました');
     } finally {
       setIsSaving(false);
     }
