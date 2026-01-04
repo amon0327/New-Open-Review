@@ -28,68 +28,33 @@ export class LotteryService {
     try {
       const { max_wins_per_month, win_rate_divisor } = settings;
 
-      console.log('抽選設定更新開始:', {
+      console.log('抽選設定更新開始 (Edge Function経由):', {
         formId,
         max_wins_per_month,
         win_rate_divisor
       });
 
-      // まず既存のレコードがあるか確認
-      const { data: existingData, error: checkError } = await supabase
-        .from('lottery')
-        .select('*')
-        .eq('review_form_id', formId)
-        .single();
-
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error('既存レコード確認エラー:', checkError);
-        throw checkError;
-      }
-
-      console.log('既存レコード:', existingData);
-
-      if (!existingData) {
-        // レコードが存在しない場合は作成
-        console.log('レコードが存在しないため作成します');
-        const { data: createdData, error: createError } = await supabase
-          .from('lottery')
-          .insert([{
-            review_form_id: formId,
-            max_wins_per_month,
-            win_rate_divisor
-          }])
-          .select()
-          .single();
-
-        if (createError) {
-          console.error('抽選設定作成エラー:', createError);
-          throw createError;
+      // Edge Functionを呼び出し
+      const { data: response, error } = await supabase.functions.invoke('update-lottery-settings', {
+        body: {
+          reviewFormId: formId,
+          maxWinsPerMonth: max_wins_per_month,
+          winRateDivisor: win_rate_divisor
         }
-
-        console.log('作成成功:', createdData);
-        return createdData;
-      }
-
-      // 既存レコードを更新
-      const { data, error, count } = await supabase
-        .from('lottery')
-        .update({
-          max_wins_per_month,
-          win_rate_divisor
-        })
-        .eq('review_form_id', formId)
-        .select()
-        .single();
+      });
 
       if (error) {
-        console.error('抽選設定更新エラー:', error);
-        throw error;
+        console.error('Edge Function呼び出しエラー:', error);
+        throw new Error(error.message || '抽選設定の更新に失敗しました');
       }
 
-      console.log('更新成功:', data);
-      console.log('更新件数:', count);
+      if (!response.success) {
+        console.error('Edge Function実行エラー:', response.error);
+        throw new Error(response.error || '抽選設定の更新に失敗しました');
+      }
 
-      return data;
+      console.log('更新成功:', response.data);
+      return response.data;
     } catch (error) {
       console.error('抽選設定更新処理エラー:', error);
       throw error;

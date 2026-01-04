@@ -13,14 +13,29 @@ serve(async (req) => {
   }
 
   try {
-    // Supabaseクライアントを作成
+    // Supabaseクライアントを作成（サービスロールキーを使用）
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     const authHeader = req.headers.get('Authorization')!
     
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    // サービスロールクライアントを作成（RLSをバイパス）
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+    
+    // ユーザー認証用クライアントを作成（ユーザー情報取得用）
+    const supabaseClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
       global: { headers: { Authorization: authHeader } },
     })
+    
+    // ユーザー情報を取得して権限チェック
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+    if (userError || !user) {
+      throw new Error('認証されていません')
+    }
 
     // リクエストボディを取得
     const { storeId, reviewFormId } = await req.json()
