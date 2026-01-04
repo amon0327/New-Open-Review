@@ -157,8 +157,6 @@ export default function CRMPage({ companyId }) {
       const customer = {
         id: i,
         name: lineNames[Math.floor(Math.random() * lineNames.length)],
-        email: `${shortUuid}`,
-        fullEmail: `${uuid}@openreview.app`,
         phone: `090-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`,
         gender: genders[Math.floor(Math.random() * genders.length)],
         age: ages[Math.floor(Math.random() * ages.length)],
@@ -331,7 +329,7 @@ export default function CRMPage({ companyId }) {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
-                    {[180, 120, 80, 80, 100, 100, 100, 100, 100].map((width, index) => (
+                    {[180, 80, 80, 100, 100, 100, 100, 120, 100].map((width, index) => (
                       <th key={index} className="px-6 py-3">
                         <Skeleton variant="text" width={width} height={20} />
                       </th>
@@ -342,15 +340,7 @@ export default function CRMPage({ companyId }) {
                   {[...Array(10)].map((_, rowIndex) => (
                     <tr key={rowIndex}>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div>
-                            <Skeleton variant="text" width={120} height={20} />
-                            <Skeleton variant="text" width={180} height={16} />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Skeleton variant="rounded" width={100} height={8} />
+                        <Skeleton variant="text" width={120} height={20} />
                       </td>
                       <td className="px-6 py-4">
                         <Skeleton variant="text" width={40} height={20} />
@@ -369,6 +359,9 @@ export default function CRMPage({ companyId }) {
                       </td>
                       <td className="px-6 py-4">
                         <Skeleton variant="text" width={60} height={20} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <Skeleton variant="rounded" width={100} height={8} />
                       </td>
                       <td className="px-6 py-4">
                         <Skeleton variant="rounded" width={80} height={24} />
@@ -610,9 +603,6 @@ export default function CRMPage({ companyId }) {
                     顧客名
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    来店可能性
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     性別
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -631,6 +621,9 @@ export default function CRMPage({ companyId }) {
                     最終来店
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    来店可能性
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     LINE友だち
                   </th>
                 </tr>
@@ -639,34 +632,7 @@ export default function CRMPage({ companyId }) {
                 {currentCustomers.map((customer) => (
                   <tr key={customer.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{customer.name}</div>
-                        <div className="text-xs text-gray-500 font-mono" title={customer.fullEmail}>{customer.email}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-gray-200 rounded-full overflow-hidden" style={{ height: '8px' }}>
-                            <div 
-                              className="h-full transition-all duration-300"
-                              style={{
-                                width: `${customer.visitProbabilityScore}%`,
-                                backgroundColor: customer.visitProbabilityScore >= 70 ? '#10b981' : 
-                                                customer.visitProbabilityScore >= 40 ? '#f59e0b' : '#ef4444'
-                              }}
-                            />
-                          </div>
-                          <span className="text-xs font-semibold text-gray-700 min-w-[35px] text-right">
-                            {customer.visitProbabilityScore}%
-                          </span>
-                        </div>
-                        {customer.shouldApproach && (
-                          <div className="text-xs text-orange-600 font-medium">
-                            アプローチ推奨
-                          </div>
-                        )}
-                      </div>
+                      <div className="text-sm font-medium text-gray-900">{customer.name}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`text-sm font-medium ${getGenderColor(customer.gender)}`}>
@@ -695,6 +661,25 @@ export default function CRMPage({ companyId }) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {getRelativeTime(customer.lastVisit)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="space-y-1">
+                        <div className="w-24 bg-gray-200 rounded-full overflow-hidden" style={{ height: '8px' }}>
+                          <div 
+                            className="h-full transition-all duration-300"
+                            style={{
+                              width: `${customer.visitProbabilityScore}%`,
+                              backgroundColor: customer.visitProbabilityScore >= 70 ? '#10b981' : 
+                                              customer.visitProbabilityScore >= 40 ? '#f59e0b' : '#ef4444'
+                            }}
+                          />
+                        </div>
+                        {customer.visitProbabilityScore >= 70 && (
+                          <div className="text-xs text-green-600 font-medium">
+                            アプローチ推奨
+                          </div>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

@@ -524,9 +524,26 @@ export default function CreatePage({ onBackClick, user, formId }) {
               };
             });
 
+            // 固定項目ページが存在するかチェック
+            const hasFixedPage = questionPages.some(page => page.type === 'fixed');
+            
+            // 固定項目ページ（既存フォームでも表示）
+            const fixedPage = {
+              id: 'fixed-default',
+              title: '固定項目',
+              type: 'fixed',
+              icon: <Key />,
+              canDelete: false,
+              canEdit: false,
+              questions: 0,
+              page_number: 0.5, // ログイン画面と通常ページの間に配置
+              isFixed: true
+            };
+            
             // システムページと質問ページを結合
             const systemPages = [
               { id: 'login', title: 'ログイン画面', type: 'system', icon: <Login />, canDelete: false, canEdit: false },
+              ...(!hasFixedPage ? [fixedPage] : []), // 固定項目ページがない場合は追加
               ...questionPages,
               { id: 'completion', title: '完了画面', type: 'system', icon: <CheckCircle />, canDelete: false, canEdit: false }
             ];
@@ -867,8 +884,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
   // ページ管理ハンドラ（楽観的更新）
   const handleDeletePage = async (pageId) => {
     const page = pages.find(p => p.id === pageId);
-    if (!page || page.type === 'system') {
-      return; // システムページは削除できない
+    if (!page || page.type === 'system' || page.type === 'fixed') {
+      return; // システムページと固定項目ページは削除できない
     }
 
     // 即座にローカル状態を更新（楽観的削除）
@@ -879,8 +896,13 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
     // 削除されたページが選択されていた場合、別のページを選択
     if (selectedPage && selectedPage.id === pageId) {
+      // 固定項目ページまたは残っている質問ページを選択
+      const fixedPage = optimisticPages.find(p => p.type === 'fixed');
       const remainingQuestionPages = optimisticPages.filter(p => p.type === 'question');
-      if (remainingQuestionPages.length > 0) {
+      
+      if (fixedPage) {
+        setSelectedPage(fixedPage);
+      } else if (remainingQuestionPages.length > 0) {
         setSelectedPage(remainingQuestionPages[0]);
       } else {
         setSelectedPage(optimisticPages.find(p => p.id === 'login') || null);
@@ -928,8 +950,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
     try {
       setIsAddingPage(true);
       setIsSaving(true);
+      // 固定項目ページを除く質問ページの数をカウント
       const questionPageCount = pages.filter(p => p.type === 'question').length;
-      const pageName = `新しいページ${questionPageCount + 1}`;
+      const pageName = `ページ${questionPageCount + 1}`;
       
       // 楽観的更新用の一時的なIDを生成
       const tempId = `temp_page_${Date.now()}_${Math.random()}`;
@@ -1021,7 +1044,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // ドラッグ&ドロップハンドラ
   const handleDragStart = (e, page) => {
-    if (page.type === 'system') return; // システムページはドラッグ不可
+    if (page.type === 'system' || page.type === 'fixed') return; // システムページと固定項目ページはドラッグ不可
     setDraggedPage(page);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', '');
@@ -1103,7 +1126,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // ページ名編集関連ハンドラ
   const handleStartEditing = (page) => {
-    if (page.type === 'system') return; // システムページは編集不可
+    if (page.type === 'system' || page.type === 'fixed') return; // システムページと固定項目ページは編集不可
     // 選択されているページのみ編集可能
     if (selectedPage && selectedPage.id === page.id) {
       setEditingPageId(page.id);
