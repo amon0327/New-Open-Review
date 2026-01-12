@@ -22,7 +22,9 @@ import {
   Avatar,
   CircularProgress,
   Alert,
-  Fab
+  Fab,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import {
   Store,
@@ -35,7 +37,8 @@ import {
   WorkOutline,
   Email,
   Schedule,
-  Delete
+  Delete,
+  ContentCopy
 } from '@mui/icons-material';
 // import { useParams, useNavigate } from 'react-router-dom'; // TODO: React Router設定後に有効化
 import { supabase } from '../../../lib/supabase';
@@ -72,6 +75,8 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
   const [error, setError] = useState(null);
   const [tabValue, setTabValue] = useState(0);
   const [showInvitationForm, setShowInvitationForm] = useState(false);
+  const [selectedInvitations, setSelectedInvitations] = useState([]);
+  const [copyUrlType, setCopyUrlType] = useState('production'); // 'production' or 'development'
 
   useEffect(() => {
     if (storeId) {
@@ -178,6 +183,51 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
     }
     navigator.clipboard.writeText(url);
     toast.success(environment === 'production' ? '本番版URLをコピーしました' : '開発版URLをコピーしました');
+  };
+
+  // 招待中のものだけをフィルタ
+  const invitedInvitations = invitations.filter(inv => inv.status === 'invited');
+
+  // 全選択/全解除
+  const handleSelectAll = (event) => {
+    if (event.target.checked) {
+      setSelectedInvitations(invitedInvitations.map(inv => inv.id));
+    } else {
+      setSelectedInvitations([]);
+    }
+  };
+
+  // 個別選択
+  const handleSelectInvitation = (invitationId) => {
+    setSelectedInvitations(prev => {
+      if (prev.includes(invitationId)) {
+        return prev.filter(id => id !== invitationId);
+      } else {
+        return [...prev, invitationId];
+      }
+    });
+  };
+
+  // 選択した招待を一括コピー（送信用形式）
+  const copySelectedInvitations = () => {
+    const selectedItems = invitations.filter(inv => selectedInvitations.includes(inv.id));
+
+    if (selectedItems.length === 0) {
+      toast.error('招待を選択してください');
+      return;
+    }
+
+    const baseUrl = copyUrlType === 'production'
+      ? 'https://store.openreview.jp/staff-invitation/'
+      : 'http://localhost:3000/staff-invitation/';
+
+    const text = selectedItems.map(inv => {
+      const url = `${baseUrl}${inv.token}`;
+      return `${inv.name}さん\n下記URLをタップしてスタッフ登録をお願いします\n${url}`;
+    }).join('\n\n');
+
+    navigator.clipboard.writeText(text);
+    toast.success(`${selectedItems.length}件の招待URLをコピーしました`);
   };
 
   // スタッフメンバーを削除
@@ -493,21 +543,119 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
             </Card>
           ) : (
             <>
+              {/* 一括コピーエリア */}
+              {invitedInvitations.length > 0 && (
+                <Box sx={{
+                  mb: 3,
+                  p: 2,
+                  background: '#f8fafc',
+                  borderRadius: 2,
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151' }}>
+                      一括コピー:
+                    </Typography>
+
+                    {/* URL種類選択 */}
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Chip
+                        label="本番URL"
+                        onClick={() => setCopyUrlType('production')}
+                        sx={{
+                          cursor: 'pointer',
+                          background: copyUrlType === 'production' ? '#10b981' : '#e2e8f0',
+                          color: copyUrlType === 'production' ? '#fff' : '#64748b',
+                          '&:hover': {
+                            background: copyUrlType === 'production' ? '#059669' : '#cbd5e1',
+                          }
+                        }}
+                      />
+                      <Chip
+                        label="開発URL"
+                        onClick={() => setCopyUrlType('development')}
+                        sx={{
+                          cursor: 'pointer',
+                          background: copyUrlType === 'development' ? '#5e17eb' : '#e2e8f0',
+                          color: copyUrlType === 'development' ? '#fff' : '#64748b',
+                          '&:hover': {
+                            background: copyUrlType === 'development' ? '#4c1d95' : '#cbd5e1',
+                          }
+                        }}
+                      />
+                    </Box>
+
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<ContentCopy />}
+                      onClick={copySelectedInvitations}
+                      disabled={selectedInvitations.length === 0}
+                      sx={{
+                        background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                        '&:disabled': {
+                          background: '#e2e8f0',
+                          color: '#94a3b8'
+                        }
+                      }}
+                    >
+                      選択した{selectedInvitations.length}件をコピー
+                    </Button>
+
+                    <Typography variant="caption" sx={{ color: '#64748b' }}>
+                      ※ 招待中のみ選択可能
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+
               <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
                 <Table>
                   <TableHead>
                     <TableRow>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          indeterminate={selectedInvitations.length > 0 && selectedInvitations.length < invitedInvitations.length}
+                          checked={invitedInvitations.length > 0 && selectedInvitations.length === invitedInvitations.length}
+                          onChange={handleSelectAll}
+                          sx={{
+                            '&.Mui-checked': { color: '#5e17eb' },
+                            '&.MuiCheckbox-indeterminate': { color: '#5e17eb' }
+                          }}
+                        />
+                      </TableCell>
                       <TableCell>招待者名</TableCell>
                       <TableCell>ロール</TableCell>
                       <TableCell>ステータス</TableCell>
                       <TableCell>招待日</TableCell>
-                      <TableCell>招待URL</TableCell>
                       <TableCell align="center">操作</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {invitations.map((invitation) => (
-                      <TableRow key={invitation.id}>
+                      <TableRow
+                        key={invitation.id}
+                        selected={selectedInvitations.includes(invitation.id)}
+                        sx={{
+                          '&.Mui-selected': {
+                            backgroundColor: 'rgba(94, 23, 235, 0.08)',
+                          },
+                          '&.Mui-selected:hover': {
+                            backgroundColor: 'rgba(94, 23, 235, 0.12)',
+                          }
+                        }}
+                      >
+                        <TableCell padding="checkbox">
+                          {invitation.status === 'invited' ? (
+                            <Checkbox
+                              checked={selectedInvitations.includes(invitation.id)}
+                              onChange={() => handleSelectInvitation(invitation.id)}
+                              sx={{ '&.Mui-checked': { color: '#5e17eb' } }}
+                            />
+                          ) : (
+                            <Checkbox disabled />
+                          )}
+                        </TableCell>
                         <TableCell>{invitation.name}</TableCell>
                         <TableCell>
                           <Chip
@@ -533,62 +681,37 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                         <TableCell>
                           {new Date(invitation.created_at).toLocaleDateString('ja-JP')}
                         </TableCell>
-                        <TableCell>
-                          {invitation.status === 'invited' && (
-                            <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                onClick={() => copyInvitationUrl(invitation.token, 'dev')}
-                                sx={{
-                                  textTransform: 'none',
-                                  borderColor: '#5e17eb',
-                                  color: '#5e17eb',
-                                  fontSize: '0.75rem',
-                                  py: 0.5,
-                                  '&:hover': {
-                                    borderColor: '#4c1d95',
-                                    backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                                  }
-                                }}
-                              >
-                                開発版
-                              </Button>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                onClick={() => copyInvitationUrl(invitation.token, 'production')}
-                                sx={{
-                                  textTransform: 'none',
-                                  borderColor: '#10b981',
-                                  color: '#10b981',
-                                  fontSize: '0.75rem',
-                                  py: 0.5,
-                                  '&:hover': {
-                                    borderColor: '#059669',
-                                    backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                                  }
-                                }}
-                              >
-                                本番版
-                              </Button>
-                            </Box>
-                          )}
-                        </TableCell>
                         <TableCell align="center">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDeleteInvitation(invitation.id, invitation.name)}
-                            sx={{
-                              color: '#94a3b8',
-                              '&:hover': {
-                                color: '#ef4444',
-                                backgroundColor: 'rgba(239, 68, 68, 0.1)'
-                              }
-                            }}
-                          >
-                            <Delete sx={{ fontSize: 20 }} />
-                          </IconButton>
+                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                            {invitation.status === 'invited' && (
+                              <IconButton
+                                size="small"
+                                onClick={() => copyInvitationUrl(invitation.token, copyUrlType === 'production' ? 'production' : 'dev')}
+                                sx={{
+                                  color: '#5e17eb',
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(94, 23, 235, 0.1)'
+                                  }
+                                }}
+                                title="URLをコピー"
+                              >
+                                <ContentCopy sx={{ fontSize: 20 }} />
+                              </IconButton>
+                            )}
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDeleteInvitation(invitation.id, invitation.name)}
+                              sx={{
+                                color: '#94a3b8',
+                                '&:hover': {
+                                  color: '#ef4444',
+                                  backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                                }
+                              }}
+                            >
+                              <Delete sx={{ fontSize: 20 }} />
+                            </IconButton>
+                          </Box>
                         </TableCell>
                       </TableRow>
                     ))}
