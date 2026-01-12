@@ -168,6 +168,22 @@ serve(async (req) => {
       console.log('Business user created successfully:', newBusinessUser)
     } else {
       console.log('Business user already exists:', existingBusinessUser[0])
+
+      // 招待時に入力された名前がある場合、既存ユーザーの名前を更新
+      if (invitation.name) {
+        console.log('Updating business_users name with invitation name:', invitation.name)
+        const { error: updateError } = await supabaseAdmin
+          .from('business_users')
+          .update({ name: invitation.name })
+          .eq('id', user.id)
+
+        if (updateError) {
+          console.error('business_users名前更新エラー:', updateError)
+          // エラーでも処理は続行（名前更新は必須ではない）
+        } else {
+          console.log('Business user name updated successfully')
+        }
+      }
     }
 
     // 既に登録されているかチェック（サービスロールで）
