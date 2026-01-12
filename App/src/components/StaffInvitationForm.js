@@ -62,6 +62,7 @@ export default function StaffInvitationForm({
   const [copySuccess, setCopySuccess] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [showPasteArea, setShowPasteArea] = useState(false);
+  const [urlType, setUrlType] = useState('production'); // 'production' or 'development'
 
   const handleInputChange = (index, field) => (event) => {
     const newRows = [...rows];
@@ -210,21 +211,45 @@ export default function StaffInvitationForm({
     }
   };
 
-  const copyAllResults = () => {
-    // 成功した招待のみ抽出
+  // 送信用の形式でコピー（名前さん + URL）
+  const copyForSending = () => {
     const successRows = rows.filter(row => row.status === 'success' && row.result);
 
     if (successRows.length === 0) {
       return;
     }
 
-    // タブ区切りのテキストを作成（Excelなどに貼り付け可能）
-    const header = '名前\tロール\t本番URL\t開発URL';
+    const baseUrl = urlType === 'production'
+      ? 'https://store.openreview.jp/staff-invitation/'
+      : 'http://localhost:3000/staff-invitation/';
+
+    const data = successRows.map(row => {
+      const url = `${baseUrl}${row.result.token}`;
+      return `${row.result.name}さん\n下記URLをタップしてスタッフ登録をお願いします\n${url}`;
+    }).join('\n\n---\n\n');
+
+    navigator.clipboard.writeText(data);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
+  // スプレッドシート用（タブ区切り）でコピー
+  const copyForSpreadsheet = () => {
+    const successRows = rows.filter(row => row.status === 'success' && row.result);
+
+    if (successRows.length === 0) {
+      return;
+    }
+
+    const baseUrl = urlType === 'production'
+      ? 'https://store.openreview.jp/staff-invitation/'
+      : 'http://localhost:3000/staff-invitation/';
+
+    const header = '名前\tロール\tURL';
     const data = successRows.map(row => {
       const roleLabel = row.role === 'STORE' ? '店舗管理者' : 'スタッフ';
-      const productionUrl = `https://store.openreview.jp/staff-invitation/${row.result.token}`;
-      const devUrl = `http://localhost:3000/staff-invitation/${row.result.token}`;
-      return `${row.result.name}\t${roleLabel}\t${productionUrl}\t${devUrl}`;
+      const url = `${baseUrl}${row.result.token}`;
+      return `${row.result.name}\t${roleLabel}\t${url}`;
     }).join('\n');
 
     navigator.clipboard.writeText(`${header}\n${data}`);
@@ -326,25 +351,94 @@ export default function StaffInvitationForm({
               </Typography>
             </Box>
 
-            {/* コピーボタン */}
-            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                variant="contained"
-                startIcon={copySuccess ? <Check /> : <ContentCopy />}
-                onClick={copyAllResults}
-                sx={{
-                  background: copySuccess
-                    ? '#10b981'
-                    : 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                  '&:hover': {
+            {/* URL選択とコピーボタン */}
+            <Box sx={{
+              mb: 3,
+              p: 2,
+              background: '#f8fafc',
+              borderRadius: 2,
+              border: '1px solid #e2e8f0'
+            }}>
+              {/* URL種類選択 */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151' }}>
+                  コピーするURL:
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Chip
+                    label="本番URL"
+                    onClick={() => setUrlType('production')}
+                    sx={{
+                      cursor: 'pointer',
+                      background: urlType === 'production' ? '#10b981' : '#e2e8f0',
+                      color: urlType === 'production' ? '#fff' : '#64748b',
+                      '&:hover': {
+                        background: urlType === 'production' ? '#059669' : '#cbd5e1',
+                      }
+                    }}
+                  />
+                  <Chip
+                    label="開発URL"
+                    onClick={() => setUrlType('development')}
+                    sx={{
+                      cursor: 'pointer',
+                      background: urlType === 'development' ? '#5e17eb' : '#e2e8f0',
+                      color: urlType === 'development' ? '#fff' : '#64748b',
+                      '&:hover': {
+                        background: urlType === 'development' ? '#4c1d95' : '#cbd5e1',
+                      }
+                    }}
+                  />
+                </Box>
+              </Box>
+
+              {/* コピーボタン */}
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  startIcon={copySuccess ? <Check /> : <ContentCopy />}
+                  onClick={copyForSending}
+                  sx={{
                     background: copySuccess
-                      ? '#059669'
-                      : 'linear-gradient(45deg, #4c1d95 30%, #5b3d8a 90%)',
-                  }
-                }}
-              >
-                {copySuccess ? 'コピーしました！' : '結果を一括コピー（タブ区切り）'}
-              </Button>
+                      ? '#10b981'
+                      : 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                    '&:hover': {
+                      background: copySuccess
+                        ? '#059669'
+                        : 'linear-gradient(45deg, #4c1d95 30%, #5b3d8a 90%)',
+                    }
+                  }}
+                >
+                  {copySuccess ? 'コピーしました！' : '送信用にコピー（名前+URL）'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<ContentCopy />}
+                  onClick={copyForSpreadsheet}
+                  sx={{
+                    borderColor: '#5e17eb',
+                    color: '#5e17eb',
+                    '&:hover': {
+                      borderColor: '#4c1d95',
+                      backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                    }
+                  }}
+                >
+                  スプレッドシート用にコピー
+                </Button>
+              </Box>
+
+              {/* コピー形式プレビュー */}
+              <Box sx={{ mt: 2, p: 2, background: '#fff', borderRadius: 1, border: '1px solid #e2e8f0' }}>
+                <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 1 }}>
+                  送信用コピー形式プレビュー:
+                </Typography>
+                <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#374151', whiteSpace: 'pre-line' }}>
+                  {rows.filter(row => row.status === 'success').slice(0, 1).map(row =>
+                    `${row.result?.name}さん\n下記URLをタップしてスタッフ登録をお願いします\n${urlType === 'production' ? 'https://store.openreview.jp' : 'http://localhost:3000'}/staff-invitation/${row.result?.token?.slice(0, 8)}...`
+                  ).join('') || '（招待成功後に表示されます）'}
+                </Typography>
+              </Box>
             </Box>
 
             {/* 結果テーブル */}
@@ -355,8 +449,9 @@ export default function StaffInvitationForm({
                     <TableCell sx={{ fontWeight: 600, width: 60 }}>状態</TableCell>
                     <TableCell sx={{ fontWeight: 600 }}>名前</TableCell>
                     <TableCell sx={{ fontWeight: 600, width: 120 }}>ロール</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>本番URL</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>開発URL</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>
+                      {urlType === 'production' ? '本番URL' : '開発URL'}
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -400,49 +495,24 @@ export default function StaffInvitationForm({
                               sx={{
                                 fontFamily: 'monospace',
                                 fontSize: '0.75rem',
-                                color: '#166534',
-                                maxWidth: 300,
+                                color: urlType === 'production' ? '#166534' : '#374151',
+                                maxWidth: 400,
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis'
                               }}
                             >
-                              https://store.openreview.jp/staff-invitation/{row.result.token}
+                              {urlType === 'production'
+                                ? `https://store.openreview.jp/staff-invitation/${row.result.token}`
+                                : `http://localhost:3000/staff-invitation/${row.result.token}`
+                              }
                             </Typography>
                             <IconButton
                               size="small"
                               onClick={() => {
-                                navigator.clipboard.writeText(
-                                  `https://store.openreview.jp/staff-invitation/${row.result.token}`
-                                );
-                              }}
-                            >
-                              <ContentCopy sx={{ fontSize: 16 }} />
-                            </IconButton>
-                          </Box>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {row.status === 'success' && row.result?.token && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontFamily: 'monospace',
-                                fontSize: '0.75rem',
-                                color: '#374151',
-                                maxWidth: 300,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis'
-                              }}
-                            >
-                              http://localhost:3000/staff-invitation/{row.result.token}
-                            </Typography>
-                            <IconButton
-                              size="small"
-                              onClick={() => {
-                                navigator.clipboard.writeText(
-                                  `http://localhost:3000/staff-invitation/${row.result.token}`
-                                );
+                                const url = urlType === 'production'
+                                  ? `https://store.openreview.jp/staff-invitation/${row.result.token}`
+                                  : `http://localhost:3000/staff-invitation/${row.result.token}`;
+                                navigator.clipboard.writeText(url);
                               }}
                             >
                               <ContentCopy sx={{ fontSize: 16 }} />
