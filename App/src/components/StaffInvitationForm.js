@@ -9,28 +9,32 @@ import {
   TextField,
   Button,
   FormControl,
-  FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
+  Select,
+  MenuItem,
   Typography,
   CircularProgress,
   Alert,
-  Stack,
   IconButton,
-  Card,
-  CardContent,
-  Divider
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  Tooltip,
+  LinearProgress
 } from '@mui/material';
 import {
   PersonAdd,
   Close,
-  Person,
-  AdminPanelSettings,
-  WorkOutline,
+  Add,
+  Delete,
   Send,
   ContentCopy,
-  Link
+  Check,
+  Error as ErrorIcon
 } from '@mui/icons-material';
 import { supabase } from '../lib/supabase';
 
@@ -40,66 +44,109 @@ export default function StaffInvitationForm({
   onClose,
   onInvitationSent
 }) {
-  const [formData, setFormData] = useState({
-    name: '',
-    role: 'STAFF'
-  });
+  // 初期状態：5行の空の入力欄
+  const createEmptyRow = () => ({ name: '', role: 'STAFF', status: null, result: null });
+
+  const [rows, setRows] = useState([
+    createEmptyRow(),
+    createEmptyRow(),
+    createEmptyRow(),
+    createEmptyRow(),
+    createEmptyRow()
+  ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [invitationData, setInvitationData] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [copySuccess, setCopySuccess] = useState(false);
 
-  const handleInputChange = (field) => (event) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: event.target.value
-    }));
+  const handleInputChange = (index, field) => (event) => {
+    const newRows = [...rows];
+    newRows[index][field] = event.target.value;
+    setRows(newRows);
     if (error) setError(null);
+  };
+
+  const addRow = () => {
+    setRows([...rows, createEmptyRow()]);
+  };
+
+  const removeRow = (index) => {
+    if (rows.length > 1) {
+      const newRows = rows.filter((_, i) => i !== index);
+      setRows(newRows);
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setProgress(0);
+
+    // 名前が入力されている行のみ抽出
+    const validRows = rows.filter(row => row.name.trim());
+
+    if (validRows.length === 0) {
+      setError('少なくとも1人の名前を入力してください');
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      // バリデーション
-      if (!formData.name.trim()) {
-        throw new Error('招待者の名前を入力してください');
-      }
-
       // 認証情報の取得
       const { data: sessionData } = await supabase.auth.getSession();
-      
+
       if (!sessionData.session) {
         throw new Error('認証情報の取得に失敗しました。再ログインしてください。');
       }
 
-      // Edge Functionを使用して招待を作成
-      const { data, error } = await supabase.functions.invoke('create-staff-invitation', {
-        body: {
-          storeId: storeId,
-          role: formData.role,
-          name: formData.name.trim()
-        },
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`,
-        },
-      });
+      const newRows = [...rows];
+      let successCount = 0;
 
-      if (error) {
-        throw new Error(`招待の作成に失敗しました: ${error.message}`);
+      // 各行を順番に処理
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+
+        if (!row.name.trim()) {
+          continue; // 空の行はスキップ
+        }
+
+        try {
+          // Edge Functionを使用して招待を作成
+          const { data, error: apiError } = await supabase.functions.invoke('create-staff-invitation', {
+            body: {
+              storeId: storeId,
+              role: row.role,
+              name: row.name.trim()
+            },
+            headers: {
+              Authorization: `Bearer ${sessionData.session.access_token}`,
+            },
+          });
+
+          if (apiError || !data.success) {
+            newRows[i].status = 'error';
+            newRows[i].result = { error: apiError?.message || data.error || '招待の作成に失敗しました' };
+          } else {
+            newRows[i].status = 'success';
+            newRows[i].result = data.invitation;
+            successCount++;
+          }
+        } catch (err) {
+          newRows[i].status = 'error';
+          newRows[i].result = { error: err.message };
+        }
+
+        // 進捗更新
+        setProgress(((i + 1) / validRows.length) * 100);
+        setRows([...newRows]);
       }
 
-      if (!data.success) {
-        throw new Error(data.error || '招待の作成に失敗しました');
-      }
-
-      setInvitationData(data.invitation);
       setSuccess(true);
-      
+
       // 親コンポーネントに通知
-      if (onInvitationSent) {
+      if (onInvitationSent && successCount > 0) {
         onInvitationSent();
       }
 
@@ -110,48 +157,57 @@ export default function StaffInvitationForm({
     }
   };
 
-  const copyUrl = () => {
-    if (invitationData?.url) {
-      navigator.clipboard.writeText(invitationData.url);
-      // TODO: トースト通知を表示
+  const copyAllResults = () => {
+    // 成功した招待のみ抽出
+    const successRows = rows.filter(row => row.status === 'success' && row.result);
+
+    if (successRows.length === 0) {
+      return;
     }
-  };
 
-  const copyTemplate = () => {
-    if (invitationData) {
-      const template = `${invitationData.name}さん
+    // タブ区切りのテキストを作成（Excelなどに貼り付け可能）
+    const header = '名前\tロール\t本番URL\t開発URL';
+    const data = successRows.map(row => {
+      const roleLabel = row.role === 'STORE' ? '店舗管理者' : 'スタッフ';
+      const productionUrl = `https://store.openreview.jp/staff-invitation/${row.result.token}`;
+      const devUrl = `http://localhost:3000/staff-invitation/${row.result.token}`;
+      return `${row.result.name}\t${roleLabel}\t${productionUrl}\t${devUrl}`;
+    }).join('\n');
 
-${invitationData.storeName}への招待URLです：
-
-【開発版】
-http://localhost:3000/staff-invitation/${invitationData.token}
-
-【本番版】
-https://app.openreview.jp/staff-invitation/${invitationData.token}`;
-      navigator.clipboard.writeText(template);
-      // TODO: トースト通知を表示
-    }
+    navigator.clipboard.writeText(`${header}\n${data}`);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
   };
 
   const handleClose = () => {
-    setFormData({ name: '', role: 'STAFF' });
+    setRows([
+      createEmptyRow(),
+      createEmptyRow(),
+      createEmptyRow(),
+      createEmptyRow(),
+      createEmptyRow()
+    ]);
     setError(null);
     setSuccess(false);
-    setInvitationData(null);
+    setProgress(0);
     onClose();
   };
+
+  const validRowCount = rows.filter(row => row.name.trim()).length;
+  const successCount = rows.filter(row => row.status === 'success').length;
 
   return (
     <Dialog
       open={true}
       onClose={handleClose}
-      maxWidth="md"
+      maxWidth="lg"
       fullWidth
       PaperProps={{
         sx: {
           borderRadius: 3,
           background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)'
+          backdropFilter: 'blur(20px)',
+          minHeight: '70vh'
         }
       }}
     >
@@ -160,7 +216,7 @@ https://app.openreview.jp/staff-invitation/${invitationData.token}`;
           <PersonAdd sx={{ color: '#5e17eb', mr: 2 }} />
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              スタッフ招待
+              スタッフ一括招待
             </Typography>
             <Typography variant="body2" sx={{ color: '#64748b' }}>
               {storeName}
@@ -172,187 +228,193 @@ https://app.openreview.jp/staff-invitation/${invitationData.token}`;
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ p: 4 }}>
+      <DialogContent sx={{ p: 3 }}>
+        {/* エラー表示 */}
+        {error && (
+          <Alert severity="error" sx={{ borderRadius: 2, mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
+        {/* 進捗バー */}
+        {isSubmitting && (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="body2" sx={{ mb: 1, color: '#64748b' }}>
+              招待を作成中... ({Math.round(progress)}%)
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={progress}
+              sx={{
+                height: 8,
+                borderRadius: 4,
+                '& .MuiLinearProgress-bar': {
+                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                }
+              }}
+            />
+          </Box>
+        )}
+
         {success ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <Box sx={{ py: 2 }}>
-              <Box sx={{ textAlign: 'center', mb: 4 }}>
-                <PersonAdd sx={{ fontSize: 64, color: '#10b981', mb: 2 }} />
-                <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#10b981' }}>
-                  招待URLを発行しました！
-                </Typography>
-                <Typography variant="body1" sx={{ color: '#64748b' }}>
-                  以下の情報を{invitationData?.name}さんに送信してください
-                </Typography>
-              </Box>
+            {/* 結果サマリー */}
+            <Box sx={{ textAlign: 'center', mb: 4 }}>
+              <PersonAdd sx={{ fontSize: 64, color: '#10b981', mb: 2 }} />
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 2, color: '#10b981' }}>
+                招待が完了しました！
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#64748b' }}>
+                {successCount}件の招待URLを発行しました
+              </Typography>
+            </Box>
 
-              {/* テンプレート表示カード */}
-              <Card sx={{ mb: 3, border: '1px solid #e2e8f0' }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Person sx={{ color: '#5e17eb', mr: 1 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      招待テンプレート
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      p: 2,
-                      background: '#f8fafc',
-                      borderRadius: 1,
-                      border: '1px solid #e2e8f0',
-                      fontFamily: 'monospace',
-                      fontSize: '0.9rem',
-                      whiteSpace: 'pre-line',
-                      color: '#374151'
-                    }}
-                  >
-                    {`${invitationData?.name}さん
-
-${invitationData?.storeName}への招待URLです：
-
-【開発版】
-http://localhost:3000/staff-invitation/${invitationData?.token}
-
-【本番版】
-https://store.openreview.jp/staff-invitation/${invitationData?.token}`}
-                  </Box>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<ContentCopy />}
-                    onClick={copyTemplate}
-                    sx={{ 
-                      mt: 2,
-                      borderColor: '#5e17eb',
-                      color: '#5e17eb',
-                      '&:hover': {
-                        borderColor: '#4c1d95',
-                        backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                      }
-                    }}
-                  >
-                    テンプレートをコピー
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Divider sx={{ my: 2 }} />
-
-              {/* URL表示カード - 開発版 */}
-              <Card sx={{ mb: 3, border: '1px solid #e2e8f0' }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Link sx={{ color: '#5e17eb', mr: 1 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      招待URL（開発版）
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      p: 2,
-                      background: '#f8fafc',
-                      borderRadius: 1,
-                      border: '1px solid #e2e8f0',
-                      wordBreak: 'break-all',
-                      fontFamily: 'monospace',
-                      fontSize: '0.9rem',
-                      color: '#374151'
-                    }}
-                  >
-                    {invitationData?.token ? `http://localhost:3000/staff-invitation/${invitationData.token}` : ''}
-                  </Box>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<ContentCopy />}
-                    onClick={() => {
-                      if (invitationData?.token) {
-                        const localhostUrl = `http://localhost:3000/staff-invitation/${invitationData.token}`;
-                        navigator.clipboard.writeText(localhostUrl);
-                        // TODO: トースト通知を表示
-                      }
-                    }}
-                    sx={{ 
-                      mt: 2,
-                      borderColor: '#5e17eb',
-                      color: '#5e17eb',
-                      '&:hover': {
-                        borderColor: '#4c1d95',
-                        backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                      }
-                    }}
-                  >
-                    開発版URLをコピー
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* URL表示カード - 本番版 */}
-              <Card sx={{ mb: 3, border: '1px solid #e2e8f0' }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Link sx={{ color: '#10b981', mr: 1 }} />
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      招待URL（本番版）
-                    </Typography>
-                  </Box>
-                  <Box
-                    sx={{
-                      p: 2,
-                      background: '#f0fdf4',
-                      borderRadius: 1,
-                      border: '1px solid #bbf7d0',
-                      wordBreak: 'break-all',
-                      fontFamily: 'monospace',
-                      fontSize: '0.9rem',
-                      color: '#166534'
-                    }}
-                  >
-                    {invitationData?.token ? `https://store.openreview.jp/staff-invitation/${invitationData.token}` : ''}
-                  </Box>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    startIcon={<ContentCopy />}
-                    onClick={() => {
-                      if (invitationData?.token) {
-                        const productionUrl = `https://store.openreview.jp/staff-invitation/${invitationData.token}`;
-                        navigator.clipboard.writeText(productionUrl);
-                        // TODO: トースト通知を表示
-                      }
-                    }}
-                    sx={{ 
-                      mt: 2,
-                      borderColor: '#10b981',
-                      color: '#10b981',
-                      '&:hover': {
-                        borderColor: '#059669',
-                        backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                      }
-                    }}
-                  >
-                    本番版URLをコピー
-                  </Button>
-                </CardContent>
-              </Card>
-
+            {/* コピーボタン */}
+            <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end' }}>
               <Button
                 variant="contained"
-                fullWidth
-                onClick={handleClose}
+                startIcon={copySuccess ? <Check /> : <ContentCopy />}
+                onClick={copyAllResults}
                 sx={{
-                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                  py: 1.5
+                  background: copySuccess
+                    ? '#10b981'
+                    : 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                  '&:hover': {
+                    background: copySuccess
+                      ? '#059669'
+                      : 'linear-gradient(45deg, #4c1d95 30%, #5b3d8a 90%)',
+                  }
                 }}
               >
-                閉じる
+                {copySuccess ? 'コピーしました！' : '結果を一括コピー（タブ区切り）'}
               </Button>
             </Box>
+
+            {/* 結果テーブル */}
+            <TableContainer component={Paper} sx={{ border: '1px solid #e2e8f0' }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ background: '#f8fafc' }}>
+                    <TableCell sx={{ fontWeight: 600, width: 60 }}>状態</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>名前</TableCell>
+                    <TableCell sx={{ fontWeight: 600, width: 120 }}>ロール</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>本番URL</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>開発URL</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.filter(row => row.name.trim()).map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        {row.status === 'success' ? (
+                          <Chip
+                            icon={<Check sx={{ fontSize: 16 }} />}
+                            label="成功"
+                            size="small"
+                            color="success"
+                          />
+                        ) : row.status === 'error' ? (
+                          <Tooltip title={row.result?.error || 'エラー'}>
+                            <Chip
+                              icon={<ErrorIcon sx={{ fontSize: 16 }} />}
+                              label="失敗"
+                              size="small"
+                              color="error"
+                            />
+                          </Tooltip>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>{row.name}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={row.role === 'STORE' ? '店舗管理者' : 'スタッフ'}
+                          size="small"
+                          sx={{
+                            background: row.role === 'STORE' ? '#fef3c7' : '#dbeafe',
+                            color: row.role === 'STORE' ? '#92400e' : '#1e40af'
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {row.status === 'success' && row.result?.token && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontFamily: 'monospace',
+                                fontSize: '0.75rem',
+                                color: '#166534',
+                                maxWidth: 300,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                            >
+                              https://store.openreview.jp/staff-invitation/{row.result.token}
+                            </Typography>
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                navigator.clipboard.writeText(
+                                  `https://store.openreview.jp/staff-invitation/${row.result.token}`
+                                );
+                              }}
+                            >
+                              <ContentCopy sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          </Box>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {row.status === 'success' && row.result?.token && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontFamily: 'monospace',
+                                fontSize: '0.75rem',
+                                color: '#374151',
+                                maxWidth: 300,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                            >
+                              http://localhost:3000/staff-invitation/{row.result.token}
+                            </Typography>
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                navigator.clipboard.writeText(
+                                  `http://localhost:3000/staff-invitation/${row.result.token}`
+                                );
+                              }}
+                            >
+                              <ContentCopy sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          </Box>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handleClose}
+              sx={{
+                mt: 3,
+                background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                py: 1.5
+              }}
+            >
+              閉じる
+            </Button>
           </motion.div>
         ) : (
           <motion.div
@@ -360,118 +422,88 @@ https://store.openreview.jp/staff-invitation/${invitationData?.token}`}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* エラー表示 */}
-            {error && (
-              <Alert severity="error" sx={{ borderRadius: 2, mb: 3 }}>
-                {error}
-              </Alert>
-            )}
+            {/* 入力テーブル */}
+            <TableContainer component={Paper} sx={{ border: '1px solid #e2e8f0', mb: 2 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ background: '#f8fafc' }}>
+                    <TableCell sx={{ fontWeight: 600, width: 60 }}>#</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>名前 *</TableCell>
+                    <TableCell sx={{ fontWeight: 600, width: 180 }}>権限</TableCell>
+                    <TableCell sx={{ width: 60 }}></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {rows.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell sx={{ color: '#64748b' }}>{index + 1}</TableCell>
+                      <TableCell>
+                        <TextField
+                          placeholder="山田太郎"
+                          fullWidth
+                          size="small"
+                          value={row.name}
+                          onChange={handleInputChange(index, 'name')}
+                          disabled={isSubmitting}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#5e17eb',
+                              }
+                            }
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <FormControl fullWidth size="small">
+                          <Select
+                            value={row.role}
+                            onChange={handleInputChange(index, 'role')}
+                            disabled={isSubmitting}
+                          >
+                            <MenuItem value="STAFF">スタッフ</MenuItem>
+                            <MenuItem value="STORE">店舗管理者</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </TableCell>
+                      <TableCell>
+                        <IconButton
+                          size="small"
+                          onClick={() => removeRow(index)}
+                          disabled={isSubmitting || rows.length <= 1}
+                          sx={{ color: '#ef4444' }}
+                        >
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
 
-            {/* フォーム */}
-            <Box component="form" onSubmit={handleSubmit}>
-              <Stack spacing={3} sx={{ pt: 2 }}>
-                {/* 招待者名 */}
-                <TextField
-                  label="招待者の名前"
-                  placeholder="山田太郎"
-                  fullWidth
-                  required
-                  value={formData.name}
-                  onChange={handleInputChange('name')}
-                  disabled={isSubmitting}
-                  InputProps={{
-                    startAdornment: (
-                      <Person sx={{ color: '#64748b', mr: 1 }} />
-                    ),
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#5e17eb',
-                      }
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: '#5e17eb'
-                    }
-                  }}
-                />
-
-                {/* ロール選択 */}
-                <FormControl component="fieldset">
-                  <FormLabel
-                    component="legend"
-                    sx={{
-                      color: '#374151',
-                      fontWeight: 600,
-                      '&.Mui-focused': { color: '#5e17eb' }
-                    }}
-                  >
-                    権限レベル
-                  </FormLabel>
-                  <RadioGroup
-                    value={formData.role}
-                    onChange={handleInputChange('role')}
-                    sx={{ mt: 1 }}
-                  >
-                    <FormControlLabel
-                      value="STAFF"
-                      control={<Radio sx={{ '&.Mui-checked': { color: '#5e17eb' } }} />}
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <WorkOutline sx={{ mr: 1, color: '#10b981' }} />
-                          <Box>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                              スタッフ
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#64748b' }}>
-                              基本的な店舗業務を行えます
-                            </Typography>
-                          </Box>
-                        </Box>
-                      }
-                      sx={{
-                        mb: 2,
-                        p: 2,
-                        border: formData.role === 'STAFF' ? '2px solid #5e17eb' : '1px solid #e2e8f0',
-                        borderRadius: 2,
-                        margin: 0,
-                        width: '100%'
-                      }}
-                    />
-                    <FormControlLabel
-                      value="STORE"
-                      control={<Radio sx={{ '&.Mui-checked': { color: '#5e17eb' } }} />}
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <AdminPanelSettings sx={{ mr: 1, color: '#f59e0b' }} />
-                          <Box>
-                            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                              店舗管理者
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#64748b' }}>
-                              店舗の管理権限を持ちます
-                            </Typography>
-                          </Box>
-                        </Box>
-                      }
-                      sx={{
-                        p: 2,
-                        border: formData.role === 'STORE' ? '2px solid #5e17eb' : '1px solid #e2e8f0',
-                        borderRadius: 2,
-                        margin: 0,
-                        width: '100%'
-                      }}
-                    />
-                  </RadioGroup>
-                </FormControl>
-              </Stack>
-            </Box>
+            {/* 行追加ボタン */}
+            <Button
+              variant="outlined"
+              startIcon={<Add />}
+              onClick={addRow}
+              disabled={isSubmitting}
+              sx={{
+                mb: 3,
+                borderColor: '#5e17eb',
+                color: '#5e17eb',
+                '&:hover': {
+                  borderColor: '#4c1d95',
+                  backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                }
+              }}
+            >
+              行を追加
+            </Button>
 
             {/* 注意事項 */}
             <Box
               sx={{
-                mt: 3,
                 p: 3,
                 background: '#fef3c7',
                 borderRadius: 2,
@@ -481,8 +513,8 @@ https://store.openreview.jp/staff-invitation/${invitationData?.token}`}
               <Typography variant="body2" sx={{ color: '#92400e', lineHeight: 1.6 }}>
                 <strong>注意事項:</strong><br />
                 • 招待URLは24時間で無効になります<br />
-                • 招待された方はGoogleアカウントでログインが必要です<br />
-                • 招待URLは安全に管理してください
+                • 招待された方はGoogleまたはLINEアカウントでログインが必要です<br />
+                • 結果はタブ区切りでコピーできます（Excelなどに貼り付け可能）
               </Typography>
             </Box>
           </motion.div>
@@ -491,6 +523,9 @@ https://store.openreview.jp/staff-invitation/${invitationData?.token}`}
 
       {!success && (
         <DialogActions sx={{ p: 3, pt: 0 }}>
+          <Typography variant="body2" sx={{ color: '#64748b', mr: 'auto' }}>
+            {validRowCount}件の招待を作成します
+          </Typography>
           <Button
             onClick={handleClose}
             disabled={isSubmitting}
@@ -501,7 +536,7 @@ https://store.openreview.jp/staff-invitation/${invitationData?.token}`}
           <Button
             type="submit"
             variant="contained"
-            disabled={isSubmitting || !formData.name.trim()}
+            disabled={isSubmitting || validRowCount === 0}
             startIcon={
               isSubmitting ? (
                 <CircularProgress size={20} color="inherit" />
@@ -525,7 +560,7 @@ https://store.openreview.jp/staff-invitation/${invitationData?.token}`}
               }
             }}
           >
-            {isSubmitting ? '招待中...' : '招待を送信'}
+            {isSubmitting ? '招待中...' : `${validRowCount}件を一括招待`}
           </Button>
         </DialogActions>
       )}
