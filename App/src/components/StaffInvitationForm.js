@@ -34,7 +34,8 @@ import {
   Send,
   ContentCopy,
   Check,
-  Error as ErrorIcon
+  Error as ErrorIcon,
+  ContentPaste
 } from '@mui/icons-material';
 import { supabase } from '../lib/supabase';
 
@@ -59,6 +60,8 @@ export default function StaffInvitationForm({
   const [success, setSuccess] = useState(false);
   const [progress, setProgress] = useState(0);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const [showPasteArea, setShowPasteArea] = useState(false);
 
   const handleInputChange = (index, field) => (event) => {
     const newRows = [...rows];
@@ -75,6 +78,56 @@ export default function StaffInvitationForm({
     if (rows.length > 1) {
       const newRows = rows.filter((_, i) => i !== index);
       setRows(newRows);
+    }
+  };
+
+  // スプレッドシートからのペースト処理
+  const handlePasteData = (text) => {
+    if (!text.trim()) return;
+
+    const lines = text.trim().split('\n');
+    const newRows = [];
+
+    for (const line of lines) {
+      // タブまたはカンマで分割
+      const parts = line.split(/\t|,/).map(p => p.trim());
+
+      if (parts.length >= 1 && parts[0]) {
+        const name = parts[0];
+        let role = 'STAFF';
+
+        // 2列目がある場合、ロールを判定
+        if (parts.length >= 2) {
+          const roleText = parts[1].toUpperCase();
+          if (roleText === 'STORE' || roleText === '店舗管理者' || roleText === '管理者') {
+            role = 'STORE';
+          }
+        }
+
+        newRows.push({
+          name,
+          role,
+          status: null,
+          result: null
+        });
+      }
+    }
+
+    if (newRows.length > 0) {
+      setRows(newRows);
+      setPasteText('');
+      setShowPasteArea(false);
+    }
+  };
+
+  // クリップボードからペースト
+  const handlePasteFromClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      handlePasteData(text);
+    } catch (err) {
+      // クリップボードアクセスが拒否された場合、テキストエリアを表示
+      setShowPasteArea(true);
     }
   };
 
@@ -422,6 +475,92 @@ export default function StaffInvitationForm({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
+            {/* ペーストエリア */}
+            <Box sx={{ mb: 3 }}>
+              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <Button
+                  variant="outlined"
+                  startIcon={<ContentPaste />}
+                  onClick={handlePasteFromClipboard}
+                  disabled={isSubmitting}
+                  sx={{
+                    borderColor: '#10b981',
+                    color: '#10b981',
+                    '&:hover': {
+                      borderColor: '#059669',
+                      backgroundColor: 'rgba(16, 185, 129, 0.05)',
+                    }
+                  }}
+                >
+                  スプレッドシートから一括ペースト
+                </Button>
+                {!showPasteArea && (
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={() => setShowPasteArea(true)}
+                    sx={{ color: '#64748b' }}
+                  >
+                    手動でペースト
+                  </Button>
+                )}
+              </Box>
+
+              {showPasteArea && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" sx={{ color: '#64748b', mb: 1 }}>
+                    スプレッドシートからコピーした内容をここに貼り付けてください（名前, ロール の形式）
+                  </Typography>
+                  <TextField
+                    multiline
+                    rows={4}
+                    fullWidth
+                    placeholder={`山田太郎\tSTAFF\n田中花子\tSTORE\n佐藤一郎\n...\n\n※ロールは省略可（デフォルト: スタッフ）\n※ロール列: STAFF/スタッフ または STORE/店舗管理者/管理者`}
+                    value={pasteText}
+                    onChange={(e) => setPasteText(e.target.value)}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const text = e.clipboardData.getData('text');
+                      handlePasteData(text);
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        fontFamily: 'monospace',
+                        fontSize: '0.85rem',
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#10b981',
+                        }
+                      }
+                    }}
+                  />
+                  <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => handlePasteData(pasteText)}
+                      disabled={!pasteText.trim()}
+                      sx={{
+                        background: '#10b981',
+                        '&:hover': { background: '#059669' }
+                      }}
+                    >
+                      適用
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        setShowPasteArea(false);
+                        setPasteText('');
+                      }}
+                      sx={{ color: '#64748b' }}
+                    >
+                      キャンセル
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+            </Box>
+
             {/* 入力テーブル */}
             <TableContainer component={Paper} sx={{ border: '1px solid #e2e8f0', mb: 2 }}>
               <Table size="small">
@@ -511,10 +650,13 @@ export default function StaffInvitationForm({
               }}
             >
               <Typography variant="body2" sx={{ color: '#92400e', lineHeight: 1.6 }}>
-                <strong>注意事項:</strong><br />
+                <strong>使い方:</strong><br />
+                • スプレッドシートから「名前」「ロール」の列をコピーして一括ペースト可能<br />
+                • ロール列は省略可（デフォルト: スタッフ）<br />
+                • 結果もタブ区切りでコピーできます（Excelなどに貼り付け可能）<br /><br />
+                <strong>注意:</strong><br />
                 • 招待URLは24時間で無効になります<br />
-                • 招待された方はGoogleまたはLINEアカウントでログインが必要です<br />
-                • 結果はタブ区切りでコピーできます（Excelなどに貼り付け可能）
+                • 招待された方はGoogleまたはLINEアカウントでログインが必要です
               </Typography>
             </Box>
           </motion.div>
