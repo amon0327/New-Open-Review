@@ -144,10 +144,11 @@ serve(async (req) => {
       console.log('Creating business_users record for user:', user.id)
       
       // business_usersテーブルにレコードを作成
+      // 招待時に入力された名前を優先的に使用し、なければGoogleアカウントの名前を使用
       const businessUserData = {
         id: user.id,
         email: user.email,
-        name: user.user_metadata?.name || user.user_metadata?.full_name || ''
+        name: invitation.name || user.user_metadata?.name || user.user_metadata?.full_name || ''
       }
       
       console.log('Business user data to insert:', businessUserData)

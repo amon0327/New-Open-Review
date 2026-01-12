@@ -66,49 +66,49 @@ serve(async (req) => {
     // Create service client for database operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Check if the user has permission to update this form's lottery settings
+    // First, get the review form to find the company_id
     const { data: formData, error: formError } = await supabaseAdmin
       .from('review_forms')
-      .select(`
-        id,
-        company_id,
-        companies!inner (
-          id,
-          company_memberships!inner (
-            user_id
-          )
-        )
-      `)
+      .select('id, company_id, user_id')
       .eq('id', review_form_id)
-      .eq('companies.company_memberships.user_id', user.id)
       .single()
 
     if (formError || !formData) {
-      // Check partner membership
-      const { data: partnerFormData, error: partnerError } = await supabaseAdmin
-        .from('review_forms')
-        .select(`
-          id,
-          company_id,
-          companies!inner (
+      throw new Error('フォームが見つかりません')
+    }
+
+    // Check if user is the form owner
+    if (formData.user_id === user.id) {
+      // User is the form owner, allow access
+    } else {
+      // Check company membership
+      const { data: membershipData, error: membershipError } = await supabaseAdmin
+        .from('company_memberships')
+        .select('id')
+        .eq('company_id', formData.company_id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (!membershipData) {
+        // Check partner membership
+        const { data: partnerData, error: partnerError } = await supabaseAdmin
+          .from('partner_company_associations')
+          .select(`
             id,
-            partner_company_associations!inner (
-              partner_id,
-              partners!inner (
-                id,
-                partner_memberships!inner (
-                  user_id
-                )
+            partners!inner (
+              id,
+              partner_memberships!inner (
+                user_id
               )
             )
-          )
-        `)
-        .eq('id', review_form_id)
-        .eq('companies.partner_company_associations.partners.partner_memberships.user_id', user.id)
-        .single()
+          `)
+          .eq('company_id', formData.company_id)
+          .eq('partners.partner_memberships.user_id', user.id)
+          .maybeSingle()
 
-      if (partnerError || !partnerFormData) {
-        throw new Error('このフォームの抽選設定を更新する権限がありません')
+        if (!partnerData) {
+          throw new Error('このフォームの抽選設定を更新する権限がありません')
+        }
       }
     }
 
