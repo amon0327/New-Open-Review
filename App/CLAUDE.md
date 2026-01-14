@@ -105,6 +105,86 @@ npm test
 4. **パフォーマンス**: React.memo, useCallback, useMemoを適切に使用
 5. **アクセシビリティ**: Material-UIのa11y機能を活用
 
+## 📊 変更ログ記録システム
+
+### 必須：コード変更時のSupabaseログ記録
+
+コードを変更したら、**必ず**以下のSupabaseテーブルに記録すること。
+
+### 接続情報
+
+- **URL**: `https://otfreskkeaenahqziriz.supabase.co`
+- **API Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90ZnJlc2trZWFlbmFocXppcml6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDc0Nzk1NCwiZXhwIjoyMDY2MzIzOTU0fQ.IMskAi-s81h8l3CDo72guYqEyY2lDUvl4RTAohaItjo`
+
+### 記録フォーマット
+
+```bash
+curl -X POST 'https://otfreskkeaenahqziriz.supabase.co/rest/v1/change_logs' \
+  -H "apikey: YOUR_API_KEY" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "changes": "変更内容の説明",
+    "additions": 追加行数,
+    "deletions": 削除行数,
+    "target": "対象タグ",
+    "action_type": "作業種類タグ",
+    "change_size": "規模タグ"
+  }'
+```
+
+### タグ一覧
+
+#### target（対象）
+| タグ | 説明 |
+|------|------|
+| `ui` | 見た目・レイアウト |
+| `ux` | インタラクション・操作性 |
+| `logic` | ビジネスロジック・計算処理 |
+| `data` | DB・API・外部サービス連携 |
+| `auth` | 認証・認可 |
+| `state` | 状態管理 |
+| `routing` | 画面遷移 |
+| `config` | 設定・環境 |
+
+#### action_type（作業種類）
+| タグ | 説明 |
+|------|------|
+| `impl` | 新規実装・機能追加 |
+| `fix` | バグ修正 |
+| `refactor` | リファクタリング |
+| `test` | テスト追加・修正 |
+| `docs` | ドキュメント |
+
+#### change_size（規模）
+| タグ | 説明 |
+|------|------|
+| `major` | 破壊的変更、大規模改修 |
+| `minor` | 後方互換性のある機能追加 |
+| `patch` | 小さな修正・調整 |
+
+### 記録ルール
+
+1. **タイミング**: コード変更完了直後に記録
+2. **行数カウント**: `git diff --stat` または変更ファイルから算出
+3. **changes**: 簡潔かつ具体的に（例：「ログインフォームのバリデーション追加」）
+4. **複数タグ該当時**: 最も主要なものを1つ選択
+
+### 記録例
+
+```json
+{
+  "changes": "ユーザー登録フォームにメールバリデーション追加",
+  "additions": 45,
+  "deletions": 12,
+  "target": "logic",
+  "action_type": "impl",
+  "change_size": "minor"
+}
+```
+
+---
+
 ## 🚀 今後の実装予定
 
 ### Phase 1: 基本機能
