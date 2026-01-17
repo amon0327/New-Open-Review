@@ -142,13 +142,39 @@ serve(async (req) => {
 
     if (!existingBusinessUser || existingBusinessUser.length === 0) {
       console.log('Creating business_users record for user:', user.id)
-      
+
+      // LINE IDパターンの名前を除外するヘルパー関数
+      const isValidName = (name: string | undefined | null): boolean => {
+        if (!name || name.trim() === '') return false
+        // LINE ID形式（@line.localを含む）の場合は無効
+        if (name.includes('@line.local')) return false
+        // u + 英数字32文字のパターン（LINE内部ID）も除外
+        if (/^u[a-f0-9]{32}$/i.test(name)) return false
+        return true
+      }
+
+      // 名前の優先順位: 招待時の名前 > Googleアカウントの名前（LINE ID除外）> 空文字
+      let userName = ''
+      if (isValidName(invitation.name)) {
+        userName = invitation.name
+      } else if (isValidName(user.user_metadata?.name)) {
+        userName = user.user_metadata.name
+      } else if (isValidName(user.user_metadata?.full_name)) {
+        userName = user.user_metadata.full_name
+      }
+
+      console.log('Name resolution:', {
+        invitationName: invitation.name,
+        metadataName: user.user_metadata?.name,
+        metadataFullName: user.user_metadata?.full_name,
+        resolvedName: userName
+      })
+
       // business_usersテーブルにレコードを作成
-      // 招待時に入力された名前を優先的に使用し、なければGoogleアカウントの名前を使用
       const businessUserData = {
         id: user.id,
         email: user.email,
-        name: invitation.name || user.user_metadata?.name || user.user_metadata?.full_name || ''
+        name: userName
       }
       
       console.log('Business user data to insert:', businessUserData)
@@ -169,8 +195,16 @@ serve(async (req) => {
     } else {
       console.log('Business user already exists:', existingBusinessUser[0])
 
-      // 招待時に入力された名前がある場合、既存ユーザーの名前を更新
-      if (invitation.name) {
+      // LINE IDパターンの名前を除外するヘルパー関数
+      const isValidNameForUpdate = (name: string | undefined | null): boolean => {
+        if (!name || name.trim() === '') return false
+        if (name.includes('@line.local')) return false
+        if (/^u[a-f0-9]{32}$/i.test(name)) return false
+        return true
+      }
+
+      // 招待時に入力された有効な名前がある場合、既存ユーザーの名前を更新
+      if (isValidNameForUpdate(invitation.name)) {
         console.log('Updating business_users name with invitation name:', invitation.name)
         const { error: updateError } = await supabaseAdmin
           .from('business_users')
