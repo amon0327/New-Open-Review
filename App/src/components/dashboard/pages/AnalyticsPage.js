@@ -2490,80 +2490,6 @@ const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
     }
   };
 
-  // ネガティブ回答者のサンプルデータ
-  const negativeQscData = {
-    Q: {
-      positiveResponseCount: 1135,
-      negativeResponseCount: 99,
-      items: [
-        { label: '商品の鮮度', positive: 35, negative: 65 },
-        { label: '味の一貫性', positive: 28, negative: 72 },
-        { label: '温度管理', positive: 22, negative: 78 },
-        { label: '見た目・盛り付け', positive: 40, negative: 60 },
-        { label: '分量の適切さ', positive: 33, negative: 67 },
-        { label: '食材の品質', positive: 38, negative: 62 },
-        { label: 'メニューの豊富さ', positive: 45, negative: 55 },
-        { label: '季節商品の魅力', positive: 42, negative: 58 },
-        { label: '価格と品質のバランス', positive: 18, negative: 82 },
-        { label: '特別メニューの満足度', positive: 30, negative: 70 }
-      ]
-    },
-    S: {
-      positiveResponseCount: 1077,
-      negativeResponseCount: 112,
-      items: [
-        { label: '接客態度', positive: 25, negative: 75 },
-        { label: '注文の正確性', positive: 20, negative: 80 },
-        { label: '待ち時間', positive: 15, negative: 85 },
-        { label: 'スタッフの知識', positive: 32, negative: 68 },
-        { label: '問題解決能力', positive: 28, negative: 72 },
-        { label: 'レジ対応の速さ', positive: 18, negative: 82 },
-        { label: '笑顔・親切さ', positive: 35, negative: 65 },
-        { label: '特別な要望への対応', positive: 22, negative: 78 },
-        { label: 'スタッフの清潔感', positive: 45, negative: 55 },
-        { label: 'チームワーク', positive: 30, negative: 70 }
-      ]
-    },
-    C: {
-      positiveResponseCount: 1018,
-      negativeResponseCount: 138,
-      items: [
-        { label: '店内の清潔さ', positive: 28, negative: 72 },
-        { label: 'テーブルの清潔さ', positive: 25, negative: 75 },
-        { label: 'トイレの清潔さ', positive: 15, negative: 85 },
-        { label: '床の清潔さ', positive: 30, negative: 70 },
-        { label: '窓・ガラスの清潔さ', positive: 35, negative: 65 },
-        { label: '厨房の衛生管理', positive: 40, negative: 60 },
-        { label: 'ゴミ箱周辺の管理', positive: 20, negative: 80 },
-        { label: '換気・空気の質', positive: 18, negative: 82 },
-        { label: '備品の整理整頓', positive: 25, negative: 75 },
-        { label: '外観・入口の清潔さ', positive: 32, negative: 68 }
-      ]
-    }
-  };
-
-
-  // 平均スコア計算（itemsの構造を考慮）
-  const calculateAverage = (data, mode) => {
-    const items = data.items || data;
-    const sum = items.reduce((acc, item) => acc + (mode === 'positive' ? item.positive : item.negative), 0);
-    return Math.round(sum / items.length);
-  };
-
-  // 最高スコア取得
-  const getTopItem = (data, mode) => {
-    const items = data.items || data;
-    const values = items.map(item => mode === 'positive' ? item.positive : item.negative);
-    return Math.max(...values);
-  };
-
-  // 最低スコア取得
-  const getBottomItem = (data, mode) => {
-    const items = data.items || data;
-    const values = items.map(item => mode === 'positive' ? item.positive : item.negative);
-    return Math.min(...values);
-  };
-
   return (
     <div className="p-6 space-y-6">
       {/* QSCスコアカード - スマートでコンパクトなデザイン */}
@@ -2638,149 +2564,78 @@ const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
       {/* QSC詳細評価 */}
       <Card className="border-0 shadow-xl bg-white">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg">QSC項目別評価</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">QSC項目別評価</CardTitle>
+            <div className="flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-gradient-to-r from-green-500 to-emerald-400"></div>
+                <span className="text-gray-600">ポジティブ</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-gradient-to-r from-red-500 to-rose-400"></div>
+                <span className="text-gray-600">ネガティブ</span>
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="pb-6">
-          <ShadcnTabs defaultValue="positive" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="positive" className="text-sm">
-                <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-                ポジティブ回答
-              </TabsTrigger>
-              <TabsTrigger value="negative" className="text-sm">
-                <AlertTriangle className="w-4 h-4 mr-2 text-red-600" />
-                ネガティブ回答
-              </TabsTrigger>
-            </TabsList>
-            
-            {/* ポジティブ回答タブ */}
-            <TabsContent value="positive" className="mt-0">
-              <div className="grid grid-cols-3 gap-6">
-                {Object.entries(positiveQscData).map(([category, data]) => (
-                  <div key={category} className="space-y-3">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        {category === 'Q' && <UtensilsCrossed className="w-5 h-5 text-violet-600" />}
-                        {category === 'S' && <Users className="w-5 h-5 text-blue-600" />}
-                        {category === 'C' && <Sparkles className="w-5 h-5 text-emerald-600" />}
-                        <h3 className="font-semibold text-gray-900">
-                          {category === 'Q' ? 'Quality' : category === 'S' ? 'Service' : 'Cleanliness'}
-                        </h3>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        n={data.positiveResponseCount.toLocaleString()}
-                      </span>
+          <div className="grid grid-cols-3 gap-6">
+            {Object.entries(positiveQscData).map(([category, data]) => {
+              const totalResponses = data.positiveResponseCount + data.negativeResponseCount;
+              return (
+                <div key={category} className="space-y-3">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      {category === 'Q' && <UtensilsCrossed className="w-5 h-5 text-violet-600" />}
+                      {category === 'S' && <Users className="w-5 h-5 text-blue-600" />}
+                      {category === 'C' && <Sparkles className="w-5 h-5 text-emerald-600" />}
+                      <h3 className="font-semibold text-gray-900">
+                        {category === 'Q' ? 'Quality' : category === 'S' ? 'Service' : 'Cleanliness'}
+                      </h3>
                     </div>
-                    
-                    {data.items.map((item, index) => {
-                      const positivePercentage = item.positive;
-                      const negativePercentage = item.negative;
-                      const positiveCount = Math.round(data.positiveResponseCount * (item.positive / 100));
-                      const negativeCount = Math.round(data.positiveResponseCount * (item.negative / 100));
-                      const totalCount = positiveCount + negativeCount;
-                      
-                      return (
-                        <div key={index} className="group mb-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors">
-                              {item.label}
-                            </span>
-                            <span className="text-xs text-gray-400">
-                              n={totalCount.toLocaleString()}
-                            </span>
+                    <span className="text-xs text-muted-foreground">
+                      n={totalResponses.toLocaleString()}
+                    </span>
+                  </div>
+
+                  {data.items.map((item, index) => {
+                    const positivePercentage = item.positive;
+                    const negativePercentage = item.negative;
+
+                    return (
+                      <div key={index} className="group mb-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors">
+                            {item.label}
+                          </span>
+                        </div>
+                        <div className="relative h-6 bg-gray-50 rounded overflow-hidden border border-gray-200">
+                          {/* ポジティブ部分 */}
+                          <div
+                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-700 ease-out"
+                            style={{ width: `${positivePercentage}%` }}
+                          >
+                            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
                           </div>
-                          <div className="relative h-6 bg-gray-50 rounded overflow-hidden border border-gray-200">
-                            {/* ポジティブ部分 */}
-                            <div
-                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-700 ease-out"
-                              style={{ width: `${positivePercentage}%` }}
-                            >
-                              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                            </div>
-                            {/* ネガティブ部分 */}
-                            <div
-                              className="absolute inset-y-0 right-0 bg-gradient-to-l from-red-500 to-rose-400 transition-all duration-700 ease-out"
-                              style={{ width: `${negativePercentage}%` }}
-                            >
-                              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                            </div>
-                          </div>
-                          <div className="flex justify-between text-xs mt-1">
-                            <span className="text-green-600 font-medium">{positivePercentage}%</span>
-                            <span className="text-red-600 font-medium">{negativePercentage}%</span>
+                          {/* ネガティブ部分 */}
+                          <div
+                            className="absolute inset-y-0 right-0 bg-gradient-to-l from-red-500 to-rose-400 transition-all duration-700 ease-out"
+                            style={{ width: `${negativePercentage}%` }}
+                          >
+                            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-            
-            {/* ネガティブ回答タブ */}
-            <TabsContent value="negative" className="mt-0">
-              <div className="grid grid-cols-3 gap-6">
-                {Object.entries(negativeQscData).map(([category, data]) => (
-                  <div key={category} className="space-y-3">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        {category === 'Q' && <UtensilsCrossed className="w-5 h-5 text-violet-600" />}
-                        {category === 'S' && <Users className="w-5 h-5 text-blue-600" />}
-                        {category === 'C' && <Sparkles className="w-5 h-5 text-emerald-600" />}
-                        <h3 className="font-semibold text-gray-900">
-                          {category === 'Q' ? 'Quality' : category === 'S' ? 'Service' : 'Cleanliness'}
-                        </h3>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        n={data.negativeResponseCount.toLocaleString()}
-                      </span>
-                    </div>
-                    
-                    {data.items.map((item, index) => {
-                      const positivePercentage = item.positive;
-                      const negativePercentage = item.negative;
-                      const positiveCount = Math.round(data.positiveResponseCount * (item.positive / 100));
-                      const negativeCount = Math.round(data.positiveResponseCount * (item.negative / 100));
-                      const totalCount = positiveCount + negativeCount;
-                      
-                      return (
-                        <div key={index} className="group mb-3">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs text-gray-600 group-hover:text-gray-900 transition-colors">
-                              {item.label}
-                            </span>
-                            <span className="text-xs text-gray-400">
-                              n={totalCount.toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="relative h-6 bg-gray-50 rounded overflow-hidden border border-gray-200">
-                            {/* ポジティブ部分 */}
-                            <div
-                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-700 ease-out"
-                              style={{ width: `${positivePercentage}%` }}
-                            >
-                              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                            </div>
-                            {/* ネガティブ部分 */}
-                            <div
-                              className="absolute inset-y-0 right-0 bg-gradient-to-l from-red-500 to-rose-400 transition-all duration-700 ease-out"
-                              style={{ width: `${negativePercentage}%` }}
-                            >
-                              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                            </div>
-                          </div>
-                          <div className="flex justify-between text-xs mt-1">
-                            <span className="text-green-600 font-medium">{positivePercentage}%</span>
-                            <span className="text-red-600 font-medium">{negativePercentage}%</span>
-                          </div>
+                        <div className="flex justify-between text-xs mt-1">
+                          <span className="text-green-600 font-medium">{positivePercentage}%</span>
+                          <span className="text-red-600 font-medium">{negativePercentage}%</span>
                         </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-          </ShadcnTabs>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
 
