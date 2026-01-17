@@ -1398,47 +1398,56 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
   const [isComparisonOpen, setIsComparisonOpen] = useState(true);
   const [isAlertsOpen, setIsAlertsOpen] = useState(true);
   const [isInsightsOpen, setIsInsightsOpen] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [overviewData, setOverviewData] = useState(null);
 
+  // Edge Functionからデータを取得
+  useEffect(() => {
+    const fetchOverviewData = async () => {
+      if (!companyId) return;
+      setLoading(true);
 
-  // KPIカード設定
-  const kpiCards = [
-    {
-      title: "推奨スコア",
-      metric: "+42pt",
-      progress: 84,
-      target: "+50pt",
-      delta: "+8pt",
-      deltaType: "increase",
-      sparklineData: [41, 42, 42]  // 10月, 11月, 12月の3ヶ月分
-    },
-    {
-      title: "リピート率",
-      metric: "78.5%",
-      progress: 87,
-      target: "90%",
-      delta: "+5.2%",
-      deltaType: "increase",
-      sparklineData: [78, 78.3, 78.5]  // 10月, 11月, 12月の3ヶ月分
-    },
-    {
-      title: "3ヶ月以内再来店意向（リピーター）",
-      metric: "95.2%",
-      progress: 95,
-      target: "100%",
-      delta: "+2.1%",
-      deltaType: "increase",
-      sparklineData: [94.9, 95.1, 95.2]  // 10月, 11月, 12月の3ヶ月分
-    },
-    {
-      title: "3ヶ月以内再来店意向（新規）",
-      metric: "88.5%",
-      progress: 88,
-      target: "100%",
-      delta: "+4.2%",
-      deltaType: "increase",
-      sparklineData: [88.3, 88.4, 88.5]  // 10月, 11月, 12月の3ヶ月分
-    }
-  ];
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('認証が必要です');
+        }
+
+        const params = new URLSearchParams({
+          company_id: companyId
+        });
+        if (selectedStore !== 'all') {
+          params.append('store_id', selectedStore);
+        }
+
+        const response = await fetch(
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-store-overview?${params}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || 'データの取得に失敗しました');
+        }
+
+        setOverviewData(result.data);
+      } catch (error) {
+        console.error('概要データの取得エラー:', error);
+        setOverviewData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOverviewData();
+  }, [companyId, selectedStore]);
 
   // 5ヶ月移動平均を計算する関数
   const calculateMovingAverage = (data, key, windowSize = 5) => {
@@ -1451,21 +1460,55 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
     });
   };
 
-  // 月別パフォーマンスデータ
-  const monthlyPerformanceRaw = [
-    { month: "1月", nps: 35, repeatRate: 72, repeatVisit: 93, newVisit: 85 },
-    { month: "2月", nps: 37, repeatRate: 73, repeatVisit: 93.5, newVisit: 85.5 },
-    { month: "3月", nps: 38, repeatRate: 74, repeatVisit: 94, newVisit: 86 },
-    { month: "4月", nps: 36, repeatRate: 74.5, repeatVisit: 93.8, newVisit: 86.5 },
-    { month: "5月", nps: 39, repeatRate: 75, repeatVisit: 94.2, newVisit: 87 },
-    { month: "6月", nps: 40, repeatRate: 76, repeatVisit: 94.5, newVisit: 87.5 },
-    { month: "7月", nps: 39, repeatRate: 76.5, repeatVisit: 94.3, newVisit: 87.8 },
-    { month: "8月", nps: 41, repeatRate: 77, repeatVisit: 94.8, newVisit: 88 },
-    { month: "9月", nps: 42, repeatRate: 77.5, repeatVisit: 95, newVisit: 88.2 },
-    { month: "10月", nps: 41, repeatRate: 78, repeatVisit: 94.9, newVisit: 88.3 },
-    { month: "11月", nps: 42, repeatRate: 78.3, repeatVisit: 95.1, newVisit: 88.4 },
-    { month: "12月", nps: 42, repeatRate: 78.5, repeatVisit: 95.2, newVisit: 88.5 }
+  // KPIカード設定（実データから生成）
+  const kpi = overviewData?.kpi || {
+    nps: { current: 0, delta: 0, sparkline: [0, 0, 0] },
+    repeatRate: { current: 0, delta: 0, sparkline: [0, 0, 0] },
+    repeaterRevisit: { current: 0, delta: 0, sparkline: [0, 0, 0] },
+    newRevisit: { current: 0, delta: 0, sparkline: [0, 0, 0] }
+  };
+
+  const kpiCards = [
+    {
+      title: "推奨スコア",
+      metric: `${kpi.nps.current >= 0 ? '+' : ''}${kpi.nps.current}pt`,
+      progress: Math.max(0, Math.min(100, kpi.nps.current + 50)),
+      target: "+50pt",
+      delta: `${kpi.nps.delta >= 0 ? '+' : ''}${kpi.nps.delta}pt`,
+      deltaType: kpi.nps.delta >= 0 ? "increase" : "decrease",
+      sparklineData: kpi.nps.sparkline
+    },
+    {
+      title: "リピート率",
+      metric: `${kpi.repeatRate.current}%`,
+      progress: kpi.repeatRate.current,
+      target: "90%",
+      delta: `${kpi.repeatRate.delta >= 0 ? '+' : ''}${kpi.repeatRate.delta}%`,
+      deltaType: kpi.repeatRate.delta >= 0 ? "increase" : "decrease",
+      sparklineData: kpi.repeatRate.sparkline
+    },
+    {
+      title: "3ヶ月以内再来店意向（リピーター）",
+      metric: `${kpi.repeaterRevisit.current}%`,
+      progress: kpi.repeaterRevisit.current,
+      target: "100%",
+      delta: `${kpi.repeaterRevisit.delta >= 0 ? '+' : ''}${kpi.repeaterRevisit.delta}%`,
+      deltaType: kpi.repeaterRevisit.delta >= 0 ? "increase" : "decrease",
+      sparklineData: kpi.repeaterRevisit.sparkline
+    },
+    {
+      title: "3ヶ月以内再来店意向（新規）",
+      metric: `${kpi.newRevisit.current}%`,
+      progress: kpi.newRevisit.current,
+      target: "100%",
+      delta: `${kpi.newRevisit.delta >= 0 ? '+' : ''}${kpi.newRevisit.delta}%`,
+      deltaType: kpi.newRevisit.delta >= 0 ? "increase" : "decrease",
+      sparklineData: kpi.newRevisit.sparkline
+    }
   ];
+
+  // 月別パフォーマンスデータ（実データから取得）
+  const monthlyPerformanceRaw = overviewData?.monthlyPerformance || [];
 
   // 移動平均を追加
   const npsMA = calculateMovingAverage(monthlyPerformanceRaw, 'nps');
@@ -1481,15 +1524,33 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
     newVisitMA: newVisitMA[index]
   }));
 
+  // 店舗比較データ（実データから取得）
+  const storeComparison = (overviewData?.storeComparison || []).map(store => ({
+    store: store.store,
+    score: store.nps,
+    repeatRate: store.repeatRate,
+    responseCount: store.responseCount
+  }));
 
-  // 店舗比較データ
-  const storeComparison = [
-    { store: "渋谷店", score: 94, sales: 1234567, efficiency: 89 },
-    { store: "新宿店", score: 91, sales: 1123456, efficiency: 85 },
-    { store: "池袋店", score: 88, sales: 987654, efficiency: 82 },
-    { store: "品川店", score: 92, sales: 1098765, efficiency: 88 },
-    { store: "上野店", score: 87, sales: 876543, efficiency: 79 }
-  ];
+  // NPS分布データ
+  const npsDistribution = overviewData?.npsDistribution || {
+    promoters: 0,
+    passives: 0,
+    detractors: 0,
+    npsScore: 0
+  };
+
+  // ローディング表示
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 p-6 flex justify-center items-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <span className="text-gray-500">データを読み込み中...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 p-6 pb-0">
@@ -1590,9 +1651,9 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
                     </defs>
                     <Pie
                       data={[
-                        { name: '推奨者', value: 58, fill: 'url(#promoterGradient)' },
-                        { name: '中立者', value: 26, fill: 'url(#passiveGradient)' },
-                        { name: '批判者', value: 16, fill: 'url(#detractorGradient)' }
+                        { name: '推奨者', value: npsDistribution.promoters, fill: 'url(#promoterGradient)' },
+                        { name: '中立者', value: npsDistribution.passives, fill: 'url(#passiveGradient)' },
+                        { name: '批判者', value: npsDistribution.detractors, fill: 'url(#detractorGradient)' }
                       ]}
                       cx="50%"
                       cy="85%"
@@ -1633,21 +1694,21 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
                     <div className="w-3 h-3 rounded-full bg-gradient-to-br from-green-500 to-green-400"></div>
                     <span className="text-sm font-medium">推奨者（9-10点）</span>
                   </div>
-                  <span className="text-sm font-bold text-green-700">58%</span>
+                  <span className="text-sm font-bold text-green-700">{npsDistribution.promoters}%</span>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-200">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-gradient-to-br from-amber-500 to-amber-400"></div>
                     <span className="text-sm font-medium">中立者（7-8点）</span>
                   </div>
-                  <span className="text-sm font-bold text-amber-700">26%</span>
+                  <span className="text-sm font-bold text-amber-700">{npsDistribution.passives}%</span>
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 border border-red-200">
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-gradient-to-br from-red-500 to-red-400"></div>
                     <span className="text-sm font-medium">批判者（0-6点）</span>
                   </div>
-                  <span className="text-sm font-bold text-red-700">16%</span>
+                  <span className="text-sm font-bold text-red-700">{npsDistribution.detractors}%</span>
                 </div>
               </div>
             </div>
@@ -1680,7 +1741,7 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis dataKey="month" className="text-xs" />
-                        <YAxis className="text-xs" domain={[30, 45]} tickFormatter={(value) => `+${value}pt`} />
+                        <YAxis className="text-xs" domain={['auto', 'auto']} tickFormatter={(value) => `${value >= 0 ? '+' : ''}${value}pt`} />
                         <RechartsTooltip content={<CustomTooltip />} />
                         <Area 
                           type="monotone" 
@@ -1716,7 +1777,7 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis dataKey="month" className="text-xs" />
-                        <YAxis className="text-xs" domain={[71, 79]} tickFormatter={(value) => `${value}%`} />
+                        <YAxis className="text-xs" domain={['auto', 'auto']} tickFormatter={(value) => `${value}%`} />
                         <RechartsTooltip content={<CustomTooltip />} />
                         <Area 
                           type="monotone" 
@@ -1752,7 +1813,7 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis dataKey="month" className="text-xs" />
-                        <YAxis className="text-xs" domain={[92, 96]} tickFormatter={(value) => `${value}%`} />
+                        <YAxis className="text-xs" domain={['auto', 'auto']} tickFormatter={(value) => `${value}%`} />
                         <RechartsTooltip content={<CustomTooltip />} />
                         <Area 
                           type="monotone" 
@@ -1788,7 +1849,7 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis dataKey="month" className="text-xs" />
-                        <YAxis className="text-xs" domain={[84, 89]} tickFormatter={(value) => `${value}%`} />
+                        <YAxis className="text-xs" domain={['auto', 'auto']} tickFormatter={(value) => `${value}%`} />
                         <RechartsTooltip content={<CustomTooltip />} />
                         <Area 
                           type="monotone" 
