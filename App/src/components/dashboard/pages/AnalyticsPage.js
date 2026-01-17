@@ -4227,24 +4227,6 @@ const RealtimeTab = ({ companyId }) => {
             </SelectGroup>
           </SelectContent>
         </Select>
-
-        {/* 期間選択 */}
-        <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="期間を選択" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>期間選択</SelectLabel>
-              <SelectItem value="2025/12">2025/12</SelectItem>
-              <SelectItem value="2025/11">2025/11</SelectItem>
-              <SelectItem value="2025/10">2025/10</SelectItem>
-              <SelectItem value="2025/09">2025/09</SelectItem>
-              <SelectItem value="2025/08">2025/08</SelectItem>
-              <SelectItem value="2025/07">2025/07</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* テーブル */}
@@ -4449,7 +4431,7 @@ const RealtimeTab = ({ companyId }) => {
             </div>
           ) : commentsData.length === 0 ? (
             <div className="flex flex-col justify-center items-center py-12 text-gray-500">
-              <MessageSquare className="w-12 h-12 mb-4 opacity-50" />
+              <Comment className="w-12 h-12 mb-4 opacity-50" />
               <p>コメントデータがありません</p>
               <p className="text-sm mt-1">店舗を選択してください</p>
             </div>
