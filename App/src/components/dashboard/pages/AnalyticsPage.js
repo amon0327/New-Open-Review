@@ -3993,94 +3993,90 @@ const RealtimeTab = ({ companyId }) => {
     fetchStores();
   }, [companyId]);
 
-  // コメントデータを取得
+  // コメントデータを取得（Edge Function経由）
   useEffect(() => {
     const fetchComments = async () => {
       if (!companyId) return;
       setLoading(true);
 
       try {
-        // preset_question_answer_commentとpreset_question_answerを結合して取得
-        let query = supabase
-          .from('preset_question_answer_comment')
-          .select(`
-            id,
-            created_at,
-            comment,
-            selected_qsc,
-            question_number,
-            is_positive,
-            preset_question_answer_id,
-            preset_question_answer (
-              id,
-              p1_q1,
-              p1_q2,
-              p1_q3,
-              p1_q4,
-              p1_q5,
-              store_id,
-              company_id
-            )
-          `)
-          .eq('preset_question_answer.company_id', companyId)
-          .order('created_at', { ascending: false });
-
-        // 店舗フィルター
-        if (selectedStore !== 'all') {
-          query = query.eq('preset_question_answer.store_id', selectedStore);
+        // 認証トークンを取得
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('認証が必要です');
         }
 
-        const { data, error } = await query;
+        // Edge Function経由でデータを取得
+        const params = new URLSearchParams({
+          company_id: companyId,
+          limit: '500'
+        });
+        if (selectedStore !== 'all') {
+          params.append('store_id', selectedStore);
+        }
 
-        if (error) throw error;
+        const response = await fetch(
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-preset-comments?${params}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || 'データの取得に失敗しました');
+        }
 
         // データを整形
-        const formattedData = (data || [])
-          .filter(item => item.preset_question_answer) // 関連データがあるもののみ
-          .map(item => {
-            const answer = item.preset_question_answer;
+        const formattedData = (result.data || []).map(item => {
+          const answer = item.preset_question_answer;
 
-            // 推奨度（p1_q1: 0-10）からNPSタイプを判定
-            const npsScore = answer.p1_q1;
-            let npsType = '中立者';
-            if (npsScore >= 9) npsType = '推奨者';
-            else if (npsScore <= 6) npsType = '批判者';
+          // 推奨度（p1_q1: 0-10）からNPSタイプを判定
+          const npsScore = answer.p1_q1;
+          let npsType = '中立者';
+          if (npsScore >= 9) npsType = '推奨者';
+          else if (npsScore <= 6) npsType = '批判者';
 
-            // 来店回数からリピーター判定
-            const visitCount = answer.p1_q3;
-            const isRepeater = visitCount !== '初めて';
+          // 来店回数からリピーター判定
+          const visitCount = answer.p1_q3;
+          const isRepeater = visitCount !== '初めて';
 
-            // 再来店意向（p1_q2: boolean）
-            const revisitIntent = answer.p1_q2 ? 'あり' : 'なし';
+          // 再来店意向（p1_q2: boolean）
+          const revisitIntent = answer.p1_q2 ? 'あり' : 'なし';
 
-            // 年齢を整形（例: "25歳~29歳" → "20代"）
-            const ageRange = answer.p1_q5 || '';
-            let age = 'その他';
-            if (ageRange.includes('20') || ageRange.includes('25') || ageRange.includes('29')) age = '20代';
-            else if (ageRange.includes('30') || ageRange.includes('35') || ageRange.includes('39')) age = '30代';
-            else if (ageRange.includes('40') || ageRange.includes('45') || ageRange.includes('49')) age = '40代';
-            else if (ageRange.includes('50') || ageRange.includes('55') || ageRange.includes('59')) age = '50代';
-            else if (ageRange.includes('60') || ageRange.includes('65')) age = '60代';
+          // 年齢を整形（例: "25歳~29歳" → "20代"）
+          const ageRange = answer.p1_q5 || '';
+          let age = 'その他';
+          if (ageRange.includes('20') || ageRange.includes('25') || ageRange.includes('29')) age = '20代';
+          else if (ageRange.includes('30') || ageRange.includes('35') || ageRange.includes('39')) age = '30代';
+          else if (ageRange.includes('40') || ageRange.includes('45') || ageRange.includes('49')) age = '40代';
+          else if (ageRange.includes('50') || ageRange.includes('55') || ageRange.includes('59')) age = '50代';
+          else if (ageRange.includes('60') || ageRange.includes('65')) age = '60代';
 
-            return {
-              id: item.id,
-              gender: answer.p1_q4 || 'その他',
-              age: age,
-              npsType: npsType,
-              npsScore: npsScore,
-              isRepeater: isRepeater,
-              revisitIntent: revisitIntent,
-              comment: item.comment,
-              date: new Date(item.created_at).toLocaleString('ja-JP', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-              }),
-              storeId: answer.store_id
-            };
-          });
+          return {
+            id: item.id,
+            gender: answer.p1_q4 || 'その他',
+            age: age,
+            npsType: npsType,
+            npsScore: npsScore,
+            isRepeater: isRepeater,
+            revisitIntent: revisitIntent,
+            comment: item.comment,
+            date: new Date(item.created_at).toLocaleString('ja-JP', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            storeId: answer.store_id
+          };
+        });
 
         setCommentsData(formattedData);
       } catch (error) {
