@@ -1383,7 +1383,7 @@ const StoreByStoreTab = ({ companyId }) => {
           <StoreEvaluationTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
         </TabPanel>
         <TabPanel value={activeSubTab} index={4}>
-          <CustomerTrendsTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+          <CustomerTrendsTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
         </TabPanel>
         <TabPanel value={activeSubTab} index={5}>
           <CommentsTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
@@ -2789,62 +2789,106 @@ const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
 };
 
 // 顧客傾向タブ
-const CustomerTrendsTab = ({ selectedStore, selectedPeriod }) => {
-  // レーダーチャート用の生データ（1位票、2位票）
-  const rawData = [
-    { 
-      category: '品質',
-      total: { first: 30, second: 25 },      // スコア: 30*2 + 25*1 = 85
-      repeater: { first: 40, second: 12 },   // スコア: 40*2 + 12*1 = 92
-      newCustomer: { first: 28, second: 22 } // スコア: 28*2 + 22*1 = 78
-    },
-    { 
-      category: '接客',
-      total: { first: 34, second: 20 },      // スコア: 34*2 + 20*1 = 88
-      repeater: { first: 35, second: 20 },   // スコア: 35*2 + 20*1 = 90
-      newCustomer: { first: 31, second: 20 } // スコア: 31*2 + 20*1 = 82
-    },
-    { 
-      category: '空間',
-      total: { first: 32, second: 18 },      // スコア: 32*2 + 18*1 = 82
-      repeater: { first: 33, second: 19 },   // スコア: 33*2 + 19*1 = 85
-      newCustomer: { first: 28, second: 20 } // スコア: 28*2 + 20*1 = 76
-    },
-    { 
-      category: '衛生',
-      total: { first: 35, second: 20 },      // スコア: 35*2 + 20*1 = 90
-      repeater: { first: 38, second: 17 },   // スコア: 38*2 + 17*1 = 93
-      newCustomer: { first: 33, second: 19 } // スコア: 33*2 + 19*1 = 85
-    },
-    { 
-      category: '価格感度',
-      total: { first: 25, second: 25 },      // スコア: 25*2 + 25*1 = 75
-      repeater: { first: 27, second: 26 },   // スコア: 27*2 + 26*1 = 80
-      newCustomer: { first: 22, second: 24 } // スコア: 22*2 + 24*1 = 68
-    }
-  ];
+const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
+  const [loading, setLoading] = useState(true);
+  const [trendsData, setTrendsData] = useState(null);
 
-  // スコア計算関数（1位×2 + 2位×1）
-  const calculateScore = (data) => {
-    return data.first * 2 + data.second * 1;
-  };
+  // Edge Functionからデータを取得
+  useEffect(() => {
+    const fetchTrendsData = async () => {
+      if (!companyId) return;
+      setLoading(true);
 
-  // 全てのスコアを計算して最大値を見つける
-  const allScores = [];
-  rawData.forEach(item => {
-    allScores.push(calculateScore(item.total));
-    allScores.push(calculateScore(item.repeater));
-    allScores.push(calculateScore(item.newCustomer));
-  });
-  const maxScore = Math.max(...allScores);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('認証が必要です');
+        }
 
-  // 正規化されたレーダーチャート用データ
-  const radarData = rawData.map(item => ({
-    category: item.category,
-    total: Math.round((calculateScore(item.total) / maxScore) * 100),
-    repeater: Math.round((calculateScore(item.repeater) / maxScore) * 100),
-    newCustomer: Math.round((calculateScore(item.newCustomer) / maxScore) * 100)
+        const params = new URLSearchParams({
+          company_id: companyId
+        });
+        if (selectedStore && selectedStore !== 'all') {
+          params.append('store_id', selectedStore);
+        }
+
+        const response = await fetch(
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-customer-trends?${params}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || 'データの取得に失敗しました');
+        }
+
+        setTrendsData(result.data);
+      } catch (error) {
+        console.error('顧客傾向データの取得エラー:', error);
+        setTrendsData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrendsData();
+  }, [companyId, selectedStore]);
+
+  // データ取得結果から各分布を取得
+  const genderDistribution = trendsData?.genderDistribution || [];
+  const customerTypeDistribution = trendsData?.customerTypeDistribution || [];
+  const ageDistribution = trendsData?.ageDistribution || [];
+  const companionDistribution = trendsData?.companionDistribution || [];
+  const radarData = trendsData?.radarData || [];
+
+  // 性別データのフォーマット（グラフ用）
+  const genderChartData = genderDistribution.map(item => ({
+    name: item.name,
+    value: item.value,
+    fill: item.name === '男性' ? '#3b82f6' : item.name === '女性' ? '#ec4899' : '#9ca3af'
   }));
+
+  // 顧客タイプデータのフォーマット
+  const customerTypeChartData = customerTypeDistribution.map(item => ({
+    name: item.name,
+    value: item.value,
+    fill: item.name === 'リピーター' ? '#10b981' : '#f59e0b'
+  }));
+
+  // 年齢データのフォーマット
+  const ageColors = ['#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4'];
+  const ageChartData = ageDistribution.map((item, index) => ({
+    name: item.name,
+    value: item.value,
+    fill: ageColors[index % ageColors.length]
+  }));
+
+  // 同行者データのフォーマット
+  const companionColors = ['#f97316', '#fb923c', '#fdba74', '#fed7aa'];
+  const companionChartData = companionDistribution.slice(0, 4).map((item, index) => ({
+    name: item.name,
+    value: item.value,
+    fill: companionColors[index % companionColors.length]
+  }));
+
+  // ローディング表示
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <span className="text-gray-500">データを読み込み中...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -2863,10 +2907,7 @@ const CustomerTrendsTab = ({ selectedStore, selectedPeriod }) => {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                   <Pie
-                    data={[
-                      { name: '男性', value: 45, fill: '#3b82f6' },
-                      { name: '女性', value: 55, fill: '#ec4899' }
-                    ]}
+                    data={genderChartData.length > 0 ? genderChartData : [{ name: 'データなし', value: 100, fill: '#e5e7eb' }]}
                     cx="50%"
                     cy="90%"
                     startAngle={180}
@@ -2876,24 +2917,19 @@ const CustomerTrendsTab = ({ selectedStore, selectedPeriod }) => {
                     dataKey="value"
                     style={chartStyle}
                   >
-                    {[
-                      { name: '男性', value: 45, fill: '#3b82f6' },
-                      { name: '女性', value: 55, fill: '#ec4899' }
-                    ].map((entry, index) => (
+                    {(genderChartData.length > 0 ? genderChartData : [{ name: 'データなし', value: 100, fill: '#e5e7eb' }]).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} style={chartStyle} />
                     ))}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex justify-center gap-4 mt-1 text-xs">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span>男性 45%</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-pink-500 rounded-full"></div>
-                  <span>女性 55%</span>
-                </div>
+                {genderChartData.map((item, index) => (
+                  <div key={index} className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.fill }}></div>
+                    <span>{item.name} {item.value}%</span>
+                  </div>
+                ))}
               </div>
             </div>
           </CardContent>
@@ -2912,10 +2948,7 @@ const CustomerTrendsTab = ({ selectedStore, selectedPeriod }) => {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                   <Pie
-                    data={[
-                      { name: 'リピーター', value: 72, fill: '#10b981' },
-                      { name: '新規', value: 28, fill: '#f59e0b' }
-                    ]}
+                    data={customerTypeChartData.length > 0 ? customerTypeChartData : [{ name: 'データなし', value: 100, fill: '#e5e7eb' }]}
                     cx="50%"
                     cy="90%"
                     startAngle={180}
@@ -2925,24 +2958,19 @@ const CustomerTrendsTab = ({ selectedStore, selectedPeriod }) => {
                     dataKey="value"
                     style={chartStyle}
                   >
-                    {[
-                      { name: 'リピーター', value: 72, fill: '#10b981' },
-                      { name: '新規', value: 28, fill: '#f59e0b' }
-                    ].map((entry, index) => (
+                    {(customerTypeChartData.length > 0 ? customerTypeChartData : [{ name: 'データなし', value: 100, fill: '#e5e7eb' }]).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} style={chartStyle} />
                     ))}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex justify-center gap-4 mt-1 text-xs">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span>リピーター 72%</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-                  <span>新規 28%</span>
-                </div>
+                {customerTypeChartData.map((item, index) => (
+                  <div key={index} className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.fill }}></div>
+                    <span>{item.name} {item.value}%</span>
+                  </div>
+                ))}
               </div>
             </div>
           </CardContent>
@@ -2961,37 +2989,25 @@ const CustomerTrendsTab = ({ selectedStore, selectedPeriod }) => {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart margin={{ top: 25, right: 40, bottom: 25, left: 40 }}>
                   <Pie
-                    data={[
-                      { name: '20代', value: 15, fill: '#8b5cf6' },
-                      { name: '30代', value: 28, fill: '#6366f1' },
-                      { name: '40代', value: 32, fill: '#3b82f6' },
-                      { name: '50代', value: 18, fill: '#0ea5e9' },
-                      { name: '60代+', value: 7, fill: '#06b6d4' }
-                    ]}
+                    data={ageChartData.length > 0 ? ageChartData : [{ name: 'データなし', value: 100, fill: '#e5e7eb' }]}
                     cx="50%"
                     cy="50%"
                     outerRadius={40}
                     dataKey="value"
-                    label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
+                    label={({ cx, cy, midAngle, outerRadius, value, index }) => {
                       const RADIAN = Math.PI / 180;
                       const radius = outerRadius + 25;
                       const x = cx + radius * Math.cos(-midAngle * RADIAN);
                       const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                      const labels = ['20代', '30代', '40代', '50代', '60代+'];
+                      const chartData = ageChartData.length > 0 ? ageChartData : [{ name: 'データなし', value: 100 }];
                       return (
                         <text x={x} y={y} fontSize={10} fill="#6b7280" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-                          {`${labels[index]} ${value}%`}
+                          {`${chartData[index]?.name || ''} ${value}%`}
                         </text>
                       );
                     }}
                   >
-                    {[
-                      { name: '20代', value: 15, fill: '#8b5cf6' },
-                      { name: '30代', value: 28, fill: '#6366f1' },
-                      { name: '40代', value: 32, fill: '#3b82f6' },
-                      { name: '50代', value: 18, fill: '#0ea5e9' },
-                      { name: '60代+', value: 7, fill: '#06b6d4' }
-                    ].map((entry, index) => (
+                    {(ageChartData.length > 0 ? ageChartData : [{ name: 'データなし', value: 100, fill: '#e5e7eb' }]).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} style={chartStyle} />
                     ))}
                   </Pie>
@@ -3001,12 +3017,12 @@ const CustomerTrendsTab = ({ selectedStore, selectedPeriod }) => {
           </CardContent>
         </Card>
 
-        {/* 来店目的 */}
+        {/* 同行者 */}
         <Card className="border-0 shadow-xl bg-white overflow-hidden">
           <CardHeader className="pb-0">
             <CardTitle className="text-sm flex items-center gap-2">
               <ShoppingCart className="w-4 h-4 text-orange-600" />
-              来店目的
+              同行者
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-1 pb-4">
@@ -3014,35 +3030,27 @@ const CustomerTrendsTab = ({ selectedStore, selectedPeriod }) => {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart margin={{ top: 25, right: 40, bottom: 25, left: 40 }}>
                   <Pie
-                    data={[
-                      { name: '仕事・勉強', value: 35, fill: '#f97316' },
-                      { name: '友人との会話', value: 28, fill: '#fb923c' },
-                      { name: 'リラックス', value: 22, fill: '#fdba74' },
-                      { name: 'テイクアウト', value: 15, fill: '#fed7aa' }
-                    ]}
+                    data={companionChartData.length > 0 ? companionChartData : [{ name: 'データなし', value: 100, fill: '#e5e7eb' }]}
                     cx="50%"
                     cy="50%"
                     outerRadius={40}
                     dataKey="value"
-                    label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
+                    label={({ cx, cy, midAngle, outerRadius, value, index }) => {
                       const RADIAN = Math.PI / 180;
                       const radius = outerRadius + 25;
                       const x = cx + radius * Math.cos(-midAngle * RADIAN);
                       const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                      const labels = ['仕事', '会話', 'リラックス', 'テイク'];
+                      const chartData = companionChartData.length > 0 ? companionChartData : [{ name: 'データなし', value: 100 }];
+                      const label = chartData[index]?.name || '';
+                      const shortLabel = label.length > 4 ? label.substring(0, 4) : label;
                       return (
                         <text x={x} y={y} fontSize={10} fill="#6b7280" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-                          {`${labels[index]} ${value}%`}
+                          {`${shortLabel} ${value}%`}
                         </text>
                       );
                     }}
                   >
-                    {[
-                      { name: '仕事・勉強', value: 35, fill: '#f97316' },
-                      { name: '友人との会話', value: 28, fill: '#fb923c' },
-                      { name: 'リラックス', value: 22, fill: '#fdba74' },
-                      { name: 'テイクアウト', value: 15, fill: '#fed7aa' }
-                    ].map((entry, index) => (
+                    {(companionChartData.length > 0 ? companionChartData : [{ name: 'データなし', value: 100, fill: '#e5e7eb' }]).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} style={chartStyle} />
                     ))}
                   </Pie>
@@ -3057,8 +3065,8 @@ const CustomerTrendsTab = ({ selectedStore, selectedPeriod }) => {
       <Card className="border-0 shadow-xl bg-white">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            顧客傾向
-            <InfoTooltip content="1位票×2 + 2位票×1のスコアを最大値で正規化（最高値=100）" />
+            年齢層別顧客傾向
+            <InfoTooltip content="全体・リピーター・新規顧客の年齢層分布を比較" />
           </CardTitle>
         </CardHeader>
         <CardContent>
