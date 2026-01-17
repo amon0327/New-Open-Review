@@ -3945,14 +3945,13 @@ const CommentsTab = ({ selectedStore, selectedPeriod }) => {
 
 // リアルタイムタブの内容
 const RealtimeTab = ({ companyId }) => {
-  const [expandedIssue, setExpandedIssue] = useState(null);
   const [selectedStore, setSelectedStore] = useState('all');
-  const [selectedPeriod, setSelectedPeriod] = useState('2025/12');
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [commentsData, setCommentsData] = useState([]);
   const itemsPerPage = 50;
-  
+
   // フィルター状態
   const [filters, setFilters] = useState({
     gender: [],
@@ -3960,8 +3959,6 @@ const RealtimeTab = ({ companyId }) => {
     npsType: [],
     isRepeater: [],
     revisitIntent: [],
-    hasIssue: [],
-    tags: [],
     commentSearch: ''
   });
   const [tempFilters, setTempFilters] = useState({
@@ -3970,8 +3967,6 @@ const RealtimeTab = ({ companyId }) => {
     npsType: [],
     isRepeater: [],
     revisitIntent: [],
-    hasIssue: [],
-    tags: [],
     commentSearch: ''
   });
   const [showFilters, setShowFilters] = useState(false);
@@ -3980,7 +3975,7 @@ const RealtimeTab = ({ companyId }) => {
   useEffect(() => {
     const fetchStores = async () => {
       if (!companyId) return;
-      
+
       try {
         const { data, error } = await supabase
           .from('stores')
@@ -3992,146 +3987,139 @@ const RealtimeTab = ({ companyId }) => {
         setStores(data || []);
       } catch (error) {
         console.error('店舗データの取得エラー:', error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchStores();
   }, [companyId]);
-  
-  // リアルタイムデータを生成
-  const generateRealtimeData = () => {
-    const baseComments = [
-      {
-        gender: "女性",
-        age: "20代",
-        npsType: "推奨者",
-        isRepeater: false,
-        revisitIntent: "あり",
-        hasIssue: false,
-        tags: [
-          { name: "新商品", sentiment: "positive" },
-          { name: "接客", sentiment: "positive" }
-        ],
-        comment: "新商品を試してみました！スタッフの説明も丁寧で良かったです。"
-      },
-      {
-        gender: "男性",
-        age: "30代",
-        npsType: "中立者",
-        isRepeater: true,
-        revisitIntent: "あり",
-        hasIssue: true,
-        aiAnalysis: "Wi-Fi環境の改善が必要です。ルーターの増設や通信速度の向上を検討してください。",
-        tags: [
-          { name: "Wi-Fi", sentiment: "negative" },
-          { name: "品質", sentiment: "positive" }
-        ],
-        comment: "いつも利用していますが、今日はWi-Fiが繋がりにくかったです。"
-      },
-      {
-        gender: "その他",
-        age: "40代",
-        npsType: "推奨者",
-        isRepeater: true,
-        revisitIntent: "あり",
-        hasIssue: false,
-        tags: [
-          { name: "雰囲気", sentiment: "positive" },
-          { name: "スタッフ", sentiment: "positive" }
-        ],
-        comment: "落ち着いた雰囲気で仕事がはかどりました。スタッフも親切です。"
-      },
-      {
-        gender: "女性",
-        age: "50代",
-        npsType: "批判者",
-        isRepeater: false,
-        revisitIntent: "なし",
-        hasIssue: true,
-        aiAnalysis: "音量管理の改善が必要です。BGMの音量調整やピーク時間帯の騒音対策を検討してください。",
-        tags: [
-          { name: "騒音", sentiment: "negative" },
-          { name: "価格", sentiment: "neutral" }
-        ],
-        comment: "店内が騒がしすぎて落ち着けませんでした。"
-      },
-      {
-        gender: "男性",
-        age: "20代",
-        npsType: "推奨者",
-        isRepeater: true,
-        revisitIntent: "あり",
-        hasIssue: false,
-        tags: [
-          { name: "コーヒー", sentiment: "positive" },
-          { name: "価格", sentiment: "positive" }
-        ],
-        comment: "美味しいコーヒーをリーズナブルな価格で楽しめます。"
+
+  // コメントデータを取得
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (!companyId) return;
+      setLoading(true);
+
+      try {
+        // preset_question_answer_commentとpreset_question_answerを結合して取得
+        let query = supabase
+          .from('preset_question_answer_comment')
+          .select(`
+            id,
+            created_at,
+            comment,
+            selected_qsc,
+            question_number,
+            is_positive,
+            preset_question_answer_id,
+            preset_question_answer (
+              id,
+              p1_q1,
+              p1_q2,
+              p1_q3,
+              p1_q4,
+              p1_q5,
+              store_id,
+              company_id
+            )
+          `)
+          .eq('preset_question_answer.company_id', companyId)
+          .order('created_at', { ascending: false });
+
+        // 店舗フィルター
+        if (selectedStore !== 'all') {
+          query = query.eq('preset_question_answer.store_id', selectedStore);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        // データを整形
+        const formattedData = (data || [])
+          .filter(item => item.preset_question_answer) // 関連データがあるもののみ
+          .map(item => {
+            const answer = item.preset_question_answer;
+
+            // 推奨度（p1_q1: 0-10）からNPSタイプを判定
+            const npsScore = answer.p1_q1;
+            let npsType = '中立者';
+            if (npsScore >= 9) npsType = '推奨者';
+            else if (npsScore <= 6) npsType = '批判者';
+
+            // 来店回数からリピーター判定
+            const visitCount = answer.p1_q3;
+            const isRepeater = visitCount !== '初めて';
+
+            // 再来店意向（p1_q2: boolean）
+            const revisitIntent = answer.p1_q2 ? 'あり' : 'なし';
+
+            // 年齢を整形（例: "25歳~29歳" → "20代"）
+            const ageRange = answer.p1_q5 || '';
+            let age = 'その他';
+            if (ageRange.includes('20') || ageRange.includes('25') || ageRange.includes('29')) age = '20代';
+            else if (ageRange.includes('30') || ageRange.includes('35') || ageRange.includes('39')) age = '30代';
+            else if (ageRange.includes('40') || ageRange.includes('45') || ageRange.includes('49')) age = '40代';
+            else if (ageRange.includes('50') || ageRange.includes('55') || ageRange.includes('59')) age = '50代';
+            else if (ageRange.includes('60') || ageRange.includes('65')) age = '60代';
+
+            return {
+              id: item.id,
+              gender: answer.p1_q4 || 'その他',
+              age: age,
+              npsType: npsType,
+              npsScore: npsScore,
+              isRepeater: isRepeater,
+              revisitIntent: revisitIntent,
+              comment: item.comment,
+              date: new Date(item.created_at).toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+              }),
+              storeId: answer.store_id
+            };
+          });
+
+        setCommentsData(formattedData);
+      } catch (error) {
+        console.error('コメントデータの取得エラー:', error);
+        setCommentsData([]);
+      } finally {
+        setLoading(false);
       }
-    ];
-    
-    // 100件のデータを生成
-    const allComments = [];
-    const now = Date.now();
-    for (let i = 0; i < 100; i++) {
-      const baseComment = baseComments[i % baseComments.length];
-      allComments.push({
-        ...baseComment,
-        id: i + 1,
-        date: new Date(now - i * 180000).toLocaleString('ja-JP', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      });
-    }
-    return allComments;
-  };
-  
-  const allRealtimeComments = generateRealtimeData();
-  
+    };
+
+    fetchComments();
+  }, [companyId, selectedStore]);
+
   // フィルタリング処理
-  const filteredComments = allRealtimeComments.filter(comment => {
+  const filteredComments = commentsData.filter(comment => {
     // 性別フィルター
     if (filters.gender.length > 0 && !filters.gender.includes(comment.gender)) return false;
-    
+
     // 年齢フィルター
     if (filters.age.length > 0 && !filters.age.includes(comment.age)) return false;
-    
+
     // NPSタイプフィルター
     if (filters.npsType.length > 0 && !filters.npsType.includes(comment.npsType)) return false;
-    
+
     // リピーターフィルター
     if (filters.isRepeater.length > 0) {
       const repeaterStatus = comment.isRepeater ? 'リピーター' : '新規';
       if (!filters.isRepeater.includes(repeaterStatus)) return false;
     }
-    
+
     // 再来店意向フィルター
     if (filters.revisitIntent.length > 0 && !filters.revisitIntent.includes(comment.revisitIntent)) return false;
-    
-    // 課題フィルター
-    if (filters.hasIssue.length > 0) {
-      const issueStatus = comment.hasIssue ? '課題あり' : '課題なし';
-      if (!filters.hasIssue.includes(issueStatus)) return false;
-    }
-    
-    // タグフィルター
-    if (filters.tags.length > 0) {
-      const hasAnyTag = comment.tags.some(tag => filters.tags.includes(tag.name));
-      if (!hasAnyTag) return false;
-    }
-    
+
     // コメント検索
     if (filters.commentSearch) {
       const searchLower = filters.commentSearch.toLowerCase();
       if (!comment.comment.toLowerCase().includes(searchLower)) return false;
     }
-    
+
     return true;
   });
   
@@ -4164,23 +4152,21 @@ const RealtimeTab = ({ companyId }) => {
       });
     }
   };
-  
+
   // 検索ボックスの変更（即座に反映）
   const handleSearchChange = (value) => {
     setFilters(prev => ({ ...prev, commentSearch: value }));
     setTempFilters(prev => ({ ...prev, commentSearch: value }));
     setCurrentPage(1);
-    setExpandedIssue(null);
   };
-  
+
   // フィルター適用
   const applyFilters = () => {
     setFilters(tempFilters);
     setCurrentPage(1);
-    setExpandedIssue(null);
     setShowFilters(false);
   };
-  
+
   // フィルターを開く時に一時フィルターを現在のフィルターと同期
   const toggleFilters = () => {
     if (!showFilters) {
@@ -4188,15 +4174,11 @@ const RealtimeTab = ({ companyId }) => {
     }
     setShowFilters(!showFilters);
   };
-  
+
   // ページネーション制御
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    setExpandedIssue(null);
   };
-  
-  // 使用可能なタグを抽出
-  const availableTags = [...new Set(allRealtimeComments.flatMap(comment => comment.tags.map(tag => tag.name)))];
 
   // NPSタイプのカラー設定
   const getNPSBadge = (type) => {
@@ -4376,8 +4358,8 @@ const RealtimeTab = ({ companyId }) => {
                   </div>
                 </div>
 
-                {/* リピーター・再来店意向・課題 */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* リピーター・再来店意向 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* リピーター */}
                   <div>
                     <p className="text-sm font-medium text-gray-700 mb-2">リピーター</p>
@@ -4413,47 +4395,6 @@ const RealtimeTab = ({ companyId }) => {
                       ))}
                     </div>
                   </div>
-
-                  {/* 課題 */}
-                  <div>
-                    <p className="text-sm font-medium text-gray-700 mb-2">課題</p>
-                    <div className="space-y-2">
-                      {['課題あり', '課題なし'].map(issue => (
-                        <label key={issue} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={tempFilters.hasIssue.includes(issue)}
-                            onChange={(e) => handleTempFilterChange('hasIssue', issue, e.target.checked)}
-                            className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500"
-                          />
-                          <span className="text-sm text-gray-700">{issue}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* タグフィルター */}
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">タグ</p>
-                  <div className="flex flex-wrap gap-2">
-                    {availableTags.map(tag => (
-                      <button
-                        key={tag}
-                        onClick={() => {
-                          const isSelected = tempFilters.tags.includes(tag);
-                          handleTempFilterChange('tags', tag, !isSelected);
-                        }}
-                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                          tempFilters.tags.includes(tag)
-                            ? 'bg-purple-500 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
                 {/* フィルター適用・リセットボタン */}
@@ -4467,7 +4408,7 @@ const RealtimeTab = ({ companyId }) => {
                     >
                       フィルターを適用
                     </Button>
-                    {Object.entries(tempFilters).some(([key, value]) => 
+                    {Object.entries(tempFilters).some(([key, value]) =>
                       key === 'commentSearch' ? value !== '' : value.length > 0
                     ) && (
                       <Button
@@ -4480,8 +4421,6 @@ const RealtimeTab = ({ companyId }) => {
                             npsType: [],
                             isRepeater: [],
                             revisitIntent: [],
-                            hasIssue: [],
-                            tags: [],
                             commentSearch: filters.commentSearch
                           });
                         }}
@@ -4503,6 +4442,18 @@ const RealtimeTab = ({ companyId }) => {
           )}
         </CardHeader>
         <CardContent className="p-0">
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+              <span className="ml-3 text-gray-500">読み込み中...</span>
+            </div>
+          ) : commentsData.length === 0 ? (
+            <div className="flex flex-col justify-center items-center py-12 text-gray-500">
+              <MessageSquare className="w-12 h-12 mb-4 opacity-50" />
+              <p>コメントデータがありません</p>
+              <p className="text-sm mt-1">店舗を選択してください</p>
+            </div>
+          ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -4522,12 +4473,6 @@ const RealtimeTab = ({ companyId }) => {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     再来店意向
                   </th>
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    課題
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    タグ
-                  </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     コメント
                   </th>
@@ -4535,23 +4480,15 @@ const RealtimeTab = ({ companyId }) => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {currentComments.map((comment) => (
-                  <React.Fragment key={comment.id}>
-                  <tr 
-                    className={comment.hasIssue ? 'cursor-pointer' : ''}
-                    onClick={() => {
-                      if (comment.hasIssue) {
-                        setExpandedIssue(expandedIssue === comment.id ? null : comment.id);
-                      }
-                    }}
-                  >
+                  <tr key={comment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                          comment.gender === "女性" ? "bg-pink-100 text-pink-700" : 
+                          comment.gender === "女性" ? "bg-pink-100 text-pink-700" :
                           comment.gender === "男性" ? "bg-blue-100 text-blue-700" :
                           "bg-purple-100 text-purple-700"
                         }`}>
-                          {comment.gender === "女性" ? "女" : 
+                          {comment.gender === "女性" ? "女" :
                            comment.gender === "男性" ? "男" : "他"}
                         </div>
                       </div>
@@ -4560,7 +4497,10 @@ const RealtimeTab = ({ companyId }) => {
                       <span className="text-sm text-gray-900">{comment.age}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getNPSBadge(comment.npsType)}
+                      <div className="flex items-center gap-2">
+                        {getNPSBadge(comment.npsType)}
+                        <span className="text-xs text-gray-500">({comment.npsScore})</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {comment.isRepeater ? (
@@ -4582,42 +4522,6 @@ const RealtimeTab = ({ companyId }) => {
                         {comment.revisitIntent}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      {comment.hasIssue ? (
-                        <div className="flex justify-center items-center">
-                          <AlertTriangle className="w-5 h-5 text-red-500" />
-                        </div>
-                      ) : (
-                        <div style={{ height: '20px' }}></div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1 max-w-[200px]">
-                        {comment.tags.map((tag, index) => {
-                          const getTagStyle = (sentiment) => {
-                            switch (sentiment) {
-                              case "positive":
-                                return "bg-green-50 text-green-700 border-green-200";
-                              case "negative":
-                                return "bg-red-50 text-red-700 border-red-200";
-                              case "neutral":
-                              default:
-                                return "bg-gray-50 text-gray-700 border-gray-200";
-                            }
-                          };
-                          
-                          return (
-                            <Badge
-                              key={index}
-                              variant="outline"
-                              className={`text-xs ${getTagStyle(tag.sentiment)}`}
-                            >
-                              {tag.name}
-                            </Badge>
-                          );
-                        })}
-                      </div>
-                    </td>
                     <td className="px-6 py-4">
                       <div className="max-w-md">
                         <p className="text-sm text-gray-900 line-clamp-2">
@@ -4629,29 +4533,16 @@ const RealtimeTab = ({ companyId }) => {
                       </div>
                     </td>
                   </tr>
-                  {/* AI分析表示行 */}
-                  {expandedIssue === comment.id && comment.aiAnalysis && (
-                    <tr>
-                      <td colSpan="8" className="px-6 py-4 bg-gray-50">
-                        <div className="flex items-start gap-3">
-                          <Lightbulb className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-sm font-semibold text-gray-700 mb-1">AI分析・改善提案</p>
-                            <p className="text-sm text-gray-600">{comment.aiAnalysis}</p>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                  </React.Fragment>
                 ))}
               </tbody>
             </table>
           </div>
+          )}
         </CardContent>
       </Card>
 
       {/* ページネーション */}
+      {filteredComments.length > 0 && (
       <div className="flex justify-between items-center">
         <p className="text-sm text-gray-600">
           全 {filteredComments.length} 件中 {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredComments.length)} 件を表示
@@ -4717,6 +4608,7 @@ const RealtimeTab = ({ companyId }) => {
           </Button>
         </div>
       </div>
+      )}
     </div>
   );
 };
