@@ -180,63 +180,121 @@ serve(async (req) => {
       count: count
     }))
 
-    // === QSCスコア計算（お客様が重視するポイント）===
-    // p2_q1: Quality（料理・ドリンクの魅力）
-    // p2_q2: Service（接客・対応の印象）
-    // p2_q3: Cleanliness（清潔さ・衛生面）
-    // スコアは1-5の範囲と想定（期待を下回る〜期待を上回る）
+    // === 顧客の重視ポイント（preset_answer_user_featuresから取得）===
+    // top_preference: 1位の重視ポイント（重み2）
+    // second_preference: 2位の重視ポイント（重み1）
+    // カテゴリ: 品質, 接客, 空間, 衛生, 価格感度
 
-    const calculateQscScores = (answers: any[]) => {
-      const qscSums = { Q: 0, S: 0, C: 0 }
-      const qscCounts = { Q: 0, S: 0, C: 0 }
+    // preset_answer_user_featuresとpreset_question_answerを結合して取得
+    let featuresQuery = supabaseAdmin
+      .from('preset_answer_user_features')
+      .select(`
+        id,
+        top_preference,
+        second_preference,
+        review_form_submission_id,
+        store_id,
+        company_id
+      `)
+      .eq('company_id', companyId)
 
-      answers.forEach(a => {
-        if (a.p2_q1 !== null && a.p2_q1 !== undefined) {
-          qscSums.Q += Number(a.p2_q1)
-          qscCounts.Q++
-        }
-        if (a.p2_q2 !== null && a.p2_q2 !== undefined) {
-          qscSums.S += Number(a.p2_q2)
-          qscCounts.S++
-        }
-        if (a.p2_q3 !== null && a.p2_q3 !== undefined) {
-          qscSums.C += Number(a.p2_q3)
-          qscCounts.C++
-        }
-      })
+    if (storeId && storeId !== 'all') {
+      featuresQuery = featuresQuery.eq('store_id', storeId)
+    }
 
-      return {
-        Q: qscCounts.Q > 0 ? Math.round((qscSums.Q / qscCounts.Q) * 20) : 0, // 1-5を0-100にスケール
-        S: qscCounts.S > 0 ? Math.round((qscSums.S / qscCounts.S) * 20) : 0,
-        C: qscCounts.C > 0 ? Math.round((qscSums.C / qscCounts.C) * 20) : 0
+    const { data: userFeatures, error: featuresError } = await featuresQuery
+
+    if (featuresError) {
+      console.error('User features fetch error:', featuresError)
+    }
+
+    const allFeatures = userFeatures || []
+
+    // review_form_submission_idを取得してpreset_question_answerと紐付け
+    const submissionIds = allFeatures
+      .filter(f => f.review_form_submission_id)
+      .map(f => f.review_form_submission_id)
+
+    // preset_question_answerからreview_form_submission_idでp1_q3（リピーター判定）を取得
+    let customerTypeMap: Record<string, string> = {}
+    if (submissionIds.length > 0) {
+      const { data: answerData } = await supabaseAdmin
+        .from('preset_question_answer')
+        .select('review_form_submission_id, p1_q3')
+        .in('review_form_submission_id', submissionIds)
+
+      if (answerData) {
+        answerData.forEach(a => {
+          if (a.review_form_submission_id) {
+            customerTypeMap[a.review_form_submission_id] = a.p1_q3 || ''
+          }
+        })
       }
     }
 
-    // 全体のQSCスコア
-    const totalQsc = calculateQscScores(allAnswers)
+    // 重み付けスコア計算関数
+    const preferenceCategories = ['品質', '接客', '空間', '衛生', '価格感度']
+    const TOP_WEIGHT = 2  // 1位の重み
+    const SECOND_WEIGHT = 1  // 2位の重み
 
-    // リピーターと新規のフィルター
-    const repeaterAnswers = allAnswers.filter(a => a.p1_q3 && a.p1_q3 !== '初めて')
-    const newCustomerAnswers = allAnswers.filter(a => a.p1_q3 === '初めて')
+    const calculatePreferenceScores = (features: any[]) => {
+      const scores: Record<string, number> = {}
+      preferenceCategories.forEach(cat => scores[cat] = 0)
 
-    // リピーターのQSCスコア
-    const repeaterQsc = calculateQscScores(repeaterAnswers)
+      let totalWeight = 0
 
-    // 新規のQSCスコア
-    const newCustomerQsc = calculateQscScores(newCustomerAnswers)
+      features.forEach(f => {
+        if (f.top_preference && preferenceCategories.includes(f.top_preference)) {
+          scores[f.top_preference] += TOP_WEIGHT
+          totalWeight += TOP_WEIGHT
+        }
+        if (f.second_preference && preferenceCategories.includes(f.second_preference)) {
+          scores[f.second_preference] += SECOND_WEIGHT
+          totalWeight += SECOND_WEIGHT
+        }
+      })
 
-    // レーダーチャート用データ（QSC項目別）
-    const qscCategories = [
-      { key: 'Q', name: '品質（Quality）' },
-      { key: 'S', name: 'サービス（Service）' },
-      { key: 'C', name: '清潔さ（Cleanliness）' }
-    ]
+      // 正規化（0-100のスケール）
+      const normalizedScores: Record<string, number> = {}
+      preferenceCategories.forEach(cat => {
+        normalizedScores[cat] = totalWeight > 0
+          ? Math.round((scores[cat] / totalWeight) * 100)
+          : 0
+      })
 
-    const radarData = qscCategories.map(cat => ({
-      category: cat.name,
-      total: totalQsc[cat.key as keyof typeof totalQsc],
-      repeater: repeaterQsc[cat.key as keyof typeof repeaterQsc],
-      newCustomer: newCustomerQsc[cat.key as keyof typeof newCustomerQsc]
+      return normalizedScores
+    }
+
+    // 全体の重視ポイントスコア
+    const totalPreferenceScores = calculatePreferenceScores(allFeatures)
+
+    // リピーターと新規でフィルタリング
+    const repeaterFeatures = allFeatures.filter(f => {
+      const customerType = f.review_form_submission_id
+        ? customerTypeMap[f.review_form_submission_id]
+        : ''
+      return customerType && customerType !== '初めて'
+    })
+
+    const newCustomerFeatures = allFeatures.filter(f => {
+      const customerType = f.review_form_submission_id
+        ? customerTypeMap[f.review_form_submission_id]
+        : ''
+      return customerType === '初めて'
+    })
+
+    // リピーターの重視ポイントスコア
+    const repeaterPreferenceScores = calculatePreferenceScores(repeaterFeatures)
+
+    // 新規の重視ポイントスコア
+    const newCustomerPreferenceScores = calculatePreferenceScores(newCustomerFeatures)
+
+    // レーダーチャート用データ
+    const radarData = preferenceCategories.map(cat => ({
+      category: cat,
+      total: totalPreferenceScores[cat],
+      repeater: repeaterPreferenceScores[cat],
+      newCustomer: newCustomerPreferenceScores[cat]
     }))
 
     return new Response(

@@ -2920,8 +2920,8 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
       <Card className="border-0 shadow-xl bg-white">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            顧客の重視ポイント（QSC）
-            <InfoTooltip content="品質・サービス・清潔さに対する顧客の評価スコア（全体・リピーター・新規で比較）" />
+            顧客の重視ポイント
+            <InfoTooltip content="品質・接客・空間・衛生・価格感度の5つの観点で、顧客が何を重視しているかを表示（1位=2pt、2位=1ptで重み付け）" />
           </CardTitle>
         </CardHeader>
         <CardContent>
