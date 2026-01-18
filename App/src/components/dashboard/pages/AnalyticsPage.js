@@ -4164,12 +4164,40 @@ const RealtimeTab = ({ companyId }) => {
   });
   const [showFilters, setShowFilters] = useState(false);
 
-  // 店舗データを取得
+  // 店舗データを取得（Edge Function経由 - パートナーアクセス対応）
   useEffect(() => {
     const fetchStores = async () => {
       if (!companyId) return;
 
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          console.error('No session');
+          return;
+        }
+
+        // Edge Function経由で店舗を取得（RLSをバイパスしてパートナーアクセスをチェック）
+        const response = await fetch(
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-monthly-analytics?company_id=${companyId}&store_id=all`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (response.ok) {
+          const result = await response.json();
+          // allCompanyStores を優先して使用（全店舗リスト）
+          if (result.success && result.data?.allCompanyStores) {
+            setStores(result.data.allCompanyStores);
+            return;
+          }
+        }
+
+        // フォールバック: 直接storesテーブルから取得
         const { data, error } = await supabase
           .from('stores')
           .select('id, name')

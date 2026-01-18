@@ -110,6 +110,15 @@ serve(async (req) => {
     // monthly_analytics_summaryからデータを取得
     let summary: any = null
 
+    // 企業に紐づく全店舗リストを取得（パートナーアクセス対応）
+    let allCompanyStores: { id: string; name: string }[] = []
+    const { data: allStoresResult } = await supabaseAdmin
+      .from('stores')
+      .select('id, name')
+      .eq('company_id', companyId)
+      .order('name')
+    allCompanyStores = allStoresResult || []
+
     // レポートが存在する店舗リストを取得
     let storesWithReports: { id: string; name: string }[] = []
     if (isAllStores) {
@@ -151,6 +160,7 @@ serve(async (req) => {
             data: {
               availablePeriods,
               storesWithReports,
+              allCompanyStores,
               yearMonth: targetYearMonth,
               overview: null,
               salesImpact: null,
@@ -461,6 +471,7 @@ serve(async (req) => {
           success: true,
           data: {
             availablePeriods,
+            allCompanyStores,
             yearMonth: targetYearMonth,
             overview: null,
             salesImpact: null,
@@ -1114,6 +1125,7 @@ serve(async (req) => {
         data: {
           availablePeriods,
           storesWithReports,
+          allCompanyStores,
           yearMonth: targetYearMonth,
           overview: overviewData,
           salesImpact: salesImpactData,
