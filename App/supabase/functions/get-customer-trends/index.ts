@@ -85,6 +85,9 @@ serve(async (req) => {
         p1_q4,
         p1_q5,
         p1_q6,
+        p2_q1,
+        p2_q2,
+        p2_q3,
         store_id,
         company_id
       `)
@@ -177,41 +180,63 @@ serve(async (req) => {
       count: count
     }))
 
-    // === リピーターと新規の傾向比較 ===
+    // === QSCスコア計算（お客様が重視するポイント）===
+    // p2_q1: Quality（料理・ドリンクの魅力）
+    // p2_q2: Service（接客・対応の印象）
+    // p2_q3: Cleanliness（清潔さ・衛生面）
+    // スコアは1-5の範囲と想定（期待を下回る〜期待を上回る）
+
+    const calculateQscScores = (answers: any[]) => {
+      const qscSums = { Q: 0, S: 0, C: 0 }
+      const qscCounts = { Q: 0, S: 0, C: 0 }
+
+      answers.forEach(a => {
+        if (a.p2_q1 !== null && a.p2_q1 !== undefined) {
+          qscSums.Q += Number(a.p2_q1)
+          qscCounts.Q++
+        }
+        if (a.p2_q2 !== null && a.p2_q2 !== undefined) {
+          qscSums.S += Number(a.p2_q2)
+          qscCounts.S++
+        }
+        if (a.p2_q3 !== null && a.p2_q3 !== undefined) {
+          qscSums.C += Number(a.p2_q3)
+          qscCounts.C++
+        }
+      })
+
+      return {
+        Q: qscCounts.Q > 0 ? Math.round((qscSums.Q / qscCounts.Q) * 20) : 0, // 1-5を0-100にスケール
+        S: qscCounts.S > 0 ? Math.round((qscSums.S / qscCounts.S) * 20) : 0,
+        C: qscCounts.C > 0 ? Math.round((qscSums.C / qscCounts.C) * 20) : 0
+      }
+    }
+
+    // 全体のQSCスコア
+    const totalQsc = calculateQscScores(allAnswers)
+
+    // リピーターと新規のフィルター
     const repeaterAnswers = allAnswers.filter(a => a.p1_q3 && a.p1_q3 !== '初めて')
     const newCustomerAnswers = allAnswers.filter(a => a.p1_q3 === '初めて')
 
-    // リピーターの年齢分布
-    const repeaterAgeGroups: Record<string, number> = { '20代': 0, '30代': 0, '40代': 0, '50代': 0, '60代以上': 0 }
-    repeaterAnswers.forEach(a => {
-      const age = a.p1_q5 || ''
-      if (age.includes('20') || age.includes('25') || age.includes('29') || age === '20代') repeaterAgeGroups['20代']++
-      else if (age.includes('30') || age.includes('35') || age.includes('39') || age === '30代') repeaterAgeGroups['30代']++
-      else if (age.includes('40') || age.includes('45') || age.includes('49') || age === '40代') repeaterAgeGroups['40代']++
-      else if (age.includes('50') || age.includes('55') || age.includes('59') || age === '50代') repeaterAgeGroups['50代']++
-      else if (age.includes('60') || age.includes('65') || age.includes('70') || age === '60代' || age === '60代以上') repeaterAgeGroups['60代以上']++
-    })
+    // リピーターのQSCスコア
+    const repeaterQsc = calculateQscScores(repeaterAnswers)
 
-    // 新規の年齢分布
-    const newCustomerAgeGroups: Record<string, number> = { '20代': 0, '30代': 0, '40代': 0, '50代': 0, '60代以上': 0 }
-    newCustomerAnswers.forEach(a => {
-      const age = a.p1_q5 || ''
-      if (age.includes('20') || age.includes('25') || age.includes('29') || age === '20代') newCustomerAgeGroups['20代']++
-      else if (age.includes('30') || age.includes('35') || age.includes('39') || age === '30代') newCustomerAgeGroups['30代']++
-      else if (age.includes('40') || age.includes('45') || age.includes('49') || age === '40代') newCustomerAgeGroups['40代']++
-      else if (age.includes('50') || age.includes('55') || age.includes('59') || age === '50代') newCustomerAgeGroups['50代']++
-      else if (age.includes('60') || age.includes('65') || age.includes('70') || age === '60代' || age === '60代以上') newCustomerAgeGroups['60代以上']++
-    })
+    // 新規のQSCスコア
+    const newCustomerQsc = calculateQscScores(newCustomerAnswers)
 
-    const repeaterAgeTotal = Object.values(repeaterAgeGroups).reduce((a, b) => a + b, 0)
-    const newCustomerAgeTotal = Object.values(newCustomerAgeGroups).reduce((a, b) => a + b, 0)
+    // レーダーチャート用データ（QSC項目別）
+    const qscCategories = [
+      { key: 'Q', name: '品質（Quality）' },
+      { key: 'S', name: 'サービス（Service）' },
+      { key: 'C', name: '清潔さ（Cleanliness）' }
+    ]
 
-    // レーダーチャート用データ（年齢層別）
-    const radarData = Object.keys(ageGroups).map(age => ({
-      category: age,
-      total: ageTotal > 0 ? Math.round((ageGroups[age] / ageTotal) * 100) : 0,
-      repeater: repeaterAgeTotal > 0 ? Math.round((repeaterAgeGroups[age] / repeaterAgeTotal) * 100) : 0,
-      newCustomer: newCustomerAgeTotal > 0 ? Math.round((newCustomerAgeGroups[age] / newCustomerAgeTotal) * 100) : 0
+    const radarData = qscCategories.map(cat => ({
+      category: cat.name,
+      total: totalQsc[cat.key as keyof typeof totalQsc],
+      repeater: repeaterQsc[cat.key as keyof typeof repeaterQsc],
+      newCustomer: newCustomerQsc[cat.key as keyof typeof newCustomerQsc]
     }))
 
     return new Response(

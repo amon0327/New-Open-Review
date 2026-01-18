@@ -2916,19 +2916,19 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
         </Card>
       </div>
 
-      {/* 顧客傾向 */}
+      {/* 顧客の重視ポイント */}
       <Card className="border-0 shadow-xl bg-white">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            年齢層別顧客傾向
-            <InfoTooltip content="全体・リピーター・新規顧客の年齢層分布を比較" />
+            顧客の重視ポイント（QSC）
+            <InfoTooltip content="品質・サービス・清潔さに対する顧客の評価スコア（全体・リピーター・新規で比較）" />
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* 全体の傾向 */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-center text-gray-700">全体の傾向</h3>
+              <h3 className="text-sm font-semibold text-center text-gray-700">全体の評価</h3>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData}>
@@ -2963,7 +2963,7 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
                         borderRadius: '6px',
                         fontSize: '12px'
                       }}
-                      formatter={(value) => [`${value}`, '正規化スコア']}
+                      formatter={(value) => [`${value}`, '評価スコア']}
                     />
                   </RadarChart>
                 </ResponsiveContainer>
@@ -2982,7 +2982,7 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
 
             {/* リピーターの傾向 */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-center text-gray-700">リピーターの傾向</h3>
+              <h3 className="text-sm font-semibold text-center text-gray-700">リピーターの評価</h3>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData}>
@@ -3017,7 +3017,7 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
                         borderRadius: '6px',
                         fontSize: '12px'
                       }}
-                      formatter={(value) => [`${value}`, '正規化スコア']}
+                      formatter={(value) => [`${value}`, '評価スコア']}
                     />
                   </RadarChart>
                 </ResponsiveContainer>
@@ -3036,7 +3036,7 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
 
             {/* 新規の傾向 */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-center text-gray-700">新規顧客の傾向</h3>
+              <h3 className="text-sm font-semibold text-center text-gray-700">新規顧客の評価</h3>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData}>
@@ -3071,7 +3071,7 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
                         borderRadius: '6px',
                         fontSize: '12px'
                       }}
-                      formatter={(value) => [`${value}`, '正規化スコア']}
+                      formatter={(value) => [`${value}`, '評価スコア']}
                     />
                   </RadarChart>
                 </ResponsiveContainer>
