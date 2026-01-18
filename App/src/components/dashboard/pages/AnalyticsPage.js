@@ -1262,7 +1262,7 @@ const StoreByStoreTab = ({ companyId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isPeriodsLoading, setIsPeriodsLoading] = useState(false);
 
-  // 店舗データ取得
+  // 店舗データ取得（レポートが存在する店舗のみ）
   useEffect(() => {
     const fetchStores = async () => {
       if (!companyId) {
@@ -1270,10 +1270,29 @@ const StoreByStoreTab = ({ companyId }) => {
         return;
       }
       try {
+        // monthly_analytics_summaryに存在するstore_idを取得
+        const { data: reportStoreIds, error: reportError } = await supabase
+          .from('monthly_analytics_summary')
+          .select('store_id')
+          .eq('company_id', companyId);
+
+        if (reportError) throw reportError;
+
+        // ユニークなstore_idを抽出
+        const uniqueStoreIds = [...new Set(reportStoreIds?.map(r => r.store_id) || [])];
+
+        if (uniqueStoreIds.length === 0) {
+          setStores([]);
+          setSelectedStore('all');
+          setIsLoading(false);
+          return;
+        }
+
+        // 該当する店舗情報を取得
         const { data, error } = await supabase
           .from('stores')
           .select('id, name')
-          .eq('company_id', companyId)
+          .in('id', uniqueStoreIds)
           .order('name');
         if (error) throw error;
         setStores(data || []);
@@ -2684,28 +2703,28 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
                           <p className="text-xs text-muted-foreground">{data.label}</p>
                         </div>
                       </div>
-                      <Badge 
+                      <Badge
                         variant="secondary"
                         className={`text-xs px-2 py-0.5 ${
                           isPositive ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'
                         }`}
                       >
-                        {isPositive ? '↑' : '↓'} {Math.abs(data.trend).toFixed(1)}
+                        {isPositive ? '↑' : '↓'} {Math.round(Math.abs(data.trend))}
                       </Badge>
                     </div>
-                    
+
                     {/* スコア表示 */}
                     <div className="flex items-end justify-between">
                       <div className="flex items-baseline gap-1">
                         <span className={`text-3xl font-bold bg-gradient-to-r ${gradientColor} bg-clip-text text-transparent`}>
-                          {data.score.toFixed(2)}
+                          {Math.round(data.score)}
                         </span>
-                        <span className="text-xs text-muted-foreground">/ 5.00</span>
+                        <span className="text-xs text-muted-foreground">/ 5</span>
                       </div>
                       <div className="text-right">
                         <div className="text-xs text-muted-foreground">達成率</div>
                         <div className="text-sm font-semibold text-gray-700">
-                          {((data.score / 5) * 100).toFixed(0)}%
+                          {Math.round((data.score / 5) * 100)}%
                         </div>
                       </div>
                     </div>
