@@ -152,10 +152,17 @@ serve(async (req) => {
     }
 
     // ========================================
-    // セグメント別に集計
+    // セグメント別に集計（全体 + 月別）
     // ========================================
     type SegmentKey = string
     const segmentCounts: Record<SegmentKey, number> = {}
+    const monthlySegmentCounts: Record<string, Record<SegmentKey, number>> = {}
+
+    // 現在の月と先月を取得
+    const now = new Date()
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const lastMonthKey = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`
 
     allAnswers.forEach(answer => {
       const nps = getNpsType(answer.p1_q1)
@@ -169,9 +176,21 @@ serve(async (req) => {
 
       const key = `${nps}|${revisitLabel}|${experience}`
       segmentCounts[key] = (segmentCounts[key] || 0) + 1
+
+      // 月別集計
+      const date = new Date(answer.created_at)
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      if (!monthlySegmentCounts[monthKey]) {
+        monthlySegmentCounts[monthKey] = {}
+      }
+      monthlySegmentCounts[monthKey][key] = (monthlySegmentCounts[monthKey][key] || 0) + 1
     })
 
-    // セグメントデータを構築
+    // 月別の総件数を計算
+    const currentMonthTotal = Object.values(monthlySegmentCounts[currentMonthKey] || {}).reduce((sum, c) => sum + c, 0)
+    const lastMonthTotal = Object.values(monthlySegmentCounts[lastMonthKey] || {}).reduce((sum, c) => sum + c, 0)
+
+    // セグメントデータを構築（先月比を含む）
     const segments = Object.entries(segmentCounts).map(([key, count], index) => {
       const [nps, revisitIntent, experience] = key.split('|')
       const impact = getImpactScore(nps, revisitIntent === 'あり', experience)
@@ -181,6 +200,20 @@ serve(async (req) => {
       if (impact >= 2) group = 'A'
       else if (impact <= -2) group = 'B'
 
+      // 今月と先月の構成比を計算
+      const currentMonthCount = monthlySegmentCounts[currentMonthKey]?.[key] || 0
+      const lastMonthCount = monthlySegmentCounts[lastMonthKey]?.[key] || 0
+
+      const currentMonthPercentage = currentMonthTotal > 0
+        ? (currentMonthCount / currentMonthTotal) * 100
+        : 0
+      const lastMonthPercentage = lastMonthTotal > 0
+        ? (lastMonthCount / lastMonthTotal) * 100
+        : 0
+
+      // 先月比（構成比の変化、ポイント）
+      const monthOverMonth = currentMonthPercentage - lastMonthPercentage
+
       return {
         id: index + 1,
         nps,
@@ -188,7 +221,10 @@ serve(async (req) => {
         experience,
         impact,
         group,
-        count
+        count,
+        currentMonthCount,
+        lastMonthCount,
+        monthOverMonth: Math.round(monthOverMonth * 10) / 10 // 小数点1桁
       }
     })
 

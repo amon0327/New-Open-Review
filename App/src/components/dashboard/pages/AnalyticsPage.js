@@ -2002,7 +2002,10 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const segmentsWithPercentage = segments.map(seg => ({
     ...seg,
     percentage: ((seg.count / totalCount) * 100).toFixed(1),
-    salesImpact: seg.impact === 0 ? '±0%' : `${seg.impact > 0 ? '+' : ''}${(seg.impact * 3)}%`
+    // 実際の先月比（構成比の変化ポイント）
+    monthOverMonthDisplay: seg.monthOverMonth === 0 || seg.monthOverMonth === undefined
+      ? '±0pt'
+      : `${seg.monthOverMonth > 0 ? '+' : ''}${seg.monthOverMonth}pt`
   })).sort((a, b) => b.percentage - a.percentage);
 
   // スパークラインデータ（月別トレンドから生成）
@@ -2402,10 +2405,10 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
                     </td>
                     <td className="p-3 text-right">
                       <span className={`text-sm font-medium ${
-                        segment.impact > 0 ? 'text-green-600' :
-                        segment.impact < 0 ? 'text-red-600' : 'text-gray-600'
+                        segment.monthOverMonth > 0 ? 'text-green-600' :
+                        segment.monthOverMonth < 0 ? 'text-red-600' : 'text-gray-600'
                       }`}>
-                        {segment.salesImpact}
+                        {segment.monthOverMonthDisplay}
                       </span>
                     </td>
                     <td className="p-3">
