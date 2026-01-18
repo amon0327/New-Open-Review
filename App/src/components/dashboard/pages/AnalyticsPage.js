@@ -1999,6 +1999,8 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
         );
 
         const result = await response.json();
+        console.log('SalesImpact API Response:', result);
+        console.log('salesImpact data:', result.data?.salesImpact);
 
         if (!result.success) {
           throw new Error(result.error || 'データの取得に失敗しました');
@@ -2117,7 +2119,7 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
   }
 
   // データがない場合の表示
-  if (!impactData || segments.length === 0 || totalCount === 0) {
+  if (!impactData || segments.length === 0) {
     return (
       <div className="p-6 flex justify-center items-center min-h-[400px]">
         <div className="text-center">
