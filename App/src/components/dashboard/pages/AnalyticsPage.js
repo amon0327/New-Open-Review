@@ -1380,7 +1380,7 @@ const StoreByStoreTab = ({ companyId }) => {
           <SalesImpactTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
         </TabPanel>
         <TabPanel value={activeSubTab} index={3}>
-          <StoreEvaluationTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+          <StoreEvaluationTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
         </TabPanel>
         <TabPanel value={activeSubTab} index={4}>
           <CustomerTrendsTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
@@ -2422,13 +2422,57 @@ const SalesImpactTab = ({ selectedStore, selectedPeriod }) => {
 };
 
 // 店舗評価タブ
-const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
-  // QSCスコアデータ
-  const qscScores = {
-    Q: { label: 'クオリティ', score: 4.7, trend: 0.2, icon: UtensilsCrossed, color: 'violet' },
-    S: { label: 'サービス', score: 4.8, trend: 0.1, icon: Users, color: 'blue' },
-    C: { label: 'クレンリネス', score: 4.6, trend: -0.1, icon: Sparkles, color: 'emerald' }
-  };
+const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
+  const [loading, setLoading] = useState(true);
+  const [evaluationData, setEvaluationData] = useState(null);
+
+  // Edge Functionからデータを取得
+  useEffect(() => {
+    const fetchEvaluationData = async () => {
+      if (!companyId) return;
+      setLoading(true);
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('認証が必要です');
+        }
+
+        const params = new URLSearchParams({
+          company_id: companyId
+        });
+        if (selectedStore && selectedStore !== 'all') {
+          params.append('store_id', selectedStore);
+        }
+
+        const response = await fetch(
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-store-evaluation?${params}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || 'データの取得に失敗しました');
+        }
+
+        setEvaluationData(result.data);
+      } catch (error) {
+        console.error('店舗評価データの取得エラー:', error);
+        setEvaluationData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvaluationData();
+  }, [companyId, selectedStore]);
 
   // カラーマッピング
   const colorMap = {
@@ -2437,58 +2481,38 @@ const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
     emerald: 'from-emerald-500 to-teal-500'
   };
 
-  // QSC詳細データ（各カテゴリ10項目）
-  // ポジティブ回答者のサンプルデータ
-  const positiveQscData = {
-    Q: {
-      positiveResponseCount: 1135,
-      negativeResponseCount: 99,
-      items: [
-        { label: '商品の鮮度', positive: 95, negative: 5 },
-        { label: '味の一貫性', positive: 93, negative: 7 },
-        { label: '温度管理', positive: 91, negative: 9 },
-        { label: '見た目・盛り付け', positive: 94, negative: 6 },
-        { label: '分量の適切さ', positive: 92, negative: 8 },
-        { label: '食材の品質', positive: 96, negative: 4 },
-        { label: 'メニューの豊富さ', positive: 88, negative: 12 },
-        { label: '季節商品の魅力', positive: 90, negative: 10 },
-        { label: '価格と品質のバランス', positive: 87, negative: 13 },
-        { label: '特別メニューの満足度', positive: 89, negative: 11 }
-      ]
-    },
-    S: {
-      positiveResponseCount: 1077,
-      negativeResponseCount: 112,
-      items: [
-        { label: '接客態度', positive: 97, negative: 3 },
-        { label: '注文の正確性', positive: 95, negative: 5 },
-        { label: '待ち時間', positive: 89, negative: 11 },
-        { label: 'スタッフの知識', positive: 94, negative: 6 },
-        { label: '問題解決能力', positive: 92, negative: 8 },
-        { label: 'レジ対応の速さ', positive: 91, negative: 9 },
-        { label: '笑顔・親切さ', positive: 96, negative: 4 },
-        { label: '特別な要望への対応', positive: 93, negative: 7 },
-        { label: 'スタッフの清潔感', positive: 98, negative: 2 },
-        { label: 'チームワーク', positive: 94, negative: 6 }
-      ]
-    },
-    C: {
-      positiveResponseCount: 1018,
-      negativeResponseCount: 138,
-      items: [
-        { label: '店内の清潔さ', positive: 94, negative: 6 },
-        { label: 'テーブルの清潔さ', positive: 93, negative: 7 },
-        { label: 'トイレの清潔さ', positive: 91, negative: 9 },
-        { label: '床の清潔さ', positive: 92, negative: 8 },
-        { label: '窓・ガラスの清潔さ', positive: 91, negative: 9 },
-        { label: '厨房の衛生管理', positive: 96, negative: 4 },
-        { label: 'ゴミ箱周辺の管理', positive: 88, negative: 12 },
-        { label: '換気・空気の質', positive: 87, negative: 13 },
-        { label: '備品の整理整頓', positive: 90, negative: 10 },
-        { label: '外観・入口の清潔さ', positive: 93, negative: 7 }
-      ]
-    }
+  // アイコンマッピング
+  const iconMap = {
+    Q: UtensilsCrossed,
+    S: Users,
+    C: Sparkles
   };
+
+  // QSCスコアデータ（APIから取得またはデフォルト）
+  const qscScores = evaluationData?.qscScores || {
+    Q: { label: 'クオリティ', score: 0, trend: 0, color: 'violet' },
+    S: { label: 'サービス', score: 0, trend: 0, color: 'blue' },
+    C: { label: 'クレンリネス', score: 0, trend: 0, color: 'emerald' }
+  };
+
+  // QSC詳細データ（APIから取得またはデフォルト）
+  const qscDetailedData = evaluationData?.qscDetailedData || {
+    Q: { items: [], positiveCount: 0, negativeCount: 0, neutralCount: 0, totalResponses: 0 },
+    S: { items: [], positiveCount: 0, negativeCount: 0, neutralCount: 0, totalResponses: 0 },
+    C: { items: [], positiveCount: 0, negativeCount: 0, neutralCount: 0, totalResponses: 0 }
+  };
+
+  // ローディング表示
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <span className="text-gray-500">データを読み込み中...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -2497,8 +2521,8 @@ const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
         <CardContent className="p-0">
           <div className="grid grid-cols-3 divide-x divide-gray-100">
             {Object.entries(qscScores).map(([key, data], index) => {
-              const Icon = data.icon;
-              const isPositive = data.trend > 0;
+              const Icon = iconMap[key];
+              const isPositive = data.trend >= 0;
               const gradientColor = colorMap[data.color];
               
               return (
@@ -2572,6 +2596,10 @@ const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
                 <span className="text-gray-600">ポジティブ</span>
               </div>
               <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded bg-gray-300"></div>
+                <span className="text-gray-600">ニュートラル</span>
+              </div>
+              <div className="flex items-center gap-1">
                 <div className="w-3 h-3 rounded bg-gradient-to-r from-red-500 to-rose-400"></div>
                 <span className="text-gray-600">ネガティブ</span>
               </div>
@@ -2580,8 +2608,9 @@ const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
         </CardHeader>
         <CardContent className="pb-6">
           <div className="grid grid-cols-3 gap-6">
-            {Object.entries(positiveQscData).map(([category, data]) => {
-              const totalResponses = data.positiveResponseCount + data.negativeResponseCount;
+            {Object.entries(qscDetailedData).map(([category, data]) => {
+              const totalResponses = data.totalResponses || 0;
+              const items = data.items || [];
               return (
                 <div key={category} className="space-y-3">
                   <div className="flex items-center justify-between mb-4">
@@ -2598,9 +2627,10 @@ const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
                     </span>
                   </div>
 
-                  {data.items.map((item, index) => {
-                    const positivePercentage = item.positive;
-                    const negativePercentage = item.negative;
+                  {items.length > 0 ? items.map((item, index) => {
+                    const positivePercentage = item.positive || 0;
+                    const neutralPercentage = item.neutral || 0;
+                    const negativePercentage = item.negative || 0;
 
                     return (
                       <div key={index} className="group mb-3">
@@ -2609,17 +2639,24 @@ const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
                             {item.label}
                           </span>
                         </div>
-                        <div className="relative h-6 bg-gray-50 rounded overflow-hidden border border-gray-200">
+                        <div className="relative h-6 bg-gray-50 rounded overflow-hidden border border-gray-200 flex">
                           {/* ポジティブ部分 */}
                           <div
-                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-700 ease-out"
+                            className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-700 ease-out"
                             style={{ width: `${positivePercentage}%` }}
+                          >
+                            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+                          </div>
+                          {/* ニュートラル部分 */}
+                          <div
+                            className="h-full bg-gray-300 transition-all duration-700 ease-out"
+                            style={{ width: `${neutralPercentage}%` }}
                           >
                             <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
                           </div>
                           {/* ネガティブ部分 */}
                           <div
-                            className="absolute inset-y-0 right-0 bg-gradient-to-l from-red-500 to-rose-400 transition-all duration-700 ease-out"
+                            className="h-full bg-gradient-to-r from-rose-400 to-red-500 transition-all duration-700 ease-out"
                             style={{ width: `${negativePercentage}%` }}
                           >
                             <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
@@ -2627,11 +2664,16 @@ const StoreEvaluationTab = ({ selectedStore, selectedPeriod }) => {
                         </div>
                         <div className="flex justify-between text-xs mt-1">
                           <span className="text-green-600 font-medium">{positivePercentage}%</span>
+                          <span className="text-gray-500 font-medium">{neutralPercentage}%</span>
                           <span className="text-red-600 font-medium">{negativePercentage}%</span>
                         </div>
                       </div>
                     );
-                  })}
+                  }) : (
+                    <div className="text-center text-gray-400 py-8">
+                      データがありません
+                    </div>
+                  )}
                 </div>
               );
             })}
