@@ -1999,8 +1999,6 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
         );
 
         const result = await response.json();
-        console.log('SalesImpact API Response:', result);
-        console.log('salesImpact data:', result.data?.salesImpact);
 
         if (!result.success) {
           throw new Error(result.error || 'データの取得に失敗しました');
@@ -2020,27 +2018,9 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
 
   // データ取得結果から値を取得（デフォルト値付き）
   const segments = impactData?.segments || [];
-  const trendData = impactData?.trendData || [];
   const totalCount = impactData?.totalCount || 0;
-  const totalScore = impactData?.totalScore || 0;
-  const positiveScore = impactData?.positiveScore || 0;
-  const negativeScore = impactData?.negativeScore || 0;
   const normalizedScore = impactData?.normalizedScore || 50;
   const categoryDataFromApi = impactData?.categoryData || null;
-  const compositionData = impactData?.compositionData || [];
-  const avgComposition = impactData?.avgComposition || { newChurn: 0, newRepeaters: 0, stableRepeaters: 0, churnRisk: 0 };
-
-  // 今月と先月のデータを取得
-  const thisMonthComposition = compositionData.length > 0 ? compositionData[compositionData.length - 1] : null;
-  const lastMonthComposition = compositionData.length > 1 ? compositionData[compositionData.length - 2] : null;
-
-  // 6ヶ月平均計算
-  const sixMonthAvg = trendData.length > 0
-    ? Math.round(trendData.reduce((sum, d) => sum + d.score, 0) / trendData.length)
-    : 0;
-  const lastMonthScore = trendData.length > 0 ? trendData[trendData.length - 1].score : 0;
-  const previousMonthScore = trendData.length > 1 ? trendData[trendData.length - 2].score : lastMonthScore;
-  const monthlyChange = lastMonthScore - previousMonthScore;
 
   // 状態判定
   const getStatus = (score) => {
@@ -2051,12 +2031,6 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
   };
 
   const status = getStatus(normalizedScore);
-
-  // 影響度の大きいセグメントを抽出
-  const topImpacts = [...segments]
-    .map(s => ({ ...s, totalImpact: s.impact * s.count }))
-    .sort((a, b) => Math.abs(b.totalImpact) - Math.abs(a.totalImpact))
-    .slice(0, 4);
 
   // 影響度ラベル
   const getImpactLabel = (impact) => {
@@ -2080,20 +2054,8 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
   // セグメントごとの構成比を計算
   const segmentsWithPercentage = segments.map(seg => ({
     ...seg,
-    percentage: totalCount > 0 ? ((seg.count / totalCount) * 100).toFixed(1) : '0.0',
-    // 実際の先月比（構成比の変化ポイント）
-    monthOverMonthDisplay: seg.monthOverMonth === 0 || seg.monthOverMonth === undefined
-      ? '±0pt'
-      : `${seg.monthOverMonth > 0 ? '+' : ''}${seg.monthOverMonth}pt`
+    percentage: totalCount > 0 ? ((seg.count / totalCount) * 100).toFixed(1) : '0.0'
   })).sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
-
-  // スパークラインデータ（月別トレンドから生成）
-  const sparklineData = {
-    newRepeaters: trendData.slice(-3).map(d => d.positive > 0 ? Math.round(d.positive / (d.positive + d.negative) * 100) : 50),
-    stableRepeaters: trendData.slice(-3).map(d => d.score),
-    newChurn: trendData.slice(-3).map(d => d.negative > 0 ? Math.round(d.negative / (d.positive + d.negative) * 100) : 50),
-    churnRisk: trendData.slice(-3).map(d => 100 - d.score)
-  };
 
   // 各カテゴリーの割合を計算
   const totalCustomers = categoryData.newRepeaters.count + categoryData.stableRepeaters.count +
@@ -2137,30 +2099,9 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
         {/* 新規離脱 */}
         <Card className="border-0 shadow-lg">
           <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">新規離脱</CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">再来店意向なし</p>
-              </div>
-              <div className="w-16 h-10">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={sparklineData.newChurn.map((value, index) => ({ value, index }))}>
-                    <defs>
-                      <linearGradient id="grayGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6b7280" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#6b7280" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <Area 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#6b7280" 
-                      fill="url(#grayGradient)"
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+            <div>
+              <CardTitle className="text-base font-semibold">新規離脱</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">再来店意向なし</p>
             </div>
           </CardHeader>
           <CardContent>
@@ -2183,30 +2124,9 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
         {/* 新規→リピーター（増加分） */}
         <Card className="border-0 shadow-lg">
           <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">新規リピーター</CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">再来店意向あり</p>
-              </div>
-              <div className="w-16 h-10">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={sparklineData.newRepeaters.map((value, index) => ({ value, index }))}>
-                    <defs>
-                      <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <Area 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#3b82f6" 
-                      fill="url(#blueGradient)"
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+            <div>
+              <CardTitle className="text-base font-semibold">新規リピーター</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">再来店意向あり</p>
             </div>
           </CardHeader>
           <CardContent>
@@ -2229,30 +2149,9 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
         {/* 安定リピーター */}
         <Card className="border-0 shadow-lg">
           <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">安定リピーター</CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">継続的な来店</p>
-              </div>
-              <div className="w-16 h-10">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={sparklineData.stableRepeaters.map((value, index) => ({ value, index }))}>
-                    <defs>
-                      <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <Area 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#22c55e" 
-                      fill="url(#greenGradient)"
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+            <div>
+              <CardTitle className="text-base font-semibold">安定リピーター</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">継続的な来店</p>
             </div>
           </CardHeader>
           <CardContent>
@@ -2275,30 +2174,9 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
         {/* リピーター離脱 */}
         <Card className="border-0 shadow-lg">
           <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">リピーター離脱</CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">再来店意向なし</p>
-              </div>
-              <div className="w-16 h-10">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={sparklineData.churnRisk.map((value, index) => ({ value, index }))}>
-                    <defs>
-                      <linearGradient id="orangeGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <Area 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#f97316" 
-                      fill="url(#orangeGradient)"
-                      strokeWidth={2}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+            <div>
+              <CardTitle className="text-base font-semibold">リピーター離脱</CardTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">再来店意向なし</p>
             </div>
           </CardHeader>
           <CardContent>
@@ -2319,126 +2197,6 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
         </Card>
       </div>
 
-      {/* 顧客構成比較 */}
-      <Card className="border-0 shadow-lg bg-white overflow-hidden">
-        <CardContent className="p-4">
-          <div>
-            {/* ヘッダー */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">顧客構成比較</h3>
-              {/* 凡例 */}
-              <div className="flex gap-4 text-xs">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-gray-500 rounded-sm"></div>
-                  <span className="text-gray-600">新規離脱</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-blue-500 rounded-sm"></div>
-                  <span className="text-gray-600">新規リピーター</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-green-500 rounded-sm"></div>
-                  <span className="text-gray-600">安定リピーター</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-orange-500 rounded-sm"></div>
-                  <span className="text-gray-600">リピーター離脱</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 横棒グラフ */}
-            <div className="space-y-4">
-              {/* 今月 */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">今月</span>
-                  <span className="text-xs text-gray-500">{thisMonthComposition?.counts?.total || 0}件</span>
-                </div>
-                <div className="flex h-6 bg-gray-100 rounded-full overflow-hidden">
-                  {thisMonthComposition ? (
-                    <>
-                      <div className="bg-gray-500 transition-all duration-500" style={{ width: `${thisMonthComposition.newChurn}%` }}>
-                        {thisMonthComposition.newChurn > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{thisMonthComposition.newChurn}%</span>}
-                      </div>
-                      <div className="bg-blue-500 transition-all duration-500" style={{ width: `${thisMonthComposition.newRepeaters}%` }}>
-                        {thisMonthComposition.newRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{thisMonthComposition.newRepeaters}%</span>}
-                      </div>
-                      <div className="bg-green-500 transition-all duration-500" style={{ width: `${thisMonthComposition.stableRepeaters}%` }}>
-                        {thisMonthComposition.stableRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{thisMonthComposition.stableRepeaters}%</span>}
-                      </div>
-                      <div className="bg-orange-500 transition-all duration-500" style={{ width: `${thisMonthComposition.churnRisk}%` }}>
-                        {thisMonthComposition.churnRisk > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{thisMonthComposition.churnRisk}%</span>}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-full text-center text-xs text-gray-400 flex items-center justify-center">データなし</div>
-                  )}
-                </div>
-              </div>
-
-              {/* 先月 */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">先月{lastMonthComposition ? ` (${lastMonthComposition.month})` : ''}</span>
-                  <span className="text-xs text-gray-500">{lastMonthComposition?.counts?.total || 0}件</span>
-                </div>
-                <div className="flex h-6 bg-gray-100 rounded-full overflow-hidden">
-                  {lastMonthComposition ? (
-                    <>
-                      <div className="bg-gray-500 transition-all duration-500" style={{ width: `${lastMonthComposition.newChurn}%` }}>
-                        {lastMonthComposition.newChurn > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{lastMonthComposition.newChurn}%</span>}
-                      </div>
-                      <div className="bg-blue-500 transition-all duration-500" style={{ width: `${lastMonthComposition.newRepeaters}%` }}>
-                        {lastMonthComposition.newRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{lastMonthComposition.newRepeaters}%</span>}
-                      </div>
-                      <div className="bg-green-500 transition-all duration-500" style={{ width: `${lastMonthComposition.stableRepeaters}%` }}>
-                        {lastMonthComposition.stableRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{lastMonthComposition.stableRepeaters}%</span>}
-                      </div>
-                      <div className="bg-orange-500 transition-all duration-500" style={{ width: `${lastMonthComposition.churnRisk}%` }}>
-                        {lastMonthComposition.churnRisk > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{lastMonthComposition.churnRisk}%</span>}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-full text-center text-xs text-gray-400 flex items-center justify-center">データなし</div>
-                  )}
-                </div>
-              </div>
-
-              {/* 6ヶ月平均 */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">6ヶ月平均</span>
-                  <span className="text-xs text-gray-500">100%</span>
-                </div>
-                <div className="flex h-6 bg-gray-100 rounded-full overflow-hidden">
-                  {compositionData.length > 0 ? (
-                    <>
-                      <div className="bg-gray-500 transition-all duration-500" style={{ width: `${avgComposition.newChurn}%` }}>
-                        {avgComposition.newChurn > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{avgComposition.newChurn}%</span>}
-                      </div>
-                      <div className="bg-blue-500 transition-all duration-500" style={{ width: `${avgComposition.newRepeaters}%` }}>
-                        {avgComposition.newRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{avgComposition.newRepeaters}%</span>}
-                      </div>
-                      <div className="bg-green-500 transition-all duration-500" style={{ width: `${avgComposition.stableRepeaters}%` }}>
-                        {avgComposition.stableRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{avgComposition.stableRepeaters}%</span>}
-                      </div>
-                      <div className="bg-orange-500 transition-all duration-500" style={{ width: `${avgComposition.churnRisk}%` }}>
-                        {avgComposition.churnRisk > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{avgComposition.churnRisk}%</span>}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-full text-center text-xs text-gray-400 flex items-center justify-center">データなし</div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </CardContent>
-      </Card>
-
-
       {/* セグメント詳細テーブル */}
       <Card className="border-0 shadow-lg">
         <CardHeader className="pb-4">
@@ -2453,7 +2211,6 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
                   <th className="text-left p-3 font-medium text-sm text-gray-600">再来店意向</th>
                   <th className="text-left p-3 font-medium text-sm text-gray-600">顧客タイプ</th>
                   <th className="text-left p-3 font-medium text-sm text-gray-600">影響度</th>
-                  <th className="text-right p-3 font-medium text-sm text-gray-600">先月比</th>
                   <th className="text-center p-3 font-medium text-sm text-gray-600">構成比</th>
                 </tr>
               </thead>
@@ -2492,14 +2249,6 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
                     <td className="p-3">
                       <span className={`text-sm ${getImpactLabel(segment.impact).color}`}>
                         {getImpactLabel(segment.impact).label}
-                      </span>
-                    </td>
-                    <td className="p-3 text-right">
-                      <span className={`text-sm font-medium ${
-                        segment.monthOverMonth > 0 ? 'text-green-600' :
-                        segment.monthOverMonth < 0 ? 'text-red-600' : 'text-gray-600'
-                      }`}>
-                        {segment.monthOverMonthDisplay}
                       </span>
                     </td>
                     <td className="p-3">
