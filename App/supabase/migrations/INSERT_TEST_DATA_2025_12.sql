@@ -261,8 +261,7 @@ LIMIT 1
 ON CONFLICT ON CONSTRAINT unique_company_store_yearmonth
 DO UPDATE SET
   total_responses = EXCLUDED.total_responses,
-  nps_score = EXCLUDED.nps_score,
-  updated_at = NOW();
+  nps_score = EXCLUDED.nps_score;
 
 -- 挿入結果の確認
 SELECT company_id, store_id, year_month, total_responses, nps_score

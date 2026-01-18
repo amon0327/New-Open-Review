@@ -1260,6 +1260,7 @@ const StoreByStoreTab = ({ companyId }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [availablePeriods, setAvailablePeriods] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPeriodsLoading, setIsPeriodsLoading] = useState(false);
 
   // 店舗データ取得
   useEffect(() => {
@@ -1294,13 +1295,16 @@ const StoreByStoreTab = ({ companyId }) => {
     const fetchAvailablePeriods = async () => {
       if (!companyId || !selectedStore) {
         setAvailablePeriods([]);
+        setIsPeriodsLoading(false);
         return;
       }
+      setIsPeriodsLoading(true);
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           console.error('No session');
           setAvailablePeriods([]);
+          setIsPeriodsLoading(false);
           return;
         }
 
@@ -1337,6 +1341,8 @@ const StoreByStoreTab = ({ companyId }) => {
       } catch (error) {
         console.error('Error fetching available periods:', error);
         setAvailablePeriods([]);
+      } finally {
+        setIsPeriodsLoading(false);
       }
     };
     fetchAvailablePeriods();
@@ -1423,24 +1429,42 @@ const StoreByStoreTab = ({ companyId }) => {
 
       {/* サブタブコンテンツ */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
-        <TabPanel value={activeSubTab} index={0}>
-          <StoreOverviewTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} stores={stores} />
-        </TabPanel>
-        <TabPanel value={activeSubTab} index={1}>
-          <TasksTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
-        </TabPanel>
-        <TabPanel value={activeSubTab} index={2}>
-          <SalesImpactTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
-        </TabPanel>
-        <TabPanel value={activeSubTab} index={3}>
-          <StoreEvaluationTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
-        </TabPanel>
-        <TabPanel value={activeSubTab} index={4}>
-          <CustomerTrendsTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
-        </TabPanel>
-        <TabPanel value={activeSubTab} index={5}>
-          <CommentsTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
-        </TabPanel>
+        {isPeriodsLoading ? (
+          <div className="p-6 flex justify-center items-center min-h-[400px]">
+            <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+              <span className="text-gray-500">データを読み込み中...</span>
+            </div>
+          </div>
+        ) : !selectedPeriod ? (
+          <div className="p-6 flex justify-center items-center min-h-[400px]">
+            <div className="text-center">
+              <p className="text-gray-500 text-lg">この店舗のデータがありません</p>
+              <p className="text-gray-400 text-sm mt-2">別の店舗を選択してください</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <TabPanel value={activeSubTab} index={0}>
+              <StoreOverviewTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} stores={stores} />
+            </TabPanel>
+            <TabPanel value={activeSubTab} index={1}>
+              <TasksTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+            </TabPanel>
+            <TabPanel value={activeSubTab} index={2}>
+              <SalesImpactTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+            </TabPanel>
+            <TabPanel value={activeSubTab} index={3}>
+              <StoreEvaluationTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+            </TabPanel>
+            <TabPanel value={activeSubTab} index={4}>
+              <CustomerTrendsTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+            </TabPanel>
+            <TabPanel value={activeSubTab} index={5}>
+              <CommentsTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+            </TabPanel>
+          </>
+        )}
       </Box>
     </Box>
   );
