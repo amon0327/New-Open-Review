@@ -3609,6 +3609,12 @@ const CommentsTab = ({ companyId, selectedStore, selectedPeriod }) => {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     再来店意向
                   </th>
+                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    課題
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    タグ
+                  </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     コメント
                   </th>
@@ -3617,7 +3623,7 @@ const CommentsTab = ({ companyId, selectedStore, selectedPeriod }) => {
               <tbody className="divide-y divide-gray-100">
                 {currentComments.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="px-6 py-12 text-center">
+                    <td colSpan="8" className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center gap-2 text-gray-500">
                         <Comment className="w-12 h-12 opacity-50" />
                         <p>コメントがありません</p>
@@ -3663,6 +3669,14 @@ const CommentsTab = ({ companyId, selectedStore, selectedPeriod }) => {
                       }`}>
                         {comment.revisitIntent}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {/* 課題 - 将来実装予定 */}
+                      <span className="text-gray-300">-</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {/* タグ - 将来実装予定 */}
+                      <span className="text-gray-300">-</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="max-w-md">
