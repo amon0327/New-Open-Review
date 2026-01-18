@@ -1377,7 +1377,7 @@ const StoreByStoreTab = ({ companyId }) => {
           <TasksTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
         </TabPanel>
         <TabPanel value={activeSubTab} index={2}>
-          <SalesImpactTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+          <SalesImpactTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
         </TabPanel>
         <TabPanel value={activeSubTab} index={3}>
           <StoreEvaluationTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
@@ -1887,54 +1887,75 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
 const chartStyle = { outline: 'none' };
 
 // 売上影響タブ
-const SalesImpactTab = ({ selectedStore, selectedPeriod }) => {
-  // サンプルデータ（実際のアンケート結果を想定）
-  const segments = [
-    { id: 1, nps: '推奨者', revisitIntent: 'あり', experience: 'リピーター', impact: 3, group: 'A', count: 45 },
-    { id: 2, nps: '推奨者', revisitIntent: 'あり', experience: '新規', impact: 2, group: 'A', count: 23 },
-    { id: 3, nps: '中立者', revisitIntent: 'あり', experience: '新規', impact: 0, group: 'A', count: 18 },
-    { id: 4, nps: '中立者', revisitIntent: 'なし', experience: 'リピーター', impact: -2, group: 'B', count: 12 },
-    { id: 5, nps: '中立者', revisitIntent: 'なし', experience: '新規', impact: 0, group: 'B', count: 8 },
-    { id: 6, nps: '批判者', revisitIntent: 'あり', experience: '新規', impact: 0, group: 'B', count: 5 },
-    { id: 7, nps: '批判者', revisitIntent: 'なし', experience: 'リピーター', impact: -3, group: 'B', count: 15 },
-    { id: 8, nps: '批判者', revisitIntent: 'なし', experience: '新規', impact: -2, group: 'B', count: 10 },
-    { id: 9, nps: '推奨者', revisitIntent: 'なし', experience: 'リピーター', impact: 1, group: 'C', count: 7 },
-    { id: 10, nps: '推奨者', revisitIntent: 'なし', experience: '新規', impact: 0, group: 'C', count: 4 },
-    { id: 11, nps: '中立者', revisitIntent: 'あり', experience: 'リピーター', impact: 2, group: 'C', count: 22 },
-    { id: 12, nps: '批判者', revisitIntent: 'あり', experience: 'リピーター', impact: -2, group: 'C', count: 6 }
-  ];
+const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
+  const [loading, setLoading] = useState(true);
+  const [impactData, setImpactData] = useState(null);
 
-  // 時系列データ（売上影響の推移）
-  const trendData = [
-    { month: '8月', score: 82, positive: 185, negative: 98 },
-    { month: '9月', score: 78, positive: 172, negative: 105 },
-    { month: '10月', score: 85, positive: 195, negative: 92 },
-    { month: '11月', score: 88, positive: 203, negative: 85 },
-    { month: '12月', score: 92, positive: 215, negative: 78 },
-    { month: '1月', score: 95, positive: 225, negative: 72 }
-  ];
+  // Edge Functionからデータを取得
+  useEffect(() => {
+    const fetchImpactData = async () => {
+      if (!companyId) return;
+      setLoading(true);
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('認証が必要です');
+        }
+
+        const params = new URLSearchParams({
+          company_id: companyId
+        });
+        if (selectedStore && selectedStore !== 'all') {
+          params.append('store_id', selectedStore);
+        }
+
+        const response = await fetch(
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-sales-impact?${params}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        const result = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.error || 'データの取得に失敗しました');
+        }
+
+        setImpactData(result.data);
+      } catch (error) {
+        console.error('売上影響データの取得エラー:', error);
+        setImpactData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImpactData();
+  }, [companyId, selectedStore]);
+
+  // データ取得結果から値を取得（デフォルト値付き）
+  const segments = impactData?.segments || [];
+  const trendData = impactData?.trendData || [];
+  const totalCount = impactData?.totalCount || 0;
+  const totalScore = impactData?.totalScore || 0;
+  const positiveScore = impactData?.positiveScore || 0;
+  const negativeScore = impactData?.negativeScore || 0;
+  const normalizedScore = impactData?.normalizedScore || 50;
+  const categoryDataFromApi = impactData?.categoryData || null;
 
   // 6ヶ月平均計算
-  const sixMonthAvg = Math.round(trendData.reduce((sum, d) => sum + d.score, 0) / trendData.length);
-  const lastMonthScore = trendData[trendData.length - 1].score;
-  const previousMonthScore = trendData[trendData.length - 2].score;
+  const sixMonthAvg = trendData.length > 0
+    ? Math.round(trendData.reduce((sum, d) => sum + d.score, 0) / trendData.length)
+    : 0;
+  const lastMonthScore = trendData.length > 0 ? trendData[trendData.length - 1].score : 0;
+  const previousMonthScore = trendData.length > 1 ? trendData[trendData.length - 2].score : lastMonthScore;
   const monthlyChange = lastMonthScore - previousMonthScore;
-
-  // 総合スコア計算（影響度 × 人数の合計）
-  const totalScore = segments.reduce((sum, seg) => sum + (seg.impact * seg.count), 0);
-  
-  // プラス・マイナス別の集計
-  const positiveScore = segments
-    .filter(s => s.impact > 0)
-    .reduce((sum, s) => sum + (s.impact * s.count), 0);
-  const negativeScore = segments
-    .filter(s => s.impact < 0)
-    .reduce((sum, s) => sum + (Math.abs(s.impact) * s.count), 0);
-  const totalCount = segments.reduce((sum, s) => sum + s.count, 0);
-  
-  // スコアの正規化（0〜100のスケールに）
-  const maxPossibleScore = segments.reduce((sum, s) => sum + (3 * s.count), 0);
-  const normalizedScore = ((totalScore + maxPossibleScore) / (2 * maxPossibleScore)) * 100;
 
   // 状態判定
   const getStatus = (score) => {
@@ -1963,60 +1984,12 @@ const SalesImpactTab = ({ selectedStore, selectedPeriod }) => {
     return { label: '中立', color: 'text-gray-600' };
   };
 
-  // 顧客カテゴリー別の集計
-  const customerCategories = {
-    newRepeaters: segments.filter(s => s.experience === '新規' && s.revisitIntent === 'あり'),
-    stableRepeaters: segments.filter(s => s.experience === 'リピーター' && s.revisitIntent === 'あり'),
-    churnRisk: segments.filter(s => s.experience === 'リピーター' && s.revisitIntent === 'なし'),
-    newChurn: segments.filter(s => s.experience === '新規' && s.revisitIntent === 'なし')
-  };
-
-  // カテゴリー別の集計データ
-  const categoryData = {
-    newRepeaters: {
-      count: customerCategories.newRepeaters.reduce((sum, s) => sum + s.count, 0),
-      impact: customerCategories.newRepeaters.reduce((sum, s) => sum + (s.impact * s.count), 0),
-      avgImpact: customerCategories.newRepeaters.length > 0 ? 
-        customerCategories.newRepeaters.reduce((sum, s) => sum + s.impact, 0) / customerCategories.newRepeaters.length : 0,
-      nps: {
-        promoters: customerCategories.newRepeaters.filter(s => s.nps === '推奨者').reduce((sum, s) => sum + s.count, 0),
-        neutrals: customerCategories.newRepeaters.filter(s => s.nps === '中立者').reduce((sum, s) => sum + s.count, 0),
-        detractors: customerCategories.newRepeaters.filter(s => s.nps === '批判者').reduce((sum, s) => sum + s.count, 0)
-      }
-    },
-    stableRepeaters: {
-      count: customerCategories.stableRepeaters.reduce((sum, s) => sum + s.count, 0),
-      impact: customerCategories.stableRepeaters.reduce((sum, s) => sum + (s.impact * s.count), 0),
-      avgImpact: customerCategories.stableRepeaters.length > 0 ?
-        customerCategories.stableRepeaters.reduce((sum, s) => sum + s.impact, 0) / customerCategories.stableRepeaters.length : 0,
-      nps: {
-        promoters: customerCategories.stableRepeaters.filter(s => s.nps === '推奨者').reduce((sum, s) => sum + s.count, 0),
-        neutrals: customerCategories.stableRepeaters.filter(s => s.nps === '中立者').reduce((sum, s) => sum + s.count, 0),
-        detractors: customerCategories.stableRepeaters.filter(s => s.nps === '批判者').reduce((sum, s) => sum + s.count, 0)
-      }
-    },
-    churnRisk: {
-      count: customerCategories.churnRisk.reduce((sum, s) => sum + s.count, 0),
-      impact: customerCategories.churnRisk.reduce((sum, s) => sum + (s.impact * s.count), 0),
-      avgImpact: customerCategories.churnRisk.length > 0 ?
-        customerCategories.churnRisk.reduce((sum, s) => sum + s.impact, 0) / customerCategories.churnRisk.length : 0,
-      nps: {
-        promoters: customerCategories.churnRisk.filter(s => s.nps === '推奨者').reduce((sum, s) => sum + s.count, 0),
-        neutrals: customerCategories.churnRisk.filter(s => s.nps === '中立者').reduce((sum, s) => sum + s.count, 0),
-        detractors: customerCategories.churnRisk.filter(s => s.nps === '批判者').reduce((sum, s) => sum + s.count, 0)
-      }
-    },
-    newChurn: {
-      count: customerCategories.newChurn.reduce((sum, s) => sum + s.count, 0),
-      impact: customerCategories.newChurn.reduce((sum, s) => sum + (s.impact * s.count), 0),
-      avgImpact: customerCategories.newChurn.length > 0 ?
-        customerCategories.newChurn.reduce((sum, s) => sum + s.impact, 0) / customerCategories.newChurn.length : 0,
-      nps: {
-        promoters: customerCategories.newChurn.filter(s => s.nps === '推奨者').reduce((sum, s) => sum + s.count, 0),
-        neutrals: customerCategories.newChurn.filter(s => s.nps === '中立者').reduce((sum, s) => sum + s.count, 0),
-        detractors: customerCategories.newChurn.filter(s => s.nps === '批判者').reduce((sum, s) => sum + s.count, 0)
-      }
-    }
+  // カテゴリー別の集計データ（APIから取得またはデフォルト）
+  const categoryData = categoryDataFromApi || {
+    newRepeaters: { count: 0, impact: 0, nps: { promoters: 0, neutrals: 0, detractors: 0 } },
+    stableRepeaters: { count: 0, impact: 0, nps: { promoters: 0, neutrals: 0, detractors: 0 } },
+    churnRisk: { count: 0, impact: 0, nps: { promoters: 0, neutrals: 0, detractors: 0 } },
+    newChurn: { count: 0, impact: 0, nps: { promoters: 0, neutrals: 0, detractors: 0 } }
   };
 
   // セグメントごとの構成比を計算
@@ -2026,24 +1999,36 @@ const SalesImpactTab = ({ selectedStore, selectedPeriod }) => {
     salesImpact: seg.impact === 0 ? '±0%' : `${seg.impact > 0 ? '+' : ''}${(seg.impact * 3)}%`
   })).sort((a, b) => b.percentage - a.percentage);
 
-  // スパークラインデータ（3ヶ月分のダミーデータ）
+  // スパークラインデータ（月別トレンドから生成）
   const sparklineData = {
-    newRepeaters: [38, 42, 46],
-    stableRepeaters: [65, 67, 67],
-    newChurn: [15, 16, 18],
-    churnRisk: [32, 30, 27]
+    newRepeaters: trendData.slice(-3).map(d => d.positive > 0 ? Math.round(d.positive / (d.positive + d.negative) * 100) : 50),
+    stableRepeaters: trendData.slice(-3).map(d => d.score),
+    newChurn: trendData.slice(-3).map(d => d.negative > 0 ? Math.round(d.negative / (d.positive + d.negative) * 100) : 50),
+    churnRisk: trendData.slice(-3).map(d => 100 - d.score)
   };
 
   // 各カテゴリーの割合を計算
-  const totalCustomers = categoryData.newRepeaters.count + categoryData.stableRepeaters.count + 
+  const totalCustomers = categoryData.newRepeaters.count + categoryData.stableRepeaters.count +
                         categoryData.newChurn.count + categoryData.churnRisk.count;
-  
+
   const percentages = {
-    newRepeaters: ((categoryData.newRepeaters.count / totalCustomers) * 100).toFixed(1),
-    stableRepeaters: ((categoryData.stableRepeaters.count / totalCustomers) * 100).toFixed(1),
-    newChurn: ((categoryData.newChurn.count / totalCustomers) * 100).toFixed(1),
-    churnRisk: ((categoryData.churnRisk.count / totalCustomers) * 100).toFixed(1)
+    newRepeaters: totalCustomers > 0 ? ((categoryData.newRepeaters.count / totalCustomers) * 100).toFixed(1) : '0.0',
+    stableRepeaters: totalCustomers > 0 ? ((categoryData.stableRepeaters.count / totalCustomers) * 100).toFixed(1) : '0.0',
+    newChurn: totalCustomers > 0 ? ((categoryData.newChurn.count / totalCustomers) * 100).toFixed(1) : '0.0',
+    churnRisk: totalCustomers > 0 ? ((categoryData.churnRisk.count / totalCustomers) * 100).toFixed(1) : '0.0'
   };
+
+  // ローディング表示
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <span className="text-gray-500">データを読み込み中...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4">
