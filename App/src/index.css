@@ -85,3 +85,13 @@ html, body, #root {
   display: none !important;
 }
 
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
