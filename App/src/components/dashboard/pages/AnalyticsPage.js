@@ -1471,10 +1471,41 @@ const StoreByStoreTab = ({ companyId }) => {
       {/* サブタブコンテンツ */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
         {isPeriodsLoading ? (
-          <div className="p-6 flex justify-center items-center min-h-[400px]">
-            <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-              <span className="text-gray-500">データを読み込み中...</span>
+          <div className="p-6 space-y-6">
+            {/* KPIカードスケルトン */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i} className="border-0 shadow-xl bg-white/80">
+                  <CardHeader className="pb-2">
+                    <Skeleton className="h-4 w-24" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <Skeleton className="h-8 w-20" />
+                      <Skeleton className="h-5 w-16" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {/* チャートスケルトン */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="border-0 shadow-xl bg-white/80">
+                <CardHeader>
+                  <Skeleton className="h-5 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-48 w-full" />
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-xl bg-white/80">
+                <CardHeader>
+                  <Skeleton className="h-5 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-48 w-full" />
+                </CardContent>
+              </Card>
             </div>
           </div>
         ) : !selectedPeriod ? (
@@ -1670,13 +1701,45 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
     npsScore: 0
   };
 
-  // ローディング表示
+  // ローディング表示（スケルトンスクリーン）
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 p-6 flex justify-center items-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-          <span className="text-gray-500">データを読み込み中...</span>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 p-6 pb-0">
+        {/* KPIカードスケルトン */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="border-0 shadow-xl bg-white/80 backdrop-blur">
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        {/* チャートスケルトン */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <Card className="border-0 shadow-xl bg-white/80">
+            <CardHeader>
+              <Skeleton className="h-5 w-32" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-64 w-full" />
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-xl bg-white/80">
+            <CardHeader>
+              <Skeleton className="h-5 w-32" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-64 w-full" />
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -2171,14 +2234,52 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
     churnRisk: totalCustomers > 0 ? ((categoryData.churnRisk.count / totalCustomers) * 100).toFixed(1) : '0.0'
   };
 
-  // ローディング表示
+  // ローディング表示（スケルトンスクリーン）
   if (loading) {
     return (
-      <div className="p-6 flex justify-center items-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-          <span className="text-gray-500">データを読み込み中...</span>
+      <div className="p-6 space-y-6">
+        {/* カテゴリーカードスケルトン */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="border-0 shadow-lg">
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+        {/* 顧客構成比較スケルトン */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <Skeleton className="h-5 w-32" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-32 w-full" />
+          </CardContent>
+        </Card>
+        {/* テーブルスケルトン */}
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <Skeleton className="h-5 w-40" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="flex gap-4">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-16" />
+                  <Skeleton className="h-6 flex-1" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -2682,14 +2783,54 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
     C: { items: [], positiveCount: 0, negativeCount: 0, neutralCount: 0, totalResponses: 0 }
   };
 
-  // ローディング表示
+  // ローディング表示（スケルトンスクリーン）
   if (loading) {
     return (
-      <div className="p-6 flex justify-center items-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-          <span className="text-gray-500">データを読み込み中...</span>
-        </div>
+      <div className="p-6 space-y-6">
+        {/* QSCスコアカードスケルトン */}
+        <Card className="border-0 shadow-xl bg-white overflow-hidden">
+          <CardContent className="p-0">
+            <div className="grid grid-cols-3 divide-x divide-gray-100">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-6 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-10 rounded-lg" />
+                      <div className="space-y-1">
+                        <Skeleton className="h-5 w-20" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-5 w-12" />
+                  </div>
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-1.5 w-full rounded-full" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        {/* QSC詳細スケルトン */}
+        <Card className="border-0 shadow-xl bg-white">
+          <CardHeader>
+            <Skeleton className="h-5 w-32" />
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="h-5 w-24" />
+                  {[1, 2, 3, 4, 5].map((j) => (
+                    <div key={j} className="space-y-2">
+                      <Skeleton className="h-3 w-32" />
+                      <Skeleton className="h-6 w-full rounded" />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -2967,14 +3108,34 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
     fill: companionColors[index % companionColors.length]
   }));
 
-  // ローディング表示
+  // ローディング表示（スケルトンスクリーン）
   if (loading) {
     return (
-      <div className="p-6 flex justify-center items-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-          <span className="text-gray-500">データを読み込み中...</span>
+      <div className="p-6 space-y-6">
+        {/* 基本属性チャートスケルトン */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="border-0 shadow-xl bg-white overflow-hidden">
+              <CardHeader className="pb-0">
+                <Skeleton className="h-4 w-20" />
+              </CardHeader>
+              <CardContent className="pt-1 pb-2">
+                <div className="h-32 flex items-center justify-center">
+                  <Skeleton className="h-24 w-24 rounded-full" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+        {/* レーダーチャートスケルトン */}
+        <Card className="border-0 shadow-xl bg-white">
+          <CardHeader>
+            <Skeleton className="h-5 w-32" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-64 w-full" />
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -3564,14 +3725,39 @@ const CommentsTab = ({ companyId, selectedStore, selectedPeriod }) => {
     }
   };
 
-  // ローディング表示
+  // ローディング表示（スケルトンスクリーン）
   if (loading) {
     return (
-      <div className="p-6 flex justify-center items-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-          <span className="text-gray-500">コメントデータを読み込み中...</span>
-        </div>
+      <div className="p-6 space-y-6">
+        <Card className="border-0 shadow-xl bg-white overflow-hidden">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-8 w-24" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="p-4 border rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-6 w-16 rounded-md" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -4428,9 +4614,21 @@ const RealtimeTab = ({ companyId }) => {
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-              <span className="ml-3 text-gray-500">読み込み中...</span>
+            <div className="p-6 space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex items-start gap-4 p-4 border-b border-gray-100">
+                  <Skeleton className="h-6 w-12" />
+                  <Skeleton className="h-6 w-12" />
+                  <Skeleton className="h-6 w-16 rounded-md" />
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-16" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                  <Skeleton className="h-6 w-24" />
+                </div>
+              ))}
             </div>
           ) : commentsData.length === 0 ? (
             <div className="flex flex-col justify-center items-center py-12 text-gray-500">
