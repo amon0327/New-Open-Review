@@ -133,10 +133,25 @@ serve(async (req) => {
       )
     }
 
-    // 過去6ヶ月分のデータを取得（推移グラフ用）
+    // 過去6ヶ月分のデータを取得（推移グラフ用 + 売上影響タブの比較用）
     const { data: historicalData, error: historicalError } = await supabaseAdmin
       .from('monthly_analytics_summary')
-      .select('year_month, nps_score, repeat_rate, repeater_revisit_rate, new_revisit_rate, total_responses')
+      .select(`
+        year_month, nps_score, repeat_rate, repeater_revisit_rate, new_revisit_rate, total_responses,
+        seg_promoter_revisit_repeater_count, seg_promoter_revisit_repeater_percent,
+        seg_promoter_revisit_new_count, seg_promoter_revisit_new_percent,
+        seg_promoter_norevisit_repeater_count, seg_promoter_norevisit_repeater_percent,
+        seg_promoter_norevisit_new_count, seg_promoter_norevisit_new_percent,
+        seg_passive_revisit_repeater_count, seg_passive_revisit_repeater_percent,
+        seg_passive_revisit_new_count, seg_passive_revisit_new_percent,
+        seg_passive_norevisit_repeater_count, seg_passive_norevisit_repeater_percent,
+        seg_passive_norevisit_new_count, seg_passive_norevisit_new_percent,
+        seg_detractor_revisit_repeater_count, seg_detractor_revisit_repeater_percent,
+        seg_detractor_revisit_new_count, seg_detractor_revisit_new_percent,
+        seg_detractor_norevisit_repeater_count, seg_detractor_norevisit_repeater_percent,
+        seg_detractor_norevisit_new_count, seg_detractor_norevisit_new_percent,
+        positive_impact_count, negative_impact_count
+      `)
       .eq('company_id', companyId)
       .eq('store_id', storeId)
       .order('year_month', { ascending: true })
@@ -423,8 +438,103 @@ serve(async (req) => {
       }
     };
 
+    // 履歴データから顧客構成比率を計算（compositionData用）
+    const compositionData = sortedHistoricalData.map(item => {
+      const nc = (item.seg_promoter_norevisit_new_count || 0) +
+        (item.seg_passive_norevisit_new_count || 0) +
+        (item.seg_detractor_norevisit_new_count || 0);
+      const nr = (item.seg_promoter_revisit_new_count || 0) +
+        (item.seg_passive_revisit_new_count || 0) +
+        (item.seg_detractor_revisit_new_count || 0);
+      const sr = (item.seg_promoter_revisit_repeater_count || 0) +
+        (item.seg_passive_revisit_repeater_count || 0) +
+        (item.seg_detractor_revisit_repeater_count || 0);
+      const cr = (item.seg_promoter_norevisit_repeater_count || 0) +
+        (item.seg_passive_norevisit_repeater_count || 0) +
+        (item.seg_detractor_norevisit_repeater_count || 0);
+      const total = nc + nr + sr + cr;
+      return {
+        month: item.year_month,
+        newChurn: total > 0 ? Math.round((nc / total) * 100) : 0,
+        newRepeaters: total > 0 ? Math.round((nr / total) * 100) : 0,
+        stableRepeaters: total > 0 ? Math.round((sr / total) * 100) : 0,
+        churnRisk: total > 0 ? Math.round((cr / total) * 100) : 0,
+        counts: { total, newChurn: nc, newRepeaters: nr, stableRepeaters: sr, churnRisk: cr }
+      };
+    });
+
+    // 6ヶ月平均を計算
+    const avgNewChurn = compositionData.length > 0
+      ? Math.round(compositionData.reduce((sum, d) => sum + d.newChurn, 0) / compositionData.length)
+      : 0;
+    const avgNewRepeaters = compositionData.length > 0
+      ? Math.round(compositionData.reduce((sum, d) => sum + d.newRepeaters, 0) / compositionData.length)
+      : 0;
+    const avgStableRepeaters = compositionData.length > 0
+      ? Math.round(compositionData.reduce((sum, d) => sum + d.stableRepeaters, 0) / compositionData.length)
+      : 0;
+    const avgChurnRisk = compositionData.length > 0
+      ? Math.round(compositionData.reduce((sum, d) => sum + d.churnRisk, 0) / compositionData.length)
+      : 0;
+    const avgTotal = compositionData.length > 0
+      ? Math.round(compositionData.reduce((sum, d) => sum + d.counts.total, 0) / compositionData.length)
+      : 0;
+    const avgComposition = {
+      month: '平均',
+      newChurn: avgNewChurn,
+      newRepeaters: avgNewRepeaters,
+      stableRepeaters: avgStableRepeaters,
+      churnRisk: avgChurnRisk,
+      counts: {
+        total: avgTotal,
+        newChurn: Math.round(compositionData.reduce((sum, d) => sum + d.counts.newChurn, 0) / (compositionData.length || 1)),
+        newRepeaters: Math.round(compositionData.reduce((sum, d) => sum + d.counts.newRepeaters, 0) / (compositionData.length || 1)),
+        stableRepeaters: Math.round(compositionData.reduce((sum, d) => sum + d.counts.stableRepeaters, 0) / (compositionData.length || 1)),
+        churnRisk: Math.round(compositionData.reduce((sum, d) => sum + d.counts.churnRisk, 0) / (compositionData.length || 1))
+      }
+    };
+
+    // 先月データを取得（先月比計算用）
+    const previousMonthData = sortedHistoricalData.length > 1
+      ? sortedHistoricalData[sortedHistoricalData.length - 2]
+      : null;
+
+    // 12セグメントにdelta（先月比）を追加
+    const segmentFieldMap = [
+      { field: 'seg_promoter_revisit_repeater', id: 1 },
+      { field: 'seg_promoter_revisit_new', id: 2 },
+      { field: 'seg_promoter_norevisit_repeater', id: 3 },
+      { field: 'seg_promoter_norevisit_new', id: 4 },
+      { field: 'seg_passive_revisit_repeater', id: 5 },
+      { field: 'seg_passive_revisit_new', id: 6 },
+      { field: 'seg_passive_norevisit_repeater', id: 7 },
+      { field: 'seg_passive_norevisit_new', id: 8 },
+      { field: 'seg_detractor_revisit_repeater', id: 9 },
+      { field: 'seg_detractor_revisit_new', id: 10 },
+      { field: 'seg_detractor_norevisit_repeater', id: 11 },
+      { field: 'seg_detractor_norevisit_new', id: 12 }
+    ];
+
+    const segmentsWithDelta = segmentsWithImpact.map(seg => {
+      const fieldInfo = segmentFieldMap.find(f => f.id === seg.id);
+      if (!fieldInfo || !previousMonthData) {
+        return { ...seg, delta: null, previousCount: null, previousPercentage: null };
+      }
+      const prevCount = previousMonthData[`${fieldInfo.field}_count`] || 0;
+      const prevPercent = previousMonthData[`${fieldInfo.field}_percent`] || 0;
+      const countDelta = (seg.count || 0) - prevCount;
+      const percentDelta = (seg.percentage || 0) - prevPercent;
+      return {
+        ...seg,
+        delta: percentDelta,
+        countDelta,
+        previousCount: prevCount,
+        previousPercentage: prevPercent
+      };
+    });
+
     const salesImpactData = {
-      segments: segmentsWithImpact,
+      segments: segmentsWithDelta,
       totalCount,
       totalScore,
       positiveScore,
@@ -432,8 +542,9 @@ serve(async (req) => {
       normalizedScore,
       trendData: [], // 月次サマリーには過去データがないため空
       categoryData,
-      compositionData: [currentComposition], // 現在月のデータのみ
-      avgComposition: currentComposition, // 単月なので同じデータを使用
+      compositionData,
+      avgComposition,
+      previousMonth: previousMonthData ? previousMonthData.year_month : null,
       positiveImpact: {
         count: summary.positive_impact_count,
         percent: summary.positive_impact_percent
