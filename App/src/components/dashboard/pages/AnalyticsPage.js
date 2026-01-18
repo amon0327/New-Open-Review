@@ -2258,7 +2258,7 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
               {/* 今月 */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">今月{thisMonthComposition ? ` (${thisMonthComposition.month})` : ''}</span>
+                  <span className="text-sm font-medium text-gray-700">今月</span>
                   <span className="text-xs text-gray-500">{thisMonthComposition?.counts?.total || 0}件</span>
                 </div>
                 <div className="flex h-6 bg-gray-100 rounded-full overflow-hidden">
