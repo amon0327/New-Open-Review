@@ -4319,6 +4319,37 @@ const RealtimeTab = ({ companyId }) => {
     }
   };
 
+  // ローディング表示（スケルトンスクリーン）
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex gap-3 items-center">
+          <Skeleton className="h-10 w-44 rounded-md" />
+        </div>
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-9 w-64 rounded-lg" />
+            </div>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div key={i} className="p-4 flex items-start gap-4">
+                <Skeleton className="h-6 w-16 rounded-md flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+                <Skeleton className="h-4 w-24 flex-shrink-0" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* フィルターセレクター */}
