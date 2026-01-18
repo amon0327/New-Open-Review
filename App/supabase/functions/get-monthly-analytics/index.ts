@@ -51,6 +51,7 @@ serve(async (req) => {
     const isAllStores = !storeId || storeId === 'all'
 
     // ユーザーが企業にアクセス可能かチェック
+    // 1. 直接の企業メンバーかどうか
     const { data: companyMembership } = await supabaseAdmin
       .from('company_memberships')
       .select('id')
@@ -58,17 +59,27 @@ serve(async (req) => {
       .eq('company_id', companyId)
       .single()
 
-    const { data: partnerAccess } = await supabaseAdmin
-      .from('partner_affiliate_companies')
-      .select(`
-        id,
-        partner_memberships!inner (
-          id,
-          business_users_id
-        )
-      `)
-      .eq('companies_id', companyId)
-      .eq('partner_memberships.business_users_id', user.id)
+    // 2. パートナー経由でアクセス可能かどうか
+    // まずユーザーが所属するパートナー企業を取得
+    const { data: userPartnerMemberships } = await supabaseAdmin
+      .from('partner_memberships')
+      .select('partner_company_id')
+      .eq('business_users_id', user.id)
+      .eq('is_active', true)
+
+    let partnerAccess = null
+    if (userPartnerMemberships && userPartnerMemberships.length > 0) {
+      const partnerCompanyIds = userPartnerMemberships.map(pm => pm.partner_company_id)
+
+      // そのパートナー企業が対象企業と紐づいているかチェック
+      const { data: affiliations } = await supabaseAdmin
+        .from('partner_affiliate_companies')
+        .select('id')
+        .eq('companies_id', companyId)
+        .in('partner_company_id', partnerCompanyIds)
+
+      partnerAccess = affiliations
+    }
 
     const hasAccess = companyMembership || (partnerAccess && partnerAccess.length > 0)
 

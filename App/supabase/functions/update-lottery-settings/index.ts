@@ -86,27 +86,30 @@ serve(async (req) => {
         .from('company_memberships')
         .select('id')
         .eq('company_id', formData.company_id)
-        .eq('user_id', user.id)
+        .eq('business_user_id', user.id)
         .maybeSingle()
 
       if (!membershipData) {
         // Check partner membership
-        const { data: partnerData, error: partnerError } = await supabaseAdmin
-          .from('partner_company_associations')
-          .select(`
-            id,
-            partners!inner (
-              id,
-              partner_memberships!inner (
-                user_id
-              )
-            )
-          `)
-          .eq('company_id', formData.company_id)
-          .eq('partners.partner_memberships.user_id', user.id)
-          .maybeSingle()
+        // まずユーザーが所属するパートナー企業を取得
+        const { data: userPartnerMemberships } = await supabaseAdmin
+          .from('partner_memberships')
+          .select('partner_company_id')
+          .eq('business_users_id', user.id)
+          .eq('is_active', true)
 
-        if (!partnerData) {
+        let hasPartnerAccess = false
+        if (userPartnerMemberships && userPartnerMemberships.length > 0) {
+          const partnerCompanyIds = userPartnerMemberships.map(pm => pm.partner_company_id)
+          const { data: affiliations } = await supabaseAdmin
+            .from('partner_affiliate_companies')
+            .select('id')
+            .eq('companies_id', formData.company_id)
+            .in('partner_company_id', partnerCompanyIds)
+          hasPartnerAccess = affiliations && affiliations.length > 0
+        }
+
+        if (!hasPartnerAccess) {
           throw new Error('このフォームの抽選設定を更新する権限がありません')
         }
       }
