@@ -1256,7 +1256,7 @@ const TasksTab = ({ selectedStore, selectedPeriod }) => {
 const StoreByStoreTab = ({ companyId }) => {
   const [activeSubTab, setActiveSubTab] = useState(0);
   const [stores, setStores] = useState([]);
-  const [selectedStore, setSelectedStore] = useState('');
+  const [selectedStore, setSelectedStore] = useState('all');
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [availablePeriods, setAvailablePeriods] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -1277,9 +1277,9 @@ const StoreByStoreTab = ({ companyId }) => {
           .order('name');
         if (error) throw error;
         setStores(data || []);
-        // 最初の店舗を選択
-        if (data && data.length > 0 && !selectedStore) {
-          setSelectedStore(data[0].id);
+        // 初期値として全店舗を選択
+        if (!selectedStore) {
+          setSelectedStore('all');
         }
       } catch (error) {
         console.error('Error:', error);
@@ -1488,7 +1488,7 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
   // 月次サマリーテーブルからデータを取得
   useEffect(() => {
     const fetchOverviewData = async () => {
-      if (!companyId || selectedStore === 'all') {
+      if (!companyId || !selectedStore) {
         setOverviewData(null);
         setLoading(false);
         return;
@@ -1990,7 +1990,7 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
   // 月次サマリーテーブルからデータを取得
   useEffect(() => {
     const fetchImpactData = async () => {
-      if (!companyId || selectedStore === 'all') {
+      if (!companyId || !selectedStore) {
         setImpactData(null);
         setLoading(false);
         return;
@@ -2563,7 +2563,7 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
   // 月次サマリーテーブルからデータを取得
   useEffect(() => {
     const fetchEvaluationData = async () => {
-      if (!companyId || selectedStore === 'all') {
+      if (!companyId || !selectedStore) {
         setEvaluationData(null);
         setLoading(false);
         return;
@@ -2839,7 +2839,7 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
   // 月次サマリーテーブルからデータを取得
   useEffect(() => {
     const fetchTrendsData = async () => {
-      if (!companyId || selectedStore === 'all') {
+      if (!companyId || !selectedStore) {
         setTrendsData(null);
         setLoading(false);
         return;

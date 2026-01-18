@@ -44,9 +44,11 @@ serve(async (req) => {
     const storeId = url.searchParams.get('store_id')
     const yearMonth = url.searchParams.get('year_month')
 
-    if (!companyId || !storeId) {
-      throw new Error('company_idとstore_idが必要です')
+    if (!companyId) {
+      throw new Error('company_idが必要です')
     }
+
+    const isAllStores = !storeId || storeId === 'all'
 
     // ユーザーが企業にアクセス可能かチェック
     const { data: companyMembership } = await supabaseAdmin
@@ -75,18 +77,24 @@ serve(async (req) => {
     }
 
     // 利用可能な期間リストを取得
-    const { data: availablePeriodsData, error: periodsError } = await supabaseAdmin
+    let availablePeriodsQuery = supabaseAdmin
       .from('monthly_analytics_summary')
       .select('year_month')
       .eq('company_id', companyId)
-      .eq('store_id', storeId)
+
+    if (!isAllStores) {
+      availablePeriodsQuery = availablePeriodsQuery.eq('store_id', storeId)
+    }
+
+    const { data: availablePeriodsData, error: periodsError } = await availablePeriodsQuery
       .order('year_month', { ascending: false })
 
     if (periodsError) {
       console.error('Error fetching available periods:', periodsError)
     }
 
-    const availablePeriods = (availablePeriodsData || []).map(d => d.year_month)
+    // 重複を除去
+    const availablePeriods = [...new Set((availablePeriodsData || []).map(d => d.year_month))]
 
     // 年月が指定されていない場合は最新の月を使用
     let targetYearMonth = yearMonth
@@ -100,16 +108,328 @@ serve(async (req) => {
     }
 
     // monthly_analytics_summaryからデータを取得
-    const { data: summary, error: summaryError } = await supabaseAdmin
-      .from('monthly_analytics_summary')
-      .select('*')
-      .eq('company_id', companyId)
-      .eq('store_id', storeId)
-      .eq('year_month', targetYearMonth)
-      .single()
+    let summary: any = null
 
-    if (summaryError && summaryError.code !== 'PGRST116') {
-      throw new Error(`データの取得に失敗しました: ${summaryError.message}`)
+    if (isAllStores) {
+      // 全店舗の場合：company_idで全店舗のデータを取得し、加重平均を計算
+      const { data: allStoresData, error: allStoresError } = await supabaseAdmin
+        .from('monthly_analytics_summary')
+        .select('*')
+        .eq('company_id', companyId)
+        .eq('year_month', targetYearMonth)
+
+      if (allStoresError) {
+        throw new Error(`データの取得に失敗しました: ${allStoresError.message}`)
+      }
+
+      if (!allStoresData || allStoresData.length === 0) {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              availablePeriods,
+              yearMonth: targetYearMonth,
+              overview: null,
+              salesImpact: null,
+              storeEvaluation: null,
+              customerTrends: null
+            },
+            message: 'この企業の該当月のデータがありません'
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
+          }
+        )
+      }
+
+      // 加重平均を計算する関数
+      const weightedAverage = (data: any[], valueKey: string, weightKey: string): number => {
+        let totalWeight = 0
+        let weightedSum = 0
+        for (const item of data) {
+          const value = Number(item[valueKey]) || 0
+          const weight = Number(item[weightKey]) || 0
+          weightedSum += value * weight
+          totalWeight += weight
+        }
+        return totalWeight > 0 ? weightedSum / totalWeight : 0
+      }
+
+      // 単純合計
+      const sum = (data: any[], key: string): number => {
+        return data.reduce((acc, item) => acc + (Number(item[key]) || 0), 0)
+      }
+
+      // 全店舗の集計データを作成
+      const totalResponses = sum(allStoresData, 'total_responses')
+
+      // NPS関連（total_responsesで加重平均）
+      const npsPromotersCount = sum(allStoresData, 'nps_promoters_count')
+      const npsPassivesCount = sum(allStoresData, 'nps_passives_count')
+      const npsDetractorsCount = sum(allStoresData, 'nps_detractors_count')
+      const npsTotal = npsPromotersCount + npsPassivesCount + npsDetractorsCount
+      const npsPromotersPercent = npsTotal > 0 ? Math.round((npsPromotersCount / npsTotal) * 100) : 0
+      const npsPassivesPercent = npsTotal > 0 ? Math.round((npsPassivesCount / npsTotal) * 100) : 0
+      const npsDetractorsPercent = npsTotal > 0 ? Math.round((npsDetractorsCount / npsTotal) * 100) : 0
+      const npsScore = npsPromotersPercent - npsDetractorsPercent
+
+      // リピート率関連
+      const repeaterCount = sum(allStoresData, 'repeater_count')
+      const newCustomerCount = sum(allStoresData, 'new_customer_count')
+      const totalCustomers = repeaterCount + newCustomerCount
+      const repeatRate = totalCustomers > 0 ? (repeaterCount / totalCustomers) * 100 : 0
+
+      // 再来店意向関連
+      const repeaterRevisitYes = sum(allStoresData, 'repeater_revisit_yes_count')
+      const repeaterRevisitNo = sum(allStoresData, 'repeater_revisit_no_count')
+      const repeaterRevisitTotal = repeaterRevisitYes + repeaterRevisitNo
+      const repeaterRevisitRate = repeaterRevisitTotal > 0 ? (repeaterRevisitYes / repeaterRevisitTotal) * 100 : 0
+
+      const newRevisitYes = sum(allStoresData, 'new_revisit_yes_count')
+      const newRevisitNo = sum(allStoresData, 'new_revisit_no_count')
+      const newRevisitTotal = newRevisitYes + newRevisitNo
+      const newRevisitRate = newRevisitTotal > 0 ? (newRevisitYes / newRevisitTotal) * 100 : 0
+
+      // 12セグメント（合計からパーセント再計算）
+      const segmentFields = [
+        'seg_promoter_revisit_repeater', 'seg_promoter_revisit_new',
+        'seg_promoter_norevisit_repeater', 'seg_promoter_norevisit_new',
+        'seg_passive_revisit_repeater', 'seg_passive_revisit_new',
+        'seg_passive_norevisit_repeater', 'seg_passive_norevisit_new',
+        'seg_detractor_revisit_repeater', 'seg_detractor_revisit_new',
+        'seg_detractor_norevisit_repeater', 'seg_detractor_norevisit_new'
+      ]
+
+      const segmentCounts: Record<string, number> = {}
+      let segmentTotal = 0
+      for (const field of segmentFields) {
+        segmentCounts[field] = sum(allStoresData, `${field}_count`)
+        segmentTotal += segmentCounts[field]
+      }
+
+      const segmentPercents: Record<string, number> = {}
+      for (const field of segmentFields) {
+        segmentPercents[field] = segmentTotal > 0
+          ? Number(((segmentCounts[field] / segmentTotal) * 100).toFixed(2))
+          : 0
+      }
+
+      // 影響度
+      const positiveImpactCount = sum(allStoresData, 'positive_impact_count')
+      const negativeImpactCount = sum(allStoresData, 'negative_impact_count')
+      const impactTotal = positiveImpactCount + negativeImpactCount
+      const positiveImpactPercent = impactTotal > 0 ? (positiveImpactCount / impactTotal) * 100 : 0
+      const negativeImpactPercent = impactTotal > 0 ? (negativeImpactCount / impactTotal) * 100 : 0
+
+      // QSC（各カテゴリの回答数で加重平均）
+      const qscQualityCount = sum(allStoresData, 'qsc_quality_count')
+      const qscServiceCount = sum(allStoresData, 'qsc_service_count')
+      const qscCleanlinessCount = sum(allStoresData, 'qsc_cleanliness_count')
+      const qscQualityScore = weightedAverage(allStoresData, 'qsc_quality_score', 'qsc_quality_count')
+      const qscServiceScore = weightedAverage(allStoresData, 'qsc_service_score', 'qsc_service_count')
+      const qscCleanlinessScore = weightedAverage(allStoresData, 'qsc_cleanliness_score', 'qsc_cleanliness_count')
+
+      // QSC項目別（各項目のtotal_countで加重平均）
+      const qscItemAverages: Record<string, number> = {}
+      for (const prefix of ['q', 's', 'c']) {
+        for (let i = 1; i <= 10; i++) {
+          const totalCountKey = `${prefix}${i}_total_count`
+          const totalCount = sum(allStoresData, totalCountKey)
+          qscItemAverages[totalCountKey] = totalCount
+          for (const type of ['positive', 'negative', 'neutral']) {
+            const key = `${prefix}${i}_${type}_percent`
+            qscItemAverages[key] = weightedAverage(allStoresData, key, totalCountKey)
+          }
+        }
+      }
+
+      // QSCカテゴリ別集計（合計）
+      const qualityPositiveCount = sum(allStoresData, 'quality_positive_count')
+      const qualityNegativeCount = sum(allStoresData, 'quality_negative_count')
+      const qualityNeutralCount = sum(allStoresData, 'quality_neutral_count')
+      const servicePositiveCount = sum(allStoresData, 'service_positive_count')
+      const serviceNegativeCount = sum(allStoresData, 'service_negative_count')
+      const serviceNeutralCount = sum(allStoresData, 'service_neutral_count')
+      const cleanlinessPositiveCount = sum(allStoresData, 'cleanliness_positive_count')
+      const cleanlinessNegativeCount = sum(allStoresData, 'cleanliness_negative_count')
+      const cleanlinessNeutralCount = sum(allStoresData, 'cleanliness_neutral_count')
+
+      // 性別分布（合計からパーセント再計算）
+      const genderMaleCount = sum(allStoresData, 'gender_male_count')
+      const genderFemaleCount = sum(allStoresData, 'gender_female_count')
+      const genderOtherCount = sum(allStoresData, 'gender_other_count')
+      const genderTotal = genderMaleCount + genderFemaleCount + genderOtherCount
+      const genderMalePercent = genderTotal > 0 ? Math.round((genderMaleCount / genderTotal) * 100) : 0
+      const genderFemalePercent = genderTotal > 0 ? Math.round((genderFemaleCount / genderTotal) * 100) : 0
+      const genderOtherPercent = genderTotal > 0 ? Math.round((genderOtherCount / genderTotal) * 100) : 0
+
+      // 年齢分布（合計からパーセント再計算）
+      const age20sCount = sum(allStoresData, 'age_20s_count')
+      const age30sCount = sum(allStoresData, 'age_30s_count')
+      const age40sCount = sum(allStoresData, 'age_40s_count')
+      const age50sCount = sum(allStoresData, 'age_50s_count')
+      const age60plusCount = sum(allStoresData, 'age_60plus_count')
+      const ageTotal = age20sCount + age30sCount + age40sCount + age50sCount + age60plusCount
+      const age20sPercent = ageTotal > 0 ? Math.round((age20sCount / ageTotal) * 100) : 0
+      const age30sPercent = ageTotal > 0 ? Math.round((age30sCount / ageTotal) * 100) : 0
+      const age40sPercent = ageTotal > 0 ? Math.round((age40sCount / ageTotal) * 100) : 0
+      const age50sPercent = ageTotal > 0 ? Math.round((age50sCount / ageTotal) * 100) : 0
+      const age60plusPercent = ageTotal > 0 ? Math.round((age60plusCount / ageTotal) * 100) : 0
+
+      // 同行者分布（合計からパーセント再計算）
+      const companionAloneCount = sum(allStoresData, 'companion_alone_count')
+      const companionCoupleCount = sum(allStoresData, 'companion_couple_count')
+      const companionFriendsCount = sum(allStoresData, 'companion_friends_count')
+      const companionFamilyCount = sum(allStoresData, 'companion_family_count')
+      const companionBusinessCount = sum(allStoresData, 'companion_business_count')
+      const companionOtherCount = sum(allStoresData, 'companion_other_count')
+      const companionTotal = companionAloneCount + companionCoupleCount + companionFriendsCount +
+                            companionFamilyCount + companionBusinessCount + companionOtherCount
+      const companionAlonePercent = companionTotal > 0 ? Math.round((companionAloneCount / companionTotal) * 100) : 0
+      const companionCouplePercent = companionTotal > 0 ? Math.round((companionCoupleCount / companionTotal) * 100) : 0
+      const companionFriendsPercent = companionTotal > 0 ? Math.round((companionFriendsCount / companionTotal) * 100) : 0
+      const companionFamilyPercent = companionTotal > 0 ? Math.round((companionFamilyCount / companionTotal) * 100) : 0
+      const companionBusinessPercent = companionTotal > 0 ? Math.round((companionBusinessCount / companionTotal) * 100) : 0
+      const companionOtherPercent = companionTotal > 0 ? Math.round((companionOtherCount / companionTotal) * 100) : 0
+
+      // 顧客重視ポイント（total_responsesで加重平均）
+      const prefTotalQuality = Math.round(weightedAverage(allStoresData, 'pref_total_quality', 'total_responses'))
+      const prefTotalService = Math.round(weightedAverage(allStoresData, 'pref_total_service', 'total_responses'))
+      const prefTotalAtmosphere = Math.round(weightedAverage(allStoresData, 'pref_total_atmosphere', 'total_responses'))
+      const prefTotalHygiene = Math.round(weightedAverage(allStoresData, 'pref_total_hygiene', 'total_responses'))
+      const prefTotalPrice = Math.round(weightedAverage(allStoresData, 'pref_total_price', 'total_responses'))
+      const prefRepeaterQuality = Math.round(weightedAverage(allStoresData, 'pref_repeater_quality', 'repeater_count'))
+      const prefRepeaterService = Math.round(weightedAverage(allStoresData, 'pref_repeater_service', 'repeater_count'))
+      const prefRepeaterAtmosphere = Math.round(weightedAverage(allStoresData, 'pref_repeater_atmosphere', 'repeater_count'))
+      const prefRepeaterHygiene = Math.round(weightedAverage(allStoresData, 'pref_repeater_hygiene', 'repeater_count'))
+      const prefRepeaterPrice = Math.round(weightedAverage(allStoresData, 'pref_repeater_price', 'repeater_count'))
+      const prefNewQuality = Math.round(weightedAverage(allStoresData, 'pref_new_quality', 'new_customer_count'))
+      const prefNewService = Math.round(weightedAverage(allStoresData, 'pref_new_service', 'new_customer_count'))
+      const prefNewAtmosphere = Math.round(weightedAverage(allStoresData, 'pref_new_atmosphere', 'new_customer_count'))
+      const prefNewHygiene = Math.round(weightedAverage(allStoresData, 'pref_new_hygiene', 'new_customer_count'))
+      const prefNewPrice = Math.round(weightedAverage(allStoresData, 'pref_new_price', 'new_customer_count'))
+
+      // 集計済みsummaryオブジェクトを作成
+      summary = {
+        company_id: companyId,
+        store_id: 'all',
+        year_month: targetYearMonth,
+        total_responses: totalResponses,
+
+        nps_score: npsScore,
+        nps_promoters_percent: npsPromotersPercent,
+        nps_passives_percent: npsPassivesPercent,
+        nps_detractors_percent: npsDetractorsPercent,
+        nps_promoters_count: npsPromotersCount,
+        nps_passives_count: npsPassivesCount,
+        nps_detractors_count: npsDetractorsCount,
+
+        repeat_rate: repeatRate,
+        repeater_count: repeaterCount,
+        new_customer_count: newCustomerCount,
+
+        repeater_revisit_rate: repeaterRevisitRate,
+        repeater_revisit_yes_count: repeaterRevisitYes,
+        repeater_revisit_no_count: repeaterRevisitNo,
+
+        new_revisit_rate: newRevisitRate,
+        new_revisit_yes_count: newRevisitYes,
+        new_revisit_no_count: newRevisitNo,
+
+        // 12セグメント
+        ...Object.fromEntries(segmentFields.flatMap(field => [
+          [`${field}_count`, segmentCounts[field]],
+          [`${field}_percent`, segmentPercents[field]]
+        ])),
+
+        positive_impact_count: positiveImpactCount,
+        positive_impact_percent: positiveImpactPercent,
+        negative_impact_count: negativeImpactCount,
+        negative_impact_percent: negativeImpactPercent,
+
+        qsc_quality_score: qscQualityScore,
+        qsc_quality_count: qscQualityCount,
+        qsc_service_score: qscServiceScore,
+        qsc_service_count: qscServiceCount,
+        qsc_cleanliness_score: qscCleanlinessScore,
+        qsc_cleanliness_count: qscCleanlinessCount,
+
+        // QSC項目別
+        ...qscItemAverages,
+
+        quality_positive_count: qualityPositiveCount,
+        quality_negative_count: qualityNegativeCount,
+        quality_neutral_count: qualityNeutralCount,
+        service_positive_count: servicePositiveCount,
+        service_negative_count: serviceNegativeCount,
+        service_neutral_count: serviceNeutralCount,
+        cleanliness_positive_count: cleanlinessPositiveCount,
+        cleanliness_negative_count: cleanlinessNegativeCount,
+        cleanliness_neutral_count: cleanlinessNeutralCount,
+
+        gender_male_count: genderMaleCount,
+        gender_male_percent: genderMalePercent,
+        gender_female_count: genderFemaleCount,
+        gender_female_percent: genderFemalePercent,
+        gender_other_count: genderOtherCount,
+        gender_other_percent: genderOtherPercent,
+
+        age_20s_count: age20sCount,
+        age_20s_percent: age20sPercent,
+        age_30s_count: age30sCount,
+        age_30s_percent: age30sPercent,
+        age_40s_count: age40sCount,
+        age_40s_percent: age40sPercent,
+        age_50s_count: age50sCount,
+        age_50s_percent: age50sPercent,
+        age_60plus_count: age60plusCount,
+        age_60plus_percent: age60plusPercent,
+
+        companion_alone_count: companionAloneCount,
+        companion_alone_percent: companionAlonePercent,
+        companion_couple_count: companionCoupleCount,
+        companion_couple_percent: companionCouplePercent,
+        companion_friends_count: companionFriendsCount,
+        companion_friends_percent: companionFriendsPercent,
+        companion_family_count: companionFamilyCount,
+        companion_family_percent: companionFamilyPercent,
+        companion_business_count: companionBusinessCount,
+        companion_business_percent: companionBusinessPercent,
+        companion_other_count: companionOtherCount,
+        companion_other_percent: companionOtherPercent,
+
+        pref_total_quality: prefTotalQuality,
+        pref_total_service: prefTotalService,
+        pref_total_atmosphere: prefTotalAtmosphere,
+        pref_total_hygiene: prefTotalHygiene,
+        pref_total_price: prefTotalPrice,
+        pref_repeater_quality: prefRepeaterQuality,
+        pref_repeater_service: prefRepeaterService,
+        pref_repeater_atmosphere: prefRepeaterAtmosphere,
+        pref_repeater_hygiene: prefRepeaterHygiene,
+        pref_repeater_price: prefRepeaterPrice,
+        pref_new_quality: prefNewQuality,
+        pref_new_service: prefNewService,
+        pref_new_atmosphere: prefNewAtmosphere,
+        pref_new_hygiene: prefNewHygiene,
+        pref_new_price: prefNewPrice
+      }
+    } else {
+      // 個別店舗の場合
+      const { data: singleSummary, error: summaryError } = await supabaseAdmin
+        .from('monthly_analytics_summary')
+        .select('*')
+        .eq('company_id', companyId)
+        .eq('store_id', storeId)
+        .eq('year_month', targetYearMonth)
+        .single()
+
+      if (summaryError && summaryError.code !== 'PGRST116') {
+        throw new Error(`データの取得に失敗しました: ${summaryError.message}`)
+      }
+
+      summary = singleSummary
     }
 
     if (!summary) {
@@ -124,7 +444,7 @@ serve(async (req) => {
             storeEvaluation: null,
             customerTrends: null
           },
-          message: 'このストアの該当月のデータがありません'
+          message: isAllStores ? 'この企業の該当月のデータがありません' : 'このストアの該当月のデータがありません'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -134,10 +454,14 @@ serve(async (req) => {
     }
 
     // 過去6ヶ月分のデータを取得（推移グラフ用 + 売上影響タブの比較用）
-    const { data: historicalData, error: historicalError } = await supabaseAdmin
+    let historicalQuery = supabaseAdmin
       .from('monthly_analytics_summary')
       .select(`
         year_month, nps_score, repeat_rate, repeater_revisit_rate, new_revisit_rate, total_responses,
+        nps_promoters_count, nps_passives_count, nps_detractors_count,
+        repeater_count, new_customer_count,
+        repeater_revisit_yes_count, repeater_revisit_no_count,
+        new_revisit_yes_count, new_revisit_no_count,
         seg_promoter_revisit_repeater_count, seg_promoter_revisit_repeater_percent,
         seg_promoter_revisit_new_count, seg_promoter_revisit_new_percent,
         seg_promoter_norevisit_repeater_count, seg_promoter_norevisit_repeater_percent,
@@ -153,13 +477,100 @@ serve(async (req) => {
         positive_impact_count, negative_impact_count
       `)
       .eq('company_id', companyId)
-      .eq('store_id', storeId)
-      .order('year_month', { ascending: true })
-      .limit(6)
 
-    const sortedHistoricalData = (historicalData || []).sort((a, b) =>
-      a.year_month.localeCompare(b.year_month)
-    )
+    if (!isAllStores) {
+      historicalQuery = historicalQuery.eq('store_id', storeId)
+    }
+
+    const { data: rawHistoricalData, error: historicalError } = await historicalQuery
+      .order('year_month', { ascending: true })
+
+    // 全店舗の場合は月ごとに集計
+    let sortedHistoricalData: any[] = []
+
+    if (isAllStores && rawHistoricalData && rawHistoricalData.length > 0) {
+      // 月ごとにグループ化
+      const monthlyGroups: Record<string, any[]> = {}
+      for (const item of rawHistoricalData) {
+        if (!monthlyGroups[item.year_month]) {
+          monthlyGroups[item.year_month] = []
+        }
+        monthlyGroups[item.year_month].push(item)
+      }
+
+      // 各月の集計を計算
+      const segmentFields = [
+        'seg_promoter_revisit_repeater', 'seg_promoter_revisit_new',
+        'seg_promoter_norevisit_repeater', 'seg_promoter_norevisit_new',
+        'seg_passive_revisit_repeater', 'seg_passive_revisit_new',
+        'seg_passive_norevisit_repeater', 'seg_passive_norevisit_new',
+        'seg_detractor_revisit_repeater', 'seg_detractor_revisit_new',
+        'seg_detractor_norevisit_repeater', 'seg_detractor_norevisit_new'
+      ]
+
+      const aggregatedMonths = Object.entries(monthlyGroups).map(([yearMonth, stores]) => {
+        const sum = (key: string) => stores.reduce((acc, s) => acc + (Number(s[key]) || 0), 0)
+
+        const totalResponses = sum('total_responses')
+        const npsPromotersCount = sum('nps_promoters_count')
+        const npsPassivesCount = sum('nps_passives_count')
+        const npsDetractorsCount = sum('nps_detractors_count')
+        const npsTotal = npsPromotersCount + npsPassivesCount + npsDetractorsCount
+        const npsPromotersPercent = npsTotal > 0 ? (npsPromotersCount / npsTotal) * 100 : 0
+        const npsDetractorsPercent = npsTotal > 0 ? (npsDetractorsCount / npsTotal) * 100 : 0
+        const npsScore = Math.round(npsPromotersPercent - npsDetractorsPercent)
+
+        const repeaterCount = sum('repeater_count')
+        const newCustomerCount = sum('new_customer_count')
+        const totalCustomers = repeaterCount + newCustomerCount
+        const repeatRate = totalCustomers > 0 ? (repeaterCount / totalCustomers) * 100 : 0
+
+        const repeaterRevisitYes = sum('repeater_revisit_yes_count')
+        const repeaterRevisitNo = sum('repeater_revisit_no_count')
+        const repeaterRevisitTotal = repeaterRevisitYes + repeaterRevisitNo
+        const repeaterRevisitRate = repeaterRevisitTotal > 0 ? (repeaterRevisitYes / repeaterRevisitTotal) * 100 : 0
+
+        const newRevisitYes = sum('new_revisit_yes_count')
+        const newRevisitNo = sum('new_revisit_no_count')
+        const newRevisitTotal = newRevisitYes + newRevisitNo
+        const newRevisitRate = newRevisitTotal > 0 ? (newRevisitYes / newRevisitTotal) * 100 : 0
+
+        const segmentCounts: Record<string, number> = {}
+        let segmentTotal = 0
+        for (const field of segmentFields) {
+          segmentCounts[field] = sum(`${field}_count`)
+          segmentTotal += segmentCounts[field]
+        }
+
+        const segmentPercents: Record<string, number> = {}
+        for (const field of segmentFields) {
+          segmentPercents[field] = segmentTotal > 0
+            ? Number(((segmentCounts[field] / segmentTotal) * 100).toFixed(2))
+            : 0
+        }
+
+        return {
+          year_month: yearMonth,
+          nps_score: npsScore,
+          repeat_rate: repeatRate,
+          repeater_revisit_rate: repeaterRevisitRate,
+          new_revisit_rate: newRevisitRate,
+          total_responses: totalResponses,
+          positive_impact_count: sum('positive_impact_count'),
+          negative_impact_count: sum('negative_impact_count'),
+          ...Object.fromEntries(segmentFields.flatMap(field => [
+            [`${field}_count`, segmentCounts[field]],
+            [`${field}_percent`, segmentPercents[field]]
+          ]))
+        }
+      })
+
+      sortedHistoricalData = aggregatedMonths.sort((a, b) => a.year_month.localeCompare(b.year_month)).slice(-6)
+    } else {
+      sortedHistoricalData = (rawHistoricalData || []).sort((a, b) =>
+        a.year_month.localeCompare(b.year_month)
+      ).slice(-6)
+    }
 
     // monthlyPerformance（推移グラフ用）
     const monthlyPerformance = sortedHistoricalData.map(item => ({
