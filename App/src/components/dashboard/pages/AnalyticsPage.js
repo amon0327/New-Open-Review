@@ -2709,7 +2709,7 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
                           isPositive ? 'text-green-700 bg-green-50' : 'text-red-700 bg-red-50'
                         }`}
                       >
-                        {isPositive ? '↑' : '↓'} {Math.round(Math.abs(data.trend))}
+                        {isPositive ? '↑' : '↓'} {Math.abs(data.trend).toFixed(1)}
                       </Badge>
                     </div>
 
@@ -2717,14 +2717,14 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
                     <div className="flex items-end justify-between">
                       <div className="flex items-baseline gap-1">
                         <span className={`text-3xl font-bold bg-gradient-to-r ${gradientColor} bg-clip-text text-transparent`}>
-                          {Math.round(data.score)}
+                          {data.score.toFixed(2)}
                         </span>
-                        <span className="text-xs text-muted-foreground">/ 5</span>
+                        <span className="text-xs text-muted-foreground">/ 5.00</span>
                       </div>
                       <div className="text-right">
                         <div className="text-xs text-muted-foreground">達成率</div>
                         <div className="text-sm font-semibold text-gray-700">
-                          {Math.round((data.score / 5) * 100)}%
+                          {((data.score / 5) * 100).toFixed(0)}%
                         </div>
                       </div>
                     </div>
@@ -2822,9 +2822,9 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
                           </div>
                         </div>
                         <div className="flex justify-between text-xs mt-1">
-                          <span className="text-green-600 font-medium">{positivePercentage}%</span>
-                          <span className="text-gray-500 font-medium">{neutralPercentage}%</span>
-                          <span className="text-red-600 font-medium">{negativePercentage}%</span>
+                          <span className="text-green-600 font-medium">{Math.round(positivePercentage)}%</span>
+                          <span className="text-gray-500 font-medium">{Math.round(neutralPercentage)}%</span>
+                          <span className="text-red-600 font-medium">{Math.round(negativePercentage)}%</span>
                         </div>
                       </div>
                     );
