@@ -1472,40 +1472,22 @@ const StoreByStoreTab = ({ companyId }) => {
       <Box sx={{ flex: 1, overflow: 'auto' }}>
         {isPeriodsLoading ? (
           <div className="p-6 space-y-6">
-            {/* KPIカードスケルトン */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <Card key={i} className="border-0 shadow-xl bg-white/80">
-                  <CardHeader className="pb-2">
-                    <Skeleton className="h-4 w-24" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <Skeleton className="h-8 w-20" />
-                      <Skeleton className="h-5 w-16" />
-                    </div>
-                  </CardContent>
-                </Card>
+                <div key={i} className="bg-white rounded-xl p-5 shadow-sm">
+                  <Skeleton className="h-3 w-20 mb-4" />
+                  <Skeleton className="h-7 w-16 mb-3" />
+                  <Skeleton className="h-2 w-full rounded-full" />
+                </div>
               ))}
             </div>
-            {/* チャートスケルトン */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="border-0 shadow-xl bg-white/80">
-                <CardHeader>
-                  <Skeleton className="h-5 w-32" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-48 w-full" />
-                </CardContent>
-              </Card>
-              <Card className="border-0 shadow-xl bg-white/80">
-                <CardHeader>
-                  <Skeleton className="h-5 w-32" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-48 w-full" />
-                </CardContent>
-              </Card>
+              {[1, 2].map((i) => (
+                <div key={i} className="bg-white rounded-xl p-5 shadow-sm">
+                  <Skeleton className="h-4 w-28 mb-6" />
+                  <Skeleton className="h-44 w-full rounded-lg" />
+                </div>
+              ))}
             </div>
           </div>
         ) : !selectedPeriod ? (
@@ -1705,41 +1687,22 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 p-6 pb-0">
-        {/* KPIカードスケルトン */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="border-0 shadow-xl bg-white/80 backdrop-blur">
-              <CardHeader className="pb-2">
-                <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <Skeleton className="h-8 w-20" />
-                  <Skeleton className="h-5 w-16" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              </CardContent>
-            </Card>
+            <div key={i} className="bg-white rounded-xl p-5 shadow-sm">
+              <Skeleton className="h-3 w-20 mb-4" />
+              <Skeleton className="h-7 w-16 mb-3" />
+              <Skeleton className="h-2 w-full rounded-full" />
+            </div>
           ))}
         </div>
-        {/* チャートスケルトン */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <Card className="border-0 shadow-xl bg-white/80">
-            <CardHeader>
-              <Skeleton className="h-5 w-32" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-64 w-full" />
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-xl bg-white/80">
-            <CardHeader>
-              <Skeleton className="h-5 w-32" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-64 w-full" />
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-white rounded-xl p-5 shadow-sm">
+              <Skeleton className="h-4 w-28 mb-6" />
+              <Skeleton className="h-56 w-full rounded-lg" />
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -2238,48 +2201,27 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
   if (loading) {
     return (
       <div className="p-6 space-y-6">
-        {/* カテゴリーカードスケルトン */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="border-0 shadow-lg">
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-8 w-16" />
-                  <Skeleton className="h-3 w-20" />
-                </div>
-              </CardContent>
-            </Card>
+            <div key={i} className="bg-white rounded-xl p-5 shadow-sm">
+              <Skeleton className="h-3 w-16 mb-3" />
+              <Skeleton className="h-6 w-12 mb-2" />
+              <Skeleton className="h-2 w-20" />
+            </div>
           ))}
         </div>
-        {/* 顧客構成比較スケルトン */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <Skeleton className="h-5 w-32" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-32 w-full" />
-          </CardContent>
-        </Card>
-        {/* テーブルスケルトン */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <Skeleton className="h-5 w-40" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="flex gap-4">
-                  <Skeleton className="h-6 w-20" />
-                  <Skeleton className="h-6 w-24" />
-                  <Skeleton className="h-6 w-20" />
-                  <Skeleton className="h-6 w-16" />
-                  <Skeleton className="h-6 flex-1" />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-xl p-5 shadow-sm">
+          <Skeleton className="h-4 w-32 mb-4" />
+          <Skeleton className="h-24 w-full rounded-lg" />
+        </div>
+        <div className="bg-white rounded-xl p-5 shadow-sm">
+          <Skeleton className="h-4 w-40 mb-4" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-10 w-full rounded-lg" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -2787,50 +2729,29 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
   if (loading) {
     return (
       <div className="p-6 space-y-6">
-        {/* QSCスコアカードスケルトン */}
-        <Card className="border-0 shadow-xl bg-white overflow-hidden">
-          <CardContent className="p-0">
-            <div className="grid grid-cols-3 divide-x divide-gray-100">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="p-6 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-10 w-10 rounded-lg" />
-                      <div className="space-y-1">
-                        <Skeleton className="h-5 w-20" />
-                        <Skeleton className="h-3 w-16" />
-                      </div>
-                    </div>
-                    <Skeleton className="h-5 w-12" />
-                  </div>
-                  <Skeleton className="h-8 w-16" />
-                  <Skeleton className="h-1.5 w-full rounded-full" />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        {/* QSC詳細スケルトン */}
-        <Card className="border-0 shadow-xl bg-white">
-          <CardHeader>
-            <Skeleton className="h-5 w-32" />
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="space-y-4">
-                  <Skeleton className="h-5 w-24" />
-                  {[1, 2, 3, 4, 5].map((j) => (
-                    <div key={j} className="space-y-2">
-                      <Skeleton className="h-3 w-32" />
-                      <Skeleton className="h-6 w-full rounded" />
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="grid grid-cols-3 divide-x divide-gray-100">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-5">
+                <Skeleton className="h-3 w-16 mb-3" />
+                <Skeleton className="h-8 w-14 mb-3" />
+                <Skeleton className="h-2 w-full rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-5 shadow-sm">
+          <Skeleton className="h-4 w-28 mb-5" />
+          <div className="grid grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-3">
+                {[1, 2, 3, 4, 5].map((j) => (
+                  <Skeleton key={j} className="h-8 w-full rounded-lg" />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -3112,30 +3033,18 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
   if (loading) {
     return (
       <div className="p-6 space-y-6">
-        {/* 基本属性チャートスケルトン */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="border-0 shadow-xl bg-white overflow-hidden">
-              <CardHeader className="pb-0">
-                <Skeleton className="h-4 w-20" />
-              </CardHeader>
-              <CardContent className="pt-1 pb-2">
-                <div className="h-32 flex items-center justify-center">
-                  <Skeleton className="h-24 w-24 rounded-full" />
-                </div>
-              </CardContent>
-            </Card>
+            <div key={i} className="bg-white rounded-xl p-5 shadow-sm">
+              <Skeleton className="h-3 w-16 mb-4" />
+              <Skeleton className="h-28 w-full rounded-lg" />
+            </div>
           ))}
         </div>
-        {/* レーダーチャートスケルトン */}
-        <Card className="border-0 shadow-xl bg-white">
-          <CardHeader>
-            <Skeleton className="h-5 w-32" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-64 w-full" />
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-xl p-5 shadow-sm">
+          <Skeleton className="h-4 w-32 mb-4" />
+          <Skeleton className="h-56 w-full rounded-lg" />
+        </div>
       </div>
     );
   }
@@ -3728,36 +3637,23 @@ const CommentsTab = ({ companyId, selectedStore, selectedPeriod }) => {
   // ローディング表示（スケルトンスクリーン）
   if (loading) {
     return (
-      <div className="p-6 space-y-6">
-        <Card className="border-0 shadow-xl bg-white overflow-hidden">
-          <CardHeader>
+      <div className="p-6">
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <Skeleton className="h-6 w-40" />
-              <Skeleton className="h-8 w-24" />
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-9 w-28 rounded-lg" />
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="p-4 border rounded-lg space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-6 w-16 rounded-md" />
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                    <Skeleton className="h-4 w-20" />
-                  </div>
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <div className="flex gap-2">
-                    <Skeleton className="h-5 w-16 rounded-full" />
-                    <Skeleton className="h-5 w-20 rounded-full" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="p-4">
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
