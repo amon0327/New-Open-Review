@@ -374,6 +374,23 @@ serve(async (req) => {
       }
     };
 
+    // 顧客構成比率を計算
+    const categoryTotal = newChurnCount + newRepeatersCount + stableRepeatersCount + churnRiskCount;
+    const currentComposition = {
+      month: targetYearMonth,
+      newChurn: categoryTotal > 0 ? Math.round((newChurnCount / categoryTotal) * 100) : 0,
+      newRepeaters: categoryTotal > 0 ? Math.round((newRepeatersCount / categoryTotal) * 100) : 0,
+      stableRepeaters: categoryTotal > 0 ? Math.round((stableRepeatersCount / categoryTotal) * 100) : 0,
+      churnRisk: categoryTotal > 0 ? Math.round((churnRiskCount / categoryTotal) * 100) : 0,
+      counts: {
+        total: categoryTotal,
+        newChurn: newChurnCount,
+        newRepeaters: newRepeatersCount,
+        stableRepeaters: stableRepeatersCount,
+        churnRisk: churnRiskCount
+      }
+    };
+
     const salesImpactData = {
       segments: segmentsWithImpact,
       totalCount,
@@ -383,8 +400,8 @@ serve(async (req) => {
       normalizedScore,
       trendData: [], // 月次サマリーには過去データがないため空
       categoryData,
-      compositionData: [],
-      avgComposition: { newChurn: 0, newRepeaters: 0, stableRepeaters: 0, churnRisk: 0 },
+      compositionData: [currentComposition], // 現在月のデータのみ
+      avgComposition: currentComposition, // 単月なので同じデータを使用
       positiveImpact: {
         count: summary.positive_impact_count,
         percent: summary.positive_impact_percent
