@@ -1389,22 +1389,16 @@ const StoreByStoreTab = ({ companyId }) => {
               ))}
             </SelectContent>
           </Select>
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod} disabled={availablePeriods.length === 0}>
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="期間を選択" />
+              <SelectValue placeholder={availablePeriods.length === 0 ? "データなし" : "期間を選択"} />
             </SelectTrigger>
             <SelectContent>
-              {availablePeriods.length > 0 ? (
-                availablePeriods.map((period) => (
-                  <SelectItem key={period} value={period}>
-                    {period}
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value="" disabled>
-                  データなし
+              {availablePeriods.map((period) => (
+                <SelectItem key={period} value={period}>
+                  {period}
                 </SelectItem>
-              )}
+              ))}
             </SelectContent>
           </Select>
         </div>
