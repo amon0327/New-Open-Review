@@ -232,41 +232,40 @@ serve(async (req) => {
       }
     }
 
-    // 重み付けスコア計算関数
+    // 重み付けスコア計算関数（生のスコアを返す）
     const preferenceCategories = ['品質', '接客', '空間', '衛生', '価格感度']
     const TOP_WEIGHT = 2  // 1位の重み
     const SECOND_WEIGHT = 1  // 2位の重み
 
-    const calculatePreferenceScores = (features: any[]) => {
+    const calculateRawScores = (features: any[]) => {
       const scores: Record<string, number> = {}
       preferenceCategories.forEach(cat => scores[cat] = 0)
-
-      let totalWeight = 0
 
       features.forEach(f => {
         if (f.top_preference && preferenceCategories.includes(f.top_preference)) {
           scores[f.top_preference] += TOP_WEIGHT
-          totalWeight += TOP_WEIGHT
         }
         if (f.second_preference && preferenceCategories.includes(f.second_preference)) {
           scores[f.second_preference] += SECOND_WEIGHT
-          totalWeight += SECOND_WEIGHT
         }
       })
 
-      // 正規化（0-100のスケール）
+      return scores
+    }
+
+    // 最大値を100として正規化する関数
+    const normalizeToMax100 = (scores: Record<string, number>) => {
+      const maxValue = Math.max(...Object.values(scores))
       const normalizedScores: Record<string, number> = {}
+
       preferenceCategories.forEach(cat => {
-        normalizedScores[cat] = totalWeight > 0
-          ? Math.round((scores[cat] / totalWeight) * 100)
+        normalizedScores[cat] = maxValue > 0
+          ? Math.round((scores[cat] / maxValue) * 100)
           : 0
       })
 
       return normalizedScores
     }
-
-    // 全体の重視ポイントスコア
-    const totalPreferenceScores = calculatePreferenceScores(allFeatures)
 
     // リピーターと新規でフィルタリング
     const repeaterFeatures = allFeatures.filter(f => {
@@ -283,11 +282,15 @@ serve(async (req) => {
       return customerType === '初めて'
     })
 
-    // リピーターの重視ポイントスコア
-    const repeaterPreferenceScores = calculatePreferenceScores(repeaterFeatures)
+    // 各グループの生スコアを計算
+    const totalRawScores = calculateRawScores(allFeatures)
+    const repeaterRawScores = calculateRawScores(repeaterFeatures)
+    const newCustomerRawScores = calculateRawScores(newCustomerFeatures)
 
-    // 新規の重視ポイントスコア
-    const newCustomerPreferenceScores = calculatePreferenceScores(newCustomerFeatures)
+    // 各グループで最大値を100として正規化
+    const totalPreferenceScores = normalizeToMax100(totalRawScores)
+    const repeaterPreferenceScores = normalizeToMax100(repeaterRawScores)
+    const newCustomerPreferenceScores = normalizeToMax100(newCustomerRawScores)
 
     // レーダーチャート用データ
     const radarData = preferenceCategories.map(cat => ({
