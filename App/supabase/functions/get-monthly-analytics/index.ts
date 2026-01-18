@@ -314,6 +314,66 @@ serve(async (req) => {
       ? Math.round(((positiveScore / totalCount) * 100))
       : 50;
 
+    // 4カテゴリーのデータを集計
+    // 新規離脱: 新規 + 再来店なし
+    const newChurnCount = (summary.seg_promoter_norevisit_new_count || 0) +
+      (summary.seg_passive_norevisit_new_count || 0) +
+      (summary.seg_detractor_norevisit_new_count || 0);
+
+    // 新規リピーター: 新規 + 再来店あり
+    const newRepeatersCount = (summary.seg_promoter_revisit_new_count || 0) +
+      (summary.seg_passive_revisit_new_count || 0) +
+      (summary.seg_detractor_revisit_new_count || 0);
+
+    // 安定リピーター: リピーター + 再来店あり
+    const stableRepeatersCount = (summary.seg_promoter_revisit_repeater_count || 0) +
+      (summary.seg_passive_revisit_repeater_count || 0) +
+      (summary.seg_detractor_revisit_repeater_count || 0);
+
+    // リピーター離脱: リピーター + 再来店なし
+    const churnRiskCount = (summary.seg_promoter_norevisit_repeater_count || 0) +
+      (summary.seg_passive_norevisit_repeater_count || 0) +
+      (summary.seg_detractor_norevisit_repeater_count || 0);
+
+    const categoryData = {
+      newChurn: {
+        count: newChurnCount,
+        impact: -3,
+        nps: {
+          promoters: summary.seg_promoter_norevisit_new_count || 0,
+          neutrals: summary.seg_passive_norevisit_new_count || 0,
+          detractors: summary.seg_detractor_norevisit_new_count || 0
+        }
+      },
+      newRepeaters: {
+        count: newRepeatersCount,
+        impact: 3,
+        nps: {
+          promoters: summary.seg_promoter_revisit_new_count || 0,
+          neutrals: summary.seg_passive_revisit_new_count || 0,
+          detractors: summary.seg_detractor_revisit_new_count || 0
+        }
+      },
+      stableRepeaters: {
+        count: stableRepeatersCount,
+        impact: 3,
+        nps: {
+          promoters: summary.seg_promoter_revisit_repeater_count || 0,
+          neutrals: summary.seg_passive_revisit_repeater_count || 0,
+          detractors: summary.seg_detractor_revisit_repeater_count || 0
+        }
+      },
+      churnRisk: {
+        count: churnRiskCount,
+        impact: -3,
+        nps: {
+          promoters: summary.seg_promoter_norevisit_repeater_count || 0,
+          neutrals: summary.seg_passive_norevisit_repeater_count || 0,
+          detractors: summary.seg_detractor_norevisit_repeater_count || 0
+        }
+      }
+    };
+
     const salesImpactData = {
       segments: segmentsWithImpact,
       totalCount,
@@ -322,7 +382,7 @@ serve(async (req) => {
       negativeScore,
       normalizedScore,
       trendData: [], // 月次サマリーには過去データがないため空
-      categoryData: null,
+      categoryData,
       compositionData: [],
       avgComposition: { newChurn: 0, newRepeaters: 0, stableRepeaters: 0, churnRisk: 0 },
       positiveImpact: {
