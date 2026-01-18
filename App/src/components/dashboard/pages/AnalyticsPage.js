@@ -1563,34 +1563,34 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
       metric: `${kpi.nps.current >= 0 ? '+' : ''}${kpi.nps.current}pt`,
       progress: Math.max(0, Math.min(100, kpi.nps.current + 50)),
       target: "+50pt",
-      delta: `${kpi.nps.delta >= 0 ? '+' : ''}${kpi.nps.delta}pt`,
+      delta: `${kpi.nps.delta >= 0 ? '+' : ''}${Number(kpi.nps.delta).toFixed(1)}pt`,
       deltaType: kpi.nps.delta >= 0 ? "increase" : "decrease",
       sparklineData: kpi.nps.sparkline
     },
     {
       title: "リピート率",
-      metric: `${kpi.repeatRate.current}%`,
+      metric: `${Number(kpi.repeatRate.current).toFixed(1)}%`,
       progress: kpi.repeatRate.current,
       target: "90%",
-      delta: `${kpi.repeatRate.delta >= 0 ? '+' : ''}${kpi.repeatRate.delta}%`,
+      delta: `${kpi.repeatRate.delta >= 0 ? '+' : ''}${Number(kpi.repeatRate.delta).toFixed(1)}%`,
       deltaType: kpi.repeatRate.delta >= 0 ? "increase" : "decrease",
       sparklineData: kpi.repeatRate.sparkline
     },
     {
       title: "3ヶ月以内再来店意向（リピーター）",
-      metric: `${kpi.repeaterRevisit.current}%`,
+      metric: `${Number(kpi.repeaterRevisit.current).toFixed(1)}%`,
       progress: kpi.repeaterRevisit.current,
       target: "100%",
-      delta: `${kpi.repeaterRevisit.delta >= 0 ? '+' : ''}${kpi.repeaterRevisit.delta}%`,
+      delta: `${kpi.repeaterRevisit.delta >= 0 ? '+' : ''}${Number(kpi.repeaterRevisit.delta).toFixed(1)}%`,
       deltaType: kpi.repeaterRevisit.delta >= 0 ? "increase" : "decrease",
       sparklineData: kpi.repeaterRevisit.sparkline
     },
     {
       title: "3ヶ月以内再来店意向（新規）",
-      metric: `${kpi.newRevisit.current}%`,
+      metric: `${Number(kpi.newRevisit.current).toFixed(1)}%`,
       progress: kpi.newRevisit.current,
       target: "100%",
-      delta: `${kpi.newRevisit.delta >= 0 ? '+' : ''}${kpi.newRevisit.delta}%`,
+      delta: `${kpi.newRevisit.delta >= 0 ? '+' : ''}${Number(kpi.newRevisit.delta).toFixed(1)}%`,
       deltaType: kpi.newRevisit.delta >= 0 ? "increase" : "decrease",
       sparklineData: kpi.newRevisit.sparkline
     }
