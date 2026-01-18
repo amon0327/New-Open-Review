@@ -1405,6 +1405,7 @@ const StoreByStoreTab = ({ companyId }) => {
               <SelectValue placeholder="店舗を選択" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">全店舗</SelectItem>
               {stores.map((store) => (
                 <SelectItem key={store.id} value={store.id}>
                   {store.name}
