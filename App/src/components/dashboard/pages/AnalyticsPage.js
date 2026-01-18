@@ -2462,22 +2462,22 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
                   <tr key={index} className="border-b hover:bg-gray-50 transition-colors">
                     <td className="p-3">
                       <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-bold text-white ${
-                        segment.nps === '推奨者' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
-                        segment.nps === '批判者' ? 'bg-gradient-to-r from-red-500 to-red-400' : 
+                        segment.npsLabel === '推奨者' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                        segment.npsLabel === '批判者' ? 'bg-gradient-to-r from-red-500 to-red-400' :
                         'bg-gradient-to-r from-amber-500 to-orange-400'
                       }`}>
-                        {segment.nps}
+                        {segment.npsLabel}
                       </span>
                     </td>
                     <td className="p-3">
                       <span className={`text-sm ${
-                        segment.revisitIntent === 'あり' ? 'text-green-600 font-medium' : 'text-gray-500'
+                        segment.revisitLabel === '再来店あり' ? 'text-green-600 font-medium' : 'text-gray-500'
                       }`}>
-                        {segment.revisitIntent}
+                        {segment.revisitLabel}
                       </span>
                     </td>
                     <td className="p-3">
-                      {segment.experience === 'リピーター' ? (
+                      {segment.customerLabel === 'リピーター' ? (
                         <div className="flex items-center">
                           <CheckCircle className="w-4 h-4 text-green-600 mr-1" />
                           <span className="text-sm text-green-700">リピーター</span>
