@@ -74,9 +74,25 @@ serve(async (req) => {
       throw new Error('この企業のデータにアクセスする権限がありません')
     }
 
-    // 年月が指定されていない場合は現在の月を使用
+    // 利用可能な期間リストを取得
+    const { data: availablePeriodsData, error: periodsError } = await supabaseAdmin
+      .from('monthly_analytics_summary')
+      .select('year_month')
+      .eq('company_id', companyId)
+      .eq('store_id', storeId)
+      .order('year_month', { ascending: false })
+
+    if (periodsError) {
+      console.error('Error fetching available periods:', periodsError)
+    }
+
+    const availablePeriods = (availablePeriodsData || []).map(d => d.year_month)
+
+    // 年月が指定されていない場合は最新の月を使用
     let targetYearMonth = yearMonth
-    if (!targetYearMonth) {
+    if (!targetYearMonth && availablePeriods.length > 0) {
+      targetYearMonth = availablePeriods[0]
+    } else if (!targetYearMonth) {
       const now = new Date()
       const jstOffset = 9 * 60 * 60 * 1000
       const jstNow = new Date(now.getTime() + jstOffset)
@@ -100,7 +116,14 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: true,
-          data: null,
+          data: {
+            availablePeriods,
+            yearMonth: targetYearMonth,
+            overview: null,
+            salesImpact: null,
+            storeEvaluation: null,
+            customerTrends: null
+          },
           message: 'このストアの該当月のデータがありません'
         }),
         {
@@ -271,8 +294,37 @@ serve(async (req) => {
       }
     ]
 
+    // 各セグメントにimpact値（数値）を追加
+    const segmentsWithImpact = segments.map(seg => {
+      let impactValue = 0;
+      if (seg.impact === 'positive') impactValue = 3;
+      else if (seg.impact === 'warning') impactValue = 1;
+      else if (seg.impact === 'negative') impactValue = -3;
+      return { ...seg, impact: impactValue };
+    });
+
+    // 総カウント
+    const totalCount = segmentsWithImpact.reduce((sum, seg) => sum + (seg.count || 0), 0);
+
+    // スコア計算
+    const positiveScore = summary.positive_impact_count || 0;
+    const negativeScore = summary.negative_impact_count || 0;
+    const totalScore = positiveScore - negativeScore;
+    const normalizedScore = totalCount > 0
+      ? Math.round(((positiveScore / totalCount) * 100))
+      : 50;
+
     const salesImpactData = {
-      segments,
+      segments: segmentsWithImpact,
+      totalCount,
+      totalScore,
+      positiveScore,
+      negativeScore,
+      normalizedScore,
+      trendData: [], // 月次サマリーには過去データがないため空
+      categoryData: null,
+      compositionData: [],
+      avgComposition: { newChurn: 0, newRepeaters: 0, stableRepeaters: 0, churnRisk: 0 },
       positiveImpact: {
         count: summary.positive_impact_count,
         percent: summary.positive_impact_percent
@@ -400,6 +452,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         data: {
+          availablePeriods,
           yearMonth: targetYearMonth,
           overview: overviewData,
           salesImpact: salesImpactData,

@@ -1289,7 +1289,7 @@ const StoreByStoreTab = ({ companyId }) => {
     fetchStores();
   }, [companyId]);
 
-  // 選択された店舗の利用可能な期間を取得
+  // 選択された店舗の利用可能な期間を取得（Edge Function経由）
   useEffect(() => {
     const fetchAvailablePeriods = async () => {
       if (!companyId || !selectedStore) {
@@ -1297,24 +1297,41 @@ const StoreByStoreTab = ({ companyId }) => {
         return;
       }
       try {
-        const { data, error } = await supabase
-          .from('monthly_analytics_summary')
-          .select('year_month')
-          .eq('company_id', companyId)
-          .eq('store_id', selectedStore)
-          .order('year_month', { ascending: false });
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.error('No session');
+          setAvailablePeriods([]);
+          return;
+        }
 
-        if (error) throw error;
+        const response = await fetch(
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-monthly-analytics?company_id=${companyId}&store_id=${selectedStore}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
 
-        const periods = (data || []).map(d => d.year_month.replace('-', '/'));
-        setAvailablePeriods(periods);
+        if (!response.ok) throw new Error('Failed to fetch available periods');
 
-        // 最新の期間を選択（または既存の選択を維持）
-        if (periods.length > 0) {
-          if (!selectedPeriod || !periods.includes(selectedPeriod)) {
-            setSelectedPeriod(periods[0]);
+        const result = await response.json();
+        if (result.success && result.data?.availablePeriods) {
+          const periods = result.data.availablePeriods.map(p => p.replace('-', '/'));
+          setAvailablePeriods(periods);
+
+          // 最新の期間を選択（または既存の選択を維持）
+          if (periods.length > 0) {
+            if (!selectedPeriod || !periods.includes(selectedPeriod)) {
+              setSelectedPeriod(periods[0]);
+            }
+          } else {
+            setSelectedPeriod('');
           }
         } else {
+          setAvailablePeriods([]);
           setSelectedPeriod('');
         }
       } catch (error) {
@@ -2061,12 +2078,12 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
   // セグメントごとの構成比を計算
   const segmentsWithPercentage = segments.map(seg => ({
     ...seg,
-    percentage: ((seg.count / totalCount) * 100).toFixed(1),
+    percentage: totalCount > 0 ? ((seg.count / totalCount) * 100).toFixed(1) : '0.0',
     // 実際の先月比（構成比の変化ポイント）
     monthOverMonthDisplay: seg.monthOverMonth === 0 || seg.monthOverMonth === undefined
       ? '±0pt'
       : `${seg.monthOverMonth > 0 ? '+' : ''}${seg.monthOverMonth}pt`
-  })).sort((a, b) => b.percentage - a.percentage);
+  })).sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
 
   // スパークラインデータ（月別トレンドから生成）
   const sparklineData = {
@@ -2094,6 +2111,18 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
           <span className="text-gray-500">データを読み込み中...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // データがない場合の表示
+  if (!impactData || segments.length === 0 || totalCount === 0) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-gray-500 text-lg">この期間のデータがありません</p>
+          <p className="text-gray-400 text-sm mt-2">別の期間を選択してください</p>
         </div>
       </div>
     );
