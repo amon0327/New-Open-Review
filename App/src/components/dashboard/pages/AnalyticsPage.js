@@ -1262,7 +1262,7 @@ const StoreByStoreTab = ({ companyId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isPeriodsLoading, setIsPeriodsLoading] = useState(false);
 
-  // 店舗データ取得（レポートが存在する店舗のみ）
+  // 店舗データ取得（レポートが存在する店舗のみ - Edge Function経由）
   useEffect(() => {
     const fetchStores = async () => {
       if (!companyId) {
@@ -1270,38 +1270,59 @@ const StoreByStoreTab = ({ companyId }) => {
         return;
       }
       try {
-        // monthly_analytics_summaryに存在するstore_idを取得
-        const { data: reportStoreIds, error: reportError } = await supabase
-          .from('monthly_analytics_summary')
-          .select('store_id')
-          .eq('company_id', companyId);
-
-        if (reportError) throw reportError;
-
-        // ユニークなstore_idを抽出
-        const uniqueStoreIds = [...new Set(reportStoreIds?.map(r => r.store_id) || [])];
-
-        if (uniqueStoreIds.length === 0) {
-          setStores([]);
-          setSelectedStore('all');
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          console.error('No session');
           setIsLoading(false);
           return;
         }
 
-        // 該当する店舗情報を取得
-        const { data, error } = await supabase
-          .from('stores')
-          .select('id, name')
-          .in('id', uniqueStoreIds)
-          .order('name');
-        if (error) throw error;
-        setStores(data || []);
+        // Edge Functionでレポートが存在する店舗を取得
+        const response = await fetch(
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-monthly-analytics?company_id=${companyId}&store_id=all`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+
+        if (!response.ok) throw new Error('Failed to fetch stores');
+
+        const result = await response.json();
+
+        if (result.success && result.data?.storesWithReports) {
+          setStores(result.data.storesWithReports);
+        } else {
+          // フォールバック: 直接storesテーブルから取得
+          const { data, error } = await supabase
+            .from('stores')
+            .select('id, name')
+            .eq('company_id', companyId)
+            .order('name');
+          if (error) throw error;
+          setStores(data || []);
+        }
+
         // 初期値として全店舗を選択
         if (!selectedStore) {
           setSelectedStore('all');
         }
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching stores:', error);
+        // エラー時はstoresテーブルから直接取得を試みる
+        try {
+          const { data } = await supabase
+            .from('stores')
+            .select('id, name')
+            .eq('company_id', companyId)
+            .order('name');
+          setStores(data || []);
+        } catch (e) {
+          console.error('Fallback error:', e);
+        }
       } finally {
         setIsLoading(false);
       }

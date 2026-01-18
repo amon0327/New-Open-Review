@@ -110,6 +110,28 @@ serve(async (req) => {
     // monthly_analytics_summaryからデータを取得
     let summary: any = null
 
+    // レポートが存在する店舗リストを取得
+    let storesWithReports: { id: string; name: string }[] = []
+    if (isAllStores) {
+      // 全店舗の場合：レポートが存在する店舗を取得
+      const { data: reportStoreIds } = await supabaseAdmin
+        .from('monthly_analytics_summary')
+        .select('store_id')
+        .eq('company_id', companyId)
+
+      const uniqueStoreIds = [...new Set((reportStoreIds || []).map(r => r.store_id))]
+
+      if (uniqueStoreIds.length > 0) {
+        const { data: storesData } = await supabaseAdmin
+          .from('stores')
+          .select('id, name')
+          .in('id', uniqueStoreIds)
+          .order('name')
+
+        storesWithReports = storesData || []
+      }
+    }
+
     if (isAllStores) {
       // 全店舗の場合：company_idで全店舗のデータを取得し、加重平均を計算
       const { data: allStoresData, error: allStoresError } = await supabaseAdmin
@@ -128,6 +150,7 @@ serve(async (req) => {
             success: true,
             data: {
               availablePeriods,
+              storesWithReports,
               yearMonth: targetYearMonth,
               overview: null,
               salesImpact: null,
@@ -1090,6 +1113,7 @@ serve(async (req) => {
         success: true,
         data: {
           availablePeriods,
+          storesWithReports,
           yearMonth: targetYearMonth,
           overview: overviewData,
           salesImpact: salesImpactData,
