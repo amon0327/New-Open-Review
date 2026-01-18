@@ -113,6 +113,17 @@ serve(async (req) => {
 
     // === メトリクス計算 ===
 
+    // ========================================
+    // 再来店意向を判定する関数
+    // 1ヶ月以内、3ヶ月以内 → true (再来店あり)
+    // 6ヶ月以内、10ヶ月以内、1年以内、1年以上 → false (再来店なし)
+    // ========================================
+    const isRevisitYes = (revisitIntent: string | null): boolean | null => {
+      if (revisitIntent === null || revisitIntent === undefined) return null
+      if (revisitIntent === '1ヶ月以内' || revisitIntent === '3ヶ月以内') return true
+      return false
+    }
+
     // NPS計算
     const npsAnswers = allAnswers.filter(a => a.p1_q1 !== null)
     const promoters = npsAnswers.filter(a => a.p1_q1 >= 9).length
@@ -135,14 +146,14 @@ serve(async (req) => {
 
     // 再来店意向計算（リピーター）
     const repeaterWithIntent = repeaters.filter(a => a.p1_q2 !== null)
-    const repeaterRevisitYes = repeaterWithIntent.filter(a => a.p1_q2 === true).length
+    const repeaterRevisitYes = repeaterWithIntent.filter(a => isRevisitYes(a.p1_q2) === true).length
     const repeaterRevisitRate = repeaterWithIntent.length > 0
       ? Math.round((repeaterRevisitYes / repeaterWithIntent.length) * 1000) / 10
       : 0
 
     // 再来店意向計算（新規）
     const newWithIntent = newCustomers.filter(a => a.p1_q2 !== null)
-    const newRevisitYes = newWithIntent.filter(a => a.p1_q2 === true).length
+    const newRevisitYes = newWithIntent.filter(a => isRevisitYes(a.p1_q2) === true).length
     const newRevisitRate = newWithIntent.length > 0
       ? Math.round((newRevisitYes / newWithIntent.length) * 1000) / 10
       : 0
@@ -201,13 +212,13 @@ serve(async (req) => {
         : 0
 
       const repeaterWithIntent = data.repeaters.filter(a => a.p1_q2 !== null)
-      const repeaterRevisitYes = repeaterWithIntent.filter(a => a.p1_q2 === true).length
+      const repeaterRevisitYes = repeaterWithIntent.filter(a => isRevisitYes(a.p1_q2) === true).length
       const monthRepeaterRevisit = repeaterWithIntent.length > 0
         ? Math.round((repeaterRevisitYes / repeaterWithIntent.length) * 1000) / 10
         : 0
 
       const newWithIntent = data.newCustomers.filter(a => a.p1_q2 !== null)
-      const newRevisitYes = newWithIntent.filter(a => a.p1_q2 === true).length
+      const newRevisitYes = newWithIntent.filter(a => isRevisitYes(a.p1_q2) === true).length
       const monthNewRevisit = newWithIntent.length > 0
         ? Math.round((newRevisitYes / newWithIntent.length) * 1000) / 10
         : 0

@@ -112,6 +112,17 @@ serve(async (req) => {
     }
 
     // ========================================
+    // 再来店意向を判定する関数
+    // 1ヶ月以内、3ヶ月以内 → true (再来店あり)
+    // 6ヶ月以内、10ヶ月以内、1年以内、1年以上 → false (再来店なし)
+    // ========================================
+    const isRevisitYes = (revisitIntent: string | null): boolean | null => {
+      if (revisitIntent === null || revisitIntent === undefined) return null
+      if (revisitIntent === '1ヶ月以内' || revisitIntent === '3ヶ月以内') return true
+      return false
+    }
+
+    // ========================================
     // 影響度スコアを取得する関数
     // NPS × 再来店意向 × 経験の組み合わせで影響度を決定
     // ========================================
@@ -150,7 +161,7 @@ serve(async (req) => {
       const nps = getNpsType(answer.p1_q1)
       if (nps === 'unknown') return
 
-      const revisitIntent = answer.p1_q2
+      const revisitIntent = isRevisitYes(answer.p1_q2)
       const experience = answer.p1_q3 === '初めて' ? '新規' : 'リピーター'
       const revisitLabel = revisitIntent === true ? 'あり' : revisitIntent === false ? 'なし' : 'unknown'
 
@@ -271,8 +282,8 @@ serve(async (req) => {
       const nps = getNpsType(answer.p1_q1)
       if (nps === 'unknown') return
 
-      const revisitIntent = answer.p1_q2
-      if (revisitIntent === null || revisitIntent === undefined) return
+      const revisitIntent = isRevisitYes(answer.p1_q2)
+      if (revisitIntent === null) return
 
       const experience = answer.p1_q3 === '初めて' ? '新規' : 'リピーター'
       const impact = getImpactScore(nps, revisitIntent, experience)

@@ -4021,8 +4021,8 @@ const RealtimeTab = ({ companyId }) => {
           const visitCount = answer.p1_q3;
           const isRepeater = visitCount !== '初めて';
 
-          // 再来店意向（p1_q2: boolean）
-          const revisitIntent = answer.p1_q2 ? 'あり' : 'なし';
+          // 再来店意向（p1_q2: enum - 1ヶ月以内,3ヶ月以内 → あり、それ以外 → なし）
+          const revisitIntent = (answer.p1_q2 === '1ヶ月以内' || answer.p1_q2 === '3ヶ月以内') ? 'あり' : 'なし';
 
           // 年齢を整形（例: "25歳~29歳" → "20代"）
           const ageRange = answer.p1_q5 || '';
