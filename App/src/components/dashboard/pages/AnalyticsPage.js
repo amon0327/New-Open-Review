@@ -1948,6 +1948,12 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const negativeScore = impactData?.negativeScore || 0;
   const normalizedScore = impactData?.normalizedScore || 50;
   const categoryDataFromApi = impactData?.categoryData || null;
+  const compositionData = impactData?.compositionData || [];
+  const avgComposition = impactData?.avgComposition || { newChurn: 0, newRepeaters: 0, stableRepeaters: 0, churnRisk: 0 };
+
+  // 今月と先月のデータを取得
+  const thisMonthComposition = compositionData.length > 0 ? compositionData[compositionData.length - 1] : null;
+  const lastMonthComposition = compositionData.length > 1 ? compositionData[compositionData.length - 2] : null;
 
   // 6ヶ月平均計算
   const sixMonthAvg = trendData.length > 0
@@ -2252,66 +2258,84 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
               {/* 今月 */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">今月</span>
-                  <span className="text-xs text-gray-500">100%</span>
+                  <span className="text-sm font-medium text-gray-700">今月{thisMonthComposition ? ` (${thisMonthComposition.month})` : ''}</span>
+                  <span className="text-xs text-gray-500">{thisMonthComposition?.counts?.total || 0}件</span>
                 </div>
                 <div className="flex h-6 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="bg-gray-500 transition-all duration-500" style={{ width: '17%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">17%</span>
-                  </div>
-                  <div className="bg-blue-500 transition-all duration-500" style={{ width: '26%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">26%</span>
-                  </div>
-                  <div className="bg-green-500 transition-all duration-500" style={{ width: '39%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">39%</span>
-                  </div>
-                  <div className="bg-orange-500 transition-all duration-500" style={{ width: '18%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">18%</span>
-                  </div>
+                  {thisMonthComposition ? (
+                    <>
+                      <div className="bg-gray-500 transition-all duration-500" style={{ width: `${thisMonthComposition.newChurn}%` }}>
+                        {thisMonthComposition.newChurn > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{thisMonthComposition.newChurn}%</span>}
+                      </div>
+                      <div className="bg-blue-500 transition-all duration-500" style={{ width: `${thisMonthComposition.newRepeaters}%` }}>
+                        {thisMonthComposition.newRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{thisMonthComposition.newRepeaters}%</span>}
+                      </div>
+                      <div className="bg-green-500 transition-all duration-500" style={{ width: `${thisMonthComposition.stableRepeaters}%` }}>
+                        {thisMonthComposition.stableRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{thisMonthComposition.stableRepeaters}%</span>}
+                      </div>
+                      <div className="bg-orange-500 transition-all duration-500" style={{ width: `${thisMonthComposition.churnRisk}%` }}>
+                        {thisMonthComposition.churnRisk > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{thisMonthComposition.churnRisk}%</span>}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="w-full text-center text-xs text-gray-400 flex items-center justify-center">データなし</div>
+                  )}
                 </div>
               </div>
 
               {/* 先月 */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">先月</span>
-                  <span className="text-xs text-gray-500">100%</span>
+                  <span className="text-sm font-medium text-gray-700">先月{lastMonthComposition ? ` (${lastMonthComposition.month})` : ''}</span>
+                  <span className="text-xs text-gray-500">{lastMonthComposition?.counts?.total || 0}件</span>
                 </div>
                 <div className="flex h-6 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="bg-gray-500 transition-all duration-500" style={{ width: '16%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">16%</span>
-                  </div>
-                  <div className="bg-blue-500 transition-all duration-500" style={{ width: '23%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">23%</span>
-                  </div>
-                  <div className="bg-green-500 transition-all duration-500" style={{ width: '41%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">41%</span>
-                  </div>
-                  <div className="bg-orange-500 transition-all duration-500" style={{ width: '20%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">20%</span>
-                  </div>
+                  {lastMonthComposition ? (
+                    <>
+                      <div className="bg-gray-500 transition-all duration-500" style={{ width: `${lastMonthComposition.newChurn}%` }}>
+                        {lastMonthComposition.newChurn > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{lastMonthComposition.newChurn}%</span>}
+                      </div>
+                      <div className="bg-blue-500 transition-all duration-500" style={{ width: `${lastMonthComposition.newRepeaters}%` }}>
+                        {lastMonthComposition.newRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{lastMonthComposition.newRepeaters}%</span>}
+                      </div>
+                      <div className="bg-green-500 transition-all duration-500" style={{ width: `${lastMonthComposition.stableRepeaters}%` }}>
+                        {lastMonthComposition.stableRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{lastMonthComposition.stableRepeaters}%</span>}
+                      </div>
+                      <div className="bg-orange-500 transition-all duration-500" style={{ width: `${lastMonthComposition.churnRisk}%` }}>
+                        {lastMonthComposition.churnRisk > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{lastMonthComposition.churnRisk}%</span>}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="w-full text-center text-xs text-gray-400 flex items-center justify-center">データなし</div>
+                  )}
                 </div>
               </div>
 
               {/* 6ヶ月平均 */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">6ヶ月平均</span>
+                  <span className="text-sm font-medium text-gray-700">{compositionData.length}ヶ月平均</span>
                   <span className="text-xs text-gray-500">100%</span>
                 </div>
                 <div className="flex h-6 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="bg-gray-500 transition-all duration-500" style={{ width: '17%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">17%</span>
-                  </div>
-                  <div className="bg-blue-500 transition-all duration-500" style={{ width: '24%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">24%</span>
-                  </div>
-                  <div className="bg-green-500 transition-all duration-500" style={{ width: '40%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">40%</span>
-                  </div>
-                  <div className="bg-orange-500 transition-all duration-500" style={{ width: '19%' }}>
-                    <span className="text-xs text-white font-medium flex items-center justify-center h-full">19%</span>
-                  </div>
+                  {compositionData.length > 0 ? (
+                    <>
+                      <div className="bg-gray-500 transition-all duration-500" style={{ width: `${avgComposition.newChurn}%` }}>
+                        {avgComposition.newChurn > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{avgComposition.newChurn}%</span>}
+                      </div>
+                      <div className="bg-blue-500 transition-all duration-500" style={{ width: `${avgComposition.newRepeaters}%` }}>
+                        {avgComposition.newRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{avgComposition.newRepeaters}%</span>}
+                      </div>
+                      <div className="bg-green-500 transition-all duration-500" style={{ width: `${avgComposition.stableRepeaters}%` }}>
+                        {avgComposition.stableRepeaters > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{avgComposition.stableRepeaters}%</span>}
+                      </div>
+                      <div className="bg-orange-500 transition-all duration-500" style={{ width: `${avgComposition.churnRisk}%` }}>
+                        {avgComposition.churnRisk > 5 && <span className="text-xs text-white font-medium flex items-center justify-center h-full">{avgComposition.churnRisk}%</span>}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="w-full text-center text-xs text-gray-400 flex items-center justify-center">データなし</div>
+                  )}
                 </div>
               </div>
             </div>

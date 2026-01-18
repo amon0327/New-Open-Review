@@ -260,6 +260,11 @@ serve(async (req) => {
       positive: number
       negative: number
       total: number
+      // 顧客構成比較用
+      newChurn: number
+      newRepeaters: number
+      stableRepeaters: number
+      churnRisk: number
     }> = {}
 
     allAnswers.forEach(answer => {
@@ -274,14 +279,17 @@ serve(async (req) => {
 
       const date = new Date(answer.created_at)
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-      const monthLabel = `${date.getMonth() + 1}月`
 
       if (!monthlyData[monthKey]) {
         monthlyData[monthKey] = {
           score: 0,
           positive: 0,
           negative: 0,
-          total: 0
+          total: 0,
+          newChurn: 0,
+          newRepeaters: 0,
+          stableRepeaters: 0,
+          churnRisk: 0
         }
       }
 
@@ -290,6 +298,17 @@ serve(async (req) => {
         monthlyData[monthKey].positive += impact
       } else if (impact < 0) {
         monthlyData[monthKey].negative += Math.abs(impact)
+      }
+
+      // 顧客カテゴリー別カウント
+      if (experience === '新規' && revisitIntent === false) {
+        monthlyData[monthKey].newChurn++
+      } else if (experience === '新規' && revisitIntent === true) {
+        monthlyData[monthKey].newRepeaters++
+      } else if (experience === 'リピーター' && revisitIntent === true) {
+        monthlyData[monthKey].stableRepeaters++
+      } else if (experience === 'リピーター' && revisitIntent === false) {
+        monthlyData[monthKey].churnRisk++
       }
     })
 
@@ -312,6 +331,49 @@ serve(async (req) => {
       }
     }).slice(-6) // 直近6ヶ月
 
+    // 顧客構成比較データを計算
+    const compositionData = sortedMonths.map(key => {
+      const data = monthlyData[key]
+      const total = data.total || 1
+      const monthNum = parseInt(key.split('-')[1])
+
+      return {
+        month: `${monthNum}月`,
+        monthKey: key,
+        newChurn: Math.round((data.newChurn / total) * 100),
+        newRepeaters: Math.round((data.newRepeaters / total) * 100),
+        stableRepeaters: Math.round((data.stableRepeaters / total) * 100),
+        churnRisk: Math.round((data.churnRisk / total) * 100),
+        counts: {
+          newChurn: data.newChurn,
+          newRepeaters: data.newRepeaters,
+          stableRepeaters: data.stableRepeaters,
+          churnRisk: data.churnRisk,
+          total: data.total
+        }
+      }
+    }).slice(-6) // 直近6ヶ月
+
+    // 6ヶ月平均を計算
+    const avgComposition = {
+      newChurn: 0,
+      newRepeaters: 0,
+      stableRepeaters: 0,
+      churnRisk: 0
+    }
+    if (compositionData.length > 0) {
+      compositionData.forEach(d => {
+        avgComposition.newChurn += d.newChurn
+        avgComposition.newRepeaters += d.newRepeaters
+        avgComposition.stableRepeaters += d.stableRepeaters
+        avgComposition.churnRisk += d.churnRisk
+      })
+      avgComposition.newChurn = Math.round(avgComposition.newChurn / compositionData.length)
+      avgComposition.newRepeaters = Math.round(avgComposition.newRepeaters / compositionData.length)
+      avgComposition.stableRepeaters = Math.round(avgComposition.stableRepeaters / compositionData.length)
+      avgComposition.churnRisk = Math.round(avgComposition.churnRisk / compositionData.length)
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -323,7 +385,9 @@ serve(async (req) => {
           positiveScore,
           negativeScore,
           normalizedScore,
-          trendData
+          trendData,
+          compositionData,
+          avgComposition
         }
       }),
       {
