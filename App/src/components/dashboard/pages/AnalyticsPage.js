@@ -1257,9 +1257,10 @@ const StoreByStoreTab = ({ companyId }) => {
   const [activeSubTab, setActiveSubTab] = useState(0);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState('');
-  const [selectedPeriod, setSelectedPeriod] = useState('2025/12');
+  const [selectedPeriod, setSelectedPeriod] = useState('');
+  const [availablePeriods, setAvailablePeriods] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // 店舗データ取得
   useEffect(() => {
     const fetchStores = async () => {
@@ -1287,6 +1288,42 @@ const StoreByStoreTab = ({ companyId }) => {
     };
     fetchStores();
   }, [companyId]);
+
+  // 選択された店舗の利用可能な期間を取得
+  useEffect(() => {
+    const fetchAvailablePeriods = async () => {
+      if (!companyId || !selectedStore) {
+        setAvailablePeriods([]);
+        return;
+      }
+      try {
+        const { data, error } = await supabase
+          .from('monthly_analytics_summary')
+          .select('year_month')
+          .eq('company_id', companyId)
+          .eq('store_id', selectedStore)
+          .order('year_month', { ascending: false });
+
+        if (error) throw error;
+
+        const periods = (data || []).map(d => d.year_month.replace('-', '/'));
+        setAvailablePeriods(periods);
+
+        // 最新の期間を選択（または既存の選択を維持）
+        if (periods.length > 0) {
+          if (!selectedPeriod || !periods.includes(selectedPeriod)) {
+            setSelectedPeriod(periods[0]);
+          }
+        } else {
+          setSelectedPeriod('');
+        }
+      } catch (error) {
+        console.error('Error fetching available periods:', error);
+        setAvailablePeriods([]);
+      }
+    };
+    fetchAvailablePeriods();
+  }, [companyId, selectedStore]);
   
   const handleSubTabChange = (event, newValue) => {
     setActiveSubTab(newValue);
@@ -1357,12 +1394,17 @@ const StoreByStoreTab = ({ companyId }) => {
               <SelectValue placeholder="期間を選択" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="2025/12">2025/12</SelectItem>
-              <SelectItem value="2025/11">2025/11</SelectItem>
-              <SelectItem value="2025/10">2025/10</SelectItem>
-              <SelectItem value="2025/09">2025/09</SelectItem>
-              <SelectItem value="2025/08">2025/08</SelectItem>
-              <SelectItem value="2025/07">2025/07</SelectItem>
+              {availablePeriods.length > 0 ? (
+                availablePeriods.map((period) => (
+                  <SelectItem key={period} value={period}>
+                    {period}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="" disabled>
+                  データなし
+                </SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
