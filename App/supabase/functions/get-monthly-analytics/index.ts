@@ -133,6 +133,45 @@ serve(async (req) => {
       )
     }
 
+    // 過去6ヶ月分のデータを取得（推移グラフ用）
+    const { data: historicalData, error: historicalError } = await supabaseAdmin
+      .from('monthly_analytics_summary')
+      .select('year_month, nps_score, repeat_rate, repeater_revisit_rate, new_revisit_rate, total_responses')
+      .eq('company_id', companyId)
+      .eq('store_id', storeId)
+      .order('year_month', { ascending: true })
+      .limit(6)
+
+    const sortedHistoricalData = (historicalData || []).sort((a, b) =>
+      a.year_month.localeCompare(b.year_month)
+    )
+
+    // monthlyPerformance（推移グラフ用）
+    const monthlyPerformance = sortedHistoricalData.map(item => ({
+      month: item.year_month,
+      nps: item.nps_score || 0,
+      repeatRate: item.repeat_rate || 0,
+      repeatVisit: item.repeater_revisit_rate || 0,
+      newVisit: item.new_revisit_rate || 0,
+      responseCount: item.total_responses || 0
+    }))
+
+    // sparklineデータ（直近6ヶ月）
+    const npsSparkline = sortedHistoricalData.map(d => d.nps_score || 0)
+    const repeatRateSparkline = sortedHistoricalData.map(d => d.repeat_rate || 0)
+    const repeaterRevisitSparkline = sortedHistoricalData.map(d => d.repeater_revisit_rate || 0)
+    const newRevisitSparkline = sortedHistoricalData.map(d => d.new_revisit_rate || 0)
+
+    // delta計算（前月との差分）
+    const previousMonth = sortedHistoricalData.length > 1
+      ? sortedHistoricalData[sortedHistoricalData.length - 2]
+      : null
+
+    const npsDelta = previousMonth ? (summary.nps_score || 0) - (previousMonth.nps_score || 0) : 0
+    const repeatRateDelta = previousMonth ? (summary.repeat_rate || 0) - (previousMonth.repeat_rate || 0) : 0
+    const repeaterRevisitDelta = previousMonth ? (summary.repeater_revisit_rate || 0) - (previousMonth.repeater_revisit_rate || 0) : 0
+    const newRevisitDelta = previousMonth ? (summary.new_revisit_rate || 0) - (previousMonth.new_revisit_rate || 0) : 0
+
     // 概要タブ用データ変換
     const overviewData = {
       totalResponses: summary.total_responses,
@@ -143,19 +182,12 @@ serve(async (req) => {
         npsScore: summary.nps_score
       },
       kpi: {
-        nps: { current: summary.nps_score, delta: 0, sparkline: [summary.nps_score] },
-        repeatRate: { current: summary.repeat_rate, delta: 0, sparkline: [summary.repeat_rate] },
-        repeaterRevisit: { current: summary.repeater_revisit_rate, delta: 0, sparkline: [summary.repeater_revisit_rate] },
-        newRevisit: { current: summary.new_revisit_rate, delta: 0, sparkline: [summary.new_revisit_rate] }
+        nps: { current: summary.nps_score, delta: npsDelta, sparkline: npsSparkline },
+        repeatRate: { current: summary.repeat_rate, delta: repeatRateDelta, sparkline: repeatRateSparkline },
+        repeaterRevisit: { current: summary.repeater_revisit_rate, delta: repeaterRevisitDelta, sparkline: repeaterRevisitSparkline },
+        newRevisit: { current: summary.new_revisit_rate, delta: newRevisitDelta, sparkline: newRevisitSparkline }
       },
-      monthlyPerformance: [{
-        month: targetYearMonth,
-        nps: summary.nps_score,
-        repeatRate: summary.repeat_rate,
-        repeatVisit: summary.repeater_revisit_rate,
-        newVisit: summary.new_revisit_rate,
-        responseCount: summary.total_responses
-      }]
+      monthlyPerformance
     }
 
     // 売上影響タブ用データ変換
@@ -469,21 +501,24 @@ serve(async (req) => {
           items: buildQscItems('q', qualityLabels),
           positiveCount: summary.quality_positive_count,
           negativeCount: summary.quality_negative_count,
-          neutralCount: summary.quality_neutral_count
+          neutralCount: summary.quality_neutral_count,
+          totalResponses: (summary.quality_positive_count || 0) + (summary.quality_negative_count || 0) + (summary.quality_neutral_count || 0)
         },
         S: {
           label: 'Service',
           items: buildQscItems('s', serviceLabels),
           positiveCount: summary.service_positive_count,
           negativeCount: summary.service_negative_count,
-          neutralCount: summary.service_neutral_count
+          neutralCount: summary.service_neutral_count,
+          totalResponses: (summary.service_positive_count || 0) + (summary.service_negative_count || 0) + (summary.service_neutral_count || 0)
         },
         C: {
           label: 'Cleanliness',
           items: buildQscItems('c', cleanlinessLabels),
           positiveCount: summary.cleanliness_positive_count,
           negativeCount: summary.cleanliness_negative_count,
-          neutralCount: summary.cleanliness_neutral_count
+          neutralCount: summary.cleanliness_neutral_count,
+          totalResponses: (summary.cleanliness_positive_count || 0) + (summary.cleanliness_negative_count || 0) + (summary.cleanliness_neutral_count || 0)
         }
       },
       totalResponses: summary.total_responses
