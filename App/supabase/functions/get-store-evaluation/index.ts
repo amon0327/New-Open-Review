@@ -111,7 +111,7 @@ serve(async (req) => {
       const avgScore = sum / validAnswers.length
 
       return {
-        score: Math.round(avgScore * 10) / 10, // 小数点1桁
+        score: Math.round(avgScore * 100) / 100, // 小数点2桁
         count: validAnswers.length,
         trend: 0 // TODO: 前月比較で計算
       }

@@ -2558,9 +2558,9 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
                     <div className="flex items-end justify-between">
                       <div className="flex items-baseline gap-1">
                         <span className={`text-3xl font-bold bg-gradient-to-r ${gradientColor} bg-clip-text text-transparent`}>
-                          {data.score.toFixed(1)}
+                          {data.score.toFixed(2)}
                         </span>
-                        <span className="text-xs text-muted-foreground">/ 5.0</span>
+                        <span className="text-xs text-muted-foreground">/ 5.00</span>
                       </div>
                       <div className="text-right">
                         <div className="text-xs text-muted-foreground">達成率</div>
