@@ -518,15 +518,15 @@ serve(async (req) => {
     const segmentsWithDelta = segmentsWithImpact.map(seg => {
       const fieldInfo = segmentFieldMap.find(f => f.id === seg.id);
       if (!fieldInfo || !previousMonthData) {
-        return { ...seg, delta: null, previousCount: null, previousPercentage: null };
+        return { ...seg, monthOverMonth: 0, previousCount: null, previousPercentage: null };
       }
       const prevCount = previousMonthData[`${fieldInfo.field}_count`] || 0;
       const prevPercent = previousMonthData[`${fieldInfo.field}_percent`] || 0;
       const countDelta = (seg.count || 0) - prevCount;
-      const percentDelta = (seg.percentage || 0) - prevPercent;
+      const percentDelta = Number(((seg.percentage || 0) - prevPercent).toFixed(1));
       return {
         ...seg,
-        delta: percentDelta,
+        monthOverMonth: percentDelta,
         countDelta,
         previousCount: prevCount,
         previousPercentage: prevPercent
@@ -588,20 +588,23 @@ serve(async (req) => {
     const storeEvaluationData = {
       qscScores: {
         Q: {
-          score: summary.qsc_quality_score,
-          count: summary.qsc_quality_count,
+          score: Number(summary.qsc_quality_score) || 0,
+          count: summary.qsc_quality_count || 0,
+          trend: 0,
           label: 'クオリティ',
           color: 'violet'
         },
         S: {
-          score: summary.qsc_service_score,
-          count: summary.qsc_service_count,
+          score: Number(summary.qsc_service_score) || 0,
+          count: summary.qsc_service_count || 0,
+          trend: 0,
           label: 'サービス',
           color: 'blue'
         },
         C: {
-          score: summary.qsc_cleanliness_score,
-          count: summary.qsc_cleanliness_count,
+          score: Number(summary.qsc_cleanliness_score) || 0,
+          count: summary.qsc_cleanliness_count || 0,
+          trend: 0,
           label: 'クレンリネス',
           color: 'emerald'
         }
