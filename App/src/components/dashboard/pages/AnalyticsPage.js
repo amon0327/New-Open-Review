@@ -2314,7 +2314,7 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
               {/* 6ヶ月平均 */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">{compositionData.length}ヶ月平均</span>
+                  <span className="text-sm font-medium text-gray-700">6ヶ月平均</span>
                   <span className="text-xs text-gray-500">100%</span>
                 </div>
                 <div className="flex h-6 bg-gray-100 rounded-full overflow-hidden">
