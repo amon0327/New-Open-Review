@@ -1401,10 +1401,20 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
   const [loading, setLoading] = useState(true);
   const [overviewData, setOverviewData] = useState(null);
 
-  // Edge Functionからデータを取得
+  // selectedPeriodを年月形式に変換 (2025/12 -> 2025-12)
+  const getYearMonth = (period) => {
+    if (!period) return null;
+    return period.replace('/', '-');
+  };
+
+  // 月次サマリーテーブルからデータを取得
   useEffect(() => {
     const fetchOverviewData = async () => {
-      if (!companyId) return;
+      if (!companyId || selectedStore === 'all') {
+        setOverviewData(null);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
 
       try {
@@ -1413,15 +1423,17 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
           throw new Error('認証が必要です');
         }
 
+        const yearMonth = getYearMonth(selectedPeriod);
         const params = new URLSearchParams({
-          company_id: companyId
+          company_id: companyId,
+          store_id: selectedStore
         });
-        if (selectedStore !== 'all') {
-          params.append('store_id', selectedStore);
+        if (yearMonth) {
+          params.append('year_month', yearMonth);
         }
 
         const response = await fetch(
-          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-store-overview?${params}`,
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-monthly-analytics?${params}`,
           {
             method: 'GET',
             headers: {
@@ -1437,7 +1449,7 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
           throw new Error(result.error || 'データの取得に失敗しました');
         }
 
-        setOverviewData(result.data);
+        setOverviewData(result.data?.overview || null);
       } catch (error) {
         console.error('概要データの取得エラー:', error);
         setOverviewData(null);
@@ -1447,7 +1459,7 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
     };
 
     fetchOverviewData();
-  }, [companyId, selectedStore]);
+  }, [companyId, selectedStore, selectedPeriod]);
 
   // 5ヶ月移動平均を計算する関数
   const calculateMovingAverage = (data, key, windowSize = 5) => {
@@ -1891,10 +1903,20 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const [loading, setLoading] = useState(true);
   const [impactData, setImpactData] = useState(null);
 
-  // Edge Functionからデータを取得
+  // selectedPeriodを年月形式に変換 (2025/12 -> 2025-12)
+  const getYearMonth = (period) => {
+    if (!period) return null;
+    return period.replace('/', '-');
+  };
+
+  // 月次サマリーテーブルからデータを取得
   useEffect(() => {
     const fetchImpactData = async () => {
-      if (!companyId) return;
+      if (!companyId || selectedStore === 'all') {
+        setImpactData(null);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
 
       try {
@@ -1903,15 +1925,17 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
           throw new Error('認証が必要です');
         }
 
+        const yearMonth = getYearMonth(selectedPeriod);
         const params = new URLSearchParams({
-          company_id: companyId
+          company_id: companyId,
+          store_id: selectedStore
         });
-        if (selectedStore && selectedStore !== 'all') {
-          params.append('store_id', selectedStore);
+        if (yearMonth) {
+          params.append('year_month', yearMonth);
         }
 
         const response = await fetch(
-          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-sales-impact?${params}`,
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-monthly-analytics?${params}`,
           {
             method: 'GET',
             headers: {
@@ -1927,7 +1951,7 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
           throw new Error(result.error || 'データの取得に失敗しました');
         }
 
-        setImpactData(result.data);
+        setImpactData(result.data?.salesImpact || null);
       } catch (error) {
         console.error('売上影響データの取得エラー:', error);
         setImpactData(null);
@@ -1937,7 +1961,7 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
     };
 
     fetchImpactData();
-  }, [companyId, selectedStore]);
+  }, [companyId, selectedStore, selectedPeriod]);
 
   // データ取得結果から値を取得（デフォルト値付き）
   const segments = impactData?.segments || [];
@@ -2438,10 +2462,20 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const [loading, setLoading] = useState(true);
   const [evaluationData, setEvaluationData] = useState(null);
 
-  // Edge Functionからデータを取得
+  // selectedPeriodを年月形式に変換 (2025/12 -> 2025-12)
+  const getYearMonth = (period) => {
+    if (!period) return null;
+    return period.replace('/', '-');
+  };
+
+  // 月次サマリーテーブルからデータを取得
   useEffect(() => {
     const fetchEvaluationData = async () => {
-      if (!companyId) return;
+      if (!companyId || selectedStore === 'all') {
+        setEvaluationData(null);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
 
       try {
@@ -2450,15 +2484,17 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
           throw new Error('認証が必要です');
         }
 
+        const yearMonth = getYearMonth(selectedPeriod);
         const params = new URLSearchParams({
-          company_id: companyId
+          company_id: companyId,
+          store_id: selectedStore
         });
-        if (selectedStore && selectedStore !== 'all') {
-          params.append('store_id', selectedStore);
+        if (yearMonth) {
+          params.append('year_month', yearMonth);
         }
 
         const response = await fetch(
-          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-store-evaluation?${params}`,
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-monthly-analytics?${params}`,
           {
             method: 'GET',
             headers: {
@@ -2474,7 +2510,7 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
           throw new Error(result.error || 'データの取得に失敗しました');
         }
 
-        setEvaluationData(result.data);
+        setEvaluationData(result.data?.storeEvaluation || null);
       } catch (error) {
         console.error('店舗評価データの取得エラー:', error);
         setEvaluationData(null);
@@ -2484,7 +2520,7 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
     };
 
     fetchEvaluationData();
-  }, [companyId, selectedStore]);
+  }, [companyId, selectedStore, selectedPeriod]);
 
   // カラーマッピング
   const colorMap = {
@@ -2702,10 +2738,20 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const [loading, setLoading] = useState(true);
   const [trendsData, setTrendsData] = useState(null);
 
-  // Edge Functionからデータを取得
+  // selectedPeriodを年月形式に変換 (2025/12 -> 2025-12)
+  const getYearMonth = (period) => {
+    if (!period) return null;
+    return period.replace('/', '-');
+  };
+
+  // 月次サマリーテーブルからデータを取得
   useEffect(() => {
     const fetchTrendsData = async () => {
-      if (!companyId) return;
+      if (!companyId || selectedStore === 'all') {
+        setTrendsData(null);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
 
       try {
@@ -2714,15 +2760,17 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
           throw new Error('認証が必要です');
         }
 
+        const yearMonth = getYearMonth(selectedPeriod);
         const params = new URLSearchParams({
-          company_id: companyId
+          company_id: companyId,
+          store_id: selectedStore
         });
-        if (selectedStore && selectedStore !== 'all') {
-          params.append('store_id', selectedStore);
+        if (yearMonth) {
+          params.append('year_month', yearMonth);
         }
 
         const response = await fetch(
-          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-customer-trends?${params}`,
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-monthly-analytics?${params}`,
           {
             method: 'GET',
             headers: {
@@ -2738,7 +2786,7 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
           throw new Error(result.error || 'データの取得に失敗しました');
         }
 
-        setTrendsData(result.data);
+        setTrendsData(result.data?.customerTrends || null);
       } catch (error) {
         console.error('顧客傾向データの取得エラー:', error);
         setTrendsData(null);
@@ -2748,7 +2796,7 @@ const CustomerTrendsTab = ({ companyId, selectedStore, selectedPeriod }) => {
     };
 
     fetchTrendsData();
-  }, [companyId, selectedStore]);
+  }, [companyId, selectedStore, selectedPeriod]);
 
   // データ取得結果から各分布を取得
   const genderDistribution = trendsData?.genderDistribution || [];
