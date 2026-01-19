@@ -26,7 +26,14 @@ import {
   X,
   History,
   Zap,
-  Calendar
+  Calendar,
+  Lightbulb,
+  Store,
+  Star,
+  Users,
+  MessageSquare,
+  Target,
+  ArrowRight
 } from 'lucide-react';
 
 // AIメッセージバナー
@@ -55,84 +62,78 @@ const AIMessageBanner = ({ message, onAction }) => (
   </div>
 );
 
-// プログレスサークル
-const ProgressCircle = ({ percentage }) => {
-  const radius = 70;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percentage / 100) * circumference;
+// インサイトカード
+const InsightCard = ({ insight }) => {
+  const priorityConfig = {
+    critical: { bg: 'bg-red-50', border: 'border-l-red-500', icon: AlertTriangle, iconColor: 'text-red-500' },
+    high: { bg: 'bg-orange-50', border: 'border-l-orange-500', icon: Zap, iconColor: 'text-orange-500' },
+    medium: { bg: 'bg-amber-50', border: 'border-l-amber-500', icon: Lightbulb, iconColor: 'text-amber-500' },
+    positive: { bg: 'bg-emerald-50', border: 'border-l-emerald-500', icon: TrendingUp, iconColor: 'text-emerald-500' },
+  };
+
+  const config = priorityConfig[insight.priority] || priorityConfig.medium;
+  const Icon = config.icon;
 
   return (
-    <div className="relative w-44 h-44 flex items-center justify-center">
-      <svg className="w-full h-full transform -rotate-90">
-        <circle
-          cx="88"
-          cy="88"
-          r={radius}
-          fill="transparent"
-          stroke="#e5e7eb"
-          strokeWidth="10"
-        />
-        <circle
-          cx="88"
-          cy="88"
-          r={radius}
-          fill="transparent"
-          stroke="#7c3aed"
-          strokeWidth="10"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-4xl font-black text-gray-900">{percentage}%</span>
-        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Completed</span>
+    <div className={`${config.bg} ${config.border} border-l-4 rounded-lg p-4 hover:shadow-md transition-shadow`}>
+      <div className="flex items-start gap-3">
+        <div className={`p-2 rounded-lg bg-white shadow-sm`}>
+          <Icon className={`w-4 h-4 ${config.iconColor}`} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{insight.store}</span>
+            {insight.priority === 'critical' && (
+              <span className="text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded font-bold">要対応</span>
+            )}
+          </div>
+          <p className="text-sm font-bold text-gray-900 mb-1">{insight.title}</p>
+          <p className="text-xs text-gray-600 line-clamp-2">{insight.description}</p>
+          {insight.metric && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className={`text-sm font-black ${insight.metricChange > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                {insight.metricChange > 0 ? '+' : ''}{insight.metricChange}%
+              </span>
+              <span className="text-xs text-gray-500">{insight.metric}</span>
+            </div>
+          )}
+        </div>
+        <button className="p-1.5 hover:bg-white rounded-lg transition-colors">
+          <ArrowRight className="w-4 h-4 text-gray-400" />
+        </button>
       </div>
     </div>
   );
 };
 
-// タスクアイテム
-const TaskItem = ({ task, onRun }) => {
-  const isCompleted = task.status === 'completed';
-  const isCritical = task.priority === 'critical';
-  const isInProgress = task.status === 'in_progress';
+// 概要カード
+const SummaryCard = ({ icon: Icon, label, value, subValue, trend, color }) => {
+  const colorClasses = {
+    purple: 'bg-purple-100 text-purple-600',
+    blue: 'bg-blue-100 text-blue-600',
+    green: 'bg-emerald-100 text-emerald-600',
+    amber: 'bg-amber-100 text-amber-600',
+    red: 'bg-red-100 text-red-600',
+  };
 
   return (
-    <div className={`p-3 rounded-lg border-l-4 ${
-      isCompleted
-        ? 'bg-gray-50 border-gray-300 opacity-60'
-        : isCritical
-          ? 'bg-purple-50 border-purple-600'
-          : 'bg-gray-50 border-gray-300'
-    }`}>
-      <div className="flex justify-between items-start">
-        <p className={`text-sm font-bold text-gray-900 ${isCompleted ? 'line-through' : ''}`}>
-          {task.title}
-        </p>
-        {isCritical && !isCompleted && (
-          <span className="text-[10px] bg-purple-200 text-purple-700 px-1.5 py-0.5 rounded font-bold uppercase">
-            Critical
+    <div className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between mb-3">
+        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
+          <Icon className="w-4 h-4" />
+        </div>
+        {trend !== undefined && (
+          <span className={`text-xs font-bold ${trend >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+            {trend >= 0 ? '+' : ''}{trend}%
           </span>
         )}
-        {isInProgress && (
-          <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
-        )}
       </div>
-      <p className="text-xs text-gray-500 mt-1">{task.description}</p>
-      {task.status === 'pending' && (
-        <button
-          onClick={() => onRun(task.id)}
-          className="mt-2 flex items-center gap-1 text-xs text-purple-600 font-medium hover:text-purple-700"
-        >
-          <Play className="w-3 h-3" />
-          実行する
-        </button>
-      )}
+      <div className="text-2xl font-black text-gray-900">{value}</div>
+      <div className="text-xs text-gray-500 mt-0.5">{label}</div>
+      {subValue && <div className="text-[10px] text-gray-400 mt-0.5">{subValue}</div>}
     </div>
   );
 };
-
 
 // AIチャットパネル
 const AIChatPanel = ({ isOpen, onClose }) => {
@@ -227,10 +228,52 @@ const AIChatPanel = ({ isOpen, onClose }) => {
 };
 
 export default function AIAssistantPage({ onNavCollapse, companyId, onOpenReportDetail }) {
-  const [tasks, setTasks] = useState([
-    { id: 1, title: '低評価レビューへの対応', description: 'AI推奨: 接客品質の改善が必要です', status: 'pending', priority: 'critical' },
-    { id: 2, title: '2025年1月レポート確認', description: '処理中...', status: 'in_progress', priority: 'normal' },
-    { id: 3, title: 'スタッフ評価の分析', description: '完了 09:30 AM', status: 'completed', priority: 'normal' },
+  const [insights, setInsights] = useState([
+    {
+      id: 1,
+      store: '渋谷店',
+      title: '清掃評価が大幅に低下',
+      description: '12月の清掃スコアが前月比-24%。特にトイレ清掃への不満が急増しています。早急な対応が必要です。',
+      priority: 'critical',
+      metric: '清掃スコア',
+      metricChange: -24
+    },
+    {
+      id: 2,
+      store: '新宿店',
+      title: '待ち時間に関する不満が増加',
+      description: '土日ランチタイムの平均待ち時間が18分に悪化。入店を諦める顧客が発生している可能性があります。',
+      priority: 'high',
+      metric: '待ち時間',
+      metricChange: 80
+    },
+    {
+      id: 3,
+      store: '渋谷店',
+      title: '新メニューが好評',
+      description: '「特製チキン南蛮」への高評価コメントが32件。客単価向上に貢献しています。',
+      priority: 'positive',
+      metric: '客単価',
+      metricChange: 8
+    },
+    {
+      id: 4,
+      store: '池袋店',
+      title: 'スタッフ田中さんへの高評価',
+      description: '名指しで褒めるコメントが18件。指名来店も発生しています。',
+      priority: 'positive',
+      metric: '指名来店',
+      metricChange: 3
+    },
+    {
+      id: 5,
+      store: '横浜店',
+      title: '接客態度の改善が必要',
+      description: '「愛想がない」「対応が雑」などのコメントが前月比で増加傾向です。',
+      priority: 'medium',
+      metric: '接客スコア',
+      metricChange: -8
+    },
   ]);
 
   const [reports, setReports] = useState([
@@ -244,26 +287,23 @@ export default function AIAssistantPage({ onNavCollapse, companyId, onOpenReport
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleRunTask = (taskId) => {
-    setTasks(prev => prev.map(t =>
-      t.id === taskId ? { ...t, status: 'in_progress', description: '処理中...' } : t
-    ));
-    setTimeout(() => {
-      setTasks(prev => prev.map(t =>
-        t.id === taskId ? { ...t, status: 'completed', description: `完了 ${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}` } : t
-      ));
-    }, 3000);
-  };
-
   const handleOpenReport = (report) => {
     if (onOpenReportDetail) {
       onOpenReportDetail(report);
     }
   };
 
-  const completedTasks = tasks.filter(t => t.status === 'completed').length;
-  const totalTasks = tasks.length;
-  const progressPercentage = Math.round((completedTasks / totalTasks) * 100);
+  // サマリーデータ
+  const summaryData = {
+    totalReviews: 560,
+    reviewsTrend: 12,
+    avgRating: 3.9,
+    ratingTrend: -3,
+    responseRate: 94.5,
+    responseTrend: 5,
+    nps: 38,
+    npsTrend: -8,
+  };
 
   if (loading) {
     return (
@@ -271,11 +311,11 @@ export default function AIAssistantPage({ onNavCollapse, companyId, onOpenReport
         <div className="p-6 space-y-6">
           <Skeleton className="h-24 rounded-xl" />
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-7">
-              <Skeleton className="h-80 rounded-xl" />
-            </div>
             <div className="lg:col-span-5">
-              <Skeleton className="h-80 rounded-xl" />
+              <Skeleton className="h-96 rounded-xl" />
+            </div>
+            <div className="lg:col-span-7">
+              <Skeleton className="h-96 rounded-xl" />
             </div>
           </div>
         </div>
@@ -307,120 +347,155 @@ export default function AIAssistantPage({ onNavCollapse, companyId, onOpenReport
           onAction={() => {}}
         />
 
-        {/* タスク進捗 */}
-        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-900">タスク進捗</h2>
-            <div className="flex gap-2">
-              <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-medium hover:bg-gray-50 transition-colors">
-                <History className="w-4 h-4" />
-                過去ログ
-              </button>
-              <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-bold hover:bg-purple-700 transition-colors">
-                <Plus className="w-4 h-4" />
-                新規タスク
-              </button>
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row items-center gap-8 py-4">
-            <ProgressCircle percentage={progressPercentage} />
-
-            <div className="flex-1 w-full space-y-4">
-              <div className="flex justify-between items-end">
-                <p className="text-base font-bold text-gray-900">本日の重点タスク</p>
-                <p className="text-sm text-gray-500">
-                  残り{totalTasks - completedTasks} / 全{totalTasks}件
-                </p>
+        {/* メインコンテンツ: インサイト（左） + 概要（右） */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* 左側: インサイト */}
+          <div className="lg:col-span-5">
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm h-full">
+              <div className="p-5 border-b border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="w-5 h-5 text-purple-600" />
+                    <h2 className="text-lg font-bold text-gray-900">店舗別インサイト</h2>
+                  </div>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                    {insights.length}件
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">AIが検出した重要な傾向と改善点</p>
               </div>
-              <div className="space-y-3">
-                {tasks.map(task => (
-                  <TaskItem key={task.id} task={task} onRun={handleRunTask} />
+              <div className="p-4 space-y-3 max-h-[480px] overflow-y-auto">
+                {insights.map(insight => (
+                  <InsightCard key={insight.id} insight={insight} />
                 ))}
               </div>
+              <div className="p-3 border-t border-gray-100 bg-gray-50">
+                <button className="w-full text-center text-sm text-purple-600 font-bold hover:underline">
+                  すべてのインサイトを見る
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* 月次レポート */}
-        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-          <div className="p-5 border-b border-gray-100">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-gray-900">月次レポート</h2>
-              <button className="text-purple-600 text-sm font-bold hover:underline">
-                すべて見る
-              </button>
+          {/* 右側: 概要 */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* KPIサマリー */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <SummaryCard
+                icon={MessageSquare}
+                label="総レビュー数"
+                value={summaryData.totalReviews}
+                subValue="今月"
+                trend={summaryData.reviewsTrend}
+                color="blue"
+              />
+              <SummaryCard
+                icon={Star}
+                label="平均評価"
+                value={summaryData.avgRating.toFixed(1)}
+                subValue="全店舗"
+                trend={summaryData.ratingTrend}
+                color="purple"
+              />
+              <SummaryCard
+                icon={CheckCircle2}
+                label="返信率"
+                value={`${summaryData.responseRate}%`}
+                subValue="目標: 95%"
+                trend={summaryData.responseTrend}
+                color="green"
+              />
+              <SummaryCard
+                icon={Target}
+                label="NPS"
+                value={summaryData.nps}
+                subValue="推奨度"
+                trend={summaryData.npsTrend}
+                color="amber"
+              />
             </div>
-            <p className="text-gray-500 text-sm mt-1">AIが異常値を自動ハイライトしています</p>
-          </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50/50">
-                <TableHead className="font-semibold text-gray-700">レポート期間</TableHead>
-                <TableHead className="font-semibold text-gray-700">レビュー数</TableHead>
-                <TableHead className="font-semibold text-gray-700">平均評価</TableHead>
-                <TableHead className="font-semibold text-gray-700">前月比</TableHead>
-                <TableHead className="font-semibold text-gray-700">ステータス</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {reports.map(report => (
-                <TableRow
-                  key={report.id}
-                  onClick={() => handleOpenReport(report)}
-                  className={`cursor-pointer hover:bg-gray-50 transition-colors group ${report.alert ? 'bg-purple-50/30' : ''}`}
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${report.alert ? 'bg-purple-100' : 'bg-gray-100'}`}>
-                        <Calendar className={`w-4 h-4 ${report.alert ? 'text-purple-600' : 'text-gray-600'}`} />
-                      </div>
-                      <span className="font-medium text-gray-900">{report.period}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-gray-600">{report.reviewCount}件</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className={report.alert ? 'text-purple-600 font-bold' : 'text-gray-600'}>
-                      {report.avgRating}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`flex items-center font-medium ${
-                      report.trend > 0 ? 'text-green-600' : report.trend < 0 ? 'text-red-500' : 'text-gray-400'
-                    }`}>
-                      {report.trend > 0 ? <TrendingUp className="w-3.5 h-3.5 mr-1" /> : report.trend < 0 ? <TrendingDown className="w-3.5 h-3.5 mr-1" /> : null}
-                      {report.trend > 0 ? '+' : ''}{report.trend}%
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {report.alert ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-purple-600 text-white">
-                        <Sparkles className="w-3 h-3" />
-                        AI ALERT
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                        <CheckCircle2 className="w-3 h-3" />
-                        STABLE
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+            {/* 月次レポート */}
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+              <div className="p-5 border-b border-gray-100">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-bold text-gray-900">月次レポート</h2>
+                  <button className="text-purple-600 text-sm font-bold hover:underline">
+                    すべて見る
+                  </button>
+                </div>
+                <p className="text-gray-500 text-xs mt-1">AIが異常値を自動ハイライトしています</p>
+              </div>
 
-          <div className="p-3 bg-gray-50 text-center">
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-              Next Report scheduled: February 1st
-            </p>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50/50">
+                    <TableHead className="font-semibold text-gray-700 text-xs">期間</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">レビュー</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">評価</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">前月比</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">状態</TableHead>
+                    <TableHead className="w-[40px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {reports.slice(0, 4).map(report => (
+                    <TableRow
+                      key={report.id}
+                      onClick={() => handleOpenReport(report)}
+                      className={`cursor-pointer hover:bg-gray-50 transition-colors group ${report.alert ? 'bg-purple-50/30' : ''}`}
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${report.alert ? 'bg-purple-100' : 'bg-gray-100'}`}>
+                            <Calendar className={`w-3.5 h-3.5 ${report.alert ? 'text-purple-600' : 'text-gray-600'}`} />
+                          </div>
+                          <span className="font-medium text-gray-900 text-sm">{report.period}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-gray-600 text-sm">{report.reviewCount}件</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`text-sm ${report.alert ? 'text-purple-600 font-bold' : 'text-gray-600'}`}>
+                          {report.avgRating}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`flex items-center text-sm font-medium ${
+                          report.trend > 0 ? 'text-green-600' : report.trend < 0 ? 'text-red-500' : 'text-gray-400'
+                        }`}>
+                          {report.trend > 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : report.trend < 0 ? <TrendingDown className="w-3 h-3 mr-1" /> : null}
+                          {report.trend > 0 ? '+' : ''}{report.trend}%
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {report.alert ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-600 text-white">
+                            <Sparkles className="w-2.5 h-2.5" />
+                            ALERT
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-700">
+                            <CheckCircle2 className="w-2.5 h-2.5" />
+                            OK
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-colors" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              <div className="p-2 bg-gray-50 text-center">
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                  Next Report: February 1st
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
