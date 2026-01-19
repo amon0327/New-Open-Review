@@ -286,7 +286,7 @@ const AIAnalysisTab = ({ selectedStore, selectedPeriod }) => {
       {/* ヘッダー */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">AI統合分析</h2>
-        <p className="text-gray-600">全データソースを統合し、優先度順に改善タスクを提案</p>
+        <p className="text-gray-600">全データソースを統合し、優先度順にインサイトを提案</p>
       </div>
 
       {/* サマリーカード */}
@@ -295,7 +295,7 @@ const AIAnalysisTab = ({ selectedStore, selectedPeriod }) => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-red-100 text-sm">緊急タスク</p>
+                <p className="text-red-100 text-sm">緊急インサイト</p>
                 <p className="text-2xl font-bold">2件</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-red-200" />
@@ -340,7 +340,7 @@ const AIAnalysisTab = ({ selectedStore, selectedPeriod }) => {
         </Card>
       </div>
 
-      {/* タスクリスト */}
+      {/* インサイトリスト */}
       <div className="space-y-4">
         {aiGeneratedTasks.map((task) => {
           const config = categoryConfig[task.category];
@@ -833,11 +833,11 @@ const TasksTab = ({ selectedStore, selectedPeriod }) => {
     <div className="p-6">
       {/* ヘッダー */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">改善タスク一覧</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">インサイト一覧</h2>
         <p className="text-gray-600">
-          {activeTaskType === 'evaluation' 
-            ? 'ネガティブ評価の高い項目から優先的に改善効果を表示' 
-            : 'コメント分析から抽出した改善タスクを緊急度順に表示'}
+          {activeTaskType === 'evaluation'
+            ? 'ネガティブ評価の高い項目から優先的に改善効果を表示'
+            : 'コメント分析から抽出したインサイトを緊急度順に表示'}
         </p>
       </div>
 
@@ -867,7 +867,7 @@ const TasksTab = ({ selectedStore, selectedPeriod }) => {
         </div>
       </div>
 
-      {/* タスクテーブル */}
+      {/* インサイトテーブル */}
       <Card className="border-0 shadow-lg overflow-hidden">
         {/* テーブルヘッダー */}
         {activeTaskType === 'evaluation' ? (
@@ -903,7 +903,7 @@ const TasksTab = ({ selectedStore, selectedPeriod }) => {
         ) : (
           <div className="px-6 py-4 bg-white border-b border-gray-200">
             <div className="grid grid-cols-11 gap-4 text-sm font-medium text-gray-700 items-center h-12">
-              <div className="col-span-2 flex items-center h-full">タスク名</div>
+              <div className="col-span-2 flex items-center h-full">インサイト名</div>
               <div className="col-span-1 flex items-center justify-center h-full">件数</div>
               <div className="col-span-1 flex items-center justify-center h-full">改善効果</div>
               <div className="col-span-1 flex flex-col items-center justify-center h-full text-center">
@@ -929,7 +929,7 @@ const TasksTab = ({ selectedStore, selectedPeriod }) => {
           </div>
         )}
         
-        {/* タスクリスト */}
+        {/* インサイトリスト */}
         {activeTaskType === 'evaluation' ? (
           // 店舗評価タスクの表示
           evaluationTaskItems.map((item, index) => {
@@ -1120,7 +1120,7 @@ const TasksTab = ({ selectedStore, selectedPeriod }) => {
                   onClick={() => toggleCard(item.id)}
                 >
                   <div className="grid grid-cols-11 gap-4 items-center">
-                    {/* タスク名 */}
+                    {/* インサイト名 */}
                     <div className="col-span-2 flex items-center gap-3">
                       <div>
                         <div className="font-medium text-gray-900">{item.taskName}</div>
@@ -1430,8 +1430,8 @@ const StoreByStoreTab = ({ companyId }) => {
             }
           }}
         >
+          <Tab label="インサイト" />
           <Tab label="概要" />
-          <Tab label="タスク" />
           <Tab label="売上影響" />
           <Tab label="店舗評価" />
           <Tab label="顧客傾向" />
@@ -1500,10 +1500,10 @@ const StoreByStoreTab = ({ companyId }) => {
         ) : (
           <>
             <TabPanel value={activeSubTab} index={0}>
-              <StoreOverviewTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} stores={stores} />
+              <TasksTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
             </TabPanel>
             <TabPanel value={activeSubTab} index={1}>
-              <TasksTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+              <StoreOverviewTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} stores={stores} />
             </TabPanel>
             <TabPanel value={activeSubTab} index={2}>
               <SalesImpactTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
