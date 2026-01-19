@@ -126,11 +126,11 @@ export default function ReportPage({ onNavCollapse, companyId }) {
     return (
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#f8fafc' }}>
         <div className="p-6">
-          <div className="mb-6">
-            <Skeleton className="h-8 w-48 mb-2" />
-            <Skeleton className="h-4 w-64" />
-          </div>
-          <div className="mb-6">
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <Skeleton className="h-8 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </div>
             <Skeleton className="h-10 w-44 rounded-md" />
           </div>
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -158,16 +158,14 @@ export default function ReportPage({ onNavCollapse, companyId }) {
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#f8fafc' }}>
       <div className="p-6">
         {/* ヘッダー */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <FileText className="w-7 h-7 text-purple-600" />
-            月次レポート
-          </h1>
-          <p className="text-gray-500 mt-1">月別の分析レポートを確認できます</p>
-        </div>
-
-        {/* フィルター */}
-        <div className="mb-6 flex gap-3 items-center">
+        <div className="mb-6 flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <FileText className="w-7 h-7 text-purple-600" />
+              月次レポート
+            </h1>
+            <p className="text-gray-500 mt-1">月別の分析レポートを確認できます</p>
+          </div>
           <Select value={selectedStore} onValueChange={setSelectedStore}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="店舗を選択" />
