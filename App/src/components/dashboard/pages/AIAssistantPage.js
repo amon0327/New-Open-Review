@@ -26,7 +26,14 @@ import {
   X,
   History,
   Zap,
-  Calendar
+  Calendar,
+  Star,
+  ThumbsUp,
+  ThumbsDown,
+  Target,
+  Lightbulb,
+  ArrowLeft,
+  MessageSquare
 } from 'lucide-react';
 
 // AIメッセージバナー
@@ -133,6 +140,257 @@ const TaskItem = ({ task, onRun }) => {
   );
 };
 
+
+// スコアカード
+const ScoreCard = ({ label, score, maxScore = 5, comment, color = 'purple' }) => {
+  const percentage = (score / maxScore) * 100;
+  const colors = {
+    purple: { bg: 'bg-purple-100', text: 'text-purple-600', bar: 'bg-purple-500' },
+    blue: { bg: 'bg-blue-100', text: 'text-blue-600', bar: 'bg-blue-500' },
+    green: { bg: 'bg-green-100', text: 'text-green-600', bar: 'bg-green-500' },
+    orange: { bg: 'bg-orange-100', text: 'text-orange-600', bar: 'bg-orange-500' },
+  };
+  const c = colors[color];
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 p-4">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-gray-700">{label}</span>
+        <span className={`text-lg font-bold ${c.text}`}>{score.toFixed(1)}</span>
+      </div>
+      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
+        <div className={`h-full ${c.bar} rounded-full transition-all`} style={{ width: `${percentage}%` }} />
+      </div>
+      <p className="text-xs text-gray-500">{comment}</p>
+    </div>
+  );
+};
+
+// レポート詳細モーダル
+const ReportDetailModal = ({ report, onClose }) => {
+  if (!report) return null;
+
+  // サンプルデータ
+  const reportData = {
+    recommendScore: 4.2,
+    overallComment: '全体的に高評価を維持していますが、清掃面でのばらつきが見られます。特にピーク時間帯の清掃体制の見直しを推奨します。',
+    qsc: {
+      quality: { score: 4.5, comment: '料理の品質は安定しており、特に看板メニューの評価が高いです。' },
+      service: { score: 4.0, comment: '接客態度は概ね良好ですが、混雑時の対応にばらつきがあります。' },
+      cleanliness: { score: 3.8, comment: 'テーブル清掃のタイミングに課題があります。特に12-14時の時間帯で低評価が集中しています。' },
+    },
+    targets: [
+      { id: 1, indicator: '清掃評価スコア', current: 3.8, target: 4.2, startDate: '2025/01/01', endDate: '2025/03/31', measures: '清掃チェックリストの導入', memo: 'ピーク時間帯重点' },
+      { id: 2, indicator: '接客評価スコア', current: 4.0, target: 4.3, startDate: '2025/01/01', endDate: '2025/02/28', measures: '接客研修の実施', memo: '新人スタッフ優先' },
+      { id: 3, indicator: 'リピート率', current: 42, target: 50, startDate: '2025/01/01', endDate: '2025/06/30', measures: 'ポイントカード施策', memo: '単位: %' },
+    ],
+    improvements: [
+      {
+        id: 1,
+        insight: '前月比で清掃評価が15%低下。「テーブルが汚れていた」という同様のコメントが8件増加。',
+        salesImpact: '清掃評価の低下により、推定で月間売上の約3%（¥120,000相当）の機会損失が発生している可能性があります。',
+        causeAnalysis: 'ランチタイム（12-14時）の来客数増加に対し、清掃スタッフの配置が不足。特に金曜日の混雑時に問題が顕著。',
+      },
+      {
+        id: 2,
+        insight: '「待ち時間が長い」というコメントが前月比で5件増加。',
+        salesImpact: '待ち時間の増加により、来店を諦める顧客が推定で週10組発生。月間約¥80,000の損失。',
+        causeAnalysis: 'キッチンスタッフの配置見直しが必要。特にピーク時のオーダー処理能力に課題。',
+      },
+    ],
+    positives: [
+      {
+        id: 1,
+        insight: '「料理が美味しい」のコメントが前月比で20%増加。特に新メニューへの評価が高い。',
+      },
+      {
+        id: 2,
+        insight: 'スタッフ田中さんを名指しで褒めるコメントが12件。「笑顔が素敵」「気配りが素晴らしい」という声が多数。',
+      },
+      {
+        id: 3,
+        insight: '店内の雰囲気に関するポジティブコメントが前月比で8件増加。照明の改善効果が表れている。',
+      },
+    ],
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center overflow-y-auto py-8">
+      <div className="bg-gray-50 w-full max-w-4xl rounded-2xl shadow-2xl mx-4 my-auto">
+        {/* ヘッダー */}
+        <div className="sticky top-0 bg-white rounded-t-2xl border-b border-gray-100 px-6 py-4 flex items-center justify-between z-10">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">{report.period} レポート</h2>
+              <p className="text-sm text-gray-500">レビュー数: {report.reviewCount}件</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-600" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* 推奨スコアと総合コメント */}
+          <div className="bg-white rounded-xl border border-gray-100 p-6">
+            <div className="flex items-start gap-6">
+              <div className="flex flex-col items-center">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                  <span className="text-3xl font-black text-white">{reportData.recommendScore}</span>
+                </div>
+                <span className="text-sm font-medium text-gray-500 mt-2">推奨スコア</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-purple-600" />
+                  総合コメント
+                </h3>
+                <p className="text-gray-600 leading-relaxed">{reportData.overallComment}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* QSCスコア */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Star className="w-5 h-5 text-yellow-500" />
+              QSCスコア
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <ScoreCard
+                label="Quality（品質）"
+                score={reportData.qsc.quality.score}
+                comment={reportData.qsc.quality.comment}
+                color="blue"
+              />
+              <ScoreCard
+                label="Service（接客）"
+                score={reportData.qsc.service.score}
+                comment={reportData.qsc.service.comment}
+                color="green"
+              />
+              <ScoreCard
+                label="Cleanliness（清掃）"
+                score={reportData.qsc.cleanliness.score}
+                comment={reportData.qsc.cleanliness.comment}
+                color="orange"
+              />
+            </div>
+          </div>
+
+          {/* 目標達成管理 */}
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Target className="w-5 h-5 text-purple-600" />
+                目標達成管理
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">成果指標</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">現在地</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">目標値</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">開始日</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">終了日</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">行う施策</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">メモ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {reportData.targets.map(target => (
+                    <tr key={target.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-900">{target.indicator}</td>
+                      <td className="px-4 py-3 text-gray-600">{target.current}</td>
+                      <td className="px-4 py-3 text-purple-600 font-medium">{target.target}</td>
+                      <td className="px-4 py-3 text-gray-500">{target.startDate}</td>
+                      <td className="px-4 py-3 text-gray-500">{target.endDate}</td>
+                      <td className="px-4 py-3 text-gray-600">{target.measures}</td>
+                      <td className="px-4 py-3 text-gray-400 text-xs">{target.memo}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Action 改善点 */}
+          <div className="bg-white rounded-xl border border-red-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-red-100 bg-red-50">
+              <h3 className="text-lg font-bold text-red-700 flex items-center gap-2">
+                <ThumbsDown className="w-5 h-5" />
+                Action 改善点
+              </h3>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {reportData.improvements.map((item, index) => (
+                <div key={item.id} className="p-5">
+                  <div className="flex items-start gap-3 mb-4">
+                    <span className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-1">きっかけインサイト</p>
+                        <p className="text-sm text-gray-800 bg-red-50 p-3 rounded-lg">{item.insight}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-1">売上インパクト</p>
+                        <p className="text-sm text-gray-600">{item.salesImpact}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">原因分析</p>
+                        <p className="text-sm text-gray-600">{item.causeAnalysis}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 良かった点 */}
+          <div className="bg-white rounded-xl border border-green-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-green-100 bg-green-50">
+              <h3 className="text-lg font-bold text-green-700 flex items-center gap-2">
+                <ThumbsUp className="w-5 h-5" />
+                良かった点
+              </h3>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {reportData.positives.map((item, index) => (
+                <div key={item.id} className="p-5">
+                  <div className="flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1">
+                      <div className="flex items-start gap-2">
+                        <Lightbulb className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-gray-800">{item.insight}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // AIチャットパネル
 const AIChatPanel = ({ isOpen, onClose }) => {
@@ -243,6 +501,7 @@ export default function AIAssistantPage({ onNavCollapse, companyId }) {
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
 
   const handleRunTask = (taskId) => {
     setTasks(prev => prev.map(t =>
@@ -363,6 +622,7 @@ export default function AIAssistantPage({ onNavCollapse, companyId }) {
               {reports.map(report => (
                 <TableRow
                   key={report.id}
+                  onClick={() => setSelectedReport(report)}
                   className={`cursor-pointer hover:bg-gray-50 transition-colors group ${report.alert ? 'bg-purple-50/30' : ''}`}
                 >
                   <TableCell>
@@ -436,6 +696,14 @@ export default function AIAssistantPage({ onNavCollapse, companyId }) {
 
       {/* AIチャットパネル */}
       <AIChatPanel isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+
+      {/* レポート詳細モーダル */}
+      {selectedReport && (
+        <ReportDetailModal
+          report={selectedReport}
+          onClose={() => setSelectedReport(null)}
+        />
+      )}
     </Box>
   );
 }
