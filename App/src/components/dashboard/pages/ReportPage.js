@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { supabase } from '../../../lib/supabase';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Skeleton } from '../../ui/skeleton';
 import {
   Select,
@@ -13,13 +12,18 @@ import {
   SelectValue,
 } from '../../ui/select';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../ui/table';
+import {
   FileText,
   Calendar,
-  TrendingUp,
-  Users,
-  Store,
   ChevronRight,
-  BarChart3
+  CheckCircle2
 } from 'lucide-react';
 
 export default function ReportPage({ onNavCollapse, companyId }) {
@@ -129,12 +133,19 @@ export default function ReportPage({ onNavCollapse, companyId }) {
           <div className="mb-6">
             <Skeleton className="h-10 w-44 rounded-md" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="border-b border-gray-100">
+              <div className="flex items-center px-6 py-4">
+                <Skeleton className="h-4 w-24 mr-auto" />
+                <Skeleton className="h-4 w-20 mx-8" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </div>
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-white rounded-xl p-5 shadow-sm">
-                <Skeleton className="h-5 w-24 mb-3" />
-                <Skeleton className="h-4 w-32 mb-2" />
-                <Skeleton className="h-3 w-20" />
+              <div key={i} className="flex items-center px-6 py-4 border-b border-gray-50">
+                <Skeleton className="h-5 w-32 mr-auto" />
+                <Skeleton className="h-6 w-16 rounded-full mx-8" />
+                <Skeleton className="h-5 w-5" />
               </div>
             ))}
           </div>
@@ -187,44 +198,48 @@ export default function ReportPage({ onNavCollapse, companyId }) {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {reports.map((report) => (
-              <Card
-                key={report.yearMonth}
-                className="border-0 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group bg-white"
-              >
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-semibold flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-purple-600" />
-                      {report.displayName}
-                    </span>
-                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <BarChart3 className="w-4 h-4" />
-                      概要
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <TrendingUp className="w-4 h-4" />
-                      売上影響
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      顧客傾向
-                    </span>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <span className="text-xs text-gray-400">
-                      {selectedStore === 'all' ? '全店舗データ' : stores.find(s => s.id === selectedStore)?.name}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50/50">
+                  <TableHead className="font-semibold text-gray-700">レポート期間</TableHead>
+                  <TableHead className="font-semibold text-gray-700">対象店舗</TableHead>
+                  <TableHead className="font-semibold text-gray-700">ステータス</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {reports.map((report) => (
+                  <TableRow
+                    key={report.yearMonth}
+                    className="cursor-pointer hover:bg-gray-50 transition-colors group"
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                          <Calendar className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <span className="font-medium text-gray-900">{report.displayName}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-gray-600">
+                        {selectedStore === 'all' ? '全店舗' : stores.find(s => s.id === selectedStore)?.name}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        作成済み
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
