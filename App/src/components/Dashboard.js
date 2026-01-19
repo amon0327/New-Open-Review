@@ -34,7 +34,8 @@ import {
   ArrowBack,
   People,
   Rocket,
-  Description
+  Description,
+  AutoAwesome
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
@@ -52,12 +53,14 @@ import FormPublishPage from './dashboard/pages/FormPublishPage';
 import AnalyticsPage from './dashboard/pages/AnalyticsPage';
 import ReportPage from './dashboard/pages/ReportPage';
 import CRMPage from './dashboard/pages/CRMPage';
+import AIAssistantPage from './dashboard/pages/AIAssistantPage';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
 
 const navigationItems = [
   { text: 'ホーム', icon: <Home />, component: HomePage },
+  { text: 'AIアシスタント', icon: <AutoAwesome />, component: AIAssistantPage },
   { text: 'フォーム公開', icon: <Rocket />, component: FormPublishPage },
   { text: '顧客管理(CRM)', icon: <People />, component: CRMPage },
   { text: 'レポート', icon: <Description />, component: ReportPage },
@@ -309,6 +312,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     } else if (navigationItems[activeTab].text === '分析') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
     } else if (navigationItems[activeTab].text === 'レポート') {
+      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
+    } else if (navigationItems[activeTab].text === 'AIアシスタント') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
     } else if (navigationItems[activeTab].text === 'フォーム公開') {
       return <ActiveComponent user={user} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
