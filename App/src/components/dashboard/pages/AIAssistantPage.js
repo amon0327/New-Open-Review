@@ -2,6 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { Skeleton } from '../../ui/skeleton';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../ui/table';
+import {
   Sparkles,
   Send,
   FileText,
@@ -17,7 +25,8 @@ import {
   AlertTriangle,
   X,
   History,
-  Zap
+  Zap,
+  Calendar
 } from 'lucide-react';
 
 // AIメッセージバナー
@@ -124,50 +133,6 @@ const TaskItem = ({ task, onRun }) => {
   );
 };
 
-// 月次レポートアイテム
-const ReportItem = ({ report, onClick }) => {
-  const hasAlert = report.alert;
-  const trend = report.trend;
-
-  return (
-    <div
-      onClick={onClick}
-      className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer group ${
-        hasAlert ? 'bg-purple-50/50' : ''
-      }`}
-    >
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center gap-3">
-          <p className="text-base font-bold text-gray-900">{report.period}</p>
-          {report.status === 'stable' && (
-            <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold">
-              STABLE
-            </span>
-          )}
-          {hasAlert && (
-            <span className="bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-              <Sparkles className="w-2.5 h-2.5" />
-              AI ALERT
-            </span>
-          )}
-        </div>
-        <ChevronRight className={`w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors ${hasAlert ? 'text-purple-600' : ''}`} />
-      </div>
-      <div className="flex justify-between text-xs text-gray-500">
-        <span>レビュー数: {report.reviewCount}</span>
-        <span className={hasAlert ? 'text-purple-600 font-bold' : ''}>
-          平均評価: {report.avgRating} {hasAlert && '(LOW)'}
-        </span>
-        <span className={`flex items-center font-bold ${
-          trend > 0 ? 'text-green-500' : trend < 0 ? 'text-purple-600' : 'text-gray-400'
-        }`}>
-          {trend > 0 ? <TrendingUp className="w-3 h-3 mr-0.5" /> : trend < 0 ? <TrendingDown className="w-3 h-3 mr-0.5" /> : null}
-          {trend > 0 ? '+' : ''}{trend}%
-        </span>
-      </div>
-    </div>
-  );
-};
 
 // AIチャットパネル
 const AIChatPanel = ({ isOpen, onClose }) => {
@@ -383,11 +348,67 @@ export default function AIAssistantPage({ onNavCollapse, companyId }) {
             <p className="text-gray-500 text-sm mt-1">AIが異常値を自動ハイライトしています</p>
           </div>
 
-          <div className="divide-y divide-gray-100">
-            {reports.map(report => (
-              <ReportItem key={report.id} report={report} onClick={() => {}} />
-            ))}
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-gray-50/50">
+                <TableHead className="font-semibold text-gray-700">レポート期間</TableHead>
+                <TableHead className="font-semibold text-gray-700">レビュー数</TableHead>
+                <TableHead className="font-semibold text-gray-700">平均評価</TableHead>
+                <TableHead className="font-semibold text-gray-700">前月比</TableHead>
+                <TableHead className="font-semibold text-gray-700">ステータス</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {reports.map(report => (
+                <TableRow
+                  key={report.id}
+                  className={`cursor-pointer hover:bg-gray-50 transition-colors group ${report.alert ? 'bg-purple-50/30' : ''}`}
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${report.alert ? 'bg-purple-100' : 'bg-gray-100'}`}>
+                        <Calendar className={`w-4 h-4 ${report.alert ? 'text-purple-600' : 'text-gray-600'}`} />
+                      </div>
+                      <span className="font-medium text-gray-900">{report.period}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-gray-600">{report.reviewCount}件</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className={report.alert ? 'text-purple-600 font-bold' : 'text-gray-600'}>
+                      {report.avgRating}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className={`flex items-center font-medium ${
+                      report.trend > 0 ? 'text-green-600' : report.trend < 0 ? 'text-red-500' : 'text-gray-400'
+                    }`}>
+                      {report.trend > 0 ? <TrendingUp className="w-3.5 h-3.5 mr-1" /> : report.trend < 0 ? <TrendingDown className="w-3.5 h-3.5 mr-1" /> : null}
+                      {report.trend > 0 ? '+' : ''}{report.trend}%
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {report.alert ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-purple-600 text-white">
+                        <Sparkles className="w-3 h-3" />
+                        AI ALERT
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        <CheckCircle2 className="w-3 h-3" />
+                        STABLE
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
           <div className="p-3 bg-gray-50 text-center">
             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
