@@ -26,11 +26,17 @@ import {
   CheckCircle2
 } from 'lucide-react';
 
-export default function ReportPage({ onNavCollapse, companyId }) {
+export default function ReportPage({ onNavCollapse, companyId, onOpenReportDetail }) {
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState('all');
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleOpenReport = (report) => {
+    if (onOpenReportDetail) {
+      onOpenReportDetail(report);
+    }
+  };
 
   // 店舗データを取得
   useEffect(() => {
@@ -210,6 +216,7 @@ export default function ReportPage({ onNavCollapse, companyId }) {
                 {reports.map((report) => (
                   <TableRow
                     key={report.yearMonth}
+                    onClick={() => handleOpenReport(report)}
                     className="cursor-pointer hover:bg-gray-50 transition-colors group"
                   >
                     <TableCell>

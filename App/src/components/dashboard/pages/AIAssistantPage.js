@@ -28,7 +28,6 @@ import {
   Zap,
   Calendar
 } from 'lucide-react';
-import ReportDetailPage from './ReportDetailPage';
 
 // AIメッセージバナー
 const AIMessageBanner = ({ message, onAction }) => (
@@ -227,7 +226,7 @@ const AIChatPanel = ({ isOpen, onClose }) => {
   );
 };
 
-export default function AIAssistantPage({ onNavCollapse, companyId }) {
+export default function AIAssistantPage({ onNavCollapse, companyId, onOpenReportDetail }) {
   const [tasks, setTasks] = useState([
     { id: 1, title: '低評価レビューへの対応', description: 'AI推奨: 接客品質の改善が必要です', status: 'pending', priority: 'critical' },
     { id: 2, title: '2025年1月レポート確認', description: '処理中...', status: 'in_progress', priority: 'normal' },
@@ -244,7 +243,6 @@ export default function AIAssistantPage({ onNavCollapse, companyId }) {
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selectedReport, setSelectedReport] = useState(null);
 
   const handleRunTask = (taskId) => {
     setTasks(prev => prev.map(t =>
@@ -257,19 +255,15 @@ export default function AIAssistantPage({ onNavCollapse, companyId }) {
     }, 3000);
   };
 
+  const handleOpenReport = (report) => {
+    if (onOpenReportDetail) {
+      onOpenReportDetail(report);
+    }
+  };
+
   const completedTasks = tasks.filter(t => t.status === 'completed').length;
   const totalTasks = tasks.length;
   const progressPercentage = Math.round((completedTasks / totalTasks) * 100);
-
-  // レポート詳細ページが選択されている場合
-  if (selectedReport) {
-    return (
-      <ReportDetailPage
-        report={selectedReport}
-        onBack={() => setSelectedReport(null)}
-      />
-    );
-  }
 
   if (loading) {
     return (
@@ -375,7 +369,7 @@ export default function AIAssistantPage({ onNavCollapse, companyId }) {
               {reports.map(report => (
                 <TableRow
                   key={report.id}
-                  onClick={() => setSelectedReport(report)}
+                  onClick={() => handleOpenReport(report)}
                   className={`cursor-pointer hover:bg-gray-50 transition-colors group ${report.alert ? 'bg-purple-50/30' : ''}`}
                 >
                   <TableCell>

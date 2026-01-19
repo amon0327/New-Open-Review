@@ -54,6 +54,7 @@ import AnalyticsPage from './dashboard/pages/AnalyticsPage';
 import ReportPage from './dashboard/pages/ReportPage';
 import CRMPage from './dashboard/pages/CRMPage';
 import AIAssistantPage from './dashboard/pages/AIAssistantPage';
+import ReportDetailPage from './dashboard/pages/ReportDetailPage';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
@@ -82,6 +83,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [isCheckingCompany, setIsCheckingCompany] = useState(!companyId);
   const [currentCompany, setCurrentCompany] = useState(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(!!companyId);
+  const [fullscreenReport, setFullscreenReport] = useState(null);
 
   // フォーム作成時のハンドラー - URL遷移を行う
   const handleFormCreated = (formId) => {
@@ -300,6 +302,16 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     );
   }
 
+  // フルスクリーンレポート表示（ナビゲーションなし）
+  if (fullscreenReport) {
+    return (
+      <ReportDetailPage
+        report={fullscreenReport}
+        onBack={() => setFullscreenReport(null)}
+      />
+    );
+  }
+
   const renderContent = (onCreateForm, isCreatingForm) => {
     const ActiveComponent = navigationItems[activeTab].component;
     if (!ActiveComponent) {
@@ -312,9 +324,9 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     } else if (navigationItems[activeTab].text === '分析') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
     } else if (navigationItems[activeTab].text === 'レポート') {
-      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
+      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} onOpenReportDetail={(report) => setFullscreenReport(report)} />;
     } else if (navigationItems[activeTab].text === 'AIアシスタント') {
-      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
+      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} onOpenReportDetail={(report) => setFullscreenReport(report)} />;
     } else if (navigationItems[activeTab].text === 'フォーム公開') {
       return <ActiveComponent user={user} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     }
