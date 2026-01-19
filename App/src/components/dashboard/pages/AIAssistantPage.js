@@ -16,12 +16,8 @@ import {
   TrendingDown,
   AlertTriangle,
   X,
-  MessageSquare,
   History,
-  Zap,
-  Users,
-  Timer,
-  AlertCircle
+  Zap
 } from 'lucide-react';
 
 // AIメッセージバナー
@@ -168,35 +164,6 @@ const ReportItem = ({ report, onClick }) => {
           {trend > 0 ? <TrendingUp className="w-3 h-3 mr-0.5" /> : trend < 0 ? <TrendingDown className="w-3 h-3 mr-0.5" /> : null}
           {trend > 0 ? '+' : ''}{trend}%
         </span>
-      </div>
-    </div>
-  );
-};
-
-// ライブモニタリングカード
-const MonitorCard = ({ icon: Icon, label, value, change, color = 'purple' }) => {
-  const colors = {
-    purple: 'bg-purple-100 text-purple-600',
-    blue: 'bg-blue-100 text-blue-600',
-    green: 'bg-green-100 text-green-600',
-  };
-  const isPositive = change?.startsWith('+');
-
-  return (
-    <div className="bg-white p-4 rounded-xl border border-gray-100 flex items-center gap-4">
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${colors[color]}`}>
-        <Icon className="w-5 h-5" />
-      </div>
-      <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="text-xl font-bold text-gray-900">
-          {value}
-          {change && (
-            <span className={`text-xs font-normal ml-1 ${isPositive ? 'text-green-500' : 'text-purple-600'}`}>
-              ({change})
-            </span>
-          )}
-        </p>
       </div>
     </div>
   );
@@ -369,88 +336,63 @@ export default function AIAssistantPage({ onNavCollapse, companyId }) {
           onAction={() => {}}
         />
 
-        {/* メイングリッド */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* 左エリア: タスク進捗 */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
-            <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-900">タスク進捗</h2>
-                <div className="flex gap-2">
-                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-medium hover:bg-gray-50 transition-colors">
-                    <History className="w-4 h-4" />
-                    過去ログ
-                  </button>
-                  <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-bold hover:bg-purple-700 transition-colors">
-                    <Plus className="w-4 h-4" />
-                    新規タスク
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex flex-col md:flex-row items-center gap-8 py-4">
-                <ProgressCircle percentage={progressPercentage} />
-
-                <div className="flex-1 w-full space-y-4">
-                  <div className="flex justify-between items-end">
-                    <p className="text-base font-bold text-gray-900">本日の重点タスク</p>
-                    <p className="text-sm text-gray-500">
-                      残り{totalTasks - completedTasks} / 全{totalTasks}件
-                    </p>
-                  </div>
-                  <div className="space-y-3">
-                    {tasks.map(task => (
-                      <TaskItem key={task.id} task={task} onRun={handleRunTask} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ライブモニタリング */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <MonitorCard
-                icon={Users}
-                label="今月のレビュー数"
-                value="142件"
-                change="+12%"
-                color="blue"
-              />
-              <MonitorCard
-                icon={Timer}
-                label="平均返信時間"
-                value="2.5時間"
-                change="-30min"
-                color="purple"
-              />
+        {/* タスク進捗 */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-gray-900">タスク進捗</h2>
+            <div className="flex gap-2">
+              <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-medium hover:bg-gray-50 transition-colors">
+                <History className="w-4 h-4" />
+                過去ログ
+              </button>
+              <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-bold hover:bg-purple-700 transition-colors">
+                <Plus className="w-4 h-4" />
+                新規タスク
+              </button>
             </div>
           </div>
 
-          {/* 右エリア: 月次レポート */}
-          <div className="lg:col-span-5">
-            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm h-full flex flex-col">
-              <div className="p-5 border-b border-gray-100">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-bold text-gray-900">月次レポート</h2>
-                  <button className="text-purple-600 text-sm font-bold hover:underline">
-                    すべて見る
-                  </button>
-                </div>
-                <p className="text-gray-500 text-sm mt-1">AIが異常値を自動ハイライトしています</p>
-              </div>
+          <div className="flex flex-col md:flex-row items-center gap-8 py-4">
+            <ProgressCircle percentage={progressPercentage} />
 
-              <div className="flex-1 divide-y divide-gray-100">
-                {reports.map(report => (
-                  <ReportItem key={report.id} report={report} onClick={() => {}} />
-                ))}
-              </div>
-
-              <div className="p-3 bg-gray-50 text-center">
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                  Next Report scheduled: February 1st
+            <div className="flex-1 w-full space-y-4">
+              <div className="flex justify-between items-end">
+                <p className="text-base font-bold text-gray-900">本日の重点タスク</p>
+                <p className="text-sm text-gray-500">
+                  残り{totalTasks - completedTasks} / 全{totalTasks}件
                 </p>
               </div>
+              <div className="space-y-3">
+                {tasks.map(task => (
+                  <TaskItem key={task.id} task={task} onRun={handleRunTask} />
+                ))}
+              </div>
             </div>
+          </div>
+        </div>
+
+        {/* 月次レポート */}
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+          <div className="p-5 border-b border-gray-100">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-900">月次レポート</h2>
+              <button className="text-purple-600 text-sm font-bold hover:underline">
+                すべて見る
+              </button>
+            </div>
+            <p className="text-gray-500 text-sm mt-1">AIが異常値を自動ハイライトしています</p>
+          </div>
+
+          <div className="divide-y divide-gray-100">
+            {reports.map(report => (
+              <ReportItem key={report.id} report={report} onClick={() => {}} />
+            ))}
+          </div>
+
+          <div className="p-3 bg-gray-50 text-center">
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+              Next Report scheduled: February 1st
+            </p>
           </div>
         </div>
       </div>
