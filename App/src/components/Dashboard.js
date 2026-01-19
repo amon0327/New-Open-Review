@@ -33,7 +33,8 @@ import {
   Apps,
   ArrowBack,
   People,
-  Rocket
+  Rocket,
+  Description
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
@@ -49,6 +50,7 @@ import SettingsPage from './dashboard/pages/SettingsPage';
 import StoresManagementPage from './dashboard/pages/StoresManagementPage';
 import FormPublishPage from './dashboard/pages/FormPublishPage';
 import AnalyticsPage from './dashboard/pages/AnalyticsPage';
+import ReportPage from './dashboard/pages/ReportPage';
 import CRMPage from './dashboard/pages/CRMPage';
 
 const drawerWidth = 280;
@@ -58,6 +60,7 @@ const navigationItems = [
   { text: 'ホーム', icon: <Home />, component: HomePage },
   { text: 'フォーム公開', icon: <Rocket />, component: FormPublishPage },
   { text: '顧客管理(CRM)', icon: <People />, component: CRMPage },
+  { text: 'レポート', icon: <Description />, component: ReportPage },
   { text: '分析', icon: <Analytics />, component: AnalyticsPage },
   { text: '店舗情報', icon: <Business />, component: StoresManagementPage },
   { text: '設定', icon: <Settings />, component: SettingsPage },
@@ -304,6 +307,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     } else if (navigationItems[activeTab].text === 'ホーム') {
       return <ActiveComponent user={user} onCreateFormClick={onCreateClick} onCreateForm={onCreateForm} isCreatingForm={isCreatingForm} />;
     } else if (navigationItems[activeTab].text === '分析') {
+      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
+    } else if (navigationItems[activeTab].text === 'レポート') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
     } else if (navigationItems[activeTab].text === 'フォーム公開') {
       return <ActiveComponent user={user} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
