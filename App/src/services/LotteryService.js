@@ -34,12 +34,22 @@ export class LotteryService {
         win_rate_divisor
       });
 
+      // セッションを取得して認証ヘッダーを設定
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('セッションが見つかりません。再度ログインしてください。');
+      }
+
       // Edge Functionを呼び出し
       const { data: response, error } = await supabase.functions.invoke('update-lottery-settings', {
         body: {
-          reviewFormId: formId,
-          maxWinsPerMonth: max_wins_per_month,
-          winRateDivisor: win_rate_divisor
+          review_form_id: formId,
+          max_wins_per_month: max_wins_per_month,
+          win_rate_divisor: win_rate_divisor
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
         }
       });
 
