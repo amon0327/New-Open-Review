@@ -203,10 +203,7 @@ serve(async (req) => {
       // 3a. 既存のレコードがある場合は更新
       const { data, error: updateError } = await supabaseAdmin
         .from('store_review_forms')
-        .update({ 
-          is_published: true,
-          updated_at: new Date().toISOString()
-        })
+        .update({ is_published: true })
         .eq('id', existingRecord.id)
         .select()
         .single()
