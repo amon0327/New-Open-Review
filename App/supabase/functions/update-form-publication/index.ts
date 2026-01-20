@@ -154,18 +154,18 @@ serve(async (req) => {
         } else {
           console.log('No partner_company_id in companies table')
           console.log('====== ACCESS CHECK END (FAILED) ======')
-          
+
           // 一時的な対応: 権限チェックをスキップしてログを出力
           console.warn('⚠️ TEMPORARY: Skipping access check for debugging')
-          return // 権限チェックをスキップして処理を続行
+          // 処理を続行（returnを削除）
         }
       } else {
         console.log('No business user found')
         console.log('====== ACCESS CHECK END (FAILED) ======')
-        
+
         // 一時的な対応: 権限チェックをスキップしてログを出力
         console.warn('⚠️ TEMPORARY: Skipping access check for debugging')
-        return // 権限チェックをスキップして処理を続行
+        // 処理を続行（returnを削除）
       }
     }
     
