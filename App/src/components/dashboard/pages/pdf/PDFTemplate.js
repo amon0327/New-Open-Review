@@ -673,6 +673,180 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
   },
+
+  // ============================================
+  // 5ページ目：QSC詳細ページ
+  // ============================================
+
+  // ページ上部レイアウト（左：タイトル＋説明、右：スコアカード）
+  qscDetailPageHeader: {
+    flexDirection: 'row',
+    gap: 20,
+    marginBottom: 20,
+  },
+  qscDetailLeftSection: {
+    flex: 1,
+  },
+  qscDetailRightSection: {
+    width: 180,
+  },
+
+  // カテゴリータイトル（アイコン + テキスト）
+  qscDetailTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  qscDetailIcon: {
+    width: 24,
+    height: 24,
+  },
+  qscDetailTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.gray900,
+  },
+
+  // 課題説明テキスト
+  qscDetailDescription: {
+    fontSize: 10,
+    color: colors.gray600,
+    lineHeight: 1.6,
+  },
+
+  // ミニスコアカード
+  qscMiniCard: {
+    backgroundColor: colors.white,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'solid',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  qscMiniCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  qscMiniCardTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  qscMiniCardIconBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qscMiniCardTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: colors.gray900,
+  },
+  qscMiniCardSubtitle: {
+    fontSize: 8,
+    color: colors.gray500,
+  },
+  qscMiniCardTrendBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  qscMiniCardTrendText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  qscMiniCardScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  qscMiniCardScore: {
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  qscMiniCardScoreMax: {
+    fontSize: 9,
+    color: colors.gray500,
+  },
+  qscMiniCardAchievement: {
+    alignItems: 'flex-end',
+  },
+  qscMiniCardAchievementLabel: {
+    fontSize: 7,
+    color: colors.gray500,
+  },
+  qscMiniCardAchievementValue: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: colors.gray700,
+  },
+  qscMiniCardProgress: {
+    height: 4,
+    backgroundColor: colors.gray200,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  qscMiniCardProgressFill: {
+    height: 4,
+    borderRadius: 2,
+  },
+
+  // 評価項目バーチャートセクション
+  qscDetailItemsContainer: {
+    flexDirection: 'row',
+    gap: 24,
+  },
+  qscDetailItemsColumn: {
+    flex: 1,
+  },
+  qscDetailItemsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginBottom: 8,
+  },
+  qscDetailItemsCount: {
+    fontSize: 8,
+    color: colors.gray500,
+  },
+
+  // 個別評価項目
+  qscDetailItem: {
+    marginBottom: 10,
+  },
+  qscDetailItemLabel: {
+    fontSize: 9,
+    color: colors.gray700,
+    marginBottom: 4,
+  },
+  qscDetailItemBar: {
+    flexDirection: 'row',
+    height: 16,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  qscDetailItemBarSegment: {
+    height: 16,
+  },
+  qscDetailItemValues: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 3,
+  },
+  qscDetailItemValue: {
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
 });
 
 // ロゴURL
@@ -1369,6 +1543,267 @@ const QSCCard = ({ category, label, score, trend, colorTheme }) => {
 };
 
 /**
+ * QSCミニスコアカード（詳細ページ用）
+ */
+const QSCMiniScoreCard = ({ category, label, score, trend, colorTheme }) => {
+  const getColors = () => {
+    switch (colorTheme) {
+      case 'violet':
+        return { bg: '#8b5cf6', light: '#ede9fe', text: '#6d28d9' };
+      case 'blue':
+        return { bg: '#3b82f6', light: '#dbeafe', text: '#1d4ed8' };
+      case 'emerald':
+        return { bg: '#10b981', light: '#d1fae5', text: '#047857' };
+      default:
+        return { bg: '#6b7280', light: '#f3f4f6', text: '#374151' };
+    }
+  };
+
+  const themeColors = getColors();
+  const isPositive = trend >= 0;
+  const achievementRate = ((score / 5) * 100).toFixed(0);
+
+  const renderIcon = () => {
+    switch (category) {
+      case 'Q':
+        return <QualityIcon />;
+      case 'S':
+        return <ServiceIcon />;
+      case 'C':
+        return <CleanlinessIcon />;
+      default:
+        return <QualityIcon />;
+    }
+  };
+
+  const getCategoryTitle = () => {
+    switch (category) {
+      case 'Q':
+        return 'Quality';
+      case 'S':
+        return 'Service';
+      case 'C':
+        return 'Cleanliness';
+      default:
+        return category;
+    }
+  };
+
+  return (
+    <View style={styles.qscMiniCard}>
+      {/* ヘッダー */}
+      <View style={styles.qscMiniCardHeader}>
+        <View style={styles.qscMiniCardTitleRow}>
+          <View style={[styles.qscMiniCardIconBox, { backgroundColor: themeColors.bg }]}>
+            {renderIcon()}
+          </View>
+          <View>
+            <Text style={styles.qscMiniCardTitle}>{getCategoryTitle()}</Text>
+            <Text style={styles.qscMiniCardSubtitle}>{label}</Text>
+          </View>
+        </View>
+        <View style={[styles.qscMiniCardTrendBadge, { backgroundColor: isPositive ? '#dcfce7' : '#fee2e2' }]}>
+          <Text style={[styles.qscMiniCardTrendText, { color: isPositive ? '#15803d' : '#b91c1c' }]}>
+            {isPositive ? '↑' : '↓'} {Math.abs(trend).toFixed(1)}
+          </Text>
+        </View>
+      </View>
+
+      {/* スコア */}
+      <View style={styles.qscMiniCardScoreRow}>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2 }}>
+          <Text style={[styles.qscMiniCardScore, { color: themeColors.bg }]}>{score.toFixed(2)}</Text>
+          <Text style={styles.qscMiniCardScoreMax}>/ 5.00</Text>
+        </View>
+        <View style={styles.qscMiniCardAchievement}>
+          <Text style={styles.qscMiniCardAchievementLabel}>達成率</Text>
+          <Text style={styles.qscMiniCardAchievementValue}>{achievementRate}%</Text>
+        </View>
+      </View>
+
+      {/* プログレスバー */}
+      <View style={styles.qscMiniCardProgress}>
+        <View style={[styles.qscMiniCardProgressFill, { width: `${achievementRate}%`, backgroundColor: themeColors.bg }]} />
+      </View>
+    </View>
+  );
+};
+
+/**
+ * 評価項目バーチャート
+ */
+const QSCDetailItem = ({ label, positive, neutral, negative }) => (
+  <View style={styles.qscDetailItem}>
+    <Text style={styles.qscDetailItemLabel}>{label}</Text>
+    <View style={styles.qscDetailItemBar}>
+      {/* ポジティブ（緑） */}
+      <View style={[styles.qscDetailItemBarSegment, { width: `${positive}%`, backgroundColor: '#22c55e' }]} />
+      {/* ニュートラル（グレー） */}
+      <View style={[styles.qscDetailItemBarSegment, { width: `${neutral}%`, backgroundColor: '#d1d5db' }]} />
+      {/* ネガティブ（赤） */}
+      <View style={[styles.qscDetailItemBarSegment, { width: `${negative}%`, backgroundColor: '#ef4444' }]} />
+    </View>
+    <View style={styles.qscDetailItemValues}>
+      <Text style={[styles.qscDetailItemValue, { color: '#22c55e' }]}>{Math.round(positive)}%</Text>
+      <Text style={[styles.qscDetailItemValue, { color: '#9ca3af' }]}>{Math.round(neutral)}%</Text>
+      <Text style={[styles.qscDetailItemValue, { color: '#ef4444' }]}>{Math.round(negative)}%</Text>
+    </View>
+  </View>
+);
+
+/**
+ * QSC詳細ページコンポーネント（5ページ目：Quality）
+ */
+const QSCDetailPage = ({ reportData, category, pageNumber }) => {
+  // QSCスコアデータ
+  const qscScores = reportData?.storeEvaluation?.qscScores || {
+    Q: { label: 'クオリティ', score: 0, trend: 0, color: 'violet' },
+    S: { label: 'サービス', score: 0, trend: 0, color: 'blue' },
+    C: { label: 'クレンリネス', score: 0, trend: 0, color: 'emerald' }
+  };
+
+  // QSC詳細データ
+  const qscDetailedData = reportData?.storeEvaluation?.qscDetailedData || {
+    Q: { items: [], totalResponses: 0 },
+    S: { items: [], totalResponses: 0 },
+    C: { items: [], totalResponses: 0 }
+  };
+
+  // AIサマリーデータ
+  const aiSummary = reportData?.storeEvaluation?.aiSummary || {
+    Q: '',
+    S: '',
+    C: ''
+  };
+
+  const scoreData = qscScores[category] || { label: '', score: 0, trend: 0, color: 'violet' };
+  const detailData = qscDetailedData[category] || { items: [], totalResponses: 0 };
+  const summary = aiSummary[category] || 'データが不足しています。';
+
+  // カテゴリー名を取得
+  const getCategoryTitle = () => {
+    switch (category) {
+      case 'Q':
+        return 'Quality';
+      case 'S':
+        return 'Service';
+      case 'C':
+        return 'Cleanliness';
+      default:
+        return category;
+    }
+  };
+
+  // アイコンを描画
+  const renderCategoryIcon = () => {
+    const iconColor = scoreData.color === 'violet' ? '#8b5cf6' : scoreData.color === 'blue' ? '#3b82f6' : '#10b981';
+    return (
+      <Svg width={24} height={24} viewBox="0 0 24 24">
+        {category === 'Q' && (
+          <Path
+            d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+            fill={iconColor}
+          />
+        )}
+        {category === 'S' && (
+          <>
+            <Path
+              d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21"
+              stroke={iconColor}
+              strokeWidth={2}
+              strokeLinecap="round"
+              fill="none"
+            />
+            <Path
+              d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z"
+              stroke={iconColor}
+              strokeWidth={2}
+              fill="none"
+            />
+          </>
+        )}
+        {category === 'C' && (
+          <Path
+            d="M12 3L14.5 8.5L20.5 9.5L16 14L17.5 20L12 17L6.5 20L8 14L3.5 9.5L9.5 8.5L12 3Z"
+            fill={iconColor}
+          />
+        )}
+      </Svg>
+    );
+  };
+
+  // 評価項目を左右に分割（各5項目）
+  const items = detailData.items || [];
+  const leftItems = items.slice(0, 5);
+  const rightItems = items.slice(5, 10);
+
+  return (
+    <ContentPage>
+      {/* セクションヘッダー */}
+      <SectionHeader title="課題" pageNumber={pageNumber} />
+
+      {/* 上部セクション：左（タイトル＋説明）、右（ミニスコアカード） */}
+      <View style={styles.qscDetailPageHeader}>
+        {/* 左セクション */}
+        <View style={styles.qscDetailLeftSection}>
+          <View style={styles.qscDetailTitleRow}>
+            {renderCategoryIcon()}
+            <Text style={styles.qscDetailTitle}>{getCategoryTitle()}</Text>
+          </View>
+          <Text style={styles.qscDetailDescription}>{summary}</Text>
+        </View>
+
+        {/* 右セクション：ミニスコアカード */}
+        <View style={styles.qscDetailRightSection}>
+          <QSCMiniScoreCard
+            category={category}
+            label={scoreData.label}
+            score={scoreData.score}
+            trend={scoreData.trend}
+            colorTheme={scoreData.color}
+          />
+        </View>
+      </View>
+
+      {/* 評価項目バーチャート（2列） */}
+      <View style={styles.qscDetailItemsContainer}>
+        {/* 左列 */}
+        <View style={styles.qscDetailItemsColumn}>
+          <View style={styles.qscDetailItemsHeader}>
+            <Text style={styles.qscDetailItemsCount}>n={detailData.totalResponses || 0}</Text>
+          </View>
+          {leftItems.map((item, index) => (
+            <QSCDetailItem
+              key={index}
+              label={item.label}
+              positive={item.positive || 0}
+              neutral={item.neutral || 0}
+              negative={item.negative || 0}
+            />
+          ))}
+        </View>
+
+        {/* 右列 */}
+        <View style={styles.qscDetailItemsColumn}>
+          <View style={styles.qscDetailItemsHeader}>
+            <Text style={styles.qscDetailItemsCount}></Text>
+          </View>
+          {rightItems.map((item, index) => (
+            <QSCDetailItem
+              key={index}
+              label={item.label}
+              positive={item.positive || 0}
+              neutral={item.neutral || 0}
+              negative={item.negative || 0}
+            />
+          ))}
+        </View>
+      </View>
+    </ContentPage>
+  );
+};
+
+/**
  * 店舗評価ページコンポーネント（4ページ目）
  */
 const StoreEvaluationPage = ({ reportData, pageNumber }) => {
@@ -1430,6 +1865,13 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       reportData={reportData}
       pageNumber={3}
     />
+
+    {/* Quality詳細ページ */}
+    <QSCDetailPage
+      reportData={reportData}
+      category="Q"
+      pageNumber={4}
+    />
   </Document>
 );
 
@@ -1470,6 +1912,7 @@ export default {
   OverviewPage,
   SalesImpactPage,
   StoreEvaluationPage,
+  QSCDetailPage,
   KPICard,
   generatePDFBlob,
   downloadPDF,
