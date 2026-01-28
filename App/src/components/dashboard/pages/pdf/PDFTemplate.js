@@ -1982,9 +1982,16 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
     C: ''
   };
 
+  // サンプルテキスト
+  const sampleSummary = {
+    Q: '料理の味付けや盛り付けに対する評価が高く、特にメイン料理の満足度が前月比で向上しています。食材の鮮度についても好意的な意見が多く見られます。',
+    S: '接客対応のスピードと丁寧さに関して高評価が多い一方、ピーク時の待ち時間に対する改善要望が一部見受けられます。',
+    C: '店内の清潔感について全体的に良好な評価を維持しています。特にトイレや客席周りの清掃が行き届いているとの声が目立ちます。'
+  };
+
   const scoreData = qscScores[category] || { label: '', score: 0, trend: 0, color: 'violet' };
   const detailData = qscDetailedData[category] || { items: [], totalResponses: 0 };
-  const summary = aiSummary[category] || 'データが不足しています。';
+  const summary = aiSummary[category] || sampleSummary[category] || 'データが不足しています。';
 
   // カテゴリー名を取得
   const getCategoryTitle = () => {
