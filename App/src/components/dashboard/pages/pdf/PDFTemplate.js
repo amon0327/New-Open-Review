@@ -688,7 +688,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   qscDetailRightSection: {
-    width: 200,
+    width: 350,
   },
 
   // カテゴリータイトル（アイコン + テキスト + n=）
