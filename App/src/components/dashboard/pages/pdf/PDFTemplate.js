@@ -10,6 +10,8 @@ import {
   pdf,
   Svg,
   Path,
+  Polygon,
+  Rect,
 } from '@react-pdf/renderer';
 
 // 日本語フォントを登録（Noto Sans JP）
@@ -123,7 +125,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
     borderRadius: 16,
-    padding: 32,
+    paddingHorizontal: 28,
+    paddingTop: 20,
+    paddingBottom: 24,
     flexDirection: 'column',
   },
 
@@ -147,7 +151,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionHeaderTitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
     color: colors.primary,
   },
@@ -381,21 +385,21 @@ const ArrowDownIcon = ({ color = colors.white }) => (
  * 課題アイコン（ボックス/キューブ）
  */
 const TaskIcon = () => (
-  <Svg width={24} height={24} viewBox="0 0 24 24">
+  <Svg width={22} height={22} viewBox="0 0 24 24">
     {/* ボックスの上面（黄色） */}
-    <Path
-      d="M12 2L3 7L12 12L21 7L12 2Z"
+    <Polygon
+      points="12,2 3,7 12,12 21,7"
       fill="#fbbf24"
     />
     {/* ボックスの左面（青紫） */}
-    <Path
-      d="M3 7V17L12 22V12L3 7Z"
-      fill="#6366f1"
+    <Polygon
+      points="3,7 3,17 12,22 12,12"
+      fill="#4f46e5"
     />
     {/* ボックスの右面（紫） */}
-    <Path
-      d="M21 7V17L12 22V12L21 7Z"
-      fill="#8b5cf6"
+    <Polygon
+      points="21,7 21,17 12,22 12,12"
+      fill="#7c3aed"
     />
   </Svg>
 );
