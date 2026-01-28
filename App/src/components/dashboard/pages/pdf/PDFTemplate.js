@@ -696,6 +696,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginBottom: 8,
+  },
+  qscDetailTitleLine: {
+    height: 1,
+    backgroundColor: '#e2e8f0',
     marginBottom: 12,
   },
   qscDetailIcon: {
@@ -1756,6 +1761,7 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
             <Text style={styles.qscDetailTitle}>{getCategoryTitle()}</Text>
             <Text style={styles.qscDetailTitleCount}>n={detailData.totalResponses || 0}</Text>
           </View>
+          <View style={styles.qscDetailTitleLine} />
           <Text style={styles.qscDetailDescription}>{summary}</Text>
         </View>
 
@@ -1871,6 +1877,20 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       reportData={reportData}
       category="Q"
       pageNumber={4}
+    />
+
+    {/* Service詳細ページ */}
+    <QSCDetailPage
+      reportData={reportData}
+      category="S"
+      pageNumber={5}
+    />
+
+    {/* Cleanliness詳細ページ */}
+    <QSCDetailPage
+      reportData={reportData}
+      category="C"
+      pageNumber={6}
     />
   </Document>
 );
