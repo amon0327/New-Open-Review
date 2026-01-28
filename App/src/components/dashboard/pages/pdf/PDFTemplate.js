@@ -538,6 +538,110 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray600,
     borderRadius: 3,
   },
+
+  // ============================================
+  // 4ページ目：店舗評価ページ
+  // ============================================
+
+  // QSCカードグリッド
+  qscCardGrid: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  qscCard: {
+    flex: 1,
+    backgroundColor: colors.white,
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'solid',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+  },
+  qscCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  qscCardTitleArea: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  qscCardIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qscCardTitleText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.gray900,
+  },
+  qscCardSubtitle: {
+    fontSize: 9,
+    color: colors.gray500,
+    marginTop: 2,
+  },
+  qscCardTrendBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  qscCardTrendText: {
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+  qscCardScoreArea: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 12,
+  },
+  qscCardScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+  },
+  qscCardScore: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  qscCardScoreMax: {
+    fontSize: 10,
+    color: colors.gray500,
+  },
+  qscCardAchievementArea: {
+    alignItems: 'flex-end',
+  },
+  qscCardAchievementLabel: {
+    fontSize: 8,
+    color: colors.gray500,
+  },
+  qscCardAchievementValue: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.gray700,
+  },
+  qscCardProgressBar: {
+    height: 6,
+    backgroundColor: colors.gray200,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  qscCardProgressFill: {
+    height: 6,
+    borderRadius: 3,
+  },
 });
 
 // ロゴURL
@@ -1089,6 +1193,185 @@ const SalesImpactPage = ({ reportData, pageNumber }) => {
 };
 
 /**
+ * QSCアイコン - Quality
+ */
+const QualityIcon = () => (
+  <Svg width={18} height={18} viewBox="0 0 24 24">
+    <Path
+      d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+      fill={colors.white}
+    />
+  </Svg>
+);
+
+/**
+ * QSCアイコン - Service
+ */
+const ServiceIcon = () => (
+  <Svg width={18} height={18} viewBox="0 0 24 24">
+    <Path
+      d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21"
+      stroke={colors.white}
+      strokeWidth={2}
+      strokeLinecap="round"
+      fill="none"
+    />
+    <Path
+      d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z"
+      stroke={colors.white}
+      strokeWidth={2}
+      fill="none"
+    />
+    <Path
+      d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13"
+      stroke={colors.white}
+      strokeWidth={2}
+      strokeLinecap="round"
+      fill="none"
+    />
+    <Path
+      d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88"
+      stroke={colors.white}
+      strokeWidth={2}
+      strokeLinecap="round"
+      fill="none"
+    />
+  </Svg>
+);
+
+/**
+ * QSCアイコン - Cleanliness
+ */
+const CleanlinessIcon = () => (
+  <Svg width={18} height={18} viewBox="0 0 24 24">
+    <Path
+      d="M12 3L14.5 8.5L20.5 9.5L16 14L17.5 20L12 17L6.5 20L8 14L3.5 9.5L9.5 8.5L12 3Z"
+      fill={colors.white}
+    />
+  </Svg>
+);
+
+/**
+ * QSCカードコンポーネント
+ */
+const QSCCard = ({ category, label, score, trend, colorTheme }) => {
+  const getColors = () => {
+    switch (colorTheme) {
+      case 'violet':
+        return { bg: '#8b5cf6', light: '#ede9fe', text: '#6d28d9' };
+      case 'blue':
+        return { bg: '#3b82f6', light: '#dbeafe', text: '#1d4ed8' };
+      case 'emerald':
+        return { bg: '#10b981', light: '#d1fae5', text: '#047857' };
+      default:
+        return { bg: '#6b7280', light: '#f3f4f6', text: '#374151' };
+    }
+  };
+
+  const themeColors = getColors();
+  const isPositive = trend >= 0;
+  const achievementRate = ((score / 5) * 100).toFixed(0);
+
+  const renderIcon = () => {
+    switch (category) {
+      case 'Q':
+        return <QualityIcon />;
+      case 'S':
+        return <ServiceIcon />;
+      case 'C':
+        return <CleanlinessIcon />;
+      default:
+        return <QualityIcon />;
+    }
+  };
+
+  const getCategoryTitle = () => {
+    switch (category) {
+      case 'Q':
+        return 'Quality';
+      case 'S':
+        return 'Service';
+      case 'C':
+        return 'Cleanliness';
+      default:
+        return category;
+    }
+  };
+
+  return (
+    <View style={styles.qscCard}>
+      {/* ヘッダー */}
+      <View style={styles.qscCardHeader}>
+        <View style={styles.qscCardTitleArea}>
+          <View style={[styles.qscCardIcon, { backgroundColor: themeColors.bg }]}>
+            {renderIcon()}
+          </View>
+          <View>
+            <Text style={styles.qscCardTitleText}>{getCategoryTitle()}</Text>
+            <Text style={styles.qscCardSubtitle}>{label}</Text>
+          </View>
+        </View>
+        <View style={[styles.qscCardTrendBadge, { backgroundColor: isPositive ? '#dcfce7' : '#fee2e2' }]}>
+          <Text style={[styles.qscCardTrendText, { color: isPositive ? '#15803d' : '#b91c1c' }]}>
+            {isPositive ? '↑' : '↓'} {Math.abs(trend).toFixed(1)}
+          </Text>
+        </View>
+      </View>
+
+      {/* スコアエリア */}
+      <View style={styles.qscCardScoreArea}>
+        <View style={styles.qscCardScoreRow}>
+          <Text style={[styles.qscCardScore, { color: themeColors.bg }]}>{score.toFixed(2)}</Text>
+          <Text style={styles.qscCardScoreMax}>/ 5.00</Text>
+        </View>
+        <View style={styles.qscCardAchievementArea}>
+          <Text style={styles.qscCardAchievementLabel}>達成率</Text>
+          <Text style={styles.qscCardAchievementValue}>{achievementRate}%</Text>
+        </View>
+      </View>
+
+      {/* プログレスバー */}
+      <View style={styles.qscCardProgressBar}>
+        <View style={[styles.qscCardProgressFill, { width: `${achievementRate}%`, backgroundColor: themeColors.bg }]} />
+      </View>
+    </View>
+  );
+};
+
+/**
+ * 店舗評価ページコンポーネント（4ページ目）
+ */
+const StoreEvaluationPage = ({ reportData, pageNumber }) => {
+  // QSCスコアデータ
+  const qscScores = reportData?.storeEvaluation?.qscScores || {
+    Q: { label: 'クオリティ', score: 0, trend: 0, color: 'violet' },
+    S: { label: 'サービス', score: 0, trend: 0, color: 'blue' },
+    C: { label: 'クレンリネス', score: 0, trend: 0, color: 'emerald' }
+  };
+
+  return (
+    <ContentPage pageNumber={pageNumber}>
+      {/* セクションヘッダー */}
+      <SectionHeader title="店舗評価" />
+
+      {/* QSCカード（3枚） */}
+      <View style={styles.qscCardGrid}>
+        {Object.entries(qscScores).map(([key, data]) => (
+          <QSCCard
+            key={key}
+            category={key}
+            label={data.label}
+            score={data.score}
+            trend={data.trend}
+            colorTheme={data.color}
+          />
+        ))}
+      </View>
+    </ContentPage>
+  );
+};
+
+/**
  * PDFドキュメントコンポーネント
  */
 export const PDFDocument = ({ report, reportData, storeName, companyName = '' }) => (
@@ -1110,6 +1393,12 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
     <SalesImpactPage
       reportData={reportData}
       pageNumber={2}
+    />
+
+    {/* 店舗評価ページ */}
+    <StoreEvaluationPage
+      reportData={reportData}
+      pageNumber={3}
     />
   </Document>
 );
@@ -1150,6 +1439,7 @@ export default {
   ContentPage,
   OverviewPage,
   SalesImpactPage,
+  StoreEvaluationPage,
   KPICard,
   generatePDFBlob,
   downloadPDF,
