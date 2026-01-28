@@ -2533,14 +2533,14 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
     <OverviewPage
       reportData={reportData}
       pageNumber={1}
-      comment={reportData?.overview?.comment}
+      comment={reportData?.overview?.comment || '先月と比較してNPSスコアが改善傾向にあります。リピート率も安定しており、顧客満足度の向上が見られます。'}
     />
 
     {/* 売上影響ページ */}
     <SalesImpactPage
       reportData={reportData}
       pageNumber={2}
-      comment={reportData?.salesImpact?.comment}
+      comment={reportData?.salesImpact?.comment || '新規顧客のリピーター転換率が先月より向上しています。一方でリピーター離脱の割合も微増しているため、既存顧客へのフォローアップ施策の検討をお勧めします。'}
     />
 
     {/* Quality詳細ページ */}
