@@ -1347,8 +1347,9 @@ const NPSTrendChart = ({ monthlyPerformance }) => {
  * 概要ページコンポーネント（KPIカード3枚 + チャート2枚）
  */
 const OverviewPage = ({ reportData, pageNumber }) => {
-  // KPIデータを取得（reportDataから）
-  const kpi = reportData?.kpi || {
+  // KPIデータを取得（reportData.overviewから）
+  const overview = reportData?.overview || {};
+  const kpi = overview.kpi || {
     nps: { current: 0, delta: 0 },
     repeatRate: { current: 0, delta: 0 },
     repeaterRevisit: { current: 0, delta: 0 },
@@ -1356,14 +1357,14 @@ const OverviewPage = ({ reportData, pageNumber }) => {
   };
 
   // NPS分布データ
-  const npsDistribution = reportData?.npsDistribution || {
+  const npsDistribution = overview.npsDistribution || {
     promoters: 0,
     passives: 0,
     detractors: 0
   };
 
   // 月別パフォーマンスデータ
-  const monthlyPerformance = reportData?.monthlyPerformance || [];
+  const monthlyPerformance = overview.monthlyPerformance || [];
 
   const kpiCards = [
     {
@@ -1392,7 +1393,7 @@ const OverviewPage = ({ reportData, pageNumber }) => {
   return (
     <ContentPage>
       {/* セクションヘッダー */}
-      <SectionHeader title="課題" pageNumber={pageNumber} />
+      <SectionHeader title="概要" pageNumber={pageNumber} />
 
       {/* KPIカード（3枚） */}
       <View style={styles.kpiGrid}>
