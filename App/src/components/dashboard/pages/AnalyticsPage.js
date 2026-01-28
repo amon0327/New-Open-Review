@@ -453,6 +453,15 @@ const AIAnalysisTab = ({ selectedStore, selectedPeriod }) => {
 
 // タスクタブ
 const TasksTab = ({ selectedStore, selectedPeriod }) => {
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold text-gray-900">インサイト一覧</h2>
+    </div>
+  );
+};
+
+// 旧タスクタブ（未使用）
+const TasksTabOld = ({ selectedStore, selectedPeriod }) => {
   const [expandedCards, setExpandedCards] = useState([]);
   const [activeTaskType, setActiveTaskType] = useState('evaluation'); // 'evaluation' or 'comments'
 
