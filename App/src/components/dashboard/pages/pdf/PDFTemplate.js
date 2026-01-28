@@ -29,6 +29,7 @@ Font.registerHyphenationCallback(word => [word]);
 // カラー定義
 const colors = {
   primary: '#5e17eb',
+  primaryLight: '#7c3aed',
   primaryDark: '#4c0db8',
   white: '#ffffff',
   gray50: '#f8fafc',
@@ -93,43 +94,47 @@ const styles = StyleSheet.create({
   },
 
   // ============================================
-  // コンテンツページスタイル
+  // コンテンツページスタイル（ボーダー枠デザイン）
   // ============================================
-  contentPage: {
+  contentPageOuter: {
     flexDirection: 'column',
-    backgroundColor: colors.white,
-    padding: 40,
+    backgroundColor: colors.primary,
+    padding: 16,
     fontFamily: 'NotoSansJP',
   },
+  contentPageInner: {
+    flex: 1,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 32,
+    flexDirection: 'column',
+  },
 
-  // ページヘッダー
+  // ページヘッダー（ロゴ + タイトル）
   pageHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
-    paddingBottom: 15,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.gray200,
-    borderBottomStyle: 'solid',
-  },
-  pageHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 12,
   },
   pageHeaderLogo: {
-    width: 32,
-    height: 32,
-    marginRight: 10,
+    width: 36,
+    height: 36,
+    marginRight: 12,
   },
   pageHeaderTitle: {
-    fontSize: 14,
+    fontSize: 24,
     fontWeight: 'bold',
     color: colors.primary,
   },
-  pageHeaderRight: {
-    fontSize: 10,
-    color: colors.gray500,
+  pageHeaderLine: {
+    height: 2,
+    backgroundColor: colors.primaryLight,
+    marginBottom: 24,
+  },
+
+  // コンテンツエリア
+  content: {
+    flex: 1,
   },
 
   // セクション
@@ -142,7 +147,7 @@ const styles = StyleSheet.create({
     color: colors.gray900,
     marginBottom: 16,
     paddingBottom: 8,
-    borderBottomWidth: 3,
+    borderBottomWidth: 2,
     borderBottomColor: colors.primary,
     borderBottomStyle: 'solid',
   },
@@ -206,37 +211,14 @@ const styles = StyleSheet.create({
     color: colors.gray500,
   },
 
-  // コンテンツエリア
-  content: {
-    flex: 1,
-  },
-
-  // フッター
+  // フッター（ページ番号のみ）
   footer: {
     marginTop: 'auto',
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: colors.gray200,
-    borderTopStyle: 'solid',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  footerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  footerLogo: {
-    width: 16,
-    height: 16,
-    marginRight: 6,
-  },
-  footerText: {
-    fontSize: 9,
-    color: colors.gray400,
+    paddingTop: 12,
+    alignItems: 'flex-end',
   },
   footerPageNumber: {
-    fontSize: 9,
+    fontSize: 10,
     color: colors.gray400,
   },
 });
@@ -310,60 +292,59 @@ const TrendCard = ({ change }) => {
 };
 
 /**
- * コンテンツページコンポーネント
+ * コンテンツページコンポーネント（ボーダー枠デザイン）
  */
-const ContentPage = ({ report, reportData, storeName, pageNumber }) => (
-  <Page size="A4" orientation="landscape" style={styles.contentPage}>
-    {/* ページヘッダー */}
-    <View style={styles.pageHeader}>
-      <View style={styles.pageHeaderLeft}>
+const ContentPage = ({ title, children, pageNumber }) => (
+  <Page size="A4" orientation="landscape" style={styles.contentPageOuter}>
+    <View style={styles.contentPageInner}>
+      {/* ページヘッダー（ロゴ + タイトル） */}
+      <View style={styles.pageHeader}>
         <Image src={LOGO_URL} style={styles.pageHeaderLogo} />
-        <Text style={styles.pageHeaderTitle}>OpenReview</Text>
+        <Text style={styles.pageHeaderTitle}>{title}</Text>
       </View>
-      <Text style={styles.pageHeaderRight}>
-        {report.displayName} レポート | {storeName}
-      </Text>
-    </View>
+      <View style={styles.pageHeaderLine} />
 
-    {/* コンテンツ */}
-    <View style={styles.content}>
-      {/* サマリーセクション */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>サマリー</Text>
-        <View style={styles.statsGrid}>
-          <StatCard
-            value={reportData.totalResponses || 0}
-            label="総回答数"
-          />
-          <StatCard
-            value={reportData.averageScore ? reportData.averageScore.toFixed(1) : '-'}
-            label="平均スコア"
-          />
-          <StatCard
-            value={reportData.responseRate ? `${reportData.responseRate.toFixed(1)}%` : '-'}
-            label="回答率"
-          />
-        </View>
+      {/* コンテンツ */}
+      <View style={styles.content}>
+        {children}
       </View>
 
-      {/* トレンドセクション */}
-      {reportData.monthlyTrend && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>月間トレンド</Text>
-          <TrendCard change={reportData.monthlyTrend.change} />
-        </View>
-      )}
-    </View>
-
-    {/* フッター */}
-    <View style={styles.footer}>
-      <View style={styles.footerLeft}>
-        <Image src={LOGO_URL} style={styles.footerLogo} />
-        <Text style={styles.footerText}>OpenReview - 月次分析レポート</Text>
+      {/* フッター */}
+      <View style={styles.footer}>
+        <Text style={styles.footerPageNumber}>{pageNumber}</Text>
       </View>
-      <Text style={styles.footerPageNumber}>{pageNumber}</Text>
     </View>
   </Page>
+);
+
+/**
+ * サマリーページコンポーネント
+ */
+const SummaryPage = ({ reportData, pageNumber }) => (
+  <ContentPage title="サマリー" pageNumber={pageNumber}>
+    <View style={styles.statsGrid}>
+      <StatCard
+        value={reportData.totalResponses || 0}
+        label="総回答数"
+      />
+      <StatCard
+        value={reportData.averageScore ? reportData.averageScore.toFixed(1) : '-'}
+        label="平均スコア"
+      />
+      <StatCard
+        value={reportData.responseRate ? `${reportData.responseRate.toFixed(1)}%` : '-'}
+        label="回答率"
+      />
+    </View>
+
+    {/* トレンドセクション */}
+    {reportData.monthlyTrend && (
+      <View style={{ marginTop: 24 }}>
+        <Text style={styles.sectionTitle}>月間トレンド</Text>
+        <TrendCard change={reportData.monthlyTrend.change} />
+      </View>
+    )}
+  </ContentPage>
 );
 
 /**
@@ -378,11 +359,9 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       companyName={companyName}
     />
 
-    {/* コンテンツページ */}
-    <ContentPage
-      report={report}
+    {/* サマリーページ */}
+    <SummaryPage
       reportData={reportData}
-      storeName={storeName}
       pageNumber={1}
     />
   </Document>
@@ -422,6 +401,7 @@ export default {
   PDFDocument,
   CoverPage,
   ContentPage,
+  SummaryPage,
   generatePDFBlob,
   downloadPDF,
 };
