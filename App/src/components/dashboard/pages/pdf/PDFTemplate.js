@@ -1051,10 +1051,6 @@ const SalesImpactPage = ({ reportData, pageNumber }) => {
   const getPercentage = (count) =>
     totalCustomers > 0 ? ((count / totalCustomers) * 100).toFixed(1) : '0.0';
 
-  // 顧客構成データ
-  const thisMonthComposition = reportData?.salesImpact?.thisMonthComposition || null;
-  const avgComposition = reportData?.salesImpact?.avgComposition || null;
-
   // セグメントデータ
   const segments = reportData?.salesImpact?.segments || [];
 
@@ -1083,12 +1079,6 @@ const SalesImpactPage = ({ reportData, pageNumber }) => {
           />
         ))}
       </View>
-
-      {/* 顧客構成比較 */}
-      <CustomerCompositionChart
-        thisMonth={thisMonthComposition}
-        sixMonthAvg={avgComposition}
-      />
 
       {/* セグメント詳細テーブル（上位3件） */}
       <SegmentTable segments={segments} />
