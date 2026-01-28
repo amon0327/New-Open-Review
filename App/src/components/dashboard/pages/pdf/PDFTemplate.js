@@ -510,14 +510,16 @@ const styles = StyleSheet.create({
     color: colors.gray700,
   },
   segmentBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
   },
   segmentBadgeText: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: 'bold',
     color: colors.white,
+    textAlign: 'center',
   },
   segmentProgressContainer: {
     flexDirection: 'row',
@@ -985,9 +987,9 @@ const SegmentTable = ({ segments }) => {
       {top3.map((segment, index) => (
         <View key={index} style={styles.segmentTableRow}>
           {/* 推奨度バッジ */}
-          <View style={{ width: '15%' }}>
-            <View style={[styles.segmentBadge, { backgroundColor: getNpsBadgeColor(segment.npsLabel) }]}>
-              <Text style={styles.segmentBadgeText}>{segment.npsLabel}</Text>
+          <View style={{ width: '15%', flexDirection: 'row' }}>
+            <View style={[styles.segmentBadge, { backgroundColor: getNpsBadgeColor(segment.npsLabel || '中立者') }]}>
+              <Text style={styles.segmentBadgeText}>{segment.npsLabel || '中立者'}</Text>
             </View>
           </View>
 
