@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, CircularProgress } from '@mui/material';
+import { PDFViewer } from '@react-pdf/renderer';
 import { supabase } from '../../../lib/supabase';
 import { Skeleton } from '../../ui/skeleton';
 import {
@@ -18,13 +19,11 @@ import {
   Calendar,
   Store,
   CheckCircle2,
-  AlertCircle,
-  Printer,
-  ZoomIn,
-  ZoomOut,
-  RotateCw,
   X
 } from 'lucide-react';
+
+// PDFテンプレートコンポーネントをインポート
+import { PDFDocument, downloadPDF } from './pdf/PDFTemplate';
 
 export default function PDFPage({ onNavCollapse, companyId }) {
   const [stores, setStores] = useState([]);
@@ -35,8 +34,13 @@ export default function PDFPage({ onNavCollapse, companyId }) {
   const [previewMode, setPreviewMode] = useState(false);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [reportData, setReportData] = useState(null);
-  const [zoom, setZoom] = useState(100);
-  const previewRef = useRef(null);
+
+  // 店舗名を取得するヘルパー関数
+  const getStoreName = () => {
+    return selectedStore === 'all'
+      ? '全店舗'
+      : stores.find(s => s.id === selectedStore)?.name || '不明';
+  };
 
   // 店舗データを取得
   useEffect(() => {
@@ -179,214 +183,24 @@ export default function PDFPage({ onNavCollapse, companyId }) {
     setSelectedReport(report);
     setGeneratingPDF(true);
 
-    const data = await fetchReportData(report.yearMonth);
-
-    if (data) {
-      // ブラウザの印刷機能を使用してPDFとして保存
-      const printContent = generatePrintableHTML(data, report);
-      const printWindow = window.open('', '_blank');
-      printWindow.document.write(printContent);
-      printWindow.document.close();
-      printWindow.focus();
-
-      // 印刷ダイアログを表示（PDF保存用）
-      setTimeout(() => {
-        printWindow.print();
-      }, 500);
+    try {
+      const data = await fetchReportData(report.yearMonth);
+      if (data) {
+        const storeName = getStoreName();
+        await downloadPDF(report, data, storeName);
+      }
+    } catch (error) {
+      console.error('PDF生成エラー:', error);
     }
 
     setGeneratingPDF(false);
   };
-
-  // A4サイズ定数 (mm単位: 210 x 297)
-  const A4_WIDTH_PX = 794;  // 210mm at 96dpi
-  const A4_HEIGHT_PX = 1123; // 297mm at 96dpi
-
-  // 印刷用HTMLを生成（A4サイズ対応）
-  const generatePrintableHTML = (data, report) => {
-    const storeName = selectedStore === 'all'
-      ? '全店舗'
-      : stores.find(s => s.id === selectedStore)?.name || '不明';
-
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>${report.displayName} レポート - ${storeName}</title>
-        <style>
-          @page {
-            size: A4;
-            margin: 20mm;
-          }
-          * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-          }
-          html, body {
-            width: 210mm;
-            min-height: 297mm;
-          }
-          body {
-            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
-            padding: 20mm;
-            color: #1a202c;
-            line-height: 1.6;
-            background: white;
-          }
-          .page {
-            width: 100%;
-            min-height: calc(297mm - 40mm);
-            display: flex;
-            flex-direction: column;
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #5e17eb;
-          }
-          .header h1 {
-            font-size: 24px;
-            color: #5e17eb;
-            margin-bottom: 8px;
-          }
-          .header .subtitle {
-            color: #64748b;
-            font-size: 12px;
-          }
-          .section {
-            margin-bottom: 24px;
-          }
-          .section-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1a202c;
-            margin-bottom: 12px;
-            padding-bottom: 6px;
-            border-bottom: 2px solid #e2e8f0;
-          }
-          .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-          }
-          .stat-card {
-            background: #f8fafc;
-            padding: 16px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-          }
-          .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #5e17eb;
-          }
-          .stat-label {
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 4px;
-          }
-          .content {
-            flex: 1;
-          }
-          .footer {
-            margin-top: auto;
-            padding-top: 15px;
-            border-top: 1px solid #e2e8f0;
-            text-align: center;
-            color: #94a3b8;
-            font-size: 10px;
-          }
-          @media print {
-            html, body {
-              width: 210mm;
-              height: 297mm;
-            }
-            body {
-              padding: 0;
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
-            }
-            .page {
-              page-break-after: always;
-            }
-            .no-print {
-              display: none;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="page">
-          <div class="header">
-            <h1>${report.displayName} 月次レポート</h1>
-            <div class="subtitle">${storeName} | 作成日: ${new Date().toLocaleDateString('ja-JP')}</div>
-          </div>
-
-          <div class="content">
-            <div class="section">
-              <h2 class="section-title">サマリー</h2>
-              <div class="stats-grid">
-                <div class="stat-card">
-                  <div class="stat-value">${data.totalResponses || 0}</div>
-                  <div class="stat-label">総回答数</div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-value">${data.averageScore ? data.averageScore.toFixed(1) : '-'}</div>
-                  <div class="stat-label">平均スコア</div>
-                </div>
-                <div class="stat-card">
-                  <div class="stat-value">${data.responseRate ? data.responseRate.toFixed(1) + '%' : '-'}</div>
-                  <div class="stat-label">回答率</div>
-                </div>
-              </div>
-            </div>
-
-            ${data.monthlyTrend ? `
-            <div class="section">
-              <h2 class="section-title">月間トレンド</h2>
-              <div class="stat-card" style="display: inline-block; padding: 12px 24px;">
-                <span style="color: #64748b;">前月比:</span>
-                <span style="font-size: 20px; font-weight: 600; margin-left: 8px; color: ${data.monthlyTrend.change > 0 ? '#22c55e' : data.monthlyTrend.change < 0 ? '#ef4444' : '#64748b'}">
-                  ${data.monthlyTrend.change > 0 ? '+' : ''}${data.monthlyTrend.change}%
-                </span>
-              </div>
-            </div>
-            ` : ''}
-          </div>
-
-          <div class="footer">
-            <p>OpenReview - 月次分析レポート</p>
-            <p>このレポートは自動生成されました</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-  };
-
-  // 印刷
-  const handlePrint = () => {
-    if (previewRef.current) {
-      window.print();
-    }
-  };
-
-  // ズーム操作
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
-  const handleZoomReset = () => setZoom(100);
 
   // プレビューを閉じる
   const closePreview = () => {
     setPreviewMode(false);
     setSelectedReport(null);
     setReportData(null);
-    setZoom(100);
   };
 
   // スケルトンスクリーン
@@ -420,9 +234,7 @@ export default function PDFPage({ onNavCollapse, companyId }) {
 
   // プレビューモード
   if (previewMode && selectedReport && reportData) {
-    const storeName = selectedStore === 'all'
-      ? '全店舗'
-      : stores.find(s => s.id === selectedStore)?.name || '不明';
+    const storeName = getStoreName();
 
     return (
       <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#1a202c' }}>
@@ -446,123 +258,36 @@ export default function PDFPage({ onNavCollapse, companyId }) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={handleZoomOut}
-              className="p-2 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-white transition-colors"
-              title="縮小"
-            >
-              <ZoomOut className="w-5 h-5" />
-            </button>
-            <span className="text-gray-400 text-sm min-w-[50px] text-center">{zoom}%</span>
-            <button
-              onClick={handleZoomIn}
-              className="p-2 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-white transition-colors"
-              title="拡大"
-            >
-              <ZoomIn className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleZoomReset}
-              className="p-2 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-white transition-colors"
-              title="リセット"
-            >
-              <RotateCw className="w-4 h-4" />
-            </button>
-            <div className="w-px h-6 bg-gray-700 mx-2" />
-            <button
-              onClick={handlePrint}
-              className="p-2 rounded-lg hover:bg-gray-800 text-gray-300 hover:text-white transition-colors"
-              title="印刷"
-            >
-              <Printer className="w-5 h-5" />
-            </button>
-            <button
               onClick={() => handleDownload(selectedReport)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              disabled={generatingPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
             >
-              <Download className="w-4 h-4" />
+              {generatingPDF ? (
+                <CircularProgress size={16} sx={{ color: 'white' }} />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
               ダウンロード
             </button>
           </div>
         </div>
 
-        {/* プレビューコンテンツ - A4サイズ (210mm x 297mm) */}
-        <div className="flex-1 overflow-auto p-8 flex justify-center items-start">
-          <div
-            ref={previewRef}
-            className="bg-white shadow-2xl"
+        {/* PDFプレビュー - react-pdf PDFViewer */}
+        <div className="flex-1 overflow-hidden">
+          <PDFViewer
             style={{
-              width: `${A4_WIDTH_PX * (zoom / 100)}px`,
-              minHeight: `${A4_HEIGHT_PX * (zoom / 100)}px`,
-              padding: `${76 * (zoom / 100)}px`, // 約20mm
-              transformOrigin: 'top center',
-              display: 'flex',
-              flexDirection: 'column',
+              width: '100%',
+              height: '100%',
+              border: 'none',
             }}
+            showToolbar={true}
           >
-            {/* レポートヘッダー */}
-            <div className="text-center mb-8 pb-4 border-b-4 border-purple-600">
-              <h1 style={{ fontSize: `${24 * (zoom / 100)}px` }} className="font-bold text-purple-600 mb-2">
-                {selectedReport.displayName} 月次レポート
-              </h1>
-              <p style={{ fontSize: `${12 * (zoom / 100)}px` }} className="text-gray-500">
-                {storeName} | 作成日: {new Date().toLocaleDateString('ja-JP')}
-              </p>
-            </div>
-
-            {/* コンテンツエリア */}
-            <div className="flex-1">
-              {/* サマリーセクション */}
-              <div className="mb-6">
-                <h2 style={{ fontSize: `${16 * (zoom / 100)}px` }} className="font-semibold text-gray-900 mb-3 pb-2 border-b-2 border-gray-200">
-                  サマリー
-                </h2>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-gray-50 rounded-lg text-center border border-gray-200" style={{ padding: `${16 * (zoom / 100)}px` }}>
-                    <div style={{ fontSize: `${28 * (zoom / 100)}px` }} className="font-bold text-purple-600">
-                      {reportData.totalResponses || 0}
-                    </div>
-                    <div style={{ fontSize: `${11 * (zoom / 100)}px` }} className="text-gray-500 mt-1">総回答数</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg text-center border border-gray-200" style={{ padding: `${16 * (zoom / 100)}px` }}>
-                    <div style={{ fontSize: `${28 * (zoom / 100)}px` }} className="font-bold text-purple-600">
-                      {reportData.averageScore ? reportData.averageScore.toFixed(1) : '-'}
-                    </div>
-                    <div style={{ fontSize: `${11 * (zoom / 100)}px` }} className="text-gray-500 mt-1">平均スコア</div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg text-center border border-gray-200" style={{ padding: `${16 * (zoom / 100)}px` }}>
-                    <div style={{ fontSize: `${28 * (zoom / 100)}px` }} className="font-bold text-purple-600">
-                      {reportData.responseRate ? `${reportData.responseRate.toFixed(1)}%` : '-'}
-                    </div>
-                    <div style={{ fontSize: `${11 * (zoom / 100)}px` }} className="text-gray-500 mt-1">回答率</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* トレンドセクション */}
-              {reportData.monthlyTrend && (
-                <div className="mb-6">
-                  <h2 style={{ fontSize: `${16 * (zoom / 100)}px` }} className="font-semibold text-gray-900 mb-3 pb-2 border-b-2 border-gray-200">
-                    月間トレンド
-                  </h2>
-                  <div className="bg-gray-50 rounded-lg border border-gray-200 inline-block" style={{ padding: `${12 * (zoom / 100)}px ${24 * (zoom / 100)}px` }}>
-                    <span style={{ fontSize: `${14 * (zoom / 100)}px` }} className="text-gray-600">前月比:</span>
-                    <span
-                      style={{ fontSize: `${20 * (zoom / 100)}px` }}
-                      className={`ml-2 font-semibold ${reportData.monthlyTrend.change > 0 ? 'text-green-600' : reportData.monthlyTrend.change < 0 ? 'text-red-600' : 'text-gray-600'}`}
-                    >
-                      {reportData.monthlyTrend.change > 0 ? '+' : ''}{reportData.monthlyTrend.change}%
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* フッター */}
-            <div className="mt-auto pt-4 border-t border-gray-200 text-center text-gray-400" style={{ fontSize: `${10 * (zoom / 100)}px` }}>
-              <p>OpenReview - 月次分析レポート</p>
-              <p>このレポートは自動生成されました</p>
-            </div>
-          </div>
+            <PDFDocument
+              report={selectedReport}
+              reportData={reportData}
+              storeName={storeName}
+            />
+          </PDFViewer>
         </div>
       </Box>
     );
@@ -625,7 +350,7 @@ export default function PDFPage({ onNavCollapse, companyId }) {
                       <h3 className="font-semibold text-gray-900">{report.displayName}</h3>
                       <p className="text-sm text-gray-500 flex items-center gap-1">
                         <Store className="w-3.5 h-3.5" />
-                        {selectedStore === 'all' ? '全店舗' : stores.find(s => s.id === selectedStore)?.name}
+                        {getStoreName()}
                       </p>
                     </div>
                   </div>
