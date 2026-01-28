@@ -453,6 +453,8 @@ const AIAnalysisTab = ({ selectedStore, selectedPeriod }) => {
 
 // セグメント別インサイトの定義
 const SEGMENT_INSIGHTS = {
+  1: { issues: ['ロイヤル顧客の維持・強化が最重要課題', '離脱した場合の売上インパクトが最も大きい', '特別な体験や特典で関係性をさらに深化させる余地'] },
+  2: { issues: ['初回体験は好印象だがリピーター定着が未確定', '2回目の来店につなげる施策が重要', '推奨者として口コミ効果を最大化する機会'] },
   3: { issues: ['高評価にもかかわらず再来店意向がない', '引越しや生活環境の変化など外的要因の可能性', '競合店への流出リスクが潜在的に存在'] },
   4: { issues: ['初回体験は高評価だが再来店動機が不足', '立地やアクセスなど利便性の課題の可能性', 'リピートにつながる仕掛けが不足'] },
   5: { issues: ['リピーターだが推奨するほどの満足度に達していない', 'サービスに慣れが生じ、特別感が薄れている可能性', '競合との差別化ポイントが実感されていない'] },
@@ -551,7 +553,7 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
   // 課題セグメントの抽出（ロイヤル顧客・期待の新規を除外し、優先度×人数でソート、最大6件）
   const issueSegments = useMemo(() => {
     return segments
-      .filter(seg => seg.id >= 3 && seg.count > 0 && SEGMENT_INSIGHTS[seg.id])
+      .filter(seg => seg.count > 0 && SEGMENT_INSIGHTS[seg.id])
       .sort((a, b) => {
         const priorityDiff = (SEGMENT_PRIORITY[b.id] || 0) - (SEGMENT_PRIORITY[a.id] || 0);
         if (priorityDiff !== 0) return priorityDiff;
