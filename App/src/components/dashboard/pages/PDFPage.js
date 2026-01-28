@@ -198,7 +198,11 @@ export default function PDFPage({ onNavCollapse, companyId }) {
     setGeneratingPDF(false);
   };
 
-  // 印刷用HTMLを生成
+  // A4サイズ定数 (mm単位: 210 x 297)
+  const A4_WIDTH_PX = 794;  // 210mm at 96dpi
+  const A4_HEIGHT_PX = 1123; // 297mm at 96dpi
+
+  // 印刷用HTMLを生成（A4サイズ対応）
   const generatePrintableHTML = (data, report) => {
     const storeName = selectedStore === 'all'
       ? '全店舗'
@@ -211,76 +215,104 @@ export default function PDFPage({ onNavCollapse, companyId }) {
         <meta charset="utf-8">
         <title>${report.displayName} レポート - ${storeName}</title>
         <style>
+          @page {
+            size: A4;
+            margin: 20mm;
+          }
           * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
           }
+          html, body {
+            width: 210mm;
+            min-height: 297mm;
+          }
           body {
             font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
-            padding: 40px;
+            padding: 20mm;
             color: #1a202c;
             line-height: 1.6;
+            background: white;
+          }
+          .page {
+            width: 100%;
+            min-height: calc(297mm - 40mm);
+            display: flex;
+            flex-direction: column;
           }
           .header {
             text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
             border-bottom: 3px solid #5e17eb;
           }
           .header h1 {
-            font-size: 28px;
+            font-size: 24px;
             color: #5e17eb;
             margin-bottom: 8px;
           }
           .header .subtitle {
             color: #64748b;
-            font-size: 14px;
+            font-size: 12px;
           }
           .section {
-            margin-bottom: 32px;
+            margin-bottom: 24px;
           }
           .section-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             color: #1a202c;
-            margin-bottom: 16px;
-            padding-bottom: 8px;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
             border-bottom: 2px solid #e2e8f0;
           }
           .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 12px;
+            margin-bottom: 20px;
           }
           .stat-card {
             background: #f8fafc;
-            padding: 20px;
-            border-radius: 12px;
+            padding: 16px;
+            border-radius: 8px;
             text-align: center;
+            border: 1px solid #e2e8f0;
           }
           .stat-value {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             color: #5e17eb;
           }
           .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #64748b;
             margin-top: 4px;
           }
+          .content {
+            flex: 1;
+          }
           .footer {
-            margin-top: 40px;
-            padding-top: 20px;
+            margin-top: auto;
+            padding-top: 15px;
             border-top: 1px solid #e2e8f0;
             text-align: center;
             color: #94a3b8;
-            font-size: 12px;
+            font-size: 10px;
           }
           @media print {
+            html, body {
+              width: 210mm;
+              height: 297mm;
+            }
             body {
-              padding: 20px;
+              padding: 0;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .page {
+              page-break-after: always;
             }
             .no-print {
               display: none;
@@ -289,39 +321,48 @@ export default function PDFPage({ onNavCollapse, companyId }) {
         </style>
       </head>
       <body>
-        <div class="header">
-          <h1>${report.displayName} 月次レポート</h1>
-          <div class="subtitle">${storeName} | 作成日: ${new Date().toLocaleDateString('ja-JP')}</div>
-        </div>
-
-        <div class="section">
-          <h2 class="section-title">サマリー</h2>
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-value">${data.totalResponses || 0}</div>
-              <div class="stat-label">総回答数</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">${data.averageScore ? data.averageScore.toFixed(1) : '-'}</div>
-              <div class="stat-label">平均スコア</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-value">${data.responseRate ? data.responseRate.toFixed(1) + '%' : '-'}</div>
-              <div class="stat-label">回答率</div>
-            </div>
+        <div class="page">
+          <div class="header">
+            <h1>${report.displayName} 月次レポート</h1>
+            <div class="subtitle">${storeName} | 作成日: ${new Date().toLocaleDateString('ja-JP')}</div>
           </div>
-        </div>
 
-        ${data.monthlyTrend ? `
-        <div class="section">
-          <h2 class="section-title">月間トレンド</h2>
-          <p>前月比: ${data.monthlyTrend.change > 0 ? '+' : ''}${data.monthlyTrend.change}%</p>
-        </div>
-        ` : ''}
+          <div class="content">
+            <div class="section">
+              <h2 class="section-title">サマリー</h2>
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-value">${data.totalResponses || 0}</div>
+                  <div class="stat-label">総回答数</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value">${data.averageScore ? data.averageScore.toFixed(1) : '-'}</div>
+                  <div class="stat-label">平均スコア</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-value">${data.responseRate ? data.responseRate.toFixed(1) + '%' : '-'}</div>
+                  <div class="stat-label">回答率</div>
+                </div>
+              </div>
+            </div>
 
-        <div class="footer">
-          <p>OpenReview - 月次分析レポート</p>
-          <p>このレポートは自動生成されました</p>
+            ${data.monthlyTrend ? `
+            <div class="section">
+              <h2 class="section-title">月間トレンド</h2>
+              <div class="stat-card" style="display: inline-block; padding: 12px 24px;">
+                <span style="color: #64748b;">前月比:</span>
+                <span style="font-size: 20px; font-weight: 600; margin-left: 8px; color: ${data.monthlyTrend.change > 0 ? '#22c55e' : data.monthlyTrend.change < 0 ? '#ef4444' : '#64748b'}">
+                  ${data.monthlyTrend.change > 0 ? '+' : ''}${data.monthlyTrend.change}%
+                </span>
+              </div>
+            </div>
+            ` : ''}
+          </div>
+
+          <div class="footer">
+            <p>OpenReview - 月次分析レポート</p>
+            <p>このレポートは自動生成されました</p>
+          </div>
         </div>
       </body>
       </html>
@@ -394,8 +435,13 @@ export default function PDFPage({ onNavCollapse, companyId }) {
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="text-white font-medium">
-              {selectedReport.displayName} レポート - {storeName}
+            <div className="flex items-center gap-3">
+              <span className="text-white font-medium">
+                {selectedReport.displayName} レポート - {storeName}
+              </span>
+              <span className="px-2 py-0.5 bg-gray-700 text-gray-300 text-xs rounded">
+                A4
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -439,74 +485,80 @@ export default function PDFPage({ onNavCollapse, companyId }) {
           </div>
         </div>
 
-        {/* プレビューコンテンツ */}
-        <div className="flex-1 overflow-auto p-8 flex justify-center">
+        {/* プレビューコンテンツ - A4サイズ (210mm x 297mm) */}
+        <div className="flex-1 overflow-auto p-8 flex justify-center items-start">
           <div
             ref={previewRef}
-            className="bg-white shadow-2xl rounded-lg"
+            className="bg-white shadow-2xl"
             style={{
-              width: `${595 * (zoom / 100)}px`,
-              minHeight: `${842 * (zoom / 100)}px`,
-              padding: `${40 * (zoom / 100)}px`,
-              transform: 'origin-top',
+              width: `${A4_WIDTH_PX * (zoom / 100)}px`,
+              minHeight: `${A4_HEIGHT_PX * (zoom / 100)}px`,
+              padding: `${76 * (zoom / 100)}px`, // 約20mm
+              transformOrigin: 'top center',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
             {/* レポートヘッダー */}
-            <div className="text-center mb-10 pb-5 border-b-4 border-purple-600">
-              <h1 className="text-3xl font-bold text-purple-600 mb-2">
+            <div className="text-center mb-8 pb-4 border-b-4 border-purple-600">
+              <h1 style={{ fontSize: `${24 * (zoom / 100)}px` }} className="font-bold text-purple-600 mb-2">
                 {selectedReport.displayName} 月次レポート
               </h1>
-              <p className="text-gray-500 text-sm">
+              <p style={{ fontSize: `${12 * (zoom / 100)}px` }} className="text-gray-500">
                 {storeName} | 作成日: {new Date().toLocaleDateString('ja-JP')}
               </p>
             </div>
 
-            {/* サマリーセクション */}
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 pb-2 border-b-2 border-gray-200">
-                サマリー
-              </h2>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-gray-50 p-5 rounded-xl text-center">
-                  <div className="text-4xl font-bold text-purple-600">
-                    {reportData.totalResponses || 0}
+            {/* コンテンツエリア */}
+            <div className="flex-1">
+              {/* サマリーセクション */}
+              <div className="mb-6">
+                <h2 style={{ fontSize: `${16 * (zoom / 100)}px` }} className="font-semibold text-gray-900 mb-3 pb-2 border-b-2 border-gray-200">
+                  サマリー
+                </h2>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-gray-50 rounded-lg text-center border border-gray-200" style={{ padding: `${16 * (zoom / 100)}px` }}>
+                    <div style={{ fontSize: `${28 * (zoom / 100)}px` }} className="font-bold text-purple-600">
+                      {reportData.totalResponses || 0}
+                    </div>
+                    <div style={{ fontSize: `${11 * (zoom / 100)}px` }} className="text-gray-500 mt-1">総回答数</div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">総回答数</div>
-                </div>
-                <div className="bg-gray-50 p-5 rounded-xl text-center">
-                  <div className="text-4xl font-bold text-purple-600">
-                    {reportData.averageScore ? reportData.averageScore.toFixed(1) : '-'}
+                  <div className="bg-gray-50 rounded-lg text-center border border-gray-200" style={{ padding: `${16 * (zoom / 100)}px` }}>
+                    <div style={{ fontSize: `${28 * (zoom / 100)}px` }} className="font-bold text-purple-600">
+                      {reportData.averageScore ? reportData.averageScore.toFixed(1) : '-'}
+                    </div>
+                    <div style={{ fontSize: `${11 * (zoom / 100)}px` }} className="text-gray-500 mt-1">平均スコア</div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">平均スコア</div>
-                </div>
-                <div className="bg-gray-50 p-5 rounded-xl text-center">
-                  <div className="text-4xl font-bold text-purple-600">
-                    {reportData.responseRate ? `${reportData.responseRate.toFixed(1)}%` : '-'}
+                  <div className="bg-gray-50 rounded-lg text-center border border-gray-200" style={{ padding: `${16 * (zoom / 100)}px` }}>
+                    <div style={{ fontSize: `${28 * (zoom / 100)}px` }} className="font-bold text-purple-600">
+                      {reportData.responseRate ? `${reportData.responseRate.toFixed(1)}%` : '-'}
+                    </div>
+                    <div style={{ fontSize: `${11 * (zoom / 100)}px` }} className="text-gray-500 mt-1">回答率</div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">回答率</div>
                 </div>
               </div>
-            </div>
 
-            {/* トレンドセクション */}
-            {reportData.monthlyTrend && (
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4 pb-2 border-b-2 border-gray-200">
-                  月間トレンド
-                </h2>
-                <div className="bg-gray-50 p-4 rounded-xl">
-                  <p className="text-gray-700">
-                    前月比:
-                    <span className={`ml-2 font-semibold ${reportData.monthlyTrend.change > 0 ? 'text-green-600' : reportData.monthlyTrend.change < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+              {/* トレンドセクション */}
+              {reportData.monthlyTrend && (
+                <div className="mb-6">
+                  <h2 style={{ fontSize: `${16 * (zoom / 100)}px` }} className="font-semibold text-gray-900 mb-3 pb-2 border-b-2 border-gray-200">
+                    月間トレンド
+                  </h2>
+                  <div className="bg-gray-50 rounded-lg border border-gray-200 inline-block" style={{ padding: `${12 * (zoom / 100)}px ${24 * (zoom / 100)}px` }}>
+                    <span style={{ fontSize: `${14 * (zoom / 100)}px` }} className="text-gray-600">前月比:</span>
+                    <span
+                      style={{ fontSize: `${20 * (zoom / 100)}px` }}
+                      className={`ml-2 font-semibold ${reportData.monthlyTrend.change > 0 ? 'text-green-600' : reportData.monthlyTrend.change < 0 ? 'text-red-600' : 'text-gray-600'}`}
+                    >
                       {reportData.monthlyTrend.change > 0 ? '+' : ''}{reportData.monthlyTrend.change}%
                     </span>
-                  </p>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* フッター */}
-            <div className="mt-auto pt-8 border-t border-gray-200 text-center text-gray-400 text-xs">
+            <div className="mt-auto pt-4 border-t border-gray-200 text-center text-gray-400" style={{ fontSize: `${10 * (zoom / 100)}px` }}>
               <p>OpenReview - 月次分析レポート</p>
               <p>このレポートは自動生成されました</p>
             </div>
