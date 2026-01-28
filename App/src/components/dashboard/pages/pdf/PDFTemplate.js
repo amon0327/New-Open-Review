@@ -10,19 +10,21 @@ import {
 } from '@react-pdf/renderer';
 
 // 日本語フォントを登録（Noto Sans JP）
+// GitHub raw URLからTTFファイルを取得
 Font.register({
   family: 'NotoSansJP',
-  fonts: [
-    {
-      src: 'https://fonts.gstatic.com/s/notosansjp/v52/-F6jfjtqLzI2JPCgQBnw7HFyzSD-AsregP8VFBEi75vY0rw-oME.ttf',
-      fontWeight: 'normal',
-    },
-    {
-      src: 'https://fonts.gstatic.com/s/notosansjp/v52/-F6jfjtqLzI2JPCgQBnw7HFyzSD-AsregP8VFJki75vY0rw-oME.ttf',
-      fontWeight: 'bold',
-    },
-  ],
+  src: 'https://raw.githubusercontent.com/googlefonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Regular.otf',
+  fontWeight: 'normal',
 });
+
+Font.register({
+  family: 'NotoSansJP',
+  src: 'https://raw.githubusercontent.com/googlefonts/noto-cjk/main/Sans/OTF/Japanese/NotoSansCJKjp-Bold.otf',
+  fontWeight: 'bold',
+});
+
+// ハイフネーション無効化（日本語対応）
+Font.registerHyphenationCallback(word => [word]);
 
 // スタイル定義
 const styles = StyleSheet.create({
