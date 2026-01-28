@@ -1407,13 +1407,30 @@ const SalesImpactPage = ({ reportData, pageNumber }) => {
 };
 
 /**
- * QSCアイコン - Quality
+ * QSCアイコン - Quality (UtensilsCrossed)
  */
 const QualityIcon = () => (
   <Svg width={18} height={18} viewBox="0 0 24 24">
     <Path
-      d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-      fill={colors.white}
+      d="M16 2v20M12 2v6M8 2v6"
+      stroke={colors.white}
+      strokeWidth={2}
+      strokeLinecap="round"
+      fill="none"
+    />
+    <Path
+      d="M8 8a4 4 0 0 0 4 4h0a4 4 0 0 0 4-4"
+      stroke={colors.white}
+      strokeWidth={2}
+      strokeLinecap="round"
+      fill="none"
+    />
+    <Path
+      d="M3 2l7 7M21 2l-7 7"
+      stroke={colors.white}
+      strokeWidth={2}
+      strokeLinecap="round"
+      fill="none"
     />
   </Svg>
 );
@@ -1454,13 +1471,24 @@ const ServiceIcon = () => (
 );
 
 /**
- * QSCアイコン - Cleanliness
+ * QSCアイコン - Cleanliness (Sparkles)
  */
 const CleanlinessIcon = () => (
   <Svg width={18} height={18} viewBox="0 0 24 24">
     <Path
-      d="M12 3L14.5 8.5L20.5 9.5L16 14L17.5 20L12 17L6.5 20L8 14L3.5 9.5L9.5 8.5L12 3Z"
-      fill={colors.white}
+      d="M12 3l-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"
+      stroke={colors.white}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+    <Path
+      d="M5 3v4M19 17v4M3 5h4M17 19h4"
+      stroke={colors.white}
+      strokeWidth={2}
+      strokeLinecap="round"
+      fill="none"
     />
   </Svg>
 );
@@ -1710,10 +1738,29 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
     return (
       <Svg width={24} height={24} viewBox="0 0 24 24">
         {category === 'Q' && (
-          <Path
-            d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-            fill={iconColor}
-          />
+          <>
+            <Path
+              d="M16 2v20M12 2v6M8 2v6"
+              stroke={iconColor}
+              strokeWidth={2}
+              strokeLinecap="round"
+              fill="none"
+            />
+            <Path
+              d="M8 8a4 4 0 0 0 4 4h0a4 4 0 0 0 4-4"
+              stroke={iconColor}
+              strokeWidth={2}
+              strokeLinecap="round"
+              fill="none"
+            />
+            <Path
+              d="M3 2l7 7M21 2l-7 7"
+              stroke={iconColor}
+              strokeWidth={2}
+              strokeLinecap="round"
+              fill="none"
+            />
+          </>
         )}
         {category === 'S' && (
           <>
@@ -1733,10 +1780,23 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
           </>
         )}
         {category === 'C' && (
-          <Path
-            d="M12 3L14.5 8.5L20.5 9.5L16 14L17.5 20L12 17L6.5 20L8 14L3.5 9.5L9.5 8.5L12 3Z"
-            fill={iconColor}
-          />
+          <>
+            <Path
+              d="M12 3l-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3Z"
+              stroke={iconColor}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+            <Path
+              d="M5 3v4M19 17v4M3 5h4M17 19h4"
+              stroke={iconColor}
+              strokeWidth={2}
+              strokeLinecap="round"
+              fill="none"
+            />
+          </>
         )}
       </Svg>
     );
