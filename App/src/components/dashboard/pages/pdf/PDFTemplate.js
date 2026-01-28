@@ -857,6 +857,124 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontWeight: 'bold',
   },
+
+  // ============================================
+  // 顧客傾向ページ
+  // ============================================
+
+  // 顧客傾向カードグリッド（2x2）
+  customerTrendsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  customerTrendsCard: {
+    width: '48%',
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'solid',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  customerTrendsCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  customerTrendsCardIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  customerTrendsCardTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.gray900,
+  },
+
+  // 半円グラフ風の表示
+  semicircleContainer: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  semicircleBar: {
+    flexDirection: 'row',
+    height: 12,
+    borderRadius: 6,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  semicircleSegment: {
+    height: 12,
+  },
+
+  // 凡例
+  legendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 8,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 9,
+    color: colors.gray600,
+  },
+  legendValue: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: colors.gray700,
+  },
+
+  // 縦バーチャート風表示（年齢層・同行者用）
+  verticalBarContainer: {
+    gap: 8,
+  },
+  verticalBarItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  verticalBarLabel: {
+    width: 50,
+    fontSize: 9,
+    color: colors.gray600,
+  },
+  verticalBarTrack: {
+    flex: 1,
+    height: 16,
+    backgroundColor: colors.gray100,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  verticalBarFill: {
+    height: 16,
+    borderRadius: 4,
+  },
+  verticalBarValue: {
+    width: 35,
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: colors.gray700,
+    textAlign: 'right',
+  },
 });
 
 // ロゴURL
@@ -1870,7 +1988,200 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
 };
 
 /**
- * 店舗評価ページコンポーネント（4ページ目）
+ * 顧客傾向ページコンポーネント
+ */
+const CustomerTrendsPage = ({ reportData, pageNumber }) => {
+  // 顧客傾向データ
+  const customerTrends = reportData?.customerTrends || {};
+  const genderDistribution = customerTrends.genderDistribution || [];
+  const customerTypeDistribution = customerTrends.customerTypeDistribution || [];
+  const ageDistribution = customerTrends.ageDistribution || [];
+  const companionDistribution = customerTrends.companionDistribution || [];
+
+  // 色定義
+  const genderColors = { '男性': '#3b82f6', '女性': '#ec4899', 'その他': '#9ca3af' };
+  const customerTypeColors = { 'リピーター': '#10b981', '新規': '#f59e0b' };
+  const ageColors = ['#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4'];
+  const companionColors = ['#f97316', '#fb923c', '#fdba74', '#fed7aa'];
+
+  return (
+    <ContentPage>
+      {/* セクションヘッダー */}
+      <SectionHeader title="顧客傾向" pageNumber={pageNumber} />
+
+      {/* 4つのカードグリッド */}
+      <View style={styles.customerTrendsGrid}>
+        {/* 性別比率 */}
+        <View style={styles.customerTrendsCard}>
+          <View style={styles.customerTrendsCardHeader}>
+            <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#dbeafe' }]}>
+              <Svg width={14} height={14} viewBox="0 0 24 24">
+                <Path
+                  d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <Path
+                  d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  fill="none"
+                />
+              </Svg>
+            </View>
+            <Text style={styles.customerTrendsCardTitle}>性別比率</Text>
+          </View>
+          <View style={styles.semicircleContainer}>
+            <View style={styles.semicircleBar}>
+              {genderDistribution.map((item, index) => (
+                <View
+                  key={index}
+                  style={[styles.semicircleSegment, {
+                    width: `${item.value}%`,
+                    backgroundColor: genderColors[item.name] || '#9ca3af'
+                  }]}
+                />
+              ))}
+            </View>
+          </View>
+          <View style={styles.legendContainer}>
+            {genderDistribution.map((item, index) => (
+              <View key={index} style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: genderColors[item.name] || '#9ca3af' }]} />
+                <Text style={styles.legendText}>{item.name}</Text>
+                <Text style={styles.legendValue}>{item.value}%</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* 顧客タイプ */}
+        <View style={styles.customerTrendsCard}>
+          <View style={styles.customerTrendsCardHeader}>
+            <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#d1fae5' }]}>
+              <Svg width={14} height={14} viewBox="0 0 24 24">
+                <Path
+                  d="M22 12h-4l-3 9L9 3l-3 9H2"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </Svg>
+            </View>
+            <Text style={styles.customerTrendsCardTitle}>顧客タイプ</Text>
+          </View>
+          <View style={styles.semicircleContainer}>
+            <View style={styles.semicircleBar}>
+              {customerTypeDistribution.map((item, index) => (
+                <View
+                  key={index}
+                  style={[styles.semicircleSegment, {
+                    width: `${item.value}%`,
+                    backgroundColor: customerTypeColors[item.name] || '#9ca3af'
+                  }]}
+                />
+              ))}
+            </View>
+          </View>
+          <View style={styles.legendContainer}>
+            {customerTypeDistribution.map((item, index) => (
+              <View key={index} style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: customerTypeColors[item.name] || '#9ca3af' }]} />
+                <Text style={styles.legendText}>{item.name}</Text>
+                <Text style={styles.legendValue}>{item.value}%</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* 年齢層 */}
+        <View style={styles.customerTrendsCard}>
+          <View style={styles.customerTrendsCardHeader}>
+            <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#ede9fe' }]}>
+              <Svg width={14} height={14} viewBox="0 0 24 24">
+                <Path
+                  d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"
+                  stroke="#8b5cf6"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </Svg>
+            </View>
+            <Text style={styles.customerTrendsCardTitle}>年齢層</Text>
+          </View>
+          <View style={styles.verticalBarContainer}>
+            {ageDistribution.slice(0, 5).map((item, index) => (
+              <View key={index} style={styles.verticalBarItem}>
+                <Text style={styles.verticalBarLabel}>{item.name}</Text>
+                <View style={styles.verticalBarTrack}>
+                  <View
+                    style={[styles.verticalBarFill, {
+                      width: `${item.value}%`,
+                      backgroundColor: ageColors[index % ageColors.length]
+                    }]}
+                  />
+                </View>
+                <Text style={styles.verticalBarValue}>{item.value}%</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* 同行者 */}
+        <View style={styles.customerTrendsCard}>
+          <View style={styles.customerTrendsCardHeader}>
+            <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#ffedd5' }]}>
+              <Svg width={14} height={14} viewBox="0 0 24 24">
+                <Path
+                  d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+                  stroke="#f97316"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+                <Path
+                  d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
+                  stroke="#f97316"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </Svg>
+            </View>
+            <Text style={styles.customerTrendsCardTitle}>同行者</Text>
+          </View>
+          <View style={styles.verticalBarContainer}>
+            {companionDistribution.slice(0, 4).map((item, index) => (
+              <View key={index} style={styles.verticalBarItem}>
+                <Text style={styles.verticalBarLabel}>{item.name}</Text>
+                <View style={styles.verticalBarTrack}>
+                  <View
+                    style={[styles.verticalBarFill, {
+                      width: `${item.value}%`,
+                      backgroundColor: companionColors[index % companionColors.length]
+                    }]}
+                  />
+                </View>
+                <Text style={styles.verticalBarValue}>{item.value}%</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+    </ContentPage>
+  );
+};
+
+/**
+ * 店舗評価ページコンポーネント（削除予定）
  */
 const StoreEvaluationPage = ({ reportData, pageNumber }) => {
   // QSCスコアデータ
@@ -1926,8 +2237,8 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       pageNumber={2}
     />
 
-    {/* 店舗評価ページ */}
-    <StoreEvaluationPage
+    {/* 顧客傾向ページ */}
+    <CustomerTrendsPage
       reportData={reportData}
       pageNumber={3}
     />
@@ -1991,7 +2302,7 @@ export default {
   ContentPage,
   OverviewPage,
   SalesImpactPage,
-  StoreEvaluationPage,
+  CustomerTrendsPage,
   QSCDetailPage,
   KPICard,
   generatePDFBlob,
