@@ -140,15 +140,20 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
 
-  // セクションヘッダー（アイコン + タイトル + 紫ライン）
+  // セクションヘッダー（アイコン + タイトル + ページ番号 + 紫ライン）
   sectionHeader: {
     marginBottom: 24,
   },
   sectionHeaderTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  sectionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   sectionHeaderIcon: {
     width: 22,
@@ -159,6 +164,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: colors.primary,
+  },
+  sectionHeaderPageNumber: {
+    fontSize: 10,
+    color: colors.gray500,
   },
   sectionHeaderLine: {
     height: 3,
@@ -760,11 +769,14 @@ const TaskIcon = () => (
 /**
  * セクションヘッダーコンポーネント
  */
-const SectionHeader = ({ title }) => (
+const SectionHeader = ({ title, pageNumber }) => (
   <View style={styles.sectionHeader}>
     <View style={styles.sectionHeaderTop}>
-      <Image src={LOGO_ICON_URL} style={styles.sectionHeaderIcon} />
-      <Text style={styles.sectionHeaderTitle}>{title}</Text>
+      <View style={styles.sectionHeaderLeft}>
+        <Image src={LOGO_ICON_URL} style={styles.sectionHeaderIcon} />
+        <Text style={styles.sectionHeaderTitle}>{title}</Text>
+      </View>
+      {pageNumber && <Text style={styles.sectionHeaderPageNumber}>{pageNumber}</Text>}
     </View>
     <View style={styles.sectionHeaderLine} />
   </View>
@@ -794,15 +806,9 @@ const KPICard = ({ title, metric, delta, deltaType, color }) => {
 /**
  * コンテンツページコンポーネント（ボーダー枠デザイン）
  */
-const ContentPage = ({ title, children, pageNumber }) => (
+const ContentPage = ({ title, children }) => (
   <Page size="A4" orientation="landscape" style={styles.contentPageOuter}>
     <View style={styles.contentPageInner}>
-      {/* ヘッダー（ロゴ + ページ番号） */}
-      <View style={styles.header}>
-        <Image src={LOGO_URL} style={styles.headerLogo} />
-        <Text style={styles.headerPageNumber}>{pageNumber}</Text>
-      </View>
-
       {/* ページタイトル（中央配置） */}
       {title && <Text style={styles.pageTitle}>{title}</Text>}
 
@@ -982,9 +988,9 @@ const OverviewPage = ({ reportData, pageNumber }) => {
   ];
 
   return (
-    <ContentPage pageNumber={pageNumber}>
+    <ContentPage>
       {/* セクションヘッダー */}
-      <SectionHeader title="課題" />
+      <SectionHeader title="課題" pageNumber={pageNumber} />
 
       {/* KPIカード（3枚） */}
       <View style={styles.kpiGrid}>
@@ -1192,9 +1198,9 @@ const SalesImpactPage = ({ reportData, pageNumber }) => {
   ];
 
   return (
-    <ContentPage pageNumber={pageNumber}>
+    <ContentPage>
       {/* セクションヘッダー */}
-      <SectionHeader title="売上影響" />
+      <SectionHeader title="売上影響" pageNumber={pageNumber} />
 
       {/* 顧客カテゴリーカード（4枚） */}
       <View style={styles.categoryCardGrid}>
@@ -1374,9 +1380,9 @@ const StoreEvaluationPage = ({ reportData, pageNumber }) => {
   };
 
   return (
-    <ContentPage pageNumber={pageNumber}>
+    <ContentPage>
       {/* セクションヘッダー */}
-      <SectionHeader title="店舗評価" />
+      <SectionHeader title="店舗評価" pageNumber={pageNumber} />
 
       {/* QSCカード（3枚） */}
       <View style={styles.qscCardGrid}>
