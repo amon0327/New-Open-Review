@@ -377,47 +377,28 @@ const styles = StyleSheet.create({
   categoryCard: {
     flex: 1,
     backgroundColor: colors.white,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.gray200,
     borderStyle: 'solid',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    overflow: 'hidden',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
-  categoryCardColorBar: {
-    height: 4,
-  },
-  categoryCardBody: {
-    padding: 14,
-  },
-  categoryCardTags: {
-    flexDirection: 'row',
-    gap: 4,
-    marginBottom: 8,
-  },
-  categoryCardTag: {
-    paddingVertical: 3,
-    paddingHorizontal: 7,
-    borderRadius: 4,
-  },
-  categoryCardTagText: {
-    fontSize: 7,
-    fontWeight: 'bold',
-    color: colors.white,
+  categoryCardHeader: {
+    marginBottom: 10,
   },
   categoryCardTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
     color: colors.gray900,
-    marginBottom: 2,
   },
   categoryCardSubtitle: {
     fontSize: 8,
     color: colors.gray500,
-    marginBottom: 10,
+    marginTop: 2,
   },
   categoryCardMetric: {
     flexDirection: 'row',
@@ -425,7 +406,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   categoryCardValue: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: colors.gray900,
   },
@@ -434,28 +415,27 @@ const styles = StyleSheet.create({
     color: colors.gray500,
   },
   categoryCardProgress: {
-    height: 5,
-    backgroundColor: '#f1f5f9',
+    height: 6,
+    backgroundColor: colors.gray200,
     borderRadius: 3,
-    marginTop: 10,
+    marginTop: 8,
     overflow: 'hidden',
   },
   categoryCardProgressBar: {
-    height: 5,
+    height: 6,
     borderRadius: 3,
   },
   categoryCardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
+    marginTop: 6,
   },
   categoryCardLabel: {
     fontSize: 8,
     color: colors.gray500,
   },
   categoryCardPercent: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: 'bold',
   },
 
@@ -1478,34 +1458,22 @@ const OverviewPage = ({ reportData, pageNumber, comment }) => {
 /**
  * 顧客カテゴリーカードコンポーネント
  */
-const CustomerCategoryCard = ({ title, subtitle, count, percentage, color, tags = [] }) => (
+const CustomerCategoryCard = ({ title, subtitle, count, percentage, color }) => (
   <View style={styles.categoryCard}>
-    {/* カラーバー */}
-    <View style={[styles.categoryCardColorBar, { backgroundColor: color }]} />
-    <View style={styles.categoryCardBody}>
-      {/* タグ */}
-      {tags.length > 0 && (
-        <View style={styles.categoryCardTags}>
-          {tags.map((tag, i) => (
-            <View key={i} style={[styles.categoryCardTag, { backgroundColor: tag.color }]}>
-              <Text style={styles.categoryCardTagText}>{tag.label}</Text>
-            </View>
-          ))}
-        </View>
-      )}
+    <View style={styles.categoryCardHeader}>
       <Text style={styles.categoryCardTitle}>{title}</Text>
       <Text style={styles.categoryCardSubtitle}>{subtitle}</Text>
-      <View style={styles.categoryCardMetric}>
-        <Text style={styles.categoryCardValue}>{count}</Text>
-        <Text style={styles.categoryCardUnit}>人</Text>
-      </View>
-      <View style={styles.categoryCardProgress}>
-        <View style={[styles.categoryCardProgressBar, { width: `${percentage}%`, backgroundColor: color }]} />
-      </View>
-      <View style={styles.categoryCardFooter}>
-        <Text style={styles.categoryCardLabel}>構成比</Text>
-        <Text style={[styles.categoryCardPercent, { color }]}>{percentage}%</Text>
-      </View>
+    </View>
+    <View style={styles.categoryCardMetric}>
+      <Text style={styles.categoryCardValue}>{count}</Text>
+      <Text style={styles.categoryCardUnit}>人</Text>
+    </View>
+    <View style={styles.categoryCardProgress}>
+      <View style={[styles.categoryCardProgressBar, { width: `${percentage}%`, backgroundColor: color }]} />
+    </View>
+    <View style={styles.categoryCardFooter}>
+      <Text style={styles.categoryCardLabel}>構成比</Text>
+      <Text style={[styles.categoryCardPercent, { color }]}>{percentage}%</Text>
     </View>
   </View>
 );
@@ -1663,38 +1631,10 @@ const SalesImpactPage = ({ reportData, pageNumber, comment }) => {
   const segments = reportData?.salesImpact?.segments || [];
 
   const categories = [
-    {
-      title: '新規離脱', subtitle: '再来店意向なし',
-      count: categoryData.newChurn?.count || 0, color: '#6b7280',
-      tags: [
-        { label: '批判者', color: '#ef4444' },
-        { label: '新規', color: '#6b7280' },
-      ]
-    },
-    {
-      title: '新規リピーター', subtitle: '再来店意向あり',
-      count: categoryData.newRepeaters?.count || 0, color: '#3b82f6',
-      tags: [
-        { label: '推奨者', color: '#10b981' },
-        { label: '新規', color: '#3b82f6' },
-      ]
-    },
-    {
-      title: '安定リピーター', subtitle: '継続的な来店',
-      count: categoryData.stableRepeaters?.count || 0, color: '#22c55e',
-      tags: [
-        { label: '推奨者', color: '#10b981' },
-        { label: 'リピーター', color: '#22c55e' },
-      ]
-    },
-    {
-      title: 'リピーター離脱', subtitle: '再来店意向なし',
-      count: categoryData.churnRisk?.count || 0, color: '#f97316',
-      tags: [
-        { label: '批判者', color: '#ef4444' },
-        { label: 'リピーター', color: '#f97316' },
-      ]
-    },
+    { title: '新規離脱', subtitle: '再来店意向なし', count: categoryData.newChurn?.count || 0, color: '#6b7280' },
+    { title: '新規リピーター', subtitle: '再来店意向あり', count: categoryData.newRepeaters?.count || 0, color: '#3b82f6' },
+    { title: '安定リピーター', subtitle: '継続的な来店', count: categoryData.stableRepeaters?.count || 0, color: '#22c55e' },
+    { title: 'リピーター離脱', subtitle: '再来店意向なし', count: categoryData.churnRisk?.count || 0, color: '#f97316' },
   ];
 
   return (
@@ -1712,7 +1652,6 @@ const SalesImpactPage = ({ reportData, pageNumber, comment }) => {
             count={cat.count}
             percentage={getPercentage(cat.count)}
             color={cat.color}
-            tags={cat.tags}
           />
         ))}
       </View>
