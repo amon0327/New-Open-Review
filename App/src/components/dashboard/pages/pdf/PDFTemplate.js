@@ -312,6 +312,230 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: colors.gray500,
   },
+
+  // ============================================
+  // 3ページ目：売上影響ページ
+  // ============================================
+
+  // 顧客カテゴリーカードグリッド
+  categoryCardGrid: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  categoryCard: {
+    flex: 1,
+    backgroundColor: colors.white,
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'solid',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  categoryCardHeader: {
+    marginBottom: 10,
+  },
+  categoryCardTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: colors.gray900,
+  },
+  categoryCardSubtitle: {
+    fontSize: 8,
+    color: colors.gray500,
+    marginTop: 2,
+  },
+  categoryCardMetric: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+  },
+  categoryCardValue: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: colors.gray900,
+  },
+  categoryCardUnit: {
+    fontSize: 10,
+    color: colors.gray500,
+  },
+  categoryCardProgress: {
+    height: 6,
+    backgroundColor: colors.gray200,
+    borderRadius: 3,
+    marginTop: 8,
+    overflow: 'hidden',
+  },
+  categoryCardProgressBar: {
+    height: 6,
+    borderRadius: 3,
+  },
+  categoryCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  categoryCardLabel: {
+    fontSize: 8,
+    color: colors.gray500,
+  },
+  categoryCardPercent: {
+    fontSize: 9,
+    fontWeight: 'bold',
+  },
+
+  // 顧客構成比較
+  compositionCard: {
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'solid',
+    marginBottom: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  compositionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  compositionTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.gray900,
+  },
+  compositionLegend: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  compositionLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  compositionLegendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 2,
+  },
+  compositionLegendText: {
+    fontSize: 7,
+    color: colors.gray600,
+  },
+  compositionRow: {
+    marginBottom: 10,
+  },
+  compositionRowLabel: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  compositionRowTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: colors.gray700,
+  },
+  compositionRowCount: {
+    fontSize: 8,
+    color: colors.gray500,
+  },
+  compositionBar: {
+    flexDirection: 'row',
+    height: 18,
+    backgroundColor: colors.gray100,
+    borderRadius: 9,
+    overflow: 'hidden',
+  },
+  compositionBarSegment: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  compositionBarText: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+
+  // セグメント詳細テーブル
+  segmentTableCard: {
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'solid',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  segmentTableTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: colors.gray900,
+    marginBottom: 12,
+  },
+  segmentTableHeader: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray200,
+    borderBottomStyle: 'solid',
+    paddingBottom: 8,
+    marginBottom: 8,
+  },
+  segmentTableHeaderCell: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: colors.gray600,
+  },
+  segmentTableRow: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray100,
+    borderBottomStyle: 'solid',
+    alignItems: 'center',
+  },
+  segmentTableCell: {
+    fontSize: 9,
+    color: colors.gray700,
+  },
+  segmentBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  segmentBadgeText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+  segmentProgressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  segmentProgressBar: {
+    width: 50,
+    height: 5,
+    backgroundColor: colors.gray200,
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  segmentProgressFill: {
+    height: 5,
+    backgroundColor: colors.gray600,
+    borderRadius: 3,
+  },
 });
 
 // ロゴURL
@@ -656,6 +880,223 @@ const OverviewPage = ({ reportData, pageNumber }) => {
 };
 
 /**
+ * 顧客カテゴリーカードコンポーネント
+ */
+const CustomerCategoryCard = ({ title, subtitle, count, percentage, color }) => (
+  <View style={styles.categoryCard}>
+    <View style={styles.categoryCardHeader}>
+      <Text style={styles.categoryCardTitle}>{title}</Text>
+      <Text style={styles.categoryCardSubtitle}>{subtitle}</Text>
+    </View>
+    <View style={styles.categoryCardMetric}>
+      <Text style={styles.categoryCardValue}>{count}</Text>
+      <Text style={styles.categoryCardUnit}>人</Text>
+    </View>
+    <View style={styles.categoryCardProgress}>
+      <View style={[styles.categoryCardProgressBar, { width: `${percentage}%`, backgroundColor: color }]} />
+    </View>
+    <View style={styles.categoryCardFooter}>
+      <Text style={styles.categoryCardLabel}>構成比</Text>
+      <Text style={[styles.categoryCardPercent, { color }]}>{percentage}%</Text>
+    </View>
+  </View>
+);
+
+/**
+ * 顧客構成比較コンポーネント
+ */
+const CustomerCompositionChart = ({ thisMonth, sixMonthAvg }) => {
+  const segments = [
+    { key: 'newChurn', label: '新規離脱', color: '#6b7280' },
+    { key: 'newRepeaters', label: '新規リピーター', color: '#3b82f6' },
+    { key: 'stableRepeaters', label: '安定リピーター', color: '#22c55e' },
+    { key: 'churnRisk', label: 'リピーター離脱', color: '#f97316' },
+  ];
+
+  const renderBar = (data, label, count) => (
+    <View style={styles.compositionRow}>
+      <View style={styles.compositionRowLabel}>
+        <Text style={styles.compositionRowTitle}>{label}</Text>
+        <Text style={styles.compositionRowCount}>{count}件</Text>
+      </View>
+      <View style={styles.compositionBar}>
+        {segments.map((seg) => {
+          const value = data?.[seg.key] || 0;
+          if (value === 0) return null;
+          return (
+            <View
+              key={seg.key}
+              style={[styles.compositionBarSegment, { width: `${value}%`, backgroundColor: seg.color }]}
+            >
+              {value > 8 && <Text style={styles.compositionBarText}>{value}%</Text>}
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.compositionCard}>
+      <View style={styles.compositionHeader}>
+        <Text style={styles.compositionTitle}>顧客構成比較</Text>
+        <View style={styles.compositionLegend}>
+          {segments.map((seg) => (
+            <View key={seg.key} style={styles.compositionLegendItem}>
+              <View style={[styles.compositionLegendDot, { backgroundColor: seg.color }]} />
+              <Text style={styles.compositionLegendText}>{seg.label}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+      {renderBar(thisMonth, '今月', thisMonth?.total || 0)}
+      {renderBar(sixMonthAvg, '6ヶ月平均', '100%')}
+    </View>
+  );
+};
+
+/**
+ * セグメント詳細テーブルコンポーネント（上位3件）
+ */
+const SegmentTable = ({ segments }) => {
+  const top3 = (segments || []).slice(0, 3);
+
+  const getNpsBadgeColor = (npsLabel) => {
+    if (npsLabel === '推奨者') return colors.emerald500;
+    if (npsLabel === '批判者') return colors.red500;
+    return colors.amber500;
+  };
+
+  return (
+    <View style={styles.segmentTableCard}>
+      <Text style={styles.segmentTableTitle}>セグメント別詳細分析（上位3）</Text>
+
+      {/* ヘッダー */}
+      <View style={styles.segmentTableHeader}>
+        <Text style={[styles.segmentTableHeaderCell, { width: '15%' }]}>推奨度</Text>
+        <Text style={[styles.segmentTableHeaderCell, { width: '18%' }]}>再来店意向</Text>
+        <Text style={[styles.segmentTableHeaderCell, { width: '17%' }]}>顧客タイプ</Text>
+        <Text style={[styles.segmentTableHeaderCell, { width: '15%' }]}>影響度</Text>
+        <Text style={[styles.segmentTableHeaderCell, { width: '15%', textAlign: 'right' }]}>先月比</Text>
+        <Text style={[styles.segmentTableHeaderCell, { width: '20%', textAlign: 'center' }]}>構成比</Text>
+      </View>
+
+      {/* データ行 */}
+      {top3.map((segment, index) => (
+        <View key={index} style={styles.segmentTableRow}>
+          {/* 推奨度バッジ */}
+          <View style={{ width: '15%' }}>
+            <View style={[styles.segmentBadge, { backgroundColor: getNpsBadgeColor(segment.npsLabel) }]}>
+              <Text style={styles.segmentBadgeText}>{segment.npsLabel}</Text>
+            </View>
+          </View>
+
+          {/* 再来店意向 */}
+          <Text style={[styles.segmentTableCell, { width: '18%', color: segment.revisitLabel === '再来店あり' ? colors.emerald500 : colors.gray500 }]}>
+            {segment.revisitLabel}
+          </Text>
+
+          {/* 顧客タイプ */}
+          <Text style={[styles.segmentTableCell, { width: '17%', color: segment.customerLabel === 'リピーター' ? colors.emerald500 : colors.gray500 }]}>
+            {segment.customerLabel}
+          </Text>
+
+          {/* 影響度 */}
+          <Text style={[styles.segmentTableCell, { width: '15%' }]}>
+            {segment.impactLabel || '中立'}
+          </Text>
+
+          {/* 先月比 */}
+          <Text style={[styles.segmentTableCell, {
+            width: '15%',
+            textAlign: 'right',
+            color: segment.monthOverMonth > 0 ? colors.emerald500 : segment.monthOverMonth < 0 ? colors.red500 : colors.gray600
+          }]}>
+            {segment.monthOverMonth > 0 ? '+' : ''}{segment.monthOverMonth || 0}pt
+          </Text>
+
+          {/* 構成比 */}
+          <View style={[styles.segmentProgressContainer, { width: '20%', justifyContent: 'flex-end' }]}>
+            <View style={styles.segmentProgressBar}>
+              <View style={[styles.segmentProgressFill, { width: `${segment.percentage || 0}%` }]} />
+            </View>
+            <Text style={[styles.segmentTableCell, { width: 30, textAlign: 'right' }]}>{segment.percentage || 0}%</Text>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+/**
+ * 売上影響ページコンポーネント（3ページ目）
+ */
+const SalesImpactPage = ({ reportData, pageNumber }) => {
+  // カテゴリーデータ
+  const categoryData = reportData?.salesImpact?.categoryData || {
+    newChurn: { count: 0 },
+    newRepeaters: { count: 0 },
+    stableRepeaters: { count: 0 },
+    churnRisk: { count: 0 }
+  };
+
+  // 合計人数
+  const totalCustomers =
+    (categoryData.newChurn?.count || 0) +
+    (categoryData.newRepeaters?.count || 0) +
+    (categoryData.stableRepeaters?.count || 0) +
+    (categoryData.churnRisk?.count || 0);
+
+  // 構成比を計算
+  const getPercentage = (count) =>
+    totalCustomers > 0 ? ((count / totalCustomers) * 100).toFixed(1) : '0.0';
+
+  // 顧客構成データ
+  const thisMonthComposition = reportData?.salesImpact?.thisMonthComposition || null;
+  const avgComposition = reportData?.salesImpact?.avgComposition || null;
+
+  // セグメントデータ
+  const segments = reportData?.salesImpact?.segments || [];
+
+  const categories = [
+    { title: '新規離脱', subtitle: '再来店意向なし', count: categoryData.newChurn?.count || 0, color: '#6b7280' },
+    { title: '新規リピーター', subtitle: '再来店意向あり', count: categoryData.newRepeaters?.count || 0, color: '#3b82f6' },
+    { title: '安定リピーター', subtitle: '継続的な来店', count: categoryData.stableRepeaters?.count || 0, color: '#22c55e' },
+    { title: 'リピーター離脱', subtitle: '再来店意向なし', count: categoryData.churnRisk?.count || 0, color: '#f97316' },
+  ];
+
+  return (
+    <ContentPage pageNumber={pageNumber}>
+      {/* セクションヘッダー */}
+      <SectionHeader title="売上影響" />
+
+      {/* 顧客カテゴリーカード（4枚） */}
+      <View style={styles.categoryCardGrid}>
+        {categories.map((cat, index) => (
+          <CustomerCategoryCard
+            key={index}
+            title={cat.title}
+            subtitle={cat.subtitle}
+            count={cat.count}
+            percentage={getPercentage(cat.count)}
+            color={cat.color}
+          />
+        ))}
+      </View>
+
+      {/* 顧客構成比較 */}
+      <CustomerCompositionChart
+        thisMonth={thisMonthComposition}
+        sixMonthAvg={avgComposition}
+      />
+
+      {/* セグメント詳細テーブル（上位3件） */}
+      <SegmentTable segments={segments} />
+    </ContentPage>
+  );
+};
+
+/**
  * PDFドキュメントコンポーネント
  */
 export const PDFDocument = ({ report, reportData, storeName, companyName = '' }) => (
@@ -671,6 +1112,12 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
     <OverviewPage
       reportData={reportData}
       pageNumber={1}
+    />
+
+    {/* 売上影響ページ */}
+    <SalesImpactPage
+      reportData={reportData}
+      pageNumber={2}
     />
   </Document>
 );
@@ -710,6 +1157,7 @@ export default {
   CoverPage,
   ContentPage,
   OverviewPage,
+  SalesImpactPage,
   KPICard,
   generatePDFBlob,
   downloadPDF,
