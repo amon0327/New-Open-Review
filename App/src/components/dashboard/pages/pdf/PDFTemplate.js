@@ -136,6 +136,27 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
 
+  // セクションヘッダー（アイコン + タイトル + 紫ライン）
+  sectionHeader: {
+    marginBottom: 24,
+  },
+  sectionHeaderTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
+  },
+  sectionHeaderTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  sectionHeaderLine: {
+    height: 3,
+    backgroundColor: colors.primary,
+    borderRadius: 2,
+  },
+
   // コンテンツエリア
   content: {
     flex: 1,
@@ -357,6 +378,42 @@ const ArrowDownIcon = ({ color = colors.white }) => (
 );
 
 /**
+ * 課題アイコン（ボックス/キューブ）
+ */
+const TaskIcon = () => (
+  <Svg width={24} height={24} viewBox="0 0 24 24">
+    {/* ボックスの上面（黄色） */}
+    <Path
+      d="M12 2L3 7L12 12L21 7L12 2Z"
+      fill="#fbbf24"
+    />
+    {/* ボックスの左面（青紫） */}
+    <Path
+      d="M3 7V17L12 22V12L3 7Z"
+      fill="#6366f1"
+    />
+    {/* ボックスの右面（紫） */}
+    <Path
+      d="M21 7V17L12 22V12L21 7Z"
+      fill="#8b5cf6"
+    />
+  </Svg>
+);
+
+/**
+ * セクションヘッダーコンポーネント
+ */
+const SectionHeader = ({ title }) => (
+  <View style={styles.sectionHeader}>
+    <View style={styles.sectionHeaderTop}>
+      <TaskIcon />
+      <Text style={styles.sectionHeaderTitle}>{title}</Text>
+    </View>
+    <View style={styles.sectionHeaderLine} />
+  </View>
+);
+
+/**
  * KPIカードコンポーネント
  */
 const KPICard = ({ title, metric, delta, deltaType, color }) => {
@@ -567,7 +624,10 @@ const OverviewPage = ({ reportData, pageNumber }) => {
   ];
 
   return (
-    <ContentPage title="概要" pageNumber={pageNumber}>
+    <ContentPage pageNumber={pageNumber}>
+      {/* セクションヘッダー */}
+      <SectionHeader title="課題" />
+
       {/* KPIカード（3枚） */}
       <View style={styles.kpiGrid}>
         {kpiCards.map((kpi, index) => (
