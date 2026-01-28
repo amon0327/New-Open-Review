@@ -180,6 +180,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  // ページコメントバー
+  pageCommentBar: {
+    marginTop: 'auto',
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  pageCommentText: {
+    fontSize: 10,
+    color: colors.white,
+    fontFamily: 'NotoSansJP',
+    lineHeight: 1.5,
+  },
+
   // KPIカードグリッド（4列）
   kpiGrid: {
     flexDirection: 'row',
@@ -1185,6 +1200,18 @@ const SectionHeader = ({ title, pageNumber }) => (
 );
 
 /**
+ * ページコメントバーコンポーネント
+ */
+const PageComment = ({ comment }) => {
+  if (!comment) return null;
+  return (
+    <View style={styles.pageCommentBar}>
+      <Text style={styles.pageCommentText}>{comment}</Text>
+    </View>
+  );
+};
+
+/**
  * KPIカードコンポーネント
  */
 const KPICard = ({ title, metric, delta, deltaType, color }) => {
@@ -1346,7 +1373,7 @@ const NPSTrendChart = ({ monthlyPerformance }) => {
 /**
  * 概要ページコンポーネント（KPIカード3枚 + チャート2枚）
  */
-const OverviewPage = ({ reportData, pageNumber }) => {
+const OverviewPage = ({ reportData, pageNumber, comment }) => {
   // KPIデータを取得（reportData.overviewから）
   const overview = reportData?.overview || {};
   const kpi = overview.kpi || {
@@ -1414,6 +1441,9 @@ const OverviewPage = ({ reportData, pageNumber }) => {
         <NPSDistributionCard npsDistribution={npsDistribution} />
         <NPSTrendChart monthlyPerformance={monthlyPerformance} />
       </View>
+
+      {/* コメント */}
+      <PageComment comment={comment} />
     </ContentPage>
   );
 };
@@ -1570,7 +1600,7 @@ const SegmentTable = ({ segments }) => {
 /**
  * 売上影響ページコンポーネント（3ページ目）
  */
-const SalesImpactPage = ({ reportData, pageNumber }) => {
+const SalesImpactPage = ({ reportData, pageNumber, comment }) => {
   // カテゴリーデータ
   const categoryData = reportData?.salesImpact?.categoryData || {
     newChurn: { count: 0 },
@@ -1621,6 +1651,9 @@ const SalesImpactPage = ({ reportData, pageNumber }) => {
 
       {/* セグメント詳細テーブル（上位3件） */}
       <SegmentTable segments={segments} />
+
+      {/* コメント */}
+      <PageComment comment={comment} />
     </ContentPage>
   );
 };
@@ -2500,12 +2533,14 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
     <OverviewPage
       reportData={reportData}
       pageNumber={1}
+      comment={reportData?.overview?.comment}
     />
 
     {/* 売上影響ページ */}
     <SalesImpactPage
       reportData={reportData}
       pageNumber={2}
+      comment={reportData?.salesImpact?.comment}
     />
 
     {/* Quality詳細ページ */}
