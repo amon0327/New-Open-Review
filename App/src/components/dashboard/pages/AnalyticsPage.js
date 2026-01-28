@@ -559,18 +559,21 @@ const SEGMENT_PRIORITY = {
   6: 1,  // 中立者×再来店あり×新規
 };
 
-// セグメントカードのカラー設定
-const SEGMENT_CARD_STYLES = {
-  11: { gradient: 'from-red-500/10 to-rose-500/5', border: 'border-red-200', icon: '🔴', accent: 'text-red-600', accentBg: 'bg-red-50' },
-  12: { gradient: 'from-red-500/10 to-rose-500/5', border: 'border-red-200', icon: '🔴', accent: 'text-red-600', accentBg: 'bg-red-50' },
-  7:  { gradient: 'from-orange-500/10 to-amber-500/5', border: 'border-orange-200', icon: '🟠', accent: 'text-orange-600', accentBg: 'bg-orange-50' },
-  8:  { gradient: 'from-orange-500/10 to-amber-500/5', border: 'border-orange-200', icon: '🟠', accent: 'text-orange-600', accentBg: 'bg-orange-50' },
-  9:  { gradient: 'from-amber-500/10 to-yellow-500/5', border: 'border-amber-200', icon: '🟡', accent: 'text-amber-600', accentBg: 'bg-amber-50' },
-  10: { gradient: 'from-amber-500/10 to-yellow-500/5', border: 'border-amber-200', icon: '🟡', accent: 'text-amber-600', accentBg: 'bg-amber-50' },
-  3:  { gradient: 'from-blue-500/10 to-indigo-500/5', border: 'border-blue-200', icon: '🔵', accent: 'text-blue-600', accentBg: 'bg-blue-50' },
-  4:  { gradient: 'from-blue-500/10 to-indigo-500/5', border: 'border-blue-200', icon: '🔵', accent: 'text-blue-600', accentBg: 'bg-blue-50' },
-  5:  { gradient: 'from-emerald-500/10 to-green-500/5', border: 'border-emerald-200', icon: '🟢', accent: 'text-emerald-600', accentBg: 'bg-emerald-50' },
-  6:  { gradient: 'from-emerald-500/10 to-green-500/5', border: 'border-emerald-200', icon: '🟢', accent: 'text-emerald-600', accentBg: 'bg-emerald-50' },
+// 4カテゴリタグの設定（再来店意向×顧客タイプ）
+const getCategoryTag = (seg) => {
+  const isRepeater = seg.customerLabel === 'リピーター';
+  const hasRevisit = seg.revisitLabel === '再来店あり';
+  if (isRepeater && hasRevisit) return { label: '安定リピーター', bg: 'bg-emerald-600' };
+  if (isRepeater && !hasRevisit) return { label: 'リピーター離脱', bg: 'bg-orange-600' };
+  if (!isRepeater && hasRevisit) return { label: '新規リピーター', bg: 'bg-blue-600' };
+  return { label: '新規離脱', bg: 'bg-slate-600' };
+};
+
+// 推奨度タグの設定
+const getNpsTag = (seg) => {
+  if (seg.npsLabel === '推奨者') return { label: '推奨者', bg: 'bg-green-600' };
+  if (seg.npsLabel === '中立者') return { label: '中立者', bg: 'bg-amber-500' };
+  return { label: '批判者', bg: 'bg-red-600' };
 };
 
 // タスクタブ
@@ -673,54 +676,44 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {issueSegments.map((seg) => {
           const insights = SEGMENT_INSIGHTS[seg.id];
-          const style = SEGMENT_CARD_STYLES[seg.id] || SEGMENT_CARD_STYLES[12];
+          const categoryTag = getCategoryTag(seg);
+          const npsTag = getNpsTag(seg);
           return (
             <div
               key={seg.id}
-              className={`relative rounded-2xl border ${style.border} bg-gradient-to-br ${style.gradient} p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5`}
+              className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
             >
-              {/* ヘッダー */}
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-base font-bold text-gray-900">{seg.name}</h3>
-                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                      seg.npsLabel === '推奨者' ? 'bg-green-100 text-green-700' :
-                      seg.npsLabel === '中立者' ? 'bg-amber-100 text-amber-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {seg.npsLabel}
-                    </span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                      seg.revisitLabel === '再来店あり' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {seg.revisitLabel}
-                    </span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                      seg.customerLabel === 'リピーター' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700'
-                    }`}>
-                      {seg.customerLabel}
-                    </span>
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0 ml-3">
-                  <div className={`text-2xl font-bold ${style.accent}`}>{seg.count}</div>
-                  <div className="text-[11px] text-gray-500">人 ({seg.percentage}%)</div>
+              {/* タグ */}
+              <div className="flex items-center gap-2 px-6 pt-5 pb-3">
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold text-white tracking-wide ${categoryTag.bg}`}>
+                  {categoryTag.label}
+                </span>
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold text-white tracking-wide ${npsTag.bg}`}>
+                  {npsTag.label}
+                </span>
+              </div>
+
+              {/* セグメント名と人数 */}
+              <div className="flex items-end justify-between px-6 pb-4">
+                <h3 className="text-lg font-bold text-gray-900 leading-tight">{seg.name}</h3>
+                <div className="flex items-baseline gap-1 flex-shrink-0 ml-4">
+                  <span className="text-3xl font-extrabold text-gray-900">{seg.count}</span>
+                  <span className="text-sm text-gray-400 font-medium">人</span>
                 </div>
               </div>
 
-              <Separator className="mb-4" />
+              <div className="h-px bg-gray-100 mx-6" />
 
               {/* 課題 */}
-              <div className="mb-4">
-                <div className="flex items-center gap-1.5 mb-2.5">
-                  <AlertTriangle className={`w-3.5 h-3.5 ${style.accent}`} />
-                  <span className="text-xs font-semibold text-gray-700">課題</span>
+              <div className="px-6 pt-4 pb-3">
+                <div className="flex items-center gap-1.5 mb-3">
+                  <AlertTriangle className="w-3.5 h-3.5 text-gray-400" />
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">課題</span>
                 </div>
-                <ul className="space-y-1.5">
+                <ul className="space-y-2">
                   {insights.issues.map((issue, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-[13px] text-gray-600 leading-snug">
-                      <div className={`w-1 h-1 rounded-full mt-1.5 flex-shrink-0 ${style.accent.replace('text-', 'bg-')}`} />
+                    <li key={idx} className="flex items-start gap-2.5 text-[13px] text-gray-600 leading-relaxed">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-[7px] flex-shrink-0" />
                       {issue}
                     </li>
                   ))}
@@ -728,10 +721,10 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
               </div>
 
               {/* 売上貢献 */}
-              <div className={`rounded-xl ${style.accentBg} p-3.5`}>
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <TrendingUp className={`w-3.5 h-3.5 ${style.accent}`} />
-                  <span className="text-xs font-semibold text-gray-700">改善による売上貢献</span>
+              <div className="mx-4 mb-4 rounded-xl bg-gradient-to-br from-slate-50 to-gray-50 border border-gray-100 p-4">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">売上貢献</span>
                 </div>
                 <p className="text-[13px] text-gray-600 leading-relaxed">
                   {insights.opportunity}
