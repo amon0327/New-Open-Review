@@ -110,28 +110,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
 
-  // ページヘッダー（ロゴ + タイトル）
-  pageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  pageHeaderLogo: {
-    width: 36,
-    height: 36,
-    marginRight: 12,
-  },
-  pageHeaderTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.primary,
-  },
-  pageHeaderLine: {
-    height: 2,
-    backgroundColor: colors.primaryLight,
-    marginBottom: 24,
-  },
-
   // コンテンツエリア
   content: {
     flex: 1,
@@ -294,16 +272,9 @@ const TrendCard = ({ change }) => {
 /**
  * コンテンツページコンポーネント（ボーダー枠デザイン）
  */
-const ContentPage = ({ title, children, pageNumber }) => (
+const ContentPage = ({ children, pageNumber }) => (
   <Page size="A4" orientation="landscape" style={styles.contentPageOuter}>
     <View style={styles.contentPageInner}>
-      {/* ページヘッダー（ロゴ + タイトル） */}
-      <View style={styles.pageHeader}>
-        <Image src={LOGO_URL} style={styles.pageHeaderLogo} />
-        <Text style={styles.pageHeaderTitle}>{title}</Text>
-      </View>
-      <View style={styles.pageHeaderLine} />
-
       {/* コンテンツ */}
       <View style={styles.content}>
         {children}
@@ -321,7 +292,7 @@ const ContentPage = ({ title, children, pageNumber }) => (
  * サマリーページコンポーネント
  */
 const SummaryPage = ({ reportData, pageNumber }) => (
-  <ContentPage title="サマリー" pageNumber={pageNumber}>
+  <ContentPage pageNumber={pageNumber}>
     <View style={styles.statsGrid}>
       <StatCard
         value={reportData.totalResponses || 0}
