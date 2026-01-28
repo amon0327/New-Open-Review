@@ -451,11 +451,296 @@ const AIAnalysisTab = ({ selectedStore, selectedPeriod }) => {
   );
 };
 
+// セグメント別インサイトの定義
+const SEGMENT_INSIGHTS = {
+  // 推奨者 × 再来店なし × リピーター
+  3: {
+    issues: [
+      '高評価にもかかわらず再来店意向がない',
+      '引越しや生活環境の変化など外的要因の可能性',
+      '競合店への流出リスクが潜在的に存在'
+    ],
+    opportunity: '再来店を促進できれば、高い推奨度を活かした口コミ拡散と安定売上の確保が見込めます。ロイヤル顧客への転換に最も近いセグメントです。'
+  },
+  // 推奨者 × 再来店なし × 新規
+  4: {
+    issues: [
+      '初回体験は高評価だが再来店動機が不足',
+      '立地やアクセスなど利便性の課題の可能性',
+      'リピートにつながる仕掛けが不足'
+    ],
+    opportunity: 'すでに高い満足度があるため、再来店のきっかけを提供するだけでリピーター化が期待できます。口コミによる新規集客効果も見込めます。'
+  },
+  // 中立者 × 再来店あり × リピーター
+  5: {
+    issues: [
+      'リピーターだが推奨するほどの満足度に達していない',
+      'サービスに慣れが生じ、特別感が薄れている可能性',
+      '競合との差別化ポイントが実感されていない'
+    ],
+    opportunity: '推奨者に引き上げることで、口コミによる新規顧客の獲得が期待できます。安定した来店頻度を活かし、LTV（顧客生涯価値）の向上に直結します。'
+  },
+  // 中立者 × 再来店あり × 新規
+  6: {
+    issues: [
+      '再来店意向はあるが、強い印象を残せていない',
+      '商品やサービスの魅力が十分に伝わっていない',
+      '「また行ってもいい」程度の弱い動機'
+    ],
+    opportunity: '次回来店時の体験を向上させることで推奨者化が可能です。初期段階でファンになれば、長期的な売上貢献と口コミ効果が期待できます。'
+  },
+  // 中立者 × 再来店なし × リピーター
+  7: {
+    issues: [
+      'リピーターが満足度低下により離脱を検討',
+      'サービス品質の低下や期待とのギャップが蓄積',
+      '対策しなければ離脱が確定する危険な状態'
+    ],
+    opportunity: '離脱を防止し推奨者へ転換できれば、安定した売上基盤の維持とネガティブ口コミの防止につながります。既存顧客の維持は新規獲得の5倍効率的です。'
+  },
+  // 中立者 × 再来店なし × 新規
+  8: {
+    issues: [
+      '初回体験が印象に残らず離脱',
+      '店舗の差別化ポイントが伝わっていない',
+      '新規獲得コストが回収できていない'
+    ],
+    opportunity: '初回体験の改善で再来店率を向上させれば、新規獲得コストの回収効率が大幅に改善します。中立者は改善余地が大きいセグメントです。'
+  },
+  // 批判者 × 再来店あり × リピーター
+  9: {
+    issues: [
+      '不満を抱えながらも来店を続けている',
+      '代替店がない、または習慣的に来店している状態',
+      'ネガティブな口コミを発信するリスクが高い'
+    ],
+    opportunity: '不満の根本原因を解消すれば、中立者→推奨者への転換チャンスがあります。ネガティブ口コミの抑制は、見えない機会損失を防ぎます。'
+  },
+  // 批判者 × 再来店あり × 新規
+  10: {
+    issues: [
+      '初回体験に明確な不満がある',
+      '再来店意向はあるが改善がなければ離脱確実',
+      '具体的な改善ポイントが存在するサイン'
+    ],
+    opportunity: 'フィードバックに基づく具体的改善で満足度を大幅に向上させる余地があります。改善後のリピーター化で新規獲得コストの回収が可能です。'
+  },
+  // 批判者 × 再来店なし × リピーター
+  11: {
+    issues: [
+      'リピーターの信頼を失い完全離脱の状態',
+      '不満が蓄積し、もう来店する意思がない',
+      'ネガティブ口コミの最大リスク要因'
+    ],
+    opportunity: '離脱を防止できれば、安定的な売上の維持に直結します。1人のリピーター維持は新規顧客5人分の獲得に相当する価値があります。'
+  },
+  // 批判者 × 再来店なし × 新規
+  12: {
+    issues: [
+      '初回体験が非常に悪く完全離脱',
+      '新規獲得にかけたコストが無駄になっている',
+      '悪い口コミの拡散リスクが最も高い'
+    ],
+    opportunity: '初回体験の根本改善で新規→リピーター転換率を向上できます。口コミサイトでの評判改善は、新規集客力の底上げにつながります。'
+  }
+};
+
+// セグメントの優先度スコア（高いほど重要）
+const SEGMENT_PRIORITY = {
+  11: 6, // 批判者×再来店なし×リピーター - 最重要
+  12: 5, // 批判者×再来店なし×新規
+  7: 5,  // 中立者×再来店なし×リピーター
+  8: 4,  // 中立者×再来店なし×新規
+  9: 3,  // 批判者×再来店あり×リピーター
+  10: 3, // 批判者×再来店あり×新規
+  3: 2,  // 推奨者×再来店なし×リピーター
+  4: 2,  // 推奨者×再来店なし×新規
+  5: 1,  // 中立者×再来店あり×リピーター
+  6: 1,  // 中立者×再来店あり×新規
+};
+
+// セグメントカードのカラー設定
+const SEGMENT_CARD_STYLES = {
+  11: { gradient: 'from-red-500/10 to-rose-500/5', border: 'border-red-200', icon: '🔴', accent: 'text-red-600', accentBg: 'bg-red-50' },
+  12: { gradient: 'from-red-500/10 to-rose-500/5', border: 'border-red-200', icon: '🔴', accent: 'text-red-600', accentBg: 'bg-red-50' },
+  7:  { gradient: 'from-orange-500/10 to-amber-500/5', border: 'border-orange-200', icon: '🟠', accent: 'text-orange-600', accentBg: 'bg-orange-50' },
+  8:  { gradient: 'from-orange-500/10 to-amber-500/5', border: 'border-orange-200', icon: '🟠', accent: 'text-orange-600', accentBg: 'bg-orange-50' },
+  9:  { gradient: 'from-amber-500/10 to-yellow-500/5', border: 'border-amber-200', icon: '🟡', accent: 'text-amber-600', accentBg: 'bg-amber-50' },
+  10: { gradient: 'from-amber-500/10 to-yellow-500/5', border: 'border-amber-200', icon: '🟡', accent: 'text-amber-600', accentBg: 'bg-amber-50' },
+  3:  { gradient: 'from-blue-500/10 to-indigo-500/5', border: 'border-blue-200', icon: '🔵', accent: 'text-blue-600', accentBg: 'bg-blue-50' },
+  4:  { gradient: 'from-blue-500/10 to-indigo-500/5', border: 'border-blue-200', icon: '🔵', accent: 'text-blue-600', accentBg: 'bg-blue-50' },
+  5:  { gradient: 'from-emerald-500/10 to-green-500/5', border: 'border-emerald-200', icon: '🟢', accent: 'text-emerald-600', accentBg: 'bg-emerald-50' },
+  6:  { gradient: 'from-emerald-500/10 to-green-500/5', border: 'border-emerald-200', icon: '🟢', accent: 'text-emerald-600', accentBg: 'bg-emerald-50' },
+};
+
 // タスクタブ
-const TasksTab = ({ selectedStore, selectedPeriod }) => {
+const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
+  const [loading, setLoading] = useState(true);
+  const [segments, setSegments] = useState([]);
+
+  // selectedPeriodを年月形式に変換
+  const getYearMonth = (period) => {
+    if (!period) return null;
+    return period.replace('/', '-');
+  };
+
+  // セグメントデータ取得
+  useEffect(() => {
+    const fetchSegments = async () => {
+      if (!companyId || !selectedStore) {
+        setSegments([]);
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('認証が必要です');
+        }
+        const yearMonth = getYearMonth(selectedPeriod);
+        const params = new URLSearchParams({ company_id: companyId, store_id: selectedStore });
+        if (yearMonth) params.append('year_month', yearMonth);
+
+        const response = await fetch(
+          `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/get-monthly-analytics?${params}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        const result = await response.json();
+        if (!result.success) throw new Error(result.error || 'データの取得に失敗しました');
+        setSegments(result.data?.salesImpact?.segments || []);
+      } catch (error) {
+        console.error('セグメントデータの取得エラー:', error);
+        setSegments([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSegments();
+  }, [companyId, selectedStore, selectedPeriod]);
+
+  // 課題セグメントの抽出（ロイヤル顧客・期待の新規を除外し、優先度×人数でソート、最大6件）
+  const issueSegments = useMemo(() => {
+    return segments
+      .filter(seg => seg.id >= 3 && seg.count > 0 && SEGMENT_INSIGHTS[seg.id])
+      .sort((a, b) => {
+        const priorityDiff = (SEGMENT_PRIORITY[b.id] || 0) - (SEGMENT_PRIORITY[a.id] || 0);
+        if (priorityDiff !== 0) return priorityDiff;
+        return b.count - a.count;
+      })
+      .slice(0, 6);
+  }, [segments]);
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-white rounded-2xl p-6 shadow-sm">
+              <Skeleton className="h-4 w-24 mb-4" />
+              <Skeleton className="h-8 w-16 mb-3" />
+              <Skeleton className="h-3 w-full mb-2" />
+              <Skeleton className="h-3 w-3/4 mb-2" />
+              <Skeleton className="h-3 w-5/6 mb-6" />
+              <Skeleton className="h-16 w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (issueSegments.length === 0) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
+          <p className="text-gray-500 text-lg">課題のあるセグメントはありません</p>
+          <p className="text-gray-400 text-sm mt-2">すべての顧客セグメントが良好な状態です</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-900">インサイト一覧</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {issueSegments.map((seg) => {
+          const insights = SEGMENT_INSIGHTS[seg.id];
+          const style = SEGMENT_CARD_STYLES[seg.id] || SEGMENT_CARD_STYLES[12];
+          return (
+            <div
+              key={seg.id}
+              className={`relative rounded-2xl border ${style.border} bg-gradient-to-br ${style.gradient} p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5`}
+            >
+              {/* ヘッダー */}
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">{seg.name}</h3>
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                      seg.npsLabel === '推奨者' ? 'bg-green-100 text-green-700' :
+                      seg.npsLabel === '中立者' ? 'bg-amber-100 text-amber-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {seg.npsLabel}
+                    </span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                      seg.revisitLabel === '再来店あり' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {seg.revisitLabel}
+                    </span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                      seg.customerLabel === 'リピーター' ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700'
+                    }`}>
+                      {seg.customerLabel}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0 ml-3">
+                  <div className={`text-2xl font-bold ${style.accent}`}>{seg.count}</div>
+                  <div className="text-[11px] text-gray-500">人 ({seg.percentage}%)</div>
+                </div>
+              </div>
+
+              <Separator className="mb-4" />
+
+              {/* 課題 */}
+              <div className="mb-4">
+                <div className="flex items-center gap-1.5 mb-2.5">
+                  <AlertTriangle className={`w-3.5 h-3.5 ${style.accent}`} />
+                  <span className="text-xs font-semibold text-gray-700">課題</span>
+                </div>
+                <ul className="space-y-1.5">
+                  {insights.issues.map((issue, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-[13px] text-gray-600 leading-snug">
+                      <div className={`w-1 h-1 rounded-full mt-1.5 flex-shrink-0 ${style.accent.replace('text-', 'bg-')}`} />
+                      {issue}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* 売上貢献 */}
+              <div className={`rounded-xl ${style.accentBg} p-3.5`}>
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <TrendingUp className={`w-3.5 h-3.5 ${style.accent}`} />
+                  <span className="text-xs font-semibold text-gray-700">改善による売上貢献</span>
+                </div>
+                <p className="text-[13px] text-gray-600 leading-relaxed">
+                  {insights.opportunity}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
@@ -709,7 +994,7 @@ const StoreByStoreTab = ({ companyId }) => {
         ) : (
           <>
             <TabPanel value={activeSubTab} index={0}>
-              <TasksTab selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
+              <TasksTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
             </TabPanel>
             <TabPanel value={activeSubTab} index={1}>
               <StoreOverviewTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} stores={stores} />
