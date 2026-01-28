@@ -683,19 +683,16 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
               key={seg.id}
               className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
             >
-              {/* タグ */}
-              <div className="flex items-center gap-2 px-6 pt-5 pb-3">
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold text-white tracking-wide ${categoryTag.bg}`}>
-                  {categoryTag.label}
-                </span>
+              {/* 推奨度タグ */}
+              <div className="px-6 pt-5 pb-2">
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold text-white tracking-wide ${npsTag.bg}`}>
                   {npsTag.label}
                 </span>
               </div>
 
-              {/* セグメント名と人数 */}
+              {/* カテゴリ名（タイトル）と人数 */}
               <div className="flex items-end justify-between px-6 pb-4">
-                <h3 className="text-lg font-bold text-gray-900 leading-tight">{seg.name}</h3>
+                <h3 className="text-xl font-bold text-gray-900 leading-tight">{categoryTag.label}</h3>
                 <div className="flex items-baseline gap-1 flex-shrink-0 ml-4">
                   <span className="text-3xl font-extrabold text-gray-900">{seg.count}</span>
                   <span className="text-sm text-gray-400 font-medium">人</span>
