@@ -221,7 +221,24 @@ const styles = StyleSheet.create({
     color: colors.gray400,
   },
 
-  // フッター（ページ番号のみ）
+  // ヘッダー（ロゴ + ページ番号）
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  headerLogo: {
+    height: 24,
+    width: 120,
+    objectFit: 'contain',
+  },
+  headerPageNumber: {
+    fontSize: 10,
+    color: colors.gray500,
+  },
+
+  // フッター（未使用だが互換性のため残す）
   footer: {
     marginTop: 'auto',
     paddingTop: 12,
@@ -645,7 +662,7 @@ const styles = StyleSheet.create({
 });
 
 // ロゴURL
-const LOGO_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png';
+const LOGO_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
 const LOGO_WITH_TEXT_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png';
 
 // KPIカードのカラー配列
@@ -774,17 +791,18 @@ const KPICard = ({ title, metric, delta, deltaType, color }) => {
 const ContentPage = ({ title, children, pageNumber }) => (
   <Page size="A4" orientation="landscape" style={styles.contentPageOuter}>
     <View style={styles.contentPageInner}>
+      {/* ヘッダー（ロゴ + ページ番号） */}
+      <View style={styles.header}>
+        <Image src={LOGO_URL} style={styles.headerLogo} />
+        <Text style={styles.headerPageNumber}>{pageNumber}</Text>
+      </View>
+
       {/* ページタイトル（中央配置） */}
       {title && <Text style={styles.pageTitle}>{title}</Text>}
 
       {/* コンテンツ */}
       <View style={styles.content}>
         {children}
-      </View>
-
-      {/* フッター */}
-      <View style={styles.footer}>
-        <Text style={styles.footerPageNumber}>{pageNumber}</Text>
       </View>
     </View>
   </Page>
