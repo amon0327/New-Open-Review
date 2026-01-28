@@ -59,16 +59,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  coverLogo: {
-    width: 60,
-    height: 60,
-    marginRight: 16,
-  },
-  coverTitle: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: colors.white,
-    letterSpacing: 2,
+  coverLogoWithText: {
+    height: 50,
+    width: 280,
+    objectFit: 'contain',
   },
   coverInfoContainer: {
     marginTop: 20,
@@ -249,6 +243,7 @@ const styles = StyleSheet.create({
 
 // ロゴURL
 const LOGO_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png';
+const LOGO_WITH_TEXT_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png';
 
 /**
  * 表紙ページコンポーネント
@@ -262,10 +257,9 @@ const CoverPage = ({ report, storeName, companyName }) => {
 
   return (
     <Page size="A4" orientation="landscape" style={styles.coverPage}>
-      {/* ロゴとタイトル */}
+      {/* ロゴ（テキスト入り） */}
       <View style={styles.coverLogoContainer}>
-        <Image src={LOGO_URL} style={styles.coverLogo} />
-        <Text style={styles.coverTitle}>OpenReview</Text>
+        <Image src={LOGO_WITH_TEXT_URL} style={styles.coverLogoWithText} />
       </View>
 
       {/* 会社名・店舗名・日付 */}
