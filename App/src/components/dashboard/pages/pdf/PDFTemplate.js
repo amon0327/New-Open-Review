@@ -150,6 +150,11 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 8,
   },
+  sectionHeaderIcon: {
+    width: 22,
+    height: 22,
+    objectFit: 'contain',
+  },
   sectionHeaderTitle: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -663,6 +668,7 @@ const styles = StyleSheet.create({
 
 // ロゴURL
 const LOGO_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+const LOGO_ICON_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png';
 const LOGO_WITH_TEXT_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png';
 
 // KPIカードのカラー配列
@@ -757,7 +763,7 @@ const TaskIcon = () => (
 const SectionHeader = ({ title }) => (
   <View style={styles.sectionHeader}>
     <View style={styles.sectionHeaderTop}>
-      <TaskIcon />
+      <Image src={LOGO_ICON_URL} style={styles.sectionHeaderIcon} />
       <Text style={styles.sectionHeaderTitle}>{title}</Text>
     </View>
     <View style={styles.sectionHeaderLine} />
