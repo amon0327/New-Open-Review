@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Box, CircularProgress } from '@mui/material';
-import { PDFViewer } from '@react-pdf/renderer';
 import { supabase } from '../../../lib/supabase';
 import { Skeleton } from '../../ui/skeleton';
 import {
@@ -19,11 +18,12 @@ import {
   Calendar,
   Store,
   CheckCircle2,
-  X
+  X,
+  RefreshCw
 } from 'lucide-react';
 
 // PDFテンプレートコンポーネントをインポート
-import { PDFDocument, downloadPDF } from './pdf/PDFTemplate';
+import { PDFDocument, downloadPDF, generatePDFBlob } from './pdf/PDFTemplate';
 
 export default function PDFPage({ onNavCollapse, companyId }) {
   const [stores, setStores] = useState([]);
@@ -34,6 +34,9 @@ export default function PDFPage({ onNavCollapse, companyId }) {
   const [previewMode, setPreviewMode] = useState(false);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [reportData, setReportData] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState(null);
 
   // 店舗名を取得するヘルパー関数
   const getStoreName = () => {
@@ -167,13 +170,38 @@ export default function PDFPage({ onNavCollapse, companyId }) {
     }
   };
 
+  // PDF Blobを生成してURLを作成
+  const generatePdfUrl = async (report, data, storeName) => {
+    setPdfLoading(true);
+    setPdfError(null);
+
+    try {
+      const blob = await generatePDFBlob(report, data, storeName);
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+    } catch (error) {
+      console.error('PDF生成エラー:', error);
+      setPdfError(error.message || 'PDF生成に失敗しました');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   // プレビュー表示
   const handlePreview = async (report) => {
     setSelectedReport(report);
     setGeneratingPDF(true);
+    setPdfUrl(null);
+    setPdfError(null);
 
     const data = await fetchReportData(report.yearMonth);
     setReportData(data);
+
+    if (data) {
+      const storeName = getStoreName();
+      await generatePdfUrl(report, data, storeName);
+    }
+
     setPreviewMode(true);
     setGeneratingPDF(false);
   };
@@ -184,7 +212,7 @@ export default function PDFPage({ onNavCollapse, companyId }) {
     setGeneratingPDF(true);
 
     try {
-      const data = await fetchReportData(report.yearMonth);
+      const data = reportData || await fetchReportData(report.yearMonth);
       if (data) {
         const storeName = getStoreName();
         await downloadPDF(report, data, storeName);
@@ -198,10 +226,33 @@ export default function PDFPage({ onNavCollapse, companyId }) {
 
   // プレビューを閉じる
   const closePreview = () => {
+    // 古いURLを解放
+    if (pdfUrl) {
+      URL.revokeObjectURL(pdfUrl);
+    }
     setPreviewMode(false);
     setSelectedReport(null);
     setReportData(null);
+    setPdfUrl(null);
+    setPdfError(null);
   };
+
+  // 再試行
+  const retryGeneratePdf = async () => {
+    if (selectedReport && reportData) {
+      const storeName = getStoreName();
+      await generatePdfUrl(selectedReport, reportData, storeName);
+    }
+  };
+
+  // コンポーネントのクリーンアップ
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
 
   // スケルトンスクリーン
   if (loading) {
@@ -233,7 +284,7 @@ export default function PDFPage({ onNavCollapse, companyId }) {
   }
 
   // プレビューモード
-  if (previewMode && selectedReport && reportData) {
+  if (previewMode && selectedReport) {
     const storeName = getStoreName();
 
     return (
@@ -257,9 +308,15 @@ export default function PDFPage({ onNavCollapse, companyId }) {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {pdfLoading && (
+              <span className="text-gray-400 text-sm flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                生成中...
+              </span>
+            )}
             <button
               onClick={() => handleDownload(selectedReport)}
-              disabled={generatingPDF}
+              disabled={generatingPDF || pdfLoading}
               className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
             >
               {generatingPDF ? (
@@ -272,22 +329,45 @@ export default function PDFPage({ onNavCollapse, companyId }) {
           </div>
         </div>
 
-        {/* PDFプレビュー - react-pdf PDFViewer */}
-        <div className="flex-1 overflow-hidden">
-          <PDFViewer
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-            }}
-            showToolbar={true}
-          >
-            <PDFDocument
-              report={selectedReport}
-              reportData={reportData}
-              storeName={storeName}
+        {/* PDFプレビュー */}
+        <div className="flex-1 overflow-hidden bg-gray-800 flex items-center justify-center">
+          {pdfLoading ? (
+            <div className="flex flex-col items-center gap-4">
+              <CircularProgress size={48} sx={{ color: '#a855f7' }} />
+              <span className="text-gray-400">PDFを生成中...</span>
+            </div>
+          ) : pdfError ? (
+            <div className="flex flex-col items-center gap-4 text-center p-8">
+              <div className="w-16 h-16 rounded-full bg-red-900/30 flex items-center justify-center">
+                <X className="w-8 h-8 text-red-400" />
+              </div>
+              <div>
+                <p className="text-white font-medium mb-2">PDF生成エラー</p>
+                <p className="text-gray-400 text-sm">{pdfError}</p>
+              </div>
+              <button
+                onClick={retryGeneratePdf}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+              >
+                再試行
+              </button>
+            </div>
+          ) : pdfUrl ? (
+            <iframe
+              src={pdfUrl}
+              title="PDF Preview"
+              style={{
+                width: '100%',
+                height: '100%',
+                border: 'none',
+              }}
             />
-          </PDFViewer>
+          ) : !reportData ? (
+            <div className="flex flex-col items-center gap-4 text-center p-8">
+              <FileText className="w-16 h-16 text-gray-600" />
+              <p className="text-gray-400">データがありません</p>
+            </div>
+          ) : null}
         </div>
       </Box>
     );
