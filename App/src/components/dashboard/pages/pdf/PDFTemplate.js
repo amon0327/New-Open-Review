@@ -242,13 +242,6 @@ const styles = StyleSheet.create({
   },
 
   // NPS分布カード
-  npsDistributionBar: {
-    flexDirection: 'row',
-    height: 24,
-    borderRadius: 6,
-    overflow: 'hidden',
-    marginBottom: 16,
-  },
   npsDistributionLegend: {
     gap: 8,
   },
@@ -413,23 +406,11 @@ const NPSDistributionCard = ({ npsDistribution }) => {
   const promoters = npsDistribution?.promoters || 0;
   const passives = npsDistribution?.passives || 0;
   const detractors = npsDistribution?.detractors || 0;
-  const total = promoters + passives + detractors || 100;
-
-  const promoterWidth = (promoters / total) * 100;
-  const passiveWidth = (passives / total) * 100;
-  const detractorWidth = (detractors / total) * 100;
 
   return (
     <View style={styles.chartCard}>
       <Text style={styles.chartTitle}>推奨スコア詳細分析</Text>
       <Text style={styles.chartSubtitle}>推奨者・中立者・批判者の内訳</Text>
-
-      {/* 横棒グラフ */}
-      <View style={styles.npsDistributionBar}>
-        <View style={{ width: `${promoterWidth}%`, backgroundColor: colors.emerald500 }} />
-        <View style={{ width: `${passiveWidth}%`, backgroundColor: colors.amber500 }} />
-        <View style={{ width: `${detractorWidth}%`, backgroundColor: colors.red500 }} />
-      </View>
 
       {/* 凡例 */}
       <View style={styles.npsDistributionLegend}>
