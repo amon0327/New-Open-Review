@@ -2122,12 +2122,55 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
   const ageColors = ['#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4'];
   const companionColors = ['#f97316', '#fb923c', '#fdba74', '#fed7aa'];
 
+  // 半円ゲージのSVGアークパスを生成するヘルパー
+  const createSemiDonutArc = (cx, cy, r, startAngle, endAngle) => {
+    const rad1 = (Math.PI * startAngle) / 180;
+    const rad2 = (Math.PI * endAngle) / 180;
+    const x1 = cx + r * Math.cos(rad1);
+    const y1 = cy + r * Math.sin(rad1);
+    const x2 = cx + r * Math.cos(rad2);
+    const y2 = cy + r * Math.sin(rad2);
+    const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+    return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
+  };
+
+  // 半円ゲージのセグメントを生成
+  const renderSemiDonut = (data, colorMap) => {
+    const cx = 70;
+    const cy = 65;
+    const outerR = 50;
+    const innerR = 30;
+    let currentAngle = 180;
+
+    return (
+      <Svg width={140} height={75} viewBox="0 0 140 75">
+        {data.map((item, index) => {
+          const sweep = (item.value / 100) * 180;
+          const endAngle = currentAngle + sweep;
+          const outerPath = createSemiDonutArc(cx, cy, outerR, currentAngle, endAngle);
+          const iRad1 = (Math.PI * endAngle) / 180;
+          const iRad2 = (Math.PI * currentAngle) / 180;
+          const ix1 = cx + innerR * Math.cos(iRad1);
+          const iy1 = cy + innerR * Math.sin(iRad1);
+          const ix2 = cx + innerR * Math.cos(iRad2);
+          const iy2 = cy + innerR * Math.sin(iRad2);
+          const innerLarge = sweep > 180 ? 1 : 0;
+          const innerArc = `L ${ix1} ${iy1} A ${innerR} ${innerR} 0 ${innerLarge} 0 ${ix2} ${iy2} Z`;
+          const fullPath = outerPath + innerArc;
+          const color = colorMap[item.name] || '#9ca3af';
+          currentAngle = endAngle;
+          return <Path key={index} d={fullPath} fill={color} />;
+        })}
+      </Svg>
+    );
+  };
+
   return (
     <ContentPage>
       {/* セクションヘッダー */}
       <SectionHeader title="顧客傾向" pageNumber={pageNumber} />
 
-      {/* 上段: 性別比率 + 顧客タイプ（横バーゲージ） */}
+      {/* 上段: 性別比率 + 顧客タイプ（半円ゲージ） */}
       <View style={styles.customerTrendsTopRow}>
         {/* 性別比率 */}
         <View style={styles.customerTrendsCard}>
@@ -2140,24 +2183,8 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
             </View>
             <Text style={styles.customerTrendsCardTitle}>性別比率</Text>
           </View>
-          {/* 横バーゲージ */}
-          <View style={styles.horizontalGaugeBar}>
-            {genderDistribution.map((item, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.horizontalGaugeSegment,
-                  {
-                    width: `${item.value}%`,
-                    backgroundColor: genderColors[item.name] || '#9ca3af',
-                    borderTopLeftRadius: index === 0 ? 8 : 0,
-                    borderBottomLeftRadius: index === 0 ? 8 : 0,
-                    borderTopRightRadius: index === genderDistribution.length - 1 ? 8 : 0,
-                    borderBottomRightRadius: index === genderDistribution.length - 1 ? 8 : 0,
-                  }
-                ]}
-              />
-            ))}
+          <View style={{ alignItems: 'center', marginBottom: 4 }}>
+            {renderSemiDonut(genderDistribution, genderColors)}
           </View>
           <View style={styles.legendContainer}>
             {genderDistribution.map((item, index) => (
@@ -2179,24 +2206,8 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
             </View>
             <Text style={styles.customerTrendsCardTitle}>顧客タイプ</Text>
           </View>
-          {/* 横バーゲージ */}
-          <View style={styles.horizontalGaugeBar}>
-            {customerTypeDistribution.map((item, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.horizontalGaugeSegment,
-                  {
-                    width: `${item.value}%`,
-                    backgroundColor: customerTypeColors[item.name] || '#9ca3af',
-                    borderTopLeftRadius: index === 0 ? 8 : 0,
-                    borderBottomLeftRadius: index === 0 ? 8 : 0,
-                    borderTopRightRadius: index === customerTypeDistribution.length - 1 ? 8 : 0,
-                    borderBottomRightRadius: index === customerTypeDistribution.length - 1 ? 8 : 0,
-                  }
-                ]}
-              />
-            ))}
+          <View style={{ alignItems: 'center', marginBottom: 4 }}>
+            {renderSemiDonut(customerTypeDistribution, customerTypeColors)}
           </View>
           <View style={styles.legendContainer}>
             {customerTypeDistribution.map((item, index) => (
