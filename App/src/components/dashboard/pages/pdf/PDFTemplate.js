@@ -1040,6 +1040,7 @@ const styles = StyleSheet.create({
   },
   priorityColumn: {
     flex: 1,
+    alignItems: 'center',
   },
   priorityColumnTitle: {
     fontSize: 10,
@@ -2388,15 +2389,18 @@ const CustomerPriorityPage = ({ reportData, pageNumber }) => {
 
   return (
     <ContentPage>
-      <SectionHeader title="顧客の重視ポイント" pageNumber={pageNumber} />
+      <SectionHeader title="顧客傾向" pageNumber={pageNumber} />
 
       <View style={styles.priorityCard}>
+        <View style={styles.priorityCardHeader}>
+          <Text style={styles.priorityCardTitle}>顧客の重視ポイント</Text>
+        </View>
         <View style={styles.priorityColumnsContainer}>
           {/* 全体の評価 */}
           <View style={styles.priorityColumn}>
             <Text style={styles.priorityColumnTitle}>全体の評価</Text>
             {renderRadarChart(radarData, 'total', '#3b82f6', '#3b82f6')}
-            <View style={{ marginTop: 6, gap: 3 }}>
+            <View style={{ marginTop: 6, gap: 3, alignSelf: 'stretch' }}>
               {[...radarData].sort((a, b) => (b.total || 0) - (a.total || 0)).map((item, index) => (
                 <View key={index} style={styles.priorityRankItem}>
                   <View style={styles.priorityRankLeft}>
@@ -2413,7 +2417,7 @@ const CustomerPriorityPage = ({ reportData, pageNumber }) => {
           <View style={styles.priorityColumn}>
             <Text style={styles.priorityColumnTitle}>リピーターの評価</Text>
             {renderRadarChart(radarData, 'repeater', '#10b981', '#10b981')}
-            <View style={{ marginTop: 6, gap: 3 }}>
+            <View style={{ marginTop: 6, gap: 3, alignSelf: 'stretch' }}>
               {[...radarData].sort((a, b) => (b.repeater || 0) - (a.repeater || 0)).map((item, index) => (
                 <View key={index} style={styles.priorityRankItem}>
                   <View style={styles.priorityRankLeft}>
@@ -2430,7 +2434,7 @@ const CustomerPriorityPage = ({ reportData, pageNumber }) => {
           <View style={styles.priorityColumn}>
             <Text style={styles.priorityColumnTitle}>新規顧客の評価</Text>
             {renderRadarChart(radarData, 'newCustomer', '#f59e0b', '#f59e0b')}
-            <View style={{ marginTop: 6, gap: 3 }}>
+            <View style={{ marginTop: 6, gap: 3, alignSelf: 'stretch' }}>
               {[...radarData].sort((a, b) => (b.newCustomer || 0) - (a.newCustomer || 0)).map((item, index) => (
                 <View key={index} style={styles.priorityRankItem}>
                   <View style={styles.priorityRankLeft}>
