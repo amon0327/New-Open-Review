@@ -862,16 +862,16 @@ const styles = StyleSheet.create({
   // 顧客傾向ページ
   // ============================================
 
-  // 顧客傾向カードグリッド（2x2）
+  // 顧客傾向カードグリッド（4列横並び）
   customerTrendsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
+    gap: 12,
+    marginBottom: 16,
   },
   customerTrendsCard: {
-    width: '48%',
+    flex: 1,
     backgroundColor: colors.white,
-    padding: 16,
+    padding: 14,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.gray200,
@@ -974,6 +974,72 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.gray700,
     textAlign: 'right',
+  },
+
+  // 顧客の重視ポイントカード
+  priorityCard: {
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'solid',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  priorityCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
+  },
+  priorityCardTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: colors.gray900,
+  },
+  priorityColumnsContainer: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  priorityColumn: {
+    flex: 1,
+  },
+  priorityColumnTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: colors.gray700,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  priorityRankItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.gray100,
+    borderBottomStyle: 'solid',
+  },
+  priorityRankLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  priorityRankNumber: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: colors.gray500,
+  },
+  priorityRankLabel: {
+    fontSize: 9,
+    color: colors.gray700,
+  },
+  priorityRankValue: {
+    fontSize: 9,
+    fontWeight: 'bold',
   },
 });
 
@@ -1530,21 +1596,30 @@ const SalesImpactPage = ({ reportData, pageNumber }) => {
 const QualityIcon = () => (
   <Svg width={18} height={18} viewBox="0 0 24 24">
     <Path
-      d="M16 2v20M12 2v6M8 2v6"
+      d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"
+      stroke={colors.white}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+    <Path
+      d="M7 2v20"
       stroke={colors.white}
       strokeWidth={2}
       strokeLinecap="round"
       fill="none"
     />
     <Path
-      d="M8 8a4 4 0 0 0 4 4h0a4 4 0 0 0 4-4"
+      d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"
       stroke={colors.white}
       strokeWidth={2}
       strokeLinecap="round"
+      strokeLinejoin="round"
       fill="none"
     />
     <Path
-      d="M3 2l7 7M21 2l-7 7"
+      d="M21 15v7"
       stroke={colors.white}
       strokeWidth={2}
       strokeLinecap="round"
@@ -1858,21 +1933,30 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
         {category === 'Q' && (
           <>
             <Path
-              d="M16 2v20M12 2v6M8 2v6"
+              d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"
+              stroke={iconColor}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+            <Path
+              d="M7 2v20"
               stroke={iconColor}
               strokeWidth={2}
               strokeLinecap="round"
               fill="none"
             />
             <Path
-              d="M8 8a4 4 0 0 0 4 4h0a4 4 0 0 0 4-4"
+              d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"
               stroke={iconColor}
               strokeWidth={2}
               strokeLinecap="round"
+              strokeLinejoin="round"
               fill="none"
             />
             <Path
-              d="M3 2l7 7M21 2l-7 7"
+              d="M21 15v7"
               stroke={iconColor}
               strokeWidth={2}
               strokeLinecap="round"
@@ -1997,12 +2081,20 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
   const customerTypeDistribution = customerTrends.customerTypeDistribution || [];
   const ageDistribution = customerTrends.ageDistribution || [];
   const companionDistribution = customerTrends.companionDistribution || [];
+  const radarData = customerTrends.radarData || [];
 
   // 色定義
   const genderColors = { '男性': '#3b82f6', '女性': '#ec4899', 'その他': '#9ca3af' };
   const customerTypeColors = { 'リピーター': '#10b981', '新規': '#f59e0b' };
   const ageColors = ['#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4'];
   const companionColors = ['#f97316', '#fb923c', '#fdba74', '#fed7aa'];
+
+  // 重視ポイントの色
+  const priorityColumnColors = {
+    total: '#3b82f6',
+    repeater: '#10b981',
+    newCustomer: '#f59e0b',
+  };
 
   return (
     <ContentPage>
@@ -2176,12 +2268,62 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
           </View>
         </View>
       </View>
+
+      {/* 顧客の重視ポイント */}
+      <View style={styles.priorityCard}>
+        <View style={styles.priorityCardHeader}>
+          <Text style={styles.priorityCardTitle}>顧客の重視ポイント</Text>
+        </View>
+        <View style={styles.priorityColumnsContainer}>
+          {/* 全体の評価 */}
+          <View style={styles.priorityColumn}>
+            <Text style={styles.priorityColumnTitle}>全体の評価</Text>
+            {[...radarData].sort((a, b) => (b.total || 0) - (a.total || 0)).map((item, index) => (
+              <View key={index} style={styles.priorityRankItem}>
+                <View style={styles.priorityRankLeft}>
+                  <Text style={styles.priorityRankNumber}>{index + 1}位</Text>
+                  <Text style={styles.priorityRankLabel}>{item.category}</Text>
+                </View>
+                <Text style={[styles.priorityRankValue, { color: priorityColumnColors.total }]}>{item.total || 0}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* リピーターの評価 */}
+          <View style={styles.priorityColumn}>
+            <Text style={styles.priorityColumnTitle}>リピーターの評価</Text>
+            {[...radarData].sort((a, b) => (b.repeater || 0) - (a.repeater || 0)).map((item, index) => (
+              <View key={index} style={styles.priorityRankItem}>
+                <View style={styles.priorityRankLeft}>
+                  <Text style={styles.priorityRankNumber}>{index + 1}位</Text>
+                  <Text style={styles.priorityRankLabel}>{item.category}</Text>
+                </View>
+                <Text style={[styles.priorityRankValue, { color: priorityColumnColors.repeater }]}>{item.repeater || 0}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* 新規顧客の評価 */}
+          <View style={styles.priorityColumn}>
+            <Text style={styles.priorityColumnTitle}>新規顧客の評価</Text>
+            {[...radarData].sort((a, b) => (b.newCustomer || 0) - (a.newCustomer || 0)).map((item, index) => (
+              <View key={index} style={styles.priorityRankItem}>
+                <View style={styles.priorityRankLeft}>
+                  <Text style={styles.priorityRankNumber}>{index + 1}位</Text>
+                  <Text style={styles.priorityRankLabel}>{item.category}</Text>
+                </View>
+                <Text style={[styles.priorityRankValue, { color: priorityColumnColors.newCustomer }]}>{item.newCustomer || 0}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
     </ContentPage>
   );
 };
 
 /**
- * 店舗評価ページコンポーネント（削除予定）
+ * 店舗評価ページコンポーネント（未使用）
  */
 const StoreEvaluationPage = ({ reportData, pageNumber }) => {
   // QSCスコアデータ
@@ -2237,30 +2379,30 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       pageNumber={2}
     />
 
-    {/* 顧客傾向ページ */}
-    <CustomerTrendsPage
-      reportData={reportData}
-      pageNumber={3}
-    />
-
     {/* Quality詳細ページ */}
     <QSCDetailPage
       reportData={reportData}
       category="Q"
-      pageNumber={4}
+      pageNumber={3}
     />
 
     {/* Service詳細ページ */}
     <QSCDetailPage
       reportData={reportData}
       category="S"
-      pageNumber={5}
+      pageNumber={4}
     />
 
     {/* Cleanliness詳細ページ */}
     <QSCDetailPage
       reportData={reportData}
       category="C"
+      pageNumber={5}
+    />
+
+    {/* 顧客傾向ページ */}
+    <CustomerTrendsPage
+      reportData={reportData}
       pageNumber={6}
     />
   </Document>
