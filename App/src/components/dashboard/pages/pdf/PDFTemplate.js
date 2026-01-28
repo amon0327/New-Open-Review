@@ -682,16 +682,16 @@ const styles = StyleSheet.create({
   qscDetailPageHeader: {
     flexDirection: 'row',
     gap: 20,
-    marginBottom: 20,
+    marginBottom: 12,
   },
   qscDetailLeftSection: {
     flex: 1,
   },
   qscDetailRightSection: {
-    width: 180,
+    width: 200,
   },
 
-  // カテゴリータイトル（アイコン + テキスト）
+  // カテゴリータイトル（アイコン + テキスト + n=）
   qscDetailTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -707,6 +707,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.gray900,
   },
+  qscDetailTitleCount: {
+    fontSize: 9,
+    color: colors.gray500,
+    marginLeft: 8,
+  },
 
   // 課題説明テキスト
   qscDetailDescription: {
@@ -718,7 +723,7 @@ const styles = StyleSheet.create({
   // ミニスコアカード
   qscMiniCard: {
     backgroundColor: colors.white,
-    padding: 14,
+    padding: 16,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: colors.gray200,
@@ -732,73 +737,73 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   qscMiniCardTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   qscMiniCardIconBox: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
     borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
   },
   qscMiniCardTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 'bold',
     color: colors.gray900,
   },
   qscMiniCardSubtitle: {
-    fontSize: 8,
+    fontSize: 9,
     color: colors.gray500,
   },
   qscMiniCardTrendBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 4,
   },
   qscMiniCardTrendText: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: 'bold',
   },
   qscMiniCardScoreRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   qscMiniCardScore: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: 'bold',
   },
   qscMiniCardScoreMax: {
-    fontSize: 9,
+    fontSize: 10,
     color: colors.gray500,
   },
   qscMiniCardAchievement: {
     alignItems: 'flex-end',
   },
   qscMiniCardAchievementLabel: {
-    fontSize: 7,
+    fontSize: 8,
     color: colors.gray500,
   },
   qscMiniCardAchievementValue: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 'bold',
     color: colors.gray700,
   },
   qscMiniCardProgress: {
-    height: 4,
+    height: 5,
     backgroundColor: colors.gray200,
-    borderRadius: 2,
+    borderRadius: 3,
     overflow: 'hidden',
   },
   qscMiniCardProgressFill: {
-    height: 4,
-    borderRadius: 2,
+    height: 5,
+    borderRadius: 3,
   },
 
   // 評価項目バーチャートセクション
@@ -1740,7 +1745,7 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
   return (
     <ContentPage>
       {/* セクションヘッダー */}
-      <SectionHeader title="課題" pageNumber={pageNumber} />
+      <SectionHeader title="店舗評価" pageNumber={pageNumber} />
 
       {/* 上部セクション：左（タイトル＋説明）、右（ミニスコアカード） */}
       <View style={styles.qscDetailPageHeader}>
@@ -1749,6 +1754,7 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
           <View style={styles.qscDetailTitleRow}>
             {renderCategoryIcon()}
             <Text style={styles.qscDetailTitle}>{getCategoryTitle()}</Text>
+            <Text style={styles.qscDetailTitleCount}>n={detailData.totalResponses || 0}</Text>
           </View>
           <Text style={styles.qscDetailDescription}>{summary}</Text>
         </View>
@@ -1769,9 +1775,6 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
       <View style={styles.qscDetailItemsContainer}>
         {/* 左列 */}
         <View style={styles.qscDetailItemsColumn}>
-          <View style={styles.qscDetailItemsHeader}>
-            <Text style={styles.qscDetailItemsCount}>n={detailData.totalResponses || 0}</Text>
-          </View>
           {leftItems.map((item, index) => (
             <QSCDetailItem
               key={index}
@@ -1785,9 +1788,6 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
 
         {/* 右列 */}
         <View style={styles.qscDetailItemsColumn}>
-          <View style={styles.qscDetailItemsHeader}>
-            <Text style={styles.qscDetailItemsCount}></Text>
-          </View>
           {rightItems.map((item, index) => (
             <QSCDetailItem
               key={index}
