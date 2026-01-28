@@ -35,7 +35,8 @@ import {
   People,
   Rocket,
   Description,
-  AutoAwesome
+  AutoAwesome,
+  PictureAsPdf
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
@@ -55,6 +56,7 @@ import ReportPage from './dashboard/pages/ReportPage';
 import CRMPage from './dashboard/pages/CRMPage';
 import AIAssistantPage from './dashboard/pages/AIAssistantPage';
 import ReportDetailPage from './dashboard/pages/ReportDetailPage';
+import PDFPage from './dashboard/pages/PDFPage';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
@@ -65,6 +67,7 @@ const navigationItems = [
   { text: 'フォーム公開', icon: <Rocket />, component: FormPublishPage },
   { text: '顧客管理(CRM)', icon: <People />, component: CRMPage },
   { text: 'レポート', icon: <Description />, component: ReportPage },
+  { text: 'PDF', icon: <PictureAsPdf />, component: PDFPage },
   { text: '分析', icon: <Analytics />, component: AnalyticsPage },
   { text: '店舗情報', icon: <Business />, component: StoresManagementPage },
   { text: '設定', icon: <Settings />, component: SettingsPage },
@@ -329,6 +332,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} onOpenReportDetail={(report) => setFullscreenReport(report)} />;
     } else if (navigationItems[activeTab].text === 'フォーム公開') {
       return <ActiveComponent user={user} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
+    } else if (navigationItems[activeTab].text === 'PDF') {
+      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
     }
     return <ActiveComponent />;
   };
