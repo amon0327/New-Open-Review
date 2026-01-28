@@ -467,6 +467,94 @@ const SEGMENT_INSIGHTS = {
   12: { issues: ['初回体験が非常に悪く完全離脱', '新規獲得にかけたコストが無駄になっている', '悪い口コミの拡散リスクが最も高い'] }
 };
 
+// セグメント別の詳細情報（開閉カード用）
+const SEGMENT_DETAILS = {
+  1: {
+    detail: 'お店を最も高く評価し、定期的に来店しているロイヤル顧客。満足度は高いが、競合の台頭や環境変化によって離脱するリスクは常に存在する。この層の維持が売上安定の最大の鍵。',
+    who: 'NPS9-10点をつけ、3ヶ月以内の再来店意向があるリピーター。来店頻度が高く、客単価も安定している最重要顧客層。',
+    impact: 'ロイヤル顧客1人の離脱は新規顧客5人分の損失に相当。維持率を高めることで安定収益の確保に加え、口コミによる新規集客効果も持続する。',
+    examples: ['VIP限定の先行メニュー体験や特別イベントの開催', '来店回数に応じたランクアップ制度の導入', '誕生日・記念日の特別サービスの充実', '直接的な感謝の声かけやパーソナライズされた接客'],
+    measurement: 'ロイヤル顧客の継続率（月次）、来店頻度の推移、客単価の変化、口コミ・紹介経由の新規来店数をトラッキング。'
+  },
+  2: {
+    detail: '初回来店で高い満足度を示し、再来店意向もある新規顧客。ただしリピーターとして定着するかは未確定で、2回目の来店への橋渡しが成否を分ける。',
+    who: 'NPS9-10点をつけた初回来店の新規顧客で、3ヶ月以内に再来店したいと回答した層。',
+    impact: '新規→リピーター転換率の向上は、新規獲得コストの回収効率を大幅に改善する。推奨者としての口コミ拡散も期待できる。',
+    examples: ['来店後24時間以内のサンキューメッセージ配信', '2回目来店時の特別クーポンの提供', '初回の注文履歴に基づくおすすめメニューの提案', 'SNSフォロー特典による継続接点の確保'],
+    measurement: '2回目来店率、新規→リピーター転換率、初回来店後30日以内の再来店率、SNSフォロー率。'
+  },
+  3: {
+    detail: '高い評価をしているにもかかわらず再来店意向がないリピーター。引越しや生活スタイルの変化などの外的要因、あるいは競合店への流出が考えられる。',
+    who: 'NPS9-10点のリピーターで、3ヶ月以内の再来店予定がないと回答した層。お店自体への不満は少ない。',
+    impact: '離脱を防げれば、高い推奨度を活かした口コミ効果の維持と安定売上の確保が見込める。ロイヤル顧客への復帰可能性が最も高い層。',
+    examples: ['離脱理由のヒアリングアンケートの実施', '復帰特典（期間限定クーポン）の提供', 'デリバリーやテイクアウトなど来店以外の利用方法の提案', '季節限定メニューや新商品の案内による再来店動機の創出'],
+    measurement: '離脱率の推移、復帰来店率、離脱理由の傾向分析、復帰後の継続率。'
+  },
+  4: {
+    detail: '初回来店で高評価だったが、再来店する動機がない新規顧客。立地やアクセスの問題、またはリピートにつながる仕掛けの不足が原因と考えられる。',
+    who: 'NPS9-10点の新規顧客で、再来店予定がないと回答した層。体験自体は良かったが、再訪の必然性を感じていない。',
+    impact: '再来店のきっかけを提供するだけでリピーター化が期待でき、高い推奨度からの口コミ効果も見込める。',
+    examples: ['初回来店者限定の次回割引クーポン配布', 'お気に入り登録やアプリ登録の促進', '来店地域に応じたアクセス改善策の検討', '友人紹介キャンペーンによる再来店動機の付与'],
+    measurement: '初回来店者の再来店率、クーポン利用率、アプリ登録率、紹介経由の来店数。'
+  },
+  5: {
+    detail: '定期的に来店しているが、推奨するほどの満足度には達していないリピーター。サービスへの慣れや特別感の薄れが背景にある可能性がある。',
+    who: 'NPS7-8点のリピーターで再来店意向がある層。不満はないが「人に勧めるほどではない」という温度感の顧客。',
+    impact: '推奨者に引き上げれば、口コミによる新規獲得と来店頻度・客単価の向上が同時に実現する。LTV向上の最大チャンス。',
+    examples: ['期待を超えるサプライズ体験の提供（一品サービスなど）', '常連客向けの限定メニューや裏メニューの案内', 'スタッフとの関係性強化（名前を覚える、好みを把握する）', '店舗の改善取り組みの共有による共感の醸成'],
+    measurement: 'NPS7-8点→9-10点への転換率、来店頻度の変化、客単価の推移、口コミ投稿の有無。'
+  },
+  6: {
+    detail: '再来店意向はあるが、強い印象を残せていない新規顧客。「また行ってもいい」程度の弱い動機で、競合にスイッチされやすい状態。',
+    who: 'NPS7-8点の新規顧客で再来店意向がある層。可もなく不可もなくという評価で、差別化ポイントが十分に伝わっていない。',
+    impact: '次回来店時の体験向上で推奨者化が可能。初期段階でファンになれば、長期的な売上貢献と口コミ効果が期待できる。',
+    examples: ['2回目来店時にパーソナライズされた接客（前回の注文の記憶）', '新規客向けの体験プログラム（おすすめコースの提案）', '来店後のフォローアップで差別化ポイントを伝達', '次回来店時の小さなサプライズ（ドリンクサービスなど）'],
+    measurement: '2回目来店率、NPS中立→推奨者への転換率、来店間隔の短縮度、リピーター定着率。'
+  },
+  7: {
+    detail: 'これまで来店していたリピーターが満足度低下により離脱を検討している状態。サービス品質の低下や期待とのギャップが蓄積しており、対策しなければ離脱が確定する。',
+    who: 'NPS7-8点で再来店意向がないリピーター。以前は満足していたが、最近の体験で評価が下がっている可能性が高い。',
+    impact: '離脱防止と推奨者への転換で、安定した売上基盤の維持とネガティブ口コミの防止につながる。既存顧客の維持は新規獲得の5倍効率的。',
+    examples: ['直近の来店体験についてのフィードバック収集', '改善完了の報告と復帰インセンティブの提供', '店長やスタッフからの直接的なフォローアップ', '品質管理の強化と一貫性のあるサービス提供体制の構築'],
+    measurement: '離脱予兆スコアの推移、復帰率、改善施策実施後のNPS変化、来店頻度の回復度。'
+  },
+  8: {
+    detail: '初回体験が印象に残らず、再来店する理由がない新規顧客。店舗の差別化ポイントが伝わっておらず、新規獲得にかけたコストが回収できていない状態。',
+    who: 'NPS7-8点で再来店意向がない新規顧客。特に不満はないが、記憶に残る体験がなかった層。',
+    impact: '初回体験の改善で再来店率を向上させれば、新規獲得コストの回収効率が大幅に改善する。中立者は改善余地が最も大きいセグメント。',
+    examples: ['初回来店者向けのウェルカムプログラムの導入', '店舗の強みやこだわりを伝えるPOP・説明の充実', '初回限定の特別体験（試食、店舗ツアーなど）の提供', 'スタッフからの積極的な声かけとおすすめの提案'],
+    measurement: '初回来店者の再来店率、初回体験満足度スコア、ウェルカムプログラムの利用率、NPS改善幅。'
+  },
+  9: {
+    detail: '不満を抱えながらも来店を続けているリピーター。代替店がない、立地的に便利、または習慣的に来店している状態。ネガティブ口コミを発信するリスクが高い。',
+    who: 'NPS0-6点で再来店意向があるリピーター。不満があるが何らかの理由で来店を継続している層。潜在的なクレーマーリスクあり。',
+    impact: '不満の根本原因を解消すれば、中立者→推奨者への段階的な転換チャンスがある。ネガティブ口コミの抑制は見えない機会損失を防ぐ。',
+    examples: ['不満ポイントの特定と優先的な改善実施', 'クレーム対応プロセスの見直しとスタッフ研修', '改善取り組みの可視化と進捗共有', '不満解消後のフォローアップ（満足度再調査）'],
+    measurement: 'NPS批判者→中立者への転換率、クレーム件数の推移、ネガティブ口コミ数の変化、来店継続率。'
+  },
+  10: {
+    detail: '初回体験に明確な不満があった新規顧客だが、再来店意向はある。具体的な改善ポイントが存在するサインであり、対応すれば満足度を大幅に向上できる可能性がある。',
+    who: 'NPS0-6点で再来店意向がある新規顧客。不満はあるが、店舗への期待値は残っている層。改善すれば逆転の余地あり。',
+    impact: 'フィードバックに基づく具体的改善で満足度を大幅向上させる余地がある。改善後のリピーター化で新規獲得コストの回収が可能。',
+    examples: ['不満要因のカテゴリ別分析と優先改善', '改善完了を伝えるフォローアップ通知の配信', '再来店時の特別対応（謝罪と改善の実演）', '新規顧客の初回体験フロー全体の見直し'],
+    measurement: '再来店率、再来店時のNPS改善幅、不満カテゴリ別の解消率、改善通知後のアクション率。'
+  },
+  11: {
+    detail: 'リピーターの信頼を完全に失い、離脱が確定している状態。不満が蓄積し、もう来店する意思がない。ネガティブ口コミの最大リスク要因であり、最優先で対処すべきセグメント。',
+    who: 'NPS0-6点で再来店意向がないリピーター。以前は来店していたが、不満が限界を超え離脱を決意した層。',
+    impact: '離脱防止できれば安定売上の維持に直結。1人のリピーター維持は新規顧客5人分の獲得に相当。ネガティブ口コミの拡散防止も重要な効果。',
+    examples: ['店長からの直接的な謝罪と改善コミットの伝達', '離脱理由の詳細ヒアリングと即時改善の実施', '復帰を促す特別オファー（無料招待など）の提供', 'サービス品質の根本的な見直しとスタッフ教育の強化'],
+    measurement: '離脱率の推移、復帰成功率、離脱理由の分布、ネガティブ口コミの発生件数、改善後の再評価スコア。'
+  },
+  12: {
+    detail: '初回体験が非常に悪く、完全に離脱した新規顧客。新規獲得にかけたコストが完全に無駄になっており、悪い口コミの拡散リスクが最も高い状態。',
+    who: 'NPS0-6点で再来店意向がない新規顧客。初回体験で強い不満を感じ、二度と来ないと判断した層。',
+    impact: '初回体験の根本改善で新規→リピーター転換率を向上できる。口コミサイトでの評判改善は、新規集客力の底上げにつながる。',
+    examples: ['初回来店体験の全プロセス（入店〜退店）の総点検', '新規顧客に特に多い不満要因の特定と重点改善', 'スタッフの新規客対応マニュアルの整備と研修', '口コミサイトへの改善対応の公開返信'],
+    measurement: '新規顧客のNPS分布の変化、初回離脱率、口コミサイトの評価推移、新規来店数の変化。'
+  }
+};
+
 // セグメントの優先度スコア（高いほど重要）
 const SEGMENT_PRIORITY = {
   11: 6, // 批判者×再来店なし×リピーター - 最重要
@@ -502,6 +590,7 @@ const getNpsTag = (seg) => {
 const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const [loading, setLoading] = useState(true);
   const [segments, setSegments] = useState([]);
+  const [expandedDetail, setExpandedDetail] = useState(null);
 
   // selectedPeriodを年月形式に変換
   const getYearMonth = (period) => {
@@ -640,6 +729,97 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
               </div>
 
               <div className="pb-2" />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* セグメント別 詳細分析カード */}
+      <div className="mt-8 space-y-3">
+        {issueSegments.map((seg) => {
+          const details = SEGMENT_DETAILS[seg.id];
+          if (!details) return null;
+          const categoryTag = getCategoryTag(seg);
+          const npsTag = getNpsTag(seg);
+          const isOpen = expandedDetail === seg.id;
+
+          return (
+            <div key={`detail-${seg.id}`} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300">
+              {/* ヘッダー（クリックで開閉） */}
+              <button
+                onClick={() => setExpandedDetail(isOpen ? null : seg.id)}
+                className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold text-white tracking-wide ${npsTag.bg}`}>
+                    {npsTag.label}
+                  </span>
+                  <h3 className="text-base font-bold text-gray-900">{categoryTag.label}</h3>
+                  <span className="text-sm text-gray-400 font-medium">{seg.count}人</span>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* 展開コンテンツ */}
+              {isOpen && (
+                <div className="px-6 pb-6 border-t border-gray-100">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-5">
+
+                    {/* 課題の詳細 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1 h-5 rounded-full bg-slate-800" />
+                        <h4 className="text-sm font-bold text-gray-900 tracking-wide">課題の詳細</h4>
+                      </div>
+                      <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.detail}</p>
+                    </div>
+
+                    {/* 対象顧客 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1 h-5 rounded-full bg-blue-500" />
+                        <h4 className="text-sm font-bold text-gray-900 tracking-wide">対象顧客</h4>
+                      </div>
+                      <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.who}</p>
+                    </div>
+
+                    {/* 改善効果 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1 h-5 rounded-full bg-emerald-500" />
+                        <h4 className="text-sm font-bold text-gray-900 tracking-wide">改善効果</h4>
+                      </div>
+                      <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.impact}</p>
+                    </div>
+
+                    {/* 改善施策 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1 h-5 rounded-full bg-violet-500" />
+                        <h4 className="text-sm font-bold text-gray-900 tracking-wide">改善施策</h4>
+                      </div>
+                      <ul className="space-y-1.5 pl-3.5">
+                        {details.examples.map((ex, idx) => (
+                          <li key={idx} className="flex items-start gap-2.5 text-[13px] text-gray-600 leading-relaxed">
+                            <div className="w-1.5 h-1.5 rounded-full bg-violet-300 mt-[7px] flex-shrink-0" />
+                            {ex}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* 効果測定 */}
+                    <div className="lg:col-span-2">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1 h-5 rounded-full bg-amber-500" />
+                        <h4 className="text-sm font-bold text-gray-900 tracking-wide">効果測定</h4>
+                      </div>
+                      <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.measurement}</p>
+                    </div>
+
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
