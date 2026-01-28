@@ -2171,9 +2171,12 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
 
   // レーダーチャートを生成
   const renderRadarChart = (data, dataKey, fillColor, strokeColor) => {
-    const cx = 75;
-    const cy = 75;
-    const maxR = 55;
+    const svgSize = 130;
+    const cx = svgSize / 2;
+    const cy = svgSize / 2;
+    const maxR = 50;
+    const containerSize = 180;
+    const offset = (containerSize - svgSize) / 2;
     const categories = data.map(d => d.category);
     const n = categories.length;
     if (n === 0) return null;
@@ -2208,32 +2211,79 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
       return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
     });
 
-    // ラベル位置
+    // ラベル位置（View座標系、コンテナ基準）
     const labelPositions = data.map((d, i) => {
       const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
-      const labelR = maxR + 14;
-      return {
-        x: cx + labelR * Math.cos(angle),
-        y: cy + labelR * Math.sin(angle),
-        label: d.category
-      };
+      const labelR = maxR + 16;
+      const x = cx + labelR * Math.cos(angle) + offset;
+      const y = cy + labelR * Math.sin(angle) + offset;
+      // テキスト配置を角度に応じて調整
+      let alignX = x;
+      let alignY = y;
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
+      // 上（品質）: 中央寄せ、上にオフセット
+      if (sinA < -0.5) { alignY -= 6; }
+      // 下左・下右: 少し下にオフセット
+      if (sinA > 0.3) { alignY += 2; }
+      return { x: alignX, y: alignY, label: d.category, cosA };
     });
 
     return (
-      <View style={{ alignItems: 'center' }}>
-        <Svg width={150} height={150} viewBox="0 0 150 150">
-          {/* グリッド */}
-          {gridPaths.map((points, i) => (
-            <Polygon key={i} points={points} fill="none" stroke="#e5e7eb" strokeWidth={0.5} />
-          ))}
-          {/* 放射線 */}
-          {axisLines.map((line, i) => (
-            <Path key={i} d={`M ${cx} ${cy} L ${line.x} ${line.y}`} stroke="#e5e7eb" strokeWidth={0.5} fill="none" />
-          ))}
-          {/* データエリア */}
-          <Polygon points={dataPoints.join(' ')} fill={fillColor} fillOpacity={0.4} stroke={strokeColor} strokeWidth={1.5} />
-        </Svg>
-        {/* ラベル（SVG外にViewで配置） */}
+      <View style={{ alignItems: 'center', width: containerSize, height: containerSize, position: 'relative' }}>
+        <View style={{ position: 'absolute', top: offset, left: offset }}>
+          <Svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
+            {/* グリッド */}
+            {gridPaths.map((points, i) => (
+              <Polygon key={i} points={points} fill="none" stroke="#e5e7eb" strokeWidth={0.5} />
+            ))}
+            {/* 放射線 */}
+            {axisLines.map((line, i) => (
+              <Path key={i} d={`M ${cx} ${cy} L ${line.x} ${line.y}`} stroke="#e5e7eb" strokeWidth={0.5} fill="none" />
+            ))}
+            {/* データエリア */}
+            <Polygon points={dataPoints.join(' ')} fill={fillColor} fillOpacity={0.4} stroke={strokeColor} strokeWidth={1.5} />
+          </Svg>
+        </View>
+        {/* カテゴリラベル（View/Textで配置） */}
+        {labelPositions.map((pos, i) => {
+          // テキスト幅を考慮した位置調整
+          let left = pos.x;
+          let textAlign = 'center';
+          const labelWidth = 50;
+          if (pos.cosA > 0.3) {
+            // 右側: 左寄せ
+            textAlign = 'left';
+            left = pos.x + 2;
+          } else if (pos.cosA < -0.3) {
+            // 左側: 右寄せ
+            textAlign = 'right';
+            left = pos.x - labelWidth - 2;
+          } else {
+            // 中央
+            left = pos.x - labelWidth / 2;
+          }
+          return (
+            <View
+              key={i}
+              style={{
+                position: 'absolute',
+                top: pos.y - 5,
+                left: left,
+                width: labelWidth,
+              }}
+            >
+              <Text style={{
+                fontSize: 7,
+                color: '#374151',
+                fontFamily: 'NotoSansJP',
+                textAlign: textAlign,
+              }}>
+                {pos.label}
+              </Text>
+            </View>
+          );
+        })}
       </View>
     );
   };
