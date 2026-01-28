@@ -8,6 +8,8 @@ import {
   Font,
   Image,
   pdf,
+  Svg,
+  Path,
 } from '@react-pdf/renderer';
 
 // 日本語フォントを登録（Noto Sans JP）
@@ -37,10 +39,16 @@ const colors = {
   gray200: '#e2e8f0',
   gray400: '#94a3b8',
   gray500: '#64748b',
+  gray600: '#475569',
   gray700: '#334155',
   gray900: '#0f172a',
   green500: '#22c55e',
   red500: '#ef4444',
+  // KPIカード用カラー
+  blue500: '#3b82f6',
+  emerald500: '#10b981',
+  amber500: '#f59e0b',
+  violet500: '#8b5cf6',
 };
 
 // スタイル定義
@@ -110,83 +118,71 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
 
+  // ページタイトル（中央配置）
+  pageTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.gray900,
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+
   // コンテンツエリア
   content: {
     flex: 1,
   },
 
-  // セクション
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.gray900,
-    marginBottom: 16,
-    paddingBottom: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.primary,
-    borderBottomStyle: 'solid',
-  },
-
-  // 統計カードグリッド（横向き用）
-  statsGrid: {
+  // KPIカードグリッド（4列）
+  kpiGrid: {
     flexDirection: 'row',
     gap: 16,
   },
-  statCard: {
+
+  // KPIカード
+  kpiCard: {
     flex: 1,
-    backgroundColor: colors.gray50,
-    padding: 24,
+    backgroundColor: colors.white,
+    padding: 20,
     borderRadius: 12,
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.gray200,
     borderStyle: 'solid',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  statValue: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: colors.primary,
-  },
-  statLabel: {
-    fontSize: 12,
+  kpiCardTitle: {
+    fontSize: 11,
     color: colors.gray500,
-    marginTop: 8,
+    marginBottom: 8,
   },
-
-  // トレンドカード
-  trendCard: {
-    backgroundColor: colors.gray50,
-    padding: 16,
-    paddingLeft: 24,
-    paddingRight: 24,
-    borderRadius: 12,
+  kpiCardMetric: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: colors.gray900,
+    marginBottom: 8,
+  },
+  kpiCardDeltaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: colors.gray200,
-    borderStyle: 'solid',
+    gap: 6,
   },
-  trendLabel: {
-    fontSize: 14,
-    color: colors.gray500,
+  kpiCardBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    gap: 2,
   },
-  trendValue: {
-    fontSize: 24,
+  kpiCardBadgeText: {
+    fontSize: 10,
     fontWeight: 'bold',
-    marginLeft: 12,
+    color: colors.white,
   },
-  trendPositive: {
-    color: colors.green500,
-  },
-  trendNegative: {
-    color: colors.red500,
-  },
-  trendNeutral: {
-    color: colors.gray500,
+  kpiCardVsText: {
+    fontSize: 9,
+    color: colors.gray400,
   },
 
   // フッター（ページ番号のみ）
@@ -205,11 +201,13 @@ const styles = StyleSheet.create({
 const LOGO_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png';
 const LOGO_WITH_TEXT_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png';
 
+// KPIカードのカラー配列
+const KPI_COLORS = [colors.blue500, colors.emerald500, colors.amber500, colors.violet500];
+
 /**
  * 表紙ページコンポーネント
  */
 const CoverPage = ({ report, storeName, companyName }) => {
-  // 年月をフォーマット（例：2026/01）
   const formatYearMonth = (yearMonth) => {
     if (!yearMonth) return '';
     return yearMonth.replace('-', '/');
@@ -217,12 +215,10 @@ const CoverPage = ({ report, storeName, companyName }) => {
 
   return (
     <Page size="A4" orientation="landscape" style={styles.coverPage}>
-      {/* ロゴ（テキスト入り） */}
       <View style={styles.coverLogoContainer}>
         <Image src={LOGO_WITH_TEXT_URL} style={styles.coverLogoWithText} />
       </View>
 
-      {/* 会社名・店舗名・日付 */}
       <View style={styles.coverInfoContainer}>
         {companyName && (
           <Text style={styles.coverCompanyName}>{companyName}</Text>
@@ -231,40 +227,60 @@ const CoverPage = ({ report, storeName, companyName }) => {
         <Text style={styles.coverDate}>{formatYearMonth(report.yearMonth)}</Text>
       </View>
 
-      {/* 下部のアクセントバー */}
       <View style={styles.coverBottomBar} />
     </Page>
   );
 };
 
 /**
- * PDF統計カードコンポーネント
+ * 矢印アイコン（上向き）
  */
-const StatCard = ({ value, label }) => (
-  <View style={styles.statCard}>
-    <Text style={styles.statValue}>{value}</Text>
-    <Text style={styles.statLabel}>{label}</Text>
-  </View>
+const ArrowUpIcon = ({ color = colors.white }) => (
+  <Svg width={10} height={10} viewBox="0 0 24 24">
+    <Path
+      d="M7 17L17 7M17 7H7M17 7V17"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  </Svg>
 );
 
 /**
- * PDFトレンドカードコンポーネント
+ * 矢印アイコン（下向き）
  */
-const TrendCard = ({ change }) => {
-  const isPositive = change > 0;
-  const isNegative = change < 0;
-  const trendStyle = isPositive
-    ? styles.trendPositive
-    : isNegative
-    ? styles.trendNegative
-    : styles.trendNeutral;
+const ArrowDownIcon = ({ color = colors.white }) => (
+  <Svg width={10} height={10} viewBox="0 0 24 24">
+    <Path
+      d="M7 7L17 17M17 17H7M17 17V7"
+      stroke={color}
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  </Svg>
+);
+
+/**
+ * KPIカードコンポーネント
+ */
+const KPICard = ({ title, metric, delta, deltaType, color }) => {
+  const isIncrease = deltaType === 'increase';
 
   return (
-    <View style={styles.trendCard}>
-      <Text style={styles.trendLabel}>前月比:</Text>
-      <Text style={[styles.trendValue, trendStyle]}>
-        {isPositive ? '+' : ''}{change}%
-      </Text>
+    <View style={styles.kpiCard}>
+      <Text style={styles.kpiCardTitle}>{title}</Text>
+      <Text style={styles.kpiCardMetric}>{metric}</Text>
+      <View style={styles.kpiCardDeltaRow}>
+        <View style={[styles.kpiCardBadge, { backgroundColor: color }]}>
+          {isIncrease ? <ArrowUpIcon /> : <ArrowDownIcon />}
+          <Text style={styles.kpiCardBadgeText}>{delta}</Text>
+        </View>
+        <Text style={styles.kpiCardVsText}>vs 先月</Text>
+      </View>
     </View>
   );
 };
@@ -272,9 +288,12 @@ const TrendCard = ({ change }) => {
 /**
  * コンテンツページコンポーネント（ボーダー枠デザイン）
  */
-const ContentPage = ({ children, pageNumber }) => (
+const ContentPage = ({ title, children, pageNumber }) => (
   <Page size="A4" orientation="landscape" style={styles.contentPageOuter}>
     <View style={styles.contentPageInner}>
+      {/* ページタイトル（中央配置） */}
+      {title && <Text style={styles.pageTitle}>{title}</Text>}
+
       {/* コンテンツ */}
       <View style={styles.content}>
         {children}
@@ -289,34 +308,65 @@ const ContentPage = ({ children, pageNumber }) => (
 );
 
 /**
- * サマリーページコンポーネント
+ * 概要ページコンポーネント（KPIカード4枚）
  */
-const SummaryPage = ({ reportData, pageNumber }) => (
-  <ContentPage pageNumber={pageNumber}>
-    <View style={styles.statsGrid}>
-      <StatCard
-        value={reportData.totalResponses || 0}
-        label="総回答数"
-      />
-      <StatCard
-        value={reportData.averageScore ? reportData.averageScore.toFixed(1) : '-'}
-        label="平均スコア"
-      />
-      <StatCard
-        value={reportData.responseRate ? `${reportData.responseRate.toFixed(1)}%` : '-'}
-        label="回答率"
-      />
-    </View>
+const OverviewPage = ({ reportData, pageNumber }) => {
+  // KPIデータを取得（reportDataから）
+  const kpi = reportData?.kpi || {
+    nps: { current: 0, delta: 0 },
+    repeatRate: { current: 0, delta: 0 },
+    repeaterRevisit: { current: 0, delta: 0 },
+    newRevisit: { current: 0, delta: 0 }
+  };
 
-    {/* トレンドセクション */}
-    {reportData.monthlyTrend && (
-      <View style={{ marginTop: 24 }}>
-        <Text style={styles.sectionTitle}>月間トレンド</Text>
-        <TrendCard change={reportData.monthlyTrend.change} />
+  const kpiCards = [
+    {
+      title: "推奨スコア",
+      metric: `${kpi.nps.current >= 0 ? '+' : ''}${kpi.nps.current}pt`,
+      delta: `${kpi.nps.delta >= 0 ? '+' : ''}${Number(kpi.nps.delta).toFixed(1)}pt`,
+      deltaType: kpi.nps.delta >= 0 ? "increase" : "decrease",
+      color: KPI_COLORS[0]
+    },
+    {
+      title: "リピート率",
+      metric: `${Number(kpi.repeatRate.current).toFixed(1)}%`,
+      delta: `${kpi.repeatRate.delta >= 0 ? '+' : ''}${Number(kpi.repeatRate.delta).toFixed(1)}%`,
+      deltaType: kpi.repeatRate.delta >= 0 ? "increase" : "decrease",
+      color: KPI_COLORS[1]
+    },
+    {
+      title: "3ヶ月以内再来店意向（リピーター）",
+      metric: `${Number(kpi.repeaterRevisit.current).toFixed(1)}%`,
+      delta: `${kpi.repeaterRevisit.delta >= 0 ? '+' : ''}${Number(kpi.repeaterRevisit.delta).toFixed(1)}%`,
+      deltaType: kpi.repeaterRevisit.delta >= 0 ? "increase" : "decrease",
+      color: KPI_COLORS[2]
+    },
+    {
+      title: "3ヶ月以内再来店意向（新規）",
+      metric: `${Number(kpi.newRevisit.current).toFixed(1)}%`,
+      delta: `${kpi.newRevisit.delta >= 0 ? '+' : ''}${Number(kpi.newRevisit.delta).toFixed(1)}%`,
+      deltaType: kpi.newRevisit.delta >= 0 ? "increase" : "decrease",
+      color: KPI_COLORS[3]
+    }
+  ];
+
+  return (
+    <ContentPage title="概要" pageNumber={pageNumber}>
+      <View style={styles.kpiGrid}>
+        {kpiCards.map((kpi, index) => (
+          <KPICard
+            key={index}
+            title={kpi.title}
+            metric={kpi.metric}
+            delta={kpi.delta}
+            deltaType={kpi.deltaType}
+            color={kpi.color}
+          />
+        ))}
       </View>
-    )}
-  </ContentPage>
-);
+    </ContentPage>
+  );
+};
 
 /**
  * PDFドキュメントコンポーネント
@@ -330,8 +380,8 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       companyName={companyName}
     />
 
-    {/* サマリーページ */}
-    <SummaryPage
+    {/* 概要ページ */}
+    <OverviewPage
       reportData={reportData}
       pageNumber={1}
     />
@@ -372,7 +422,8 @@ export default {
   PDFDocument,
   CoverPage,
   ContentPage,
-  SummaryPage,
+  OverviewPage,
+  KPICard,
   generatePDFBlob,
   downloadPDF,
 };
