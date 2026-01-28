@@ -188,9 +188,8 @@ const styles = StyleSheet.create({
   },
   pageCommentBar: {
     backgroundColor: colors.primary,
-    borderRadius: 8,
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
   },
   pageCommentText: {
     fontSize: 13,
