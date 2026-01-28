@@ -1724,12 +1724,12 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
                 <div className="space-y-2">
                   <div className="text-3xl font-bold">{kpi.metric}</div>
                   <div className="flex items-center gap-2">
-                    <Badge 
-                      variant={kpi.deltaType === 'increase' ? 'outline' : 'destructive'} 
+                    <Badge
+                      variant="outline"
                       className="gap-1 border-0 text-white font-semibold"
                       style={{
-                        backgroundColor: kpi.deltaType === 'increase' ? COLORS[index] : undefined,
-                        color: kpi.deltaType === 'increase' ? 'white' : undefined
+                        backgroundColor: COLORS[index],
+                        color: 'white'
                       }}
                     >
                       {kpi.deltaType === 'increase' ? (
