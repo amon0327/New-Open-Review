@@ -43,11 +43,20 @@ const colors = {
   gray700: '#334155',
   gray900: '#0f172a',
   green500: '#22c55e',
+  green100: '#dcfce7',
+  green200: '#bbf7d0',
+  green700: '#15803d',
   red500: '#ef4444',
+  red100: '#fee2e2',
+  red200: '#fecaca',
+  red700: '#b91c1c',
   // KPIカード用カラー
   blue500: '#3b82f6',
   emerald500: '#10b981',
   amber500: '#f59e0b',
+  amber100: '#fef3c7',
+  amber200: '#fde68a',
+  amber700: '#b45309',
   violet500: '#8b5cf6',
 };
 
@@ -195,6 +204,89 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.gray400,
   },
+
+  // ============================================
+  // チャートセクション
+  // ============================================
+  chartSection: {
+    flexDirection: 'row',
+    gap: 16,
+    marginTop: 20,
+  },
+  chartCard: {
+    flex: 1,
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'solid',
+  },
+  chartTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.gray900,
+    marginBottom: 4,
+  },
+  chartSubtitle: {
+    fontSize: 10,
+    color: colors.gray500,
+    marginBottom: 12,
+  },
+
+  // NPS分布カード
+  npsDistributionBar: {
+    flexDirection: 'row',
+    height: 24,
+    borderRadius: 6,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  npsDistributionLegend: {
+    gap: 8,
+  },
+  npsLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 10,
+    borderRadius: 8,
+  },
+  npsLegendLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  npsLegendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  npsLegendLabel: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: colors.gray700,
+  },
+  npsLegendValue: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+
+  // NPSトレンドチャート
+  trendChartContainer: {
+    height: 140,
+    position: 'relative',
+  },
+  trendXAxis: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingHorizontal: 10,
+  },
+  trendXLabel: {
+    fontSize: 8,
+    color: colors.gray500,
+  },
 });
 
 // ロゴURL
@@ -308,7 +400,140 @@ const ContentPage = ({ title, children, pageNumber }) => (
 );
 
 /**
- * 概要ページコンポーネント（KPIカード4枚）
+ * NPS分布カードコンポーネント
+ */
+const NPSDistributionCard = ({ npsDistribution }) => {
+  const promoters = npsDistribution?.promoters || 0;
+  const passives = npsDistribution?.passives || 0;
+  const detractors = npsDistribution?.detractors || 0;
+  const total = promoters + passives + detractors || 100;
+
+  const promoterWidth = (promoters / total) * 100;
+  const passiveWidth = (passives / total) * 100;
+  const detractorWidth = (detractors / total) * 100;
+
+  return (
+    <View style={styles.chartCard}>
+      <Text style={styles.chartTitle}>推奨スコア詳細分析</Text>
+      <Text style={styles.chartSubtitle}>推奨者・中立者・批判者の内訳</Text>
+
+      {/* 横棒グラフ */}
+      <View style={styles.npsDistributionBar}>
+        <View style={{ width: `${promoterWidth}%`, backgroundColor: colors.emerald500 }} />
+        <View style={{ width: `${passiveWidth}%`, backgroundColor: colors.amber500 }} />
+        <View style={{ width: `${detractorWidth}%`, backgroundColor: colors.red500 }} />
+      </View>
+
+      {/* 凡例 */}
+      <View style={styles.npsDistributionLegend}>
+        <View style={[styles.npsLegendItem, { backgroundColor: colors.green100, borderWidth: 1, borderColor: colors.green200, borderStyle: 'solid' }]}>
+          <View style={styles.npsLegendLeft}>
+            <View style={[styles.npsLegendDot, { backgroundColor: colors.emerald500 }]} />
+            <Text style={styles.npsLegendLabel}>推奨者（9-10点）</Text>
+          </View>
+          <Text style={[styles.npsLegendValue, { color: colors.green700 }]}>{promoters}%</Text>
+        </View>
+        <View style={[styles.npsLegendItem, { backgroundColor: colors.amber100, borderWidth: 1, borderColor: colors.amber200, borderStyle: 'solid' }]}>
+          <View style={styles.npsLegendLeft}>
+            <View style={[styles.npsLegendDot, { backgroundColor: colors.amber500 }]} />
+            <Text style={styles.npsLegendLabel}>中立者（7-8点）</Text>
+          </View>
+          <Text style={[styles.npsLegendValue, { color: colors.amber700 }]}>{passives}%</Text>
+        </View>
+        <View style={[styles.npsLegendItem, { backgroundColor: colors.red100, borderWidth: 1, borderColor: colors.red200, borderStyle: 'solid' }]}>
+          <View style={styles.npsLegendLeft}>
+            <View style={[styles.npsLegendDot, { backgroundColor: colors.red500 }]} />
+            <Text style={styles.npsLegendLabel}>批判者（0-6点）</Text>
+          </View>
+          <Text style={[styles.npsLegendValue, { color: colors.red700 }]}>{detractors}%</Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+/**
+ * NPSトレンドチャートコンポーネント
+ */
+const NPSTrendChart = ({ monthlyPerformance }) => {
+  const data = monthlyPerformance || [];
+
+  if (data.length === 0) {
+    return (
+      <View style={styles.chartCard}>
+        <Text style={styles.chartTitle}>推奨スコア推移</Text>
+        <Text style={styles.chartSubtitle}>月別の推奨スコアトレンド</Text>
+        <View style={{ height: 140, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 11, color: colors.gray400 }}>データがありません</Text>
+        </View>
+      </View>
+    );
+  }
+
+  // データからminとmaxを計算
+  const values = data.map(d => d.nps || 0);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  const range = maxValue - minValue || 1;
+  const padding = range * 0.1;
+  const chartMin = minValue - padding;
+  const chartMax = maxValue + padding;
+  const chartRange = chartMax - chartMin;
+
+  // SVGのサイズ
+  const chartWidth = 320;
+  const chartHeight = 120;
+
+  // ポイントを計算
+  const points = data.map((d, i) => {
+    const x = (i / (data.length - 1 || 1)) * chartWidth;
+    const y = chartHeight - ((d.nps - chartMin) / chartRange) * chartHeight;
+    return { x, y, value: d.nps, month: d.month };
+  });
+
+  // 折れ線のパス
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+  // エリアのパス（グラデーション用）
+  const areaPath = `${linePath} L ${chartWidth} ${chartHeight} L 0 ${chartHeight} Z`;
+
+  return (
+    <View style={styles.chartCard}>
+      <Text style={styles.chartTitle}>推奨スコア推移</Text>
+      <Text style={styles.chartSubtitle}>月別の推奨スコアトレンド</Text>
+
+      <View style={styles.trendChartContainer}>
+        <Svg width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+          {/* エリア塗りつぶし */}
+          <Path d={areaPath} fill={colors.primary} fillOpacity={0.15} />
+          {/* 折れ線 */}
+          <Path d={linePath} stroke={colors.primary} strokeWidth={2.5} fill="none" />
+          {/* ポイント */}
+          {points.map((p, i) => (
+            <React.Fragment key={i}>
+              <Path
+                d={`M ${p.x - 4} ${p.y} a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0`}
+                fill={colors.white}
+                stroke={colors.primary}
+                strokeWidth={2}
+              />
+            </React.Fragment>
+          ))}
+        </Svg>
+      </View>
+
+      {/* X軸ラベル */}
+      <View style={styles.trendXAxis}>
+        {data.slice(0, 6).map((d, i) => (
+          <Text key={i} style={styles.trendXLabel}>{d.month}</Text>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+/**
+ * 概要ページコンポーネント（KPIカード3枚 + チャート2枚）
  */
 const OverviewPage = ({ reportData, pageNumber }) => {
   // KPIデータを取得（reportDataから）
@@ -318,6 +543,16 @@ const OverviewPage = ({ reportData, pageNumber }) => {
     repeaterRevisit: { current: 0, delta: 0 },
     newRevisit: { current: 0, delta: 0 }
   };
+
+  // NPS分布データ
+  const npsDistribution = reportData?.npsDistribution || {
+    promoters: 0,
+    passives: 0,
+    detractors: 0
+  };
+
+  // 月別パフォーマンスデータ
+  const monthlyPerformance = reportData?.monthlyPerformance || [];
 
   const kpiCards = [
     {
@@ -335,23 +570,17 @@ const OverviewPage = ({ reportData, pageNumber }) => {
       color: KPI_COLORS[1]
     },
     {
-      title: "3ヶ月以内再来店意向（リピーター）",
+      title: "3ヶ月以内再来店意向",
       metric: `${Number(kpi.repeaterRevisit.current).toFixed(1)}%`,
       delta: `${kpi.repeaterRevisit.delta >= 0 ? '+' : ''}${Number(kpi.repeaterRevisit.delta).toFixed(1)}%`,
       deltaType: kpi.repeaterRevisit.delta >= 0 ? "increase" : "decrease",
       color: KPI_COLORS[2]
-    },
-    {
-      title: "3ヶ月以内再来店意向（新規）",
-      metric: `${Number(kpi.newRevisit.current).toFixed(1)}%`,
-      delta: `${kpi.newRevisit.delta >= 0 ? '+' : ''}${Number(kpi.newRevisit.delta).toFixed(1)}%`,
-      deltaType: kpi.newRevisit.delta >= 0 ? "increase" : "decrease",
-      color: KPI_COLORS[3]
     }
   ];
 
   return (
     <ContentPage title="概要" pageNumber={pageNumber}>
+      {/* KPIカード（3枚） */}
       <View style={styles.kpiGrid}>
         {kpiCards.map((kpi, index) => (
           <KPICard
@@ -363,6 +592,12 @@ const OverviewPage = ({ reportData, pageNumber }) => {
             color={kpi.color}
           />
         ))}
+      </View>
+
+      {/* チャートセクション（2枚） */}
+      <View style={styles.chartSection}>
+        <NPSDistributionCard npsDistribution={npsDistribution} />
+        <NPSTrendChart monthlyPerformance={monthlyPerformance} />
       </View>
     </ContentPage>
   );
