@@ -2096,6 +2096,148 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
     newCustomer: '#f59e0b',
   };
 
+  // 半円ゲージのSVGアークパスを生成するヘルパー
+  const createSemiDonutArc = (cx, cy, r, startAngle, endAngle) => {
+    const rad1 = (Math.PI * startAngle) / 180;
+    const rad2 = (Math.PI * endAngle) / 180;
+    const x1 = cx + r * Math.cos(rad1);
+    const y1 = cy + r * Math.sin(rad1);
+    const x2 = cx + r * Math.cos(rad2);
+    const y2 = cy + r * Math.sin(rad2);
+    const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+    return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
+  };
+
+  // 半円ゲージのセグメントを生成
+  const renderSemiDonut = (data, colorMap) => {
+    const cx = 70;
+    const cy = 65;
+    const outerR = 50;
+    const innerR = 30;
+    let currentAngle = 180; // 左端（180度）から開始
+
+    return (
+      <Svg width={140} height={75} viewBox="0 0 140 75">
+        {data.map((item, index) => {
+          const sweep = (item.value / 100) * 180;
+          const endAngle = currentAngle + sweep;
+          const outerPath = createSemiDonutArc(cx, cy, outerR, currentAngle, endAngle);
+          const innerEnd = createSemiDonutArc(cx, cy, innerR, endAngle, currentAngle);
+          // 内側の弧（逆方向）
+          const iRad1 = (Math.PI * endAngle) / 180;
+          const iRad2 = (Math.PI * currentAngle) / 180;
+          const ix1 = cx + innerR * Math.cos(iRad1);
+          const iy1 = cy + innerR * Math.sin(iRad1);
+          const ix2 = cx + innerR * Math.cos(iRad2);
+          const iy2 = cy + innerR * Math.sin(iRad2);
+          const innerLarge = sweep > 180 ? 1 : 0;
+          const innerArc = `L ${ix1} ${iy1} A ${innerR} ${innerR} 0 ${innerLarge} 0 ${ix2} ${iy2} Z`;
+          const fullPath = outerPath + innerArc;
+          const color = colorMap[item.name] || '#9ca3af';
+          currentAngle = endAngle;
+          return <Path key={index} d={fullPath} fill={color} />;
+        })}
+      </Svg>
+    );
+  };
+
+  // 円グラフのセグメントを生成（年齢層・同行者用）
+  const renderPieChart = (data, colorsArr) => {
+    const cx = 55;
+    const cy = 55;
+    const r = 35;
+    let currentAngle = -90; // 上から開始
+
+    return (
+      <Svg width={110} height={110} viewBox="0 0 110 110">
+        {data.map((item, index) => {
+          const sweep = (item.value / 100) * 360;
+          const endAngle = currentAngle + sweep;
+          const rad1 = (Math.PI * currentAngle) / 180;
+          const rad2 = (Math.PI * endAngle) / 180;
+          const x1 = cx + r * Math.cos(rad1);
+          const y1 = cy + r * Math.sin(rad1);
+          const x2 = cx + r * Math.cos(rad2);
+          const y2 = cy + r * Math.sin(rad2);
+          const largeArc = sweep > 180 ? 1 : 0;
+          const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+          const color = colorsArr[index % colorsArr.length];
+          currentAngle = endAngle;
+          return <Path key={index} d={path} fill={color} />;
+        })}
+      </Svg>
+    );
+  };
+
+  // レーダーチャートを生成
+  const renderRadarChart = (data, dataKey, fillColor, strokeColor) => {
+    const cx = 75;
+    const cy = 75;
+    const maxR = 55;
+    const categories = data.map(d => d.category);
+    const n = categories.length;
+    if (n === 0) return null;
+
+    // グリッド（同心五角形）
+    const gridLevels = [20, 40, 60, 80, 100];
+    const gridPaths = gridLevels.map(level => {
+      const r = (level / 100) * maxR;
+      const points = [];
+      for (let i = 0; i < n; i++) {
+        const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+        points.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
+      }
+      return points.join(' ');
+    });
+
+    // 放射線
+    const axisLines = [];
+    for (let i = 0; i < n; i++) {
+      const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+      axisLines.push({
+        x: cx + maxR * Math.cos(angle),
+        y: cy + maxR * Math.sin(angle)
+      });
+    }
+
+    // データポイント
+    const dataPoints = data.map((d, i) => {
+      const val = d[dataKey] || 0;
+      const r = (val / 100) * maxR;
+      const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+      return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
+    });
+
+    // ラベル位置
+    const labelPositions = data.map((d, i) => {
+      const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+      const labelR = maxR + 14;
+      return {
+        x: cx + labelR * Math.cos(angle),
+        y: cy + labelR * Math.sin(angle),
+        label: d.category
+      };
+    });
+
+    return (
+      <View style={{ alignItems: 'center' }}>
+        <Svg width={150} height={150} viewBox="0 0 150 150">
+          {/* グリッド */}
+          {gridPaths.map((points, i) => (
+            <Polygon key={i} points={points} fill="none" stroke="#e5e7eb" strokeWidth={0.5} />
+          ))}
+          {/* 放射線 */}
+          {axisLines.map((line, i) => (
+            <Path key={i} d={`M ${cx} ${cy} L ${line.x} ${line.y}`} stroke="#e5e7eb" strokeWidth={0.5} fill="none" />
+          ))}
+          {/* データエリア */}
+          <Polygon points={dataPoints.join(' ')} fill={fillColor} fillOpacity={0.4} stroke={strokeColor} strokeWidth={1.5} />
+        </Svg>
+        {/* ラベル（SVG外にViewで配置） */}
+      </View>
+    );
+  };
+
   return (
     <ContentPage>
       {/* セクションヘッダー */}
@@ -2103,173 +2245,102 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
 
       {/* 4つのカードグリッド */}
       <View style={styles.customerTrendsGrid}>
-        {/* 性別比率 */}
+        {/* 性別比率（半円ゲージ） */}
         <View style={styles.customerTrendsCard}>
           <View style={styles.customerTrendsCardHeader}>
             <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#dbeafe' }]}>
               <Svg width={14} height={14} viewBox="0 0 24 24">
-                <Path
-                  d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                <Path
-                  d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  fill="none"
-                />
+                <Path d="M17 21V19C17 17.94 16.58 16.92 15.83 16.17C15.08 15.42 14.06 15 13 15H5C3.94 15 2.92 15.42 2.17 16.17C1.42 16.92 1 17.94 1 19V21" stroke="#3b82f6" strokeWidth={2} strokeLinecap="round" fill="none" />
+                <Path d="M9 11C11.21 11 13 9.21 13 7C13 4.79 11.21 3 9 3C6.79 3 5 4.79 5 7C5 9.21 6.79 11 9 11Z" stroke="#3b82f6" strokeWidth={2} fill="none" />
               </Svg>
             </View>
             <Text style={styles.customerTrendsCardTitle}>性別比率</Text>
           </View>
-          <View style={styles.semicircleContainer}>
-            <View style={styles.semicircleBar}>
-              {genderDistribution.map((item, index) => (
-                <View
-                  key={index}
-                  style={[styles.semicircleSegment, {
-                    width: `${item.value}%`,
-                    backgroundColor: genderColors[item.name] || '#9ca3af'
-                  }]}
-                />
-              ))}
-            </View>
+          <View style={{ alignItems: 'center', marginBottom: 4 }}>
+            {renderSemiDonut(genderDistribution, genderColors)}
           </View>
           <View style={styles.legendContainer}>
             {genderDistribution.map((item, index) => (
               <View key={index} style={styles.legendItem}>
                 <View style={[styles.legendDot, { backgroundColor: genderColors[item.name] || '#9ca3af' }]} />
-                <Text style={styles.legendText}>{item.name}</Text>
-                <Text style={styles.legendValue}>{item.value}%</Text>
+                <Text style={styles.legendText}>{item.name} {item.value}%</Text>
               </View>
             ))}
           </View>
         </View>
 
-        {/* 顧客タイプ */}
+        {/* 顧客タイプ（半円ゲージ） */}
         <View style={styles.customerTrendsCard}>
           <View style={styles.customerTrendsCardHeader}>
             <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#d1fae5' }]}>
               <Svg width={14} height={14} viewBox="0 0 24 24">
-                <Path
-                  d="M22 12h-4l-3 9L9 3l-3 9H2"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
+                <Path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="#10b981" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
               </Svg>
             </View>
             <Text style={styles.customerTrendsCardTitle}>顧客タイプ</Text>
           </View>
-          <View style={styles.semicircleContainer}>
-            <View style={styles.semicircleBar}>
-              {customerTypeDistribution.map((item, index) => (
-                <View
-                  key={index}
-                  style={[styles.semicircleSegment, {
-                    width: `${item.value}%`,
-                    backgroundColor: customerTypeColors[item.name] || '#9ca3af'
-                  }]}
-                />
-              ))}
-            </View>
+          <View style={{ alignItems: 'center', marginBottom: 4 }}>
+            {renderSemiDonut(customerTypeDistribution, customerTypeColors)}
           </View>
           <View style={styles.legendContainer}>
             {customerTypeDistribution.map((item, index) => (
               <View key={index} style={styles.legendItem}>
                 <View style={[styles.legendDot, { backgroundColor: customerTypeColors[item.name] || '#9ca3af' }]} />
-                <Text style={styles.legendText}>{item.name}</Text>
-                <Text style={styles.legendValue}>{item.value}%</Text>
+                <Text style={styles.legendText}>{item.name} {item.value}%</Text>
               </View>
             ))}
           </View>
         </View>
 
-        {/* 年齢層 */}
+        {/* 年齢層（円グラフ） */}
         <View style={styles.customerTrendsCard}>
           <View style={styles.customerTrendsCardHeader}>
             <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#ede9fe' }]}>
               <Svg width={14} height={14} viewBox="0 0 24 24">
-                <Path
-                  d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"
-                  stroke="#8b5cf6"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
+                <Path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#8b5cf6" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
               </Svg>
             </View>
             <Text style={styles.customerTrendsCardTitle}>年齢層</Text>
           </View>
-          <View style={styles.verticalBarContainer}>
+          <View style={{ alignItems: 'center', marginBottom: 4 }}>
+            {renderPieChart(ageDistribution.slice(0, 5), ageColors)}
+          </View>
+          <View style={[styles.legendContainer, { flexWrap: 'wrap', gap: 4 }]}>
             {ageDistribution.slice(0, 5).map((item, index) => (
-              <View key={index} style={styles.verticalBarItem}>
-                <Text style={styles.verticalBarLabel}>{item.name}</Text>
-                <View style={styles.verticalBarTrack}>
-                  <View
-                    style={[styles.verticalBarFill, {
-                      width: `${item.value}%`,
-                      backgroundColor: ageColors[index % ageColors.length]
-                    }]}
-                  />
-                </View>
-                <Text style={styles.verticalBarValue}>{item.value}%</Text>
+              <View key={index} style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: ageColors[index % ageColors.length] }]} />
+                <Text style={styles.legendText}>{item.name} {item.value}%</Text>
               </View>
             ))}
           </View>
         </View>
 
-        {/* 同行者 */}
+        {/* 同行者（円グラフ） */}
         <View style={styles.customerTrendsCard}>
           <View style={styles.customerTrendsCardHeader}>
             <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#ffedd5' }]}>
               <Svg width={14} height={14} viewBox="0 0 24 24">
-                <Path
-                  d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
-                  stroke="#f97316"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
-                <Path
-                  d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
-                  stroke="#f97316"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                />
+                <Path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#f97316" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <Path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="#f97316" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
               </Svg>
             </View>
             <Text style={styles.customerTrendsCardTitle}>同行者</Text>
           </View>
-          <View style={styles.verticalBarContainer}>
+          <View style={{ alignItems: 'center', marginBottom: 4 }}>
+            {renderPieChart(companionDistribution.slice(0, 4), companionColors)}
+          </View>
+          <View style={[styles.legendContainer, { flexWrap: 'wrap', gap: 4 }]}>
             {companionDistribution.slice(0, 4).map((item, index) => (
-              <View key={index} style={styles.verticalBarItem}>
-                <Text style={styles.verticalBarLabel}>{item.name}</Text>
-                <View style={styles.verticalBarTrack}>
-                  <View
-                    style={[styles.verticalBarFill, {
-                      width: `${item.value}%`,
-                      backgroundColor: companionColors[index % companionColors.length]
-                    }]}
-                  />
-                </View>
-                <Text style={styles.verticalBarValue}>{item.value}%</Text>
+              <View key={index} style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: companionColors[index % companionColors.length] }]} />
+                <Text style={styles.legendText}>{item.name} {item.value}%</Text>
               </View>
             ))}
           </View>
         </View>
       </View>
 
-      {/* 顧客の重視ポイント */}
+      {/* 顧客の重視ポイント（レーダーチャート3列 + 順位） */}
       <View style={styles.priorityCard}>
         <View style={styles.priorityCardHeader}>
           <Text style={styles.priorityCardTitle}>顧客の重視ポイント</Text>
@@ -2278,43 +2349,52 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
           {/* 全体の評価 */}
           <View style={styles.priorityColumn}>
             <Text style={styles.priorityColumnTitle}>全体の評価</Text>
-            {[...radarData].sort((a, b) => (b.total || 0) - (a.total || 0)).map((item, index) => (
-              <View key={index} style={styles.priorityRankItem}>
-                <View style={styles.priorityRankLeft}>
-                  <Text style={styles.priorityRankNumber}>{index + 1}位</Text>
-                  <Text style={styles.priorityRankLabel}>{item.category}</Text>
+            {renderRadarChart(radarData, 'total', '#3b82f6', '#3b82f6')}
+            <View style={{ marginTop: 6, gap: 3 }}>
+              {[...radarData].sort((a, b) => (b.total || 0) - (a.total || 0)).map((item, index) => (
+                <View key={index} style={styles.priorityRankItem}>
+                  <View style={styles.priorityRankLeft}>
+                    <Text style={styles.priorityRankNumber}>{index + 1}位</Text>
+                    <Text style={styles.priorityRankLabel}>{item.category}</Text>
+                  </View>
+                  <Text style={[styles.priorityRankValue, { color: priorityColumnColors.total }]}>{item.total || 0}</Text>
                 </View>
-                <Text style={[styles.priorityRankValue, { color: priorityColumnColors.total }]}>{item.total || 0}</Text>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
 
           {/* リピーターの評価 */}
           <View style={styles.priorityColumn}>
             <Text style={styles.priorityColumnTitle}>リピーターの評価</Text>
-            {[...radarData].sort((a, b) => (b.repeater || 0) - (a.repeater || 0)).map((item, index) => (
-              <View key={index} style={styles.priorityRankItem}>
-                <View style={styles.priorityRankLeft}>
-                  <Text style={styles.priorityRankNumber}>{index + 1}位</Text>
-                  <Text style={styles.priorityRankLabel}>{item.category}</Text>
+            {renderRadarChart(radarData, 'repeater', '#10b981', '#10b981')}
+            <View style={{ marginTop: 6, gap: 3 }}>
+              {[...radarData].sort((a, b) => (b.repeater || 0) - (a.repeater || 0)).map((item, index) => (
+                <View key={index} style={styles.priorityRankItem}>
+                  <View style={styles.priorityRankLeft}>
+                    <Text style={styles.priorityRankNumber}>{index + 1}位</Text>
+                    <Text style={styles.priorityRankLabel}>{item.category}</Text>
+                  </View>
+                  <Text style={[styles.priorityRankValue, { color: priorityColumnColors.repeater }]}>{item.repeater || 0}</Text>
                 </View>
-                <Text style={[styles.priorityRankValue, { color: priorityColumnColors.repeater }]}>{item.repeater || 0}</Text>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
 
           {/* 新規顧客の評価 */}
           <View style={styles.priorityColumn}>
             <Text style={styles.priorityColumnTitle}>新規顧客の評価</Text>
-            {[...radarData].sort((a, b) => (b.newCustomer || 0) - (a.newCustomer || 0)).map((item, index) => (
-              <View key={index} style={styles.priorityRankItem}>
-                <View style={styles.priorityRankLeft}>
-                  <Text style={styles.priorityRankNumber}>{index + 1}位</Text>
-                  <Text style={styles.priorityRankLabel}>{item.category}</Text>
+            {renderRadarChart(radarData, 'newCustomer', '#f59e0b', '#f59e0b')}
+            <View style={{ marginTop: 6, gap: 3 }}>
+              {[...radarData].sort((a, b) => (b.newCustomer || 0) - (a.newCustomer || 0)).map((item, index) => (
+                <View key={index} style={styles.priorityRankItem}>
+                  <View style={styles.priorityRankLeft}>
+                    <Text style={styles.priorityRankNumber}>{index + 1}位</Text>
+                    <Text style={styles.priorityRankLabel}>{item.category}</Text>
+                  </View>
+                  <Text style={[styles.priorityRankValue, { color: priorityColumnColors.newCustomer }]}>{item.newCustomer || 0}</Text>
                 </View>
-                <Text style={[styles.priorityRankValue, { color: priorityColumnColors.newCustomer }]}>{item.newCustomer || 0}</Text>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
         </View>
       </View>
