@@ -1109,7 +1109,6 @@ const CoverPage = ({ report, storeName, companyName }) => {
         <Text style={styles.coverDate}>{formatYearMonth(report.yearMonth)}</Text>
       </View>
 
-      <View style={styles.coverBottomBar} />
     </Page>
   );
 };
