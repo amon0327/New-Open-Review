@@ -705,7 +705,7 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
               <div className="px-6 pt-4 pb-3">
                 <div className="flex items-center gap-1.5 mb-3">
                   <AlertTriangle className="w-3.5 h-3.5 text-gray-400" />
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">課題</span>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">課題&注意</span>
                 </div>
                 <ul className="space-y-2">
                   {insights.issues.map((issue, idx) => (
