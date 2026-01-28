@@ -181,17 +181,23 @@ const styles = StyleSheet.create({
   },
 
   // ページコメントバー
-  pageCommentBar: {
+  pageCommentBarWrapper: {
     marginTop: 'auto',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  pageCommentBar: {
     backgroundColor: colors.primary,
     borderRadius: 8,
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
   pageCommentText: {
-    fontSize: 10,
+    fontSize: 13,
+    fontWeight: 'bold',
     color: colors.white,
     fontFamily: 'NotoSansJP',
+    textAlign: 'center',
     lineHeight: 1.5,
   },
 
@@ -1205,8 +1211,10 @@ const SectionHeader = ({ title, pageNumber }) => (
 const PageComment = ({ comment }) => {
   if (!comment) return null;
   return (
-    <View style={styles.pageCommentBar}>
-      <Text style={styles.pageCommentText}>{comment}</Text>
+    <View style={styles.pageCommentBarWrapper}>
+      <View style={styles.pageCommentBar}>
+        <Text style={styles.pageCommentText}>{comment}</Text>
+      </View>
     </View>
   );
 };
