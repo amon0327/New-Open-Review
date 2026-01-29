@@ -777,17 +777,14 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                   <div className="px-6 pb-6 space-y-4">
                     <Separator />
                     {/* 対象セグメント表示 */}
-                    <div className="bg-gray-50 rounded-xl px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${categoryTag.bg}`}>
-                          {categoryTag.label}
-                        </span>
-                        <span className="text-gray-300 font-bold text-xs">×</span>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>
-                          {npsTag.label}
-                        </span>
-                      </div>
-                      <p className="text-[12px] text-gray-500 leading-relaxed mt-2">{details.who}</p>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${categoryTag.bg}`}>
+                        {categoryTag.label}
+                      </span>
+                      <span className="text-gray-300 font-bold text-xs">×</span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>
+                        {npsTag.label}
+                      </span>
                     </div>
                     {/* 課題・効果 */}
                     <div className="space-y-4">
