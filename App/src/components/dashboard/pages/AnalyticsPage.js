@@ -805,12 +805,16 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                         </div>
                       ))}
                     </div>
-                    {/* 改善案 / 測定方法 */}
+                    {/* 参考 改善案/測定方法 */}
                     <div className="bg-violet-50 rounded-xl p-4">
-                      <span className="text-[11px] font-bold text-violet-600 uppercase">改善案 / 測定方法</span>
-                      <div className="mt-2.5">
-                        <p className="text-[12px] text-gray-700">{details.examples[0]}</p>
-                        <p className="text-[11px] text-violet-500 mt-1 pl-3">→ {details.measurement}</p>
+                      <span className="text-[11px] font-bold text-violet-600 uppercase">参考 改善案/測定方法</span>
+                      <div className="mt-2.5 space-y-2.5">
+                        {details.examples.slice(0, 3).map((ex, idx) => (
+                          <div key={idx}>
+                            <p className="text-[12px] text-gray-700">{ex}</p>
+                            <p className="text-[11px] text-violet-500 pl-3">→ {details.measurement}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
