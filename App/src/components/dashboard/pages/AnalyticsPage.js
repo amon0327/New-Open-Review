@@ -759,13 +759,8 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
 
           return (
             <div key={`detail-${seg.id}`} className="relative">
-              <div className="absolute -top-2.5 left-5 z-10 flex items-center gap-1.5">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm ${categoryTag.bg}`}>
-                  {categoryTag.label}
-                </span>
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold text-white shadow-sm ${npsTag.bg}`}>
-                  {npsTag.label}
-                </span>
+              <div className={`absolute -top-2.5 left-5 z-10 inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm ${categoryTag.bg}`}>
+                {categoryTag.label}
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden pt-2">
                 <button
