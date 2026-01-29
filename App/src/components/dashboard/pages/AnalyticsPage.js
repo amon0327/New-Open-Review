@@ -786,7 +786,6 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>
                           {npsTag.label}
                         </span>
-                        <span className="text-xs text-gray-400 font-medium ml-1">{seg.count}人</span>
                       </div>
                       <p className="text-[12px] text-gray-500 leading-relaxed mt-2">{details.who}</p>
                     </div>
