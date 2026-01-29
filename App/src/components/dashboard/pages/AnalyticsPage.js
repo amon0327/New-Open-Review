@@ -49,7 +49,18 @@ import {
   ChevronUp,
   User,
   UtensilsCrossed,
-  Sparkles
+  Sparkles,
+  ChevronRight,
+  Target,
+  Eye,
+  Zap,
+  ArrowRight,
+  Hash,
+  Minus,
+  Plus,
+  Info,
+  Shield,
+  Layers
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -470,6 +481,7 @@ const SEGMENT_INSIGHTS = {
 // セグメント別の詳細情報（開閉カード用）
 const SEGMENT_DETAILS = {
   1: {
+    title: 'ロイヤル顧客の維持・強化戦略',
     detail: 'お店を最も高く評価し、定期的に来店しているロイヤル顧客。満足度は高いが、競合の台頭や環境変化によって離脱するリスクは常に存在する。この層の維持が売上安定の最大の鍵。',
     who: 'NPS9-10点をつけ、3ヶ月以内の再来店意向があるリピーター。来店頻度が高く、客単価も安定している最重要顧客層。',
     impact: 'ロイヤル顧客1人の離脱は新規顧客5人分の損失に相当。維持率を高めることで安定収益の確保に加え、口コミによる新規集客効果も持続する。',
@@ -477,6 +489,7 @@ const SEGMENT_DETAILS = {
     measurement: 'ロイヤル顧客の継続率（月次）、来店頻度の推移、客単価の変化、口コミ・紹介経由の新規来店数をトラッキング。'
   },
   2: {
+    title: '新規推奨者のリピーター転換',
     detail: '初回来店で高い満足度を示し、再来店意向もある新規顧客。ただしリピーターとして定着するかは未確定で、2回目の来店への橋渡しが成否を分ける。',
     who: 'NPS9-10点をつけた初回来店の新規顧客で、3ヶ月以内に再来店したいと回答した層。',
     impact: '新規→リピーター転換率の向上は、新規獲得コストの回収効率を大幅に改善する。推奨者としての口コミ拡散も期待できる。',
@@ -484,6 +497,7 @@ const SEGMENT_DETAILS = {
     measurement: '2回目来店率、新規→リピーター転換率、初回来店後30日以内の再来店率、SNSフォロー率。'
   },
   3: {
+    title: '高評価リピーターの離脱防止',
     detail: '高い評価をしているにもかかわらず再来店意向がないリピーター。引越しや生活スタイルの変化などの外的要因、あるいは競合店への流出が考えられる。',
     who: 'NPS9-10点のリピーターで、3ヶ月以内の再来店予定がないと回答した層。お店自体への不満は少ない。',
     impact: '離脱を防げれば、高い推奨度を活かした口コミ効果の維持と安定売上の確保が見込める。ロイヤル顧客への復帰可能性が最も高い層。',
@@ -491,6 +505,7 @@ const SEGMENT_DETAILS = {
     measurement: '離脱率の推移、復帰来店率、離脱理由の傾向分析、復帰後の継続率。'
   },
   4: {
+    title: '好印象新規の再来店促進',
     detail: '初回来店で高評価だったが、再来店する動機がない新規顧客。立地やアクセスの問題、またはリピートにつながる仕掛けの不足が原因と考えられる。',
     who: 'NPS9-10点の新規顧客で、再来店予定がないと回答した層。体験自体は良かったが、再訪の必然性を感じていない。',
     impact: '再来店のきっかけを提供するだけでリピーター化が期待でき、高い推奨度からの口コミ効果も見込める。',
@@ -498,6 +513,7 @@ const SEGMENT_DETAILS = {
     measurement: '初回来店者の再来店率、クーポン利用率、アプリ登録率、紹介経由の来店数。'
   },
   5: {
+    title: '中立リピーターの推奨者化',
     detail: '定期的に来店しているが、推奨するほどの満足度には達していないリピーター。サービスへの慣れや特別感の薄れが背景にある可能性がある。',
     who: 'NPS7-8点のリピーターで再来店意向がある層。不満はないが「人に勧めるほどではない」という温度感の顧客。',
     impact: '推奨者に引き上げれば、口コミによる新規獲得と来店頻度・客単価の向上が同時に実現する。LTV向上の最大チャンス。',
@@ -505,6 +521,7 @@ const SEGMENT_DETAILS = {
     measurement: 'NPS7-8点→9-10点への転換率、来店頻度の変化、客単価の推移、口コミ投稿の有無。'
   },
   6: {
+    title: '印象の薄い新規への差別化',
     detail: '再来店意向はあるが、強い印象を残せていない新規顧客。「また行ってもいい」程度の弱い動機で、競合にスイッチされやすい状態。',
     who: 'NPS7-8点の新規顧客で再来店意向がある層。可もなく不可もなくという評価で、差別化ポイントが十分に伝わっていない。',
     impact: '次回来店時の体験向上で推奨者化が可能。初期段階でファンになれば、長期的な売上貢献と口コミ効果が期待できる。',
@@ -512,6 +529,7 @@ const SEGMENT_DETAILS = {
     measurement: '2回目来店率、NPS中立→推奨者への転換率、来店間隔の短縮度、リピーター定着率。'
   },
   7: {
+    title: 'リピーター離脱の兆候と対策',
     detail: 'これまで来店していたリピーターが満足度低下により離脱を検討している状態。サービス品質の低下や期待とのギャップが蓄積しており、対策しなければ離脱が確定する。',
     who: 'NPS7-8点で再来店意向がないリピーター。以前は満足していたが、最近の体験で評価が下がっている可能性が高い。',
     impact: '離脱防止と推奨者への転換で、安定した売上基盤の維持とネガティブ口コミの防止につながる。既存顧客の維持は新規獲得の5倍効率的。',
@@ -519,6 +537,7 @@ const SEGMENT_DETAILS = {
     measurement: '離脱予兆スコアの推移、復帰率、改善施策実施後のNPS変化、来店頻度の回復度。'
   },
   8: {
+    title: '初回体験の印象強化',
     detail: '初回体験が印象に残らず、再来店する理由がない新規顧客。店舗の差別化ポイントが伝わっておらず、新規獲得にかけたコストが回収できていない状態。',
     who: 'NPS7-8点で再来店意向がない新規顧客。特に不満はないが、記憶に残る体験がなかった層。',
     impact: '初回体験の改善で再来店率を向上させれば、新規獲得コストの回収効率が大幅に改善する。中立者は改善余地が最も大きいセグメント。',
@@ -526,6 +545,7 @@ const SEGMENT_DETAILS = {
     measurement: '初回来店者の再来店率、初回体験満足度スコア、ウェルカムプログラムの利用率、NPS改善幅。'
   },
   9: {
+    title: '不満蓄積リピーターの改善',
     detail: '不満を抱えながらも来店を続けているリピーター。代替店がない、立地的に便利、または習慣的に来店している状態。ネガティブ口コミを発信するリスクが高い。',
     who: 'NPS0-6点で再来店意向があるリピーター。不満があるが何らかの理由で来店を継続している層。潜在的なクレーマーリスクあり。',
     impact: '不満の根本原因を解消すれば、中立者→推奨者への段階的な転換チャンスがある。ネガティブ口コミの抑制は見えない機会損失を防ぐ。',
@@ -533,6 +553,7 @@ const SEGMENT_DETAILS = {
     measurement: 'NPS批判者→中立者への転換率、クレーム件数の推移、ネガティブ口コミ数の変化、来店継続率。'
   },
   10: {
+    title: '不満新規の逆転チャンス',
     detail: '初回体験に明確な不満があった新規顧客だが、再来店意向はある。具体的な改善ポイントが存在するサインであり、対応すれば満足度を大幅に向上できる可能性がある。',
     who: 'NPS0-6点で再来店意向がある新規顧客。不満はあるが、店舗への期待値は残っている層。改善すれば逆転の余地あり。',
     impact: 'フィードバックに基づく具体的改善で満足度を大幅向上させる余地がある。改善後のリピーター化で新規獲得コストの回収が可能。',
@@ -540,6 +561,7 @@ const SEGMENT_DETAILS = {
     measurement: '再来店率、再来店時のNPS改善幅、不満カテゴリ別の解消率、改善通知後のアクション率。'
   },
   11: {
+    title: 'リピーター完全離脱の危機対応',
     detail: 'リピーターの信頼を完全に失い、離脱が確定している状態。不満が蓄積し、もう来店する意思がない。ネガティブ口コミの最大リスク要因であり、最優先で対処すべきセグメント。',
     who: 'NPS0-6点で再来店意向がないリピーター。以前は来店していたが、不満が限界を超え離脱を決意した層。',
     impact: '離脱防止できれば安定売上の維持に直結。1人のリピーター維持は新規顧客5人分の獲得に相当。ネガティブ口コミの拡散防止も重要な効果。',
@@ -547,6 +569,7 @@ const SEGMENT_DETAILS = {
     measurement: '離脱率の推移、復帰成功率、離脱理由の分布、ネガティブ口コミの発生件数、改善後の再評価スコア。'
   },
   12: {
+    title: '初回体験の根本的な改善',
     detail: '初回体験が非常に悪く、完全に離脱した新規顧客。新規獲得にかけたコストが完全に無駄になっており、悪い口コミの拡散リスクが最も高い状態。',
     who: 'NPS0-6点で再来店意向がない新規顧客。初回体験で強い不満を感じ、二度と来ないと判断した層。',
     impact: '初回体験の根本改善で新規→リピーター転換率を向上できる。口コミサイトでの評判改善は、新規集客力の底上げにつながる。',
@@ -591,6 +614,8 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const [loading, setLoading] = useState(true);
   const [segments, setSegments] = useState([]);
   const [expandedDetail, setExpandedDetail] = useState(null);
+  const [expandedDesigns, setExpandedDesigns] = useState({});
+  const toggleDesign = (key) => setExpandedDesigns(prev => ({ ...prev, [key]: !prev[key] }));
 
   // selectedPeriodを年月形式に変換
   const getYearMonth = (period) => {
@@ -734,96 +759,779 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
         })}
       </div>
 
-      {/* セグメント別 詳細分析カード */}
-      <div className="mt-8 space-y-3">
-        {issueSegments.map((seg) => {
-          const details = SEGMENT_DETAILS[seg.id];
-          if (!details) return null;
-          const categoryTag = getCategoryTag(seg);
-          const npsTag = getNpsTag(seg);
-          const isOpen = expandedDetail === seg.id;
 
-          return (
-            <div key={`detail-${seg.id}`} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300">
-              {/* ヘッダー（クリックで開閉） */}
-              <button
-                onClick={() => setExpandedDetail(isOpen ? null : seg.id)}
-                className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold text-white tracking-wide ${npsTag.bg}`}>
-                    {npsTag.label}
-                  </span>
-                  <h3 className="text-base font-bold text-gray-900">{categoryTag.label}</h3>
-                  <span className="text-sm text-gray-400 font-medium">{seg.count}人</span>
-                </div>
-                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-              </button>
+      {/* ===== Design 0: オリジナルデザイン（更新版） ===== */}
+      <div className="mt-8">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">Design 0</span>
+          オリジナル
+        </h2>
+        <div className="space-y-3">
+          {issueSegments.map((seg) => {
+            const details = SEGMENT_DETAILS[seg.id];
+            if (!details) return null;
+            const categoryTag = getCategoryTag(seg);
+            const npsTag = getNpsTag(seg);
+            const isOpen = expandedDetail === seg.id;
 
-              {/* 展開コンテンツ */}
-              {isOpen && (
-                <div className="px-6 pb-6 border-t border-gray-100">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-5">
-
-                    {/* 課題の詳細 */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1 h-5 rounded-full bg-slate-800" />
-                        <h4 className="text-sm font-bold text-gray-900 tracking-wide">課題の詳細</h4>
-                      </div>
-                      <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.detail}</p>
+            return (
+              <div key={`d0-${seg.id}`} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all duration-300">
+                <button
+                  onClick={() => setExpandedDetail(isOpen ? null : seg.id)}
+                  className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50/50 transition-colors"
+                >
+                  <h3 className="text-base font-bold text-gray-900">{details.title}</h3>
+                  <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isOpen && (
+                  <div className="px-6 pb-6 border-t border-gray-100">
+                    <div className="flex items-center gap-3 pt-4 pb-3">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold text-white tracking-wide ${npsTag.bg}`}>
+                        {npsTag.label}
+                      </span>
+                      <span className="text-base font-bold text-gray-900">{categoryTag.label}</span>
+                      <span className="text-sm text-gray-400 font-medium">{seg.count}人</span>
                     </div>
-
-                    {/* 対象顧客 */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1 h-5 rounded-full bg-blue-500" />
-                        <h4 className="text-sm font-bold text-gray-900 tracking-wide">対象顧客</h4>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-1 h-5 rounded-full bg-slate-800" />
+                          <h4 className="text-sm font-bold text-gray-900 tracking-wide">課題の詳細</h4>
+                        </div>
+                        <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.detail}</p>
                       </div>
-                      <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.who}</p>
-                    </div>
-
-                    {/* 改善効果 */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1 h-5 rounded-full bg-emerald-500" />
-                        <h4 className="text-sm font-bold text-gray-900 tracking-wide">改善効果</h4>
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-1 h-5 rounded-full bg-blue-500" />
+                          <h4 className="text-sm font-bold text-gray-900 tracking-wide">対象顧客</h4>
+                        </div>
+                        <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.who}</p>
                       </div>
-                      <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.impact}</p>
-                    </div>
-
-                    {/* 改善施策 */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1 h-5 rounded-full bg-violet-500" />
-                        <h4 className="text-sm font-bold text-gray-900 tracking-wide">改善施策</h4>
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-1 h-5 rounded-full bg-emerald-500" />
+                          <h4 className="text-sm font-bold text-gray-900 tracking-wide">改善効果</h4>
+                        </div>
+                        <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.impact}</p>
                       </div>
-                      <ul className="space-y-1.5 pl-3.5">
-                        {details.examples.map((ex, idx) => (
-                          <li key={idx} className="flex items-start gap-2.5 text-[13px] text-gray-600 leading-relaxed">
-                            <div className="w-1.5 h-1.5 rounded-full bg-violet-300 mt-[7px] flex-shrink-0" />
-                            {ex}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* 効果測定 */}
-                    <div className="lg:col-span-2">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1 h-5 rounded-full bg-amber-500" />
-                        <h4 className="text-sm font-bold text-gray-900 tracking-wide">効果測定</h4>
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-1 h-5 rounded-full bg-violet-500" />
+                          <h4 className="text-sm font-bold text-gray-900 tracking-wide">改善施策</h4>
+                        </div>
+                        <ul className="space-y-1.5 pl-3.5">
+                          {details.examples.map((ex, idx) => (
+                            <li key={idx} className="flex items-start gap-2.5 text-[13px] text-gray-600 leading-relaxed">
+                              <div className="w-1.5 h-1.5 rounded-full bg-violet-300 mt-[7px] flex-shrink-0" />
+                              {ex}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.measurement}</p>
+                      <div className="lg:col-span-2">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-1 h-5 rounded-full bg-amber-500" />
+                          <h4 className="text-sm font-bold text-gray-900 tracking-wide">効果測定</h4>
+                        </div>
+                        <p className="text-[13px] text-gray-600 leading-relaxed pl-3.5">{details.measurement}</p>
+                      </div>
                     </div>
-
                   </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
+
+      {/* ===== Design 1: ミニマルライン ===== */}
+      <div className="mt-12">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">Design 1</span>
+          ミニマルライン
+        </h2>
+        <div className="space-y-2">
+          {issueSegments.map((seg) => {
+            const details = SEGMENT_DETAILS[seg.id];
+            if (!details) return null;
+            const categoryTag = getCategoryTag(seg);
+            const npsTag = getNpsTag(seg);
+            const dk = `d1-${seg.id}`;
+            const isOpen = expandedDesigns[dk];
+
+            return (
+              <div key={dk} className="group">
+                <button
+                  onClick={() => toggleDesign(dk)}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left hover:bg-gray-50 rounded-xl transition-colors"
+                >
+                  <div className={`w-1 h-8 rounded-full ${npsTag.bg} transition-all duration-300 ${isOpen ? 'h-12' : ''}`} />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-gray-900 truncate">{details.title}</h3>
+                  </div>
+                  <ChevronRight className={`w-4 h-4 text-gray-300 transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`} />
+                </button>
+                {isOpen && (
+                  <div className="ml-10 mr-5 pb-4 border-l-2 border-gray-100 pl-5 space-y-4 animate-in fade-in duration-200">
+                    <div className="flex items-center gap-2 pt-2">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>{npsTag.label}</span>
+                      <span className="text-sm font-semibold text-gray-700">{categoryTag.label}</span>
+                      <span className="text-xs text-gray-400">{seg.count}人</span>
+                    </div>
+                    <p className="text-[13px] text-gray-500 leading-relaxed">{details.detail}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {details.examples.slice(0, 2).map((ex, idx) => (
+                        <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg text-[12px] text-gray-600">
+                          <Lightbulb className="w-3 h-3 text-gray-400" />
+                          {ex}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== Design 2: ダークヘッダー ===== */}
+      <div className="mt-12">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">Design 2</span>
+          ダークヘッダー
+        </h2>
+        <div className="space-y-3">
+          {issueSegments.map((seg) => {
+            const details = SEGMENT_DETAILS[seg.id];
+            if (!details) return null;
+            const categoryTag = getCategoryTag(seg);
+            const npsTag = getNpsTag(seg);
+            const dk = `d2-${seg.id}`;
+            const isOpen = expandedDesigns[dk];
+
+            return (
+              <div key={dk} className="rounded-2xl overflow-hidden shadow-sm border border-gray-200">
+                <button
+                  onClick={() => toggleDesign(dk)}
+                  className="w-full flex items-center justify-between px-6 py-4 bg-gray-900 text-left hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                      <AlertTriangle className="w-4 h-4 text-white/70" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">{details.title}</h3>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{categoryTag.label} · {seg.count}人</p>
+                    </div>
+                  </div>
+                  <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isOpen && (
+                  <div className="bg-white p-6">
+                    <div className="flex items-center gap-2 mb-5">
+                      <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold text-white ${npsTag.bg}`}>{npsTag.label}</span>
+                      <span className="text-sm font-bold text-gray-700">{categoryTag.label}</span>
+                      <span className="text-sm text-gray-400">{seg.count}人</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">課題</h4>
+                        <p className="text-[13px] text-gray-700 leading-relaxed line-clamp-4">{details.detail}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">対象</h4>
+                        <p className="text-[13px] text-gray-700 leading-relaxed line-clamp-4">{details.who}</p>
+                      </div>
+                      <div className="bg-gray-50 rounded-xl p-4">
+                        <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">効果</h4>
+                        <p className="text-[13px] text-gray-700 leading-relaxed line-clamp-4">{details.impact}</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 bg-violet-50 rounded-xl p-4">
+                      <h4 className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-2">改善施策</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {details.examples.map((ex, idx) => (
+                          <div key={idx} className="flex items-start gap-2 text-[12px] text-gray-600">
+                            <ArrowRight className="w-3 h-3 text-violet-400 mt-0.5 flex-shrink-0" />
+                            {ex}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== Design 3: グラデーションアクセント ===== */}
+      <div className="mt-12">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">Design 3</span>
+          グラデーションアクセント
+        </h2>
+        <div className="space-y-3">
+          {issueSegments.map((seg) => {
+            const details = SEGMENT_DETAILS[seg.id];
+            if (!details) return null;
+            const categoryTag = getCategoryTag(seg);
+            const npsTag = getNpsTag(seg);
+            const dk = `d3-${seg.id}`;
+            const isOpen = expandedDesigns[dk];
+            const gradients = {
+              '推奨者': 'from-green-500 to-emerald-600',
+              '中立者': 'from-amber-400 to-orange-500',
+              '批判者': 'from-red-500 to-rose-600'
+            };
+            const gradient = gradients[seg.npsLabel] || gradients['批判者'];
+
+            return (
+              <div key={dk} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex">
+                <div className={`w-1.5 bg-gradient-to-b ${gradient} flex-shrink-0`} />
+                <div className="flex-1">
+                  <button
+                    onClick={() => toggleDesign(dk)}
+                    className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl font-extrabold text-gray-900">{seg.count}</span>
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900">{details.title}</h3>
+                        <p className="text-[11px] text-gray-400 mt-0.5">{npsTag.label} · {categoryTag.label}</p>
+                      </div>
+                    </div>
+                    <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="px-5 pb-5 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>{npsTag.label}</span>
+                        <span className="text-sm font-semibold text-gray-800">{categoryTag.label}</span>
+                        <span className="text-xs text-gray-400">{seg.count}人</span>
+                      </div>
+                      <p className="text-[13px] text-gray-600 leading-relaxed bg-gray-50 rounded-lg p-3">{details.detail}</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="border border-gray-100 rounded-lg p-3">
+                          <h4 className="text-[11px] font-bold text-gray-500 mb-1.5">対象顧客</h4>
+                          <p className="text-[12px] text-gray-600 leading-relaxed line-clamp-3">{details.who}</p>
+                        </div>
+                        <div className="border border-gray-100 rounded-lg p-3">
+                          <h4 className="text-[11px] font-bold text-gray-500 mb-1.5">改善効果</h4>
+                          <p className="text-[12px] text-gray-600 leading-relaxed line-clamp-3">{details.impact}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-[11px] font-bold text-gray-500 mb-2">施策</h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {details.examples.map((ex, idx) => (
+                            <span key={idx} className="px-2.5 py-1 bg-gray-100 rounded-full text-[11px] text-gray-600">{ex}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== Design 4: フローティングバッジ ===== */}
+      <div className="mt-12">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">Design 4</span>
+          フローティングバッジ
+        </h2>
+        <div className="space-y-5">
+          {issueSegments.map((seg) => {
+            const details = SEGMENT_DETAILS[seg.id];
+            if (!details) return null;
+            const categoryTag = getCategoryTag(seg);
+            const npsTag = getNpsTag(seg);
+            const dk = `d4-${seg.id}`;
+            const isOpen = expandedDesigns[dk];
+
+            return (
+              <div key={dk} className="relative">
+                <div className={`absolute -top-2.5 left-5 z-10 inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm ${npsTag.bg}`}>
+                  {npsTag.label} · {categoryTag.label}
+                </div>
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden pt-2">
+                  <button
+                    onClick={() => toggleDesign(dk)}
+                    className="w-full flex items-center justify-between px-6 pt-4 pb-3 text-left hover:bg-gray-50/30 transition-colors"
+                  >
+                    <div className="flex items-baseline gap-3">
+                      <h3 className="text-base font-bold text-gray-900">{details.title}</h3>
+                      <span className="text-lg font-extrabold text-gray-300">{seg.count}人</span>
+                    </div>
+                    <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="px-6 pb-6 space-y-4">
+                      <Separator />
+                      <div className="space-y-3">
+                        {[
+                          { icon: <Target className="w-4 h-4" />, label: '課題', text: details.detail, color: 'text-red-500' },
+                          { icon: <Users className="w-4 h-4" />, label: '対象', text: details.who, color: 'text-blue-500' },
+                          { icon: <TrendingUp className="w-4 h-4" />, label: '効果', text: details.impact, color: 'text-emerald-500' },
+                          { icon: <BarChart3 className="w-4 h-4" />, label: '測定', text: details.measurement, color: 'text-amber-500' }
+                        ].map((item, idx) => (
+                          <div key={idx} className="flex items-start gap-3">
+                            <div className={`mt-0.5 ${item.color}`}>{item.icon}</div>
+                            <div className="flex-1">
+                              <span className="text-[11px] font-bold text-gray-500 uppercase">{item.label}</span>
+                              <p className="text-[13px] text-gray-600 leading-relaxed mt-0.5 line-clamp-2">{item.text}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="bg-violet-50 rounded-xl p-3">
+                        <span className="text-[11px] font-bold text-violet-600 uppercase">施策</span>
+                        <ul className="mt-1.5 space-y-1">
+                          {details.examples.slice(0, 3).map((ex, idx) => (
+                            <li key={idx} className="text-[12px] text-gray-600 flex items-start gap-2">
+                              <span className="text-violet-400 mt-0.5">→</span> {ex}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== Design 5: スプリットパネル ===== */}
+      <div className="mt-12">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">Design 5</span>
+          スプリットパネル
+        </h2>
+        <div className="space-y-3">
+          {issueSegments.map((seg) => {
+            const details = SEGMENT_DETAILS[seg.id];
+            if (!details) return null;
+            const categoryTag = getCategoryTag(seg);
+            const npsTag = getNpsTag(seg);
+            const dk = `d5-${seg.id}`;
+            const isOpen = expandedDesigns[dk];
+            const bgColors = {
+              '推奨者': 'bg-green-600',
+              '中立者': 'bg-amber-500',
+              '批判者': 'bg-red-600'
+            };
+
+            return (
+              <div key={dk} className="rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+                <button
+                  onClick={() => toggleDesign(dk)}
+                  className="w-full flex text-left hover:opacity-95 transition-opacity"
+                >
+                  <div className={`${bgColors[seg.npsLabel] || 'bg-gray-600'} w-28 flex flex-col items-center justify-center py-4 flex-shrink-0`}>
+                    <span className="text-3xl font-extrabold text-white">{seg.count}</span>
+                    <span className="text-[10px] text-white/70 font-medium mt-0.5">人</span>
+                  </div>
+                  <div className="flex-1 bg-white flex items-center justify-between px-5 py-4">
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900">{details.title}</h3>
+                      <p className="text-[11px] text-gray-400 mt-1">{npsTag.label} · {categoryTag.label}</p>
+                    </div>
+                    <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </button>
+                {isOpen && (
+                  <div className="bg-white border-t border-gray-100 p-5 flex gap-5">
+                    <div className="w-28 flex-shrink-0 flex flex-col gap-2">
+                      <span className={`text-center px-2 py-1 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>{npsTag.label}</span>
+                      <span className={`text-center px-2 py-1 rounded text-[10px] font-bold text-white ${categoryTag.bg}`}>{categoryTag.label}</span>
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <p className="text-[13px] text-gray-600 leading-relaxed">{details.detail}</p>
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <h4 className="text-[11px] font-bold text-gray-500 mb-1">対象顧客</h4>
+                        <p className="text-[12px] text-gray-600 line-clamp-2">{details.who}</p>
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        {details.examples.map((ex, idx) => (
+                          <span key={idx} className="inline-flex items-center gap-1 px-2.5 py-1 bg-violet-50 text-violet-700 rounded-md text-[11px]">
+                            <Zap className="w-3 h-3" />{ex}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== Design 6: アウトラインカード ===== */}
+      <div className="mt-12">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">Design 6</span>
+          アウトラインカード
+        </h2>
+        <div className="space-y-3">
+          {issueSegments.map((seg) => {
+            const details = SEGMENT_DETAILS[seg.id];
+            if (!details) return null;
+            const categoryTag = getCategoryTag(seg);
+            const npsTag = getNpsTag(seg);
+            const dk = `d6-${seg.id}`;
+            const isOpen = expandedDesigns[dk];
+            const borderColors = {
+              '推奨者': 'border-green-300 hover:border-green-400',
+              '中立者': 'border-amber-300 hover:border-amber-400',
+              '批判者': 'border-red-300 hover:border-red-400'
+            };
+            const dotColors = {
+              '推奨者': 'bg-green-500',
+              '中立者': 'bg-amber-500',
+              '批判者': 'bg-red-500'
+            };
+
+            return (
+              <div key={dk} className={`rounded-2xl border-2 ${borderColors[seg.npsLabel] || 'border-gray-300'} bg-transparent overflow-hidden transition-colors duration-200`}>
+                <button
+                  onClick={() => toggleDesign(dk)}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2.5 h-2.5 rounded-full ${dotColors[seg.npsLabel] || 'bg-gray-500'}`} />
+                    <h3 className="text-sm font-bold text-gray-900">{details.title}</h3>
+                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{seg.count}人</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isOpen && (
+                  <div className="px-5 pb-5 border-t border-gray-100">
+                    <div className="flex items-center gap-2 pt-3 pb-3">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>{npsTag.label}</span>
+                      <span className="text-sm font-semibold text-gray-800">{categoryTag.label}</span>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">課題</h4>
+                          <p className="text-[13px] text-gray-700 leading-relaxed">{details.detail}</p>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">効果</h4>
+                          <p className="text-[13px] text-gray-700 leading-relaxed">{details.impact}</p>
+                        </div>
+                      </div>
+                      <div className="border border-dashed border-gray-200 rounded-lg p-3">
+                        <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">施策</h4>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                          {details.examples.map((ex, idx) => (
+                            <p key={idx} className="text-[12px] text-gray-600 flex items-start gap-1.5">
+                              <span className="text-gray-300">·</span> {ex}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== Design 7: タイムライン ===== */}
+      <div className="mt-12">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">Design 7</span>
+          タイムライン
+        </h2>
+        <div className="relative pl-8">
+          <div className="absolute left-3.5 top-0 bottom-0 w-px bg-gray-200" />
+          {issueSegments.map((seg, index) => {
+            const details = SEGMENT_DETAILS[seg.id];
+            if (!details) return null;
+            const categoryTag = getCategoryTag(seg);
+            const npsTag = getNpsTag(seg);
+            const dk = `d7-${seg.id}`;
+            const isOpen = expandedDesigns[dk];
+            const dotBg = {
+              '推奨者': 'bg-green-500 ring-green-100',
+              '中立者': 'bg-amber-500 ring-amber-100',
+              '批判者': 'bg-red-500 ring-red-100'
+            };
+
+            return (
+              <div key={dk} className="relative mb-4">
+                <div className={`absolute -left-8 top-4 w-3 h-3 rounded-full ring-4 ${dotBg[seg.npsLabel] || 'bg-gray-500 ring-gray-100'}`} />
+                <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                  <button
+                    onClick={() => toggleDesign(dk)}
+                    className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-gray-50/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xs text-gray-400 font-mono bg-gray-50 px-2 py-0.5 rounded">#{index + 1}</span>
+                      <h3 className="text-sm font-bold text-gray-900">{details.title}</h3>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-gray-500">{seg.count}人</span>
+                      <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                    </div>
+                  </button>
+                  {isOpen && (
+                    <div className="px-5 pb-5 border-t border-gray-50">
+                      <div className="flex items-center gap-2 pt-3 pb-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>{npsTag.label}</span>
+                        <span className="text-sm font-semibold text-gray-800">{categoryTag.label}</span>
+                        <span className="text-xs text-gray-400">{seg.count}人</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="bg-slate-50 rounded-lg p-3">
+                          <p className="text-[13px] text-gray-700 leading-relaxed">{details.detail}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="flex-1 bg-blue-50 rounded-lg p-3">
+                            <h4 className="text-[10px] font-bold text-blue-600 uppercase mb-1">対象</h4>
+                            <p className="text-[12px] text-gray-600 line-clamp-2">{details.who}</p>
+                          </div>
+                          <div className="flex-1 bg-emerald-50 rounded-lg p-3">
+                            <h4 className="text-[10px] font-bold text-emerald-600 uppercase mb-1">効果</h4>
+                            <p className="text-[12px] text-gray-600 line-clamp-2">{details.impact}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1.5 flex-wrap">
+                          {details.examples.map((ex, idx) => (
+                            <span key={idx} className="px-2 py-0.5 bg-violet-100 text-violet-700 rounded text-[11px]">{ex}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== Design 8: グラスモーフィズム ===== */}
+      <div className="mt-12">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">Design 8</span>
+          グラスモーフィズム
+        </h2>
+        <div className="space-y-3 bg-gradient-to-br from-slate-100 via-blue-50 to-violet-50 rounded-3xl p-5">
+          {issueSegments.map((seg) => {
+            const details = SEGMENT_DETAILS[seg.id];
+            if (!details) return null;
+            const categoryTag = getCategoryTag(seg);
+            const npsTag = getNpsTag(seg);
+            const dk = `d8-${seg.id}`;
+            const isOpen = expandedDesigns[dk];
+
+            return (
+              <div key={dk} className="bg-white/60 backdrop-blur-sm rounded-2xl border border-white/80 shadow-sm overflow-hidden">
+                <button
+                  onClick={() => toggleDesign(dk)}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/40 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full ${npsTag.bg} bg-opacity-20 flex items-center justify-center`}>
+                      <span className={`text-xs font-bold ${npsTag.bg === 'bg-green-600' ? 'text-green-700' : npsTag.bg === 'bg-amber-500' ? 'text-amber-700' : 'text-red-700'}`}>
+                        {seg.count}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900">{details.title}</h3>
+                      <p className="text-[11px] text-gray-500">{npsTag.label} · {categoryTag.label}</p>
+                    </div>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isOpen && (
+                  <div className="px-5 pb-5 space-y-3">
+                    <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>{npsTag.label}</span>
+                      <span className="text-sm font-semibold text-gray-800">{categoryTag.label}</span>
+                      <span className="text-xs text-gray-400">{seg.count}人</span>
+                    </div>
+                    <div className="bg-white/50 rounded-xl p-4 space-y-3">
+                      <p className="text-[13px] text-gray-700 leading-relaxed">{details.detail}</p>
+                      <div className="h-px bg-gray-100" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-1">対象</h4>
+                          <p className="text-[12px] text-gray-600 line-clamp-2">{details.who}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-1">効果</h4>
+                          <p className="text-[12px] text-gray-600 line-clamp-2">{details.impact}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {details.examples.map((ex, idx) => (
+                        <span key={idx} className="px-2.5 py-1 bg-white/70 border border-white rounded-full text-[11px] text-gray-600 shadow-sm">{ex}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== Design 9: ボールドカラーブロック ===== */}
+      <div className="mt-12">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">Design 9</span>
+          ボールドカラー
+        </h2>
+        <div className="space-y-3">
+          {issueSegments.map((seg) => {
+            const details = SEGMENT_DETAILS[seg.id];
+            if (!details) return null;
+            const categoryTag = getCategoryTag(seg);
+            const npsTag = getNpsTag(seg);
+            const dk = `d9-${seg.id}`;
+            const isOpen = expandedDesigns[dk];
+            const headerBg = {
+              '推奨者': 'bg-gradient-to-r from-green-500 to-emerald-600',
+              '中立者': 'bg-gradient-to-r from-amber-400 to-orange-500',
+              '批判者': 'bg-gradient-to-r from-red-500 to-rose-600'
+            };
+
+            return (
+              <div key={dk} className="rounded-2xl overflow-hidden shadow-sm">
+                <button
+                  onClick={() => toggleDesign(dk)}
+                  className={`w-full flex items-center justify-between px-6 py-4 text-left ${headerBg[seg.npsLabel] || 'bg-gray-600'} hover:opacity-95 transition-opacity`}
+                >
+                  <div>
+                    <h3 className="text-sm font-bold text-white">{details.title}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-white/70 text-[11px]">{categoryTag.label}</span>
+                      <span className="text-white font-bold text-sm">{seg.count}人</span>
+                    </div>
+                  </div>
+                  <ChevronDown className={`w-5 h-5 text-white/70 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isOpen && (
+                  <div className="bg-white p-5 border border-gray-100 border-t-0 rounded-b-2xl">
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>{npsTag.label}</span>
+                      <span className="text-sm font-semibold text-gray-800">{categoryTag.label}</span>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                        <AlertTriangle className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-[13px] text-gray-700 leading-relaxed">{details.detail}</p>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                        <Users className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-[13px] text-gray-700 leading-relaxed line-clamp-2">{details.who}</p>
+                      </div>
+                      <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                        <TrendingUp className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-[13px] text-gray-700 leading-relaxed line-clamp-2">{details.impact}</p>
+                      </div>
+                      <div className="mt-2">
+                        <h4 className="text-[11px] font-bold text-gray-500 uppercase mb-2">施策</h4>
+                        {details.examples.map((ex, idx) => (
+                          <div key={idx} className="flex items-center gap-2 py-1.5 border-b border-gray-50 last:border-0">
+                            <div className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                              <span className="text-[10px] font-bold text-violet-600">{idx + 1}</span>
+                            </div>
+                            <p className="text-[12px] text-gray-600">{ex}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ===== Design 10: コンパクトテーブル ===== */}
+      <div className="mt-12">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+          <span className="bg-gray-900 text-white px-3 py-1 rounded-full text-xs font-medium">Design 10</span>
+          コンパクトテーブル
+        </h2>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100">
+          {issueSegments.map((seg) => {
+            const details = SEGMENT_DETAILS[seg.id];
+            if (!details) return null;
+            const categoryTag = getCategoryTag(seg);
+            const npsTag = getNpsTag(seg);
+            const dk = `d10-${seg.id}`;
+            const isOpen = expandedDesigns[dk];
+
+            return (
+              <div key={dk}>
+                <button
+                  onClick={() => toggleDesign(dk)}
+                  className="w-full flex items-center gap-4 px-5 py-3 text-left hover:bg-gray-50/50 transition-colors"
+                >
+                  <div className={`w-2 h-2 rounded-full ${npsTag.bg === 'bg-green-600' ? 'bg-green-500' : npsTag.bg === 'bg-amber-500' ? 'bg-amber-500' : 'bg-red-500'} flex-shrink-0`} />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-gray-900 truncate">{details.title}</h3>
+                  </div>
+                  <span className="text-[11px] text-gray-400 flex-shrink-0">{categoryTag.label}</span>
+                  <span className="text-sm font-bold text-gray-900 w-12 text-right flex-shrink-0">{seg.count}人</span>
+                  <ChevronDown className={`w-4 h-4 text-gray-300 transition-transform duration-200 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isOpen && (
+                  <div className="bg-gray-50 px-5 py-4 border-t border-gray-100">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>{npsTag.label}</span>
+                      <span className="text-sm font-semibold text-gray-800">{categoryTag.label}</span>
+                      <span className="text-xs text-gray-400">{seg.count}人</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div>
+                        <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-1">課題</h4>
+                        <p className="text-[12px] text-gray-700 leading-relaxed line-clamp-3">{details.detail}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-1">対象</h4>
+                        <p className="text-[12px] text-gray-700 leading-relaxed line-clamp-3">{details.who}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-1">効果</h4>
+                        <p className="text-[12px] text-gray-700 leading-relaxed line-clamp-3">{details.impact}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-1">施策</h4>
+                        <ul className="space-y-0.5">
+                          {details.examples.slice(0, 3).map((ex, idx) => (
+                            <li key={idx} className="text-[11px] text-gray-600 truncate">· {ex}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
     </div>
   );
 };
