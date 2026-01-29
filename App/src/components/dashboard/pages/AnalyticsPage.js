@@ -790,12 +790,11 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                       </div>
                       <p className="text-[12px] text-gray-500 leading-relaxed mt-2">{details.who}</p>
                     </div>
-                    {/* 課題・効果・測定 */}
+                    {/* 課題・効果 */}
                     <div className="space-y-4">
                       {[
                         { icon: <Target className="w-4 h-4" />, label: '課題', text: details.detail, color: 'text-red-500' },
-                        { icon: <TrendingUp className="w-4 h-4" />, label: '効果', text: details.impact, color: 'text-emerald-500' },
-                        { icon: <BarChart3 className="w-4 h-4" />, label: '測定', text: details.measurement, color: 'text-amber-500' }
+                        { icon: <TrendingUp className="w-4 h-4" />, label: '効果', text: details.impact, color: 'text-emerald-500' }
                       ].map((item, idx) => (
                         <div key={idx}>
                           <div className={`flex items-center gap-2 mb-1 ${item.color}`}>
@@ -806,15 +805,17 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                         </div>
                       ))}
                     </div>
-                    <div className="bg-violet-50 rounded-xl p-3">
-                      <span className="text-[11px] font-bold text-violet-600 uppercase">施策</span>
-                      <ul className="mt-1.5 space-y-1">
+                    {/* 改善 / 効果測定 */}
+                    <div className="bg-violet-50 rounded-xl p-4">
+                      <span className="text-[11px] font-bold text-violet-600 uppercase">改善 / 効果測定</span>
+                      <ul className="mt-2.5 space-y-1.5">
                         {details.examples.slice(0, 3).map((ex, idx) => (
-                          <li key={idx} className="text-[12px] text-gray-600 flex items-start gap-2">
-                            <span className="text-violet-400 mt-0.5">→</span> {ex}
-                          </li>
+                          <li key={idx} className="text-[12px] text-gray-700">{ex}</li>
                         ))}
                       </ul>
+                      <div className="mt-2.5 pt-2.5 border-t border-violet-100">
+                        <p className="text-[11px] text-violet-600 leading-relaxed">→ {details.measurement}</p>
+                      </div>
                     </div>
                   </div>
                 )}
