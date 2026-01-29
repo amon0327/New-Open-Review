@@ -2901,7 +2901,7 @@ const StoreEvaluationPage = ({ reportData, pageNumber }) => {
 const StoreInsightPage = ({ reportData, pageNumber }) => {
   const segments = reportData?.salesImpact?.segments || [];
 
-  // 課題セグメントの抽出（優先度×人数でソート、最大6件）
+  // 課題セグメントの抽出（優先度×人数でソート、最大3件）
   const issueSegments = segments
     .filter(seg => seg.count > 0 && SEGMENT_INSIGHTS_PDF[seg.id])
     .sort((a, b) => {
@@ -2909,7 +2909,7 @@ const StoreInsightPage = ({ reportData, pageNumber }) => {
       if (priorityDiff !== 0) return priorityDiff;
       return b.count - a.count;
     })
-    .slice(0, 6);
+    .slice(0, 3);
 
   // 1つ目のセグメントの詳細を展開表示
   const firstSeg = issueSegments[0];
@@ -2921,7 +2921,7 @@ const StoreInsightPage = ({ reportData, pageNumber }) => {
     <ContentPage>
       <SectionHeader title="店舗別インサイト" pageNumber={pageNumber} />
 
-      {/* 6つのインサイトカード */}
+      {/* 3つのインサイトカード */}
       {issueSegments.length > 0 ? (
         <View style={styles.insightCardGrid}>
           {issueSegments.map((seg) => {
