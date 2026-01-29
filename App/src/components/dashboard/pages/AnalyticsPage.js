@@ -786,32 +786,33 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                         {npsTag.label}
                       </span>
                     </div>
-                    {/* 課題・効果 */}
-                    <div className="space-y-4">
-                      {[
-                        { icon: <Target className="w-4 h-4" />, label: '課題', text: details.detail, color: 'text-red-500' },
-                        { icon: <TrendingUp className="w-4 h-4" />, label: '効果', text: details.impact, color: 'text-emerald-500' }
-                      ].map((item, idx) => (
-                        <div key={idx}>
-                          <div className={`flex items-center gap-2 mb-1 ${item.color}`}>
-                            {item.icon}
-                            <span className="text-[11px] font-bold text-gray-500 uppercase">{item.label}</span>
-                          </div>
-                          <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{item.text}</p>
-                        </div>
-                      ))}
+                    {/* 課題 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-1 text-red-500">
+                        <Target className="w-4 h-4" />
+                        <span className="text-[11px] font-bold text-gray-500 uppercase">課題</span>
+                      </div>
+                      <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.detail}</p>
                     </div>
                     {/* 参考 改善案/測定方法 */}
                     <div className="bg-violet-50 rounded-xl p-4">
                       <span className="text-[11px] font-bold text-violet-600 uppercase">参考 改善案/測定方法</span>
                       <div className="mt-2.5 space-y-2.5">
-                        {details.examples.slice(0, 3).map((ex, idx) => (
+                        {details.examples.slice(0, 2).map((ex, idx) => (
                           <div key={idx}>
                             <p className="text-[12px] text-gray-700">{ex}</p>
                             <p className="text-[11px] text-violet-500 pl-3">→ {details.measurement}</p>
                           </div>
                         ))}
                       </div>
+                    </div>
+                    {/* 効果 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-1 text-emerald-500">
+                        <TrendingUp className="w-4 h-4" />
+                        <span className="text-[11px] font-bold text-gray-500 uppercase">効果</span>
+                      </div>
+                      <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.impact}</p>
                     </div>
                   </div>
                 )}
