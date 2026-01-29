@@ -1096,6 +1096,245 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: 'bold',
   },
+
+  // ============================================
+  // 店舗別インサイトページ
+  // ============================================
+  insightCardGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  insightCard: {
+    width: '32%',
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'solid',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    overflow: 'hidden',
+  },
+  insightCardInner: {
+    padding: 10,
+  },
+  insightNpsTag: {
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 3,
+    alignSelf: 'flex-start',
+    marginBottom: 6,
+  },
+  insightNpsTagText: {
+    fontSize: 6,
+    fontWeight: 'bold',
+    color: colors.white,
+    fontFamily: 'NotoSansJP',
+  },
+  insightCardTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 6,
+  },
+  insightCardTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: colors.gray900,
+    fontFamily: 'NotoSansJP',
+  },
+  insightCardCount: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 2,
+  },
+  insightCardCountValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.gray900,
+    fontFamily: 'NotoSansJP',
+  },
+  insightCardCountUnit: {
+    fontSize: 7,
+    color: colors.gray400,
+    fontFamily: 'NotoSansJP',
+  },
+  insightDivider: {
+    height: 1,
+    backgroundColor: colors.gray100,
+    marginBottom: 6,
+  },
+  insightIssueLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginBottom: 4,
+  },
+  insightIssueLabelText: {
+    fontSize: 6,
+    fontWeight: 'bold',
+    color: colors.gray500,
+    fontFamily: 'NotoSansJP',
+    letterSpacing: 0.5,
+  },
+  insightIssueItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+    marginBottom: 2,
+  },
+  insightIssueDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: colors.gray400,
+    marginTop: 3,
+    flexShrink: 0,
+  },
+  insightIssueText: {
+    fontSize: 6.5,
+    color: colors.gray600,
+    fontFamily: 'NotoSansJP',
+    lineHeight: 1.4,
+    flex: 1,
+  },
+
+  // 詳細展開カード
+  detailCard: {
+    backgroundColor: colors.white,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'solid',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    marginTop: 10,
+    overflow: 'hidden',
+  },
+  detailCardFloatingTag: {
+    position: 'absolute',
+    top: -8,
+    left: 12,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    zIndex: 1,
+  },
+  detailCardFloatingTagText: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: colors.white,
+    fontFamily: 'NotoSansJP',
+  },
+  detailCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingTop: 14,
+    paddingBottom: 8,
+  },
+  detailCardTitle: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: colors.gray900,
+    fontFamily: 'NotoSansJP',
+  },
+  detailCardCountText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: colors.gray400,
+    fontFamily: 'NotoSansJP',
+  },
+  detailCardDivider: {
+    height: 1,
+    backgroundColor: colors.gray200,
+    marginHorizontal: 14,
+  },
+  detailCardBody: {
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 14,
+  },
+  detailTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10,
+  },
+  detailTag: {
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 3,
+  },
+  detailTagText: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: colors.white,
+    fontFamily: 'NotoSansJP',
+  },
+  detailTagCross: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: colors.gray400,
+    fontFamily: 'NotoSansJP',
+  },
+  detailSectionLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  detailSectionLabelText: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: colors.gray500,
+    fontFamily: 'NotoSansJP',
+    letterSpacing: 0.5,
+  },
+  detailSectionText: {
+    fontSize: 8,
+    color: colors.gray600,
+    fontFamily: 'NotoSansJP',
+    lineHeight: 1.5,
+    paddingLeft: 10,
+    marginBottom: 8,
+  },
+  detailExampleBox: {
+    backgroundColor: colors.gray50,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 8,
+  },
+  detailExampleTitle: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: colors.gray500,
+    fontFamily: 'NotoSansJP',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  detailExampleItem: {
+    marginBottom: 4,
+  },
+  detailExampleText: {
+    fontSize: 7.5,
+    color: colors.gray700,
+    fontFamily: 'NotoSansJP',
+    lineHeight: 1.4,
+  },
+  detailExampleMeasurement: {
+    fontSize: 7,
+    color: colors.gray400,
+    fontFamily: 'NotoSansJP',
+    paddingLeft: 8,
+    marginTop: 1,
+  },
 });
 
 // ロゴURL
@@ -1105,6 +1344,131 @@ const LOGO_WITH_TEXT_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/
 
 // KPIカードのカラー配列
 const KPI_COLORS = [colors.blue500, colors.emerald500, colors.amber500, colors.violet500];
+
+// ============================================
+// 店舗別インサイト用データ
+// ============================================
+const SEGMENT_INSIGHTS_PDF = {
+  1: { issues: ['ロイヤル顧客の維持・強化が最重要課題', '離脱した場合の売上インパクトが最も大きい', '特別な体験や特典で関係性をさらに深化させる余地'] },
+  2: { issues: ['初回体験は好印象だがリピーター定着が未確定', '2回目の来店につなげる施策が重要', '推奨者として口コミ効果を最大化する機会'] },
+  3: { issues: ['高評価にもかかわらず再来店意向がない', '引越しや生活環境の変化など外的要因の可能性', '競合店への流出リスクが潜在的に存在'] },
+  4: { issues: ['初回体験は高評価だが再来店動機が不足', '立地やアクセスなど利便性の課題の可能性', 'リピートにつながる仕掛けが不足'] },
+  5: { issues: ['リピーターだが推奨するほどの満足度に達していない', 'サービスに慣れが生じ、特別感が薄れている可能性', '競合との差別化ポイントが実感されていない'] },
+  6: { issues: ['再来店意向はあるが、強い印象を残せていない', '商品やサービスの魅力が十分に伝わっていない', '「また行ってもいい」程度の弱い動機'] },
+  7: { issues: ['リピーターが満足度低下により離脱を検討', 'サービス品質の低下や期待とのギャップが蓄積', '対策しなければ離脱が確定する危険な状態'] },
+  8: { issues: ['初回体験が印象に残らず離脱', '店舗の差別化ポイントが伝わっていない', '新規獲得コストが回収できていない'] },
+  9: { issues: ['不満を抱えながらも来店を続けている', '代替店がない、または習慣的に来店している状態', 'ネガティブな口コミを発信するリスクが高い'] },
+  10: { issues: ['初回体験に明確な不満がある', '再来店意向はあるが改善がなければ離脱確実', '具体的な改善ポイントが存在するサイン'] },
+  11: { issues: ['リピーターの信頼を失い完全離脱の状態', '不満が蓄積し、もう来店する意思がない', 'ネガティブ口コミの最大リスク要因'] },
+  12: { issues: ['初回体験が非常に悪く完全離脱', '新規獲得にかけたコストが無駄になっている', '悪い口コミの拡散リスクが最も高い'] },
+};
+
+const SEGMENT_DETAILS_PDF = {
+  1: {
+    title: 'ロイヤル顧客の維持・強化戦略',
+    detail: 'お店を最も高く評価し、定期的に来店しているロイヤル顧客。満足度は高いが、競合の台頭や環境変化によって離脱するリスクは常に存在する。この層の維持が売上安定の最大の鍵。',
+    impact: 'ロイヤル顧客1人の離脱は新規顧客5人分の損失に相当。維持率を高めることで安定収益の確保に加え、口コミによる新規集客効果も持続する。',
+    examples: ['VIP限定の先行メニュー体験や特別イベントの開催', '来店回数に応じたランクアップ制度の導入'],
+    measurement: 'ロイヤル顧客の継続率（月次）、来店頻度の推移、客単価の変化をトラッキング。',
+  },
+  2: {
+    title: '新規推奨者のリピーター転換',
+    detail: '初回来店で高い満足度を示し、再来店意向もある新規顧客。ただしリピーターとして定着するかは未確定で、2回目の来店への橋渡しが成否を分ける。',
+    impact: '新規→リピーター転換率の向上は、新規獲得コストの回収効率を大幅に改善する。推奨者としての口コミ拡散も期待できる。',
+    examples: ['来店後24時間以内のサンキューメッセージ配信', '2回目来店時の特別クーポンの提供'],
+    measurement: '2回目来店率、新規→リピーター転換率、初回来店後30日以内の再来店率。',
+  },
+  3: {
+    title: '高評価リピーターの離脱防止',
+    detail: '高い評価をしているにもかかわらず再来店意向がないリピーター。引越しや生活スタイルの変化などの外的要因、あるいは競合店への流出が考えられる。',
+    impact: '離脱を防げれば、高い推奨度を活かした口コミ効果の維持と安定売上の確保が見込める。ロイヤル顧客への復帰可能性が最も高い層。',
+    examples: ['離脱理由のヒアリングアンケートの実施', '復帰特典（期間限定クーポン）の提供'],
+    measurement: '離脱率の推移、復帰来店率、離脱理由の傾向分析、復帰後の継続率。',
+  },
+  4: {
+    title: '好印象新規の再来店促進',
+    detail: '初回来店で高評価だったが、再来店する動機がない新規顧客。立地やアクセスの問題、またはリピートにつながる仕掛けの不足が原因と考えられる。',
+    impact: '再来店のきっかけを提供するだけでリピーター化が期待でき、高い推奨度からの口コミ効果も見込める。',
+    examples: ['初回来店者限定の次回割引クーポン配布', 'お気に入り登録やアプリ登録の促進'],
+    measurement: '初回来店者の再来店率、クーポン利用率、アプリ登録率、紹介経由の来店数。',
+  },
+  5: {
+    title: '中立リピーターの推奨者化',
+    detail: '定期的に来店しているが、推奨するほどの満足度には達していないリピーター。サービスへの慣れや特別感の薄れが背景にある可能性がある。',
+    impact: '推奨者に引き上げれば、口コミによる新規獲得と来店頻度・客単価の向上が同時に実現する。LTV向上の最大チャンス。',
+    examples: ['期待を超えるサプライズ体験の提供（一品サービスなど）', '常連客向けの限定メニューや裏メニューの案内'],
+    measurement: 'NPS7-8点→9-10点への転換率、来店頻度の変化、客単価の推移。',
+  },
+  6: {
+    title: '印象の薄い新規への差別化',
+    detail: '再来店意向はあるが、強い印象を残せていない新規顧客。「また行ってもいい」程度の弱い動機で、競合にスイッチされやすい状態。',
+    impact: '次回来店時の体験向上で推奨者化が可能。初期段階でファンになれば、長期的な売上貢献と口コミ効果が期待できる。',
+    examples: ['2回目来店時にパーソナライズされた接客', '新規客向けの体験プログラムの提案'],
+    measurement: '2回目来店率、NPS中立→推奨者への転換率、リピーター定着率。',
+  },
+  7: {
+    title: 'リピーター離脱の兆候と対策',
+    detail: 'これまで来店していたリピーターが満足度低下により離脱を検討している状態。サービス品質の低下や期待とのギャップが蓄積しており、対策しなければ離脱が確定する。',
+    impact: '離脱防止と推奨者への転換で、安定した売上基盤の維持とネガティブ口コミの防止につながる。既存顧客の維持は新規獲得の5倍効率的。',
+    examples: ['直近の来店体験についてのフィードバック収集', '改善完了の報告と復帰インセンティブの提供'],
+    measurement: '離脱予兆スコアの推移、復帰率、改善施策実施後のNPS変化。',
+  },
+  8: {
+    title: '初回体験の印象強化',
+    detail: '初回体験が印象に残らず、再来店する理由がない新規顧客。店舗の差別化ポイントが伝わっておらず、新規獲得にかけたコストが回収できていない状態。',
+    impact: '初回体験の改善で再来店率を向上させれば、新規獲得コストの回収効率が大幅に改善する。中立者は改善余地が最も大きいセグメント。',
+    examples: ['初回来店者向けのウェルカムプログラムの導入', '店舗の強みやこだわりを伝えるPOP・説明の充実'],
+    measurement: '初回来店者の再来店率、初回体験満足度スコア、ウェルカムプログラムの利用率。',
+  },
+  9: {
+    title: '不満蓄積リピーターの改善',
+    detail: '不満を抱えながらも来店を続けているリピーター。代替店がない、立地的に便利、または習慣的に来店している状態。ネガティブ口コミを発信するリスクが高い。',
+    impact: '不満の根本原因を解消すれば、中立者→推奨者への段階的な転換チャンスがある。ネガティブ口コミの抑制は見えない機会損失を防ぐ。',
+    examples: ['不満ポイントの特定と優先的な改善実施', 'クレーム対応プロセスの見直しとスタッフ研修'],
+    measurement: 'NPS批判者→中立者への転換率、クレーム件数の推移、ネガティブ口コミ数の変化。',
+  },
+  10: {
+    title: '不満新規の逆転チャンス',
+    detail: '初回体験に明確な不満があった新規顧客だが、再来店意向はある。具体的な改善ポイントが存在するサインであり、対応すれば満足度を大幅に向上できる可能性がある。',
+    impact: 'フィードバックに基づく具体的改善で満足度を大幅向上させる余地がある。改善後のリピーター化で新規獲得コストの回収が可能。',
+    examples: ['不満要因のカテゴリ別分析と優先改善', '改善完了を伝えるフォローアップ通知の配信'],
+    measurement: '再来店率、再来店時のNPS改善幅、不満カテゴリ別の解消率。',
+  },
+  11: {
+    title: 'リピーター完全離脱の危機対応',
+    detail: 'リピーターの信頼を完全に失い、離脱が確定している状態。不満が蓄積し、もう来店する意思がない。ネガティブ口コミの最大リスク要因であり、最優先で対処すべきセグメント。',
+    impact: '離脱防止できれば安定売上の維持に直結。1人のリピーター維持は新規顧客5人分の獲得に相当。ネガティブ口コミの拡散防止も重要な効果。',
+    examples: ['店長からの直接的な謝罪と改善コミットの伝達', '離脱理由の詳細ヒアリングと即時改善の実施'],
+    measurement: '離脱率の推移、復帰成功率、離脱理由の分布、ネガティブ口コミの発生件数。',
+  },
+  12: {
+    title: '初回体験の根本的な改善',
+    detail: '初回体験が非常に悪く、完全に離脱した新規顧客。新規獲得にかけたコストが完全に無駄になっており、悪い口コミの拡散リスクが最も高い状態。',
+    impact: '初回体験の根本改善で新規→リピーター転換率を向上できる。口コミサイトでの評判改善は、新規集客力の底上げにつながる。',
+    examples: ['初回来店体験の全プロセスの総点検', '新規顧客に特に多い不満要因の特定と重点改善'],
+    measurement: '新規顧客のNPS分布の変化、初回離脱率、口コミサイトの評価推移。',
+  },
+};
+
+const SEGMENT_PRIORITY_PDF = {
+  11: 6, 12: 5, 7: 5, 9: 4, 10: 4,
+  3: 3, 8: 3, 4: 2, 5: 1, 6: 1,
+};
+
+const getCategoryTagPdf = (seg) => {
+  const isRepeater = seg.customerLabel === 'リピーター';
+  const hasRevisit = seg.revisitLabel === '再来店あり';
+  if (isRepeater && hasRevisit) return { label: '安定リピーター', color: '#22c55e' };
+  if (isRepeater && !hasRevisit) return { label: 'リピーター離脱', color: '#f97316' };
+  if (!isRepeater && hasRevisit) return { label: '新規リピーター', color: '#3b82f6' };
+  return { label: '新規離脱', color: '#6b7280' };
+};
+
+const getNpsTagPdf = (seg) => {
+  if (seg.npsLabel === '推奨者') return { label: '推奨者', color: '#16a34a' };
+  if (seg.npsLabel === '中立者') return { label: '中立者', color: '#f59e0b' };
+  return { label: '批判者', color: '#dc2626' };
+};
 
 /**
  * 表紙ページコンポーネント
@@ -2532,6 +2896,147 @@ const StoreEvaluationPage = ({ reportData, pageNumber }) => {
 };
 
 /**
+ * 店舗別インサイトページ
+ */
+const StoreInsightPage = ({ reportData, pageNumber }) => {
+  const segments = reportData?.salesImpact?.segments || [];
+
+  // 課題セグメントの抽出（優先度×人数でソート、最大6件）
+  const issueSegments = segments
+    .filter(seg => seg.count > 0 && SEGMENT_INSIGHTS_PDF[seg.id])
+    .sort((a, b) => {
+      const priorityDiff = (SEGMENT_PRIORITY_PDF[b.id] || 0) - (SEGMENT_PRIORITY_PDF[a.id] || 0);
+      if (priorityDiff !== 0) return priorityDiff;
+      return b.count - a.count;
+    })
+    .slice(0, 6);
+
+  // 1つ目のセグメントの詳細を展開表示
+  const firstSeg = issueSegments[0];
+  const firstDetails = firstSeg ? SEGMENT_DETAILS_PDF[firstSeg.id] : null;
+  const firstCategoryTag = firstSeg ? getCategoryTagPdf(firstSeg) : null;
+  const firstNpsTag = firstSeg ? getNpsTagPdf(firstSeg) : null;
+
+  return (
+    <ContentPage>
+      <SectionHeader title="店舗別インサイト" pageNumber={pageNumber} />
+
+      {/* 6つのインサイトカード */}
+      {issueSegments.length > 0 ? (
+        <View style={styles.insightCardGrid}>
+          {issueSegments.map((seg) => {
+            const insights = SEGMENT_INSIGHTS_PDF[seg.id];
+            const categoryTag = getCategoryTagPdf(seg);
+            const npsTag = getNpsTagPdf(seg);
+            return (
+              <View key={seg.id} style={styles.insightCard}>
+                <View style={styles.insightCardInner}>
+                  {/* NPSタグ */}
+                  <View style={[styles.insightNpsTag, { backgroundColor: npsTag.color }]}>
+                    <Text style={styles.insightNpsTagText}>{npsTag.label}</Text>
+                  </View>
+
+                  {/* カテゴリ名と人数 */}
+                  <View style={styles.insightCardTitleRow}>
+                    <Text style={styles.insightCardTitle}>{categoryTag.label}</Text>
+                    <View style={styles.insightCardCount}>
+                      <Text style={styles.insightCardCountValue}>{seg.count}</Text>
+                      <Text style={styles.insightCardCountUnit}>人</Text>
+                    </View>
+                  </View>
+
+                  {/* 区切り線 */}
+                  <View style={styles.insightDivider} />
+
+                  {/* 課題ラベル */}
+                  <View style={styles.insightIssueLabel}>
+                    <Text style={styles.insightIssueLabelText}>課題&注意</Text>
+                  </View>
+
+                  {/* 課題リスト */}
+                  {insights.issues.map((issue, idx) => (
+                    <View key={idx} style={styles.insightIssueItem}>
+                      <View style={styles.insightIssueDot} />
+                      <Text style={styles.insightIssueText}>{issue}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      ) : (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 12, color: colors.gray500, fontFamily: 'NotoSansJP' }}>
+            課題のあるセグメントはありません
+          </Text>
+        </View>
+      )}
+
+      {/* 詳細展開カード（1つ目のセグメント） */}
+      {firstSeg && firstDetails && (
+        <View style={{ position: 'relative', marginTop: 16 }}>
+          {/* フローティングタグ */}
+          <View style={[styles.detailCardFloatingTag, { backgroundColor: firstCategoryTag.color }]}>
+            <Text style={styles.detailCardFloatingTagText}>{firstCategoryTag.label}</Text>
+          </View>
+
+          <View style={styles.detailCard}>
+            {/* ヘッダー */}
+            <View style={styles.detailCardHeader}>
+              <Text style={styles.detailCardTitle}>{firstDetails.title}</Text>
+              <Text style={styles.detailCardCountText}>{firstSeg.count}人</Text>
+            </View>
+
+            {/* 区切り線 */}
+            <View style={styles.detailCardDivider} />
+
+            {/* 本文 */}
+            <View style={styles.detailCardBody}>
+              {/* タグ行 */}
+              <View style={styles.detailTagRow}>
+                <View style={[styles.detailTag, { backgroundColor: firstCategoryTag.color }]}>
+                  <Text style={styles.detailTagText}>{firstCategoryTag.label}</Text>
+                </View>
+                <Text style={styles.detailTagCross}>×</Text>
+                <View style={[styles.detailTag, { backgroundColor: firstNpsTag.color }]}>
+                  <Text style={styles.detailTagText}>{firstNpsTag.label}</Text>
+                </View>
+              </View>
+
+              {/* 課題 */}
+              <View style={styles.detailSectionLabel}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#ef4444' }} />
+                <Text style={styles.detailSectionLabelText}>課題</Text>
+              </View>
+              <Text style={styles.detailSectionText}>{firstDetails.detail}</Text>
+
+              {/* 参考 改善案/測定方法 */}
+              <View style={styles.detailExampleBox}>
+                <Text style={styles.detailExampleTitle}>参考 改善案/測定方法</Text>
+                {firstDetails.examples.map((ex, idx) => (
+                  <View key={idx} style={styles.detailExampleItem}>
+                    <Text style={styles.detailExampleText}>{ex}</Text>
+                    <Text style={styles.detailExampleMeasurement}>→ {firstDetails.measurement}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* 効果 */}
+              <View style={styles.detailSectionLabel}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981' }} />
+                <Text style={styles.detailSectionLabelText}>効果</Text>
+              </View>
+              <Text style={styles.detailSectionText}>{firstDetails.impact}</Text>
+            </View>
+          </View>
+        </View>
+      )}
+    </ContentPage>
+  );
+};
+
+/**
  * PDFドキュメントコンポーネント
  */
 export const PDFDocument = ({ report, reportData, storeName, companyName = '' }) => (
@@ -2588,6 +3093,12 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
     <CustomerPriorityPage
       reportData={reportData}
       pageNumber={7}
+    />
+
+    {/* 店舗別インサイトページ */}
+    <StoreInsightPage
+      reportData={reportData}
+      pageNumber={8}
     />
   </Document>
 );
