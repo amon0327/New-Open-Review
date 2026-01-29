@@ -795,13 +795,13 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                       <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.detail}</p>
                     </div>
                     {/* 参考 改善案/測定方法 */}
-                    <div className="bg-violet-50 rounded-xl p-4">
-                      <span className="text-[11px] font-bold text-violet-600 uppercase">参考 改善案/測定方法</span>
+                    <div className="bg-gray-50 rounded-xl p-4">
+                      <span className="text-[11px] font-bold text-gray-500 uppercase">参考 改善案/測定方法</span>
                       <div className="mt-2.5 space-y-2.5">
                         {details.examples.slice(0, 2).map((ex, idx) => (
                           <div key={idx}>
                             <p className="text-[12px] text-gray-700">{ex}</p>
-                            <p className="text-[11px] text-violet-500 pl-3">→ {details.measurement}</p>
+                            <p className="text-[11px] text-gray-400 pl-3">→ {details.measurement}</p>
                           </div>
                         ))}
                       </div>
