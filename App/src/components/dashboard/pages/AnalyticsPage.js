@@ -586,10 +586,10 @@ const SEGMENT_PRIORITY = {
 const getCategoryTag = (seg) => {
   const isRepeater = seg.customerLabel === 'リピーター';
   const hasRevisit = seg.revisitLabel === '再来店あり';
-  if (isRepeater && hasRevisit) return { label: '安定リピーター', bg: 'bg-emerald-600' };
-  if (isRepeater && !hasRevisit) return { label: 'リピーター離脱', bg: 'bg-orange-600' };
-  if (!isRepeater && hasRevisit) return { label: '新規リピーター', bg: 'bg-blue-600' };
-  return { label: '新規離脱', bg: 'bg-slate-600' };
+  if (isRepeater && hasRevisit) return { label: '安定リピーター', bg: 'bg-green-500' };
+  if (isRepeater && !hasRevisit) return { label: 'リピーター離脱', bg: 'bg-orange-500' };
+  if (!isRepeater && hasRevisit) return { label: '新規リピーター', bg: 'bg-blue-500' };
+  return { label: '新規離脱', bg: 'bg-gray-500' };
 };
 
 // 推奨度タグの設定
@@ -759,8 +759,8 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
 
           return (
             <div key={`detail-${seg.id}`} className="relative">
-              <div className={`absolute -top-2.5 left-5 z-10 inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm ${npsTag.bg}`}>
-                {npsTag.label} · {categoryTag.label}
+              <div className={`absolute -top-2.5 left-5 z-10 inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm ${categoryTag.bg}`}>
+                {categoryTag.label}
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden pt-2">
                 <button
@@ -776,10 +776,22 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                 {isOpen && (
                   <div className="px-6 pb-6 space-y-4">
                     <Separator />
+                    {/* 対象セグメント表示 */}
+                    <div className="flex items-center gap-2.5 pt-1">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold text-white ${categoryTag.bg}`}>
+                        {categoryTag.label}
+                      </span>
+                      <span className="text-gray-300 font-bold text-sm">×</span>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold text-white ${npsTag.bg}`}>
+                        {npsTag.label}
+                      </span>
+                      <span className="text-sm text-gray-400 font-medium ml-1">{seg.count}人</span>
+                    </div>
+                    <p className="text-[13px] text-gray-600 leading-relaxed">{details.who}</p>
+                    {/* 課題・効果・測定 */}
                     <div className="space-y-4">
                       {[
                         { icon: <Target className="w-4 h-4" />, label: '課題', text: details.detail, color: 'text-red-500' },
-                        { icon: <Users className="w-4 h-4" />, label: '対象', text: details.who, color: 'text-blue-500' },
                         { icon: <TrendingUp className="w-4 h-4" />, label: '効果', text: details.impact, color: 'text-emerald-500' },
                         { icon: <BarChart3 className="w-4 h-4" />, label: '測定', text: details.measurement, color: 'text-amber-500' }
                       ].map((item, idx) => (
