@@ -881,13 +881,14 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                     {segIndex % 2 === 0 && (
                       <div>
                         <div className="flex items-center gap-2 mb-2">
-                          <MessageSquare className="w-4 h-4 text-blue-500" />
+                          <MessageSquare className="w-4 h-4 text-purple-600" />
                           <span className="text-[11px] font-bold text-gray-500 uppercase">顧客の声</span>
                         </div>
                         <div className="space-y-2 pl-6">
                           {(SEGMENT_COMMENTS[seg.id] || []).map((comment, idx) => (
-                            <div key={idx} className="bg-blue-50 rounded-lg px-3 py-2">
-                              <p className="text-[12px] text-gray-600 italic">&ldquo;{comment}&rdquo;</p>
+                            <div key={idx} className="rounded-lg px-4 py-3 flex items-start gap-3 border-[1.5px] border-purple-600" style={{ backgroundColor: '#f3eefe' }}>
+                              <MessageSquare className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
+                              <p className="text-[12px] text-gray-700 leading-relaxed">&ldquo;{comment}&rdquo;</p>
                             </div>
                           ))}
                         </div>
@@ -911,50 +912,50 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                       const renderGauge = (data, title) => (
                         <div className="flex-1 min-w-0">
                           <span className="text-[11px] font-bold text-gray-500 block mb-2">{title}</span>
-                          <div className="relative h-6 bg-gray-50 rounded overflow-hidden border border-gray-200 flex">
+                          <div className="relative h-5 rounded overflow-hidden border border-gray-200 flex">
                             <div
-                              className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-700"
-                              style={{ width: `${data.positive}%` }}
+                              className="h-full transition-all duration-700"
+                              style={{ width: `${data.positive}%`, backgroundColor: '#22c55e' }}
                             />
                             <div
-                              className="h-full bg-gray-300 transition-all duration-700"
-                              style={{ width: `${data.neutral}%` }}
+                              className="h-full transition-all duration-700"
+                              style={{ width: `${data.neutral}%`, backgroundColor: '#9ca3af' }}
                             />
                             <div
-                              className="h-full bg-gradient-to-r from-rose-400 to-red-500 transition-all duration-700"
-                              style={{ width: `${data.negative}%` }}
+                              className="h-full transition-all duration-700"
+                              style={{ width: `${data.negative}%`, backgroundColor: '#ef4444' }}
                             />
                           </div>
-                          <div className="flex justify-between text-[9px] mt-0.5">
-                            <span className="text-green-600 font-medium">{data.positive}%</span>
-                            <span className="text-gray-400">{data.neutral}%</span>
-                            <span className="text-red-500 font-medium">{data.negative}%</span>
+                          <div className="flex justify-between text-[9px] mt-1">
+                            <span className="font-bold" style={{ color: '#16a34a' }}>{data.positive}%</span>
+                            <span className="font-bold text-gray-500">{data.neutral}%</span>
+                            <span className="font-bold" style={{ color: '#dc2626' }}>{data.negative}%</span>
                           </div>
                         </div>
                       );
                       return (
                         <div>
                           <div className="flex items-center gap-2 mb-3">
-                            <BarChart3 className="w-4 h-4 text-blue-500" />
+                            <BarChart3 className="w-4 h-4 text-purple-600" />
                             <span className="text-[11px] font-bold text-gray-500 uppercase">店舗評価</span>
-                            <div className="flex items-center gap-3 ml-auto text-[9px]">
-                              <div className="flex items-center gap-1">
-                                <div className="w-2.5 h-2.5 rounded bg-gradient-to-r from-green-500 to-emerald-400" />
-                                <span className="text-gray-500">ポジティブ</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <div className="w-2.5 h-2.5 rounded bg-gray-300" />
-                                <span className="text-gray-500">ニュートラル</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <div className="w-2.5 h-2.5 rounded bg-gradient-to-r from-rose-400 to-red-500" />
-                                <span className="text-gray-500">ネガティブ</span>
-                              </div>
-                            </div>
                           </div>
                           <div className="flex gap-4 pl-6">
                             {renderGauge(segAvg, 'このセグメント')}
                             {renderGauge(storeAvg, '店舗全体')}
+                          </div>
+                          <div className="flex items-center gap-3 pl-6 mt-1 mb-3 text-[9px]">
+                            <div className="flex items-center gap-1">
+                              <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#22c55e' }} />
+                              <span className="text-gray-500">ポジティブ</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#9ca3af' }} />
+                              <span className="text-gray-500">ニュートラル</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#ef4444' }} />
+                              <span className="text-gray-500">ネガティブ</span>
+                            </div>
                           </div>
                         </div>
                       );
