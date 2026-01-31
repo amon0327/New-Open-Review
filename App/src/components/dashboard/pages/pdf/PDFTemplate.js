@@ -3095,14 +3095,6 @@ const InsightDetailVoicePage = ({ reportData, pageNumber }) => {
     <ContentPage>
       <SectionHeader title="課題" pageNumber={pageNumber} />
 
-      {/* 課題タイトル・説明 */}
-      <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
-        床の清潔さが低評価
-      </Text>
-      <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
-        清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
-      </Text>
-
       {/* タグ行 */}
       <View style={styles.detailTagRow}>
         <View style={[styles.detailTag, { backgroundColor: categoryTag.color }]}>
@@ -3113,6 +3105,14 @@ const InsightDetailVoicePage = ({ reportData, pageNumber }) => {
           <Text style={styles.detailTagText}>{npsTag.label}</Text>
         </View>
       </View>
+
+      {/* 課題タイトル・説明 */}
+      <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
+        床の清潔さが低評価
+      </Text>
+      <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
+        清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
+      </Text>
 
       {/* 顧客の声 コールアウト */}
       <View style={styles.voiceCallout}>
@@ -3170,14 +3170,6 @@ const InsightDetailChartPage = ({ reportData, pageNumber }) => {
     <ContentPage>
       <SectionHeader title="課題" pageNumber={pageNumber} />
 
-      {/* 課題タイトル・説明 */}
-      <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
-        床の清潔さが低評価
-      </Text>
-      <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
-        清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
-      </Text>
-
       {/* タグ行 */}
       <View style={styles.detailTagRow}>
         <View style={[styles.detailTag, { backgroundColor: categoryTag.color }]}>
@@ -3188,6 +3180,14 @@ const InsightDetailChartPage = ({ reportData, pageNumber }) => {
           <Text style={styles.detailTagText}>{npsTag.label}</Text>
         </View>
       </View>
+
+      {/* 課題タイトル・説明 */}
+      <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
+        床の清潔さが低評価
+      </Text>
+      <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
+        清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
+      </Text>
 
       {/* 評価バーチャート */}
       <View style={styles.evalBarSection}>
@@ -3264,17 +3264,29 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       companyName={companyName}
     />
 
+    {/* インサイト詳細 パターンA: 顧客の声 */}
+    <InsightDetailVoicePage
+      reportData={reportData}
+      pageNumber={1}
+    />
+
+    {/* インサイト詳細 パターンB: 評価バーチャート */}
+    <InsightDetailChartPage
+      reportData={reportData}
+      pageNumber={2}
+    />
+
     {/* 概要ページ */}
     <OverviewPage
       reportData={reportData}
-      pageNumber={1}
+      pageNumber={3}
       comment={reportData?.overview?.comment || '先月と比較してNPSスコアが改善傾向にあります。リピート率も安定しており、顧客満足度の向上が見られます。'}
     />
 
     {/* 売上影響ページ */}
     <SalesImpactPage
       reportData={reportData}
-      pageNumber={2}
+      pageNumber={4}
       comment={reportData?.salesImpact?.comment || '新規顧客のリピーター転換率が先月より向上しています。一方でリピーター離脱の割合も微増しているため、既存顧客へのフォローアップ施策の検討をお勧めします。'}
     />
 
@@ -3282,43 +3294,31 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
     <QSCDetailPage
       reportData={reportData}
       category="Q"
-      pageNumber={3}
+      pageNumber={5}
     />
 
     {/* Service詳細ページ */}
     <QSCDetailPage
       reportData={reportData}
       category="S"
-      pageNumber={4}
+      pageNumber={6}
     />
 
     {/* Cleanliness詳細ページ */}
     <QSCDetailPage
       reportData={reportData}
       category="C"
-      pageNumber={5}
+      pageNumber={7}
     />
 
     {/* 顧客傾向ページ */}
     <CustomerTrendsPage
       reportData={reportData}
-      pageNumber={6}
+      pageNumber={8}
     />
 
     {/* 顧客の重視ポイントページ */}
     <CustomerPriorityPage
-      reportData={reportData}
-      pageNumber={7}
-    />
-
-    {/* インサイト詳細 パターンA: 顧客の声 */}
-    <InsightDetailVoicePage
-      reportData={reportData}
-      pageNumber={8}
-    />
-
-    {/* インサイト詳細 パターンB: 評価バーチャート */}
-    <InsightDetailChartPage
       reportData={reportData}
       pageNumber={9}
     />
