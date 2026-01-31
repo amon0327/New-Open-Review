@@ -804,15 +804,18 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white rounded-2xl p-6 shadow-sm">
-              <Skeleton className="h-4 w-24 mb-4" />
-              <Skeleton className="h-8 w-16 mb-3" />
-              <Skeleton className="h-3 w-full mb-2" />
-              <Skeleton className="h-3 w-3/4 mb-2" />
-              <Skeleton className="h-3 w-5/6 mb-6" />
-              <Skeleton className="h-16 w-full rounded-lg" />
+        <div className="space-y-5">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="relative">
+              {/* フローティングバッジ */}
+              <Skeleton className="absolute -top-2.5 left-5 z-10 h-5 w-20 rounded-full" />
+              {/* カード本体 */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm pt-2">
+                <div className="flex items-center justify-between px-6 pt-4 pb-3">
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="h-5 w-5 rounded" />
+                </div>
+              </div>
             </div>
           ))}
         </div>
