@@ -716,10 +716,7 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                   onClick={() => setExpandedDetail(isOpen ? null : seg.id)}
                   className="w-full flex items-center justify-between px-6 pt-4 pb-3 text-left hover:bg-gray-50/30 transition-colors"
                 >
-                  <div className="flex items-baseline gap-3">
-                    <h3 className="text-base font-bold text-gray-900">{details.title}</h3>
-                    <span className="text-lg font-extrabold text-gray-300">{seg.count}人</span>
-                  </div>
+                  <h3 className="text-base font-bold text-gray-900">{details.title}</h3>
                   <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {isOpen && (
