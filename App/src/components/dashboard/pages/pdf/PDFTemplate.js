@@ -3095,6 +3095,14 @@ const InsightDetailVoicePage = ({ reportData, pageNumber }) => {
     <ContentPage>
       <SectionHeader title="課題" pageNumber={pageNumber} />
 
+      {/* 課題タイトル・説明 */}
+      <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
+        床の清潔さが低評価
+      </Text>
+      <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
+        清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
+      </Text>
+
       {/* タグ行 */}
       <View style={styles.detailTagRow}>
         <View style={[styles.detailTag, { backgroundColor: categoryTag.color }]}>
@@ -3105,14 +3113,6 @@ const InsightDetailVoicePage = ({ reportData, pageNumber }) => {
           <Text style={styles.detailTagText}>{npsTag.label}</Text>
         </View>
       </View>
-
-      {/* 課題タイトル・説明 */}
-      <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
-        床の清潔さが低評価
-      </Text>
-      <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
-        清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
-      </Text>
 
       {/* 顧客の声 コールアウト */}
       <View style={styles.voiceCallout}>
@@ -3170,6 +3170,14 @@ const InsightDetailChartPage = ({ reportData, pageNumber }) => {
     <ContentPage>
       <SectionHeader title="課題" pageNumber={pageNumber} />
 
+      {/* 課題タイトル・説明 */}
+      <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
+        床の清潔さが低評価
+      </Text>
+      <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
+        清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
+      </Text>
+
       {/* タグ行 */}
       <View style={styles.detailTagRow}>
         <View style={[styles.detailTag, { backgroundColor: categoryTag.color }]}>
@@ -3180,14 +3188,6 @@ const InsightDetailChartPage = ({ reportData, pageNumber }) => {
           <Text style={styles.detailTagText}>{npsTag.label}</Text>
         </View>
       </View>
-
-      {/* 課題タイトル・説明 */}
-      <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
-        床の清潔さが低評価
-      </Text>
-      <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
-        清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
-      </Text>
 
       {/* 評価バーチャート */}
       <View style={styles.evalBarSection}>
