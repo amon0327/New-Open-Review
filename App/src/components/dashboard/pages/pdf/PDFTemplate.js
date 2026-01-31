@@ -3223,7 +3223,7 @@ const InsightDetailChartPage = ({ reportData, pageNumber }) => {
       </View>
 
       {/* 凡例 */}
-      <View style={[styles.evalBarLegend, { marginTop: 10 }]}>
+      <View style={[styles.evalBarLegend, { marginTop: 4, marginBottom: 16 }]}>
         <View style={styles.evalBarLegendItem}>
           <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
           <Text style={styles.evalBarLegendText}>ポジティブ</Text>

@@ -733,7 +733,6 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const [loading, setLoading] = useState(true);
   const [segments, setSegments] = useState([]);
   const [expandedDetail, setExpandedDetail] = useState(null);
-  const [activePattern, setActivePattern] = useState(1);
 
   // selectedPeriodを年月形式に変換
   const getYearMonth = (period) => {
