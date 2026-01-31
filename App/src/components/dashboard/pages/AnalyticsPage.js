@@ -50,7 +50,8 @@ import {
   User,
   UtensilsCrossed,
   Sparkles,
-  Target
+  Target,
+  MessageSquare
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -568,6 +569,134 @@ const SEGMENT_DETAILS = {
   }
 };
 
+// セグメント別コメントサンプル
+const SEGMENT_COMMENTS = {
+  1: [
+    'いつも最高のサービスです。家族で月2回は必ず来ています',
+    'スタッフの方が顔を覚えてくれていて嬉しいです'
+  ],
+  2: [
+    '初めて来ましたが、料理もサービスも期待以上でした！',
+    '友人に勧められて来店。噂通りの素晴らしいお店です'
+  ],
+  3: [
+    'お店は大好きですが、引越しで通えなくなりそうです',
+    '味もサービスも文句なし。遠くなっても機会があれば行きたい'
+  ],
+  4: [
+    '出張先で見つけたお店。地元にあれば通いたかった',
+    '料理は本当に美味しかったけど、次はいつ来られるか分からない'
+  ],
+  5: [
+    '普通に美味しいけど、特別感はあまりないかな',
+    '悪くはないが、わざわざ人に勧めるほどではない'
+  ],
+  6: [
+    '可もなく不可もなくという印象。また行くかもしれない',
+    '料理は普通。もう少し何か特徴があると嬉しい'
+  ],
+  7: [
+    '以前は良かったが、最近少しサービスの質が落ちた気がする',
+    '常連だけど、最近は他の店も気になっている'
+  ],
+  8: [
+    '初めて行ったが、特に印象に残るものがなかった',
+    '普通の店という感じ。リピートする動機が見つからない'
+  ],
+  9: [
+    '待ち時間が長すぎる。料理は悪くないのに残念',
+    '近いから来ているが、接客態度を改善してほしい'
+  ],
+  10: [
+    '期待して行ったのに注文ミスがあった。改善してくれたら再訪したい',
+    '料理の味は可能性を感じるが、オペレーションが残念'
+  ],
+  11: [
+    '何度も通ったが、対応の悪さが限界。もう行かない',
+    '以前は良い店だったのに、質が下がりすぎ'
+  ],
+  12: [
+    '初回で料理が冷めていた。二度と行かない',
+    '接客が最悪。友人にも行かない方がいいと伝えた'
+  ]
+};
+
+// セグメント別 店舗評価データ
+const SEGMENT_EVALUATIONS = {
+  1: [
+    { category: '接客', positive: 95, negative: 5 },
+    { category: '料理', positive: 92, negative: 8 },
+    { category: '雰囲気', positive: 88, negative: 12 },
+    { category: '価格', positive: 80, negative: 20 }
+  ],
+  2: [
+    { category: '接客', positive: 90, negative: 10 },
+    { category: '料理', positive: 88, negative: 12 },
+    { category: '雰囲気', positive: 85, negative: 15 },
+    { category: '価格', positive: 78, negative: 22 }
+  ],
+  3: [
+    { category: '接客', positive: 88, negative: 12 },
+    { category: '料理', positive: 90, negative: 10 },
+    { category: '雰囲気', positive: 82, negative: 18 },
+    { category: '価格', positive: 75, negative: 25 }
+  ],
+  4: [
+    { category: '接客', positive: 85, negative: 15 },
+    { category: '料理', positive: 88, negative: 12 },
+    { category: '雰囲気', positive: 80, negative: 20 },
+    { category: '価格', positive: 72, negative: 28 }
+  ],
+  5: [
+    { category: '接客', positive: 68, negative: 32 },
+    { category: '料理', positive: 72, negative: 28 },
+    { category: '雰囲気', positive: 65, negative: 35 },
+    { category: '価格', positive: 60, negative: 40 }
+  ],
+  6: [
+    { category: '接客', positive: 65, negative: 35 },
+    { category: '料理', positive: 68, negative: 32 },
+    { category: '雰囲気', positive: 62, negative: 38 },
+    { category: '価格', positive: 58, negative: 42 }
+  ],
+  7: [
+    { category: '接客', positive: 55, negative: 45 },
+    { category: '料理', positive: 62, negative: 38 },
+    { category: '雰囲気', positive: 50, negative: 50 },
+    { category: '価格', positive: 48, negative: 52 }
+  ],
+  8: [
+    { category: '接客', positive: 52, negative: 48 },
+    { category: '料理', positive: 58, negative: 42 },
+    { category: '雰囲気', positive: 48, negative: 52 },
+    { category: '価格', positive: 45, negative: 55 }
+  ],
+  9: [
+    { category: '接客', positive: 35, negative: 65 },
+    { category: '料理', positive: 48, negative: 52 },
+    { category: '雰囲気', positive: 40, negative: 60 },
+    { category: '価格', positive: 30, negative: 70 }
+  ],
+  10: [
+    { category: '接客', positive: 32, negative: 68 },
+    { category: '料理', positive: 45, negative: 55 },
+    { category: '雰囲気', positive: 38, negative: 62 },
+    { category: '価格', positive: 28, negative: 72 }
+  ],
+  11: [
+    { category: '接客', positive: 18, negative: 82 },
+    { category: '料理', positive: 35, negative: 65 },
+    { category: '雰囲気', positive: 25, negative: 75 },
+    { category: '価格', positive: 20, negative: 80 }
+  ],
+  12: [
+    { category: '接客', positive: 15, negative: 85 },
+    { category: '料理', positive: 30, negative: 70 },
+    { category: '雰囲気', positive: 22, negative: 78 },
+    { category: '価格', positive: 18, negative: 82 }
+  ]
+};
+
 // セグメントの優先度スコア（高いほど重要）
 const SEGMENT_PRIORITY = {
   11: 6, // 批判者×再来店なし×リピーター - 最重要
@@ -604,6 +733,7 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const [loading, setLoading] = useState(true);
   const [segments, setSegments] = useState([]);
   const [expandedDetail, setExpandedDetail] = useState(null);
+  const [activePattern, setActivePattern] = useState(1);
 
   // selectedPeriodを年月形式に変換
   const getYearMonth = (period) => {

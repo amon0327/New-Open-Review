@@ -1384,46 +1384,66 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   evalBarLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 'bold',
-    color: colors.gray600,
+    color: colors.gray700,
     fontFamily: 'NotoSansJP',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   evalBar: {
     flexDirection: 'row',
-    height: 18,
+    height: 20,
     borderRadius: 4,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    borderStyle: 'solid',
   },
   evalBarSegment: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  evalBarText: {
-    fontSize: 8,
+  evalBarPercentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  evalBarPercentPositive: {
+    fontSize: 9,
     fontWeight: 'bold',
-    color: colors.white,
+    color: '#16a34a',
+    fontFamily: 'NotoSansJP',
+  },
+  evalBarPercentNeutral: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: colors.gray500,
+    fontFamily: 'NotoSansJP',
+  },
+  evalBarPercentNegative: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: '#dc2626',
     fontFamily: 'NotoSansJP',
   },
   evalBarLegend: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 4,
+    gap: 12,
+    marginTop: 8,
   },
   evalBarLegendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
   },
   evalBarLegendDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 1,
+    width: 8,
+    height: 8,
+    borderRadius: 2,
   },
   evalBarLegendText: {
-    fontSize: 8,
-    color: colors.gray500,
+    fontSize: 9,
+    color: colors.gray600,
     fontFamily: 'NotoSansJP',
   },
 });
@@ -3170,28 +3190,35 @@ const InsightDetailChartPage = ({ reportData, pageNumber }) => {
       </Text>
 
       {/* 評価バーチャート */}
+      {/* 凡例 */}
+      <View style={[styles.evalBarLegend, { marginBottom: 12 }]}>
+        <View style={styles.evalBarLegendItem}>
+          <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
+          <Text style={styles.evalBarLegendText}>ポジティブ</Text>
+        </View>
+        <View style={styles.evalBarLegendItem}>
+          <View style={[styles.evalBarLegendDot, { backgroundColor: colors.gray400 }]} />
+          <Text style={styles.evalBarLegendText}>ニュートラル</Text>
+        </View>
+        <View style={styles.evalBarLegendItem}>
+          <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
+          <Text style={styles.evalBarLegendText}>ネガティブ</Text>
+        </View>
+      </View>
+
       <View style={styles.evalBarSection}>
         {/* セグメント別評価 */}
         <View style={styles.evalBarColumn}>
           <Text style={styles.evalBarLabel}>セグメント別評価</Text>
           <View style={styles.evalBar}>
-            <View style={[styles.evalBarSegment, { width: '14%', backgroundColor: '#ef4444' }]}>
-              <Text style={styles.evalBarText}>14%</Text>
-            </View>
-            <View style={[styles.evalBarSegment, { width: '55%', backgroundColor: '#22c55e' }]}>
-              <Text style={styles.evalBarText}>55%</Text>
-            </View>
-            <View style={[styles.evalBarSegment, { width: '31%', backgroundColor: colors.gray200 }]} />
+            <View style={[styles.evalBarSegment, { width: '55%', backgroundColor: '#22c55e' }]} />
+            <View style={[styles.evalBarSegment, { width: '31%', backgroundColor: colors.gray400 }]} />
+            <View style={[styles.evalBarSegment, { width: '14%', backgroundColor: '#ef4444' }]} />
           </View>
-          <View style={styles.evalBarLegend}>
-            <View style={styles.evalBarLegendItem}>
-              <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
-              <Text style={styles.evalBarLegendText}>ネガティブ</Text>
-            </View>
-            <View style={styles.evalBarLegendItem}>
-              <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
-              <Text style={styles.evalBarLegendText}>ポジティブ</Text>
-            </View>
+          <View style={styles.evalBarPercentRow}>
+            <Text style={styles.evalBarPercentPositive}>55%</Text>
+            <Text style={styles.evalBarPercentNeutral}>31%</Text>
+            <Text style={styles.evalBarPercentNegative}>14%</Text>
           </View>
         </View>
 
@@ -3199,23 +3226,14 @@ const InsightDetailChartPage = ({ reportData, pageNumber }) => {
         <View style={styles.evalBarColumn}>
           <Text style={styles.evalBarLabel}>全体評価</Text>
           <View style={styles.evalBar}>
-            <View style={[styles.evalBarSegment, { width: '8%', backgroundColor: '#ef4444' }]}>
-              <Text style={styles.evalBarText}>8%</Text>
-            </View>
-            <View style={[styles.evalBarSegment, { width: '67%', backgroundColor: '#22c55e' }]}>
-              <Text style={styles.evalBarText}>67%</Text>
-            </View>
-            <View style={[styles.evalBarSegment, { width: '25%', backgroundColor: colors.gray200 }]} />
+            <View style={[styles.evalBarSegment, { width: '67%', backgroundColor: '#22c55e' }]} />
+            <View style={[styles.evalBarSegment, { width: '25%', backgroundColor: colors.gray400 }]} />
+            <View style={[styles.evalBarSegment, { width: '8%', backgroundColor: '#ef4444' }]} />
           </View>
-          <View style={styles.evalBarLegend}>
-            <View style={styles.evalBarLegendItem}>
-              <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
-              <Text style={styles.evalBarLegendText}>ネガティブ</Text>
-            </View>
-            <View style={styles.evalBarLegendItem}>
-              <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
-              <Text style={styles.evalBarLegendText}>ポジティブ</Text>
-            </View>
+          <View style={styles.evalBarPercentRow}>
+            <Text style={styles.evalBarPercentPositive}>67%</Text>
+            <Text style={styles.evalBarPercentNeutral}>25%</Text>
+            <Text style={styles.evalBarPercentNegative}>8%</Text>
           </View>
         </View>
       </View>
