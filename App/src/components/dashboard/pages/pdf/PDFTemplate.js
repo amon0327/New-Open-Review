@@ -2696,16 +2696,8 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
       {/* 上段: 性別比率 + 顧客タイプ（半円ゲージ） */}
       <View style={styles.customerTrendsTopRow}>
         {/* 性別比率 */}
-        <View style={styles.customerTrendsCard}>
-          <View style={styles.customerTrendsCardHeader}>
-            <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#dbeafe' }]}>
-              <Svg width={14} height={14} viewBox="0 0 24 24">
-                <Path d="M17 21V19C17 17.94 16.58 16.92 15.83 16.17C15.08 15.42 14.06 15 13 15H5C3.94 15 2.92 15.42 2.17 16.17C1.42 16.92 1 17.94 1 19V21" stroke="#3b82f6" strokeWidth={2} strokeLinecap="round" fill="none" />
-                <Path d="M9 11C11.21 11 13 9.21 13 7C13 4.79 11.21 3 9 3C6.79 3 5 4.79 5 7C5 9.21 6.79 11 9 11Z" stroke="#3b82f6" strokeWidth={2} fill="none" />
-              </Svg>
-            </View>
-            <Text style={styles.customerTrendsCardTitle}>性別比率</Text>
-          </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.customerTrendsCardTitle}>性別比率</Text>
           <View style={{ alignItems: 'center', marginBottom: 4 }}>
             {renderSemiDonut(genderDistribution, genderColors)}
           </View>
@@ -2720,15 +2712,8 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
         </View>
 
         {/* 顧客タイプ */}
-        <View style={styles.customerTrendsCard}>
-          <View style={styles.customerTrendsCardHeader}>
-            <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#d1fae5' }]}>
-              <Svg width={14} height={14} viewBox="0 0 24 24">
-                <Path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="#10b981" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-              </Svg>
-            </View>
-            <Text style={styles.customerTrendsCardTitle}>顧客タイプ</Text>
-          </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.customerTrendsCardTitle}>顧客タイプ</Text>
           <View style={{ alignItems: 'center', marginBottom: 4 }}>
             {renderSemiDonut(customerTypeDistribution, customerTypeColors)}
           </View>
@@ -2746,15 +2731,8 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
       {/* 下段: 年齢層 + 同行者（横バー） */}
       <View style={styles.customerTrendsBottomRow}>
         {/* 年齢層 */}
-        <View style={styles.customerTrendsCard}>
-          <View style={styles.customerTrendsCardHeader}>
-            <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#ede9fe' }]}>
-              <Svg width={14} height={14} viewBox="0 0 24 24">
-                <Path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="#8b5cf6" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-              </Svg>
-            </View>
-            <Text style={styles.customerTrendsCardTitle}>年齢層</Text>
-          </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.customerTrendsCardTitle}>年齢層</Text>
           {ageDistribution.slice(0, 5).map((item, index) => (
             <View key={index} style={styles.horizontalBarItem}>
               <Text style={styles.horizontalBarLabel}>{item.name}</Text>
@@ -2767,16 +2745,8 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
         </View>
 
         {/* 同行者 */}
-        <View style={styles.customerTrendsCard}>
-          <View style={styles.customerTrendsCardHeader}>
-            <View style={[styles.customerTrendsCardIcon, { backgroundColor: '#ffedd5' }]}>
-              <Svg width={14} height={14} viewBox="0 0 24 24">
-                <Path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#f97316" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                <Path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="#f97316" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-              </Svg>
-            </View>
-            <Text style={styles.customerTrendsCardTitle}>同行者</Text>
-          </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.customerTrendsCardTitle}>同行者</Text>
           {companionDistribution.slice(0, 4).map((item, index) => (
             <View key={index} style={styles.horizontalBarItem}>
               <Text style={styles.horizontalBarLabel}>{item.name}</Text>
