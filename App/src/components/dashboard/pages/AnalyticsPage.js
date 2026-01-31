@@ -697,59 +697,8 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
 
   return (
     <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {issueSegments.map((seg) => {
-          const insights = SEGMENT_INSIGHTS[seg.id];
-          const categoryTag = getCategoryTag(seg);
-          const npsTag = getNpsTag(seg);
-          return (
-            <div
-              key={seg.id}
-              className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-            >
-              {/* 推奨度タグ */}
-              <div className="px-6 pt-5 pb-2">
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold text-white tracking-wide ${npsTag.bg}`}>
-                  {npsTag.label}
-                </span>
-              </div>
-
-              {/* カテゴリ名（タイトル）と人数 */}
-              <div className="flex items-end justify-between px-6 pb-4">
-                <h3 className="text-xl font-bold text-gray-900 leading-tight">{categoryTag.label}</h3>
-                <div className="flex items-baseline gap-1 flex-shrink-0 ml-4">
-                  <span className="text-3xl font-extrabold text-gray-900">{seg.count}</span>
-                  <span className="text-sm text-gray-400 font-medium">人</span>
-                </div>
-              </div>
-
-              <div className="h-px bg-gray-100 mx-6" />
-
-              {/* 課題 */}
-              <div className="px-6 pt-4 pb-3">
-                <div className="flex items-center gap-1.5 mb-3">
-                  <AlertTriangle className="w-3.5 h-3.5 text-gray-400" />
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">課題&注意</span>
-                </div>
-                <ul className="space-y-2">
-                  {insights.issues.map((issue, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5 text-[13px] text-gray-600 leading-relaxed">
-                      <div className="w-1.5 h-1.5 rounded-full bg-gray-300 mt-[7px] flex-shrink-0" />
-                      {issue}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="pb-2" />
-            </div>
-          );
-        })}
-      </div>
-
-
       {/* セグメント別 詳細分析カード */}
-      <div className="mt-8 space-y-5">
+      <div className="space-y-5">
         {issueSegments.map((seg) => {
           const details = SEGMENT_DETAILS[seg.id];
           if (!details) return null;
