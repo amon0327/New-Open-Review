@@ -2019,7 +2019,7 @@ const SegmentTable = ({ segments }) => {
   };
 
   return (
-    <View style={styles.segmentTableCard}>
+    <View>
       <Text style={styles.segmentTableTitle}>セグメント別詳細分析（上位3）</Text>
 
       {/* ヘッダー */}
