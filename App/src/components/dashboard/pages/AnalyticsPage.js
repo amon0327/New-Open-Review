@@ -621,81 +621,89 @@ const SEGMENT_COMMENTS = {
   ]
 };
 
-// セグメント別 店舗評価データ
+// セグメント別 店舗評価データ（ポジティブ/ニュートラル/ネガティブ）
 const SEGMENT_EVALUATIONS = {
   1: [
-    { category: '接客', positive: 95, negative: 5 },
-    { category: '料理', positive: 92, negative: 8 },
-    { category: '雰囲気', positive: 88, negative: 12 },
-    { category: '価格', positive: 80, negative: 20 }
+    { label: '接客', positive: 85, neutral: 10, negative: 5 },
+    { label: '料理', positive: 82, neutral: 10, negative: 8 },
+    { label: '雰囲気', positive: 78, neutral: 10, negative: 12 },
+    { label: '価格', positive: 65, neutral: 15, negative: 20 }
   ],
   2: [
-    { category: '接客', positive: 90, negative: 10 },
-    { category: '料理', positive: 88, negative: 12 },
-    { category: '雰囲気', positive: 85, negative: 15 },
-    { category: '価格', positive: 78, negative: 22 }
+    { label: '接客', positive: 80, neutral: 10, negative: 10 },
+    { label: '料理', positive: 78, neutral: 10, negative: 12 },
+    { label: '雰囲気', positive: 72, neutral: 13, negative: 15 },
+    { label: '価格', positive: 60, neutral: 18, negative: 22 }
   ],
   3: [
-    { category: '接客', positive: 88, negative: 12 },
-    { category: '料理', positive: 90, negative: 10 },
-    { category: '雰囲気', positive: 82, negative: 18 },
-    { category: '価格', positive: 75, negative: 25 }
+    { label: '接客', positive: 78, neutral: 10, negative: 12 },
+    { label: '料理', positive: 80, neutral: 10, negative: 10 },
+    { label: '雰囲気', positive: 70, neutral: 12, negative: 18 },
+    { label: '価格', positive: 58, neutral: 17, negative: 25 }
   ],
   4: [
-    { category: '接客', positive: 85, negative: 15 },
-    { category: '料理', positive: 88, negative: 12 },
-    { category: '雰囲気', positive: 80, negative: 20 },
-    { category: '価格', positive: 72, negative: 28 }
+    { label: '接客', positive: 75, neutral: 10, negative: 15 },
+    { label: '料理', positive: 78, neutral: 10, negative: 12 },
+    { label: '雰囲気', positive: 68, neutral: 12, negative: 20 },
+    { label: '価格', positive: 55, neutral: 17, negative: 28 }
   ],
   5: [
-    { category: '接客', positive: 68, negative: 32 },
-    { category: '料理', positive: 72, negative: 28 },
-    { category: '雰囲気', positive: 65, negative: 35 },
-    { category: '価格', positive: 60, negative: 40 }
+    { label: '接客', positive: 48, neutral: 20, negative: 32 },
+    { label: '料理', positive: 52, neutral: 20, negative: 28 },
+    { label: '雰囲気', positive: 45, neutral: 20, negative: 35 },
+    { label: '価格', positive: 38, neutral: 22, negative: 40 }
   ],
   6: [
-    { category: '接客', positive: 65, negative: 35 },
-    { category: '料理', positive: 68, negative: 32 },
-    { category: '雰囲気', positive: 62, negative: 38 },
-    { category: '価格', positive: 58, negative: 42 }
+    { label: '接客', positive: 45, neutral: 20, negative: 35 },
+    { label: '料理', positive: 48, neutral: 20, negative: 32 },
+    { label: '雰囲気', positive: 42, neutral: 20, negative: 38 },
+    { label: '価格', positive: 35, neutral: 23, negative: 42 }
   ],
   7: [
-    { category: '接客', positive: 55, negative: 45 },
-    { category: '料理', positive: 62, negative: 38 },
-    { category: '雰囲気', positive: 50, negative: 50 },
-    { category: '価格', positive: 48, negative: 52 }
+    { label: '接客', positive: 35, neutral: 20, negative: 45 },
+    { label: '料理', positive: 42, neutral: 20, negative: 38 },
+    { label: '雰囲気', positive: 30, neutral: 20, negative: 50 },
+    { label: '価格', positive: 28, neutral: 20, negative: 52 }
   ],
   8: [
-    { category: '接客', positive: 52, negative: 48 },
-    { category: '料理', positive: 58, negative: 42 },
-    { category: '雰囲気', positive: 48, negative: 52 },
-    { category: '価格', positive: 45, negative: 55 }
+    { label: '接客', positive: 32, neutral: 20, negative: 48 },
+    { label: '料理', positive: 38, neutral: 20, negative: 42 },
+    { label: '雰囲気', positive: 28, neutral: 20, negative: 52 },
+    { label: '価格', positive: 25, neutral: 20, negative: 55 }
   ],
   9: [
-    { category: '接客', positive: 35, negative: 65 },
-    { category: '料理', positive: 48, negative: 52 },
-    { category: '雰囲気', positive: 40, negative: 60 },
-    { category: '価格', positive: 30, negative: 70 }
+    { label: '接客', positive: 18, neutral: 17, negative: 65 },
+    { label: '料理', positive: 28, neutral: 20, negative: 52 },
+    { label: '雰囲気', positive: 22, neutral: 18, negative: 60 },
+    { label: '価格', positive: 15, neutral: 15, negative: 70 }
   ],
   10: [
-    { category: '接客', positive: 32, negative: 68 },
-    { category: '料理', positive: 45, negative: 55 },
-    { category: '雰囲気', positive: 38, negative: 62 },
-    { category: '価格', positive: 28, negative: 72 }
+    { label: '接客', positive: 15, neutral: 17, negative: 68 },
+    { label: '料理', positive: 25, neutral: 20, negative: 55 },
+    { label: '雰囲気', positive: 20, neutral: 18, negative: 62 },
+    { label: '価格', positive: 12, neutral: 16, negative: 72 }
   ],
   11: [
-    { category: '接客', positive: 18, negative: 82 },
-    { category: '料理', positive: 35, negative: 65 },
-    { category: '雰囲気', positive: 25, negative: 75 },
-    { category: '価格', positive: 20, negative: 80 }
+    { label: '接客', positive: 8, neutral: 10, negative: 82 },
+    { label: '料理', positive: 18, neutral: 17, negative: 65 },
+    { label: '雰囲気', positive: 12, neutral: 13, negative: 75 },
+    { label: '価格', positive: 10, neutral: 10, negative: 80 }
   ],
   12: [
-    { category: '接客', positive: 15, negative: 85 },
-    { category: '料理', positive: 30, negative: 70 },
-    { category: '雰囲気', positive: 22, negative: 78 },
-    { category: '価格', positive: 18, negative: 82 }
+    { label: '接客', positive: 5, neutral: 10, negative: 85 },
+    { label: '料理', positive: 15, neutral: 15, negative: 70 },
+    { label: '雰囲気', positive: 10, neutral: 12, negative: 78 },
+    { label: '価格', positive: 8, neutral: 10, negative: 82 }
   ]
 };
+
+// 店舗全体の平均評価（比較用）
+const STORE_AVERAGE_EVALUATIONS = [
+  { label: '接客', positive: 52, neutral: 18, negative: 30 },
+  { label: '料理', positive: 55, neutral: 17, negative: 28 },
+  { label: '雰囲気', positive: 48, neutral: 20, negative: 32 },
+  { label: '価格', positive: 40, neutral: 22, negative: 38 }
+];
 
 // セグメントの優先度スコア（高いほど重要）
 const SEGMENT_PRIORITY = {
@@ -826,25 +834,9 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
 
   return (
     <div className="p-6">
-      {/* パターン切り替え */}
-      <div className="flex items-center gap-2 mb-4">
-        <button
-          onClick={() => setActivePattern(1)}
-          className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-colors ${activePattern === 1 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-        >
-          パターン1: コメント
-        </button>
-        <button
-          onClick={() => setActivePattern(2)}
-          className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-colors ${activePattern === 2 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-        >
-          パターン2: 評価ゲージ
-        </button>
-      </div>
-
       {/* セグメント別 詳細分析カード */}
       <div className="space-y-5">
-        {issueSegments.map((seg) => {
+        {issueSegments.map((seg, segIndex) => {
           const details = SEGMENT_DETAILS[seg.id];
           if (!details) return null;
           const categoryTag = getCategoryTag(seg);
@@ -885,8 +877,8 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                       </div>
                       <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.detail}</p>
                     </div>
-                    {/* パターン1: コメント */}
-                    {activePattern === 1 && (
+                    {/* コメント（偶数カード） */}
+                    {segIndex % 2 === 0 && (
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <MessageSquare className="w-4 h-4 text-blue-500" />
@@ -894,7 +886,7 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                         </div>
                         <div className="space-y-2 pl-6">
                           {(SEGMENT_COMMENTS[seg.id] || []).map((comment, idx) => (
-                            <div key={idx} className="bg-gray-50 rounded-lg px-3 py-2 border-l-2 border-blue-200">
+                            <div key={idx} className="bg-blue-50 rounded-lg px-3 py-2">
                               <p className="text-[12px] text-gray-600 italic">&ldquo;{comment}&rdquo;</p>
                             </div>
                           ))}
@@ -902,45 +894,70 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                       </div>
                     )}
 
-                    {/* パターン2: 評価ゲージ */}
-                    {activePattern === 2 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <BarChart3 className="w-4 h-4 text-blue-500" />
-                          <span className="text-[11px] font-bold text-gray-500 uppercase">店舗評価</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 pl-6">
-                          <div>
-                            <span className="text-[10px] font-bold text-red-400 mb-2 block">ネガティブ</span>
-                            <div className="space-y-2">
-                              {(SEGMENT_EVALUATIONS[seg.id] || []).map((ev, idx) => (
-                                <div key={idx} className="flex items-center gap-2">
-                                  <span className="text-[10px] text-gray-500 w-7 shrink-0">{ev.category}</span>
-                                  <div className="flex-1 bg-gray-100 rounded-full h-2">
-                                    <div className="bg-red-400 rounded-full h-2 transition-all" style={{ width: `${ev.negative}%` }} />
-                                  </div>
-                                  <span className="text-[10px] text-gray-400 w-8 text-right shrink-0">{ev.negative}%</span>
+                    {/* 評価ゲージ比較（奇数カード） */}
+                    {segIndex % 2 === 1 && (() => {
+                      const segEvals = SEGMENT_EVALUATIONS[seg.id] || [];
+                      const storeEvals = STORE_AVERAGE_EVALUATIONS;
+                      const renderGauge = (items, title) => (
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[11px] font-bold text-gray-500 block mb-2">{title}</span>
+                          <div className="space-y-2.5">
+                            {items.map((item, idx) => (
+                              <div key={idx} className="group">
+                                <div className="flex items-center justify-between mb-0.5">
+                                  <span className="text-[10px] text-gray-600">{item.label}</span>
                                 </div>
-                              ))}
+                                <div className="relative h-5 bg-gray-50 rounded overflow-hidden border border-gray-200 flex">
+                                  <div
+                                    className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-700"
+                                    style={{ width: `${item.positive}%` }}
+                                  />
+                                  <div
+                                    className="h-full bg-gray-300 transition-all duration-700"
+                                    style={{ width: `${item.neutral}%` }}
+                                  />
+                                  <div
+                                    className="h-full bg-gradient-to-r from-rose-400 to-red-500 transition-all duration-700"
+                                    style={{ width: `${item.negative}%` }}
+                                  />
+                                </div>
+                                <div className="flex justify-between text-[9px] mt-0.5">
+                                  <span className="text-green-600 font-medium">{item.positive}%</span>
+                                  <span className="text-gray-400">{item.neutral}%</span>
+                                  <span className="text-red-500 font-medium">{item.negative}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                      return (
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <BarChart3 className="w-4 h-4 text-blue-500" />
+                            <span className="text-[11px] font-bold text-gray-500 uppercase">店舗評価</span>
+                            <div className="flex items-center gap-3 ml-auto text-[9px]">
+                              <div className="flex items-center gap-1">
+                                <div className="w-2.5 h-2.5 rounded bg-gradient-to-r from-green-500 to-emerald-400" />
+                                <span className="text-gray-500">ポジティブ</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <div className="w-2.5 h-2.5 rounded bg-gray-300" />
+                                <span className="text-gray-500">ニュートラル</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <div className="w-2.5 h-2.5 rounded bg-gradient-to-r from-rose-400 to-red-500" />
+                                <span className="text-gray-500">ネガティブ</span>
+                              </div>
                             </div>
                           </div>
-                          <div>
-                            <span className="text-[10px] font-bold text-green-500 mb-2 block">ポジティブ</span>
-                            <div className="space-y-2">
-                              {(SEGMENT_EVALUATIONS[seg.id] || []).map((ev, idx) => (
-                                <div key={idx} className="flex items-center gap-2">
-                                  <span className="text-[10px] text-gray-500 w-7 shrink-0">{ev.category}</span>
-                                  <div className="flex-1 bg-gray-100 rounded-full h-2">
-                                    <div className="bg-green-400 rounded-full h-2 transition-all" style={{ width: `${ev.positive}%` }} />
-                                  </div>
-                                  <span className="text-[10px] text-gray-400 w-8 text-right shrink-0">{ev.positive}%</span>
-                                </div>
-                              ))}
-                            </div>
+                          <div className="flex gap-4 pl-6">
+                            {renderGauge(segEvals, 'このセグメント')}
+                            {renderGauge(storeEvals, '店舗全体')}
                           </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* 参考 改善案/測定方法 */}
                     <div className="bg-gray-50 rounded-xl p-4">
