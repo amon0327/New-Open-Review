@@ -1349,10 +1349,10 @@ const styles = StyleSheet.create({
 
   // パターンA: 顧客の声コールアウト
   voiceCallout: {
-    backgroundColor: colors.gray50,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
-    borderLeftStyle: 'solid',
+    backgroundColor: '#f3eefe',
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderStyle: 'solid',
     borderRadius: 6,
     paddingVertical: 12,
     paddingHorizontal: 16,
