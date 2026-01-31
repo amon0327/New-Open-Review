@@ -859,14 +859,6 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                 {isOpen && (
                   <div className="px-6 pb-6 space-y-4">
                     <Separator />
-                    {/* 課題 */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-1 text-red-500">
-                        <Target className="w-4 h-4" />
-                        <span className="text-[11px] font-bold text-gray-500 uppercase">課題＆注意</span>
-                      </div>
-                      <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.detail}</p>
-                    </div>
                     {/* 対象セグメント表示 */}
                     <div className="flex items-center gap-2">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${categoryTag.bg}`}>
@@ -876,6 +868,14 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>
                         {npsTag.label}
                       </span>
+                    </div>
+                    {/* 課題 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-1 text-red-500">
+                        <Target className="w-4 h-4" />
+                        <span className="text-[11px] font-bold text-gray-500 uppercase">課題＆注意</span>
+                      </div>
+                      <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.detail}</p>
                     </div>
                     {/* コメント（偶数カード） */}
                     {segIndex % 2 === 0 && (
