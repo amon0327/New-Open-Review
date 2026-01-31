@@ -898,36 +898,37 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                     {segIndex % 2 === 1 && (() => {
                       const segEvals = SEGMENT_EVALUATIONS[seg.id] || [];
                       const storeEvals = STORE_AVERAGE_EVALUATIONS;
-                      const renderGauge = (items, title) => (
+                      const avg = (items) => {
+                        const len = items.length || 1;
+                        return {
+                          positive: Math.round(items.reduce((s, i) => s + i.positive, 0) / len),
+                          neutral: Math.round(items.reduce((s, i) => s + i.neutral, 0) / len),
+                          negative: Math.round(items.reduce((s, i) => s + i.negative, 0) / len)
+                        };
+                      };
+                      const segAvg = avg(segEvals);
+                      const storeAvg = avg(storeEvals);
+                      const renderGauge = (data, title) => (
                         <div className="flex-1 min-w-0">
                           <span className="text-[11px] font-bold text-gray-500 block mb-2">{title}</span>
-                          <div className="space-y-2.5">
-                            {items.map((item, idx) => (
-                              <div key={idx} className="group">
-                                <div className="flex items-center justify-between mb-0.5">
-                                  <span className="text-[10px] text-gray-600">{item.label}</span>
-                                </div>
-                                <div className="relative h-5 bg-gray-50 rounded overflow-hidden border border-gray-200 flex">
-                                  <div
-                                    className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-700"
-                                    style={{ width: `${item.positive}%` }}
-                                  />
-                                  <div
-                                    className="h-full bg-gray-300 transition-all duration-700"
-                                    style={{ width: `${item.neutral}%` }}
-                                  />
-                                  <div
-                                    className="h-full bg-gradient-to-r from-rose-400 to-red-500 transition-all duration-700"
-                                    style={{ width: `${item.negative}%` }}
-                                  />
-                                </div>
-                                <div className="flex justify-between text-[9px] mt-0.5">
-                                  <span className="text-green-600 font-medium">{item.positive}%</span>
-                                  <span className="text-gray-400">{item.neutral}%</span>
-                                  <span className="text-red-500 font-medium">{item.negative}%</span>
-                                </div>
-                              </div>
-                            ))}
+                          <div className="relative h-6 bg-gray-50 rounded overflow-hidden border border-gray-200 flex">
+                            <div
+                              className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-700"
+                              style={{ width: `${data.positive}%` }}
+                            />
+                            <div
+                              className="h-full bg-gray-300 transition-all duration-700"
+                              style={{ width: `${data.neutral}%` }}
+                            />
+                            <div
+                              className="h-full bg-gradient-to-r from-rose-400 to-red-500 transition-all duration-700"
+                              style={{ width: `${data.negative}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-[9px] mt-0.5">
+                            <span className="text-green-600 font-medium">{data.positive}%</span>
+                            <span className="text-gray-400">{data.neutral}%</span>
+                            <span className="text-red-500 font-medium">{data.negative}%</span>
                           </div>
                         </div>
                       );
@@ -952,8 +953,8 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                             </div>
                           </div>
                           <div className="flex gap-4 pl-6">
-                            {renderGauge(segEvals, 'このセグメント')}
-                            {renderGauge(storeEvals, '店舗全体')}
+                            {renderGauge(segAvg, 'このセグメント')}
+                            {renderGauge(storeAvg, '店舗全体')}
                           </div>
                         </div>
                       );
