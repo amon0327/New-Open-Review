@@ -3073,42 +3073,40 @@ const InsightDetailVoicePage = ({ reportData, pageNumber }) => {
     <ContentPage>
       <SectionHeader title="課題" pageNumber={pageNumber} />
 
-      <View style={styles.detailCard}>
-        <View style={styles.detailCardBody}>
-          {/* タグ行 */}
-          <View style={styles.detailTagRow}>
-            <View style={[styles.detailTag, { backgroundColor: categoryTag.color }]}>
-              <Text style={styles.detailTagText}>{categoryTag.label}</Text>
-            </View>
-            <Text style={styles.detailTagCross}>×</Text>
-            <View style={[styles.detailTag, { backgroundColor: npsTag.color }]}>
-              <Text style={styles.detailTagText}>{npsTag.label}</Text>
-            </View>
-          </View>
-
-          {/* 課題タイトル・説明 */}
-          <Text style={[styles.detailCardTitle, { fontSize: 14, marginBottom: 4 }]}>床の清潔さが低評価</Text>
-          <Text style={[styles.detailSectionText, { paddingLeft: 0, marginBottom: 12, fontSize: 9 }]}>
-            清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
-          </Text>
-
-          {/* 顧客の声 吹き出し */}
-          <View style={styles.voiceBubble}>
-            <Text style={styles.voiceBubbleIcon}>💬</Text>
-            <Text style={styles.voiceBubbleText}>「大盛が欲しい」「デカ盛りが欲しい」</Text>
-          </View>
-
-          {/* 参考 改善案/測定方法 */}
-          <View style={styles.detailExampleBox}>
-            <Text style={styles.detailExampleTitle}>参考 改善案/測定方法</Text>
-            {details.examples.map((ex, idx) => (
-              <View key={idx} style={styles.detailExampleItem}>
-                <Text style={styles.detailExampleText}>{ex}</Text>
-                <Text style={styles.detailExampleMeasurement}>→ {details.measurement}</Text>
-              </View>
-            ))}
-          </View>
+      {/* タグ行 */}
+      <View style={styles.detailTagRow}>
+        <View style={[styles.detailTag, { backgroundColor: categoryTag.color }]}>
+          <Text style={styles.detailTagText}>{categoryTag.label}</Text>
         </View>
+        <Text style={styles.detailTagCross}>×</Text>
+        <View style={[styles.detailTag, { backgroundColor: npsTag.color }]}>
+          <Text style={styles.detailTagText}>{npsTag.label}</Text>
+        </View>
+      </View>
+
+      {/* 課題タイトル・説明 */}
+      <Text style={{ fontSize: 14, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 4 }}>
+        床の清潔さが低評価
+      </Text>
+      <Text style={{ fontSize: 9, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 14 }}>
+        清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
+      </Text>
+
+      {/* 顧客の声 吹き出し */}
+      <View style={styles.voiceBubble}>
+        <Text style={styles.voiceBubbleIcon}>💬</Text>
+        <Text style={styles.voiceBubbleText}>「大盛が欲しい」「デカ盛りが欲しい」</Text>
+      </View>
+
+      {/* 参考 改善案/測定方法 */}
+      <View style={styles.detailExampleBox}>
+        <Text style={styles.detailExampleTitle}>参考 改善案/測定方法</Text>
+        {details.examples.map((ex, idx) => (
+          <View key={idx} style={styles.detailExampleItem}>
+            <Text style={styles.detailExampleText}>{ex}</Text>
+            <Text style={styles.detailExampleMeasurement}>→ {details.measurement}</Text>
+          </View>
+        ))}
       </View>
     </ContentPage>
   );
@@ -3139,87 +3137,85 @@ const InsightDetailChartPage = ({ reportData, pageNumber }) => {
     <ContentPage>
       <SectionHeader title="課題" pageNumber={pageNumber} />
 
-      <View style={styles.detailCard}>
-        <View style={styles.detailCardBody}>
-          {/* タグ行 */}
-          <View style={styles.detailTagRow}>
-            <View style={[styles.detailTag, { backgroundColor: categoryTag.color }]}>
-              <Text style={styles.detailTagText}>{categoryTag.label}</Text>
+      {/* タグ行 */}
+      <View style={styles.detailTagRow}>
+        <View style={[styles.detailTag, { backgroundColor: categoryTag.color }]}>
+          <Text style={styles.detailTagText}>{categoryTag.label}</Text>
+        </View>
+        <Text style={styles.detailTagCross}>×</Text>
+        <View style={[styles.detailTag, { backgroundColor: npsTag.color }]}>
+          <Text style={styles.detailTagText}>{npsTag.label}</Text>
+        </View>
+      </View>
+
+      {/* 課題タイトル・説明 */}
+      <Text style={{ fontSize: 14, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 4 }}>
+        床の清潔さが低評価
+      </Text>
+      <Text style={{ fontSize: 9, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 14 }}>
+        清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
+      </Text>
+
+      {/* 評価バーチャート */}
+      <View style={styles.evalBarSection}>
+        {/* セグメント別評価 */}
+        <View style={styles.evalBarColumn}>
+          <Text style={styles.evalBarLabel}>セグメント別評価</Text>
+          <View style={styles.evalBar}>
+            <View style={[styles.evalBarSegment, { width: '14%', backgroundColor: '#ef4444' }]}>
+              <Text style={styles.evalBarText}>14%</Text>
             </View>
-            <Text style={styles.detailTagCross}>×</Text>
-            <View style={[styles.detailTag, { backgroundColor: npsTag.color }]}>
-              <Text style={styles.detailTagText}>{npsTag.label}</Text>
+            <View style={[styles.evalBarSegment, { width: '55%', backgroundColor: '#22c55e' }]}>
+              <Text style={styles.evalBarText}>55%</Text>
             </View>
+            <View style={[styles.evalBarSegment, { width: '31%', backgroundColor: colors.gray200 }]} />
           </View>
-
-          {/* 課題タイトル・説明 */}
-          <Text style={[styles.detailCardTitle, { fontSize: 14, marginBottom: 4 }]}>床の清潔さが低評価</Text>
-          <Text style={[styles.detailSectionText, { paddingLeft: 0, marginBottom: 12, fontSize: 9 }]}>
-            清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
-          </Text>
-
-          {/* 評価バーチャート */}
-          <View style={styles.evalBarSection}>
-            {/* セグメント別評価 */}
-            <View style={styles.evalBarColumn}>
-              <Text style={styles.evalBarLabel}>セグメント別評価</Text>
-              <View style={styles.evalBar}>
-                <View style={[styles.evalBarSegment, { width: '14%', backgroundColor: '#ef4444' }]}>
-                  <Text style={styles.evalBarText}>14%</Text>
-                </View>
-                <View style={[styles.evalBarSegment, { width: '55%', backgroundColor: '#22c55e' }]}>
-                  <Text style={styles.evalBarText}>55%</Text>
-                </View>
-                <View style={[styles.evalBarSegment, { width: '31%', backgroundColor: colors.gray200 }]} />
-              </View>
-              <View style={styles.evalBarLegend}>
-                <View style={styles.evalBarLegendItem}>
-                  <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
-                  <Text style={styles.evalBarLegendText}>ネガティブ</Text>
-                </View>
-                <View style={styles.evalBarLegendItem}>
-                  <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
-                  <Text style={styles.evalBarLegendText}>ポジティブ</Text>
-                </View>
-              </View>
+          <View style={styles.evalBarLegend}>
+            <View style={styles.evalBarLegendItem}>
+              <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
+              <Text style={styles.evalBarLegendText}>ネガティブ</Text>
             </View>
-
-            {/* 全体評価 */}
-            <View style={styles.evalBarColumn}>
-              <Text style={styles.evalBarLabel}>全体評価</Text>
-              <View style={styles.evalBar}>
-                <View style={[styles.evalBarSegment, { width: '8%', backgroundColor: '#ef4444' }]}>
-                  <Text style={styles.evalBarText}>8%</Text>
-                </View>
-                <View style={[styles.evalBarSegment, { width: '67%', backgroundColor: '#22c55e' }]}>
-                  <Text style={styles.evalBarText}>67%</Text>
-                </View>
-                <View style={[styles.evalBarSegment, { width: '25%', backgroundColor: colors.gray200 }]} />
-              </View>
-              <View style={styles.evalBarLegend}>
-                <View style={styles.evalBarLegendItem}>
-                  <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
-                  <Text style={styles.evalBarLegendText}>ネガティブ</Text>
-                </View>
-                <View style={styles.evalBarLegendItem}>
-                  <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
-                  <Text style={styles.evalBarLegendText}>ポジティブ</Text>
-                </View>
-              </View>
+            <View style={styles.evalBarLegendItem}>
+              <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
+              <Text style={styles.evalBarLegendText}>ポジティブ</Text>
             </View>
-          </View>
-
-          {/* 参考 改善案/測定方法 */}
-          <View style={styles.detailExampleBox}>
-            <Text style={styles.detailExampleTitle}>参考 改善案/測定方法</Text>
-            {details.examples.map((ex, idx) => (
-              <View key={idx} style={styles.detailExampleItem}>
-                <Text style={styles.detailExampleText}>{ex}</Text>
-                <Text style={styles.detailExampleMeasurement}>→ {details.measurement}</Text>
-              </View>
-            ))}
           </View>
         </View>
+
+        {/* 全体評価 */}
+        <View style={styles.evalBarColumn}>
+          <Text style={styles.evalBarLabel}>全体評価</Text>
+          <View style={styles.evalBar}>
+            <View style={[styles.evalBarSegment, { width: '8%', backgroundColor: '#ef4444' }]}>
+              <Text style={styles.evalBarText}>8%</Text>
+            </View>
+            <View style={[styles.evalBarSegment, { width: '67%', backgroundColor: '#22c55e' }]}>
+              <Text style={styles.evalBarText}>67%</Text>
+            </View>
+            <View style={[styles.evalBarSegment, { width: '25%', backgroundColor: colors.gray200 }]} />
+          </View>
+          <View style={styles.evalBarLegend}>
+            <View style={styles.evalBarLegendItem}>
+              <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
+              <Text style={styles.evalBarLegendText}>ネガティブ</Text>
+            </View>
+            <View style={styles.evalBarLegendItem}>
+              <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
+              <Text style={styles.evalBarLegendText}>ポジティブ</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* 参考 改善案/測定方法 */}
+      <View style={styles.detailExampleBox}>
+        <Text style={styles.detailExampleTitle}>参考 改善案/測定方法</Text>
+        {details.examples.map((ex, idx) => (
+          <View key={idx} style={styles.detailExampleItem}>
+            <Text style={styles.detailExampleText}>{ex}</Text>
+            <Text style={styles.detailExampleMeasurement}>→ {details.measurement}</Text>
+          </View>
+        ))}
       </View>
     </ContentPage>
   );
