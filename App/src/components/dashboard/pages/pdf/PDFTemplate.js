@@ -1268,18 +1268,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   detailTag: {
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-    borderRadius: 3,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 4,
   },
   detailTagText: {
-    fontSize: 7,
+    fontSize: 9,
     fontWeight: 'bold',
     color: colors.white,
     fontFamily: 'NotoSansJP',
   },
   detailTagCross: {
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: 'bold',
     color: colors.gray400,
     fontFamily: 'NotoSansJP',
@@ -1291,49 +1291,49 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   detailSectionLabelText: {
-    fontSize: 7,
+    fontSize: 10,
     fontWeight: 'bold',
     color: colors.gray500,
     fontFamily: 'NotoSansJP',
     letterSpacing: 0.5,
   },
   detailSectionText: {
-    fontSize: 8,
+    fontSize: 10,
     color: colors.gray600,
     fontFamily: 'NotoSansJP',
     lineHeight: 1.5,
     paddingLeft: 10,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   detailExampleBox: {
     backgroundColor: colors.gray50,
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 8,
+    padding: 14,
+    marginBottom: 12,
   },
   detailExampleTitle: {
-    fontSize: 7,
+    fontSize: 10,
     fontWeight: 'bold',
     color: colors.gray500,
     fontFamily: 'NotoSansJP',
     letterSpacing: 0.5,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   detailExampleItem: {
-    marginBottom: 4,
+    marginBottom: 6,
   },
   detailExampleText: {
-    fontSize: 7.5,
+    fontSize: 10,
     color: colors.gray700,
     fontFamily: 'NotoSansJP',
-    lineHeight: 1.4,
+    lineHeight: 1.5,
   },
   detailExampleMeasurement: {
-    fontSize: 7,
+    fontSize: 9,
     color: colors.gray400,
     fontFamily: 'NotoSansJP',
-    paddingLeft: 8,
-    marginTop: 1,
+    paddingLeft: 12,
+    marginTop: 2,
   },
 
   // 詳細カード2枚横並び
@@ -1347,28 +1347,30 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
 
-  // パターンA: 顧客の声
-  voiceBubble: {
-    borderWidth: 1,
-    borderColor: colors.gray200,
-    borderStyle: 'solid',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 8,
+  // パターンA: 顧客の声コールアウト
+  voiceCallout: {
+    backgroundColor: colors.gray50,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+    borderLeftStyle: 'solid',
+    borderRadius: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    alignItems: 'flex-start',
+    gap: 10,
   },
-  voiceBubbleIcon: {
-    fontSize: 10,
-    fontFamily: 'NotoSansJP',
+  voiceCalloutIconWrap: {
+    width: 22,
+    height: 22,
+    marginTop: 1,
   },
-  voiceBubbleText: {
-    fontSize: 8,
+  voiceCalloutText: {
+    fontSize: 11,
     color: colors.gray700,
     fontFamily: 'NotoSansJP',
-    lineHeight: 1.4,
+    lineHeight: 1.6,
     flex: 1,
   },
 
@@ -1382,16 +1384,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   evalBarLabel: {
-    fontSize: 7,
+    fontSize: 10,
     fontWeight: 'bold',
     color: colors.gray600,
     fontFamily: 'NotoSansJP',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   evalBar: {
     flexDirection: 'row',
-    height: 14,
-    borderRadius: 3,
+    height: 18,
+    borderRadius: 4,
     overflow: 'hidden',
   },
   evalBarSegment: {
@@ -1399,7 +1401,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   evalBarText: {
-    fontSize: 5.5,
+    fontSize: 8,
     fontWeight: 'bold',
     color: colors.white,
     fontFamily: 'NotoSansJP',
@@ -1420,7 +1422,7 @@ const styles = StyleSheet.create({
     borderRadius: 1,
   },
   evalBarLegendText: {
-    fontSize: 5.5,
+    fontSize: 8,
     color: colors.gray500,
     fontFamily: 'NotoSansJP',
   },
@@ -3085,17 +3087,28 @@ const InsightDetailVoicePage = ({ reportData, pageNumber }) => {
       </View>
 
       {/* 課題タイトル・説明 */}
-      <Text style={{ fontSize: 14, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 4 }}>
+      <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
         床の清潔さが低評価
       </Text>
-      <Text style={{ fontSize: 9, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 14 }}>
+      <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
         清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
       </Text>
 
-      {/* 顧客の声 吹き出し */}
-      <View style={styles.voiceBubble}>
-        <Text style={styles.voiceBubbleIcon}>💬</Text>
-        <Text style={styles.voiceBubbleText}>「大盛が欲しい」「デカ盛りが欲しい」</Text>
+      {/* 顧客の声 コールアウト */}
+      <View style={styles.voiceCallout}>
+        <View style={styles.voiceCalloutIconWrap}>
+          <Svg width={22} height={22} viewBox="0 0 24 24">
+            <Path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+              stroke={colors.primary}
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </Svg>
+        </View>
+        <Text style={styles.voiceCalloutText}>「大盛が欲しい」「デカ盛りが欲しい」</Text>
       </View>
 
       {/* 参考 改善案/測定方法 */}
@@ -3149,10 +3162,10 @@ const InsightDetailChartPage = ({ reportData, pageNumber }) => {
       </View>
 
       {/* 課題タイトル・説明 */}
-      <Text style={{ fontSize: 14, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 4 }}>
+      <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
         床の清潔さが低評価
       </Text>
-      <Text style={{ fontSize: 9, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 14 }}>
+      <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
         清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
       </Text>
 
@@ -3280,22 +3293,16 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       pageNumber={7}
     />
 
-    {/* 店舗別インサイト カード一覧 */}
-    <StoreInsightCardsPage
-      reportData={reportData}
-      pageNumber={8}
-    />
-
     {/* インサイト詳細 パターンA: 顧客の声 */}
     <InsightDetailVoicePage
       reportData={reportData}
-      pageNumber={9}
+      pageNumber={8}
     />
 
     {/* インサイト詳細 パターンB: 評価バーチャート */}
     <InsightDetailChartPage
       reportData={reportData}
-      pageNumber={10}
+      pageNumber={9}
     />
   </Document>
 );
