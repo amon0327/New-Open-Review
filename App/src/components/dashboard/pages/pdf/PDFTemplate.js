@@ -3190,22 +3190,6 @@ const InsightDetailChartPage = ({ reportData, pageNumber }) => {
       </Text>
 
       {/* 評価バーチャート */}
-      {/* 凡例 */}
-      <View style={[styles.evalBarLegend, { marginBottom: 12 }]}>
-        <View style={styles.evalBarLegendItem}>
-          <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
-          <Text style={styles.evalBarLegendText}>ポジティブ</Text>
-        </View>
-        <View style={styles.evalBarLegendItem}>
-          <View style={[styles.evalBarLegendDot, { backgroundColor: colors.gray400 }]} />
-          <Text style={styles.evalBarLegendText}>ニュートラル</Text>
-        </View>
-        <View style={styles.evalBarLegendItem}>
-          <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
-          <Text style={styles.evalBarLegendText}>ネガティブ</Text>
-        </View>
-      </View>
-
       <View style={styles.evalBarSection}>
         {/* セグメント別評価 */}
         <View style={styles.evalBarColumn}>
@@ -3235,6 +3219,22 @@ const InsightDetailChartPage = ({ reportData, pageNumber }) => {
             <Text style={styles.evalBarPercentNeutral}>25%</Text>
             <Text style={styles.evalBarPercentNegative}>8%</Text>
           </View>
+        </View>
+      </View>
+
+      {/* 凡例 */}
+      <View style={[styles.evalBarLegend, { marginTop: 10 }]}>
+        <View style={styles.evalBarLegendItem}>
+          <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
+          <Text style={styles.evalBarLegendText}>ポジティブ</Text>
+        </View>
+        <View style={styles.evalBarLegendItem}>
+          <View style={[styles.evalBarLegendDot, { backgroundColor: colors.gray400 }]} />
+          <Text style={styles.evalBarLegendText}>ニュートラル</Text>
+        </View>
+        <View style={styles.evalBarLegendItem}>
+          <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
+          <Text style={styles.evalBarLegendText}>ネガティブ</Text>
         </View>
       </View>
 
