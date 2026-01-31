@@ -859,6 +859,14 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                 {isOpen && (
                   <div className="px-6 pb-6 space-y-4">
                     <Separator />
+                    {/* 課題 */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-1 text-red-500">
+                        <Target className="w-4 h-4" />
+                        <span className="text-[11px] font-bold text-gray-500 uppercase">課題＆注意</span>
+                      </div>
+                      <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.detail}</p>
+                    </div>
                     {/* 対象セグメント表示 */}
                     <div className="flex items-center gap-2">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${categoryTag.bg}`}>
@@ -869,14 +877,6 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                         {npsTag.label}
                       </span>
                     </div>
-                    {/* 課題 */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-1 text-red-500">
-                        <Target className="w-4 h-4" />
-                        <span className="text-[11px] font-bold text-gray-500 uppercase">課題＆注意</span>
-                      </div>
-                      <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.detail}</p>
-                    </div>
                     {/* コメント（偶数カード） */}
                     {segIndex % 2 === 0 && (
                       <div>
@@ -884,13 +884,15 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                           <MessageSquare className="w-4 h-4 text-purple-600" />
                           <span className="text-[11px] font-bold text-gray-500 uppercase">顧客の声</span>
                         </div>
-                        <div className="space-y-2 pl-6">
-                          {(SEGMENT_COMMENTS[seg.id] || []).map((comment, idx) => (
-                            <div key={idx} className="rounded-lg px-4 py-3 flex items-start gap-3 border-[1.5px] border-purple-600" style={{ backgroundColor: '#f3eefe' }}>
-                              <MessageSquare className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
-                              <p className="text-[12px] text-gray-700 leading-relaxed">&ldquo;{comment}&rdquo;</p>
-                            </div>
-                          ))}
+                        <div className="pl-6">
+                          <div className="rounded-lg px-4 py-3 flex items-start gap-3 border-[1.5px] border-purple-600" style={{ backgroundColor: '#f3eefe' }}>
+                            <MessageSquare className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-[12px] text-gray-700 leading-relaxed">
+                              {(SEGMENT_COMMENTS[seg.id] || []).map((comment, idx) => (
+                                <span key={idx}>{idx > 0 && ' '}「{comment}」</span>
+                              ))}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     )}
