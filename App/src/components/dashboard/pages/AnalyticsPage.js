@@ -736,7 +736,7 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                     <div>
                       <div className="flex items-center gap-2 mb-1 text-red-500">
                         <Target className="w-4 h-4" />
-                        <span className="text-[11px] font-bold text-gray-500 uppercase">課題</span>
+                        <span className="text-[11px] font-bold text-gray-500 uppercase">課題＆注意</span>
                       </div>
                       <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.detail}</p>
                     </div>
@@ -751,14 +751,6 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                           </div>
                         ))}
                       </div>
-                    </div>
-                    {/* 効果 */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-1 text-emerald-500">
-                        <TrendingUp className="w-4 h-4" />
-                        <span className="text-[11px] font-bold text-gray-500 uppercase">効果</span>
-                      </div>
-                      <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.impact}</p>
                     </div>
                   </div>
                 )}
