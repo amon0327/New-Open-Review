@@ -827,6 +827,22 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
 
   return (
     <div className="p-6">
+      {/* パターン切り替え */}
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          onClick={() => setActivePattern(1)}
+          className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-colors ${activePattern === 1 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+        >
+          パターン1: コメント
+        </button>
+        <button
+          onClick={() => setActivePattern(2)}
+          className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-colors ${activePattern === 2 ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+        >
+          パターン2: 評価ゲージ
+        </button>
+      </div>
+
       {/* セグメント別 詳細分析カード */}
       <div className="space-y-5">
         {issueSegments.map((seg) => {
@@ -870,6 +886,63 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                       </div>
                       <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.detail}</p>
                     </div>
+                    {/* パターン1: コメント */}
+                    {activePattern === 1 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <MessageSquare className="w-4 h-4 text-blue-500" />
+                          <span className="text-[11px] font-bold text-gray-500 uppercase">顧客の声</span>
+                        </div>
+                        <div className="space-y-2 pl-6">
+                          {(SEGMENT_COMMENTS[seg.id] || []).map((comment, idx) => (
+                            <div key={idx} className="bg-gray-50 rounded-lg px-3 py-2 border-l-2 border-blue-200">
+                              <p className="text-[12px] text-gray-600 italic">&ldquo;{comment}&rdquo;</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* パターン2: 評価ゲージ */}
+                    {activePattern === 2 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <BarChart3 className="w-4 h-4 text-blue-500" />
+                          <span className="text-[11px] font-bold text-gray-500 uppercase">店舗評価</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 pl-6">
+                          <div>
+                            <span className="text-[10px] font-bold text-red-400 mb-2 block">ネガティブ</span>
+                            <div className="space-y-2">
+                              {(SEGMENT_EVALUATIONS[seg.id] || []).map((ev, idx) => (
+                                <div key={idx} className="flex items-center gap-2">
+                                  <span className="text-[10px] text-gray-500 w-7 shrink-0">{ev.category}</span>
+                                  <div className="flex-1 bg-gray-100 rounded-full h-2">
+                                    <div className="bg-red-400 rounded-full h-2 transition-all" style={{ width: `${ev.negative}%` }} />
+                                  </div>
+                                  <span className="text-[10px] text-gray-400 w-8 text-right shrink-0">{ev.negative}%</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-green-500 mb-2 block">ポジティブ</span>
+                            <div className="space-y-2">
+                              {(SEGMENT_EVALUATIONS[seg.id] || []).map((ev, idx) => (
+                                <div key={idx} className="flex items-center gap-2">
+                                  <span className="text-[10px] text-gray-500 w-7 shrink-0">{ev.category}</span>
+                                  <div className="flex-1 bg-gray-100 rounded-full h-2">
+                                    <div className="bg-green-400 rounded-full h-2 transition-all" style={{ width: `${ev.positive}%` }} />
+                                  </div>
+                                  <span className="text-[10px] text-gray-400 w-8 text-right shrink-0">{ev.positive}%</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* 参考 改善案/測定方法 */}
                     <div className="bg-gray-50 rounded-xl p-4">
                       <span className="text-[11px] font-bold text-gray-500 uppercase">参考 改善案/測定方法</span>
