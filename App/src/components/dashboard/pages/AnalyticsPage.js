@@ -879,21 +879,13 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                     </div>
                     {/* コメント（偶数カード） */}
                     {segIndex % 2 === 0 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <MessageSquare className="w-4 h-4 text-purple-600" />
-                          <span className="text-[11px] font-bold text-gray-500 uppercase">顧客の声</span>
-                        </div>
-                        <div className="pl-6">
-                          <div className="rounded-lg px-4 py-3 flex items-start gap-3 border-[1.5px] border-purple-600" style={{ backgroundColor: '#f3eefe' }}>
-                            <MessageSquare className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
-                            <p className="text-[12px] text-gray-700 leading-relaxed">
-                              {(SEGMENT_COMMENTS[seg.id] || []).map((comment, idx) => (
-                                <span key={idx}>{idx > 0 && ' '}「{comment}」</span>
-                              ))}
-                            </p>
-                          </div>
-                        </div>
+                      <div className="rounded-lg px-4 py-3 flex items-start gap-3 border-[1.5px] border-purple-600" style={{ backgroundColor: '#f3eefe' }}>
+                        <MessageSquare className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
+                        <p className="text-[12px] text-gray-700 leading-relaxed">
+                          {(SEGMENT_COMMENTS[seg.id] || []).map((comment, idx) => (
+                            <span key={idx}>{idx > 0 && ' '}「{comment}」</span>
+                          ))}
+                        </p>
                       </div>
                     )}
 
@@ -937,15 +929,11 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
                       );
                       return (
                         <div>
-                          <div className="flex items-center gap-2 mb-3">
-                            <BarChart3 className="w-4 h-4 text-purple-600" />
-                            <span className="text-[11px] font-bold text-gray-500 uppercase">店舗評価</span>
-                          </div>
-                          <div className="flex gap-4 pl-6">
+                          <div className="flex gap-4">
                             {renderGauge(segAvg, 'このセグメント')}
                             {renderGauge(storeAvg, '店舗全体')}
                           </div>
-                          <div className="flex items-center gap-3 pl-6 mt-1 mb-3 text-[9px]">
+                          <div className="flex items-center gap-3 mt-1 mb-3 text-[9px]">
                             <div className="flex items-center gap-1">
                               <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#22c55e' }} />
                               <span className="text-gray-500">ポジティブ</span>
