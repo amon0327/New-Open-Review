@@ -2985,12 +2985,11 @@ const StoreEvaluationPage = ({ reportData, pageNumber }) => {
 };
 
 /**
- * 店舗別インサイトページ
+ * 店舗別インサイトページ（カード一覧）
  */
-const StoreInsightPage = ({ reportData, pageNumber }) => {
+const StoreInsightCardsPage = ({ reportData, pageNumber }) => {
   const segments = reportData?.salesImpact?.segments || [];
 
-  // 課題セグメントの抽出（優先度×人数でソート、最大3件）
   const issueSegments = segments
     .filter(seg => seg.count > 0 && SEGMENT_INSIGHTS_PDF[seg.id])
     .sort((a, b) => {
@@ -3000,21 +2999,10 @@ const StoreInsightPage = ({ reportData, pageNumber }) => {
     })
     .slice(0, 3);
 
-  // 上位2セグメントの詳細を展開表示（パターンA/B）
-  const firstSeg = issueSegments[0];
-  const secondSeg = issueSegments[1];
-  const firstDetails = firstSeg ? SEGMENT_DETAILS_PDF[firstSeg.id] : null;
-  const secondDetails = secondSeg ? SEGMENT_DETAILS_PDF[secondSeg.id] : null;
-  const firstCategoryTag = firstSeg ? getCategoryTagPdf(firstSeg) : null;
-  const firstNpsTag = firstSeg ? getNpsTagPdf(firstSeg) : null;
-  const secondCategoryTag = secondSeg ? getCategoryTagPdf(secondSeg) : null;
-  const secondNpsTag = secondSeg ? getNpsTagPdf(secondSeg) : null;
-
   return (
     <ContentPage>
       <SectionHeader title="店舗別インサイト" pageNumber={pageNumber} />
 
-      {/* 3つのインサイトカード */}
       {issueSegments.length > 0 ? (
         <View style={styles.insightCardGrid}>
           {issueSegments.map((seg) => {
@@ -3024,12 +3012,9 @@ const StoreInsightPage = ({ reportData, pageNumber }) => {
             return (
               <View key={seg.id} style={styles.insightCard}>
                 <View style={styles.insightCardInner}>
-                  {/* NPSタグ */}
                   <View style={[styles.insightNpsTag, { backgroundColor: npsTag.color }]}>
                     <Text style={styles.insightNpsTagText}>{npsTag.label}</Text>
                   </View>
-
-                  {/* カテゴリ名と人数 */}
                   <View style={styles.insightCardTitleRow}>
                     <Text style={styles.insightCardTitle}>{categoryTag.label}</Text>
                     <View style={styles.insightCardCount}>
@@ -3037,16 +3022,10 @@ const StoreInsightPage = ({ reportData, pageNumber }) => {
                       <Text style={styles.insightCardCountUnit}>人</Text>
                     </View>
                   </View>
-
-                  {/* 区切り線 */}
                   <View style={styles.insightDivider} />
-
-                  {/* 課題ラベル */}
                   <View style={styles.insightIssueLabel}>
                     <Text style={styles.insightIssueLabelText}>課題&注意</Text>
                   </View>
-
-                  {/* 課題リスト */}
                   {insights.issues.map((issue, idx) => (
                     <View key={idx} style={styles.insightIssueItem}>
                       <View style={styles.insightIssueDot} />
@@ -3065,145 +3044,182 @@ const StoreInsightPage = ({ reportData, pageNumber }) => {
           </Text>
         </View>
       )}
+    </ContentPage>
+  );
+};
 
-      {/* 詳細展開カード 2枚横並び */}
-      <View style={styles.detailCardsRow}>
-        {/* パターンA: 顧客の声 */}
-        {firstSeg && firstDetails && (
-          <View style={styles.detailCardHalf}>
-            <View style={styles.detailCard}>
-              <View style={styles.detailCardBody}>
-                {/* タグ行 */}
-                <View style={styles.detailTagRow}>
-                  <View style={[styles.detailTag, { backgroundColor: firstCategoryTag.color }]}>
-                    <Text style={styles.detailTagText}>{firstCategoryTag.label}</Text>
-                  </View>
-                  <Text style={styles.detailTagCross}>×</Text>
-                  <View style={[styles.detailTag, { backgroundColor: firstNpsTag.color }]}>
-                    <Text style={styles.detailTagText}>{firstNpsTag.label}</Text>
-                  </View>
+/**
+ * インサイト詳細ページ パターンA（顧客の声）
+ */
+const InsightDetailVoicePage = ({ reportData, pageNumber }) => {
+  const segments = reportData?.salesImpact?.segments || [];
+  const issueSegments = segments
+    .filter(seg => seg.count > 0 && SEGMENT_INSIGHTS_PDF[seg.id])
+    .sort((a, b) => {
+      const priorityDiff = (SEGMENT_PRIORITY_PDF[b.id] || 0) - (SEGMENT_PRIORITY_PDF[a.id] || 0);
+      if (priorityDiff !== 0) return priorityDiff;
+      return b.count - a.count;
+    })
+    .slice(0, 3);
+
+  const seg = issueSegments[0];
+  const details = seg ? SEGMENT_DETAILS_PDF[seg.id] : null;
+  const categoryTag = seg ? getCategoryTagPdf(seg) : null;
+  const npsTag = seg ? getNpsTagPdf(seg) : null;
+
+  if (!seg || !details) return null;
+
+  return (
+    <ContentPage>
+      <SectionHeader title="課題" pageNumber={pageNumber} />
+
+      <View style={styles.detailCard}>
+        <View style={styles.detailCardBody}>
+          {/* タグ行 */}
+          <View style={styles.detailTagRow}>
+            <View style={[styles.detailTag, { backgroundColor: categoryTag.color }]}>
+              <Text style={styles.detailTagText}>{categoryTag.label}</Text>
+            </View>
+            <Text style={styles.detailTagCross}>×</Text>
+            <View style={[styles.detailTag, { backgroundColor: npsTag.color }]}>
+              <Text style={styles.detailTagText}>{npsTag.label}</Text>
+            </View>
+          </View>
+
+          {/* 課題タイトル・説明 */}
+          <Text style={[styles.detailCardTitle, { fontSize: 14, marginBottom: 4 }]}>床の清潔さが低評価</Text>
+          <Text style={[styles.detailSectionText, { paddingLeft: 0, marginBottom: 12, fontSize: 9 }]}>
+            清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
+          </Text>
+
+          {/* 顧客の声 吹き出し */}
+          <View style={styles.voiceBubble}>
+            <Text style={styles.voiceBubbleIcon}>💬</Text>
+            <Text style={styles.voiceBubbleText}>「大盛が欲しい」「デカ盛りが欲しい」</Text>
+          </View>
+
+          {/* 参考 改善案/測定方法 */}
+          <View style={styles.detailExampleBox}>
+            <Text style={styles.detailExampleTitle}>参考 改善案/測定方法</Text>
+            {details.examples.map((ex, idx) => (
+              <View key={idx} style={styles.detailExampleItem}>
+                <Text style={styles.detailExampleText}>{ex}</Text>
+                <Text style={styles.detailExampleMeasurement}>→ {details.measurement}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+    </ContentPage>
+  );
+};
+
+/**
+ * インサイト詳細ページ パターンB（評価バーチャート）
+ */
+const InsightDetailChartPage = ({ reportData, pageNumber }) => {
+  const segments = reportData?.salesImpact?.segments || [];
+  const issueSegments = segments
+    .filter(seg => seg.count > 0 && SEGMENT_INSIGHTS_PDF[seg.id])
+    .sort((a, b) => {
+      const priorityDiff = (SEGMENT_PRIORITY_PDF[b.id] || 0) - (SEGMENT_PRIORITY_PDF[a.id] || 0);
+      if (priorityDiff !== 0) return priorityDiff;
+      return b.count - a.count;
+    })
+    .slice(0, 3);
+
+  const seg = issueSegments[1] || issueSegments[0];
+  const details = seg ? SEGMENT_DETAILS_PDF[seg.id] : null;
+  const categoryTag = seg ? getCategoryTagPdf(seg) : null;
+  const npsTag = seg ? getNpsTagPdf(seg) : null;
+
+  if (!seg || !details) return null;
+
+  return (
+    <ContentPage>
+      <SectionHeader title="課題" pageNumber={pageNumber} />
+
+      <View style={styles.detailCard}>
+        <View style={styles.detailCardBody}>
+          {/* タグ行 */}
+          <View style={styles.detailTagRow}>
+            <View style={[styles.detailTag, { backgroundColor: categoryTag.color }]}>
+              <Text style={styles.detailTagText}>{categoryTag.label}</Text>
+            </View>
+            <Text style={styles.detailTagCross}>×</Text>
+            <View style={[styles.detailTag, { backgroundColor: npsTag.color }]}>
+              <Text style={styles.detailTagText}>{npsTag.label}</Text>
+            </View>
+          </View>
+
+          {/* 課題タイトル・説明 */}
+          <Text style={[styles.detailCardTitle, { fontSize: 14, marginBottom: 4 }]}>床の清潔さが低評価</Text>
+          <Text style={[styles.detailSectionText, { paddingLeft: 0, marginBottom: 12, fontSize: 9 }]}>
+            清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
+          </Text>
+
+          {/* 評価バーチャート */}
+          <View style={styles.evalBarSection}>
+            {/* セグメント別評価 */}
+            <View style={styles.evalBarColumn}>
+              <Text style={styles.evalBarLabel}>セグメント別評価</Text>
+              <View style={styles.evalBar}>
+                <View style={[styles.evalBarSegment, { width: '14%', backgroundColor: '#ef4444' }]}>
+                  <Text style={styles.evalBarText}>14%</Text>
                 </View>
-
-                {/* 課題タイトル・説明 */}
-                <Text style={[styles.detailCardTitle, { marginBottom: 3 }]}>床の清潔さが低評価</Text>
-                <Text style={[styles.detailSectionText, { paddingLeft: 0, marginBottom: 8 }]}>
-                  清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
-                </Text>
-
-                {/* 顧客の声 吹き出し */}
-                <View style={styles.voiceBubble}>
-                  <Text style={styles.voiceBubbleIcon}>💬</Text>
-                  <Text style={styles.voiceBubbleText}>「大盛が欲しい」「デカ盛りが欲しい」</Text>
+                <View style={[styles.evalBarSegment, { width: '55%', backgroundColor: '#22c55e' }]}>
+                  <Text style={styles.evalBarText}>55%</Text>
                 </View>
+                <View style={[styles.evalBarSegment, { width: '31%', backgroundColor: colors.gray200 }]} />
+              </View>
+              <View style={styles.evalBarLegend}>
+                <View style={styles.evalBarLegendItem}>
+                  <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
+                  <Text style={styles.evalBarLegendText}>ネガティブ</Text>
+                </View>
+                <View style={styles.evalBarLegendItem}>
+                  <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
+                  <Text style={styles.evalBarLegendText}>ポジティブ</Text>
+                </View>
+              </View>
+            </View>
 
-                {/* 参考 改善案/測定方法 */}
-                <View style={styles.detailExampleBox}>
-                  <Text style={styles.detailExampleTitle}>参考 改善案/測定方法</Text>
-                  {firstDetails.examples.map((ex, idx) => (
-                    <View key={idx} style={styles.detailExampleItem}>
-                      <Text style={styles.detailExampleText}>{ex}</Text>
-                      <Text style={styles.detailExampleMeasurement}>→ {firstDetails.measurement}</Text>
-                    </View>
-                  ))}
+            {/* 全体評価 */}
+            <View style={styles.evalBarColumn}>
+              <Text style={styles.evalBarLabel}>全体評価</Text>
+              <View style={styles.evalBar}>
+                <View style={[styles.evalBarSegment, { width: '8%', backgroundColor: '#ef4444' }]}>
+                  <Text style={styles.evalBarText}>8%</Text>
+                </View>
+                <View style={[styles.evalBarSegment, { width: '67%', backgroundColor: '#22c55e' }]}>
+                  <Text style={styles.evalBarText}>67%</Text>
+                </View>
+                <View style={[styles.evalBarSegment, { width: '25%', backgroundColor: colors.gray200 }]} />
+              </View>
+              <View style={styles.evalBarLegend}>
+                <View style={styles.evalBarLegendItem}>
+                  <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
+                  <Text style={styles.evalBarLegendText}>ネガティブ</Text>
+                </View>
+                <View style={styles.evalBarLegendItem}>
+                  <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
+                  <Text style={styles.evalBarLegendText}>ポジティブ</Text>
                 </View>
               </View>
             </View>
           </View>
-        )}
 
-        {/* パターンB: 評価バーチャート */}
-        {(secondSeg && secondDetails ? true : firstSeg && firstDetails) && (() => {
-          const seg = secondSeg || firstSeg;
-          const details = secondDetails || firstDetails;
-          const catTag = secondCategoryTag || firstCategoryTag;
-          const nTag = secondNpsTag || firstNpsTag;
-          return (
-            <View style={styles.detailCardHalf}>
-              <View style={styles.detailCard}>
-                <View style={styles.detailCardBody}>
-                  {/* タグ行 */}
-                  <View style={styles.detailTagRow}>
-                    <View style={[styles.detailTag, { backgroundColor: catTag.color }]}>
-                      <Text style={styles.detailTagText}>{catTag.label}</Text>
-                    </View>
-                    <Text style={styles.detailTagCross}>×</Text>
-                    <View style={[styles.detailTag, { backgroundColor: nTag.color }]}>
-                      <Text style={styles.detailTagText}>{nTag.label}</Text>
-                    </View>
-                  </View>
-
-                  {/* 課題タイトル・説明 */}
-                  <Text style={[styles.detailCardTitle, { marginBottom: 3 }]}>床の清潔さが低評価</Text>
-                  <Text style={[styles.detailSectionText, { paddingLeft: 0, marginBottom: 8 }]}>
-                    清潔さ評価で「床」の項目が唯一ネガティブ評価（25%）を受けている。
-                  </Text>
-
-                  {/* 評価バーチャート */}
-                  <View style={styles.evalBarSection}>
-                    {/* セグメント別評価 */}
-                    <View style={styles.evalBarColumn}>
-                      <Text style={styles.evalBarLabel}>セグメント別評価</Text>
-                      <View style={styles.evalBar}>
-                        <View style={[styles.evalBarSegment, { width: '14%', backgroundColor: '#ef4444' }]}>
-                          <Text style={styles.evalBarText}>14%</Text>
-                        </View>
-                        <View style={[styles.evalBarSegment, { width: '55%', backgroundColor: '#22c55e' }]}>
-                          <Text style={styles.evalBarText}>55%</Text>
-                        </View>
-                        <View style={[styles.evalBarSegment, { width: '31%', backgroundColor: colors.gray200 }]} />
-                      </View>
-                      <View style={styles.evalBarLegend}>
-                        <View style={styles.evalBarLegendItem}>
-                          <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
-                          <Text style={styles.evalBarLegendText}>ネガティブ</Text>
-                        </View>
-                        <View style={styles.evalBarLegendItem}>
-                          <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
-                          <Text style={styles.evalBarLegendText}>ポジティブ</Text>
-                        </View>
-                      </View>
-                    </View>
-
-                    {/* 全体評価 */}
-                    <View style={styles.evalBarColumn}>
-                      <Text style={styles.evalBarLabel}>全体評価</Text>
-                      <View style={styles.evalBar}>
-                        <View style={[styles.evalBarSegment, { width: '8%', backgroundColor: '#ef4444' }]}>
-                          <Text style={styles.evalBarText}>8%</Text>
-                        </View>
-                        <View style={[styles.evalBarSegment, { width: '67%', backgroundColor: '#22c55e' }]}>
-                          <Text style={styles.evalBarText}>67%</Text>
-                        </View>
-                        <View style={[styles.evalBarSegment, { width: '25%', backgroundColor: colors.gray200 }]} />
-                      </View>
-                      <View style={styles.evalBarLegend}>
-                        <View style={styles.evalBarLegendItem}>
-                          <View style={[styles.evalBarLegendDot, { backgroundColor: '#ef4444' }]} />
-                          <Text style={styles.evalBarLegendText}>ネガティブ</Text>
-                        </View>
-                        <View style={styles.evalBarLegendItem}>
-                          <View style={[styles.evalBarLegendDot, { backgroundColor: '#22c55e' }]} />
-                          <Text style={styles.evalBarLegendText}>ポジティブ</Text>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* 参考 改善案/測定方法 */}
-                  <View style={styles.detailExampleBox}>
-                    <Text style={styles.detailExampleTitle}>参考 改善案/測定方法</Text>
-                    {details.examples.map((ex, idx) => (
-                      <View key={idx} style={styles.detailExampleItem}>
-                        <Text style={styles.detailExampleText}>{ex}</Text>
-                        <Text style={styles.detailExampleMeasurement}>→ {details.measurement}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
+          {/* 参考 改善案/測定方法 */}
+          <View style={styles.detailExampleBox}>
+            <Text style={styles.detailExampleTitle}>参考 改善案/測定方法</Text>
+            {details.examples.map((ex, idx) => (
+              <View key={idx} style={styles.detailExampleItem}>
+                <Text style={styles.detailExampleText}>{ex}</Text>
+                <Text style={styles.detailExampleMeasurement}>→ {details.measurement}</Text>
               </View>
-            </View>
-          );
-        })()}
+            ))}
+          </View>
+        </View>
       </View>
     </ContentPage>
   );
@@ -3268,10 +3284,22 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       pageNumber={7}
     />
 
-    {/* 店舗別インサイトページ */}
-    <StoreInsightPage
+    {/* 店舗別インサイト カード一覧 */}
+    <StoreInsightCardsPage
       reportData={reportData}
       pageNumber={8}
+    />
+
+    {/* インサイト詳細 パターンA: 顧客の声 */}
+    <InsightDetailVoicePage
+      reportData={reportData}
+      pageNumber={9}
+    />
+
+    {/* インサイト詳細 パターンB: 評価バーチャート */}
+    <InsightDetailChartPage
+      reportData={reportData}
+      pageNumber={10}
     />
   </Document>
 );
