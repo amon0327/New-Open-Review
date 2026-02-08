@@ -145,6 +145,10 @@ export default function StoresManagementPage() {
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
+      // 関連レコードを先に削除（外部キー制約対策）
+      await supabase.from('store_invitations').delete().eq('store_id', deleteTarget.id);
+      await supabase.from('store_memberships').delete().eq('store_id', deleteTarget.id);
+
       const { error } = await supabase
         .from('stores')
         .delete()
