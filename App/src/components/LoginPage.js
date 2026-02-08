@@ -5,8 +5,7 @@ import {
   Box,
   Typography,
   Button,
-  Alert,
-  Stack
+  Alert
 } from '@mui/material';
 import {
   Google
@@ -49,11 +48,6 @@ const FloatingOrb = ({ size, top, left, delay, color }) => (
   />
 );
 
-const features = [
-  { icon: '📝', title: 'かんたん作成', desc: '直感的な操作でアンケートを数分で作成' },
-  { icon: '📊', title: 'リアルタイム分析', desc: '回答をグラフで即座に可視化' },
-  { icon: '🔗', title: 'QRコードで共有', desc: 'テーブルに置くだけですぐ回収' },
-];
 
 export default function LoginPage({ onLogin }) {
   const [loading, setLoading] = useState(false);
@@ -83,7 +77,7 @@ export default function LoginPage({ onLogin }) {
           flex: { md: '1 1 55%' },
           position: 'relative',
           overflow: 'hidden',
-          background: 'linear-gradient(160deg, #1a0533 0%, #2d1b69 40%, #5e17eb 100%)',
+          background: '#5e17eb',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -105,7 +99,7 @@ export default function LoginPage({ onLogin }) {
           <motion.div variants={fadeInUp}>
             <Box
               component="img"
-              src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png"
+              src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png"
               alt="OpenReview"
               sx={{ height: { xs: 32, md: 40 }, width: 'auto', mb: { xs: 3, md: 5 } }}
             />
@@ -135,49 +129,12 @@ export default function LoginPage({ onLogin }) {
                 color: 'rgba(255,255,255,0.7)',
                 fontSize: { xs: '0.95rem', md: '1.1rem' },
                 lineHeight: 1.7,
-                mb: { xs: 3, md: 5 },
                 maxWidth: 400,
               }}
             >
               飲食店に特化したアンケートツール。
-              <br />
-              お店の改善ポイントが見える化されます。
             </Typography>
           </motion.div>
-
-          {/* 特徴リスト */}
-          <Stack spacing={2.5} sx={{ display: { xs: 'none', md: 'flex' } }}>
-            {features.map((f, i) => (
-              <motion.div key={i} variants={fadeInUp}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box
-                    sx={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: '12px',
-                      background: 'rgba(255,255,255,0.1)',
-                      backdropFilter: 'blur(10px)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.25rem',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {f.icon}
-                  </Box>
-                  <Box>
-                    <Typography sx={{ color: '#fff', fontWeight: 600, fontSize: '0.95rem' }}>
-                      {f.title}
-                    </Typography>
-                    <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: '0.85rem' }}>
-                      {f.desc}
-                    </Typography>
-                  </Box>
-                </Box>
-              </motion.div>
-            ))}
-          </Stack>
         </motion.div>
       </Box>
 
@@ -318,7 +275,7 @@ export default function LoginPage({ onLogin }) {
                 },
               }}
             >
-              Apple でサインイン（近日公開）
+              LINEでサインイン（近日公開）
             </Button>
           </motion.div>
 
