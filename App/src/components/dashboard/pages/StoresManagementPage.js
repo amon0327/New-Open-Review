@@ -14,6 +14,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogContentText,
   DialogActions,
   CircularProgress,
   Alert,
@@ -26,7 +27,8 @@ import {
   LocationOn,
   Close,
   Visibility,
-  People
+  People,
+  Delete
 } from '@mui/icons-material';
 import { supabase } from '../../../lib/supabase';
 import StoreRegistrationForm from '../../StoreRegistrationForm';
@@ -44,6 +46,8 @@ export default function StoresManagementPage() {
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [selectedStoreId, setSelectedStoreId] = useState(null);
   const [showStoreDetail, setShowStoreDetail] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // 店舗一覧を取得
   useEffect(() => {
@@ -135,6 +139,27 @@ export default function StoresManagementPage() {
   const handleCloseStoreDetail = () => {
     setShowStoreDetail(false);
     setSelectedStoreId(null);
+  };
+
+  const handleDeleteStore = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('stores')
+        .delete()
+        .eq('id', deleteTarget.id);
+
+      if (error) throw error;
+
+      setStores(prev => prev.filter(s => s.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      console.error('店舗削除エラー:', err);
+      setError('店舗の削除に失敗しました');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (loading) {
@@ -389,6 +414,19 @@ export default function StoresManagementPage() {
                         >
                           スタッフを管理
                         </Button>
+                        <IconButton
+                          size="small"
+                          onClick={() => setDeleteTarget(store)}
+                          sx={{
+                            color: '#94a3b8',
+                            '&:hover': {
+                              color: '#ef4444',
+                              backgroundColor: 'rgba(239, 68, 68, 0.08)'
+                            }
+                          }}
+                        >
+                          <Delete fontSize="small" />
+                        </IconButton>
                       </Box>
                     </CardContent>
                   </Card>
@@ -447,6 +485,44 @@ export default function StoresManagementPage() {
             onCancel={handleCloseRegistrationForm}
           />
         </DialogContent>
+      </Dialog>
+
+      {/* 店舗削除確認ダイアログ */}
+      <Dialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        PaperProps={{
+          sx: { borderRadius: 3 }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          店舗を削除しますか？
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            「{deleteTarget?.name}」を削除します。この操作は取り消せません。
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setDeleteTarget(null)}
+            disabled={isDeleting}
+            sx={{ color: '#64748b' }}
+          >
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleDeleteStore}
+            disabled={isDeleting}
+            variant="contained"
+            sx={{
+              bgcolor: '#ef4444',
+              '&:hover': { bgcolor: '#dc2626' }
+            }}
+          >
+            {isDeleting ? '削除中...' : '削除'}
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* 店舗詳細ダイアログ */}
