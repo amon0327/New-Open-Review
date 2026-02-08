@@ -51,35 +51,49 @@ serve(async (req) => {
       throw new Error('ロールはSTAFFまたはSTOREである必要があります')
     }
 
-    // ユーザーの会社メンバーシップを確認（サービスロールで）
-    const { data: companyMembership, error: membershipError } = await supabaseAdmin
-      .from('company_memberships')
-      .select('company_id')
-      .eq('business_user_id', user.id)
-
-    if (membershipError) {
-      throw new Error(`会社情報の取得に失敗: ${membershipError.message}`)
-    }
-
-    if (!companyMembership || companyMembership.length === 0) {
-      throw new Error('会社に所属していません')
-    }
-
-    const companyId = companyMembership[0].company_id
-
-    // 指定された店舗がユーザーの会社に属するかチェック（サービスロールで）
+    // 指定された店舗を取得（サービスロールで）
     const { data: storeData, error: storeError } = await supabaseAdmin
       .from('stores')
-      .select('id, name')
+      .select('id, name, company_id')
       .eq('id', storeId)
-      .eq('company_id', companyId)
+      .single()
 
-    if (storeError) {
-      throw new Error(`店舗情報の取得に失敗: ${storeError.message}`)
+    if (storeError || !storeData) {
+      throw new Error('指定された店舗が見つかりません')
     }
 
-    if (!storeData || storeData.length === 0) {
-      throw new Error('指定された店舗が見つからないか、アクセス権限がありません')
+    const companyId = storeData.company_id
+
+    // ユーザーがこの企業にアクセスできるか確認（直接メンバー or パートナー）
+    const { data: directMembership } = await supabaseAdmin
+      .from('company_memberships')
+      .select('id')
+      .eq('company_id', companyId)
+      .eq('business_user_id', user.id)
+      .maybeSingle()
+
+    if (!directMembership) {
+      // パートナー経由のアクセスを確認
+      const { data: partnerMemberships } = await supabaseAdmin
+        .from('partner_memberships')
+        .select('partner_company_id')
+        .eq('business_users_id', user.id)
+        .eq('is_active', true)
+
+      let hasPartnerAccess = false
+      if (partnerMemberships && partnerMemberships.length > 0) {
+        const partnerCompanyIds = partnerMemberships.map(pm => pm.partner_company_id)
+        const { data: affiliations } = await supabaseAdmin
+          .from('partner_affiliate_companies')
+          .select('id')
+          .eq('companies_id', companyId)
+          .in('partner_company_id', partnerCompanyIds)
+        hasPartnerAccess = affiliations && affiliations.length > 0
+      }
+
+      if (!hasPartnerAccess) {
+        throw new Error('この店舗のスタッフを招待する権限がありません')
+      }
     }
 
     // 24時間経過した招待のステータスを'expired'に変更（一時的に無効化）
