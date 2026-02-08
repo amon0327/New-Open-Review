@@ -23,12 +23,21 @@ serve(async (req) => {
     const jstNow = new Date(now.getTime() + jstOffset)
     const yearMonth = `${jstNow.getFullYear()}-${String(jstNow.getMonth() + 1).padStart(2, '0')}`
 
-    // 月の開始日と終了日（UTC）
+    // 先月の年月を計算
+    const prevMonth = new Date(jstNow.getFullYear(), jstNow.getMonth() - 1, 1)
+    const prevYearMonth = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, '0')}`
+
+    // 今月の開始日と終了日（UTC）
     const monthStart = new Date(Date.UTC(jstNow.getFullYear(), jstNow.getMonth(), 1) - jstOffset)
     const monthEnd = new Date(Date.UTC(jstNow.getFullYear(), jstNow.getMonth() + 1, 0, 23, 59, 59, 999) - jstOffset)
 
-    console.log(`Processing monthly analytics for ${yearMonth}`)
-    console.log(`Date range: ${monthStart.toISOString()} to ${monthEnd.toISOString()}`)
+    // 先月の開始日と終了日（UTC）
+    const prevMonthStart = new Date(Date.UTC(prevMonth.getFullYear(), prevMonth.getMonth(), 1) - jstOffset)
+    const prevMonthEnd = new Date(Date.UTC(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0, 23, 59, 59, 999) - jstOffset)
+
+    console.log(`Processing monthly analytics for ${yearMonth} and ${prevYearMonth}`)
+    console.log(`Current month range: ${monthStart.toISOString()} to ${monthEnd.toISOString()}`)
+    console.log(`Previous month range: ${prevMonthStart.toISOString()} to ${prevMonthEnd.toISOString()}`)
 
     // 全企業を取得
     const { data: companies, error: companiesError } = await supabaseAdmin
@@ -49,17 +58,44 @@ serve(async (req) => {
         .eq('company_id', company.id)
 
       for (const store of stores || []) {
+        // 今月分
         try {
           const result = await processAnalytics(supabaseAdmin, company.id, store.id, yearMonth, monthStart, monthEnd)
           if (result.skipped) {
-            results.push({ companyId: company.id, storeId: store.id, status: 'skipped', message: 'No responses' })
+            results.push({ companyId: company.id, storeId: store.id, status: 'skipped', message: `No responses for ${yearMonth}` })
           } else {
             results.push({ companyId: company.id, storeId: store.id, status: 'success' })
           }
         } catch (storeError) {
-          console.error(`Error processing store ${store.id}:`, storeError)
+          console.error(`Error processing store ${store.id} for ${yearMonth}:`, storeError)
           results.push({ companyId: company.id, storeId: store.id, status: 'error', message: storeError.message })
         }
+
+        // 先月分
+        try {
+          const result = await processAnalytics(supabaseAdmin, company.id, store.id, prevYearMonth, prevMonthStart, prevMonthEnd)
+          if (result.skipped) {
+            results.push({ companyId: company.id, storeId: store.id, status: 'skipped', message: `No responses for ${prevYearMonth}` })
+          } else {
+            results.push({ companyId: company.id, storeId: store.id, status: 'success', message: `prev month ${prevYearMonth}` })
+          }
+        } catch (storeError) {
+          console.error(`Error processing store ${store.id} for ${prevYearMonth}:`, storeError)
+          results.push({ companyId: company.id, storeId: store.id, status: 'error', message: `prev: ${storeError.message}` })
+        }
+      }
+    }
+
+    // ========================================
+    // 加重平均を計算して monthly_analytics_summary_avg に記録
+    // ========================================
+    const avgTargetMonths = [yearMonth, prevYearMonth]
+    for (const targetMonth of avgTargetMonths) {
+      try {
+        await calculateAndUpsertAverage(supabaseAdmin, targetMonth)
+        console.log(`Successfully calculated average for ${targetMonth}`)
+      } catch (avgError) {
+        console.error(`Error calculating average for ${targetMonth}:`, avgError)
       }
     }
 
@@ -67,6 +103,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         yearMonth,
+        prevYearMonth,
         processedAt: new Date().toISOString(),
         results
       }),
@@ -754,4 +791,238 @@ async function processAnalytics(
 
   console.log(`Successfully processed: company=${companyId}, store=${storeId}, yearMonth=${yearMonth}`)
   return { skipped: false }
+}
+
+// ========================================
+// 加重平均計算・UPSERT関数
+// ========================================
+async function calculateAndUpsertAverage(supabase: any, yearMonth: string) {
+  // 該当月の全店舗サマリーを取得
+  const { data: summaries, error: fetchError } = await supabase
+    .from('monthly_analytics_summary')
+    .select('*')
+    .eq('year_month', yearMonth)
+
+  if (fetchError) {
+    throw new Error(`Failed to fetch summaries for avg: ${fetchError.message}`)
+  }
+
+  if (!summaries || summaries.length === 0) {
+    console.log(`No summaries found for ${yearMonth}, skipping average calculation`)
+    return
+  }
+
+  const totalWeight = summaries.reduce((sum: number, s: any) => sum + (s.total_responses || 0), 0)
+
+  if (totalWeight === 0) {
+    console.log(`Total responses is 0 for ${yearMonth}, skipping average calculation`)
+    return
+  }
+
+  // 加重平均ヘルパー（weight = total_responses）
+  const weightedAvg = (field: string): number => {
+    let weightedSum = 0
+    let w = 0
+    for (const s of summaries) {
+      const val = s[field]
+      const weight = s.total_responses || 0
+      if (val !== null && val !== undefined && weight > 0) {
+        weightedSum += val * weight
+        w += weight
+      }
+    }
+    return w > 0 ? Math.round((weightedSum / w) * 100) / 100 : 0
+  }
+
+  // 加重平均（カスタムウェイト）
+  const weightedAvgBy = (field: string, weightField: string): number => {
+    let weightedSum = 0
+    let w = 0
+    for (const s of summaries) {
+      const val = s[field]
+      const weight = s[weightField] || 0
+      if (val !== null && val !== undefined && weight > 0) {
+        weightedSum += val * weight
+        w += weight
+      }
+    }
+    return w > 0 ? Math.round((weightedSum / w) * 100) / 100 : 0
+  }
+
+  // 合計ヘルパー
+  const sumField = (field: string): number => {
+    return summaries.reduce((sum: number, s: any) => sum + (s[field] || 0), 0)
+  }
+
+  // 整数に丸める加重平均
+  const weightedAvgInt = (field: string): number => Math.round(weightedAvg(field))
+
+  const avgData: Record<string, any> = {
+    year_month: yearMonth,
+
+    // 回答数合計
+    total_responses: sumField('total_responses'),
+
+    // NPS（加重平均）
+    nps_score: weightedAvgInt('nps_score'),
+    nps_promoters_percent: weightedAvgInt('nps_promoters_percent'),
+    nps_passives_percent: weightedAvgInt('nps_passives_percent'),
+    nps_detractors_percent: weightedAvgInt('nps_detractors_percent'),
+    nps_promoters_count: sumField('nps_promoters_count'),
+    nps_passives_count: sumField('nps_passives_count'),
+    nps_detractors_count: sumField('nps_detractors_count'),
+
+    // リピート率（加重平均）
+    repeat_rate: weightedAvg('repeat_rate'),
+    repeater_count: sumField('repeater_count'),
+    new_customer_count: sumField('new_customer_count'),
+    repeater_revisit_rate: weightedAvg('repeater_revisit_rate'),
+    repeater_revisit_yes_count: sumField('repeater_revisit_yes_count'),
+    repeater_revisit_no_count: sumField('repeater_revisit_no_count'),
+    new_revisit_rate: weightedAvg('new_revisit_rate'),
+    new_revisit_yes_count: sumField('new_revisit_yes_count'),
+    new_revisit_no_count: sumField('new_revisit_no_count'),
+
+    // 12セグメント（カウントは合計、パーセントは加重平均）
+    seg_promoter_revisit_repeater_count: sumField('seg_promoter_revisit_repeater_count'),
+    seg_promoter_revisit_repeater_percent: weightedAvg('seg_promoter_revisit_repeater_percent'),
+    seg_promoter_revisit_new_count: sumField('seg_promoter_revisit_new_count'),
+    seg_promoter_revisit_new_percent: weightedAvg('seg_promoter_revisit_new_percent'),
+    seg_promoter_norevisit_repeater_count: sumField('seg_promoter_norevisit_repeater_count'),
+    seg_promoter_norevisit_repeater_percent: weightedAvg('seg_promoter_norevisit_repeater_percent'),
+    seg_promoter_norevisit_new_count: sumField('seg_promoter_norevisit_new_count'),
+    seg_promoter_norevisit_new_percent: weightedAvg('seg_promoter_norevisit_new_percent'),
+    seg_passive_revisit_repeater_count: sumField('seg_passive_revisit_repeater_count'),
+    seg_passive_revisit_repeater_percent: weightedAvg('seg_passive_revisit_repeater_percent'),
+    seg_passive_revisit_new_count: sumField('seg_passive_revisit_new_count'),
+    seg_passive_revisit_new_percent: weightedAvg('seg_passive_revisit_new_percent'),
+    seg_passive_norevisit_repeater_count: sumField('seg_passive_norevisit_repeater_count'),
+    seg_passive_norevisit_repeater_percent: weightedAvg('seg_passive_norevisit_repeater_percent'),
+    seg_passive_norevisit_new_count: sumField('seg_passive_norevisit_new_count'),
+    seg_passive_norevisit_new_percent: weightedAvg('seg_passive_norevisit_new_percent'),
+    seg_detractor_revisit_repeater_count: sumField('seg_detractor_revisit_repeater_count'),
+    seg_detractor_revisit_repeater_percent: weightedAvg('seg_detractor_revisit_repeater_percent'),
+    seg_detractor_revisit_new_count: sumField('seg_detractor_revisit_new_count'),
+    seg_detractor_revisit_new_percent: weightedAvg('seg_detractor_revisit_new_percent'),
+    seg_detractor_norevisit_repeater_count: sumField('seg_detractor_norevisit_repeater_count'),
+    seg_detractor_norevisit_repeater_percent: weightedAvg('seg_detractor_norevisit_repeater_percent'),
+    seg_detractor_norevisit_new_count: sumField('seg_detractor_norevisit_new_count'),
+    seg_detractor_norevisit_new_percent: weightedAvg('seg_detractor_norevisit_new_percent'),
+
+    // ポジティブ・ネガティブ影響
+    positive_impact_count: sumField('positive_impact_count'),
+    positive_impact_percent: weightedAvg('positive_impact_percent'),
+    negative_impact_count: sumField('negative_impact_count'),
+    negative_impact_percent: weightedAvg('negative_impact_percent'),
+
+    // QSCスコア（各カテゴリのcountで加重平均）
+    qsc_quality_score: weightedAvgBy('qsc_quality_score', 'qsc_quality_count'),
+    qsc_quality_count: sumField('qsc_quality_count'),
+    qsc_service_score: weightedAvgBy('qsc_service_score', 'qsc_service_count'),
+    qsc_service_count: sumField('qsc_service_count'),
+    qsc_cleanliness_score: weightedAvgBy('qsc_cleanliness_score', 'qsc_cleanliness_count'),
+    qsc_cleanliness_count: sumField('qsc_cleanliness_count'),
+
+    // QSC カテゴリ別合計
+    quality_positive_count: sumField('quality_positive_count'),
+    quality_negative_count: sumField('quality_negative_count'),
+    quality_neutral_count: sumField('quality_neutral_count'),
+    service_positive_count: sumField('service_positive_count'),
+    service_negative_count: sumField('service_negative_count'),
+    service_neutral_count: sumField('service_neutral_count'),
+    cleanliness_positive_count: sumField('cleanliness_positive_count'),
+    cleanliness_negative_count: sumField('cleanliness_negative_count'),
+    cleanliness_neutral_count: sumField('cleanliness_neutral_count'),
+
+    // 性別（カウント合計、パーセントは加重平均）
+    gender_male_count: sumField('gender_male_count'),
+    gender_male_percent: weightedAvgInt('gender_male_percent'),
+    gender_female_count: sumField('gender_female_count'),
+    gender_female_percent: weightedAvgInt('gender_female_percent'),
+    gender_other_count: sumField('gender_other_count'),
+    gender_other_percent: weightedAvgInt('gender_other_percent'),
+
+    // 年齢
+    age_20s_count: sumField('age_20s_count'),
+    age_20s_percent: weightedAvgInt('age_20s_percent'),
+    age_30s_count: sumField('age_30s_count'),
+    age_30s_percent: weightedAvgInt('age_30s_percent'),
+    age_40s_count: sumField('age_40s_count'),
+    age_40s_percent: weightedAvgInt('age_40s_percent'),
+    age_50s_count: sumField('age_50s_count'),
+    age_50s_percent: weightedAvgInt('age_50s_percent'),
+    age_60plus_count: sumField('age_60plus_count'),
+    age_60plus_percent: weightedAvgInt('age_60plus_percent'),
+
+    // 同行者
+    companion_alone_count: sumField('companion_alone_count'),
+    companion_alone_percent: weightedAvgInt('companion_alone_percent'),
+    companion_couple_count: sumField('companion_couple_count'),
+    companion_couple_percent: weightedAvgInt('companion_couple_percent'),
+    companion_friends_count: sumField('companion_friends_count'),
+    companion_friends_percent: weightedAvgInt('companion_friends_percent'),
+    companion_family_count: sumField('companion_family_count'),
+    companion_family_percent: weightedAvgInt('companion_family_percent'),
+    companion_business_count: sumField('companion_business_count'),
+    companion_business_percent: weightedAvgInt('companion_business_percent'),
+    companion_other_count: sumField('companion_other_count'),
+    companion_other_percent: weightedAvgInt('companion_other_percent'),
+
+    // 顧客重視ポイント（加重平均）
+    pref_total_quality: weightedAvgInt('pref_total_quality'),
+    pref_total_service: weightedAvgInt('pref_total_service'),
+    pref_total_atmosphere: weightedAvgInt('pref_total_atmosphere'),
+    pref_total_hygiene: weightedAvgInt('pref_total_hygiene'),
+    pref_total_price: weightedAvgInt('pref_total_price'),
+    pref_repeater_quality: weightedAvgInt('pref_repeater_quality'),
+    pref_repeater_service: weightedAvgInt('pref_repeater_service'),
+    pref_repeater_atmosphere: weightedAvgInt('pref_repeater_atmosphere'),
+    pref_repeater_hygiene: weightedAvgInt('pref_repeater_hygiene'),
+    pref_repeater_price: weightedAvgInt('pref_repeater_price'),
+    pref_new_quality: weightedAvgInt('pref_new_quality'),
+    pref_new_service: weightedAvgInt('pref_new_service'),
+    pref_new_atmosphere: weightedAvgInt('pref_new_atmosphere'),
+    pref_new_hygiene: weightedAvgInt('pref_new_hygiene'),
+    pref_new_price: weightedAvgInt('pref_new_price'),
+  }
+
+  // QSC項目別（q1-q10, s1-s10, c1-c10）
+  for (const prefix of ['q', 's', 'c']) {
+    for (let i = 1; i <= 10; i++) {
+      const totalCountField = `${prefix}${i}_total_count`
+      avgData[`${prefix}${i}_positive_percent`] = weightedAvgInt(`${prefix}${i}_positive_percent`)
+      avgData[`${prefix}${i}_negative_percent`] = weightedAvgInt(`${prefix}${i}_negative_percent`)
+      avgData[`${prefix}${i}_neutral_percent`] = weightedAvgInt(`${prefix}${i}_neutral_percent`)
+      avgData[totalCountField] = sumField(totalCountField)
+    }
+  }
+
+  // UPSERT（year_monthで一意）
+  // 既存レコードを確認してupsert
+  const { data: existing } = await supabase
+    .from('monthly_analytics_summary_avg')
+    .select('id')
+    .eq('year_month', yearMonth)
+    .maybeSingle()
+
+  if (existing) {
+    const { error: updateError } = await supabase
+      .from('monthly_analytics_summary_avg')
+      .update(avgData)
+      .eq('id', existing.id)
+
+    if (updateError) {
+      throw new Error(`Failed to update avg: ${updateError.message}`)
+    }
+  } else {
+    const { error: insertError } = await supabase
+      .from('monthly_analytics_summary_avg')
+      .insert(avgData)
+
+    if (insertError) {
+      throw new Error(`Failed to insert avg: ${insertError.message}`)
+    }
+  }
+
+  console.log(`Average calculated for ${yearMonth}: ${summaries.length} stores, ${totalWeight} total responses`)
 }
