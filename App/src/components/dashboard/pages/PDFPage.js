@@ -318,26 +318,12 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {pdfLoading && (
-              <span className="text-gray-400 text-sm flex items-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                生成中...
-              </span>
-            )}
-            <button
-              onClick={() => handleDownload(selectedReport)}
-              disabled={downloadLoading || pdfLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
-            >
-              {downloadLoading ? (
-                <CircularProgress size={16} sx={{ color: 'white' }} />
-              ) : (
-                <Download className="w-4 h-4" />
-              )}
-              ダウンロード
-            </button>
-          </div>
+          {pdfLoading && (
+            <span className="text-gray-400 text-sm flex items-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin" />
+              生成中...
+            </span>
+          )}
         </div>
 
         {/* PDFプレビュー */}
