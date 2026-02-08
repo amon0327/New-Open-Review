@@ -507,7 +507,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                               }}
                               onClick={(e) => e.stopPropagation()}
                               sx={{
-                                transform: 'scale(1.15)',
+                                mr: -1,
                                 '& .MuiSwitch-switchBase.Mui-checked': {
                                   color: '#5e17eb',
                                 },
