@@ -499,23 +499,57 @@ export default function PartnerDashboard({ user, onLogout }) {
                               />
                             )}
                             <Box sx={{ flexGrow: 1 }} />
-                            <Switch
-                              checked={company.is_active !== false}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                handleToggleCompanyActive(company.id, company.is_active);
-                              }}
+                            <Box
+                              sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}
                               onClick={(e) => e.stopPropagation()}
-                              sx={{
-                                mr: -1,
-                                '& .MuiSwitch-switchBase.Mui-checked': {
-                                  color: '#5e17eb',
-                                },
-                                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                  backgroundColor: '#5e17eb',
-                                },
-                              }}
-                            />
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: company.is_active !== false ? '#5e17eb' : '#94a3b8',
+                                  fontWeight: 600,
+                                  fontSize: '0.7rem',
+                                  transition: 'color 0.3s ease',
+                                  userSelect: 'none'
+                                }}
+                              >
+                                {company.is_active !== false ? 'ON' : 'OFF'}
+                              </Typography>
+                              <Switch
+                                checked={company.is_active !== false}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleCompanyActive(company.id, company.is_active);
+                                }}
+                                sx={{
+                                  width: 44,
+                                  height: 24,
+                                  p: 0,
+                                  '& .MuiSwitch-switchBase': {
+                                    p: '3px',
+                                    '&.Mui-checked': {
+                                      transform: 'translateX(20px)',
+                                      color: '#fff',
+                                      '& + .MuiSwitch-track': {
+                                        backgroundColor: '#5e17eb',
+                                        opacity: 1,
+                                      },
+                                    },
+                                  },
+                                  '& .MuiSwitch-thumb': {
+                                    width: 18,
+                                    height: 18,
+                                    boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+                                  },
+                                  '& .MuiSwitch-track': {
+                                    borderRadius: 12,
+                                    backgroundColor: '#cbd5e1',
+                                    opacity: 1,
+                                    transition: 'background-color 0.3s ease',
+                                  },
+                                }}
+                              />
+                            </Box>
                           </Box>
                         </Box>
                       </CardContent>
