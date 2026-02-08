@@ -431,11 +431,10 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <Avatar sx={{ mr: 2 }}>
-                              {member.business_users?.name?.charAt(0) ||
-                               member.business_users?.email?.charAt(0)}
+                              {(member.name || member.business_users?.name || member.business_users?.email || '?').charAt(0)}
                             </Avatar>
                             <Typography variant="body2">
-                              {member.business_users?.name || 'ユーザー'}
+                              {member.name || member.business_users?.name || 'ユーザー'}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -457,7 +456,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                         <TableCell align="center">
                           <IconButton
                             size="small"
-                            onClick={() => handleDeleteMember(member.id, member.business_users?.name || 'ユーザー')}
+                            onClick={() => handleDeleteMember(member.id, member.name || member.business_users?.name || 'ユーザー')}
                             sx={{
                               color: '#94a3b8',
                               '&:hover': {

@@ -245,7 +245,8 @@ serve(async (req) => {
       store_id: invitation.store_id,
       role: invitation.role,
       company_id: invitation.stores?.company_id || null,
-      shift_name: invitation.shift_name || null
+      shift_name: invitation.shift_name || null,
+      name: invitation.name || null
     }
     
     console.log('Creating store membership with data:', membershipData)
