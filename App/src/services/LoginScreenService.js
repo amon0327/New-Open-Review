@@ -83,8 +83,8 @@ export const getLoginPageData = async (reviewFormId) => {
     // デフォルト値
     const defaultLoginSettings = {
       background_image_url: 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg',
-      title_text: 'OpenReviewへようこそ！',
-      detail_text: 'あなたの目的に合わせたレビュー項目を設定できます\n質問項目を追加して、最適なレビューを作成しましょう'
+      title_text: 'OpenReviewへようこそ',
+      detail_text: '飲食店のためのアンケートツール\nお客様の声を集めて、また来たくなるお店づくりをサポートします'
     };
 
     const defaultFormSettings = {

@@ -11,8 +11,7 @@ import {
   Stack
 } from '@mui/material';
 import {
-  Google,
-  Info
+  Google
 } from '@mui/icons-material';
 
 // モダンなアニメーションバリアント
@@ -125,32 +124,10 @@ export default function LoginPage({ onLogin }) {
                       color="text.secondary"
                       sx={{ fontSize: '1rem', fontWeight: 400 }}
                     >
-                      プレビュー版としてお試しいただけます
+                      お客様の声で、また来たくなるお店へ
                     </Typography>
                   </Box>
                 </Stack>
-              </motion.div>
-            </Box>
-
-            {/* Notice Section */}
-            <Box sx={{ px: 6, pb: 4 }}>
-              <motion.div variants={fadeInUp}>
-                <Alert 
-                  severity="info" 
-                  icon={<Info />}
-                  sx={{ 
-                    borderRadius: '12px',
-                    border: 'none',
-                    backgroundColor: 'rgba(33, 150, 243, 0.08)',
-                    '& .MuiAlert-icon': {
-                      color: '#1976d2'
-                    }
-                  }}
-                >
-                  <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-                    データは一時的な保存となりますので、プレビュー版としてご利用ください。
-                  </Typography>
-                </Alert>
               </motion.div>
             </Box>
 
