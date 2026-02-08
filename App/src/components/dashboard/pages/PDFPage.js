@@ -32,7 +32,8 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState(null);
   const [previewMode, setPreviewMode] = useState(false);
-  const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [downloadLoading, setDownloadLoading] = useState(false);
   const [reportData, setReportData] = useState(null);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -190,7 +191,7 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
   // プレビュー表示
   const handlePreview = async (report) => {
     setSelectedReport(report);
-    setGeneratingPDF(true);
+    setPreviewLoading(true);
     setPdfUrl(null);
     setPdfError(null);
 
@@ -203,13 +204,13 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
     }
 
     setPreviewMode(true);
-    setGeneratingPDF(false);
+    setPreviewLoading(false);
   };
 
   // PDFダウンロード
   const handleDownload = async (report) => {
     setSelectedReport(report);
-    setGeneratingPDF(true);
+    setDownloadLoading(true);
 
     try {
       const data = reportData || await fetchReportData(report.yearMonth);
@@ -221,7 +222,7 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
       console.error('PDF生成エラー:', error);
     }
 
-    setGeneratingPDF(false);
+    setDownloadLoading(false);
   };
 
   // プレビューを閉じる
@@ -326,10 +327,10 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
             )}
             <button
               onClick={() => handleDownload(selectedReport)}
-              disabled={generatingPDF || pdfLoading}
+              disabled={downloadLoading || pdfLoading}
               className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
             >
-              {generatingPDF ? (
+              {downloadLoading ? (
                 <CircularProgress size={16} sx={{ color: 'white' }} />
               ) : (
                 <Download className="w-4 h-4" />
@@ -465,10 +466,10 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handlePreview(report)}
-                          disabled={generatingPDF}
+                          disabled={previewLoading || downloadLoading}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50"
                         >
-                          {generatingPDF && selectedReport?.yearMonth === report.yearMonth ? (
+                          {previewLoading && selectedReport?.yearMonth === report.yearMonth ? (
                             <CircularProgress size={14} sx={{ color: '#64748b' }} />
                           ) : (
                             <Eye className="w-4 h-4" />
@@ -477,10 +478,10 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
                         </button>
                         <button
                           onClick={() => handleDownload(report)}
-                          disabled={generatingPDF}
+                          disabled={previewLoading || downloadLoading}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                         >
-                          {generatingPDF && selectedReport?.yearMonth === report.yearMonth ? (
+                          {downloadLoading && selectedReport?.yearMonth === report.yearMonth ? (
                             <CircularProgress size={14} sx={{ color: 'white' }} />
                           ) : (
                             <Download className="w-4 h-4" />
