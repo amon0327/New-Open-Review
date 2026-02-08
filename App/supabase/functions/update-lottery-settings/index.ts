@@ -77,6 +77,8 @@ serve(async (req) => {
       throw new Error('フォームが見つかりません')
     }
 
+    const companyId = formData.company_id
+
     // Check if user is the form owner
     if (formData.user_id === user.id) {
       // User is the form owner, allow access
@@ -85,13 +87,12 @@ serve(async (req) => {
       const { data: membershipData, error: membershipError } = await supabaseAdmin
         .from('company_memberships')
         .select('id')
-        .eq('company_id', formData.company_id)
+        .eq('company_id', companyId)
         .eq('business_user_id', user.id)
         .maybeSingle()
 
       if (!membershipData) {
         // Check partner membership
-        // まずユーザーが所属するパートナー企業を取得
         const { data: userPartnerMemberships } = await supabaseAdmin
           .from('partner_memberships')
           .select('partner_company_id')
@@ -104,7 +105,7 @@ serve(async (req) => {
           const { data: affiliations } = await supabaseAdmin
             .from('partner_affiliate_companies')
             .select('id')
-            .eq('companies_id', formData.company_id)
+            .eq('companies_id', companyId)
             .in('partner_company_id', partnerCompanyIds)
           hasPartnerAccess = affiliations && affiliations.length > 0
         }
@@ -115,69 +116,37 @@ serve(async (req) => {
       }
     }
 
-    // Check if lottery record exists
-    const { data: existingLottery, error: checkError } = await supabaseAdmin
-      .from('lottery')
-      .select('*')
-      .eq('review_form_id', review_form_id)
-      .maybeSingle()
+    // company_lottery_settings に upsert（企業単位の抽選設定）
+    const { data: result, error: upsertError } = await supabaseAdmin
+      .from('company_lottery_settings')
+      .upsert({
+        company_id: companyId,
+        win_rate_divisor: win_rate_divisor,
+        max_wins_per_month: max_wins_per_month,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'company_id'
+      })
+      .select()
+      .single()
 
-    let result
-
-    if (!existingLottery && !checkError) {
-      // No existing record, create new one
-      const { data: newLottery, error: insertError } = await supabaseAdmin
-        .from('lottery')
-        .insert({
-          review_form_id: review_form_id,
-          max_wins_per_month: max_wins_per_month,
-          win_rate_divisor: win_rate_divisor,
-          current_wins: 0,
-          current_trials: 0
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        throw new Error('抽選設定の作成に失敗しました: ' + insertError.message)
-      }
-
-      result = newLottery
-    } else if (existingLottery) {
-      // Update existing record
-      const { data: updatedLottery, error: updateError } = await supabaseAdmin
-        .from('lottery')
-        .update({
-          max_wins_per_month: max_wins_per_month,
-          win_rate_divisor: win_rate_divisor
-        })
-        .eq('review_form_id', review_form_id)
-        .select()
-        .single()
-
-      if (updateError) {
-        throw new Error('抽選設定の更新に失敗しました: ' + updateError.message)
-      }
-
-      result = updatedLottery
-    } else if (checkError) {
-      throw new Error('既存レコードの確認中にエラーが発生しました: ' + checkError.message)
+    if (upsertError) {
+      throw new Error('抽選設定の保存に失敗しました: ' + upsertError.message)
     }
 
     // Log the update
     console.log('抽選設定更新成功:', {
       userId: user.id,
-      reviewFormId: review_form_id,
+      companyId: companyId,
       maxWinsPerMonth: max_wins_per_month,
-      winRateDivisor: win_rate_divisor,
-      action: existingLottery ? 'update' : 'create'
+      winRateDivisor: win_rate_divisor
     })
 
     return new Response(
       JSON.stringify({
         success: true,
         data: result,
-        message: existingLottery ? '抽選設定を更新しました' : '抽選設定を作成しました'
+        message: '抽選設定を更新しました'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

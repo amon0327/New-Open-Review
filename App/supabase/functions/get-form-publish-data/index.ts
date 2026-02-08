@@ -60,17 +60,32 @@ serve(async (req) => {
     const publishedForm = forms?.find(f => f.is_published)
     const selectedFormId = publishedForm?.id || forms?.[0]?.id
 
-    // 3. 抽選設定を取得（選択されたフォームの設定）
-    let lotterySettings = null
-    if (selectedFormId) {
-      const { data: lotteryData } = await supabaseAdmin
-        .from('lottery')
-        .select('*')
-        .eq('review_form_id', selectedFormId)
-        .maybeSingle()
+    // 3. 抽選設定を取得（企業単位: company_lottery_settings）
+    const { data: lotterySettings } = await supabaseAdmin
+      .from('company_lottery_settings')
+      .select('*')
+      .eq('company_id', companyId)
+      .maybeSingle()
 
-      lotterySettings = lotteryData
-    }
+    // 今月の抽選統計を取得（company_lottery_logs から集計）
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString()
+
+    const { count: currentTrials } = await supabaseAdmin
+      .from('company_lottery_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('company_id', companyId)
+      .gte('created_at', monthStart)
+      .lte('created_at', monthEnd)
+
+    const { count: currentWins } = await supabaseAdmin
+      .from('company_lottery_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('company_id', companyId)
+      .eq('is_winner', true)
+      .gte('created_at', monthStart)
+      .lte('created_at', monthEnd)
 
     // 4. 店舗一覧を取得
     const { data: stores, error: storesError } = await supabaseAdmin
@@ -102,16 +117,12 @@ serve(async (req) => {
           stores: stores || [],
           publishedFormId: publishedForm?.id || null,
           selectedFormId: selectedFormId || null,
-          lotterySettings: lotterySettings ? {
-            maxWinsPerMonth: lotterySettings.max_wins_per_month || 1,
-            winRateDivisor: lotterySettings.win_rate_divisor || 1000,
-            currentTrials: lotterySettings.current_trials || 0,
-            currentWins: lotterySettings.current_wins || 0
-          } : {
-            maxWinsPerMonth: 1,
-            winRateDivisor: 1000,
-            currentTrials: 0,
-            currentWins: 0
+          lotterySettings: {
+            maxWinsPerMonth: lotterySettings?.max_wins_per_month ?? 1,
+            winRateDivisor: lotterySettings?.win_rate_divisor ?? 1000,
+            isEnabled: lotterySettings?.is_enabled ?? true,
+            currentTrials: currentTrials ?? 0,
+            currentWins: currentWins ?? 0
           },
           publicFormSettings: publicFormSettings,
           lineMiniAppUrl: companyData?.line_mini_app_url || ''
