@@ -1154,14 +1154,13 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                   </Box>
                   {savedLineMiniAppUrl ? (
                     <Typography sx={{
-                      fontSize: '1.25rem',
-                      fontWeight: 700,
-                      color: '#00b900'
+                      fontSize: '0.85rem',
+                      color: '#374151'
                     }}>
                       {savedLineMiniAppUrl}
                     </Typography>
                   ) : (
-                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: '#94a3b8' }}>
+                    <Typography sx={{ fontSize: '0.85rem', color: '#94a3b8' }}>
                       未設定
                     </Typography>
                   )}
