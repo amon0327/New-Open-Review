@@ -1310,7 +1310,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                     </Box>
                   </TableCell>
                   <TableCell>住所</TableCell>
-                  <TableCell>URL</TableCell>
+                  <TableCell>LINEミニアプリURL</TableCell>
                   <TableCell align="center" sx={{ width: 240 }}>アクション</TableCell>
                 </TableRow>
               </TableHead>
@@ -1353,96 +1353,38 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                       </Typography>
                     </TableCell>
 
-                    {/* URL（縦配置） */}
+                    {/* LINEミニアプリURL */}
                     <TableCell sx={{ py: 2 }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        {/* フォームURL */}
-                        <Box>
-                          <Typography sx={{ fontSize: '0.7rem', color: '#9ca3af', fontWeight: 500, mb: 0.25 }}>
-                            フォームURL
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontSize: '0.75rem',
-                              color: '#64748b',
-                              fontFamily: 'monospace',
-                              bgcolor: '#f8fafc',
-                              px: 1,
-                              py: 0.5,
-                              borderRadius: 0.5,
-                              display: 'inline-block',
-                              border: '1px solid #e5e7eb',
-                              maxWidth: '400px',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {getStoreFormUrl(store)}
-                          </Typography>
-                        </Box>
-                        
-                        {/* LINEミニアプリURL */}
-                        <Box>
-                          <Typography sx={{ fontSize: '0.7rem', color: '#9ca3af', fontWeight: 500, mb: 0.25 }}>
-                            LINEミニアプリ本番用LIFF URL
-                          </Typography>
-                          {savedLineMiniAppUrl ? (
-                            <Typography
-                              sx={{
-                                fontSize: '0.75rem',
-                                color: '#64748b',
-                                fontFamily: 'monospace',
-                                bgcolor: '#e6f7e6',
-                                px: 1,
-                                py: 0.5,
-                                borderRadius: 0.5,
-                                display: 'inline-block',
-                                border: '1px solid #b8e0b8',
-                                maxWidth: '400px',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {getLineMiniAppUrl(store)}
-                            </Typography>
-                          ) : (
-                            <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                              未設定
-                            </Typography>
-                          )}
-                        </Box>
-                      </Box>
+                      {savedLineMiniAppUrl ? (
+                        <Typography
+                          sx={{
+                            fontSize: '0.75rem',
+                            color: '#64748b',
+                            fontFamily: 'monospace',
+                            bgcolor: '#e6f7e6',
+                            px: 1,
+                            py: 0.5,
+                            borderRadius: 0.5,
+                            display: 'inline-block',
+                            border: '1px solid #b8e0b8',
+                            maxWidth: '400px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {getLineMiniAppUrl(store)}
+                        </Typography>
+                      ) : (
+                        <Typography sx={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                          未設定
+                        </Typography>
+                      )}
                     </TableCell>
 
                     {/* アクションボタン */}
                     <TableCell align="center" sx={{ py: 2 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.5, flexWrap: 'wrap' }}>
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          startIcon={<ContentCopy sx={{ fontSize: 14 }} />}
-                          onClick={() => handleCopyUrl(store, false)}
-                          sx={{
-                            color: '#64748b',
-                            borderColor: '#e5e7eb',
-                            borderRadius: 0.5,
-                            textTransform: 'none',
-                            fontSize: '0.7rem',
-                            fontWeight: 600,
-                            px: 1,
-                            py: 0.5,
-                            minWidth: 'auto',
-                            '&:hover': {
-                              color: '#5e17eb',
-                              borderColor: '#5e17eb',
-                              bgcolor: 'rgba(94, 23, 235, 0.04)'
-                            }
-                          }}
-                        >
-                          フォーム
-                        </Button>
                         {savedLineMiniAppUrl && (
                           <Button
                             size="small"
@@ -1466,7 +1408,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                               }
                             }}
                           >
-                            LINE
+                            コピー
                           </Button>
                         )}
                         <Button
