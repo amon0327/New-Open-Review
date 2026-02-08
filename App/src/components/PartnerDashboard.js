@@ -308,7 +308,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                       <People sx={{ fontSize: 40, color: '#10b981', mr: 2 }} />
                       <Box>
                         <Typography variant="h3" sx={{ fontWeight: 700, color: '#1a202c' }}>
-                          0
+                          {isLoadingMembers ? '-' : members.length}
                         </Typography>
                         <Typography variant="body2" sx={{ color: '#64748b' }}>
                           メンバー数
@@ -326,7 +326,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                       <PersonAdd sx={{ fontSize: 40, color: '#f59e0b', mr: 2 }} />
                       <Box>
                         <Typography variant="h3" sx={{ fontWeight: 700, color: '#1a202c' }}>
-                          0
+                          {isLoadingMembers ? '-' : invitations.length}
                         </Typography>
                         <Typography variant="body2" sx={{ color: '#64748b' }}>
                           招待中
