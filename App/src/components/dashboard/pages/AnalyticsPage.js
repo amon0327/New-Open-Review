@@ -1162,7 +1162,6 @@ const StoreByStoreTab = ({ companyId }) => {
           <Tab label="売上影響" />
           <Tab label="店舗評価" />
           <Tab label="顧客傾向" />
-          <Tab label="コメント" />
         </Tabs>
         
         {/* 店舗選択 */}
@@ -1240,9 +1239,6 @@ const StoreByStoreTab = ({ companyId }) => {
             </TabPanel>
             <TabPanel value={activeSubTab} index={4}>
               <CustomerTrendsTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
-            </TabPanel>
-            <TabPanel value={activeSubTab} index={5}>
-              <CommentsTab companyId={companyId} selectedStore={selectedStore} selectedPeriod={selectedPeriod} />
             </TabPanel>
           </>
         )}
@@ -4534,19 +4530,9 @@ export default function AnalyticsPage({ onNavCollapse, companyId }) {
           }}
         >
           <Tab
-            icon={<LocationCity sx={{ fontSize: 20 }} />}
-            iconPosition="start"
-            label="全店舗"
-          />
-          <Tab
             icon={<Store sx={{ fontSize: 20 }} />}
             iconPosition="start"
-            label="店舗別"
-          />
-          <Tab
-            icon={<Comment sx={{ fontSize: 20 }} />}
-            iconPosition="start"
-            label="リアルタイム"
+            label="店舗評価"
           />
         </Tabs>
       </Box>
@@ -4554,13 +4540,7 @@ export default function AnalyticsPage({ onNavCollapse, companyId }) {
       {/* タブコンテンツ */}
       <Box sx={{ flex: 1, overflow: 'hidden' }}>
         <TabPanel value={activeTab} index={0}>
-          <AllStoresTab />
-        </TabPanel>
-        <TabPanel value={activeTab} index={1}>
           <StoreByStoreTab companyId={companyId} />
-        </TabPanel>
-        <TabPanel value={activeTab} index={2}>
-          <RealtimeTab companyId={companyId} />
         </TabPanel>
       </Box>
     </Box>
