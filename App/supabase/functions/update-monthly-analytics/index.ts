@@ -789,8 +789,319 @@ async function processAnalytics(
     throw new Error(`Failed to upsert summary: ${upsertError.message}`)
   }
 
+  // ========================================
+  // 9. セグメントタイプ別集計
+  // ========================================
+  await processSegmentTypes(
+    supabase, companyId, storeId, yearMonth,
+    allAnswers, qualityData || [], serviceData || [], cleanlinessData || [],
+    allFeatures, customerTypeMap
+  )
+
   console.log(`Successfully processed: company=${companyId}, store=${storeId}, yearMonth=${yearMonth}`)
   return { skipped: false }
+}
+
+// ========================================
+// セグメントタイプ別集計関数
+// ========================================
+async function processSegmentTypes(
+  supabase: any,
+  companyId: string,
+  storeId: string,
+  yearMonth: string,
+  allAnswers: any[],
+  qualityData: any[],
+  serviceData: any[],
+  cleanlinessData: any[],
+  allFeatures: any[],
+  customerTypeMap: Record<string, string>
+) {
+  const isRevisitYes = (revisitIntent: string | null): boolean | null => {
+    if (revisitIntent === null || revisitIntent === undefined) return null
+    if (revisitIntent === '1ヶ月以内' || revisitIntent === '3ヶ月以内') return true
+    return false
+  }
+  const normalizeScore = (score: number) => ((score - 1) / 6) * 4 + 1
+
+  // 12セグメント定義
+  const segmentDefs = [
+    { type: 1, nps: 'promoter', revisit: true, repeater: true },    // ロイヤル顧客
+    { type: 2, nps: 'promoter', revisit: true, repeater: false },   // 期待の新規
+    { type: 3, nps: 'promoter', revisit: false, repeater: true },   // 離脱リスク推奨者
+    { type: 4, nps: 'promoter', revisit: false, repeater: false },  // 一見推奨者
+    { type: 5, nps: 'passive', revisit: true, repeater: true },     // 安定中立
+    { type: 6, nps: 'passive', revisit: true, repeater: false },    // 様子見新規
+    { type: 7, nps: 'passive', revisit: false, repeater: true },    // 離脱リスク中立
+    { type: 8, nps: 'passive', revisit: false, repeater: false },   // 低関心新規
+    { type: 9, nps: 'detractor', revisit: true, repeater: true },   // 不満継続
+    { type: 10, nps: 'detractor', revisit: true, repeater: false }, // 改善余地新規
+    { type: 11, nps: 'detractor', revisit: false, repeater: true }, // リピーター離脱
+    { type: 12, nps: 'detractor', revisit: false, repeater: false }, // 新規離脱
+  ]
+
+  // 有効な回答（3つの分類フィールドが全てあるもの）
+  const validAnswers = allAnswers.filter((a: any) =>
+    a.p1_q1 !== null && a.p1_q2 !== null && a.p1_q3 !== null
+  )
+
+  if (validAnswers.length === 0) return
+
+  // NPS判定ヘルパー
+  const matchNps = (score: number, npsType: string): boolean => {
+    if (npsType === 'promoter') return score >= 9
+    if (npsType === 'passive') return score >= 7 && score <= 8
+    return score <= 6
+  }
+
+  // 既存レコード削除
+  await supabase
+    .from('monthly_analytics_summary_by_type')
+    .delete()
+    .eq('company_id', companyId)
+    .eq('store_id', storeId)
+    .eq('year_month', yearMonth)
+
+  // QSC項目別集計ヘルパー
+  const calcItemStats = (data: any[], idx: number) => {
+    const fn = `q${idx}`
+    const items = data.filter((a: any) => a[fn] !== null && a[fn] !== undefined)
+    const t = items.length
+    if (t === 0) return { positive: 0, negative: 0, neutral: 0, total: 0 }
+    return {
+      positive: Math.round((items.filter((a: any) => a[fn] === 'positive').length / t) * 100),
+      negative: Math.round((items.filter((a: any) => a[fn] === 'negative').length / t) * 100),
+      neutral: Math.round((items.filter((a: any) => a[fn] === 'neutral').length / t) * 100),
+      total: t
+    }
+  }
+
+  const calcCatTotals = (data: any[]) => ({
+    positive: data.filter((a: any) => a.is_positive === true).length,
+    negative: data.filter((a: any) => a.is_positive === false).length,
+    neutral: data.filter((a: any) => a.is_positive === null).length,
+  })
+
+  const preferenceCategories = ['品質', '接客', '空間', '衛生', '価格感度']
+  const TOP_WEIGHT = 2
+  const SECOND_WEIGHT = 1
+
+  const calcRawScores = (features: any[]) => {
+    const scores: Record<string, number> = {}
+    preferenceCategories.forEach(cat => scores[cat] = 0)
+    features.forEach((f: any) => {
+      if (f.top_preference && preferenceCategories.includes(f.top_preference)) scores[f.top_preference] += TOP_WEIGHT
+      if (f.second_preference && preferenceCategories.includes(f.second_preference)) scores[f.second_preference] += SECOND_WEIGHT
+    })
+    return scores
+  }
+
+  const normalizeToMax100 = (scores: Record<string, number>) => {
+    const maxValue = Math.max(...Object.values(scores))
+    const normalized: Record<string, number> = {}
+    preferenceCategories.forEach(cat => {
+      normalized[cat] = maxValue > 0 ? Math.round((scores[cat] / maxValue) * 100) : 0
+    })
+    return normalized
+  }
+
+  for (const segDef of segmentDefs) {
+    // このセグメントの回答をフィルタ
+    const segAnswers = validAnswers.filter((a: any) =>
+      matchNps(a.p1_q1, segDef.nps) &&
+      isRevisitYes(a.p1_q2) === segDef.revisit &&
+      (segDef.repeater ? a.p1_q3 !== '初めて' : a.p1_q3 === '初めて')
+    )
+
+    if (segAnswers.length === 0) continue
+
+    const totalResponses = segAnswers.length
+    const segSubmissionIds = new Set(
+      segAnswers.map((a: any) => a.review_form_submission_id).filter(Boolean)
+    )
+
+    // --- NPS ---
+    const promoters = segAnswers.filter((a: any) => a.p1_q1 >= 9)
+    const passives = segAnswers.filter((a: any) => a.p1_q1 >= 7 && a.p1_q1 <= 8)
+    const detractors = segAnswers.filter((a: any) => a.p1_q1 <= 6)
+    const npsTotal = totalResponses
+    const promoterPct = npsTotal > 0 ? Math.round((promoters.length / npsTotal) * 100) : 0
+    const passivePct = npsTotal > 0 ? Math.round((passives.length / npsTotal) * 100) : 0
+    const detractorPct = npsTotal > 0 ? Math.round((detractors.length / npsTotal) * 100) : 0
+
+    // --- リピート率 ---
+    const visitAnswers = segAnswers.filter((a: any) => a.p1_q3 !== null)
+    const repeaters = visitAnswers.filter((a: any) => a.p1_q3 !== '初めて')
+    const newCust = visitAnswers.filter((a: any) => a.p1_q3 === '初めて')
+    const repeatRate = visitAnswers.length > 0 ? Math.round((repeaters.length / visitAnswers.length) * 1000) / 10 : 0
+
+    // --- 再来店意向 ---
+    const repWithIntent = repeaters.filter((a: any) => a.p1_q2 !== null)
+    const repYes = repWithIntent.filter((a: any) => isRevisitYes(a.p1_q2) === true)
+    const repNo = repWithIntent.filter((a: any) => isRevisitYes(a.p1_q2) === false)
+    const repRevisitRate = repWithIntent.length > 0 ? Math.round((repYes.length / repWithIntent.length) * 1000) / 10 : 0
+
+    const newWithIntent = newCust.filter((a: any) => a.p1_q2 !== null)
+    const newYes = newWithIntent.filter((a: any) => isRevisitYes(a.p1_q2) === true)
+    const newNo = newWithIntent.filter((a: any) => isRevisitYes(a.p1_q2) === false)
+    const newRevisitRate = newWithIntent.length > 0 ? Math.round((newYes.length / newWithIntent.length) * 1000) / 10 : 0
+
+    // --- 12セグメント（セグメント内分布） ---
+    const getSegData = (nt: string, rv: boolean, rp: boolean) => {
+      const f = segAnswers.filter((a: any) =>
+        matchNps(a.p1_q1, nt) && isRevisitYes(a.p1_q2) === rv &&
+        (rp ? a.p1_q3 !== '初めて' : a.p1_q3 === '初めて')
+      )
+      return { count: f.length, percent: totalResponses > 0 ? Math.round((f.length / totalResponses) * 1000) / 10 : 0 }
+    }
+    const s1 = getSegData('promoter', true, true), s2 = getSegData('promoter', true, false)
+    const s3 = getSegData('promoter', false, true), s4 = getSegData('promoter', false, false)
+    const s5 = getSegData('passive', true, true), s6 = getSegData('passive', true, false)
+    const s7 = getSegData('passive', false, true), s8 = getSegData('passive', false, false)
+    const s9 = getSegData('detractor', true, true), s10 = getSegData('detractor', true, false)
+    const s11 = getSegData('detractor', false, true), s12 = getSegData('detractor', false, false)
+
+    const posImpact = s1.count + s2.count + s5.count + s6.count
+    const negImpact = s11.count + s12.count + s7.count + s8.count
+
+    // --- QSCスコア ---
+    const calcQsc = (field: string) => {
+      const v = segAnswers.filter((a: any) => a[field] !== null && a[field] !== undefined)
+      if (v.length === 0) return { score: 0, count: 0 }
+      const sum = v.reduce((acc: number, a: any) => acc + normalizeScore(Number(a[field])), 0)
+      return { score: Math.round((sum / v.length) * 100) / 100, count: v.length }
+    }
+    const qscQ = calcQsc('p2_q1'), qscS = calcQsc('p2_q2'), qscC = calcQsc('p2_q3')
+
+    // --- QSC項目別（submission_idでフィルタ） ---
+    const segQD = qualityData.filter((d: any) => segSubmissionIds.has(d.review_form_submission_id))
+    const segSD = serviceData.filter((d: any) => segSubmissionIds.has(d.review_form_submission_id))
+    const segCD = cleanlinessData.filter((d: any) => segSubmissionIds.has(d.review_form_submission_id))
+    const qTotals = calcCatTotals(segQD), sTotals = calcCatTotals(segSD), cTotals = calcCatTotals(segCD)
+
+    // --- 性別分布 ---
+    const gCounts: Record<string, number> = { '男性': 0, '女性': 0, 'その他': 0 }
+    segAnswers.forEach((a: any) => {
+      if (a.p1_q4) { if (a.p1_q4 === '男性') gCounts['男性']++; else if (a.p1_q4 === '女性') gCounts['女性']++; else gCounts['その他']++ }
+    })
+    const gTotal = Object.values(gCounts).reduce((a, b) => a + b, 0)
+
+    // --- 年齢分布 ---
+    const aCounts: Record<string, number> = { '20代': 0, '30代': 0, '40代': 0, '50代': 0, '60代以上': 0 }
+    segAnswers.forEach((a: any) => {
+      const age = a.p1_q5 || ''
+      if (age.includes('20') || age === '20代') aCounts['20代']++
+      else if (age.includes('30') || age === '30代') aCounts['30代']++
+      else if (age.includes('40') || age === '40代') aCounts['40代']++
+      else if (age.includes('50') || age === '50代') aCounts['50代']++
+      else if (age.includes('60') || age === '60代' || age === '60代以上') aCounts['60代以上']++
+    })
+    const aTotal = Object.values(aCounts).reduce((a, b) => a + b, 0)
+
+    // --- 同行者分布 ---
+    const cmpCounts: Record<string, number> = { '1人': 0, 'カップル': 0, '友人': 0, '家族': 0, 'ビジネス': 0, 'その他': 0 }
+    segAnswers.forEach((a: any) => {
+      const c = a.p1_q6 || ''
+      if (c.includes('1人') || c.includes('ひとり')) cmpCounts['1人']++
+      else if (c.includes('カップル') || c.includes('恋人')) cmpCounts['カップル']++
+      else if (c.includes('友人') || c.includes('友達')) cmpCounts['友人']++
+      else if (c.includes('家族')) cmpCounts['家族']++
+      else if (c.includes('ビジネス') || c.includes('仕事') || c.includes('同僚')) cmpCounts['ビジネス']++
+      else if (c) cmpCounts['その他']++
+    })
+    const cmpTotal = Object.values(cmpCounts).reduce((a, b) => a + b, 0)
+
+    // --- 顧客重視ポイント ---
+    const segFeatures = allFeatures.filter((f: any) =>
+      f.review_form_submission_id && segSubmissionIds.has(f.review_form_submission_id)
+    )
+    const segRepFeatures = segFeatures.filter((f: any) => {
+      const ct = customerTypeMap[f.review_form_submission_id] || ''
+      return ct && ct !== '初めて'
+    })
+    const segNewFeatures = segFeatures.filter((f: any) => {
+      const ct = customerTypeMap[f.review_form_submission_id] || ''
+      return ct === '初めて'
+    })
+    const totalScores = normalizeToMax100(calcRawScores(segFeatures))
+    const repeaterScores = normalizeToMax100(calcRawScores(segRepFeatures))
+    const newScores = normalizeToMax100(calcRawScores(segNewFeatures))
+
+    // --- データ構築 ---
+    const typeData: Record<string, any> = {
+      company_id: companyId, store_id: storeId, year_month: yearMonth, type: segDef.type,
+      total_responses: totalResponses,
+      nps_score: promoterPct - detractorPct,
+      nps_promoters_percent: promoterPct, nps_passives_percent: passivePct, nps_detractors_percent: detractorPct,
+      nps_promoters_count: promoters.length, nps_passives_count: passives.length, nps_detractors_count: detractors.length,
+      repeat_rate: repeatRate, repeater_count: repeaters.length, new_customer_count: newCust.length,
+      repeater_revisit_rate: repRevisitRate, repeater_revisit_yes_count: repYes.length, repeater_revisit_no_count: repNo.length,
+      new_revisit_rate: newRevisitRate, new_revisit_yes_count: newYes.length, new_revisit_no_count: newNo.length,
+      seg_promoter_revisit_repeater_count: s1.count, seg_promoter_revisit_repeater_percent: s1.percent,
+      seg_promoter_revisit_new_count: s2.count, seg_promoter_revisit_new_percent: s2.percent,
+      seg_promoter_norevisit_repeater_count: s3.count, seg_promoter_norevisit_repeater_percent: s3.percent,
+      seg_promoter_norevisit_new_count: s4.count, seg_promoter_norevisit_new_percent: s4.percent,
+      seg_passive_revisit_repeater_count: s5.count, seg_passive_revisit_repeater_percent: s5.percent,
+      seg_passive_revisit_new_count: s6.count, seg_passive_revisit_new_percent: s6.percent,
+      seg_passive_norevisit_repeater_count: s7.count, seg_passive_norevisit_repeater_percent: s7.percent,
+      seg_passive_norevisit_new_count: s8.count, seg_passive_norevisit_new_percent: s8.percent,
+      seg_detractor_revisit_repeater_count: s9.count, seg_detractor_revisit_repeater_percent: s9.percent,
+      seg_detractor_revisit_new_count: s10.count, seg_detractor_revisit_new_percent: s10.percent,
+      seg_detractor_norevisit_repeater_count: s11.count, seg_detractor_norevisit_repeater_percent: s11.percent,
+      seg_detractor_norevisit_new_count: s12.count, seg_detractor_norevisit_new_percent: s12.percent,
+      positive_impact_count: posImpact,
+      positive_impact_percent: totalResponses > 0 ? Math.round((posImpact / totalResponses) * 1000) / 10 : 0,
+      negative_impact_count: negImpact,
+      negative_impact_percent: totalResponses > 0 ? Math.round((negImpact / totalResponses) * 1000) / 10 : 0,
+      qsc_quality_score: qscQ.score, qsc_quality_count: qscQ.count,
+      qsc_service_score: qscS.score, qsc_service_count: qscS.count,
+      qsc_cleanliness_score: qscC.score, qsc_cleanliness_count: qscC.count,
+      quality_positive_count: qTotals.positive, quality_negative_count: qTotals.negative, quality_neutral_count: qTotals.neutral,
+      service_positive_count: sTotals.positive, service_negative_count: sTotals.negative, service_neutral_count: sTotals.neutral,
+      cleanliness_positive_count: cTotals.positive, cleanliness_negative_count: cTotals.negative, cleanliness_neutral_count: cTotals.neutral,
+      gender_male_count: gCounts['男性'], gender_male_percent: gTotal > 0 ? Math.round((gCounts['男性'] / gTotal) * 100) : 0,
+      gender_female_count: gCounts['女性'], gender_female_percent: gTotal > 0 ? Math.round((gCounts['女性'] / gTotal) * 100) : 0,
+      gender_other_count: gCounts['その他'], gender_other_percent: gTotal > 0 ? Math.round((gCounts['その他'] / gTotal) * 100) : 0,
+      age_20s_count: aCounts['20代'], age_20s_percent: aTotal > 0 ? Math.round((aCounts['20代'] / aTotal) * 100) : 0,
+      age_30s_count: aCounts['30代'], age_30s_percent: aTotal > 0 ? Math.round((aCounts['30代'] / aTotal) * 100) : 0,
+      age_40s_count: aCounts['40代'], age_40s_percent: aTotal > 0 ? Math.round((aCounts['40代'] / aTotal) * 100) : 0,
+      age_50s_count: aCounts['50代'], age_50s_percent: aTotal > 0 ? Math.round((aCounts['50代'] / aTotal) * 100) : 0,
+      age_60plus_count: aCounts['60代以上'], age_60plus_percent: aTotal > 0 ? Math.round((aCounts['60代以上'] / aTotal) * 100) : 0,
+      companion_alone_count: cmpCounts['1人'], companion_alone_percent: cmpTotal > 0 ? Math.round((cmpCounts['1人'] / cmpTotal) * 100) : 0,
+      companion_couple_count: cmpCounts['カップル'], companion_couple_percent: cmpTotal > 0 ? Math.round((cmpCounts['カップル'] / cmpTotal) * 100) : 0,
+      companion_friends_count: cmpCounts['友人'], companion_friends_percent: cmpTotal > 0 ? Math.round((cmpCounts['友人'] / cmpTotal) * 100) : 0,
+      companion_family_count: cmpCounts['家族'], companion_family_percent: cmpTotal > 0 ? Math.round((cmpCounts['家族'] / cmpTotal) * 100) : 0,
+      companion_business_count: cmpCounts['ビジネス'], companion_business_percent: cmpTotal > 0 ? Math.round((cmpCounts['ビジネス'] / cmpTotal) * 100) : 0,
+      companion_other_count: cmpCounts['その他'], companion_other_percent: cmpTotal > 0 ? Math.round((cmpCounts['その他'] / cmpTotal) * 100) : 0,
+      pref_total_quality: totalScores['品質'] || 0, pref_total_service: totalScores['接客'] || 0,
+      pref_total_atmosphere: totalScores['空間'] || 0, pref_total_hygiene: totalScores['衛生'] || 0, pref_total_price: totalScores['価格感度'] || 0,
+      pref_repeater_quality: repeaterScores['品質'] || 0, pref_repeater_service: repeaterScores['接客'] || 0,
+      pref_repeater_atmosphere: repeaterScores['空間'] || 0, pref_repeater_hygiene: repeaterScores['衛生'] || 0, pref_repeater_price: repeaterScores['価格感度'] || 0,
+      pref_new_quality: newScores['品質'] || 0, pref_new_service: newScores['接客'] || 0,
+      pref_new_atmosphere: newScores['空間'] || 0, pref_new_hygiene: newScores['衛生'] || 0, pref_new_price: newScores['価格感度'] || 0,
+    }
+
+    // QSC項目別（ループで追加）
+    for (let i = 1; i <= 10; i++) {
+      const qi = calcItemStats(segQD, i), si = calcItemStats(segSD, i), ci = calcItemStats(segCD, i)
+      typeData[`q${i}_positive_percent`] = qi.positive; typeData[`q${i}_negative_percent`] = qi.negative
+      typeData[`q${i}_neutral_percent`] = qi.neutral; typeData[`q${i}_total_count`] = qi.total
+      typeData[`s${i}_positive_percent`] = si.positive; typeData[`s${i}_negative_percent`] = si.negative
+      typeData[`s${i}_neutral_percent`] = si.neutral; typeData[`s${i}_total_count`] = si.total
+      typeData[`c${i}_positive_percent`] = ci.positive; typeData[`c${i}_negative_percent`] = ci.negative
+      typeData[`c${i}_neutral_percent`] = ci.neutral; typeData[`c${i}_total_count`] = ci.total
+    }
+
+    const { error: insertError } = await supabase
+      .from('monthly_analytics_summary_by_type')
+      .insert(typeData)
+
+    if (insertError) {
+      console.error(`Failed to insert type ${segDef.type} for store ${storeId}:`, insertError.message)
+    }
+  }
+
+  console.log(`Segment types processed for store=${storeId}, yearMonth=${yearMonth}`)
 }
 
 // ========================================
