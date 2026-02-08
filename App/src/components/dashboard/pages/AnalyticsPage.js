@@ -4534,6 +4534,11 @@ export default function AnalyticsPage({ onNavCollapse, companyId }) {
             iconPosition="start"
             label="店舗評価"
           />
+          <Tab
+            icon={<Comment sx={{ fontSize: 20 }} />}
+            iconPosition="start"
+            label="リアルタイム"
+          />
         </Tabs>
       </Box>
 
@@ -4541,6 +4546,9 @@ export default function AnalyticsPage({ onNavCollapse, companyId }) {
       <Box sx={{ flex: 1, overflow: 'hidden' }}>
         <TabPanel value={activeTab} index={0}>
           <StoreByStoreTab companyId={companyId} />
+        </TabPanel>
+        <TabPanel value={activeTab} index={1}>
+          <RealtimeTab companyId={companyId} />
         </TabPanel>
       </Box>
     </Box>
