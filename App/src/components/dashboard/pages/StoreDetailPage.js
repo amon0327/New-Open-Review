@@ -165,6 +165,19 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
     }
   };
 
+  // LINE IDパターンを除外して有効な名前を返す
+  const getDisplayName = (member) => {
+    const isLineId = (name) => {
+      if (!name) return true;
+      if (name.includes('@line.local')) return true;
+      if (/^u[a-f0-9]{32}$/i.test(name)) return true;
+      return false;
+    };
+    if (member.name && !isLineId(member.name)) return member.name;
+    if (member.business_users?.name && !isLineId(member.business_users.name)) return member.business_users.name;
+    return 'ユーザー';
+  };
+
   const getStatusText = (status) => {
     switch (status) {
       case 'invited': return '招待中';
@@ -431,10 +444,10 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <Avatar sx={{ mr: 2 }}>
-                              {(member.name || member.business_users?.name || member.business_users?.email || '?').charAt(0)}
+                              {getDisplayName(member).charAt(0)}
                             </Avatar>
                             <Typography variant="body2">
-                              {member.name || member.business_users?.name || 'ユーザー'}
+                              {getDisplayName(member)}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -456,7 +469,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                         <TableCell align="center">
                           <IconButton
                             size="small"
-                            onClick={() => handleDeleteMember(member.id, member.name || member.business_users?.name || 'ユーザー')}
+                            onClick={() => handleDeleteMember(member.id, getDisplayName(member))}
                             sx={{
                               color: '#94a3b8',
                               '&:hover': {
