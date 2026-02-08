@@ -627,9 +627,9 @@ export default function PartnerDashboard({ user, onLogout }) {
                                         variant="outlined"
                                         startIcon={<ContentCopy sx={{ fontSize: 16 }} />}
                                         onClick={() => {
-                                          const url = `http://localhost:3000/partner-invitation/${invitation.token}`;
+                                          const url = `https://app.openreview.jp/partner-invitation/${invitation.token}`;
                                           navigator.clipboard.writeText(url);
-                                          toast.success('開発版URLをコピーしました');
+                                          toast.success('招待URLをコピーしました');
                                         }}
                                         sx={{
                                           borderColor: '#5e17eb',
@@ -644,31 +644,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                                           }
                                         }}
                                       >
-                                        開発版
-                                      </Button>
-                                      <Button
-                                        size="small"
-                                        variant="outlined"
-                                        startIcon={<ContentCopy sx={{ fontSize: 16 }} />}
-                                        onClick={() => {
-                                          const url = `https://app.openreview.jp/partner-invitation/${invitation.token}`;
-                                          navigator.clipboard.writeText(url);
-                                          toast.success('本番版URLをコピーしました');
-                                        }}
-                                        sx={{
-                                          borderColor: '#10b981',
-                                          color: '#10b981',
-                                          fontSize: '0.75rem',
-                                          py: 0.5,
-                                          px: 1,
-                                          minWidth: 'auto',
-                                          '&:hover': {
-                                            borderColor: '#059669',
-                                            backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                                          }
-                                        }}
-                                      >
-                                        本番版
+                                        招待URLをコピー
                                       </Button>
                                       <IconButton
                                         size="small"
