@@ -527,6 +527,9 @@ serve(async (req) => {
       historicalQuery = historicalQuery.eq('store_id', storeId)
     }
 
+    // 選択月以前のデータのみ取得（未来月を含めない）
+    historicalQuery = historicalQuery.lte('year_month', targetYearMonth)
+
     const { data: rawHistoricalData, error: historicalError } = await historicalQuery
       .order('year_month', { ascending: true })
 
