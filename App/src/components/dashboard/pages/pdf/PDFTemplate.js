@@ -1790,6 +1790,18 @@ const NPSTrendChart = ({ monthlyPerformance }) => {
     );
   }
 
+  if (data.length === 1) {
+    return (
+      <View style={styles.chartCard}>
+        <Text style={styles.chartTitle}>推奨スコア推移</Text>
+        <Text style={styles.chartSubtitle}>月別の推奨スコアトレンド</Text>
+        <View style={{ height: 140, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 11, color: colors.gray400 }}>推移グラフの表示には2ヶ月以上のデータが必要です</Text>
+        </View>
+      </View>
+    );
+  }
+
   // データからminとmaxを計算
   const values = data.map(d => d.nps || 0);
   const minValue = Math.min(...values);
