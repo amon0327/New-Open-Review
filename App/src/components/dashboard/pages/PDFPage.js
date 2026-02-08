@@ -27,7 +27,7 @@ import { PDFDocument, downloadPDF, generatePDFBlob } from './pdf/PDFTemplate';
 
 export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) {
   const [stores, setStores] = useState([]);
-  const [selectedStore, setSelectedStore] = useState('all');
+  const [selectedStore, setSelectedStore] = useState('');
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState(null);
@@ -69,7 +69,11 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data?.allCompanyStores) {
-            setStores(result.data.allCompanyStores);
+            const storeList = result.data.allCompanyStores;
+            setStores(storeList);
+            if (storeList.length > 0 && !selectedStore) {
+              setSelectedStore(storeList[0].id);
+            }
           }
         }
       } catch (error) {
@@ -389,7 +393,6 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>店舗選択</SelectLabel>
-                <SelectItem value="all">全店舗</SelectItem>
                 {stores.map((store) => (
                   <SelectItem key={store.id} value={store.id}>
                     {store.name}
