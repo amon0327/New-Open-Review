@@ -46,8 +46,8 @@ import QRCode from 'qrcode';
 import { supabase } from '../../../lib/supabase';
 
 export default function FormPublishPage({ user, companyId: propCompanyId, companyName: propCompanyName }) {
-  // 抽選設定を取得する関数（Edge Function経由）
-  const fetchLotterySettings = useCallback(async (formId) => {
+  // 抽選設定を取得する関数（Edge Function経由・企業単位）
+  const fetchLotterySettings = useCallback(async () => {
     try {
       // セッションを取得して認証ヘッダーを設定
       const { data: { session } } = await supabase.auth.getSession();
@@ -223,24 +223,23 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
   // 企業抽選設定を保存
   // ============================================================================
   const saveLotterySettings = useCallback(async () => {
-    if (!propCompanyId || !selectedPublicFormId) return;
+    if (!propCompanyId) return;
 
     setIsSavingLottery(true);
     try {
       // セッションを取得して認証ヘッダーを設定
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         throw new Error('セッションが見つかりません。再度ログインしてください。');
       }
 
-      // Edge Functionを呼び出して抽選設定を更新
+      // Edge Functionを呼び出して抽選設定を更新（企業単位）
       const { data, error } = await supabase.functions.invoke('update-lottery-settings', {
         body: {
-          review_form_id: selectedPublicFormId,
+          company_id: propCompanyId,
           max_wins_per_month: lotterySettings.maxWinsPerMonth,
-          win_rate_divisor: lotterySettings.winRateDivisor,
-          reset_monthly_stats: false
+          win_rate_divisor: lotterySettings.winRateDivisor
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`
@@ -256,14 +255,14 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
       toast.success('抽選設定を保存しました');
 
       // 保存後に最新の設定を再取得
-      await fetchLotterySettings(selectedPublicFormId);
+      await fetchLotterySettings();
     } catch (error) {
       console.error('抽選設定保存エラー:', error);
       toast.error(error.message || '抽選設定の保存に失敗しました');
     } finally {
       setIsSavingLottery(false);
     }
-  }, [propCompanyId, selectedPublicFormId, lotterySettings, fetchLotterySettings]);
+  }, [propCompanyId, lotterySettings, fetchLotterySettings]);
 
   // ============================================================================
   // 公開フォーム設定を保存

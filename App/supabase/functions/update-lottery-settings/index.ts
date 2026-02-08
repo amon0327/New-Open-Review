@@ -7,10 +7,10 @@ const corsHeaders = {
 }
 
 interface LotterySettingsRequest {
-  review_form_id: string
+  company_id?: string
+  review_form_id?: string
   max_wins_per_month: number
   win_rate_divisor: number
-  reset_monthly_stats?: boolean
 }
 
 serve(async (req) => {
@@ -48,12 +48,7 @@ serve(async (req) => {
 
     // Parse request body
     const requestData: LotterySettingsRequest = await req.json()
-    const { review_form_id, max_wins_per_month, win_rate_divisor, reset_monthly_stats } = requestData
-
-    // Validate input
-    if (!review_form_id) {
-      throw new Error('レビューフォームIDが必要です')
-    }
+    const { company_id, review_form_id, max_wins_per_month, win_rate_divisor } = requestData
 
     if (max_wins_per_month < 0) {
       throw new Error('月間最大当選回数は0以上である必要があります')
@@ -66,53 +61,53 @@ serve(async (req) => {
     // Create service client for database operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
-    // First, get the review form to find the company_id
-    const { data: formData, error: formError } = await supabaseAdmin
-      .from('review_forms')
-      .select('id, company_id, user_id')
-      .eq('id', review_form_id)
-      .single()
+    // company_id を決定（直接指定 or review_form_id から取得）
+    let companyId = company_id
+    if (!companyId) {
+      if (!review_form_id) {
+        throw new Error('company_id または review_form_id が必要です')
+      }
+      const { data: formData, error: formError } = await supabaseAdmin
+        .from('review_forms')
+        .select('company_id')
+        .eq('id', review_form_id)
+        .single()
 
-    if (formError || !formData) {
-      throw new Error('フォームが見つかりません')
+      if (formError || !formData) {
+        throw new Error('フォームが見つかりません')
+      }
+      companyId = formData.company_id
     }
 
-    const companyId = formData.company_id
+    // Check company membership
+    const { data: membershipData } = await supabaseAdmin
+      .from('company_memberships')
+      .select('id')
+      .eq('company_id', companyId)
+      .eq('business_user_id', user.id)
+      .maybeSingle()
 
-    // Check if user is the form owner
-    if (formData.user_id === user.id) {
-      // User is the form owner, allow access
-    } else {
-      // Check company membership
-      const { data: membershipData, error: membershipError } = await supabaseAdmin
-        .from('company_memberships')
-        .select('id')
-        .eq('company_id', companyId)
-        .eq('business_user_id', user.id)
-        .maybeSingle()
+    if (!membershipData) {
+      // Check partner membership
+      const { data: userPartnerMemberships } = await supabaseAdmin
+        .from('partner_memberships')
+        .select('partner_company_id')
+        .eq('business_users_id', user.id)
+        .eq('is_active', true)
 
-      if (!membershipData) {
-        // Check partner membership
-        const { data: userPartnerMemberships } = await supabaseAdmin
-          .from('partner_memberships')
-          .select('partner_company_id')
-          .eq('business_users_id', user.id)
-          .eq('is_active', true)
+      let hasPartnerAccess = false
+      if (userPartnerMemberships && userPartnerMemberships.length > 0) {
+        const partnerCompanyIds = userPartnerMemberships.map(pm => pm.partner_company_id)
+        const { data: affiliations } = await supabaseAdmin
+          .from('partner_affiliate_companies')
+          .select('id')
+          .eq('companies_id', companyId)
+          .in('partner_company_id', partnerCompanyIds)
+        hasPartnerAccess = affiliations && affiliations.length > 0
+      }
 
-        let hasPartnerAccess = false
-        if (userPartnerMemberships && userPartnerMemberships.length > 0) {
-          const partnerCompanyIds = userPartnerMemberships.map(pm => pm.partner_company_id)
-          const { data: affiliations } = await supabaseAdmin
-            .from('partner_affiliate_companies')
-            .select('id')
-            .eq('companies_id', companyId)
-            .in('partner_company_id', partnerCompanyIds)
-          hasPartnerAccess = affiliations && affiliations.length > 0
-        }
-
-        if (!hasPartnerAccess) {
-          throw new Error('このフォームの抽選設定を更新する権限がありません')
-        }
+      if (!hasPartnerAccess) {
+        throw new Error('この企業の抽選設定を更新する権限がありません')
       }
     }
 
