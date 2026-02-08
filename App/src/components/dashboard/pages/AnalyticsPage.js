@@ -4532,7 +4532,7 @@ export default function AnalyticsPage({ onNavCollapse, companyId }) {
           <Tab
             icon={<Store sx={{ fontSize: 20 }} />}
             iconPosition="start"
-            label="店舗評価"
+            label="店舗分析"
           />
           <Tab
             icon={<Comment sx={{ fontSize: 20 }} />}
