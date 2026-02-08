@@ -87,6 +87,13 @@ serve(async (req) => {
       .eq('company_id', companyId)
       .maybeSingle()
 
+    // 6. 企業のLINEミニアプリURLを取得
+    const { data: companyData } = await supabaseAdmin
+      .from('companies')
+      .select('line_mini_app_url')
+      .eq('id', companyId)
+      .single()
+
     return new Response(
       JSON.stringify({
         success: true,
@@ -106,7 +113,8 @@ serve(async (req) => {
             currentTrials: 0,
             currentWins: 0
           },
-          publicFormSettings: publicFormSettings
+          publicFormSettings: publicFormSettings,
+          lineMiniAppUrl: companyData?.line_mini_app_url || ''
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

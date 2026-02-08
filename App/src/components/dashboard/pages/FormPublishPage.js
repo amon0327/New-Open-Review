@@ -165,7 +165,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           throw new Error(data.error || 'データの取得に失敗しました');
         }
 
-        const { forms, stores: storesData, publishedFormId, selectedFormId, lotterySettings: lotteryData } = data.data;
+        const { forms, stores: storesData, publishedFormId, selectedFormId, lotterySettings: lotteryData, lineMiniAppUrl: savedUrl } = data.data;
 
         // フォームデータをセット
         const activeFormsData = forms.map(f => ({
@@ -195,11 +195,17 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
           maxWinsPerMonth: lotteryData.maxWinsPerMonth,
           winRateDivisor: lotteryData.winRateDivisor
         });
-        
+
         setLotteryStats({
           totalAttempts: lotteryData.currentTrials,
           totalWins: lotteryData.currentWins
         });
+
+        // LINEミニアプリURLをセット
+        if (savedUrl) {
+          setLineMiniAppUrl(savedUrl);
+          setSavedLineMiniAppUrl(savedUrl);
+        }
 
       } catch (error) {
         console.error('データ取得エラー:', error);
@@ -425,14 +431,36 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
 
     setIsSavingLineMiniApp(true);
     try {
-      // TODO: 実際のデータベーステーブルが必要です
-      // 仮実装として、ローカルステートを更新
+      // セッションを取得して認証ヘッダーを設定
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('セッションが見つかりません。再度ログインしてください。');
+      }
+
+      // Edge Functionを呼び出してLINEミニアプリURLを更新
+      const { data, error } = await supabase.functions.invoke('update-line-mini-app-url', {
+        body: {
+          company_id: propCompanyId,
+          line_mini_app_url: lineMiniAppUrl
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) throw error;
+
+      if (!data.success) {
+        throw new Error(data.error || 'LINEミニアプリURLの更新に失敗しました');
+      }
+
       setSavedLineMiniAppUrl(lineMiniAppUrl);
       toast.success('LINEミニアプリURLを保存しました');
       setShowLineMiniAppSettings(false);
     } catch (error) {
       console.error('LINEミニアプリURL保存エラー:', error);
-      toast.error('設定の保存に失敗しました');
+      toast.error(error.message || '設定の保存に失敗しました');
     } finally {
       setIsSavingLineMiniApp(false);
     }
