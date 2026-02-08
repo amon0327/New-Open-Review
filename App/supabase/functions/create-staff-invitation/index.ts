@@ -152,7 +152,7 @@ serve(async (req) => {
           name: invitation.name,
           role: invitation.role,
           url: invitationUrl,
-          storeName: storeData[0].name
+          storeName: storeData.name
         }
       }),
       {
