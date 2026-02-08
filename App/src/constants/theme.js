@@ -10,8 +10,8 @@ export const colors = {
 };
 
 export const gradients = {
-  primary: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
-  secondary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  primary: '#5e17eb',
+  secondary: '#5e17eb',
   background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
   glass: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.1) 100%)'
 };
