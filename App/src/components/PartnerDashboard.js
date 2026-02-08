@@ -25,7 +25,8 @@ import {
   CircularProgress,
   Chip,
   Tabs,
-  Tab
+  Tab,
+  Switch
 } from '@mui/material';
 import {
   Handshake,
@@ -98,7 +99,8 @@ export default function PartnerDashboard({ user, onLogout }) {
             name,
             phone_number,
             email,
-            created_at
+            created_at,
+            is_active
           )
         `)
         .eq('partner_company_id', partnerMembership.partner_company_id)
@@ -226,6 +228,30 @@ export default function PartnerDashboard({ user, onLogout }) {
     } catch (error) {
       console.error('メンバー削除エラー:', error);
       toast.error('メンバーの削除に失敗しました');
+    }
+  };
+
+  // 企業のアクティブ/非アクティブを切り替え
+  const handleToggleCompanyActive = async (companyId, currentIsActive) => {
+    try {
+      const newIsActive = !currentIsActive;
+      const { error } = await supabase
+        .from('companies')
+        .update({ is_active: newIsActive })
+        .eq('id', companyId);
+
+      if (error) {
+        console.error('企業ステータス更新エラー:', error);
+        toast.error('企業ステータスの更新に失敗しました');
+        return;
+      }
+
+      toast.success(newIsActive ? '企業をアクティブにしました' : '企業を非アクティブにしました');
+      // ローカルステートを更新
+      setCompanies(prev => prev.map(c => c.id === companyId ? { ...c, is_active: newIsActive } : c));
+    } catch (error) {
+      console.error('企業ステータス更新エラー:', error);
+      toast.error('企業ステータスの更新に失敗しました');
     }
   };
 
@@ -408,17 +434,14 @@ export default function PartnerDashboard({ user, onLogout }) {
                   <Grid item xs={12} md={6} lg={4} key={company.id}>
                     <Card
                       onClick={() => {
-                        console.log('🏢 Company card clicked:', company);
-                        console.log('  - company.id:', company.id);
-                        console.log('  - company.name:', company.name);
-                        console.log('🔀 Navigating to /company/' + company.id + '/dashboard');
                         navigate(`/company/${company.id}/dashboard`);
                       }}
                       sx={{
                         borderRadius: 3,
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        transition: 'transform 0.2s, box-shadow 0.2s, opacity 0.2s',
                         cursor: 'pointer',
+                        opacity: company.is_active === false ? 0.6 : 1,
                         '&:hover': {
                           transform: 'translateY(-4px)',
                           boxShadow: '0 8px 30px rgba(94, 23, 235, 0.15)'
@@ -426,10 +449,27 @@ export default function PartnerDashboard({ user, onLogout }) {
                       }}>
                       <CardContent>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                          <Business sx={{ fontSize: 32, color: '#5e17eb', mr: 1.5 }} />
-                          <Typography variant="h6" sx={{ fontWeight: 600, color: '#1a202c' }}>
+                          <Business sx={{ fontSize: 32, color: company.is_active === false ? '#94a3b8' : '#5e17eb', mr: 1.5 }} />
+                          <Typography variant="h6" sx={{ fontWeight: 600, color: company.is_active === false ? '#94a3b8' : '#1a202c', flexGrow: 1 }}>
                             {company.name}
                           </Typography>
+                          <Switch
+                            checked={company.is_active !== false}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleToggleCompanyActive(company.id, company.is_active);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            size="small"
+                            sx={{
+                              '& .MuiSwitch-switchBase.Mui-checked': {
+                                color: '#5e17eb',
+                              },
+                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                backgroundColor: '#5e17eb',
+                              },
+                            }}
+                          />
                         </Box>
 
                         <Divider sx={{ my: 2 }} />
@@ -453,7 +493,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                             </Box>
                           )}
 
-                          <Box sx={{ mt: 1 }}>
+                          <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
                             <Chip
                               label={`登録日: ${new Date(company.created_at).toLocaleDateString('ja-JP')}`}
                               size="small"
@@ -463,6 +503,18 @@ export default function PartnerDashboard({ user, onLogout }) {
                                 fontSize: '0.75rem'
                               }}
                             />
+                            {company.is_active === false && (
+                              <Chip
+                                label="非アクティブ"
+                                size="small"
+                                sx={{
+                                  bgcolor: '#fef2f2',
+                                  color: '#ef4444',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600
+                                }}
+                              />
+                            )}
                           </Box>
                         </Box>
                       </CardContent>

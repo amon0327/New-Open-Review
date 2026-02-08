@@ -20,7 +20,8 @@ import {
   Card,
   CardContent,
   Tooltip,
-  Chip
+  Chip,
+  Button
 } from '@mui/material';
 import {
   Home,
@@ -33,7 +34,9 @@ import {
   Apps,
   ArrowBack,
   Rocket,
-  Description
+  Description,
+  Logout,
+  Block
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
@@ -76,6 +79,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [isCheckingCompany, setIsCheckingCompany] = useState(!companyId);
   const [currentCompany, setCurrentCompany] = useState(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(!!companyId);
+  const [isCompanyInactive, setIsCompanyInactive] = useState(false);
 
   // フォーム作成時のハンドラー - URL遷移を行う
   const handleFormCreated = (formId) => {
@@ -151,7 +155,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             company_id,
             companies:company_id (
               id,
-              name
+              name,
+              is_active
             )
           `)
           .eq('business_user_id', currentUser.id);
@@ -163,6 +168,11 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           if (companyData[0].companies) {
             console.log('✅ Setting current company:', companyData[0].companies);
             setCurrentCompany(companyData[0].companies);
+            // 企業が非アクティブの場合はブロック
+            if (companyData[0].companies.is_active === false) {
+              console.log('⚠️ Company is inactive - blocking access');
+              setIsCompanyInactive(true);
+            }
           }
           setIsCheckingCompany(false);
           return;
@@ -281,6 +291,68 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         user={user}
         onLogout={onLogout}
       />
+    );
+  }
+
+  // 企業が非アクティブの場合のブロック画面（企業権限ユーザーのみ）
+  if (isCompanyInactive && !companyId) {
+    return (
+      <Box
+        sx={{
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        }}
+      >
+        <Card
+          sx={{
+            maxWidth: 480,
+            width: '90%',
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
+            borderRadius: 3,
+            textAlign: 'center'
+          }}
+        >
+          <CardContent sx={{ p: 5 }}>
+            <Block sx={{ fontSize: 64, color: '#ef4444', mb: 2 }} />
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 700,
+                color: '#1a202c',
+                mb: 2
+              }}
+            >
+              現在ご利用いただけません
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{ color: '#64748b', mb: 4 }}
+            >
+              この企業アカウントは現在非アクティブに設定されています。管理者にお問い合わせください。
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<Logout />}
+              onClick={onLogout}
+              sx={{
+                background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                borderRadius: 2,
+                px: 4,
+                py: 1.5,
+                fontSize: '1rem'
+              }}
+            >
+              ログアウト
+            </Button>
+          </CardContent>
+        </Card>
+      </Box>
     );
   }
 
