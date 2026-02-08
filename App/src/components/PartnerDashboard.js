@@ -450,26 +450,9 @@ export default function PartnerDashboard({ user, onLogout }) {
                       <CardContent>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                           <Business sx={{ fontSize: 32, color: company.is_active === false ? '#94a3b8' : '#5e17eb', mr: 1.5 }} />
-                          <Typography variant="h6" sx={{ fontWeight: 600, color: company.is_active === false ? '#94a3b8' : '#1a202c', flexGrow: 1 }}>
+                          <Typography variant="h6" sx={{ fontWeight: 600, color: company.is_active === false ? '#94a3b8' : '#1a202c' }}>
                             {company.name}
                           </Typography>
-                          <Switch
-                            checked={company.is_active !== false}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              handleToggleCompanyActive(company.id, company.is_active);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            size="small"
-                            sx={{
-                              '& .MuiSwitch-switchBase.Mui-checked': {
-                                color: '#5e17eb',
-                              },
-                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                backgroundColor: '#5e17eb',
-                              },
-                            }}
-                          />
                         </Box>
 
                         <Divider sx={{ my: 2 }} />
@@ -493,7 +476,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                             </Box>
                           )}
 
-                          <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                          <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Chip
                               label={`登録日: ${new Date(company.created_at).toLocaleDateString('ja-JP')}`}
                               size="small"
@@ -515,6 +498,24 @@ export default function PartnerDashboard({ user, onLogout }) {
                                 }}
                               />
                             )}
+                            <Box sx={{ flexGrow: 1 }} />
+                            <Switch
+                              checked={company.is_active !== false}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handleToggleCompanyActive(company.id, company.is_active);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              sx={{
+                                transform: 'scale(1.15)',
+                                '& .MuiSwitch-switchBase.Mui-checked': {
+                                  color: '#5e17eb',
+                                },
+                                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                  backgroundColor: '#5e17eb',
+                                },
+                              }}
+                            />
                           </Box>
                         </Box>
                       </CardContent>

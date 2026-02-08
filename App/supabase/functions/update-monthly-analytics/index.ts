@@ -293,7 +293,7 @@ async function processAnalytics(
   const getDetailedQscData = async (tableName: string) => {
     let query = supabase
       .from(tableName)
-      .select('q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, is_positive, company_id, store_id, created_at')
+      .select('q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, is_positive, company_id, store_id, created_at, review_form_submission_id')
       .eq('company_id', companyId)
       .gte('created_at', monthStart.toISOString())
       .lte('created_at', monthEnd.toISOString())
