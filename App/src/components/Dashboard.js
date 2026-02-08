@@ -32,7 +32,6 @@ import {
   Business,
   Apps,
   ArrowBack,
-  People,
   Rocket,
   PictureAsPdf
 } from '@mui/icons-material';
@@ -50,7 +49,6 @@ import SettingsPage from './dashboard/pages/SettingsPage';
 import StoresManagementPage from './dashboard/pages/StoresManagementPage';
 import FormPublishPage from './dashboard/pages/FormPublishPage';
 import AnalyticsPage from './dashboard/pages/AnalyticsPage';
-import CRMPage from './dashboard/pages/CRMPage';
 import PDFPage from './dashboard/pages/PDFPage';
 
 const drawerWidth = 280;
@@ -59,7 +57,6 @@ const collapsedDrawerWidth = 72;
 const navigationItems = [
   { text: 'ホーム', icon: <Home />, component: HomePage },
   { text: 'フォーム公開', icon: <Rocket />, component: FormPublishPage },
-  { text: '顧客管理(CRM)', icon: <People />, component: CRMPage },
   { text: 'PDF', icon: <PictureAsPdf />, component: PDFPage },
   { text: '分析', icon: <Analytics />, component: AnalyticsPage },
   { text: '店舗情報', icon: <Business />, component: StoresManagementPage },
