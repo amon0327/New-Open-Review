@@ -780,7 +780,12 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
           storeId={storeId}
           storeName={store?.name}
           onClose={() => setShowInvitationForm(false)}
-          onInvitationSent={fetchStoreData}
+          onInvitationSent={async () => {
+            await fetchStoreData();
+            setShowInvitationForm(false);
+            setTabValue(1);
+            toast.success('招待が完了しました');
+          }}
         />
       )}
     </Box>
