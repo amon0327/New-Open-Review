@@ -57,7 +57,7 @@ const collapsedDrawerWidth = 72;
 const navigationItems = [
   { text: 'ホーム', icon: <Home />, component: HomePage },
   { text: 'フォーム公開', icon: <Rocket />, component: FormPublishPage },
-  { text: 'PDF', icon: <PictureAsPdf />, component: PDFPage },
+  { text: 'レポート', icon: <PictureAsPdf />, component: PDFPage },
   { text: '分析', icon: <Analytics />, component: AnalyticsPage },
   { text: '店舗情報', icon: <Business />, component: StoresManagementPage },
   { text: '設定', icon: <Settings />, component: SettingsPage },
@@ -307,7 +307,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
     } else if (navigationItems[activeTab].text === 'フォーム公開') {
       return <ActiveComponent user={user} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
-    } else if (navigationItems[activeTab].text === 'PDF') {
+    } else if (navigationItems[activeTab].text === 'レポート') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     }
     return <ActiveComponent />;
