@@ -1153,20 +1153,15 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                     </Tooltip>
                   </Box>
                   {savedLineMiniAppUrl ? (
-                    <Typography sx={{ 
-                      fontSize: '0.9rem', 
-                      color: '#374151',
-                      fontFamily: 'monospace',
-                      bgcolor: '#f8fafc',
-                      px: 1.5,
-                      py: 0.75,
-                      borderRadius: 0.5,
-                      border: '1px solid #e5e7eb'
+                    <Typography sx={{
+                      fontSize: '1.25rem',
+                      fontWeight: 700,
+                      color: '#00b900'
                     }}>
                       {savedLineMiniAppUrl}
                     </Typography>
                   ) : (
-                    <Typography sx={{ fontSize: '0.9rem', color: '#94a3b8' }}>
+                    <Typography sx={{ fontSize: '1.25rem', fontWeight: 700, color: '#94a3b8' }}>
                       未設定
                     </Typography>
                   )}
