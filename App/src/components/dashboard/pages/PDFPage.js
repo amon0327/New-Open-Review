@@ -266,14 +266,24 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
             </div>
             <Skeleton className="h-10 w-44 rounded-md" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-3 flex gap-6">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-16 ml-auto" />
+            </div>
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-white rounded-xl p-6 shadow-sm">
-                <Skeleton className="h-6 w-32 mb-4" />
-                <Skeleton className="h-4 w-24 mb-6" />
-                <div className="flex gap-2">
-                  <Skeleton className="h-9 flex-1 rounded-lg" />
-                  <Skeleton className="h-9 flex-1 rounded-lg" />
+              <div key={i} className="px-6 py-4 flex items-center gap-6 border-b border-gray-50">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-9 w-9 rounded-lg" />
+                  <Skeleton className="h-5 w-24" />
+                </div>
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-6 w-16 rounded-full" />
+                <div className="flex gap-2 ml-auto">
+                  <Skeleton className="h-8 w-24 rounded-lg" />
+                  <Skeleton className="h-8 w-28 rounded-lg" />
                 </div>
               </div>
             ))}
@@ -415,59 +425,74 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {reports.map((report) => (
-              <div
-                key={report.yearMonth}
-                className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-purple-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{report.displayName}</h3>
-                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                        <Store className="w-3.5 h-3.5" />
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/50">
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">期間</th>
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">店舗</th>
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ステータス</th>
+                  <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reports.map((report, index) => (
+                  <tr
+                    key={report.yearMonth}
+                    className={`hover:bg-gray-50 transition-colors ${index !== reports.length - 1 ? 'border-b border-gray-100' : ''}`}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                          <Calendar className="w-4.5 h-4.5 text-purple-600" />
+                        </div>
+                        <span className="font-medium text-gray-900">{report.displayName}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 flex items-center gap-1.5">
+                        <Store className="w-3.5 h-3.5 text-gray-400" />
                         {getStoreName()}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                    <CheckCircle2 className="w-3 h-3" />
-                    作成済み
-                  </span>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handlePreview(report)}
-                    disabled={generatingPDF}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50"
-                  >
-                    {generatingPDF && selectedReport?.yearMonth === report.yearMonth ? (
-                      <CircularProgress size={16} sx={{ color: '#64748b' }} />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
-                    プレビュー
-                  </button>
-                  <button
-                    onClick={() => handleDownload(report)}
-                    disabled={generatingPDF}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
-                  >
-                    {generatingPDF && selectedReport?.yearMonth === report.yearMonth ? (
-                      <CircularProgress size={16} sx={{ color: 'white' }} />
-                    ) : (
-                      <Download className="w-4 h-4" />
-                    )}
-                    ダウンロード
-                  </button>
-                </div>
-              </div>
-            ))}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        <CheckCircle2 className="w-3 h-3" />
+                        作成済み
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handlePreview(report)}
+                          disabled={generatingPDF}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+                        >
+                          {generatingPDF && selectedReport?.yearMonth === report.yearMonth ? (
+                            <CircularProgress size={14} sx={{ color: '#64748b' }} />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                          プレビュー
+                        </button>
+                        <button
+                          onClick={() => handleDownload(report)}
+                          disabled={generatingPDF}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                        >
+                          {generatingPDF && selectedReport?.yearMonth === report.yearMonth ? (
+                            <CircularProgress size={14} sx={{ color: 'white' }} />
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
+                          ダウンロード
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
