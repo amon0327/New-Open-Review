@@ -34,8 +34,6 @@ import {
   ArrowBack,
   People,
   Rocket,
-  Description,
-  AutoAwesome,
   PictureAsPdf
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
@@ -52,10 +50,7 @@ import SettingsPage from './dashboard/pages/SettingsPage';
 import StoresManagementPage from './dashboard/pages/StoresManagementPage';
 import FormPublishPage from './dashboard/pages/FormPublishPage';
 import AnalyticsPage from './dashboard/pages/AnalyticsPage';
-import ReportPage from './dashboard/pages/ReportPage';
 import CRMPage from './dashboard/pages/CRMPage';
-import AIAssistantPage from './dashboard/pages/AIAssistantPage';
-import ReportDetailPage from './dashboard/pages/ReportDetailPage';
 import PDFPage from './dashboard/pages/PDFPage';
 
 const drawerWidth = 280;
@@ -63,10 +58,8 @@ const collapsedDrawerWidth = 72;
 
 const navigationItems = [
   { text: 'ホーム', icon: <Home />, component: HomePage },
-  { text: 'AIアシスタント', icon: <AutoAwesome />, component: AIAssistantPage },
   { text: 'フォーム公開', icon: <Rocket />, component: FormPublishPage },
   { text: '顧客管理(CRM)', icon: <People />, component: CRMPage },
-  { text: 'レポート', icon: <Description />, component: ReportPage },
   { text: 'PDF', icon: <PictureAsPdf />, component: PDFPage },
   { text: '分析', icon: <Analytics />, component: AnalyticsPage },
   { text: '店舗情報', icon: <Business />, component: StoresManagementPage },
@@ -86,7 +79,6 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [isCheckingCompany, setIsCheckingCompany] = useState(!companyId);
   const [currentCompany, setCurrentCompany] = useState(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(!!companyId);
-  const [fullscreenReport, setFullscreenReport] = useState(null);
 
   // フォーム作成時のハンドラー - URL遷移を行う
   const handleFormCreated = (formId) => {
@@ -305,16 +297,6 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     );
   }
 
-  // フルスクリーンレポート表示（ナビゲーションなし）
-  if (fullscreenReport) {
-    return (
-      <ReportDetailPage
-        report={fullscreenReport}
-        onBack={() => setFullscreenReport(null)}
-      />
-    );
-  }
-
   const renderContent = (onCreateForm, isCreatingForm) => {
     const ActiveComponent = navigationItems[activeTab].component;
     if (!ActiveComponent) {
@@ -326,10 +308,6 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
       return <ActiveComponent user={user} onCreateFormClick={onCreateClick} onCreateForm={onCreateForm} isCreatingForm={isCreatingForm} />;
     } else if (navigationItems[activeTab].text === '分析') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
-    } else if (navigationItems[activeTab].text === 'レポート') {
-      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} onOpenReportDetail={(report) => setFullscreenReport(report)} />;
-    } else if (navigationItems[activeTab].text === 'AIアシスタント') {
-      return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} onOpenReportDetail={(report) => setFullscreenReport(report)} />;
     } else if (navigationItems[activeTab].text === 'フォーム公開') {
       return <ActiveComponent user={user} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     } else if (navigationItems[activeTab].text === 'PDF') {
