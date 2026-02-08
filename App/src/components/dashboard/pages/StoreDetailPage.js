@@ -76,7 +76,6 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
   const [tabValue, setTabValue] = useState(0);
   const [showInvitationForm, setShowInvitationForm] = useState(false);
   const [selectedInvitations, setSelectedInvitations] = useState([]);
-  const [copyUrlType, setCopyUrlType] = useState('production'); // 'production' or 'development'
 
   useEffect(() => {
     if (storeId) {
@@ -187,15 +186,10 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
     }
   };
 
-  const copyInvitationUrl = (token, environment = 'dev') => {
-    let url;
-    if (environment === 'production') {
-      url = `https://store.openreview.jp/staff-invitation/${token}`;
-    } else {
-      url = `http://localhost:3000/staff-invitation/${token}`;
-    }
+  const copyInvitationUrl = (token) => {
+    const url = `https://store.openreview.jp/staff-invitation/${token}`;
     navigator.clipboard.writeText(url);
-    toast.success(environment === 'production' ? '本番版URLをコピーしました' : '開発版URLをコピーしました');
+    toast.success('URLをコピーしました');
   };
 
   // 招待中のものだけをフィルタ
@@ -230,9 +224,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
       return;
     }
 
-    const baseUrl = copyUrlType === 'production'
-      ? 'https://store.openreview.jp/staff-invitation/'
-      : 'http://localhost:3000/staff-invitation/';
+    const baseUrl = 'https://store.openreview.jp/staff-invitation/';
 
     const text = selectedItems.map(inv => {
       const url = `${baseUrl}${inv.token}`;
@@ -569,34 +561,6 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                       一括コピー:
                     </Typography>
 
-                    {/* URL種類選択 */}
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Chip
-                        label="本番URL"
-                        onClick={() => setCopyUrlType('production')}
-                        sx={{
-                          cursor: 'pointer',
-                          background: copyUrlType === 'production' ? '#10b981' : '#e2e8f0',
-                          color: copyUrlType === 'production' ? '#fff' : '#64748b',
-                          '&:hover': {
-                            background: copyUrlType === 'production' ? '#059669' : '#cbd5e1',
-                          }
-                        }}
-                      />
-                      <Chip
-                        label="開発URL"
-                        onClick={() => setCopyUrlType('development')}
-                        sx={{
-                          cursor: 'pointer',
-                          background: copyUrlType === 'development' ? '#5e17eb' : '#e2e8f0',
-                          color: copyUrlType === 'development' ? '#fff' : '#64748b',
-                          '&:hover': {
-                            background: copyUrlType === 'development' ? '#4c1d95' : '#cbd5e1',
-                          }
-                        }}
-                      />
-                    </Box>
-
                     <Button
                       variant="contained"
                       size="small"
@@ -698,7 +662,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                             {invitation.status === 'invited' && (
                               <IconButton
                                 size="small"
-                                onClick={() => copyInvitationUrl(invitation.token, copyUrlType === 'production' ? 'production' : 'dev')}
+                                onClick={() => copyInvitationUrl(invitation.token, 'production')}
                                 sx={{
                                   color: '#5e17eb',
                                   '&:hover': {
