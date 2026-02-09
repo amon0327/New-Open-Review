@@ -983,7 +983,7 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
 const StoreByStoreTab = ({ companyId }) => {
   const [activeSubTab, setActiveSubTab] = useState(0);
   const [stores, setStores] = useState([]);
-  const [selectedStore, setSelectedStore] = useState('all');
+  const [selectedStore, setSelectedStore] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('');
   const [availablePeriods, setAvailablePeriods] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

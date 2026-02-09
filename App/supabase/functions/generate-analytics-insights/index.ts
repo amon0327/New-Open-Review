@@ -20,20 +20,20 @@ const CLEANLINESS_LABELS = [
   'メニュー表・卓上備品', 'トイレ', '店内の空気や匂い', '店内の整理整頓', 'スタッフの身だしなみ'
 ]
 
-// 12type名称
+// 12type名称（データ処理用・内部ラベル）
 const TYPE_NAMES: Record<number, string> = {
-  1: '推奨者・再来店あり・リピーター（ロイヤル顧客）',
-  2: '推奨者・再来店あり・新規（期待の新規）',
-  3: '推奨者・再来店なし・リピーター（離脱リスク推奨者）',
-  4: '推奨者・再来店なし・新規（一見推奨者）',
-  5: '中立者・再来店あり・リピーター（安定中立）',
-  6: '中立者・再来店あり・新規（様子見新規）',
-  7: '中立者・再来店なし・リピーター（離脱リスク中立）',
-  8: '中立者・再来店なし・新規（低関心新規）',
-  9: '批判者・再来店あり・リピーター（不満継続）',
-  10: '批判者・再来店あり・新規（改善余地新規）',
-  11: '批判者・再来店なし・リピーター（リピーター離脱）',
-  12: '批判者・再来店なし・新規（新規離脱）',
+  1: '推奨者で再来店意向ありのリピーターのお客様',
+  2: '推奨者で再来店意向ありの新規のお客様',
+  3: '推奨者で再来店意向なしのリピーターのお客様',
+  4: '推奨者で再来店意向なしの新規のお客様',
+  5: '中立者で再来店意向ありのリピーターのお客様',
+  6: '中立者で再来店意向ありの新規のお客様',
+  7: '中立者で再来店意向なしのリピーターのお客様',
+  8: '中立者で再来店意向なしの新規のお客様',
+  9: '批判者で再来店意向ありのリピーターのお客様',
+  10: '批判者で再来店意向ありの新規のお客様',
+  11: '批判者で再来店意向なしのリピーターのお客様',
+  12: '批判者で再来店意向なしの新規のお客様',
 }
 
 serve(async (req) => {
@@ -209,6 +209,15 @@ async function processStoreInsights(
     .eq('store_id', storeId)
     .eq('year_month', prevYearMonth)
 
+  // C. 店舗全体のサマリー取得（比較用）
+  const { data: storeSummary } = await supabase
+    .from('monthly_analytics_summary')
+    .select('*')
+    .eq('company_id', companyId)
+    .eq('store_id', storeId)
+    .eq('year_month', targetYearMonth)
+    .maybeSingle()
+
   // データが少ない場合はスキップ
   const allComments = currentComments || []
   if (allComments.length === 0 && (!currentByType || currentByType.length === 0)) {
@@ -345,6 +354,7 @@ async function processStoreInsights(
     enrichedPrev,
     currentByType || [],
     prevByType || [],
+    storeSummary,
     formatComments,
     formatQscByType
   )
