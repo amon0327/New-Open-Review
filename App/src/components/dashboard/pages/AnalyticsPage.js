@@ -740,7 +740,9 @@ const getNpsTag = (seg) => {
 const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const [loading, setLoading] = useState(true);
   const [segments, setSegments] = useState([]);
+  const [insights, setInsights] = useState([]);
   const [expandedDetail, setExpandedDetail] = useState(null);
+  const [expandedInsight, setExpandedInsight] = useState(null);
 
   // selectedPeriodを年月形式に変換
   const getYearMonth = (period) => {
@@ -779,9 +781,11 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
         const result = await response.json();
         if (!result.success) throw new Error(result.error || 'データの取得に失敗しました');
         setSegments(result.data?.salesImpact?.segments || []);
+        setInsights(result.data?.insights || []);
       } catch (error) {
         console.error('セグメントデータの取得エラー:', error);
         setSegments([]);
+        setInsights([]);
       } finally {
         setLoading(false);
       }
@@ -835,8 +839,159 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
     );
   }
 
+  // AIインサイトのresult_typeからタグを生成
+  const getInsightTags = (resultType) => {
+    if (!resultType) return { categoryTag: null, npsTag: null };
+    const t = Number(resultType);
+    const npsTag = t <= 4 ? { label: '推奨者', bg: 'bg-green-600' }
+      : t <= 8 ? { label: '中立者', bg: 'bg-amber-500' }
+      : { label: '批判者', bg: 'bg-red-600' };
+    const isRepeater = t % 2 === 1;
+    const hasRevisit = [1, 2, 5, 6, 9, 10].includes(t);
+    let categoryTag;
+    if (isRepeater && hasRevisit) categoryTag = { label: '安定リピーター', bg: 'bg-green-500' };
+    else if (isRepeater && !hasRevisit) categoryTag = { label: 'リピーター離脱', bg: 'bg-orange-500' };
+    else if (!isRepeater && hasRevisit) categoryTag = { label: '新規リピーター', bg: 'bg-blue-500' };
+    else categoryTag = { label: '新規離脱', bg: 'bg-gray-500' };
+    return { categoryTag, npsTag };
+  };
+
   return (
     <div className="p-6">
+      {/* AIインサイトセクション */}
+      {insights.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Lightbulb className="w-5 h-5 text-purple-500" />
+            <h2 className="text-base font-bold text-gray-900">AIインサイト</h2>
+            <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">自動分析</span>
+          </div>
+          <div className="space-y-4">
+            {insights.map((insight, idx) => {
+              const { categoryTag, npsTag } = getInsightTags(insight.result_type);
+              const points = [insight.point_1, insight.point_2, insight.point_3].filter(Boolean);
+              const isOpen = expandedInsight === idx;
+
+              return (
+                <div key={insight.id || idx} className="relative">
+                  {/* フローティングタグ */}
+                  {categoryTag && (
+                    <div className={`absolute -top-2.5 left-5 z-10 inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm ${categoryTag.bg}`}>
+                      {categoryTag.label}
+                    </div>
+                  )}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden pt-2">
+                    <button
+                      onClick={() => setExpandedInsight(isOpen ? null : idx)}
+                      className="w-full flex items-center justify-between px-6 pt-4 pb-3 text-left hover:bg-gray-50/30 transition-colors"
+                    >
+                      <h3 className="text-base font-bold text-gray-900">{insight.issue_title}</h3>
+                      <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isOpen && (
+                      <div className="px-6 pb-6 space-y-4">
+                        <Separator />
+                        {/* タグ */}
+                        {categoryTag && npsTag && (
+                          <div className="flex items-center gap-2">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${categoryTag.bg}`}>
+                              {categoryTag.label}
+                            </span>
+                            <span className="text-gray-300 font-bold text-xs">×</span>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>
+                              {npsTag.label}
+                            </span>
+                          </div>
+                        )}
+                        {/* 詳細説明 */}
+                        <p className="text-[13px] text-gray-600 leading-relaxed">{insight.issue_detail}</p>
+
+                        {/* comment型: 顧客コメント引用 */}
+                        {insight.issue_type === 'comment' && insight.comment && (
+                          <div className="rounded-lg px-4 py-3 flex items-start gap-3 border-[1.5px] border-purple-600" style={{ backgroundColor: '#f3eefe' }}>
+                            <MessageSquare className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-[12px] text-gray-700 leading-relaxed">「{insight.comment}」</p>
+                          </div>
+                        )}
+
+                        {/* evaluation型: 評価バーチャート比較 */}
+                        {insight.issue_type === 'evaluation' && (insight.current_title || insight.previous_title) && (() => {
+                          const curPos = insight.current_positive || 0;
+                          const curNeg = insight.current_negative || 0;
+                          const curNeu = Math.max(0, 100 - curPos - curNeg);
+                          const prevPos = insight.previous_positive || 0;
+                          const prevNeg = insight.previous_negative || 0;
+                          const prevNeu = Math.max(0, 100 - prevPos - prevNeg);
+                          const renderBar = (pos, neu, neg, title) => (
+                            <div className="flex-1 min-w-0">
+                              <span className="text-[11px] font-bold text-gray-500 block mb-2">{title}</span>
+                              <div className="relative h-5 rounded overflow-hidden border border-gray-200 flex">
+                                <div className="h-full transition-all duration-700" style={{ width: `${pos}%`, backgroundColor: '#22c55e' }} />
+                                <div className="h-full transition-all duration-700" style={{ width: `${neu}%`, backgroundColor: '#9ca3af' }} />
+                                <div className="h-full transition-all duration-700" style={{ width: `${neg}%`, backgroundColor: '#ef4444' }} />
+                              </div>
+                              <div className="flex justify-between text-[9px] mt-1">
+                                <span className="font-bold" style={{ color: '#16a34a' }}>{pos}%</span>
+                                <span className="font-bold text-gray-500">{neu}%</span>
+                                <span className="font-bold" style={{ color: '#dc2626' }}>{neg}%</span>
+                              </div>
+                            </div>
+                          );
+                          return (
+                            <div>
+                              <div className="flex gap-4">
+                                {renderBar(curPos, curNeu, curNeg, insight.current_title)}
+                                {renderBar(prevPos, prevNeu, prevNeg, insight.previous_title)}
+                              </div>
+                              <div className="flex items-center gap-3 mt-1 text-[9px]">
+                                <div className="flex items-center gap-1">
+                                  <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#22c55e' }} />
+                                  <span className="text-gray-500">ポジティブ</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#9ca3af' }} />
+                                  <span className="text-gray-500">ニュートラル</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#ef4444' }} />
+                                  <span className="text-gray-500">ネガティブ</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* 検討事項（FAQ形式） */}
+                        {points.length > 0 && (
+                          <div className="bg-gray-50 rounded-xl p-4">
+                            <span className="text-[11px] font-bold text-gray-500 uppercase">検討事項</span>
+                            <div className="mt-2.5 space-y-3">
+                              {points.map((point, pIdx) => {
+                                const parts = point.split('→');
+                                const question = parts[0]?.trim();
+                                const suggestion = parts.length > 1 ? parts.slice(1).join('→').trim() : null;
+                                return (
+                                  <div key={pIdx}>
+                                    <p className="text-[12px] text-gray-700 font-medium">{question}</p>
+                                    {suggestion && (
+                                      <p className="text-[11px] text-gray-400 pl-3 mt-0.5">→ {suggestion}</p>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* セグメント別 詳細分析カード */}
       <div className="space-y-5">
         {issueSegments.map((seg, segIndex) => {
