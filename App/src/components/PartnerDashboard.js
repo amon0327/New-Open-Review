@@ -26,7 +26,12 @@ import {
   Chip,
   Tabs,
   Tab,
-  Switch
+  Switch,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
 import {
   Business,
@@ -252,6 +257,59 @@ export default function PartnerDashboard({ user, onLogout }) {
     } catch (error) {
       console.error('企業ステータス更新エラー:', error);
       toast.error('企業ステータスの更新に失敗しました');
+    }
+  };
+
+  // 企業削除の確認ダイアログ
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [companyToDelete, setCompanyToDelete] = useState(null);
+
+  const handleOpenDeleteDialog = (company) => {
+    setCompanyToDelete(company);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setCompanyToDelete(null);
+  };
+
+  const handleDeleteCompany = async () => {
+    if (!companyToDelete) return;
+    try {
+      // partner_affiliate_companiesから紐付けを削除
+      const { error: affiliateError } = await supabase
+        .from('partner_affiliate_companies')
+        .delete()
+        .eq('companies_id', companyToDelete.id);
+
+      if (affiliateError) {
+        console.error('企業紐付け削除エラー:', affiliateError);
+        toast.error('企業の削除に失敗しました');
+        handleCloseDeleteDialog();
+        return;
+      }
+
+      // companiesテーブルから企業を削除
+      const { error: companyError } = await supabase
+        .from('companies')
+        .delete()
+        .eq('id', companyToDelete.id);
+
+      if (companyError) {
+        console.error('企業削除エラー:', companyError);
+        toast.error('企業の削除に失敗しました');
+        handleCloseDeleteDialog();
+        return;
+      }
+
+      toast.success(`${companyToDelete.name}を削除しました`);
+      setCompanies(prev => prev.filter(c => c.id !== companyToDelete.id));
+      handleCloseDeleteDialog();
+    } catch (error) {
+      console.error('企業削除エラー:', error);
+      toast.error('企業の削除に失敗しました');
+      handleCloseDeleteDialog();
     }
   };
 

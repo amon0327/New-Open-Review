@@ -382,7 +382,7 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <FileText className="w-7 h-7 text-purple-600" />
-              PDFレポート
+              レポート
             </h1>
             <p className="text-gray-500 mt-1">レポートをプレビュー・PDFダウンロードできます</p>
           </div>
