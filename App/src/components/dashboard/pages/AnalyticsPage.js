@@ -1253,7 +1253,7 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
   const [isInsightsOpen, setIsInsightsOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [overviewData, setOverviewData] = useState(null);
-  const [aiOverviewText, setAiOverviewText] = useState(null);
+
 
   // selectedPeriodを年月形式に変換 (2025/12 -> 2025-12)
   const getYearMonth = (period) => {
@@ -1305,11 +1305,10 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
         }
 
         setOverviewData(result.data?.overview || null);
-        setAiOverviewText(result.data?.aiText?.overview || null);
+
       } catch (error) {
         console.error('概要データの取得エラー:', error);
         setOverviewData(null);
-        setAiOverviewText(null);
       } finally {
         setLoading(false);
       }
@@ -1436,19 +1435,6 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-100 p-6 pb-0">
-
-      {/* AI分析コメント */}
-      {aiOverviewText && (
-        <div className="mb-6 bg-gradient-to-r from-violet-50 to-indigo-50 border border-violet-200 rounded-xl p-4 flex items-start gap-3">
-          <div className="p-1.5 bg-violet-100 rounded-lg flex-shrink-0 mt-0.5">
-            <Sparkles className="w-4 h-4 text-violet-600" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-violet-700 mb-1">AI分析</p>
-            <p className="text-sm text-gray-700 leading-relaxed">{aiOverviewText}</p>
-          </div>
-        </div>
-      )}
 
       {/* KPIカード */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -1784,7 +1770,7 @@ const chartStyle = { outline: 'none' };
 const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const [loading, setLoading] = useState(true);
   const [impactData, setImpactData] = useState(null);
-  const [aiSalesImpactText, setAiSalesImpactText] = useState(null);
+
 
   // selectedPeriodを年月形式に変換 (2025/12 -> 2025-12)
   const getYearMonth = (period) => {
@@ -1838,11 +1824,10 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
         }
 
         setImpactData(result.data?.salesImpact || null);
-        setAiSalesImpactText(result.data?.aiText?.sales_impact || null);
+
       } catch (error) {
         console.error('売上影響データの取得エラー:', error);
         setImpactData(null);
-        setAiSalesImpactText(null);
       } finally {
         setLoading(false);
       }
@@ -1982,19 +1967,6 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
 
   return (
     <div className="p-4 space-y-4">
-      {/* AI分析コメント */}
-      {aiSalesImpactText && (
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-          <div className="p-1.5 bg-amber-100 rounded-lg flex-shrink-0 mt-0.5">
-            <Sparkles className="w-4 h-4 text-amber-600" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-amber-700 mb-1">AI分析</p>
-            <p className="text-sm text-gray-700 leading-relaxed">{aiSalesImpactText}</p>
-          </div>
-        </div>
-      )}
-
       {/* 顧客カテゴリー別分析 - 概要スタイル */}
       <div className="grid grid-cols-4 gap-4">
         {/* 新規離脱 */}
@@ -2391,7 +2363,7 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
 const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const [loading, setLoading] = useState(true);
   const [evaluationData, setEvaluationData] = useState(null);
-  const [aiQscTexts, setAiQscTexts] = useState({ quality: null, service: null, cleanliness: null });
+
 
   // selectedPeriodを年月形式に変換 (2025/12 -> 2025-12)
   const getYearMonth = (period) => {
@@ -2443,18 +2415,9 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
         }
 
         setEvaluationData(result.data?.storeEvaluation || null);
-        const aiText = result.data?.aiText;
-        if (aiText) {
-          setAiQscTexts({
-            quality: aiText.quality || null,
-            service: aiText.service || null,
-            cleanliness: aiText.cleanliness || null
-          });
-        }
       } catch (error) {
         console.error('店舗評価データの取得エラー:', error);
         setEvaluationData(null);
-        setAiQscTexts({ quality: null, service: null, cleanliness: null });
       } finally {
         setLoading(false);
       }
@@ -2619,12 +2582,6 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
             {Object.entries(qscDetailedData).map(([category, data]) => {
               const totalResponses = data.totalResponses || 0;
               const items = data.items || [];
-              const aiText = category === 'Q' ? aiQscTexts.quality
-                : category === 'S' ? aiQscTexts.service
-                : aiQscTexts.cleanliness;
-              const aiColor = category === 'Q' ? { bg: 'from-violet-50 to-purple-50', border: 'border-violet-200', icon: 'bg-violet-100', iconText: 'text-violet-600', label: 'text-violet-700' }
-                : category === 'S' ? { bg: 'from-blue-50 to-indigo-50', border: 'border-blue-200', icon: 'bg-blue-100', iconText: 'text-blue-600', label: 'text-blue-700' }
-                : { bg: 'from-emerald-50 to-teal-50', border: 'border-emerald-200', icon: 'bg-emerald-100', iconText: 'text-emerald-600', label: 'text-emerald-700' };
               return (
                 <div key={category} className="space-y-3">
                   <div className="flex items-center justify-between mb-4">
@@ -2640,15 +2597,6 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
                       n={totalResponses.toLocaleString()}
                     </span>
                   </div>
-
-                  {aiText && (
-                    <div className={`bg-gradient-to-r ${aiColor.bg} ${aiColor.border} border rounded-lg p-3 mb-3 flex items-start gap-2`}>
-                      <div className={`p-1 ${aiColor.icon} rounded flex-shrink-0 mt-0.5`}>
-                        <Sparkles className={`w-3 h-3 ${aiColor.iconText}`} />
-                      </div>
-                      <p className="text-xs text-gray-700 leading-relaxed">{aiText}</p>
-                    </div>
-                  )}
 
                   {items.length > 0 ? items.map((item, index) => {
                     const positivePercentage = item.positive || 0;

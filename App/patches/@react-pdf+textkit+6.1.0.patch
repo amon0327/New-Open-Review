@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-pdf/textkit/lib/textkit.js b/node_modules/@react-pdf/textkit/lib/textkit.js
+index 4e1b193..681091b 100644
+--- a/node_modules/@react-pdf/textkit/lib/textkit.js
++++ b/node_modules/@react-pdf/textkit/lib/textkit.js
+@@ -67,7 +67,7 @@ const wrapWords = (engines = {}, options = {}) => {
+             const run = attributedString.runs[i];
+             const words = attributedString.string
+                 .slice(run.start, run.end)
+-                .split(/([ ]+)/g)
++                .split(/([ \u200B]+)/g)
+                 .filter(Boolean);
+             for (let j = 0; j < words.length; j += 1) {
+                 const word = words[j];

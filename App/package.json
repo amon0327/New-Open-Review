@@ -61,7 +61,8 @@
     "eject": "react-scripts eject",
     "commit": "./scripts/auto-commit.sh",
     "git-status": "git status",
-    "dev": "npm start"
+    "dev": "npm start",
+    "postinstall": "npx patch-package"
   },
   "eslintConfig": {
     "extends": [

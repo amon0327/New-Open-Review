@@ -341,7 +341,7 @@ function buildQualityPrompt(current: any, prev: any, avg: any, yearMonth: string
   return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}のQSC品質（Quality）に関するコメントを1つだけ生成してください。
 
 【ルール】
-- 70文字から200文字以内でまとめる
+- 70文字から130文字以内でまとめる
 - 具体的な項目名と数値を含める
 - 良い点と改善点をバランスよく分析する
 - コメントの本文のみを出力する（前置きや説明は不要）
@@ -376,7 +376,7 @@ function buildServicePrompt(current: any, prev: any, avg: any, yearMonth: string
   return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}のQSCサービス（Service）に関するコメントを1つだけ生成してください。
 
 【ルール】
-- 70文字から200文字以内でまとめる
+- 70文字から130文字以内でまとめる
 - 具体的な項目名と数値を含める
 - 良い点と改善点をバランスよく分析する
 - コメントの本文のみを出力する（前置きや説明は不要）
@@ -411,7 +411,7 @@ function buildCleanlinessPrompt(current: any, prev: any, avg: any, yearMonth: st
   return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}のQSCクレンリネス（Cleanliness）に関するコメントを1つだけ生成してください。
 
 【ルール】
-- 70文字から200文字以内でまとめる
+- 70文字から130文字以内でまとめる
 - 具体的な項目名と数値を含める
 - 良い点と改善点をバランスよく分析する
 - コメントの本文のみを出力する（前置きや説明は不要）

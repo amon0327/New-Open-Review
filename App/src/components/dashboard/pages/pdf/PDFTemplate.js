@@ -89,33 +89,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   coverLogoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 16,
   },
   coverLogoWithText: {
-    height: 30,
-    width: 168,
+    height: 24,
+    width: 134,
     objectFit: 'contain',
   },
   coverInfoContainer: {
     marginTop: 20,
   },
-  coverCompanyName: {
-    fontSize: 24,
+  coverCompanyStore: {
+    fontSize: 13,
     color: colors.white,
-    marginBottom: 8,
-    fontWeight: 'bold',
-  },
-  coverStoreName: {
-    fontSize: 24,
-    color: colors.white,
-    marginBottom: 16,
+    opacity: 0.85,
+    marginBottom: 4,
   },
   coverDate: {
-    fontSize: 20,
+    fontSize: 13,
     color: colors.white,
-    opacity: 0.9,
+    opacity: 0.85,
   },
   coverBottomBar: {
     position: 'absolute',
@@ -1619,10 +1612,9 @@ const CoverPage = ({ report, storeName, companyName }) => {
         </Text>
 
         <View style={styles.coverInfoContainer}>
-          {companyName && (
-            <Text style={styles.coverCompanyName}>{companyName}</Text>
-          )}
-          <Text style={styles.coverStoreName}>{storeName} 様</Text>
+          <Text style={styles.coverCompanyStore}>
+            {companyName ? `${companyName} ${storeName}` : storeName}
+          </Text>
           <Text style={styles.coverDate}>{formatYearMonth(report.yearMonth)}</Text>
         </View>
       </View>
