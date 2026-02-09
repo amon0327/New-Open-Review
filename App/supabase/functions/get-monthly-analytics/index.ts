@@ -104,8 +104,13 @@ serve(async (req) => {
       console.error('Error fetching available periods:', periodsError)
     }
 
-    // 重複を除去
+    // 当月を除外（当月のデータはまだ確定していないため）
+    const now = new Date()
+    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
+    // 重複を除去し、当月を除外
     const availablePeriods = [...new Set((availablePeriodsData || []).map(d => d.year_month))]
+      .filter(p => p < currentYearMonth)
 
     // 年月が指定されていない場合は最新の月を使用
     let targetYearMonth = yearMonth

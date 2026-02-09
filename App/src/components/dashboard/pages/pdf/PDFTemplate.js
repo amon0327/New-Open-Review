@@ -3217,7 +3217,7 @@ const InsightDetailChartPage = ({ insight, pageNumber }) => {
       <View style={styles.evalBarSection}>
         {/* 今月の評価 */}
         <View style={styles.evalBarColumn}>
-          <Text style={styles.evalBarLabel}>{insight.current_title ? `今月: ${insight.current_title}` : '今月の評価'}</Text>
+          <Text style={styles.evalBarLabel}>{insight.current_title || 'セグメント評価'}</Text>
           <View style={styles.evalBar}>
             <View style={[styles.evalBarSegment, { width: `${curPos}%`, backgroundColor: '#22c55e' }]} />
             <View style={[styles.evalBarSegment, { width: `${curNeu}%`, backgroundColor: colors.gray400 }]} />
@@ -3232,7 +3232,7 @@ const InsightDetailChartPage = ({ insight, pageNumber }) => {
 
         {/* 前月の評価 */}
         <View style={styles.evalBarColumn}>
-          <Text style={styles.evalBarLabel}>{insight.previous_title ? `前月: ${insight.previous_title}` : '前月の評価'}</Text>
+          <Text style={styles.evalBarLabel}>{insight.previous_title || '店舗全体評価'}</Text>
           <View style={styles.evalBar}>
             <View style={[styles.evalBarSegment, { width: `${prevPos}%`, backgroundColor: '#22c55e' }]} />
             <View style={[styles.evalBarSegment, { width: `${prevNeu}%`, backgroundColor: colors.gray400 }]} />

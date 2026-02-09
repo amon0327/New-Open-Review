@@ -448,9 +448,48 @@ function buildInsightPrompt(
   prevComments: any[],
   currentByType: any[],
   prevByType: any[],
+  storeSummary: any,
   formatComments: (comments: any[], label: string) => string,
   formatQscByType: (typeData: any[]) => string
 ): string {
+  // 店舗全体のQSCデータを整形
+  const formatStoreSummary = (summary: any): string => {
+    if (!summary) return '（データなし）'
+    let lines = `\n【店舗全体】(回答数: ${summary.total_responses || 0})\n`
+
+    lines += 'Quality:\n'
+    for (let i = 1; i <= 10; i++) {
+      const pos = summary[`q${i}_positive_percent`] || 0
+      const neg = summary[`q${i}_negative_percent`] || 0
+      const total = summary[`q${i}_total_count`] || 0
+      if (total > 0) {
+        lines += `  ${QUALITY_LABELS[i - 1]}: ポジ${pos}% / ネガ${neg}% (${total}件)\n`
+      }
+    }
+
+    lines += 'Service:\n'
+    for (let i = 1; i <= 10; i++) {
+      const pos = summary[`s${i}_positive_percent`] || 0
+      const neg = summary[`s${i}_negative_percent`] || 0
+      const total = summary[`s${i}_total_count`] || 0
+      if (total > 0) {
+        lines += `  ${SERVICE_LABELS[i - 1]}: ポジ${pos}% / ネガ${neg}% (${total}件)\n`
+      }
+    }
+
+    lines += 'Cleanliness:\n'
+    for (let i = 1; i <= 10; i++) {
+      const pos = summary[`c${i}_positive_percent`] || 0
+      const neg = summary[`c${i}_negative_percent`] || 0
+      const total = summary[`c${i}_total_count`] || 0
+      if (total > 0) {
+        lines += `  ${CLEANLINESS_LABELS[i - 1]}: ポジ${pos}% / ネガ${neg}% (${total}件)\n`
+      }
+    }
+
+    return lines
+  }
+
   return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータを分析し、${targetYearMonth}の店舗「${storeName}」における重要なインサイト（課題・注目点）を発見してください。
 
 【出力ルール】
@@ -461,11 +500,21 @@ function buildInsightPrompt(
 - インサイトが見つからない場合は空配列 [] を返す
 - JSON配列のみを出力する（前置きや説明は不要）
 
+【重要: セグメント名の表記ルール】
+- 「安定推奨層」「離脱リスク層」などの抽象的な内部名称は絶対に使わないこと
+- 必ず「推奨者で再来店意向ありのリピーターのお客様」のように具体的な属性で記述すること
+- issue_title, issue_detail内でも同様
+
+【重要: 分析には比較がマスト】
+- すべてのインサイトには必ず意味のある比較を含めること
+- evaluation型では「特定セグメントの評価」と「店舗全体の評価」を比較すること
+- comment型でも前月比較やセグメント間比較などの比較視点を含めること
+
 【comment型のJSON形式】
 {
   "issue_type": "comment",
   "issue_title": "課題タイトル（20文字以内、例: 料理の量に対する不満が増加）",
-  "issue_detail": "詳細説明（50〜100文字、データに基づく具体的な分析）",
+  "issue_detail": "詳細説明（50〜100文字、データに基づく具体的な分析。必ず比較を含める）",
   "point_1": "検討事項1（質問形式で40文字以内、例: 大盛りオプションの導入は可能ですか？）",
   "point_2": "検討事項2（質問形式で40文字以内、例: 現在の1人前の量は適正と言えますか？）",
   "point_3": "検討事項3（質問形式で40文字以内、例: サイズ展開の明確な表示はされていますか？）",
@@ -474,20 +523,22 @@ function buildInsightPrompt(
 }
 
 【evaluation型のJSON形式】
+※ evaluation型ではセグメント別の評価と店舗全体の評価を比較する
+※ current_title/previous_titleはバーチャートのラベルになるので、比較対象がわかる記述にする
 {
   "issue_type": "evaluation",
-  "issue_title": "課題タイトル（20文字以内、例: 批判者リピーターの床清潔さ低評価）",
-  "issue_detail": "詳細説明（50〜100文字、データに基づく具体的な分析）",
+  "issue_title": "課題タイトル（20文字以内、例: 中立リピーターの床清潔さ低評価）",
+  "issue_detail": "詳細説明（50〜100文字、セグメントと全体の差異をデータに基づき分析）",
   "point_1": "検討事項1（質問形式で40文字以内、例: 清掃頻度は十分ですか？）",
   "point_2": "検討事項2（質問形式で40文字以内、例: 清掃チェック体制は機能していますか？）",
   "point_3": "検討事項3（質問形式で40文字以内、例: スタッフの清掃意識は高いですか？）",
   "result_type": 対象の12type番号(1-12の整数),
-  "current_title": "QSC項目名（例: 床）",
-  "current_positive": 今月のポジティブ%(整数),
-  "current_negative": 今月のネガティブ%(整数),
-  "previous_title": "同じQSC項目名（例: 床）",
-  "previous_positive": 前月のポジティブ%(整数),
-  "previous_negative": 前月のネガティブ%(整数)
+  "current_title": "セグメント別ラベル（例: 中立リピーターの床評価）",
+  "current_positive": そのセグメントのポジティブ%(整数),
+  "current_negative": そのセグメントのネガティブ%(整数),
+  "previous_title": "店舗全体ラベル（例: 店舗全体の床評価）",
+  "previous_positive": 店舗全体のポジティブ%(整数),
+  "previous_negative": 店舗全体のネガティブ%(整数)
 }
 
 【point_1/point_2/point_3について】
@@ -502,6 +553,7 @@ ${Object.entries(TYPE_NAMES).map(([k, v]) => `type ${k}: ${v}`).join('\n')}
 - ネガティブコメントのパターンや共通テーマ
 - 前月と比較して悪化している傾向
 - 特定セグメント（批判者、離脱リスク層）に集中する問題
+- セグメントのQSC評価が店舗全体の平均より著しく低い項目
 - QSC項目でネガティブ率が特に高い項目（20%以上）
 - 前月比でネガティブ率が5%以上増加した項目
 
@@ -510,6 +562,9 @@ ${Object.entries(TYPE_NAMES).map(([k, v]) => `type ${k}: ${v}`).join('\n')}
 ${formatComments(currentComments, `今月(${targetYearMonth})`)}
 
 ${formatComments(prevComments, `前月(${prevYearMonth})`)}
+
+=== 店舗全体QSCデータ（今月: ${targetYearMonth}） ===
+${formatStoreSummary(storeSummary)}
 
 === セグメント別QSCデータ（今月: ${targetYearMonth}） ===
 ${formatQscByType(currentByType)}
