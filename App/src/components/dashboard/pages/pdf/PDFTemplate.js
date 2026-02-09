@@ -3157,10 +3157,10 @@ const InsightDetailVoicePage = ({ insight, pageNumber }) => {
         </View>
       )}
 
-      {/* 改善ポイント */}
+      {/* 検討事項 */}
       {points.length > 0 && (
         <View style={styles.detailExampleBox}>
-          <Text style={styles.detailExampleTitle}>改善ポイント</Text>
+          <Text style={styles.detailExampleTitle}>検討事項</Text>
           {points.map((point, idx) => (
             <View key={idx} style={styles.detailExampleItem}>
               <Text style={styles.detailExampleText}>{breakableText(point)}</Text>
@@ -3262,10 +3262,10 @@ const InsightDetailChartPage = ({ insight, pageNumber }) => {
         </View>
       </View>
 
-      {/* 改善ポイント */}
+      {/* 検討事項 */}
       {points.length > 0 && (
         <View style={styles.detailExampleBox}>
-          <Text style={styles.detailExampleTitle}>改善ポイント</Text>
+          <Text style={styles.detailExampleTitle}>検討事項</Text>
           {points.map((point, idx) => (
             <View key={idx} style={styles.detailExampleItem}>
               <Text style={styles.detailExampleText}>{breakableText(point)}</Text>

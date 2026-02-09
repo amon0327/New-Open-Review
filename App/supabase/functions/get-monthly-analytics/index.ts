@@ -669,7 +669,7 @@ serve(async (req) => {
         .eq('store_id', storeId)
         .eq('year_month', targetYearMonth)
         .order('created_at', { ascending: true })
-        .limit(3)
+        .limit(4)
       insightsData = insights || []
     }
 

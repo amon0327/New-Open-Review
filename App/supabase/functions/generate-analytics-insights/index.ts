@@ -372,8 +372,8 @@ async function processStoreInsights(
     return 0
   }
 
-  // 最大3件に制限
-  insights = insights.slice(0, 3)
+  // 最大4件に制限
+  insights = insights.slice(0, 4)
 
   // ========================================
   // 既存レコード削除 → 新規INSERT
@@ -444,7 +444,7 @@ function buildInsightPrompt(
   return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータを分析し、${targetYearMonth}の店舗「${storeName}」における重要なインサイト（課題・注目点）を発見してください。
 
 【出力ルール】
-- 合計最大3件のインサイトをJSON配列で出力
+- 合計最大4件のインサイトをJSON配列で出力
 - 各インサイトは "comment" 型（顧客コメントから発見）または "evaluation" 型（QSC評価データから発見）のいずれか
 - コメントデータが豊富な場合は "comment" 型を優先
 - QSCデータで顕著な傾向がある場合は "evaluation" 型も含める
@@ -456,9 +456,9 @@ function buildInsightPrompt(
   "issue_type": "comment",
   "issue_title": "課題タイトル（20文字以内、例: 料理の量に対する不満が増加）",
   "issue_detail": "詳細説明（50〜100文字、データに基づく具体的な分析）",
-  "point_1": "改善ポイント1（30文字以内）",
-  "point_2": "改善ポイント2（30文字以内）",
-  "point_3": "改善ポイント3（30文字以内）",
+  "point_1": "検討事項1（質問形式で40文字以内、例: 大盛りオプションの導入は可能ですか？）",
+  "point_2": "検討事項2（質問形式で40文字以内、例: 現在の1人前の量は適正と言えますか？）",
+  "point_3": "検討事項3（質問形式で40文字以内、例: サイズ展開の明確な表示はされていますか？）",
   "comment": "代表的な顧客コメント（実際のコメントテキストをそのまま引用）",
   "result_type": 最も関連する12type番号(1-12の整数)
 }
@@ -468,9 +468,9 @@ function buildInsightPrompt(
   "issue_type": "evaluation",
   "issue_title": "課題タイトル（20文字以内、例: 批判者リピーターの床清潔さ低評価）",
   "issue_detail": "詳細説明（50〜100文字、データに基づく具体的な分析）",
-  "point_1": "改善ポイント1（30文字以内）",
-  "point_2": "改善ポイント2（30文字以内）",
-  "point_3": "改善ポイント3（30文字以内）",
+  "point_1": "検討事項1（質問形式で40文字以内、例: 清掃頻度は十分ですか？）",
+  "point_2": "検討事項2（質問形式で40文字以内、例: 清掃チェック体制は機能していますか？）",
+  "point_3": "検討事項3（質問形式で40文字以内、例: スタッフの清掃意識は高いですか？）",
   "result_type": 対象の12type番号(1-12の整数),
   "current_title": "QSC項目名（例: 床）",
   "current_positive": 今月のポジティブ%(整数),
@@ -479,6 +479,11 @@ function buildInsightPrompt(
   "previous_positive": 前月のポジティブ%(整数),
   "previous_negative": 前月のネガティブ%(整数)
 }
+
+【point_1/point_2/point_3について】
+- 改善案ではなく「検討事項」として質問形式で書く
+- 店舗スタッフが自ら考え、改善につなげられるような問いかけにする
+- 「〜ですか？」「〜でしょうか？」「〜していますか？」のような形式
 
 【12type分類】
 ${Object.entries(TYPE_NAMES).map(([k, v]) => `type ${k}: ${v}`).join('\n')}
