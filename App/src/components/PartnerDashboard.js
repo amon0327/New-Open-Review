@@ -440,17 +440,22 @@ export default function PartnerDashboard({ user, onLogout }) {
 
               {/* 登録企業数の推移 */}
               <Grid item xs={12}>
-                <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
-                  <CardContent>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                      登録企業数の推移
-                    </Typography>
+                <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)', overflow: 'hidden' }}>
+                  <CardContent sx={{ p: 0 }}>
+                    <Box sx={{ px: 3, pt: 3, pb: 1, display: 'flex', alignItems: 'baseline', gap: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        登録企業数の推移
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                        直近6ヶ月
+                      </Typography>
+                    </Box>
                     {isLoadingCompanies ? (
-                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
                         <CircularProgress sx={{ color: '#5e17eb' }} />
                       </Box>
                     ) : (
-                      <Box sx={{ width: '100%', height: 300 }}>
+                      <Box sx={{ width: '100%', height: 280, pt: 2 }}>
                         <ResponsiveContainer>
                           <AreaChart
                             data={(() => {
@@ -460,7 +465,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                                 const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
                                 months.push({
                                   date: d,
-                                  label: `${d.getFullYear()}/${d.getMonth() + 1}月`,
+                                  label: `${d.getMonth() + 1}月`,
                                 });
                               }
                               return months.map(m => {
@@ -469,32 +474,51 @@ export default function PartnerDashboard({ user, onLogout }) {
                                 return { name: m.label, 企業数: count };
                               });
                             })()}
-                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                            margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
                           >
                             <defs>
                               <linearGradient id="colorCompanies" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#5e17eb" stopOpacity={0.2} />
-                                <stop offset="95%" stopColor="#5e17eb" stopOpacity={0} />
+                                <stop offset="0%" stopColor="#5e17eb" stopOpacity={0.3} />
+                                <stop offset="100%" stopColor="#764ba2" stopOpacity={0.02} />
                               </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                            <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
-                            <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                            <CartesianGrid vertical={false} stroke="#f1f5f9" />
+                            <XAxis
+                              dataKey="name"
+                              axisLine={false}
+                              tickLine={false}
+                              tick={{ fontSize: 13, fill: '#94a3b8', fontWeight: 500 }}
+                              dy={8}
+                            />
+                            <YAxis
+                              allowDecimals={false}
+                              axisLine={false}
+                              tickLine={false}
+                              tick={{ fontSize: 13, fill: '#94a3b8', fontWeight: 500 }}
+                              dx={-4}
+                            />
                             <RechartsTooltip
+                              cursor={{ stroke: '#5e17eb', strokeWidth: 1, strokeDasharray: '4 4' }}
                               contentStyle={{
-                                borderRadius: 8,
+                                borderRadius: 10,
                                 border: 'none',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                fontSize: 13
+                                boxShadow: '0 8px 24px rgba(94, 23, 235, 0.15)',
+                                padding: '10px 16px',
+                                fontSize: 13,
+                                fontWeight: 500
                               }}
+                              labelStyle={{ color: '#94a3b8', fontSize: 11, marginBottom: 4 }}
+                              itemStyle={{ color: '#5e17eb' }}
                             />
                             <Area
                               type="monotone"
                               dataKey="企業数"
                               stroke="#5e17eb"
-                              strokeWidth={2}
+                              strokeWidth={2.5}
                               fillOpacity={1}
                               fill="url(#colorCompanies)"
+                              dot={{ r: 4, fill: '#fff', stroke: '#5e17eb', strokeWidth: 2 }}
+                              activeDot={{ r: 6, fill: '#5e17eb', stroke: '#fff', strokeWidth: 2 }}
                             />
                           </AreaChart>
                         </ResponsiveContainer>
@@ -575,9 +599,25 @@ export default function PartnerDashboard({ user, onLogout }) {
                       <CardContent>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                           <Business sx={{ fontSize: 32, color: company.is_active === false ? '#94a3b8' : '#5e17eb', mr: 1.5 }} />
-                          <Typography variant="h6" sx={{ fontWeight: 600, color: company.is_active === false ? '#94a3b8' : '#1a202c' }}>
+                          <Typography variant="h6" sx={{ fontWeight: 600, color: company.is_active === false ? '#94a3b8' : '#1a202c', flexGrow: 1 }}>
                             {company.name}
                           </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenDeleteDialog(company);
+                            }}
+                            sx={{
+                              color: '#cbd5e1',
+                              '&:hover': {
+                                color: '#ef4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.08)'
+                              }
+                            }}
+                          >
+                            <Delete sx={{ fontSize: 20 }} />
+                          </IconButton>
                         </Box>
 
                         <Divider sx={{ my: 2 }} />
