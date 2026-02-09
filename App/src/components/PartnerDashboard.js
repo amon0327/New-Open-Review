@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -31,7 +31,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  TextField
 } from '@mui/material';
 import {
   Business,
@@ -45,7 +46,9 @@ import {
   Delete,
   HourglassEmpty,
   ContentCopy,
-  CheckCircle
+  CheckCircle,
+  MoreVert,
+  Edit as EditIcon
 } from '@mui/icons-material';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import CompanyCreationDialog from './CompanyCreationDialog';
@@ -260,36 +263,62 @@ export default function PartnerDashboard({ user, onLogout }) {
     }
   };
 
-  // 長押しコンテキストメニュー
-  const [contextMenu, setContextMenu] = useState(null); // { mouseX, mouseY, company }
-  const longPressTimer = useRef(null);
-  const longPressTriggered = useRef(false);
+  // 企業カードメニュー
+  const [cardMenuAnchor, setCardMenuAnchor] = useState(null);
+  const [cardMenuCompany, setCardMenuCompany] = useState(null);
 
-  const handleCardPointerDown = useCallback((e, company) => {
-    longPressTriggered.current = false;
-    const { clientX, clientY } = e.touches ? e.touches[0] : e;
-    longPressTimer.current = setTimeout(() => {
-      longPressTriggered.current = true;
-      setContextMenu({ mouseX: clientX, mouseY: clientY, company });
-    }, 500);
-  }, []);
+  const handleOpenCardMenu = (e, company) => {
+    e.stopPropagation();
+    setCardMenuAnchor(e.currentTarget);
+    setCardMenuCompany(company);
+  };
 
-  const handleCardPointerUp = useCallback(() => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
+  const handleCloseCardMenu = () => {
+    setCardMenuAnchor(null);
+    setCardMenuCompany(null);
+  };
+
+  // 企業編集ダイアログ
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editCompany, setEditCompany] = useState(null);
+  const [editPhone, setEditPhone] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+
+  const handleOpenEditDialog = (company) => {
+    setEditCompany(company);
+    setEditPhone(company.phone_number || '');
+    setEditEmail(company.email || '');
+    setEditDialogOpen(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditDialogOpen(false);
+    setEditCompany(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editCompany) return;
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ phone_number: editPhone || null, email: editEmail || null })
+        .eq('id', editCompany.id);
+
+      if (error) {
+        console.error('企業情報更新エラー:', error);
+        toast.error('企業情報の更新に失敗しました');
+        return;
+      }
+
+      toast.success('企業情報を更新しました');
+      setCompanies(prev => prev.map(c =>
+        c.id === editCompany.id ? { ...c, phone_number: editPhone || null, email: editEmail || null } : c
+      ));
+      handleCloseEditDialog();
+    } catch (error) {
+      console.error('企業情報更新エラー:', error);
+      toast.error('企業情報の更新に失敗しました');
     }
-  }, []);
-
-  const handleCardPointerLeave = useCallback(() => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  }, []);
-
-  const handleCloseContextMenu = () => {
-    setContextMenu(null);
   };
 
   // 企業削除の確認ダイアログ
@@ -614,23 +643,13 @@ export default function PartnerDashboard({ user, onLogout }) {
                 {companies.map((company) => (
                   <Grid item xs={12} md={6} lg={4} key={company.id}>
                     <Card
-                      onClick={() => {
-                        if (longPressTriggered.current) return;
-                        navigate(`/company/${company.id}/dashboard`);
-                      }}
-                      onMouseDown={(e) => handleCardPointerDown(e, company)}
-                      onMouseUp={handleCardPointerUp}
-                      onMouseLeave={handleCardPointerLeave}
-                      onTouchStart={(e) => handleCardPointerDown(e, company)}
-                      onTouchEnd={handleCardPointerUp}
-                      onContextMenu={(e) => e.preventDefault()}
+                      onClick={() => navigate(`/company/${company.id}/dashboard`)}
                       sx={{
                         borderRadius: 1.5,
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
                         transition: 'transform 0.2s, box-shadow 0.2s, opacity 0.2s',
                         cursor: 'pointer',
                         opacity: company.is_active === false ? 0.6 : 1,
-                        userSelect: 'none',
                         '&:hover': {
                           transform: 'translateY(-4px)',
                           boxShadow: '0 8px 30px rgba(94, 23, 235, 0.15)'
@@ -639,9 +658,19 @@ export default function PartnerDashboard({ user, onLogout }) {
                       <CardContent>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                           <Business sx={{ fontSize: 32, color: company.is_active === false ? '#94a3b8' : '#5e17eb', mr: 1.5 }} />
-                          <Typography variant="h6" sx={{ fontWeight: 600, color: company.is_active === false ? '#94a3b8' : '#1a202c' }}>
+                          <Typography variant="h6" sx={{ fontWeight: 600, color: company.is_active === false ? '#94a3b8' : '#1a202c', flexGrow: 1 }}>
                             {company.name}
                           </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => handleOpenCardMenu(e, company)}
+                            sx={{
+                              color: '#94a3b8',
+                              '&:hover': { color: '#64748b', backgroundColor: 'rgba(0,0,0,0.04)' }
+                            }}
+                          >
+                            <MoreVert sx={{ fontSize: 20 }} />
+                          </IconButton>
                         </Box>
 
                         <Divider sx={{ my: 2 }} />
@@ -981,16 +1010,11 @@ export default function PartnerDashboard({ user, onLogout }) {
         onCompanyCreated={handleCompanyCreated}
       />
 
-      {/* 長押しコンテキストメニュー */}
+      {/* 企業カードメニュー */}
       <Menu
-        open={contextMenu !== null}
-        onClose={handleCloseContextMenu}
-        anchorReference="anchorPosition"
-        anchorPosition={
-          contextMenu !== null
-            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
-            : undefined
-        }
+        anchorEl={cardMenuAnchor}
+        open={Boolean(cardMenuAnchor)}
+        onClose={handleCloseCardMenu}
         PaperProps={{
           sx: {
             borderRadius: 2,
@@ -1001,8 +1025,20 @@ export default function PartnerDashboard({ user, onLogout }) {
       >
         <MenuItem
           onClick={() => {
-            const company = contextMenu?.company;
-            handleCloseContextMenu();
+            const company = cardMenuCompany;
+            handleCloseCardMenu();
+            if (company) handleOpenEditDialog(company);
+          }}
+          sx={{ gap: 1.5, py: 1.5 }}
+        >
+          <EditIcon sx={{ fontSize: 20, color: '#64748b' }} />
+          編集
+        </MenuItem>
+        <Divider />
+        <MenuItem
+          onClick={() => {
+            const company = cardMenuCompany;
+            handleCloseCardMenu();
             if (company) handleOpenDeleteDialog(company);
           }}
           sx={{ color: '#ef4444', gap: 1.5, py: 1.5 }}
@@ -1011,6 +1047,64 @@ export default function PartnerDashboard({ user, onLogout }) {
           削除
         </MenuItem>
       </Menu>
+
+      {/* 企業編集ダイアログ */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={handleCloseEditDialog}
+        PaperProps={{
+          sx: { borderRadius: 2, minWidth: 420, p: 1 }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
+          企業情報の編集
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            label="会社名"
+            value={editCompany?.name || ''}
+            fullWidth
+            disabled
+            sx={{ mt: 1, mb: 2 }}
+            size="small"
+          />
+          <TextField
+            label="電話番号"
+            value={editPhone}
+            onChange={(e) => setEditPhone(e.target.value)}
+            fullWidth
+            sx={{ mb: 2 }}
+            size="small"
+            placeholder="例: 03-1234-5678"
+          />
+          <TextField
+            label="メールアドレス"
+            value={editEmail}
+            onChange={(e) => setEditEmail(e.target.value)}
+            fullWidth
+            size="small"
+            placeholder="例: info@example.com"
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button
+            onClick={handleCloseEditDialog}
+            sx={{ color: '#64748b', borderRadius: 2 }}
+          >
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleSaveEdit}
+            variant="contained"
+            sx={{
+              background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+              borderRadius: 2
+            }}
+          >
+            保存
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* 企業削除確認ダイアログ */}
       <Dialog
