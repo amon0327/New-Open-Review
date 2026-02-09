@@ -28,7 +28,8 @@ Font.register({
 });
 
 // ハイフネーション無効化（日本語対応）
-Font.registerHyphenationCallback(word => [word]);
+// 各文字を個別の分割ポイントとして扱い、行末の「-」挿入を防ぐ
+Font.registerHyphenationCallback(word => word.split(''));
 
 // カラー定義
 const colors = {
