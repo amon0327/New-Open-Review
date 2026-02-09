@@ -79,21 +79,18 @@ const styles = StyleSheet.create({
     fontFamily: 'NotoSansJP',
   },
   coverLeft: {
-    flex: 5,
+    width: '71.4%',
     backgroundColor: colors.primary,
     padding: 60,
     justifyContent: 'center',
   },
-  coverRight: {
-    flex: 2,
-    backgroundColor: colors.white,
-  },
   coverLogoContainer: {
     marginBottom: 16,
+    marginLeft: -4,
   },
   coverLogoWithText: {
-    height: 24,
-    width: 134,
+    height: 28,
+    width: 156,
     objectFit: 'contain',
   },
   coverInfoContainer: {
@@ -1608,7 +1605,7 @@ const CoverPage = ({ report, storeName, companyName }) => {
           お客様の声で、{'\n'}また来たくなるお店へ。
         </Text>
         <Text style={{ fontSize: 14, color: colors.white, opacity: 0.7, marginBottom: 40 }}>
-          飲食店に特化したアンケートツール。
+          飲食店に特化したアンケートツール
         </Text>
 
         <View style={styles.coverInfoContainer}>
@@ -1618,7 +1615,6 @@ const CoverPage = ({ report, storeName, companyName }) => {
           <Text style={styles.coverDate}>{formatYearMonth(report.yearMonth)}</Text>
         </View>
       </View>
-      <View style={styles.coverRight} />
     </Page>
   );
 };
