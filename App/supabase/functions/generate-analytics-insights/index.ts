@@ -386,6 +386,35 @@ async function processStoreInsights(
   insights = insights.slice(0, 4)
 
   // ========================================
+  // evaluation型: パターンAの場合、対象セグメント除外の全体平均を再計算
+  // ========================================
+  for (const insight of insights) {
+    if (insight.issue_type === 'evaluation' && insight.comparison_type === 'segment_vs_overall' && insight.qsc_key && insight.result_type) {
+      const targetTypeData = (currentByType || []).find((t: any) => t.type === insight.result_type)
+      if (targetTypeData && storeSummary) {
+        const key = insight.qsc_key // e.g., "c4"
+        const storeTotal = storeSummary[`${key}_total_count`] || 0
+        const typeTotal = targetTypeData[`${key}_total_count`] || 0
+        const excludedTotal = storeTotal - typeTotal
+
+        if (excludedTotal > 0) {
+          const storePosCount = (storeSummary[`${key}_positive_percent`] || 0) * storeTotal / 100
+          const typePosCount = (targetTypeData[`${key}_positive_percent`] || 0) * typeTotal / 100
+          const storeNegCount = (storeSummary[`${key}_negative_percent`] || 0) * storeTotal / 100
+          const typeNegCount = (targetTypeData[`${key}_negative_percent`] || 0) * typeTotal / 100
+
+          insight.previous_positive = Math.min(100, Math.max(0, Math.round((storePosCount - typePosCount) / excludedTotal * 100)))
+          insight.previous_negative = Math.min(100, Math.max(0, Math.round((storeNegCount - typeNegCount) / excludedTotal * 100)))
+          console.log(`[${storeName}] Recalculated ${key} excluding type${insight.result_type}: pos=${insight.previous_positive}%, neg=${insight.previous_negative}%`)
+        }
+      }
+    }
+    // 内部フィールドを削除
+    delete insight.qsc_key
+    delete insight.comparison_type
+  }
+
+  // ========================================
   // 既存レコード削除 → 新規INSERT
   // ========================================
   await supabase
@@ -530,24 +559,32 @@ function buildInsightPrompt(
 
 【evaluation型のJSON形式】
 ※ evaluation型では以下の2つの比較パターンから、より説得力のある方を選ぶ
-※ パターンA: セグメント別 vs 店舗全体（例: 「中立リピーターの床評価」vs「店舗全体の床評価」）
+※ パターンA: セグメント別 vs 対象を除いた全体平均（例: 「中立リピーターの床評価」vs「他セグメント全体の床評価」）
 ※ パターンB: 今月 vs 先月の同一項目（例: 「1月の中立リピーターの床評価」vs「12月の中立リピーターの床評価」）
+※ パターンAの場合、previous側の数値は対象セグメントを除外した全体平均が自動計算されるので、AIは概算値を入れればよい
 ※ current_title/previous_titleはバーチャートのラベルになるので、比較対象がわかる記述にする
 {
   "issue_type": "evaluation",
   "issue_title": "課題タイトル（20文字以内、例: 中立リピーターの床清潔さ低評価）",
   "issue_detail": "詳細説明（50〜200文字。比較データに基づき分析し、この層の改善が売上やリピート率にどう影響しうるか、改善のハードルやコスト感にも触れる。ただし無理に長くせず、言うべきことがあるときだけ書く）",
-  "point_1": "質問→改善提案（例: ピーク時間帯の床清掃は何回実施していますか？→もし1日2回程度なら、ランチ後・ディナー前にも追加で実施すると効果的です）",
-  "point_2": "質問→改善提案（例: 床の汚れをスタッフが即座に発見できる仕組みはありますか？→巡回チェック表を30分ごとに設定すると見落としを防げます）",
-  "point_3": "質問→改善提案（例: 清掃チェックリストは時間帯別に設定されていますか？→ピーク後の重点チェック項目を設けることで効率的に清潔感を保てます）",
+  "point_1": "質問→改善提案",
+  "point_2": "質問→改善提案",
+  "point_3": "質問→改善提案",
   "result_type": 対象の12type番号(1-12の整数),
+  "qsc_key": "対象QSC項目のキー（例: c4=床, q3=料理の量/ボリューム。下記【QSC項目キー一覧】参照）",
+  "comparison_type": "比較パターン（'segment_vs_overall' または 'month_vs_month'）",
   "current_title": "比較の主体ラベル（パターンA例: 中立リピーターの床評価 / パターンB例: 1月の中立リピーターの床評価）",
   "current_positive": 主体のポジティブ%(整数),
   "current_negative": 主体のネガティブ%(整数),
-  "previous_title": "比較対象ラベル（パターンA例: 店舗全体の床評価 / パターンB例: 12月の中立リピーターの床評価）",
+  "previous_title": "比較対象ラベル（パターンA例: 他セグメント全体の床評価 / パターンB例: 12月の中立リピーターの床評価）",
   "previous_positive": 比較対象のポジティブ%(整数),
   "previous_negative": 比較対象のネガティブ%(整数)
 }
+
+【QSC項目キー一覧】
+Quality: q1=料理の味, q2=料理の見た目, q3=料理の量/ボリューム, q4=ドリンクの味, q5=ドリンクの温度, q6=食べたい料理, q7=飲みたいドリンク, q8=メニューの種類, q9=料理・ドリンクの温度, q10=特徴や独自性
+Service: s1=入店時の挨拶, s2=席への案内, s3=注文時の対応, s4=メニュー説明・提案, s5=提供スピード, s6=注文・提供の正確さ, s7=スタッフの気配り, s8=スタッフの笑顔, s9=スタッフの言葉遣い, s10=特に良かったスタッフ
+Cleanliness: c1=店舗外観・入口, c2=テーブル, c3=椅子・ソファ, c4=床, c5=食器・カトラリー, c6=メニュー表・卓上備品, c7=トイレ, c8=店内の空気や匂い, c9=店内の整理整頓, c10=スタッフの身だしなみ
 
 【point_1/point_2/point_3について】
 - 前半は質問形式で現状を問いかける（「〜ですか？」「〜していますか？」）
