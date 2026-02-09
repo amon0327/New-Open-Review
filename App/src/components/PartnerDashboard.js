@@ -809,6 +809,7 @@ export default function PartnerDashboard({ user, onLogout }) {
         sx={{
           background: '#ffffff',
           borderBottom: '1px solid #e2e8f0',
+          borderRadius: 0,
           color: '#1a202c'
         }}
       >
@@ -867,6 +868,7 @@ export default function PartnerDashboard({ user, onLogout }) {
             height: 'calc(100vh - 64px)',
             position: 'fixed',
             borderRight: '1px solid #e2e8f0',
+            borderRadius: 0,
             background: '#ffffff'
           }}
         >
@@ -877,7 +879,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                   selected={activeTab === item.id}
                   onClick={() => setActiveTab(item.id)}
                   sx={{
-                    borderRadius: 0,
+                    borderRadius: 2,
                     mb: 1,
                     '&.Mui-selected': {
                       background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
