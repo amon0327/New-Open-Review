@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -258,6 +258,38 @@ export default function PartnerDashboard({ user, onLogout }) {
       console.error('企業ステータス更新エラー:', error);
       toast.error('企業ステータスの更新に失敗しました');
     }
+  };
+
+  // 長押しコンテキストメニュー
+  const [contextMenu, setContextMenu] = useState(null); // { mouseX, mouseY, company }
+  const longPressTimer = useRef(null);
+  const longPressTriggered = useRef(false);
+
+  const handleCardPointerDown = useCallback((e, company) => {
+    longPressTriggered.current = false;
+    const { clientX, clientY } = e.touches ? e.touches[0] : e;
+    longPressTimer.current = setTimeout(() => {
+      longPressTriggered.current = true;
+      setContextMenu({ mouseX: clientX, mouseY: clientY, company });
+    }, 500);
+  }, []);
+
+  const handleCardPointerUp = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  const handleCardPointerLeave = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  const handleCloseContextMenu = () => {
+    setContextMenu(null);
   };
 
   // 企業削除の確認ダイアログ
@@ -583,14 +615,22 @@ export default function PartnerDashboard({ user, onLogout }) {
                   <Grid item xs={12} md={6} lg={4} key={company.id}>
                     <Card
                       onClick={() => {
+                        if (longPressTriggered.current) return;
                         navigate(`/company/${company.id}/dashboard`);
                       }}
+                      onMouseDown={(e) => handleCardPointerDown(e, company)}
+                      onMouseUp={handleCardPointerUp}
+                      onMouseLeave={handleCardPointerLeave}
+                      onTouchStart={(e) => handleCardPointerDown(e, company)}
+                      onTouchEnd={handleCardPointerUp}
+                      onContextMenu={(e) => e.preventDefault()}
                       sx={{
                         borderRadius: 1.5,
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
                         transition: 'transform 0.2s, box-shadow 0.2s, opacity 0.2s',
                         cursor: 'pointer',
                         opacity: company.is_active === false ? 0.6 : 1,
+                        userSelect: 'none',
                         '&:hover': {
                           transform: 'translateY(-4px)',
                           boxShadow: '0 8px 30px rgba(94, 23, 235, 0.15)'
@@ -599,25 +639,9 @@ export default function PartnerDashboard({ user, onLogout }) {
                       <CardContent>
                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                           <Business sx={{ fontSize: 32, color: company.is_active === false ? '#94a3b8' : '#5e17eb', mr: 1.5 }} />
-                          <Typography variant="h6" sx={{ fontWeight: 600, color: company.is_active === false ? '#94a3b8' : '#1a202c', flexGrow: 1 }}>
+                          <Typography variant="h6" sx={{ fontWeight: 600, color: company.is_active === false ? '#94a3b8' : '#1a202c' }}>
                             {company.name}
                           </Typography>
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenDeleteDialog(company);
-                            }}
-                            sx={{
-                              color: '#cbd5e1',
-                              '&:hover': {
-                                color: '#ef4444',
-                                backgroundColor: 'rgba(239, 68, 68, 0.08)'
-                              }
-                            }}
-                          >
-                            <Delete sx={{ fontSize: 20 }} />
-                          </IconButton>
                         </Box>
 
                         <Divider sx={{ my: 2 }} />
@@ -956,6 +980,37 @@ export default function PartnerDashboard({ user, onLogout }) {
         onClose={() => setShowCompanyDialog(false)}
         onCompanyCreated={handleCompanyCreated}
       />
+
+      {/* 長押しコンテキストメニュー */}
+      <Menu
+        open={contextMenu !== null}
+        onClose={handleCloseContextMenu}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          contextMenu !== null
+            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+            : undefined
+        }
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minWidth: 160,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          }
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            const company = contextMenu?.company;
+            handleCloseContextMenu();
+            if (company) handleOpenDeleteDialog(company);
+          }}
+          sx={{ color: '#ef4444', gap: 1.5, py: 1.5 }}
+        >
+          <Delete sx={{ fontSize: 20 }} />
+          削除
+        </MenuItem>
+      </Menu>
 
       {/* 企業削除確認ダイアログ */}
       <Dialog
