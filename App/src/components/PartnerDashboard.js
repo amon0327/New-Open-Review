@@ -29,10 +29,8 @@ import {
   Switch
 } from '@mui/material';
 import {
-  Handshake,
   Business,
   PersonAdd,
-  Settings,
   Logout,
   Dashboard as DashboardIcon,
   People,
@@ -295,7 +293,6 @@ export default function PartnerDashboard({ user, onLogout }) {
     { id: 'dashboard', label: 'ダッシュボード', icon: <DashboardIcon /> },
     { id: 'companies', label: '企業管理', icon: <Business /> },
     { id: 'members', label: 'メンバー招待', icon: <PersonAdd /> },
-    { id: 'settings', label: '設定', icon: <Settings /> },
   ];
 
   const renderContent = () => {
@@ -772,28 +769,6 @@ export default function PartnerDashboard({ user, onLogout }) {
           </Box>
         );
 
-      case 'settings':
-        return (
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 4, color: '#1a202c' }}>
-              設定
-            </Typography>
-
-            <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                  パートナー企業情報
-                </Typography>
-                <Box sx={{ textAlign: 'center', py: 5 }}>
-                  <Typography variant="body1" sx={{ color: '#64748b' }}>
-                    設定画面は準備中です
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
-        );
-
       default:
         return null;
     }
@@ -838,7 +813,11 @@ export default function PartnerDashboard({ user, onLogout }) {
         }}
       >
         <Toolbar>
-          <Handshake sx={{ fontSize: 32, color: '#5e17eb', mr: 2 }} />
+          <img
+            src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"
+            alt="OpenReview"
+            style={{ width: 32, height: 32, objectFit: 'contain', marginRight: 12 }}
+          />
           <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
             Partner Dashboard
           </Typography>
@@ -898,7 +877,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                   selected={activeTab === item.id}
                   onClick={() => setActiveTab(item.id)}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: 0,
                     mb: 1,
                     '&.Mui-selected': {
                       background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
