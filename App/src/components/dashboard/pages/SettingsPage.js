@@ -379,7 +379,7 @@ export default function SettingsPage({ user, onLogout, companyId, companyName })
                             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                               <IconButton
                                 size="small"
-                                onClick={() => handleCopyInvitationUrl(invitation.invitation_url)}
+                                onClick={() => handleCopyInvitationUrl(`https://app.openreview.jp/company-invitation/${invitation.token}`)}
                                 sx={{
                                   color: '#64748b',
                                   '&:hover': {
@@ -412,7 +412,7 @@ export default function SettingsPage({ user, onLogout, companyId, companyName })
                           <ListItemText
                             primary={
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <span>{invitation.email}</span>
+                                <span>{invitation.name || '名前未設定'}</span>
                                 <Chip 
                                   label="招待中" 
                                   size="small" 
