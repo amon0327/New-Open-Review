@@ -28,8 +28,13 @@ Font.register({
 });
 
 // ハイフネーション無効化（日本語対応）
-// 各文字を個別の分割ポイントとして扱い、行末の「-」挿入を防ぐ
-Font.registerHyphenationCallback(word => word.split(''));
+Font.registerHyphenationCallback(word => [word]);
+
+// テキストにゼロ幅スペースを挿入し、ハイフンなしで改行可能にする
+const breakableText = (text) => {
+  if (!text) return '';
+  return text.split('').join('\u200B');
+};
 
 // カラー定義
 const colors = {
@@ -1698,7 +1703,7 @@ const PageComment = ({ comment }) => {
   return (
     <View style={styles.pageCommentBarWrapper}>
       <View style={styles.pageCommentBar}>
-        <Text style={styles.pageCommentText}>{comment}</Text>
+        <Text style={styles.pageCommentText}>{breakableText(comment)}</Text>
       </View>
     </View>
   );
@@ -2604,7 +2609,7 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
             <Text style={styles.qscDetailTitleCount}>n={detailData.totalResponses || 0}</Text>
           </View>
           <View style={styles.qscDetailTitleLine} />
-          <Text style={styles.qscDetailDescription}>{summary}</Text>
+          <Text style={styles.qscDetailDescription}>{breakableText(summary)}</Text>
         </View>
 
         {/* 右セクション：ミニスコアカード */}
