@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   },
   coverLogoContainer: {
     marginBottom: 16,
-    marginLeft: -16,
+    marginLeft: -20,
   },
   coverLogoWithText: {
     height: 28,
