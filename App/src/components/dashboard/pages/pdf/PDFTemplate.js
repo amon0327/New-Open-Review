@@ -3223,10 +3223,10 @@ const InsightDetailChartPage = ({ insight, pageNumber }) => {
 
       {/* 課題タイトル・説明 */}
       <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
-        {breakableText(insight.issue_title)}
+        {softBreakText(insight.issue_title)}
       </Text>
       <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
-        {breakableText(insight.issue_detail)}
+        {softBreakText(insight.issue_detail)}
       </Text>
 
       {/* 評価バーチャート */}
