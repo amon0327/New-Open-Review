@@ -39,8 +39,10 @@ import {
   Email,
   Delete,
   HourglassEmpty,
-  ContentCopy
+  ContentCopy,
+  CheckCircle
 } from '@mui/icons-material';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import CompanyCreationDialog from './CompanyCreationDialog';
 import PartnerInvitationForm from './PartnerInvitationForm';
 import { supabase } from '../lib/supabase';
@@ -306,7 +308,7 @@ export default function PartnerDashboard({ user, onLogout }) {
 
             <Grid container spacing={3}>
               {/* 統計カード */}
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} sm={6} md={3}>
                 <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -324,11 +326,29 @@ export default function PartnerDashboard({ user, onLogout }) {
                 </Card>
               </Grid>
 
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} sm={6} md={3}>
                 <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <People sx={{ fontSize: 40, color: '#10b981', mr: 2 }} />
+                      <CheckCircle sx={{ fontSize: 40, color: '#10b981', mr: 2 }} />
+                      <Box>
+                        <Typography variant="h3" sx={{ fontWeight: 700, color: '#1a202c' }}>
+                          {isLoadingCompanies ? '-' : companies.filter(c => c.is_active !== false).length}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#64748b' }}>
+                          アクティブ企業数
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <People sx={{ fontSize: 40, color: '#3b82f6', mr: 2 }} />
                       <Box>
                         <Typography variant="h3" sx={{ fontWeight: 700, color: '#1a202c' }}>
                           {isLoadingMembers ? '-' : members.length}
@@ -342,7 +362,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                 </Card>
               </Grid>
 
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} sm={6} md={3}>
                 <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -360,18 +380,68 @@ export default function PartnerDashboard({ user, onLogout }) {
                 </Card>
               </Grid>
 
-              {/* 最近のアクティビティ */}
+              {/* 登録企業数の推移 */}
               <Grid item xs={12}>
                 <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                      最近のアクティビティ
+                      登録企業数の推移
                     </Typography>
-                    <Box sx={{ textAlign: 'center', py: 5 }}>
-                      <Typography variant="body1" sx={{ color: '#64748b' }}>
-                        まだアクティビティがありません
-                      </Typography>
-                    </Box>
+                    {isLoadingCompanies ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
+                        <CircularProgress sx={{ color: '#5e17eb' }} />
+                      </Box>
+                    ) : (
+                      <Box sx={{ width: '100%', height: 300 }}>
+                        <ResponsiveContainer>
+                          <AreaChart
+                            data={(() => {
+                              const now = new Date();
+                              const months = [];
+                              for (let i = 5; i >= 0; i--) {
+                                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                                months.push({
+                                  date: d,
+                                  label: `${d.getFullYear()}/${d.getMonth() + 1}月`,
+                                });
+                              }
+                              return months.map(m => {
+                                const endOfMonth = new Date(m.date.getFullYear(), m.date.getMonth() + 1, 0, 23, 59, 59);
+                                const count = companies.filter(c => new Date(c.created_at) <= endOfMonth).length;
+                                return { name: m.label, 企業数: count };
+                              });
+                            })()}
+                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                          >
+                            <defs>
+                              <linearGradient id="colorCompanies" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#5e17eb" stopOpacity={0.2} />
+                                <stop offset="95%" stopColor="#5e17eb" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                            <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#64748b' }} />
+                            <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                            <RechartsTooltip
+                              contentStyle={{
+                                borderRadius: 8,
+                                border: 'none',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                fontSize: 13
+                              }}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="企業数"
+                              stroke="#5e17eb"
+                              strokeWidth={2}
+                              fillOpacity={1}
+                              fill="url(#colorCompanies)"
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </Box>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>
