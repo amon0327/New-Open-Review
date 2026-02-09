@@ -957,6 +957,47 @@ export default function PartnerDashboard({ user, onLogout }) {
         onCompanyCreated={handleCompanyCreated}
       />
 
+      {/* 企業削除確認ダイアログ */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            minWidth: 380,
+            p: 1
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
+          企業の削除
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: '#475569' }}>
+            <strong>{companyToDelete?.name}</strong> を削除しますか？この操作は取り消せません。企業に紐づくデータも削除されます。
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button
+            onClick={handleCloseDeleteDialog}
+            sx={{ color: '#64748b', borderRadius: 2 }}
+          >
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleDeleteCompany}
+            variant="contained"
+            sx={{
+              bgcolor: '#ef4444',
+              borderRadius: 2,
+              '&:hover': { bgcolor: '#dc2626' }
+            }}
+          >
+            削除する
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* メンバー招待ダイアログ */}
       {showInvitationDialog && partnerCompanyInfo && (
         <PartnerInvitationForm

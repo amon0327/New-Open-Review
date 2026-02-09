@@ -401,7 +401,7 @@ export default function StoresManagementPage() {
                       </Box>
 
                       {/* アクションボタン */}
-                      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                      <Box sx={{ display: 'flex', gap: 1, mt: 2, alignItems: 'center' }}>
                         <Button
                           variant="outlined"
                           size="small"
@@ -422,6 +422,7 @@ export default function StoresManagementPage() {
                           size="small"
                           onClick={() => setDeleteTarget(store)}
                           sx={{
+                            ml: 'auto',
                             color: '#94a3b8',
                             '&:hover': {
                               color: '#ef4444',
