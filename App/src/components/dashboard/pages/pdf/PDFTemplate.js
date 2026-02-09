@@ -36,6 +36,12 @@ const breakableText = (text) => {
   return text.split('').join('\u200B');
 };
 
+// AIテキスト用：句読点・記号の後にのみゼロ幅スペースを挿入（ハイフン表示を防ぐ）
+const softBreakText = (text) => {
+  if (!text) return '';
+  return text.replace(/([。、！？）」』\n,.!?\)\s])/g, '$1\u200B');
+};
+
 // カラー定義
 const colors = {
   primary: '#5e17eb',
@@ -1714,7 +1720,7 @@ const PageComment = ({ comment }) => {
   return (
     <View style={styles.pageCommentBarWrapper}>
       <View style={styles.pageCommentBar}>
-        <Text style={styles.pageCommentText}>{breakableText(comment)}</Text>
+        <Text style={styles.pageCommentText}>{softBreakText(comment)}</Text>
       </View>
     </View>
   );
@@ -2620,7 +2626,7 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
             <Text style={styles.qscDetailTitleCount}>n={detailData.totalResponses || 0}</Text>
           </View>
           <View style={styles.qscDetailTitleLine} />
-          <Text style={styles.qscDetailDescription}>{breakableText(summary)}</Text>
+          <Text style={styles.qscDetailDescription}>{softBreakText(summary)}</Text>
         </View>
 
         {/* 右セクション：ミニスコアカード */}
@@ -3132,10 +3138,10 @@ const InsightDetailVoicePage = ({ insight, pageNumber }) => {
 
       {/* 課題タイトル・説明 */}
       <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
-        {breakableText(insight.issue_title)}
+        {softBreakText(insight.issue_title)}
       </Text>
       <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
-        {breakableText(insight.issue_detail)}
+        {softBreakText(insight.issue_detail)}
       </Text>
 
       {/* 顧客の声 コールアウト */}
@@ -3153,7 +3159,7 @@ const InsightDetailVoicePage = ({ insight, pageNumber }) => {
               />
             </Svg>
           </View>
-          <Text style={styles.voiceCalloutText}>{breakableText(insight.comment)}</Text>
+          <Text style={styles.voiceCalloutText}>{softBreakText(insight.comment)}</Text>
         </View>
       )}
 
@@ -3161,11 +3167,21 @@ const InsightDetailVoicePage = ({ insight, pageNumber }) => {
       {points.length > 0 && (
         <View style={styles.detailExampleBox}>
           <Text style={styles.detailExampleTitle}>検討事項</Text>
-          {points.map((point, idx) => (
-            <View key={idx} style={styles.detailExampleItem}>
-              <Text style={styles.detailExampleText}>{breakableText(point)}</Text>
-            </View>
-          ))}
+          {points.map((point, idx) => {
+            const parts = point.split('→');
+            const question = parts[0]?.trim();
+            const suggestion = parts.length > 1 ? parts.slice(1).join('→').trim() : null;
+            return (
+              <View key={idx} style={styles.detailExampleItem}>
+                <Text style={styles.detailExampleText}>{softBreakText(question)}</Text>
+                {suggestion && (
+                  <Text style={{ fontSize: 9, color: colors.gray500, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginTop: 2, paddingLeft: 8 }}>
+                    {softBreakText(`→ ${suggestion}`)}
+                  </Text>
+                )}
+              </View>
+            );
+          })}
         </View>
       )}
     </ContentPage>
@@ -3266,11 +3282,21 @@ const InsightDetailChartPage = ({ insight, pageNumber }) => {
       {points.length > 0 && (
         <View style={styles.detailExampleBox}>
           <Text style={styles.detailExampleTitle}>検討事項</Text>
-          {points.map((point, idx) => (
-            <View key={idx} style={styles.detailExampleItem}>
-              <Text style={styles.detailExampleText}>{breakableText(point)}</Text>
-            </View>
-          ))}
+          {points.map((point, idx) => {
+            const parts = point.split('→');
+            const question = parts[0]?.trim();
+            const suggestion = parts.length > 1 ? parts.slice(1).join('→').trim() : null;
+            return (
+              <View key={idx} style={styles.detailExampleItem}>
+                <Text style={styles.detailExampleText}>{softBreakText(question)}</Text>
+                {suggestion && (
+                  <Text style={{ fontSize: 9, color: colors.gray500, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginTop: 2, paddingLeft: 8 }}>
+                    {softBreakText(`→ ${suggestion}`)}
+                  </Text>
+                )}
+              </View>
+            );
+          })}
         </View>
       )}
     </ContentPage>
