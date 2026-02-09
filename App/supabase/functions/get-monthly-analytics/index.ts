@@ -646,6 +646,19 @@ serve(async (req) => {
     const repeaterRevisitDelta = previousMonth ? (summary.repeater_revisit_rate || 0) - (previousMonth.repeater_revisit_rate || 0) : 0
     const newRevisitDelta = previousMonth ? (summary.new_revisit_rate || 0) - (previousMonth.new_revisit_rate || 0) : 0
 
+    // AIテキストを取得
+    let aiTextData: any = null
+    if (!isAllStores && storeId) {
+      const { data: aiText } = await supabaseAdmin
+        .from('monthly_analytics_ai_text')
+        .select('overview, sales_impact, quality, service, cleanliness')
+        .eq('company_id', companyId)
+        .eq('store_id', storeId)
+        .eq('year_month', targetYearMonth)
+        .maybeSingle()
+      aiTextData = aiText
+    }
+
     // 概要タブ用データ変換
     const overviewData = {
       totalResponses: summary.total_responses,
@@ -1145,6 +1158,7 @@ serve(async (req) => {
           salesImpact: salesImpactData,
           storeEvaluation: storeEvaluationData,
           customerTrends: customerTrendsData,
+          aiText: aiTextData,
           raw: summary
         }
       }),
