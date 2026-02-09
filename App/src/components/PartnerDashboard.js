@@ -499,23 +499,8 @@ export default function PartnerDashboard({ user, onLogout }) {
                               />
                             )}
                             <Box sx={{ flexGrow: 1 }} />
-                            <Box
-                              sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}
+                            <Switch
                               onClick={(e) => e.stopPropagation()}
-                            >
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  color: company.is_active !== false ? '#5e17eb' : '#94a3b8',
-                                  fontWeight: 600,
-                                  fontSize: '0.7rem',
-                                  transition: 'color 0.3s ease',
-                                  userSelect: 'none'
-                                }}
-                              >
-                                {company.is_active !== false ? 'ON' : 'OFF'}
-                              </Typography>
-                              <Switch
                                 checked={company.is_active !== false}
                                 onChange={(e) => {
                                   e.stopPropagation();
@@ -549,7 +534,6 @@ export default function PartnerDashboard({ user, onLogout }) {
                                   },
                                 }}
                               />
-                            </Box>
                           </Box>
                         </Box>
                       </CardContent>
