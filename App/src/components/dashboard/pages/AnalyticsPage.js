@@ -1033,9 +1033,9 @@ const StoreByStoreTab = ({ companyId }) => {
           setStores(data || []);
         }
 
-        // 初期値として全店舗を選択
-        if (!selectedStore) {
-          setSelectedStore('all');
+        // 初期値として最初の店舗を選択
+        if (!selectedStore && result.success && result.data?.storesWithReports?.length > 0) {
+          setSelectedStore(result.data.storesWithReports[0].id);
         }
       } catch (error) {
         console.error('Error fetching stores:', error);
@@ -1171,7 +1171,6 @@ const StoreByStoreTab = ({ companyId }) => {
               <SelectValue placeholder="店舗を選択" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">全店舗</SelectItem>
               {stores.map((store) => (
                 <SelectItem key={store.id} value={store.id}>
                   {store.name}
