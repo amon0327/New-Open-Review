@@ -50,7 +50,6 @@ import {
   User,
   UtensilsCrossed,
   Sparkles,
-  Target,
   MessageSquare
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
@@ -453,295 +452,10 @@ const AIAnalysisTab = ({ selectedStore, selectedPeriod }) => {
   );
 };
 
-// セグメント別インサイトの定義
-const SEGMENT_INSIGHTS = {
-  1: { issues: ['ロイヤル顧客の維持・強化が最重要課題', '離脱した場合の売上インパクトが最も大きい', '特別な体験や特典で関係性をさらに深化させる余地'] },
-  2: { issues: ['初回体験は好印象だがリピーター定着が未確定', '2回目の来店につなげる施策が重要', '推奨者として口コミ効果を最大化する機会'] },
-  3: { issues: ['高評価にもかかわらず再来店意向がない', '引越しや生活環境の変化など外的要因の可能性', '競合店への流出リスクが潜在的に存在'] },
-  4: { issues: ['初回体験は高評価だが再来店動機が不足', '立地やアクセスなど利便性の課題の可能性', 'リピートにつながる仕掛けが不足'] },
-  5: { issues: ['リピーターだが推奨するほどの満足度に達していない', 'サービスに慣れが生じ、特別感が薄れている可能性', '競合との差別化ポイントが実感されていない'] },
-  6: { issues: ['再来店意向はあるが、強い印象を残せていない', '商品やサービスの魅力が十分に伝わっていない', '「また行ってもいい」程度の弱い動機'] },
-  7: { issues: ['リピーターが満足度低下により離脱を検討', 'サービス品質の低下や期待とのギャップが蓄積', '対策しなければ離脱が確定する危険な状態'] },
-  8: { issues: ['初回体験が印象に残らず離脱', '店舗の差別化ポイントが伝わっていない', '新規獲得コストが回収できていない'] },
-  9: { issues: ['不満を抱えながらも来店を続けている', '代替店がない、または習慣的に来店している状態', 'ネガティブな口コミを発信するリスクが高い'] },
-  10: { issues: ['初回体験に明確な不満がある', '再来店意向はあるが改善がなければ離脱確実', '具体的な改善ポイントが存在するサイン'] },
-  11: { issues: ['リピーターの信頼を失い完全離脱の状態', '不満が蓄積し、もう来店する意思がない', 'ネガティブ口コミの最大リスク要因'] },
-  12: { issues: ['初回体験が非常に悪く完全離脱', '新規獲得にかけたコストが無駄になっている', '悪い口コミの拡散リスクが最も高い'] }
-};
-
-// セグメント別の詳細情報（開閉カード用）
-const SEGMENT_DETAILS = {
-  1: {
-    title: 'ロイヤル顧客の維持・強化戦略',
-    detail: 'お店を最も高く評価し、定期的に来店しているロイヤル顧客。満足度は高いが、競合の台頭や環境変化によって離脱するリスクは常に存在する。この層の維持が売上安定の最大の鍵。',
-    who: 'NPS9-10点をつけ、3ヶ月以内の再来店意向があるリピーター。来店頻度が高く、客単価も安定している最重要顧客層。',
-    impact: 'ロイヤル顧客1人の離脱は新規顧客5人分の損失に相当。維持率を高めることで安定収益の確保に加え、口コミによる新規集客効果も持続する。',
-    examples: ['VIP限定の先行メニュー体験や特別イベントの開催', '来店回数に応じたランクアップ制度の導入', '誕生日・記念日の特別サービスの充実', '直接的な感謝の声かけやパーソナライズされた接客'],
-    measurement: 'ロイヤル顧客の継続率（月次）、来店頻度の推移、客単価の変化、口コミ・紹介経由の新規来店数をトラッキング。'
-  },
-  2: {
-    title: '新規推奨者のリピーター転換',
-    detail: '初回来店で高い満足度を示し、再来店意向もある新規顧客。ただしリピーターとして定着するかは未確定で、2回目の来店への橋渡しが成否を分ける。',
-    who: 'NPS9-10点をつけた初回来店の新規顧客で、3ヶ月以内に再来店したいと回答した層。',
-    impact: '新規→リピーター転換率の向上は、新規獲得コストの回収効率を大幅に改善する。推奨者としての口コミ拡散も期待できる。',
-    examples: ['来店後24時間以内のサンキューメッセージ配信', '2回目来店時の特別クーポンの提供', '初回の注文履歴に基づくおすすめメニューの提案', 'SNSフォロー特典による継続接点の確保'],
-    measurement: '2回目来店率、新規→リピーター転換率、初回来店後30日以内の再来店率、SNSフォロー率。'
-  },
-  3: {
-    title: '高評価リピーターの離脱防止',
-    detail: '高い評価をしているにもかかわらず再来店意向がないリピーター。引越しや生活スタイルの変化などの外的要因、あるいは競合店への流出が考えられる。',
-    who: 'NPS9-10点のリピーターで、3ヶ月以内の再来店予定がないと回答した層。お店自体への不満は少ない。',
-    impact: '離脱を防げれば、高い推奨度を活かした口コミ効果の維持と安定売上の確保が見込める。ロイヤル顧客への復帰可能性が最も高い層。',
-    examples: ['離脱理由のヒアリングアンケートの実施', '復帰特典（期間限定クーポン）の提供', 'デリバリーやテイクアウトなど来店以外の利用方法の提案', '季節限定メニューや新商品の案内による再来店動機の創出'],
-    measurement: '離脱率の推移、復帰来店率、離脱理由の傾向分析、復帰後の継続率。'
-  },
-  4: {
-    title: '好印象新規の再来店促進',
-    detail: '初回来店で高評価だったが、再来店する動機がない新規顧客。立地やアクセスの問題、またはリピートにつながる仕掛けの不足が原因と考えられる。',
-    who: 'NPS9-10点の新規顧客で、再来店予定がないと回答した層。体験自体は良かったが、再訪の必然性を感じていない。',
-    impact: '再来店のきっかけを提供するだけでリピーター化が期待でき、高い推奨度からの口コミ効果も見込める。',
-    examples: ['初回来店者限定の次回割引クーポン配布', 'お気に入り登録やアプリ登録の促進', '来店地域に応じたアクセス改善策の検討', '友人紹介キャンペーンによる再来店動機の付与'],
-    measurement: '初回来店者の再来店率、クーポン利用率、アプリ登録率、紹介経由の来店数。'
-  },
-  5: {
-    title: '中立リピーターの推奨者化',
-    detail: '定期的に来店しているが、推奨するほどの満足度には達していないリピーター。サービスへの慣れや特別感の薄れが背景にある可能性がある。',
-    who: 'NPS7-8点のリピーターで再来店意向がある層。不満はないが「人に勧めるほどではない」という温度感の顧客。',
-    impact: '推奨者に引き上げれば、口コミによる新規獲得と来店頻度・客単価の向上が同時に実現する。LTV向上の最大チャンス。',
-    examples: ['期待を超えるサプライズ体験の提供（一品サービスなど）', '常連客向けの限定メニューや裏メニューの案内', 'スタッフとの関係性強化（名前を覚える、好みを把握する）', '店舗の改善取り組みの共有による共感の醸成'],
-    measurement: 'NPS7-8点→9-10点への転換率、来店頻度の変化、客単価の推移、口コミ投稿の有無。'
-  },
-  6: {
-    title: '印象の薄い新規への差別化',
-    detail: '再来店意向はあるが、強い印象を残せていない新規顧客。「また行ってもいい」程度の弱い動機で、競合にスイッチされやすい状態。',
-    who: 'NPS7-8点の新規顧客で再来店意向がある層。可もなく不可もなくという評価で、差別化ポイントが十分に伝わっていない。',
-    impact: '次回来店時の体験向上で推奨者化が可能。初期段階でファンになれば、長期的な売上貢献と口コミ効果が期待できる。',
-    examples: ['2回目来店時にパーソナライズされた接客（前回の注文の記憶）', '新規客向けの体験プログラム（おすすめコースの提案）', '来店後のフォローアップで差別化ポイントを伝達', '次回来店時の小さなサプライズ（ドリンクサービスなど）'],
-    measurement: '2回目来店率、NPS中立→推奨者への転換率、来店間隔の短縮度、リピーター定着率。'
-  },
-  7: {
-    title: 'リピーター離脱の兆候と対策',
-    detail: 'これまで来店していたリピーターが満足度低下により離脱を検討している状態。サービス品質の低下や期待とのギャップが蓄積しており、対策しなければ離脱が確定する。',
-    who: 'NPS7-8点で再来店意向がないリピーター。以前は満足していたが、最近の体験で評価が下がっている可能性が高い。',
-    impact: '離脱防止と推奨者への転換で、安定した売上基盤の維持とネガティブ口コミの防止につながる。既存顧客の維持は新規獲得の5倍効率的。',
-    examples: ['直近の来店体験についてのフィードバック収集', '改善完了の報告と復帰インセンティブの提供', '店長やスタッフからの直接的なフォローアップ', '品質管理の強化と一貫性のあるサービス提供体制の構築'],
-    measurement: '離脱予兆スコアの推移、復帰率、改善施策実施後のNPS変化、来店頻度の回復度。'
-  },
-  8: {
-    title: '初回体験の印象強化',
-    detail: '初回体験が印象に残らず、再来店する理由がない新規顧客。店舗の差別化ポイントが伝わっておらず、新規獲得にかけたコストが回収できていない状態。',
-    who: 'NPS7-8点で再来店意向がない新規顧客。特に不満はないが、記憶に残る体験がなかった層。',
-    impact: '初回体験の改善で再来店率を向上させれば、新規獲得コストの回収効率が大幅に改善する。中立者は改善余地が最も大きいセグメント。',
-    examples: ['初回来店者向けのウェルカムプログラムの導入', '店舗の強みやこだわりを伝えるPOP・説明の充実', '初回限定の特別体験（試食、店舗ツアーなど）の提供', 'スタッフからの積極的な声かけとおすすめの提案'],
-    measurement: '初回来店者の再来店率、初回体験満足度スコア、ウェルカムプログラムの利用率、NPS改善幅。'
-  },
-  9: {
-    title: '不満蓄積リピーターの改善',
-    detail: '不満を抱えながらも来店を続けているリピーター。代替店がない、立地的に便利、または習慣的に来店している状態。ネガティブ口コミを発信するリスクが高い。',
-    who: 'NPS0-6点で再来店意向があるリピーター。不満があるが何らかの理由で来店を継続している層。潜在的なクレーマーリスクあり。',
-    impact: '不満の根本原因を解消すれば、中立者→推奨者への段階的な転換チャンスがある。ネガティブ口コミの抑制は見えない機会損失を防ぐ。',
-    examples: ['不満ポイントの特定と優先的な改善実施', 'クレーム対応プロセスの見直しとスタッフ研修', '改善取り組みの可視化と進捗共有', '不満解消後のフォローアップ（満足度再調査）'],
-    measurement: 'NPS批判者→中立者への転換率、クレーム件数の推移、ネガティブ口コミ数の変化、来店継続率。'
-  },
-  10: {
-    title: '不満新規の逆転チャンス',
-    detail: '初回体験に明確な不満があった新規顧客だが、再来店意向はある。具体的な改善ポイントが存在するサインであり、対応すれば満足度を大幅に向上できる可能性がある。',
-    who: 'NPS0-6点で再来店意向がある新規顧客。不満はあるが、店舗への期待値は残っている層。改善すれば逆転の余地あり。',
-    impact: 'フィードバックに基づく具体的改善で満足度を大幅向上させる余地がある。改善後のリピーター化で新規獲得コストの回収が可能。',
-    examples: ['不満要因のカテゴリ別分析と優先改善', '改善完了を伝えるフォローアップ通知の配信', '再来店時の特別対応（謝罪と改善の実演）', '新規顧客の初回体験フロー全体の見直し'],
-    measurement: '再来店率、再来店時のNPS改善幅、不満カテゴリ別の解消率、改善通知後のアクション率。'
-  },
-  11: {
-    title: 'リピーター完全離脱の危機対応',
-    detail: 'リピーターの信頼を完全に失い、離脱が確定している状態。不満が蓄積し、もう来店する意思がない。ネガティブ口コミの最大リスク要因であり、最優先で対処すべきセグメント。',
-    who: 'NPS0-6点で再来店意向がないリピーター。以前は来店していたが、不満が限界を超え離脱を決意した層。',
-    impact: '離脱防止できれば安定売上の維持に直結。1人のリピーター維持は新規顧客5人分の獲得に相当。ネガティブ口コミの拡散防止も重要な効果。',
-    examples: ['店長からの直接的な謝罪と改善コミットの伝達', '離脱理由の詳細ヒアリングと即時改善の実施', '復帰を促す特別オファー（無料招待など）の提供', 'サービス品質の根本的な見直しとスタッフ教育の強化'],
-    measurement: '離脱率の推移、復帰成功率、離脱理由の分布、ネガティブ口コミの発生件数、改善後の再評価スコア。'
-  },
-  12: {
-    title: '初回体験の根本的な改善',
-    detail: '初回体験が非常に悪く、完全に離脱した新規顧客。新規獲得にかけたコストが完全に無駄になっており、悪い口コミの拡散リスクが最も高い状態。',
-    who: 'NPS0-6点で再来店意向がない新規顧客。初回体験で強い不満を感じ、二度と来ないと判断した層。',
-    impact: '初回体験の根本改善で新規→リピーター転換率を向上できる。口コミサイトでの評判改善は、新規集客力の底上げにつながる。',
-    examples: ['初回来店体験の全プロセス（入店〜退店）の総点検', '新規顧客に特に多い不満要因の特定と重点改善', 'スタッフの新規客対応マニュアルの整備と研修', '口コミサイトへの改善対応の公開返信'],
-    measurement: '新規顧客のNPS分布の変化、初回離脱率、口コミサイトの評価推移、新規来店数の変化。'
-  }
-};
-
-// セグメント別コメントサンプル
-const SEGMENT_COMMENTS = {
-  1: [
-    'いつも最高のサービスです。家族で月2回は必ず来ています',
-    'スタッフの方が顔を覚えてくれていて嬉しいです'
-  ],
-  2: [
-    '初めて来ましたが、料理もサービスも期待以上でした！',
-    '友人に勧められて来店。噂通りの素晴らしいお店です'
-  ],
-  3: [
-    'お店は大好きですが、引越しで通えなくなりそうです',
-    '味もサービスも文句なし。遠くなっても機会があれば行きたい'
-  ],
-  4: [
-    '出張先で見つけたお店。地元にあれば通いたかった',
-    '料理は本当に美味しかったけど、次はいつ来られるか分からない'
-  ],
-  5: [
-    '普通に美味しいけど、特別感はあまりないかな',
-    '悪くはないが、わざわざ人に勧めるほどではない'
-  ],
-  6: [
-    '可もなく不可もなくという印象。また行くかもしれない',
-    '料理は普通。もう少し何か特徴があると嬉しい'
-  ],
-  7: [
-    '以前は良かったが、最近少しサービスの質が落ちた気がする',
-    '常連だけど、最近は他の店も気になっている'
-  ],
-  8: [
-    '初めて行ったが、特に印象に残るものがなかった',
-    '普通の店という感じ。リピートする動機が見つからない'
-  ],
-  9: [
-    '待ち時間が長すぎる。料理は悪くないのに残念',
-    '近いから来ているが、接客態度を改善してほしい'
-  ],
-  10: [
-    '期待して行ったのに注文ミスがあった。改善してくれたら再訪したい',
-    '料理の味は可能性を感じるが、オペレーションが残念'
-  ],
-  11: [
-    '何度も通ったが、対応の悪さが限界。もう行かない',
-    '以前は良い店だったのに、質が下がりすぎ'
-  ],
-  12: [
-    '初回で料理が冷めていた。二度と行かない',
-    '接客が最悪。友人にも行かない方がいいと伝えた'
-  ]
-};
-
-// セグメント別 店舗評価データ（ポジティブ/ニュートラル/ネガティブ）
-const SEGMENT_EVALUATIONS = {
-  1: [
-    { label: '接客', positive: 85, neutral: 10, negative: 5 },
-    { label: '料理', positive: 82, neutral: 10, negative: 8 },
-    { label: '雰囲気', positive: 78, neutral: 10, negative: 12 },
-    { label: '価格', positive: 65, neutral: 15, negative: 20 }
-  ],
-  2: [
-    { label: '接客', positive: 80, neutral: 10, negative: 10 },
-    { label: '料理', positive: 78, neutral: 10, negative: 12 },
-    { label: '雰囲気', positive: 72, neutral: 13, negative: 15 },
-    { label: '価格', positive: 60, neutral: 18, negative: 22 }
-  ],
-  3: [
-    { label: '接客', positive: 78, neutral: 10, negative: 12 },
-    { label: '料理', positive: 80, neutral: 10, negative: 10 },
-    { label: '雰囲気', positive: 70, neutral: 12, negative: 18 },
-    { label: '価格', positive: 58, neutral: 17, negative: 25 }
-  ],
-  4: [
-    { label: '接客', positive: 75, neutral: 10, negative: 15 },
-    { label: '料理', positive: 78, neutral: 10, negative: 12 },
-    { label: '雰囲気', positive: 68, neutral: 12, negative: 20 },
-    { label: '価格', positive: 55, neutral: 17, negative: 28 }
-  ],
-  5: [
-    { label: '接客', positive: 48, neutral: 20, negative: 32 },
-    { label: '料理', positive: 52, neutral: 20, negative: 28 },
-    { label: '雰囲気', positive: 45, neutral: 20, negative: 35 },
-    { label: '価格', positive: 38, neutral: 22, negative: 40 }
-  ],
-  6: [
-    { label: '接客', positive: 45, neutral: 20, negative: 35 },
-    { label: '料理', positive: 48, neutral: 20, negative: 32 },
-    { label: '雰囲気', positive: 42, neutral: 20, negative: 38 },
-    { label: '価格', positive: 35, neutral: 23, negative: 42 }
-  ],
-  7: [
-    { label: '接客', positive: 35, neutral: 20, negative: 45 },
-    { label: '料理', positive: 42, neutral: 20, negative: 38 },
-    { label: '雰囲気', positive: 30, neutral: 20, negative: 50 },
-    { label: '価格', positive: 28, neutral: 20, negative: 52 }
-  ],
-  8: [
-    { label: '接客', positive: 32, neutral: 20, negative: 48 },
-    { label: '料理', positive: 38, neutral: 20, negative: 42 },
-    { label: '雰囲気', positive: 28, neutral: 20, negative: 52 },
-    { label: '価格', positive: 25, neutral: 20, negative: 55 }
-  ],
-  9: [
-    { label: '接客', positive: 18, neutral: 17, negative: 65 },
-    { label: '料理', positive: 28, neutral: 20, negative: 52 },
-    { label: '雰囲気', positive: 22, neutral: 18, negative: 60 },
-    { label: '価格', positive: 15, neutral: 15, negative: 70 }
-  ],
-  10: [
-    { label: '接客', positive: 15, neutral: 17, negative: 68 },
-    { label: '料理', positive: 25, neutral: 20, negative: 55 },
-    { label: '雰囲気', positive: 20, neutral: 18, negative: 62 },
-    { label: '価格', positive: 12, neutral: 16, negative: 72 }
-  ],
-  11: [
-    { label: '接客', positive: 8, neutral: 10, negative: 82 },
-    { label: '料理', positive: 18, neutral: 17, negative: 65 },
-    { label: '雰囲気', positive: 12, neutral: 13, negative: 75 },
-    { label: '価格', positive: 10, neutral: 10, negative: 80 }
-  ],
-  12: [
-    { label: '接客', positive: 5, neutral: 10, negative: 85 },
-    { label: '料理', positive: 15, neutral: 15, negative: 70 },
-    { label: '雰囲気', positive: 10, neutral: 12, negative: 78 },
-    { label: '価格', positive: 8, neutral: 10, negative: 82 }
-  ]
-};
-
-// 店舗全体の平均評価（比較用）
-const STORE_AVERAGE_EVALUATIONS = [
-  { label: '接客', positive: 52, neutral: 18, negative: 30 },
-  { label: '料理', positive: 55, neutral: 17, negative: 28 },
-  { label: '雰囲気', positive: 48, neutral: 20, negative: 32 },
-  { label: '価格', positive: 40, neutral: 22, negative: 38 }
-];
-
-// セグメントの優先度スコア（高いほど重要）
-const SEGMENT_PRIORITY = {
-  11: 6, // 批判者×再来店なし×リピーター - 最重要
-  12: 5, // 批判者×再来店なし×新規
-  7: 5,  // 中立者×再来店なし×リピーター
-  8: 4,  // 中立者×再来店なし×新規
-  9: 3,  // 批判者×再来店あり×リピーター
-  10: 3, // 批判者×再来店あり×新規
-  3: 2,  // 推奨者×再来店なし×リピーター
-  4: 2,  // 推奨者×再来店なし×新規
-  5: 1,  // 中立者×再来店あり×リピーター
-  6: 1,  // 中立者×再来店あり×新規
-};
-
-// 4カテゴリタグの設定（再来店意向×顧客タイプ）
-const getCategoryTag = (seg) => {
-  const isRepeater = seg.customerLabel === 'リピーター';
-  const hasRevisit = seg.revisitLabel === '再来店あり';
-  if (isRepeater && hasRevisit) return { label: '安定リピーター', bg: 'bg-green-500' };
-  if (isRepeater && !hasRevisit) return { label: 'リピーター離脱', bg: 'bg-orange-500' };
-  if (!isRepeater && hasRevisit) return { label: '新規リピーター', bg: 'bg-blue-500' };
-  return { label: '新規離脱', bg: 'bg-gray-500' };
-};
-
-// 推奨度タグの設定
-const getNpsTag = (seg) => {
-  if (seg.npsLabel === '推奨者') return { label: '推奨者', bg: 'bg-green-600' };
-  if (seg.npsLabel === '中立者') return { label: '中立者', bg: 'bg-amber-500' };
-  return { label: '批判者', bg: 'bg-red-600' };
-};
-
 // タスクタブ
 const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
   const [loading, setLoading] = useState(true);
-  const [segments, setSegments] = useState([]);
   const [insights, setInsights] = useState([]);
-  const [expandedDetail, setExpandedDetail] = useState(null);
   const [expandedInsight, setExpandedInsight] = useState(null);
 
   // selectedPeriodを年月形式に変換
@@ -754,7 +468,6 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
   useEffect(() => {
     const fetchSegments = async () => {
       if (!companyId || !selectedStore) {
-        setSegments([]);
         setLoading(false);
         return;
       }
@@ -780,11 +493,9 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
         );
         const result = await response.json();
         if (!result.success) throw new Error(result.error || 'データの取得に失敗しました');
-        setSegments(result.data?.salesImpact?.segments || []);
         setInsights(result.data?.insights || []);
       } catch (error) {
         console.error('セグメントデータの取得エラー:', error);
-        setSegments([]);
         setInsights([]);
       } finally {
         setLoading(false);
@@ -793,27 +504,13 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
     fetchSegments();
   }, [companyId, selectedStore, selectedPeriod]);
 
-  // 課題セグメントの抽出（ロイヤル顧客・期待の新規を除外し、優先度×人数でソート、最大6件）
-  const issueSegments = useMemo(() => {
-    return segments
-      .filter(seg => seg.count > 0 && SEGMENT_INSIGHTS[seg.id])
-      .sort((a, b) => {
-        const priorityDiff = (SEGMENT_PRIORITY[b.id] || 0) - (SEGMENT_PRIORITY[a.id] || 0);
-        if (priorityDiff !== 0) return priorityDiff;
-        return b.count - a.count;
-      })
-      .slice(0, 6);
-  }, [segments]);
-
   if (loading) {
     return (
       <div className="p-6">
         <div className="space-y-5">
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2, 3].map((i) => (
             <div key={i} className="relative">
-              {/* フローティングバッジ */}
               <Skeleton className="absolute -top-2.5 left-5 z-10 h-5 w-20 rounded-full" />
-              {/* カード本体 */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm pt-2">
                 <div className="flex items-center justify-between px-6 pt-4 pb-3">
                   <Skeleton className="h-5 w-48" />
@@ -827,13 +524,13 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
     );
   }
 
-  if (issueSegments.length === 0) {
+  if (insights.length === 0) {
     return (
       <div className="p-6 flex justify-center items-center min-h-[400px]">
         <div className="text-center">
           <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg">課題のあるセグメントはありません</p>
-          <p className="text-gray-400 text-sm mt-2">すべての顧客セグメントが良好な状態です</p>
+          <p className="text-gray-500 text-lg">インサイトはありません</p>
+          <p className="text-gray-400 text-sm mt-2">この期間のデータからは課題が検出されませんでした</p>
         </div>
       </div>
     );
@@ -991,143 +688,6 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
           </div>
         </div>
       )}
-
-      {/* セグメント別 詳細分析カード */}
-      <div className="space-y-5">
-        {issueSegments.map((seg, segIndex) => {
-          const details = SEGMENT_DETAILS[seg.id];
-          if (!details) return null;
-          const categoryTag = getCategoryTag(seg);
-          const npsTag = getNpsTag(seg);
-          const isOpen = expandedDetail === seg.id;
-
-          return (
-            <div key={`detail-${seg.id}`} className="relative">
-              <div className={`absolute -top-2.5 left-5 z-10 inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm ${categoryTag.bg}`}>
-                {categoryTag.label}
-              </div>
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden pt-2">
-                <button
-                  onClick={() => setExpandedDetail(isOpen ? null : seg.id)}
-                  className="w-full flex items-center justify-between px-6 pt-4 pb-3 text-left hover:bg-gray-50/30 transition-colors"
-                >
-                  <h3 className="text-base font-bold text-gray-900">{details.title}</h3>
-                  <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {isOpen && (
-                  <div className="px-6 pb-6 space-y-4">
-                    <Separator />
-                    {/* 対象セグメント表示 */}
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${categoryTag.bg}`}>
-                        {categoryTag.label}
-                      </span>
-                      <span className="text-gray-300 font-bold text-xs">×</span>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold text-white ${npsTag.bg}`}>
-                        {npsTag.label}
-                      </span>
-                    </div>
-                    {/* 課題 */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-1 text-red-500">
-                        <Target className="w-4 h-4" />
-                        <span className="text-[11px] font-bold text-gray-500 uppercase">課題＆注意</span>
-                      </div>
-                      <p className="text-[13px] text-gray-600 leading-relaxed pl-6 line-clamp-2">{details.detail}</p>
-                    </div>
-                    {/* コメント（偶数カード） */}
-                    {segIndex % 2 === 0 && (
-                      <div className="rounded-lg px-4 py-3 flex items-start gap-3 border-[1.5px] border-purple-600" style={{ backgroundColor: '#f3eefe' }}>
-                        <MessageSquare className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
-                        <p className="text-[12px] text-gray-700 leading-relaxed">
-                          {(SEGMENT_COMMENTS[seg.id] || []).map((comment, idx) => (
-                            <span key={idx}>{idx > 0 && ' '}「{comment}」</span>
-                          ))}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* 評価ゲージ比較（奇数カード） */}
-                    {segIndex % 2 === 1 && (() => {
-                      const segEvals = SEGMENT_EVALUATIONS[seg.id] || [];
-                      const storeEvals = STORE_AVERAGE_EVALUATIONS;
-                      const avg = (items) => {
-                        const len = items.length || 1;
-                        return {
-                          positive: Math.round(items.reduce((s, i) => s + i.positive, 0) / len),
-                          neutral: Math.round(items.reduce((s, i) => s + i.neutral, 0) / len),
-                          negative: Math.round(items.reduce((s, i) => s + i.negative, 0) / len)
-                        };
-                      };
-                      const segAvg = avg(segEvals);
-                      const storeAvg = avg(storeEvals);
-                      const renderGauge = (data, title) => (
-                        <div className="flex-1 min-w-0">
-                          <span className="text-[11px] font-bold text-gray-500 block mb-2">{title}</span>
-                          <div className="relative h-5 rounded overflow-hidden border border-gray-200 flex">
-                            <div
-                              className="h-full transition-all duration-700"
-                              style={{ width: `${data.positive}%`, backgroundColor: '#22c55e' }}
-                            />
-                            <div
-                              className="h-full transition-all duration-700"
-                              style={{ width: `${data.neutral}%`, backgroundColor: '#9ca3af' }}
-                            />
-                            <div
-                              className="h-full transition-all duration-700"
-                              style={{ width: `${data.negative}%`, backgroundColor: '#ef4444' }}
-                            />
-                          </div>
-                          <div className="flex justify-between text-[9px] mt-1">
-                            <span className="font-bold" style={{ color: '#16a34a' }}>{data.positive}%</span>
-                            <span className="font-bold text-gray-500">{data.neutral}%</span>
-                            <span className="font-bold" style={{ color: '#dc2626' }}>{data.negative}%</span>
-                          </div>
-                        </div>
-                      );
-                      return (
-                        <div>
-                          <div className="flex gap-4">
-                            {renderGauge(segAvg, 'このセグメント')}
-                            {renderGauge(storeAvg, '店舗全体')}
-                          </div>
-                          <div className="flex items-center gap-3 mt-1 mb-3 text-[9px]">
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#22c55e' }} />
-                              <span className="text-gray-500">ポジティブ</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#9ca3af' }} />
-                              <span className="text-gray-500">ニュートラル</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#ef4444' }} />
-                              <span className="text-gray-500">ネガティブ</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {/* 参考 改善案/測定方法 */}
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <span className="text-[11px] font-bold text-gray-500 uppercase">参考 改善案/測定方法</span>
-                      <div className="mt-2.5 space-y-2.5">
-                        {details.examples.slice(0, 2).map((ex, idx) => (
-                          <div key={idx}>
-                            <p className="text-[12px] text-gray-700">{ex}</p>
-                            <p className="text-[11px] text-gray-400 pl-3">→ {details.measurement}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
     </div>
   );
