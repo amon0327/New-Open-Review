@@ -27,20 +27,24 @@ Font.register({
   fontWeight: 'bold',
 });
 
-// ハイフネーション無効化（日本語対応）
-Font.registerHyphenationCallback(word => [word]);
-
-// テキストにゼロ幅スペースを挿入し、ハイフンなしで改行可能にする
-const breakableText = (text) => {
-  if (!text) return '';
-  return text.split('').join('\u200B');
-};
-
-// AIテキスト用：句読点・記号の後にのみゼロ幅スペースを挿入（ハイフン表示を防ぐ）
-const softBreakText = (text) => {
-  if (!text) return '';
-  return text.replace(/([。、！？）」』\n,.!?\)\s])/g, '$1\u200B');
-};
+// ハイフネーション無効化 + CJK文字の改行対応
+// CJK文字を1文字ずつ分割し、間に空文字列を挿入することで
+// ハイフンなしの改行ポイントを作成する（GitHub Issue #1568 の解決策）
+Font.registerHyphenationCallback((word) => {
+  const cjkRegex = /[\u2E80-\u9FFF\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFFEF]/;
+  if (cjkRegex.test(word)) {
+    const chars = Array.from(word);
+    const result = [];
+    for (let i = 0; i < chars.length; i++) {
+      result.push(chars[i]);
+      if (i < chars.length - 1) {
+        result.push('');
+      }
+    }
+    return result;
+  }
+  return [word];
+});
 
 // カラー定義
 const colors = {
@@ -1720,7 +1724,7 @@ const PageComment = ({ comment }) => {
   return (
     <View style={styles.pageCommentBarWrapper}>
       <View style={styles.pageCommentBar}>
-        <Text style={styles.pageCommentText}>{softBreakText(comment)}</Text>
+        <Text style={styles.pageCommentText}>{comment}</Text>
       </View>
     </View>
   );
@@ -2626,7 +2630,7 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
             <Text style={styles.qscDetailTitleCount}>n={detailData.totalResponses || 0}</Text>
           </View>
           <View style={styles.qscDetailTitleLine} />
-          <Text style={styles.qscDetailDescription}>{softBreakText(summary)}</Text>
+          <Text style={styles.qscDetailDescription}>{summary}</Text>
         </View>
 
         {/* 右セクション：ミニスコアカード */}
@@ -3138,10 +3142,10 @@ const InsightDetailVoicePage = ({ insight, pageNumber }) => {
 
       {/* 課題タイトル・説明 */}
       <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
-        {softBreakText(insight.issue_title)}
+        {insight.issue_title}
       </Text>
       <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
-        {softBreakText(insight.issue_detail)}
+        {insight.issue_detail}
       </Text>
 
       {/* 顧客の声 コールアウト */}
@@ -3159,7 +3163,7 @@ const InsightDetailVoicePage = ({ insight, pageNumber }) => {
               />
             </Svg>
           </View>
-          <Text style={styles.voiceCalloutText}>{softBreakText(insight.comment)}</Text>
+          <Text style={styles.voiceCalloutText}>{insight.comment}</Text>
         </View>
       )}
 
@@ -3173,10 +3177,10 @@ const InsightDetailVoicePage = ({ insight, pageNumber }) => {
             const suggestion = parts.length > 1 ? parts.slice(1).join('→').trim() : null;
             return (
               <View key={idx} style={styles.detailExampleItem}>
-                <Text style={styles.detailExampleText}>{softBreakText(question)}</Text>
+                <Text style={styles.detailExampleText}>{question}</Text>
                 {suggestion && (
                   <Text style={{ fontSize: 9, color: colors.gray500, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginTop: 2, paddingLeft: 8 }}>
-                    {softBreakText(`→ ${suggestion}`)}
+                    {`→ ${suggestion}`}
                   </Text>
                 )}
               </View>
@@ -3223,10 +3227,10 @@ const InsightDetailChartPage = ({ insight, pageNumber }) => {
 
       {/* 課題タイトル・説明 */}
       <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.gray900, fontFamily: 'NotoSansJP', marginBottom: 6 }}>
-        {softBreakText(insight.issue_title)}
+        {insight.issue_title}
       </Text>
       <Text style={{ fontSize: 11, color: colors.gray600, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginBottom: 16 }}>
-        {softBreakText(insight.issue_detail)}
+        {insight.issue_detail}
       </Text>
 
       {/* 評価バーチャート */}
@@ -3288,10 +3292,10 @@ const InsightDetailChartPage = ({ insight, pageNumber }) => {
             const suggestion = parts.length > 1 ? parts.slice(1).join('→').trim() : null;
             return (
               <View key={idx} style={styles.detailExampleItem}>
-                <Text style={styles.detailExampleText}>{softBreakText(question)}</Text>
+                <Text style={styles.detailExampleText}>{question}</Text>
                 {suggestion && (
                   <Text style={{ fontSize: 9, color: colors.gray500, fontFamily: 'NotoSansJP', lineHeight: 1.5, marginTop: 2, paddingLeft: 8 }}>
-                    {softBreakText(`→ ${suggestion}`)}
+                    {`→ ${suggestion}`}
                   </Text>
                 )}
               </View>
