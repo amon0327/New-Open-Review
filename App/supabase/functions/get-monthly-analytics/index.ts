@@ -659,6 +659,20 @@ serve(async (req) => {
       aiTextData = aiText
     }
 
+    // インサイトデータ取得
+    let insightsData: any[] = []
+    if (!isAllStores && storeId) {
+      const { data: insights } = await supabaseAdmin
+        .from('monthly_analytics_issue')
+        .select('*')
+        .eq('company_id', companyId)
+        .eq('store_id', storeId)
+        .eq('year_month', targetYearMonth)
+        .order('created_at', { ascending: true })
+        .limit(3)
+      insightsData = insights || []
+    }
+
     // 概要タブ用データ変換
     const overviewData = {
       totalResponses: summary.total_responses,
@@ -1159,6 +1173,7 @@ serve(async (req) => {
           storeEvaluation: storeEvaluationData,
           customerTrends: customerTrendsData,
           aiText: aiTextData,
+          insights: insightsData,
           raw: summary
         }
       }),
