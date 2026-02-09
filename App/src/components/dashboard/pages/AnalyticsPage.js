@@ -1266,7 +1266,6 @@ const StoreOverviewTab = ({ companyId, selectedStore, selectedPeriod, stores }) 
     const fetchOverviewData = async () => {
       if (!companyId || !selectedStore) {
         setOverviewData(null);
-        setAiOverviewText(null);
         setLoading(false);
         return;
       }
@@ -1783,7 +1782,6 @@ const SalesImpactTab = ({ companyId, selectedStore, selectedPeriod }) => {
     const fetchImpactData = async () => {
       if (!companyId || !selectedStore) {
         setImpactData(null);
-        setAiSalesImpactText(null);
         setLoading(false);
         return;
       }
@@ -2376,7 +2374,6 @@ const StoreEvaluationTab = ({ companyId, selectedStore, selectedPeriod }) => {
     const fetchEvaluationData = async () => {
       if (!companyId || !selectedStore) {
         setEvaluationData(null);
-        setAiQscTexts({ quality: null, service: null, cleanliness: null });
         setLoading(false);
         return;
       }
