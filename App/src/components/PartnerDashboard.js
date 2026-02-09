@@ -310,7 +310,7 @@ export default function PartnerDashboard({ user, onLogout }) {
             <Grid container spacing={3}>
               {/* 統計カード */}
               <Grid item xs={12} md={4}>
-                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <Business sx={{ fontSize: 40, color: '#5e17eb', mr: 2 }} />
@@ -328,7 +328,7 @@ export default function PartnerDashboard({ user, onLogout }) {
               </Grid>
 
               <Grid item xs={12} md={4}>
-                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <People sx={{ fontSize: 40, color: '#10b981', mr: 2 }} />
@@ -346,7 +346,7 @@ export default function PartnerDashboard({ user, onLogout }) {
               </Grid>
 
               <Grid item xs={12} md={4}>
-                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <PersonAdd sx={{ fontSize: 40, color: '#f59e0b', mr: 2 }} />
@@ -365,7 +365,7 @@ export default function PartnerDashboard({ user, onLogout }) {
 
               {/* 最近のアクティビティ */}
               <Grid item xs={12}>
-                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                   <CardContent>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
                       最近のアクティビティ
@@ -404,7 +404,7 @@ export default function PartnerDashboard({ user, onLogout }) {
             </Box>
 
             {isLoadingCompanies ? (
-              <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+              <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                 <CardContent>
                   <Box sx={{ textAlign: 'center', py: 8 }}>
                     <CircularProgress sx={{ color: '#5e17eb' }} />
@@ -415,7 +415,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                 </CardContent>
               </Card>
             ) : companies.length === 0 ? (
-              <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+              <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
                 <CardContent>
                   <Box sx={{ textAlign: 'center', py: 8 }}>
                     <Business sx={{ fontSize: 80, color: '#e2e8f0', mb: 2 }} />
@@ -437,7 +437,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                         navigate(`/company/${company.id}/dashboard`);
                       }}
                       sx={{
-                        borderRadius: 3,
+                        borderRadius: 1.5,
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
                         transition: 'transform 0.2s, box-shadow 0.2s, opacity 0.2s',
                         cursor: 'pointer',
@@ -567,7 +567,7 @@ export default function PartnerDashboard({ user, onLogout }) {
               </Button>
             </Box>
 
-            <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+            <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs
                   value={memberTab}
@@ -779,7 +779,7 @@ export default function PartnerDashboard({ user, onLogout }) {
               設定
             </Typography>
 
-            <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+            <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
                   パートナー企業情報
