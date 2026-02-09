@@ -22,18 +22,34 @@ serve(async (req) => {
       throw new Error('ANTHROPIC_API_KEY is not set')
     }
 
-    // 日本時間で現在の年月を取得し、先月（対象月）を計算
-    const now = new Date()
-    const jstOffset = 9 * 60 * 60 * 1000
-    const jstNow = new Date(now.getTime() + jstOffset)
+    // リクエストボディからtarget_year_monthを取得（オプション）
+    let requestTargetYearMonth: string | null = null
+    try {
+      const body = await req.json()
+      requestTargetYearMonth = body?.target_year_month || null
+    } catch {
+      // bodyなしの場合は無視
+    }
 
-    // 対象月 = 先月（2月に実行 → 1月のデータを処理）
-    const targetDate = new Date(jstNow.getFullYear(), jstNow.getMonth() - 1, 1)
-    const targetYearMonth = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`
+    let targetYearMonth: string
+    let prevYearMonth: string
 
-    // 先々月（前月比較用）
-    const prevDate = new Date(targetDate.getFullYear(), targetDate.getMonth() - 1, 1)
-    const prevYearMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+    if (requestTargetYearMonth) {
+      // 指定された年月を使用
+      targetYearMonth = requestTargetYearMonth
+      const [y, m] = targetYearMonth.split('-').map(Number)
+      const prevDate = new Date(y, m - 2, 1)
+      prevYearMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+    } else {
+      // デフォルト: 日本時間で先月を対象とする
+      const now = new Date()
+      const jstOffset = 9 * 60 * 60 * 1000
+      const jstNow = new Date(now.getTime() + jstOffset)
+      const targetDate = new Date(jstNow.getFullYear(), jstNow.getMonth() - 1, 1)
+      targetYearMonth = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`
+      const prevDate = new Date(targetDate.getFullYear(), targetDate.getMonth() - 1, 1)
+      prevYearMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`
+    }
 
     console.log(`Generating AI text for ${targetYearMonth} (previous: ${prevYearMonth})`)
 

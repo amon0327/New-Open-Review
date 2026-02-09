@@ -2462,14 +2462,14 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
     C: { items: [], totalResponses: 0 }
   };
 
-  // AIサマリーデータ
-  const aiSummary = reportData?.storeEvaluation?.aiSummary || {
-    Q: '',
-    S: '',
-    C: ''
+  // AIサマリーデータ（monthly_analytics_ai_textから取得）
+  const aiTextMap = {
+    Q: reportData?.aiText?.quality || '',
+    S: reportData?.aiText?.service || '',
+    C: reportData?.aiText?.cleanliness || ''
   };
 
-  // サンプルテキスト
+  // サンプルテキスト（フォールバック用）
   const sampleSummary = {
     Q: '料理の味付けや盛り付けに対する評価が高く、特にメイン料理の満足度が前月比で向上しています。食材の鮮度についても好意的な意見が多く見られます。',
     S: '接客対応のスピードと丁寧さに関して高評価が多い一方、ピーク時の待ち時間に対する改善要望が一部見受けられます。',
@@ -2478,7 +2478,7 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
 
   const scoreData = qscScores[category] || { label: '', score: 0, trend: 0, color: 'violet' };
   const detailData = qscDetailedData[category] || { items: [], totalResponses: 0 };
-  const summary = aiSummary[category] || sampleSummary[category] || 'データが不足しています。';
+  const summary = aiTextMap[category] || sampleSummary[category] || 'データが不足しています。';
 
   // カテゴリー名を取得
   const getCategoryTitle = () => {
@@ -3287,14 +3287,14 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
     <OverviewPage
       reportData={reportData}
       pageNumber={3}
-      comment={reportData?.overview?.comment || '先月と比較してNPSスコアが改善傾向にあります。リピート率も安定しており、顧客満足度の向上が見られます。'}
+      comment={reportData?.aiText?.overview || reportData?.overview?.comment || '先月と比較してNPSスコアが改善傾向にあります。リピート率も安定しており、顧客満足度の向上が見られます。'}
     />
 
     {/* 売上影響ページ */}
     <SalesImpactPage
       reportData={reportData}
       pageNumber={4}
-      comment={reportData?.salesImpact?.comment || '新規顧客のリピーター転換率が先月より向上しています。一方でリピーター離脱の割合も微増しているため、既存顧客へのフォローアップ施策の検討をお勧めします。'}
+      comment={reportData?.aiText?.sales_impact || reportData?.salesImpact?.comment || '新規顧客のリピーター転換率が先月より向上しています。一方でリピーター離脱の割合も微増しているため、既存顧客へのフォローアップ施策の検討をお勧めします。'}
     />
 
     {/* Quality詳細ページ */}
