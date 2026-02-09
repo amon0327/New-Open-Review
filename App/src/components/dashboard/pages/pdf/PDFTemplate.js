@@ -74,19 +74,15 @@ const styles = StyleSheet.create({
   // 表紙スタイル
   // ============================================
   coverPage: {
-    flexDirection: 'row',
-    backgroundColor: colors.white,
-    fontFamily: 'NotoSansJP',
-  },
-  coverLeft: {
-    width: '71.4%',
+    flexDirection: 'column',
     backgroundColor: colors.primary,
     padding: 60,
+    fontFamily: 'NotoSansJP',
     justifyContent: 'center',
   },
   coverLogoContainer: {
     marginBottom: 16,
-    marginLeft: -8,
+    marginLeft: -16,
   },
   coverLogoWithText: {
     height: 28,
@@ -3325,14 +3321,14 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
     {/* 概要ページ */}
     <OverviewPage
       reportData={reportData}
-      pageNumber={3}
+      pageNumber={insightPageNumber + 1}
       comment={reportData?.aiText?.overview || reportData?.overview?.comment || '先月と比較してNPSスコアが改善傾向にあります。リピート率も安定しており、顧客満足度の向上が見られます。'}
     />
 
     {/* 売上影響ページ */}
     <SalesImpactPage
       reportData={reportData}
-      pageNumber={4}
+      pageNumber={insightPageNumber + 2}
       comment={reportData?.aiText?.sales_impact || reportData?.salesImpact?.comment || '新規顧客のリピーター転換率が先月より向上しています。一方でリピーター離脱の割合も微増しているため、既存顧客へのフォローアップ施策の検討をお勧めします。'}
     />
 
@@ -3340,36 +3336,37 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
     <QSCDetailPage
       reportData={reportData}
       category="Q"
-      pageNumber={5}
+      pageNumber={insightPageNumber + 3}
     />
 
     {/* Service詳細ページ */}
     <QSCDetailPage
       reportData={reportData}
       category="S"
-      pageNumber={6}
+      pageNumber={insightPageNumber + 4}
     />
 
     {/* Cleanliness詳細ページ */}
     <QSCDetailPage
       reportData={reportData}
       category="C"
-      pageNumber={7}
+      pageNumber={insightPageNumber + 5}
     />
 
     {/* 顧客傾向ページ */}
     <CustomerTrendsPage
       reportData={reportData}
-      pageNumber={8}
+      pageNumber={insightPageNumber + 6}
     />
 
     {/* 顧客の重視ポイントページ */}
     <CustomerPriorityPage
       reportData={reportData}
-      pageNumber={9}
+      pageNumber={insightPageNumber + 7}
     />
   </Document>
-);
+  );
+};
 
 /**
  * PDFをBlobとして生成
