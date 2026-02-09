@@ -1597,6 +1597,16 @@ const CoverPage = ({ report, storeName, companyName }) => {
         <Image src={LOGO_WITH_TEXT_URL} style={styles.coverLogoWithText} />
       </View>
 
+      <Text style={{ fontSize: 28, color: colors.white, fontWeight: 'bold', marginBottom: 6 }}>
+        お客様の声で、
+      </Text>
+      <Text style={{ fontSize: 28, color: colors.white, fontWeight: 'bold', marginBottom: 24 }}>
+        また来たくなるお店へ。
+      </Text>
+      <Text style={{ fontSize: 14, color: colors.white, opacity: 0.85, marginBottom: 40 }}>
+        飲食店に特化したアンケートツール
+      </Text>
+
       <View style={styles.coverInfoContainer}>
         {companyName && (
           <Text style={styles.coverCompanyName}>{companyName}</Text>
