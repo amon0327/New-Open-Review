@@ -323,8 +323,8 @@ ${segmentInfo}
 
 function buildQualityPrompt(current: any, prev: any, avg: any, yearMonth: string): string {
   const qualityItems = [
-    '味・品質', '新鮮さ', '量', 'メニューの種類', '盛り付け・見た目',
-    '温度', '季節メニュー', '特別メニュー', '価格に対する品質', '全体的な満足度'
+    '料理の味', '料理の見た目', '料理の量/ボリューム', 'ドリンクの味', 'ドリンクの温度',
+    '食べたい料理', '飲みたいドリンク', 'メニューの種類', '料理・ドリンクの温度', '特徴や独自性'
   ]
 
   let itemInfo = ''
@@ -358,8 +358,8 @@ ${itemInfo}`
 
 function buildServicePrompt(current: any, prev: any, avg: any, yearMonth: string): string {
   const serviceItems = [
-    'スタッフの挨拶', '注文対応', '料理提供スピード', '気配り・声かけ', 'メニュー説明',
-    'クレーム対応', 'スタッフの笑顔', '子供への対応', '会計対応', '全体的な接客'
+    '入店時の挨拶', '席への案内', '注文時の対応', 'メニュー説明・提案', '提供スピード',
+    '注文・提供の正確さ', 'スタッフの気配り', 'スタッフの笑顔', 'スタッフの言葉遣い', '特に良かったスタッフ'
   ]
 
   let itemInfo = ''
@@ -393,8 +393,8 @@ ${itemInfo}`
 
 function buildCleanlinessPrompt(current: any, prev: any, avg: any, yearMonth: string): string {
   const cleanlinessItems = [
-    '店内の清潔さ', 'テーブル・席の清潔さ', 'トイレの清潔さ', '食器の清潔さ', 'スタッフの身だしなみ',
-    'キッチンの清潔さ', '外観の清潔さ', '換気・空調', 'ゴミ・汚れ', '全体的な衛生管理'
+    '店舗外観・入口', 'テーブル', '椅子・ソファ', '床', '食器・カトラリー',
+    'メニュー表・卓上備品', 'トイレ', '店内の空気や匂い', '店内の整理整頓', 'スタッフの身だしなみ'
   ]
 
   let itemInfo = ''
