@@ -111,7 +111,7 @@ serve(async (req) => {
     const invitation = invitationData[0]
 
     // 招待URLを生成
-    const appDomain = Deno.env.get('APP_DOMAIN') || 'http://localhost:3000'
+    const appDomain = Deno.env.get('APP_DOMAIN') || 'https://app.openreview.jp'
     const invitationUrl = `${appDomain}/partner-invitation/${invitation.token}`
 
     return new Response(
