@@ -145,7 +145,7 @@ serve(async (req) => {
     console.log('Checking existing membership for user:', user.id, 'partner_company:', invitation.partner_company_id)
     const { data: existingMembership, error: membershipCheckError } = await supabaseAdmin
       .from('partner_memberships')
-      .select('id')
+      .select('id, is_active')
       .eq('business_users_id', user.id)
       .eq('partner_company_id', invitation.partner_company_id)
 
@@ -156,29 +156,54 @@ serve(async (req) => {
       throw new Error(`メンバーシップの確認に失敗: ${membershipCheckError.message}`)
     }
 
+    let membershipResult
+
     if (existingMembership && existingMembership.length > 0) {
-      throw new Error('既にこのパートナー企業のメンバーです')
-    }
+      const existing = existingMembership[0]
 
-    // partner_membershipsに登録（サービスロールで）
-    const membershipData = {
-      business_users_id: user.id,
-      partner_company_id: invitation.partner_company_id,
-      role: invitation.role
-    }
+      if (existing.is_active) {
+        throw new Error('既にこのパートナー企業のメンバーです')
+      }
 
-    console.log('Creating partner membership with data:', membershipData)
+      // is_active=falseの場合、再有効化する
+      console.log('Reactivating inactive membership:', existing.id)
+      const { data: reactivatedResult, error: reactivateError } = await supabaseAdmin
+        .from('partner_memberships')
+        .update({ is_active: true, role: invitation.role })
+        .eq('id', existing.id)
+        .select()
 
-    const { data: membershipResult, error: membershipError } = await supabaseAdmin
-      .from('partner_memberships')
-      .insert([membershipData])
-      .select()
+      console.log('Membership reactivation result:', { reactivatedResult, reactivateError })
 
-    console.log('Partner membership creation result:', { membershipResult, membershipError })
+      if (reactivateError) {
+        console.error('partner_memberships再有効化エラー:', reactivateError)
+        throw new Error(`メンバー再登録に失敗: ${reactivateError.message}`)
+      }
 
-    if (membershipError) {
-      console.error('partner_memberships登録エラー:', membershipError)
-      throw new Error(`メンバー登録に失敗: ${membershipError.message}`)
+      membershipResult = reactivatedResult
+    } else {
+      // 新規登録
+      const membershipData = {
+        business_users_id: user.id,
+        partner_company_id: invitation.partner_company_id,
+        role: invitation.role
+      }
+
+      console.log('Creating partner membership with data:', membershipData)
+
+      const { data: newResult, error: membershipError } = await supabaseAdmin
+        .from('partner_memberships')
+        .insert([membershipData])
+        .select()
+
+      console.log('Partner membership creation result:', { newResult, membershipError })
+
+      if (membershipError) {
+        console.error('partner_memberships登録エラー:', membershipError)
+        throw new Error(`メンバー登録に失敗: ${membershipError.message}`)
+      }
+
+      membershipResult = newResult
     }
 
     console.log('partner_memberships登録成功:', membershipResult)
