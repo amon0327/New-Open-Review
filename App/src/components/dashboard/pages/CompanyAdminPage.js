@@ -334,9 +334,9 @@ export default function CompanyAdminPage({ companyId, companyName }) {
                                 variant="outlined"
                                 startIcon={<ContentCopy />}
                                 onClick={() => {
-                                  const url = `http://localhost:3000/company-invitation/${invitation.token}`;
+                                  const url = `https://app.openreview.jp/company-invitation/${invitation.token}`;
                                   navigator.clipboard.writeText(url);
-                                  toast.success('開発版URLをコピーしました');
+                                  toast.success('招待URLをコピーしました');
                                 }}
                                 sx={{
                                   borderColor: '#e2e8f0',

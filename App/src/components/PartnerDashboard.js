@@ -112,6 +112,7 @@ export default function PartnerDashboard({ user, onLogout }) {
           )
         `)
         .eq('partner_company_id', partnerMembership.partner_company_id)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
       if (affiliationsError) {
@@ -338,27 +339,15 @@ export default function PartnerDashboard({ user, onLogout }) {
   const handleDeleteCompany = async () => {
     if (!companyToDelete) return;
     try {
-      // partner_affiliate_companiesから紐付けを削除
+      // partner_affiliate_companiesのis_deletedをtrueに更新（ソフトデリート）
       const { error: affiliateError } = await supabase
         .from('partner_affiliate_companies')
-        .delete()
-        .eq('companies_id', companyToDelete.id);
+        .update({ is_deleted: true })
+        .eq('companies_id', companyToDelete.id)
+        .eq('partner_company_id', partnerCompanyInfo.id);
 
       if (affiliateError) {
-        console.error('企業紐付け削除エラー:', affiliateError);
-        toast.error('企業の削除に失敗しました');
-        handleCloseDeleteDialog();
-        return;
-      }
-
-      // companiesテーブルから企業を削除
-      const { error: companyError } = await supabase
-        .from('companies')
-        .delete()
-        .eq('id', companyToDelete.id);
-
-      if (companyError) {
-        console.error('企業削除エラー:', companyError);
+        console.error('企業削除エラー:', affiliateError);
         toast.error('企業の削除に失敗しました');
         handleCloseDeleteDialog();
         return;
