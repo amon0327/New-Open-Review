@@ -377,7 +377,7 @@ export default function PartnerInvitationLogin() {
                 </Box>
 
                 <Typography variant="body2" sx={{ color: '#64748b' }}>
-                  招待メールアドレス: {invitation?.email}
+                  招待者名: {invitation?.name}
                 </Typography>
               </Box>
 
