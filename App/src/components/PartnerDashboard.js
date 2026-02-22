@@ -48,12 +48,21 @@ import {
   ContentCopy,
   CheckCircle,
   MoreVert,
-  Edit as EditIcon
+  Edit as EditIcon,
+  Settings,
+  Palette,
+  Add,
+  CloudUpload as CloudUploadIcon,
+  Image as ImageIcon,
+  LightMode,
+  DarkMode
 } from '@mui/icons-material';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { ChromePicker } from 'react-color';
 import CompanyCreationDialog from './CompanyCreationDialog';
 import PartnerInvitationForm from './PartnerInvitationForm';
 import { supabase } from '../lib/supabase';
+import { ImageUploadService } from '../services/ImageUploadService';
 import toast from 'react-hot-toast';
 
 export default function PartnerDashboard({ user, onLogout }) {
@@ -78,7 +87,7 @@ export default function PartnerDashboard({ user, onLogout }) {
       // 現在のユーザーのpartner_company_idを取得
       const { data: partnerMembership, error: membershipError } = await supabase
         .from('partner_memberships')
-        .select('partner_company_id, partner_company(id, company_name)')
+        .select('partner_company_id, partner_company(id, company_name, primary_color, logo_light_url, logo_dark_url, logo_icon_url)')
         .eq('business_users_id', user.id)
         .single();
 
@@ -88,11 +97,16 @@ export default function PartnerDashboard({ user, onLogout }) {
         return;
       }
 
-      // パートナー企業情報を保存（company_name を name に変換）
+      // パートナー企業情報を保存
       if (partnerMembership.partner_company) {
+        const pc = partnerMembership.partner_company;
         setPartnerCompanyInfo({
-          id: partnerMembership.partner_company.id,
-          name: partnerMembership.partner_company.company_name
+          id: pc.id,
+          name: pc.company_name,
+          primary_color: pc.primary_color || '#5e17eb',
+          logo_light_url: pc.logo_light_url,
+          logo_dark_url: pc.logo_dark_url,
+          logo_icon_url: pc.logo_icon_url
         });
       }
 
@@ -373,6 +387,107 @@ export default function PartnerDashboard({ user, onLogout }) {
     }
   };
 
+  // === テーマ設定関連 ===
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  const handleUpdatePrimaryColor = async (color) => {
+    if (!partnerCompanyInfo) return;
+    try {
+      const { data, error } = await supabase
+        .from('partner_company')
+        .update({ primary_color: color })
+        .eq('id', partnerCompanyInfo.id)
+        .select();
+
+      if (error || !data || data.length === 0) {
+        console.error('カラー更新エラー:', error);
+        toast.error('カラーの更新に失敗しました');
+        return;
+      }
+      setPartnerCompanyInfo(prev => ({ ...prev, primary_color: color }));
+      toast.success('プライマリーカラーを更新しました');
+    } catch (error) {
+      console.error('カラー更新エラー:', error);
+      toast.error('カラーの更新に失敗しました');
+    }
+  };
+
+  const handleLogoUpload = async (file, type) => {
+    if (!partnerCompanyInfo) return;
+    setIsSavingSettings(true);
+    try {
+      const validation = ImageUploadService.validateImageFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error);
+        setIsSavingSettings(false);
+        return;
+      }
+
+      const result = await ImageUploadService.uploadPartnerLogo(file, partnerCompanyInfo.id, type);
+      if (!result.success) {
+        toast.error('ロゴのアップロードに失敗しました');
+        setIsSavingSettings(false);
+        return;
+      }
+
+      const columnMap = { light: 'logo_light_url', dark: 'logo_dark_url', icon: 'logo_icon_url' };
+      const column = columnMap[type];
+
+      const { data, error } = await supabase
+        .from('partner_company')
+        .update({ [column]: result.data.url })
+        .eq('id', partnerCompanyInfo.id)
+        .select();
+
+      if (error || !data || data.length === 0) {
+        console.error('ロゴURL更新エラー:', error);
+        toast.error('ロゴの保存に失敗しました');
+        setIsSavingSettings(false);
+        return;
+      }
+
+      setPartnerCompanyInfo(prev => ({ ...prev, [column.replace('_url', '_url')]: result.data.url }));
+      const typeLabel = { light: '明るい背景用', dark: '暗い背景用', icon: 'アイコン' };
+      toast.success(`${typeLabel[type]}ロゴを更新しました`);
+    } catch (error) {
+      console.error('ロゴアップロードエラー:', error);
+      toast.error('ロゴのアップロードに失敗しました');
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
+  const handleLogoDelete = async (type) => {
+    if (!partnerCompanyInfo) return;
+    try {
+      const columnMap = { light: 'logo_light_url', dark: 'logo_dark_url', icon: 'logo_icon_url' };
+      const column = columnMap[type];
+      const currentUrl = partnerCompanyInfo[column];
+
+      if (currentUrl) {
+        await ImageUploadService.deleteImage(currentUrl);
+      }
+
+      const { data, error } = await supabase
+        .from('partner_company')
+        .update({ [column]: null })
+        .eq('id', partnerCompanyInfo.id)
+        .select();
+
+      if (error || !data || data.length === 0) {
+        toast.error('ロゴの削除に失敗しました');
+        return;
+      }
+
+      setPartnerCompanyInfo(prev => ({ ...prev, [column]: null }));
+      toast.success('ロゴを削除しました');
+    } catch (error) {
+      console.error('ロゴ削除エラー:', error);
+      toast.error('ロゴの削除に失敗しました');
+    }
+  };
+
   // 初回ロード時に企業一覧を取得
   useEffect(() => {
     if (user) {
@@ -413,6 +528,7 @@ export default function PartnerDashboard({ user, onLogout }) {
     { id: 'dashboard', label: 'ダッシュボード', icon: <DashboardIcon /> },
     { id: 'companies', label: '企業管理', icon: <Business /> },
     { id: 'members', label: 'メンバー招待', icon: <PersonAdd /> },
+    { id: 'settings', label: '設定', icon: <Settings /> },
   ];
 
   const renderContent = () => {
@@ -985,6 +1101,250 @@ export default function PartnerDashboard({ user, onLogout }) {
                   </>
                 )}
               </CardContent>
+            </Card>
+          </Box>
+        );
+
+      case 'settings':
+        return (
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 4, color: '#1a202c' }}>
+              設定
+            </Typography>
+
+            {/* プライマリーカラー設定 */}
+            <Card sx={{ p: 3, borderRadius: 3, border: '1px solid #f1f5f9', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <Box sx={{
+                  width: 40, height: 40, borderRadius: 2,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 2
+                }}>
+                  <Palette sx={{ color: 'white', fontSize: '1.2rem' }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b' }}>プライマリーカラー</Typography>
+                  <Typography variant="body2" sx={{ color: '#64748b' }}>パートナー企業のブランドカラーを設定</Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
+                {[
+                  { name: '紫', value: '#5e17eb' },
+                  { name: '青', value: '#3b82f6' },
+                  { name: '緑', value: '#10b981' },
+                  { name: '赤', value: '#ef4444' },
+                  { name: 'オレンジ', value: '#f59e0b' },
+                  { name: 'ピンク', value: '#ec4899' }
+                ].map((color) => (
+                  <motion.div key={color.value} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                    <Box
+                      onClick={() => handleUpdatePrimaryColor(color.value)}
+                      sx={{
+                        width: 40, height: 40, borderRadius: '50%',
+                        backgroundColor: color.value, cursor: 'pointer',
+                        border: partnerCompanyInfo?.primary_color === color.value ? '3px solid #1e293b' : '2px solid transparent',
+                        boxShadow: partnerCompanyInfo?.primary_color === color.value
+                          ? `0 0 0 2px white, 0 0 0 4px ${color.value}` : '0 2px 4px rgba(0,0,0,0.1)',
+                        transition: 'all 0.2s ease',
+                        '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }
+                      }}
+                    />
+                  </motion.div>
+                ))}
+
+                {/* カスタムカラー */}
+                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                  <Box
+                    onClick={() => setShowColorPicker(!showColorPicker)}
+                    sx={{
+                      width: 40, height: 40, borderRadius: '50%',
+                      background: !['#5e17eb','#3b82f6','#10b981','#ef4444','#f59e0b','#ec4899'].includes(partnerCompanyInfo?.primary_color)
+                        ? partnerCompanyInfo?.primary_color : '#e5e7eb',
+                      cursor: 'pointer',
+                      border: showColorPicker ? '3px solid #1e293b' : '2px solid transparent',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'all 0.2s ease',
+                      '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }
+                    }}
+                  >
+                    {['#5e17eb','#3b82f6','#10b981','#ef4444','#f59e0b','#ec4899'].includes(partnerCompanyInfo?.primary_color || '#5e17eb') && (
+                      <Add sx={{ color: '#6b7280', fontSize: '1.2rem' }} />
+                    )}
+                  </Box>
+                </motion.div>
+
+                {/* 現在のカラー表示 */}
+                <Typography variant="body2" sx={{ color: '#64748b', ml: 1 }}>
+                  {partnerCompanyInfo?.primary_color || '#5e17eb'}
+                </Typography>
+              </Box>
+
+              {showColorPicker && (
+                <Box sx={{ mt: 3, position: 'relative' }}>
+                  <Box
+                    sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }}
+                    onClick={() => setShowColorPicker(false)}
+                  />
+                  <Box sx={{ position: 'relative', zIndex: 1000 }}>
+                    <ChromePicker
+                      color={partnerCompanyInfo?.primary_color || '#5e17eb'}
+                      onChangeComplete={(color) => handleUpdatePrimaryColor(color.hex)}
+                      disableAlpha={true}
+                    />
+                  </Box>
+                </Box>
+              )}
+            </Card>
+
+            {/* ロゴ設定 */}
+            <Card sx={{ p: 3, borderRadius: 3, border: '1px solid #f1f5f9', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <Box sx={{
+                  width: 40, height: 40, borderRadius: 2,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 2
+                }}>
+                  <ImageIcon sx={{ color: 'white', fontSize: '1.2rem' }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#1e293b' }}>ロゴ画像</Typography>
+                  <Typography variant="body2" sx={{ color: '#64748b' }}>背景に応じた3種類のロゴを設定</Typography>
+                </Box>
+              </Box>
+
+              <Grid container spacing={3}>
+                {/* 明るい背景用ロゴ */}
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                      <LightMode sx={{ fontSize: 18, color: '#f59e0b' }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
+                        明るい背景用ロゴ
+                      </Typography>
+                    </Box>
+                    <Card sx={{
+                      borderRadius: 2, overflow: 'hidden', mb: 1.5,
+                      backgroundColor: '#ffffff', border: '1px solid #e5e7eb',
+                      minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      {partnerCompanyInfo?.logo_light_url ? (
+                        <Box component="img" src={partnerCompanyInfo.logo_light_url} alt="明るい背景用ロゴ"
+                          sx={{ maxWidth: '80%', maxHeight: 80, objectFit: 'contain', p: 2 }} />
+                      ) : (
+                        <Box sx={{ textAlign: 'center', p: 3 }}>
+                          <ImageIcon sx={{ fontSize: 32, color: '#d1d5db', mb: 0.5 }} />
+                          <Typography variant="caption" sx={{ color: '#9ca3af', display: 'block' }}>未設定</Typography>
+                        </Box>
+                      )}
+                    </Card>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button variant="contained" size="small" startIcon={<CloudUploadIcon />} component="label"
+                        disabled={isSavingSettings}
+                        sx={{ backgroundColor: '#5E17EB', '&:hover': { backgroundColor: '#4C1D95' }, fontSize: '0.75rem', px: 2, py: 0.5 }}>
+                        アップロード
+                        <input type="file" hidden accept="image/jpeg,image/png,image/webp"
+                          onChange={(e) => e.target.files[0] && handleLogoUpload(e.target.files[0], 'light')} />
+                      </Button>
+                      {partnerCompanyInfo?.logo_light_url && (
+                        <Button variant="outlined" size="small" onClick={() => handleLogoDelete('light')}
+                          sx={{ borderColor: '#DC2626', color: '#DC2626', '&:hover': { borderColor: '#B91C1C', backgroundColor: 'rgba(220,38,38,0.04)' }, fontSize: '0.75rem', px: 2, py: 0.5 }}>
+                          削除
+                        </Button>
+                      )}
+                    </Box>
+                  </Box>
+                </Grid>
+
+                {/* 暗い背景用ロゴ */}
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                      <DarkMode sx={{ fontSize: 18, color: '#6366f1' }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
+                        暗い背景用ロゴ
+                      </Typography>
+                    </Box>
+                    <Card sx={{
+                      borderRadius: 2, overflow: 'hidden', mb: 1.5,
+                      backgroundColor: '#1e293b', border: '1px solid #334155',
+                      minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      {partnerCompanyInfo?.logo_dark_url ? (
+                        <Box component="img" src={partnerCompanyInfo.logo_dark_url} alt="暗い背景用ロゴ"
+                          sx={{ maxWidth: '80%', maxHeight: 80, objectFit: 'contain', p: 2 }} />
+                      ) : (
+                        <Box sx={{ textAlign: 'center', p: 3 }}>
+                          <ImageIcon sx={{ fontSize: 32, color: '#475569', mb: 0.5 }} />
+                          <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>未設定</Typography>
+                        </Box>
+                      )}
+                    </Card>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button variant="contained" size="small" startIcon={<CloudUploadIcon />} component="label"
+                        disabled={isSavingSettings}
+                        sx={{ backgroundColor: '#5E17EB', '&:hover': { backgroundColor: '#4C1D95' }, fontSize: '0.75rem', px: 2, py: 0.5 }}>
+                        アップロード
+                        <input type="file" hidden accept="image/jpeg,image/png,image/webp"
+                          onChange={(e) => e.target.files[0] && handleLogoUpload(e.target.files[0], 'dark')} />
+                      </Button>
+                      {partnerCompanyInfo?.logo_dark_url && (
+                        <Button variant="outlined" size="small" onClick={() => handleLogoDelete('dark')}
+                          sx={{ borderColor: '#DC2626', color: '#DC2626', '&:hover': { borderColor: '#B91C1C', backgroundColor: 'rgba(220,38,38,0.04)' }, fontSize: '0.75rem', px: 2, py: 0.5 }}>
+                          削除
+                        </Button>
+                      )}
+                    </Box>
+                  </Box>
+                </Grid>
+
+                {/* アイコンロゴ */}
+                <Grid item xs={12} md={4}>
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                      <Palette sx={{ fontSize: 18, color: '#10b981' }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#374151' }}>
+                        アイコンロゴ
+                      </Typography>
+                    </Box>
+                    <Card sx={{
+                      borderRadius: 2, overflow: 'hidden', mb: 1.5,
+                      backgroundColor: '#f8fafc', border: '1px solid #e5e7eb',
+                      minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      {partnerCompanyInfo?.logo_icon_url ? (
+                        <Box component="img" src={partnerCompanyInfo.logo_icon_url} alt="アイコンロゴ"
+                          sx={{ width: 64, height: 64, objectFit: 'contain', p: 1 }} />
+                      ) : (
+                        <Box sx={{ textAlign: 'center', p: 3 }}>
+                          <ImageIcon sx={{ fontSize: 32, color: '#d1d5db', mb: 0.5 }} />
+                          <Typography variant="caption" sx={{ color: '#9ca3af', display: 'block' }}>未設定</Typography>
+                        </Box>
+                      )}
+                    </Card>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button variant="contained" size="small" startIcon={<CloudUploadIcon />} component="label"
+                        disabled={isSavingSettings}
+                        sx={{ backgroundColor: '#5E17EB', '&:hover': { backgroundColor: '#4C1D95' }, fontSize: '0.75rem', px: 2, py: 0.5 }}>
+                        アップロード
+                        <input type="file" hidden accept="image/jpeg,image/png,image/webp"
+                          onChange={(e) => e.target.files[0] && handleLogoUpload(e.target.files[0], 'icon')} />
+                      </Button>
+                      {partnerCompanyInfo?.logo_icon_url && (
+                        <Button variant="outlined" size="small" onClick={() => handleLogoDelete('icon')}
+                          sx={{ borderColor: '#DC2626', color: '#DC2626', '&:hover': { borderColor: '#B91C1C', backgroundColor: 'rgba(220,38,38,0.04)' }, fontSize: '0.75rem', px: 2, py: 0.5 }}>
+                          削除
+                        </Button>
+                      )}
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              <Typography variant="caption" sx={{ color: '#94a3b8', mt: 2, display: 'block' }}>
+                推奨: PNG形式、5MB以下。明るい背景用は暗い色のロゴ、暗い背景用は明るい色のロゴを使用してください。アイコンは正方形推奨。
+              </Typography>
             </Card>
           </Box>
         );

@@ -235,6 +235,54 @@ export class ImageUploadService {
 
     return { valid: true, error: null };
   }
+
+  /**
+   * パートナー企業ロゴをSupabaseストレージにアップロードしてURLを取得
+   * @param {File} file - アップロードする画像ファイル
+   * @param {string} partnerCompanyId - パートナー企業ID
+   * @param {string} type - ロゴタイプ ('light', 'dark', 'icon')
+   * @returns {Promise<Object>} アップロード結果とURL
+   */
+  static async uploadPartnerLogo(file, partnerCompanyId, type) {
+    try {
+      const timestamp = Date.now();
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${type}-${partnerCompanyId}-${timestamp}.${fileExtension}`;
+      const filePath = `partner-logo/${partnerCompanyId}/${fileName}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('review-form-assets')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) {
+        throw new Error(`パートナーロゴアップロードエラー: ${uploadError.message}`);
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('review-form-assets')
+        .getPublicUrl(filePath);
+
+      return {
+        success: true,
+        data: {
+          url: urlData.publicUrl,
+          path: filePath,
+          fileName: fileName
+        },
+        error: null
+      };
+    } catch (error) {
+      console.error('Partner logo upload error:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message
+      };
+    }
+  }
 }
 
 export default ImageUploadService;
