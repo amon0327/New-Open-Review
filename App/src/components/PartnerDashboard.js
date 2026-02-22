@@ -1244,7 +1244,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                         disabled={isSavingSettings}
                         sx={{ backgroundColor: '#5E17EB', '&:hover': { backgroundColor: '#4C1D95' }, fontSize: '0.75rem', px: 2, py: 0.5 }}>
                         アップロード
-                        <input type="file" hidden accept="image/jpeg,image/png,image/webp"
+                        <input type="file" hidden accept="image/jpeg,image/png,image/webp,image/svg+xml"
                           onChange={(e) => e.target.files[0] && handleLogoUpload(e.target.files[0], 'light')} />
                       </Button>
                       {partnerCompanyInfo?.logo_light_url && (
@@ -1286,7 +1286,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                         disabled={isSavingSettings}
                         sx={{ backgroundColor: '#5E17EB', '&:hover': { backgroundColor: '#4C1D95' }, fontSize: '0.75rem', px: 2, py: 0.5 }}>
                         アップロード
-                        <input type="file" hidden accept="image/jpeg,image/png,image/webp"
+                        <input type="file" hidden accept="image/jpeg,image/png,image/webp,image/svg+xml"
                           onChange={(e) => e.target.files[0] && handleLogoUpload(e.target.files[0], 'dark')} />
                       </Button>
                       {partnerCompanyInfo?.logo_dark_url && (
@@ -1328,7 +1328,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                         disabled={isSavingSettings}
                         sx={{ backgroundColor: '#5E17EB', '&:hover': { backgroundColor: '#4C1D95' }, fontSize: '0.75rem', px: 2, py: 0.5 }}>
                         アップロード
-                        <input type="file" hidden accept="image/jpeg,image/png,image/webp"
+                        <input type="file" hidden accept="image/jpeg,image/png,image/webp,image/svg+xml"
                           onChange={(e) => e.target.files[0] && handleLogoUpload(e.target.files[0], 'icon')} />
                       </Button>
                       {partnerCompanyInfo?.logo_icon_url && (

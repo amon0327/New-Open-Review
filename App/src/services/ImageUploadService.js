@@ -219,14 +219,14 @@ export class ImageUploadService {
    */
   static validateImageFile(file) {
     const maxSize = 5 * 1024 * 1024; // 5MB
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'];
 
     if (!file) {
       return { valid: false, error: 'ファイルが選択されていません' };
     }
 
     if (!allowedTypes.includes(file.type)) {
-      return { valid: false, error: 'JPEG、PNG、WebP形式の画像ファイルのみ対応しています' };
+      return { valid: false, error: 'JPEG、PNG、WebP、SVG形式の画像ファイルのみ対応しています' };
     }
 
     if (file.size > maxSize) {
