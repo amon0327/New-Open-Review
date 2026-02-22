@@ -340,11 +340,12 @@ export default function PartnerDashboard({ user, onLogout }) {
     if (!companyToDelete) return;
     try {
       // partner_affiliate_companiesのis_deletedをtrueに更新（ソフトデリート）
-      const { error: affiliateError } = await supabase
+      const { data: updatedRows, error: affiliateError } = await supabase
         .from('partner_affiliate_companies')
         .update({ is_deleted: true })
         .eq('companies_id', companyToDelete.id)
-        .eq('partner_company_id', partnerCompanyInfo.id);
+        .eq('partner_company_id', partnerCompanyInfo.id)
+        .select();
 
       if (affiliateError) {
         console.error('企業削除エラー:', affiliateError);
@@ -353,8 +354,17 @@ export default function PartnerDashboard({ user, onLogout }) {
         return;
       }
 
+      // RLSにより0行更新の場合はエラーとして扱う
+      if (!updatedRows || updatedRows.length === 0) {
+        console.error('企業削除エラー: 更新対象が見つかりません（RLSポリシーの可能性）');
+        toast.error('企業の削除に失敗しました。権限を確認してください。');
+        handleCloseDeleteDialog();
+        return;
+      }
+
       toast.success(`${companyToDelete.name}を削除しました`);
-      setCompanies(prev => prev.filter(c => c.id !== companyToDelete.id));
+      // DB更新成功を確認してからUIを更新し、最新データを再取得
+      await fetchAffiliatedCompanies();
       handleCloseDeleteDialog();
     } catch (error) {
       console.error('企業削除エラー:', error);
