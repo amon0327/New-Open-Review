@@ -82,23 +82,20 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [isCompanyInactive, setIsCompanyInactive] = useState(false);
   const [partnerTheme, setPartnerTheme] = useState(null);
 
-  // パートナーテーマ情報を取得
+  // パートナーテーマ情報を取得（RPC関数でRLSバイパス）
   useEffect(() => {
     const fetchPartnerTheme = async () => {
       const targetCompanyId = companyId || currentCompany?.id;
       if (!targetCompanyId) return;
 
       try {
-        const { data, error } = await supabase
-          .from('partner_affiliate_companies')
-          .select('partner_company:partner_company_id(primary_color, logo_light_url, logo_dark_url, logo_icon_url)')
-          .eq('companies_id', targetCompanyId)
-          .eq('is_deleted', false)
-          .single();
+        const { data, error } = await supabase.rpc('get_partner_theme', {
+          p_company_id: targetCompanyId
+        });
 
-        if (!error && data?.partner_company) {
-          console.log('🎨 Partner theme loaded:', data.partner_company);
-          setPartnerTheme(data.partner_company);
+        if (!error && data) {
+          console.log('🎨 Partner theme loaded:', data);
+          setPartnerTheme(data);
         }
       } catch (err) {
         console.log('ℹ️ No partner theme found for company');
@@ -108,10 +105,20 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     fetchPartnerTheme();
   }, [companyId, currentCompany?.id]);
 
-  // テーマカラーからグラデーションを生成
+  // テーマカラー
+  const themeColor = partnerTheme?.primary_color || '#5e17eb';
   const sidebarGradient = partnerTheme?.primary_color
     ? `linear-gradient(135deg, ${partnerTheme.primary_color} 0%, ${partnerTheme.primary_color}cc 100%)`
     : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+  const accentGradient = partnerTheme?.primary_color
+    ? `linear-gradient(45deg, ${partnerTheme.primary_color} 30%, ${partnerTheme.primary_color}cc 90%)`
+    : 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)';
+  const shadowColor = partnerTheme?.primary_color
+    ? `${partnerTheme.primary_color}4d`
+    : 'rgba(94, 23, 235, 0.3)';
+  const backdropColor = partnerTheme?.primary_color
+    ? `${partnerTheme.primary_color}1a`
+    : 'rgba(94, 23, 235, 0.1)';
 
   // フォーム作成時のハンドラー - URL遷移を行う
   const handleFormCreated = (formId) => {
@@ -267,7 +274,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: `0 20px 60px ${partnerTheme?.primary_color ? partnerTheme.primary_color + '4d' : 'rgba(94, 23, 235, 0.3)'}`,
+            boxShadow: `0 20px 60px ${shadowColor}`,
             borderRadius: 3,
             textAlign: 'center'
           }}
@@ -277,7 +284,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               size={50}
               thickness={4}
               sx={{
-                color: partnerTheme?.primary_color || '#5e17eb',
+                color: themeColor,
                 mb: 2
               }}
             />
@@ -285,9 +292,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               variant="h6"
               sx={{
                 fontWeight: 600,
-                background: partnerTheme?.primary_color
-                  ? `linear-gradient(45deg, ${partnerTheme.primary_color} 30%, ${partnerTheme.primary_color}cc 90%)`
-                  : 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                background: accentGradient,
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -337,7 +342,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+          background: sidebarGradient
         }}
       >
         <Card
@@ -347,7 +352,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
+            boxShadow: `0 20px 60px ${shadowColor}`,
             borderRadius: 3,
             textAlign: 'center'
           }}
@@ -375,7 +380,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               startIcon={<Logout />}
               onClick={onLogout}
               sx={{
-                background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                background: accentGradient,
                 borderRadius: 2,
                 px: 4,
                 py: 1.5,
@@ -440,7 +445,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             sx={{
               color: '#fff',
               zIndex: 9999,
-              background: 'rgba(94, 23, 235, 0.1)',
+              background: backdropColor,
               backdropFilter: 'blur(10px)'
             }}
             open={isCreatingForm}
@@ -457,7 +462,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                   background: 'rgba(255, 255, 255, 0.95)',
                   backdropFilter: 'blur(20px)',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
-                  boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
+                  boxShadow: `0 20px 60px ${shadowColor}`,
                   borderRadius: 3,
                   position: 'relative',
                   overflow: 'hidden'
@@ -473,7 +478,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                       size={50}
                       thickness={4}
                       sx={{
-                        color: '#5e17eb',
+                        color: themeColor,
                         '& .MuiCircularProgress-circle': {
                           strokeLinecap: 'round',
                         }
@@ -484,7 +489,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                     variant="h6"
                     sx={{
                       fontWeight: 600,
-                      background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                      background: accentGradient,
                       backgroundClip: 'text',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
