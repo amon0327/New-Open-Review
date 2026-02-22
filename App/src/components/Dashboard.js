@@ -80,6 +80,38 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [currentCompany, setCurrentCompany] = useState(null);
   const [isLoadingCompany, setIsLoadingCompany] = useState(!!companyId);
   const [isCompanyInactive, setIsCompanyInactive] = useState(false);
+  const [partnerTheme, setPartnerTheme] = useState(null);
+
+  // パートナーテーマ情報を取得
+  useEffect(() => {
+    const fetchPartnerTheme = async () => {
+      const targetCompanyId = companyId || currentCompany?.id;
+      if (!targetCompanyId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('partner_affiliate_companies')
+          .select('partner_company:partner_company_id(primary_color, logo_light_url, logo_dark_url, logo_icon_url)')
+          .eq('companies_id', targetCompanyId)
+          .eq('is_deleted', false)
+          .single();
+
+        if (!error && data?.partner_company) {
+          console.log('🎨 Partner theme loaded:', data.partner_company);
+          setPartnerTheme(data.partner_company);
+        }
+      } catch (err) {
+        console.log('ℹ️ No partner theme found for company');
+      }
+    };
+
+    fetchPartnerTheme();
+  }, [companyId, currentCompany?.id]);
+
+  // テーマカラーからグラデーションを生成
+  const sidebarGradient = partnerTheme?.primary_color
+    ? `linear-gradient(135deg, ${partnerTheme.primary_color} 0%, ${partnerTheme.primary_color}cc 100%)`
+    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
 
   // フォーム作成時のハンドラー - URL遷移を行う
   const handleFormCreated = (formId) => {
@@ -226,7 +258,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+          background: sidebarGradient
         }}
       >
         <Card
@@ -235,7 +267,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             background: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             border: '1px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
+            boxShadow: `0 20px 60px ${partnerTheme?.primary_color ? partnerTheme.primary_color + '4d' : 'rgba(94, 23, 235, 0.3)'}`,
             borderRadius: 3,
             textAlign: 'center'
           }}
@@ -245,7 +277,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               size={50}
               thickness={4}
               sx={{
-                color: '#5e17eb',
+                color: partnerTheme?.primary_color || '#5e17eb',
                 mb: 2
               }}
             />
@@ -253,7 +285,9 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               variant="h6"
               sx={{
                 fontWeight: 600,
-                background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                background: partnerTheme?.primary_color
+                  ? `linear-gradient(45deg, ${partnerTheme.primary_color} 30%, ${partnerTheme.primary_color}cc 90%)`
+                  : 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -483,7 +517,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           '& .MuiDrawer-paper': {
             width: isNavCollapsed ? collapsedDrawerWidth : drawerWidth,
             boxSizing: 'border-box',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: sidebarGradient,
             border: 'none',
             boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)',
             borderRadius: 0,
@@ -509,19 +543,19 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         >
           {isNavCollapsed ? (
             <img
-              src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"
-              alt="OpenReview"
+              src={partnerTheme?.logo_icon_url || "https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"}
+              alt="Logo"
               style={{
                 width: '40px',
                 height: '40px',
                 objectFit: 'contain',
-                borderRadius: '50%'
+                borderRadius: partnerTheme?.logo_icon_url ? '8px' : '50%'
               }}
             />
           ) : (
             <img
-              src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png"
-              alt="OpenReview"
+              src={partnerTheme?.logo_dark_url || "https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png"}
+              alt="Logo"
               style={{
                 height: '40px',
                 width: 'auto',
