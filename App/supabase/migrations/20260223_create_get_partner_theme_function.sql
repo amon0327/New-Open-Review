@@ -21,3 +21,6 @@ AS $$
     AND pc.is_active = true
   LIMIT 1;
 $$;
+
+-- anon/authenticatedロールに実行権限を付与
+GRANT EXECUTE ON FUNCTION get_partner_theme(uuid) TO anon, authenticated;
