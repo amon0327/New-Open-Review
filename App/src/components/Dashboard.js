@@ -81,12 +81,16 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   const [isLoadingCompany, setIsLoadingCompany] = useState(!!companyId);
   const [isCompanyInactive, setIsCompanyInactive] = useState(false);
   const [partnerTheme, setPartnerTheme] = useState(null);
+  const [isThemeLoaded, setIsThemeLoaded] = useState(false);
 
   // パートナーテーマ情報を取得（RPC関数でRLSバイパス）
   useEffect(() => {
     const fetchPartnerTheme = async () => {
       const targetCompanyId = companyId || currentCompany?.id;
-      if (!targetCompanyId) return;
+      if (!targetCompanyId) {
+        setIsThemeLoaded(true);
+        return;
+      }
 
       try {
         const { data, error } = await supabase.rpc('get_partner_theme', {
@@ -99,6 +103,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         }
       } catch (err) {
         console.log('ℹ️ No partner theme found for company');
+      } finally {
+        setIsThemeLoaded(true);
       }
     };
 
@@ -546,7 +552,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
             minHeight: 88
           }}
         >
-          {isNavCollapsed ? (
+          {isThemeLoaded && (isNavCollapsed ? (
             <img
               src={partnerTheme?.logo_icon_url || "https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"}
               alt="Logo"
@@ -567,7 +573,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
                 objectFit: 'contain'
               }}
             />
-          )}
+          ))}
         </Box>
 
         {/* Navigation Items */}
