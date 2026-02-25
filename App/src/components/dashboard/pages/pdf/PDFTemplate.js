@@ -1464,10 +1464,12 @@ const DEFAULT_LOGO_ICON_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/
 const DEFAULT_LOGO_WITH_TEXT_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png';
 
 // パートナーテーマからロゴ・カラーを取得するヘルパー
+// react-pdfのImageはSVG非対応のため、SVG URLの場合はデフォルトPNGにフォールバック
+const isPngUrl = (url) => url && !url.endsWith('.svg');
 const getThemedLogos = (partnerTheme) => ({
-  logoUrl: partnerTheme?.logo_light_url || DEFAULT_LOGO_URL,
-  logoIconUrl: partnerTheme?.logo_icon_url || DEFAULT_LOGO_ICON_URL,
-  logoWithTextUrl: partnerTheme?.logo_dark_url || DEFAULT_LOGO_WITH_TEXT_URL,
+  logoUrl: (isPngUrl(partnerTheme?.logo_light_url) ? partnerTheme.logo_light_url : null) || DEFAULT_LOGO_URL,
+  logoIconUrl: (isPngUrl(partnerTheme?.logo_icon_url) ? partnerTheme.logo_icon_url : null) || DEFAULT_LOGO_ICON_URL,
+  logoWithTextUrl: (isPngUrl(partnerTheme?.logo_dark_url) ? partnerTheme.logo_dark_url : null) || DEFAULT_LOGO_WITH_TEXT_URL,
 });
 
 const getThemedPrimary = (partnerTheme) => partnerTheme?.primary_color || colors.primary;

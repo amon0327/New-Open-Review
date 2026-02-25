@@ -30,8 +30,10 @@ import {
 import { supabase } from '../../../lib/supabase';
 import toast from 'react-hot-toast';
 import CompanyInvitationForm from '../../CompanyInvitationForm';
+import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 
 export default function SettingsPage({ user, onLogout, companyId, companyName }) {
+  const theme = usePartnerTheme();
   // 管理メンバー関連の状態
   const [members, setMembers] = useState([]);
   const [invitations, setInvitations] = useState([]);
@@ -212,7 +214,7 @@ export default function SettingsPage({ user, onLogout, companyId, companyName })
                   width: 48,
                   height: 48,
                   borderRadius: 1,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: `linear-gradient(135deg, ${theme.accent} 0%, ${theme.secondary} 100%)`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
@@ -234,17 +236,17 @@ export default function SettingsPage({ user, onLogout, companyId, companyName })
               startIcon={<PersonAdd />}
               onClick={() => setShowInvitationDialog(true)}
               sx={{
-                background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.accent} 100%)`,
                 borderRadius: 1,
                 px: 3,
                 py: 1.5,
                 textTransform: 'none',
                 fontWeight: 600,
-                boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
+                boxShadow: `0 4px 20px ${theme.primaryAlpha30}`,
                 '&:hover': {
                   background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 30px rgba(94, 23, 235, 0.4)',
+                  boxShadow: `0 8px 30px ${theme.primaryAlpha40}`,
                 }
               }}
             >
@@ -265,11 +267,11 @@ export default function SettingsPage({ user, onLogout, companyId, companyName })
                 fontSize: '1rem',
                 minHeight: 60,
                 '&.Mui-selected': {
-                  color: '#5e17eb'
+                  color: theme.primary
                 }
               },
               '& .MuiTabs-indicator': {
-                backgroundColor: '#5e17eb',
+                backgroundColor: theme.primary,
                 height: 3
               }
             }}
@@ -318,7 +320,7 @@ export default function SettingsPage({ user, onLogout, companyId, companyName })
                             borderRadius: 1,
                             mb: 1,
                             '&:hover': {
-                              backgroundColor: 'rgba(94, 23, 235, 0.04)'
+                              backgroundColor: `${theme.primary}0a`
                             }
                           }}
                           secondaryAction={
@@ -337,7 +339,7 @@ export default function SettingsPage({ user, onLogout, companyId, companyName })
                           }
                         >
                           <ListItemAvatar>
-                            <Avatar sx={{ bgcolor: '#667eea' }}>
+                            <Avatar sx={{ bgcolor: theme.accent }}>
                               {member.business_users?.name?.charAt(0) || member.business_users?.email?.charAt(0)}
                             </Avatar>
                           </ListItemAvatar>
@@ -370,9 +372,9 @@ export default function SettingsPage({ user, onLogout, companyId, companyName })
                           sx={{
                             borderRadius: 1,
                             mb: 1,
-                            backgroundColor: 'rgba(94, 23, 235, 0.02)',
+                            backgroundColor: `${theme.primary}05`,
                             '&:hover': {
-                              backgroundColor: 'rgba(94, 23, 235, 0.06)'
+                              backgroundColor: `${theme.primary}0f`
                             }
                           }}
                           secondaryAction={
@@ -383,7 +385,7 @@ export default function SettingsPage({ user, onLogout, companyId, companyName })
                                 sx={{
                                   color: '#64748b',
                                   '&:hover': {
-                                    color: '#5e17eb'
+                                    color: theme.primary
                                   }
                                 }}
                               >

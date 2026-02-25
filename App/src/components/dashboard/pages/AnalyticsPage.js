@@ -12,6 +12,7 @@ import {
   Close
 } from '@mui/icons-material';
 import { supabase } from '../../../lib/supabase';
+import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../ui/card';
 import { Badge } from '../../ui/badge';
 import { Button } from '../../ui/button';
@@ -696,6 +697,7 @@ const TasksTab = ({ companyId, selectedStore, selectedPeriod }) => {
 
 // 店舗別タブの内容 - 超モダンなダッシュボード
 const StoreByStoreTab = ({ companyId }) => {
+  const theme = usePartnerTheme();
   const [activeSubTab, setActiveSubTab] = useState(0);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState('');
@@ -863,11 +865,11 @@ const StoreByStoreTab = ({ companyId }) => {
               px: 3,
               color: '#64748b',
               '&.Mui-selected': {
-                color: '#5e17eb'
+                color: theme.primary
               }
             },
             '& .MuiTabs-indicator': {
-              backgroundColor: '#5e17eb',
+              backgroundColor: theme.primary,
               height: 3
             }
           }}
@@ -4194,6 +4196,7 @@ const RealtimeTab = ({ companyId }) => {
 
 
 export default function AnalyticsPage({ onNavCollapse, companyId }) {
+  const theme = usePartnerTheme();
   const [activeTab, setActiveTab] = useState(0);
 
   // マウント時にサイドバーを縮める
@@ -4238,11 +4241,11 @@ export default function AnalyticsPage({ onNavCollapse, companyId }) {
               px: 3,
               color: '#64748b',
               '&.Mui-selected': {
-                color: '#5e17eb'
+                color: theme.primary
               }
             },
             '& .MuiTabs-indicator': {
-              backgroundColor: '#5e17eb',
+              backgroundColor: theme.primary,
               height: 3
             }
           }}

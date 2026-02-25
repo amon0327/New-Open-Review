@@ -42,8 +42,10 @@ import {
 } from '@mui/icons-material';
 import FormDataService from '../../../services/FormDataService';
 import { toast } from 'react-hot-toast';
+import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 
 export default function HomePage({ user, onCreateFormClick, onCreateForm, isCreatingForm }) {
+  const theme = usePartnerTheme();
   const navigate = useNavigate();
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -335,21 +337,21 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                 onClick={onCreateForm}
                 disabled={isCreatingForm}
                 sx={{
-                  background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                  background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.accent} 100%)`,
                   borderRadius: 3,
                   px: 3,
                   py: 1.5,
                   textTransform: 'none',
                   fontWeight: 600,
-                  boxShadow: '0 4px 20px rgba(94, 23, 235, 0.3)',
+                  boxShadow: `0 4px 20px ${theme.primaryAlpha30}`,
                   '&:hover': {
                     background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 30px rgba(94, 23, 235, 0.4)',
+                    boxShadow: `0 8px 30px ${theme.primaryAlpha40}`,
                   },
                   '&.Mui-disabled': {
                     opacity: 0.7,
-                    background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                    background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.accent} 100%)`,
                     color: 'white'
                   }
                 }}
@@ -481,21 +483,21 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                     onClick={onCreateForm}
                     disabled={isCreatingForm}
                     sx={{
-                      background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                      background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.accent} 100%)`,
                       borderRadius: 2,
                       px: 3,
                       py: 1,
                       textTransform: 'none',
                       fontWeight: 600,
-                      boxShadow: '0 3px 15px rgba(94, 23, 235, 0.3)',
+                      boxShadow: `0 3px 15px ${theme.primaryAlpha30}`,
                       '&:hover': {
                         background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
                         transform: 'translateY(-1px)',
-                        boxShadow: '0 5px 20px rgba(94, 23, 235, 0.4)',
+                        boxShadow: `0 5px 20px ${theme.primaryAlpha40}`,
                       },
                       '&.Mui-disabled': {
                         opacity: 0.7,
-                        background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                        background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.accent} 100%)`,
                         color: 'white'
                       }
                     }}
@@ -536,10 +538,10 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                             sx={{
                               color: '#9ca3af',
                               '&.Mui-checked': {
-                                color: '#5e17eb',
+                                color: theme.primary,
                               },
                               '&.MuiCheckbox-indeterminate': {
-                                color: '#5e17eb',
+                                color: theme.primary,
                               }
                             }}
                           />
@@ -548,7 +550,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                           sx={{ 
                             cursor: 'pointer', 
                             userSelect: 'none',
-                            '&:hover': { color: '#5e17eb' }
+                            '&:hover': { color: theme.primary }
                           }}
                           onClick={() => handleSort('title')}
                         >
@@ -564,7 +566,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                           sx={{ 
                             cursor: 'pointer', 
                             userSelect: 'none',
-                            '&:hover': { color: '#5e17eb' }
+                            '&:hover': { color: theme.primary }
                           }}
                           onClick={() => handleSort('status')}
                         >
@@ -580,7 +582,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                           sx={{ 
                             cursor: 'pointer', 
                             userSelect: 'none',
-                            '&:hover': { color: '#5e17eb' }
+                            '&:hover': { color: theme.primary }
                           }}
                           onClick={() => handleSort('questions')}
                         >
@@ -596,7 +598,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                           sx={{ 
                             cursor: 'pointer', 
                             userSelect: 'none',
-                            '&:hover': { color: '#5e17eb' }
+                            '&:hover': { color: theme.primary }
                           }}
                           onClick={() => handleSort('responses')}
                         >
@@ -612,7 +614,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                           sx={{ 
                             cursor: 'pointer', 
                             userSelect: 'none',
-                            '&:hover': { color: '#5e17eb' }
+                            '&:hover': { color: theme.primary }
                           }}
                           onClick={() => handleSort('updated_at')}
                         >
@@ -633,7 +635,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                           sx={{
                             cursor: 'pointer',
                             '&:hover': {
-                              backgroundColor: 'rgba(94, 23, 235, 0.02)'
+                              backgroundColor: `${theme.primary}05`
                             },
                             borderBottom: '1px solid rgba(0, 0, 0, 0.04)'
                           }}
@@ -646,7 +648,7 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                               sx={{
                                 color: '#9ca3af',
                                 '&.Mui-checked': {
-                                  color: '#5e17eb',
+                                  color: theme.primary,
                                 }
                               }}
                             />
@@ -701,8 +703,8 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
                               sx={{
                                 color: '#6b7280',
                                 '&:hover': {
-                                  backgroundColor: 'rgba(94, 23, 235, 0.08)',
-                                  color: '#5e17eb'
+                                  backgroundColor: `${theme.primary}14`,
+                                  color: theme.primary
                                 }
                               }}
                             >

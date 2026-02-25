@@ -33,7 +33,9 @@ import {
 import { supabase } from '../../../lib/supabase';
 import StoreRegistrationForm from '../../StoreRegistrationForm';
 import StoreDetailPage from './StoreDetailPage';
+import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 export default function StoresManagementPage() {
+  const theme = usePartnerTheme();
   const { companyId: urlCompanyId } = useParams(); // URLからcompanyIdを取得
 
   // デバッグ用ログ
@@ -240,12 +242,12 @@ export default function StoresManagementPage() {
         >
           <Box sx={{ mb: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Store sx={{ fontSize: 32, color: '#5e17eb', mr: 2 }} />
+              <Store sx={{ fontSize: 32, color: theme.primary, mr: 2 }} />
               <Typography
                 variant="h4"
                 sx={{
                   fontWeight: 700,
-                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                  background: `linear-gradient(45deg, ${theme.primary} 30%, ${theme.secondary} 90%)`,
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent'
@@ -264,11 +266,11 @@ export default function StoresManagementPage() {
               startIcon={<Add />}
               onClick={() => setShowRegistrationForm(true)}
               sx={{
-                background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
+                background: `linear-gradient(45deg, ${theme.primary} 30%, ${theme.secondary} 90%)`,
+                boxShadow: `0 4px 15px ${theme.primaryAlpha30}`,
                 '&:hover': {
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                  boxShadow: `0 6px 20px ${theme.primaryAlpha40}`,
                 }
               }}
             >
@@ -319,7 +321,7 @@ export default function StoresManagementPage() {
                   startIcon={<Add />}
                   onClick={() => setShowRegistrationForm(true)}
                   sx={{
-                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                    background: `linear-gradient(45deg, ${theme.primary} 30%, ${theme.secondary} 90%)`,
                   }}
                 >
                   新規店舗登録
@@ -352,7 +354,7 @@ export default function StoresManagementPage() {
                     <CardContent sx={{ p: 3 }}>
                       {/* 店舗名 */}
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, minHeight: 32 }}>
-                        <Store sx={{ color: '#5e17eb', mr: 1, flexShrink: 0 }} />
+                        <Store sx={{ color: theme.primary, mr: 1, flexShrink: 0 }} />
                         <Typography
                           variant="h6"
                           sx={{
@@ -393,8 +395,8 @@ export default function StoresManagementPage() {
                           label={`登録日: ${new Date(store.created_at).toLocaleDateString('ja-JP')}`}
                           size="small"
                           sx={{
-                            backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                            color: '#5e17eb',
+                            backgroundColor: theme.primaryAlpha10,
+                            color: theme.primary,
                             fontWeight: 500
                           }}
                         />
@@ -408,11 +410,11 @@ export default function StoresManagementPage() {
                           startIcon={<People />}
                           onClick={() => handleViewStoreDetail(store.id)}
                           sx={{
-                            color: '#5e17eb',
-                            borderColor: '#5e17eb',
+                            color: theme.primary,
+                            borderColor: theme.primary,
                             '&:hover': {
-                              borderColor: '#5e17eb',
-                              backgroundColor: 'rgba(94, 23, 235, 0.1)'
+                              borderColor: theme.primary,
+                              backgroundColor: theme.primaryAlpha10
                             }
                           }}
                         >
@@ -449,7 +451,7 @@ export default function StoresManagementPage() {
             position: 'fixed',
             bottom: 24,
             right: 24,
-            background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+            background: `linear-gradient(45deg, ${theme.primary} 30%, ${theme.secondary} 90%)`,
             '&:hover': {
               transform: 'scale(1.1)',
             }
@@ -475,7 +477,7 @@ export default function StoresManagementPage() {
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Store sx={{ color: '#5e17eb', mr: 2 }} />
+            <Store sx={{ color: theme.primary, mr: 2 }} />
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               新規店舗登録
             </Typography>

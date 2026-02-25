@@ -44,8 +44,10 @@ import {
 import { toast } from 'react-hot-toast';
 import QRCode from 'qrcode';
 import { supabase } from '../../../lib/supabase';
+import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 
 export default function FormPublishPage({ user, companyId: propCompanyId, companyName: propCompanyName }) {
+  const theme = usePartnerTheme();
   // 抽選設定を取得する関数（Edge Function経由・企業単位）
   const fetchLotterySettings = useCallback(async () => {
     try {
@@ -632,11 +634,11 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                   setShowPublicFormSettings(!showPublicFormSettings);
                 }}
                 sx={{
-                  color: showPublicFormSettings ? '#5e17eb' : '#94a3b8',
-                  bgcolor: showPublicFormSettings ? 'rgba(94, 23, 235, 0.08)' : 'transparent',
+                  color: showPublicFormSettings ? theme.primary : '#94a3b8',
+                  bgcolor: showPublicFormSettings ? `${theme.primary}14` : 'transparent',
                   '&:hover': {
-                    color: '#5e17eb',
-                    bgcolor: 'rgba(94, 23, 235, 0.08)'
+                    color: theme.primary,
+                    bgcolor: `${theme.primary}14`
                   }
                 }}
               >
@@ -753,7 +755,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                       onClick={savePublicFormSettings}
                       disabled={isSaving || !selectedPublicFormId}
                       sx={{
-                        background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                        background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.accent} 100%)`,
                         borderRadius: 0.5,
                         px: 2.5,
                         py: 0.75,
@@ -763,7 +765,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                         boxShadow: 'none',
                         '&:hover': {
                           background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-                          boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
+                          boxShadow: `0 2px 8px ${theme.primaryAlpha30}`,
                         },
                         '&:disabled': {
                           opacity: 0.7
@@ -885,11 +887,11 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
               <IconButton
                 onClick={() => setShowLotterySettings(!showLotterySettings)}
                 sx={{
-                  color: showLotterySettings ? '#5e17eb' : '#94a3b8',
-                  bgcolor: showLotterySettings ? 'rgba(94, 23, 235, 0.08)' : 'transparent',
+                  color: showLotterySettings ? theme.primary : '#94a3b8',
+                  bgcolor: showLotterySettings ? `${theme.primary}14` : 'transparent',
                   '&:hover': {
-                    color: '#5e17eb',
-                    bgcolor: 'rgba(94, 23, 235, 0.08)'
+                    color: theme.primary,
+                    bgcolor: `${theme.primary}14`
                   }
                 }}
               >
@@ -917,12 +919,12 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                           marks
                           sx={{
                             flex: 1,
-                            color: '#5e17eb',
+                            color: theme.primary,
                             '& .MuiSlider-thumb': {
                               width: 16,
                               height: 16,
                               '&:hover, &.Mui-focusVisible': {
-                                boxShadow: '0 0 0 8px rgba(94, 23, 235, 0.16)'
+                                boxShadow: `0 0 0 8px ${theme.primary}29`
                               }
                             },
                             '& .MuiSlider-track': {
@@ -1057,7 +1059,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                       onClick={saveLotterySettings}
                       disabled={isSavingLottery}
                       sx={{
-                        background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                        background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.accent} 100%)`,
                         borderRadius: 0.5,
                         px: 2.5,
                         py: 0.75,
@@ -1067,7 +1069,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                         boxShadow: 'none',
                         '&:hover': {
                           background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-                          boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
+                          boxShadow: `0 2px 8px ${theme.primaryAlpha30}`,
                         },
                         '&:disabled': {
                           opacity: 0.7
@@ -1171,11 +1173,11 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
               <IconButton
                 onClick={() => setShowLineMiniAppSettings(!showLineMiniAppSettings)}
                 sx={{
-                  color: showLineMiniAppSettings ? '#5e17eb' : '#94a3b8',
-                  bgcolor: showLineMiniAppSettings ? 'rgba(94, 23, 235, 0.08)' : 'transparent',
+                  color: showLineMiniAppSettings ? theme.primary : '#94a3b8',
+                  bgcolor: showLineMiniAppSettings ? `${theme.primary}14` : 'transparent',
                   '&:hover': {
-                    color: '#5e17eb',
-                    bgcolor: 'rgba(94, 23, 235, 0.08)'
+                    color: theme.primary,
+                    bgcolor: `${theme.primary}14`
                   }
                 }}
               >
@@ -1208,10 +1210,10 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                               borderColor: '#e5e7eb',
                             },
                             '&:hover fieldset': {
-                              borderColor: '#5e17eb',
+                              borderColor: theme.primary,
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: '#5e17eb',
+                              borderColor: theme.primary,
                             }
                           }
                         }}
@@ -1226,7 +1228,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                         onClick={saveLineMiniAppUrl}
                         disabled={isSavingLineMiniApp || !lineMiniAppUrl}
                         sx={{
-                          background: 'linear-gradient(135deg, #5e17eb 0%, #667eea 100%)',
+                          background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.accent} 100%)`,
                           borderRadius: 0.5,
                           px: 2.5,
                           py: 0.75,
@@ -1236,7 +1238,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                           boxShadow: 'none',
                           '&:hover': {
                             background: 'linear-gradient(135deg, #4c0dbf 0%, #5a6fd8 100%)',
-                            boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)',
+                            boxShadow: `0 2px 8px ${theme.primaryAlpha30}`,
                           },
                           '&:disabled': {
                             opacity: 0.7
@@ -1320,7 +1322,7 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                     key={store.id}
                     sx={{
                       '&:hover': {
-                        backgroundColor: 'rgba(94, 23, 235, 0.02)'
+                        backgroundColor: `${theme.primary}05`
                       },
                       '&:last-child td': {
                         border: 0
@@ -1465,9 +1467,9 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
                 fontWeight: 600,
                 fontSize: '0.8rem',
                 '&:hover': {
-                  borderColor: '#5e17eb',
-                  color: '#5e17eb',
-                  bgcolor: 'rgba(94, 23, 235, 0.04)'
+                  borderColor: theme.primary,
+                  color: theme.primary,
+                  bgcolor: `${theme.primary}0a`
                 }
               }}
             >

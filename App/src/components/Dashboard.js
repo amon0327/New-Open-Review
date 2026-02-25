@@ -44,6 +44,7 @@ import CompanySetup from './CompanySetup';
 import PartnerCompanySetup from './PartnerCompanySetup';
 import PartnerDashboard from './PartnerDashboard';
 import { supabase } from '../lib/supabase';
+import { PartnerThemeProvider, usePartnerTheme } from '../contexts/PartnerThemeContext';
 
 // 分離したページコンポーネントをインポート
 import HomePage from './dashboard/pages/HomePage';
@@ -111,20 +112,13 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     fetchPartnerTheme();
   }, [companyId, currentCompany?.id]);
 
-  // テーマカラー
+  // テーマカラー（Contextから派生）
+  const theme = usePartnerTheme();
   const themeColor = partnerTheme?.primary_color || '#5e17eb';
-  const sidebarGradient = partnerTheme?.primary_color
-    ? `linear-gradient(135deg, ${partnerTheme.primary_color} 0%, ${partnerTheme.primary_color}cc 100%)`
-    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-  const accentGradient = partnerTheme?.primary_color
-    ? `linear-gradient(45deg, ${partnerTheme.primary_color} 30%, ${partnerTheme.primary_color}cc 90%)`
-    : 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)';
-  const shadowColor = partnerTheme?.primary_color
-    ? `${partnerTheme.primary_color}4d`
-    : 'rgba(94, 23, 235, 0.3)';
-  const backdropColor = partnerTheme?.primary_color
-    ? `${partnerTheme.primary_color}1a`
-    : 'rgba(94, 23, 235, 0.1)';
+  const sidebarGradient = theme.sidebarGradient;
+  const accentGradient = theme.accentGradient;
+  const shadowColor = theme.primaryAlpha30;
+  const backdropColor = theme.primaryAlpha10;
 
   // フォーム作成時のハンドラー - URL遷移を行う
   const handleFormCreated = (formId) => {
@@ -443,6 +437,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   };
 
   return (
+    <PartnerThemeProvider partnerTheme={partnerTheme}>
     <FormCreator user={user} onCreateFormClick={handleFormCreated}>
       {({ onCreateForm, isCreatingForm }) => (
         <Box sx={{ display: 'flex', height: '100vh' }}>
@@ -805,5 +800,6 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
         </Box>
       )}
     </FormCreator>
+    </PartnerThemeProvider>
   );
 }
