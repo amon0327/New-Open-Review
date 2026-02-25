@@ -1458,10 +1458,19 @@ const styles = StyleSheet.create({
   },
 });
 
-// ロゴURL
-const LOGO_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
-const LOGO_ICON_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png';
-const LOGO_WITH_TEXT_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png';
+// デフォルトロゴURL
+const DEFAULT_LOGO_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+const DEFAULT_LOGO_ICON_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png';
+const DEFAULT_LOGO_WITH_TEXT_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png';
+
+// パートナーテーマからロゴ・カラーを取得するヘルパー
+const getThemedLogos = (partnerTheme) => ({
+  logoUrl: partnerTheme?.logo_light_url || DEFAULT_LOGO_URL,
+  logoIconUrl: partnerTheme?.logo_icon_url || DEFAULT_LOGO_ICON_URL,
+  logoWithTextUrl: partnerTheme?.logo_dark_url || DEFAULT_LOGO_WITH_TEXT_URL,
+});
+
+const getThemedPrimary = (partnerTheme) => partnerTheme?.primary_color || colors.primary;
 
 // KPIカードのカラー配列
 const KPI_COLORS = [colors.blue500, colors.emerald500, colors.amber500, colors.violet500];
@@ -1616,16 +1625,16 @@ const getTagsFromResultType = (resultType) => {
 /**
  * 表紙ページコンポーネント
  */
-const CoverPage = ({ report, storeName, companyName }) => {
+const CoverPage = ({ report, storeName, companyName, partnerTheme }) => {
   const formatYearMonth = (yearMonth) => {
     if (!yearMonth) return '';
     return yearMonth.replace('-', '/');
   };
 
   return (
-    <Page size="A4" orientation="landscape" style={styles.coverPage}>
+    <Page size="A4" orientation="landscape" style={[styles.coverPage, { backgroundColor: getThemedPrimary(partnerTheme) }]}>
       <View style={styles.coverLogoContainer}>
-        <Image src={LOGO_WITH_TEXT_URL} style={styles.coverLogoWithText} />
+        <Image src={getThemedLogos(partnerTheme).logoWithTextUrl} style={styles.coverLogoWithText} />
       </View>
 
       <Text style={{ fontSize: 32, color: colors.white, fontWeight: 'bold', lineHeight: 1.3, letterSpacing: -0.5, marginBottom: 16 }}>
@@ -1703,27 +1712,31 @@ const TaskIcon = () => (
 /**
  * セクションヘッダーコンポーネント
  */
-const SectionHeader = ({ title, pageNumber }) => (
-  <View style={styles.sectionHeader}>
-    <View style={styles.sectionHeaderTop}>
-      <View style={styles.sectionHeaderLeft}>
-        <Image src={LOGO_ICON_URL} style={styles.sectionHeaderIcon} />
-        <Text style={styles.sectionHeaderTitle}>{title}</Text>
+const SectionHeader = ({ title, pageNumber, partnerTheme }) => {
+  const primary = getThemedPrimary(partnerTheme);
+  const logos = getThemedLogos(partnerTheme);
+  return (
+    <View style={styles.sectionHeader}>
+      <View style={styles.sectionHeaderTop}>
+        <View style={styles.sectionHeaderLeft}>
+          <Image src={logos.logoIconUrl} style={styles.sectionHeaderIcon} />
+          <Text style={[styles.sectionHeaderTitle, { color: primary }]}>{title}</Text>
+        </View>
+        {pageNumber && <Text style={styles.sectionHeaderPageNumber}>{pageNumber}</Text>}
       </View>
-      {pageNumber && <Text style={styles.sectionHeaderPageNumber}>{pageNumber}</Text>}
+      <View style={[styles.sectionHeaderLine, { backgroundColor: primary }]} />
     </View>
-    <View style={styles.sectionHeaderLine} />
-  </View>
-);
+  );
+};
 
 /**
  * ページコメントバーコンポーネント
  */
-const PageComment = ({ comment }) => {
+const PageComment = ({ comment, partnerTheme }) => {
   if (!comment) return null;
   return (
     <View style={styles.pageCommentBarWrapper}>
-      <View style={styles.pageCommentBar}>
+      <View style={[styles.pageCommentBar, { backgroundColor: getThemedPrimary(partnerTheme) }]}>
         <Text style={styles.pageCommentText}>{comment}</Text>
       </View>
     </View>
@@ -1754,8 +1767,8 @@ const KPICard = ({ title, metric, delta, deltaType, color }) => {
 /**
  * コンテンツページコンポーネント（ボーダー枠デザイン）
  */
-const ContentPage = ({ title, children }) => (
-  <Page size="A4" orientation="landscape" style={styles.contentPageOuter}>
+const ContentPage = ({ title, children, partnerTheme }) => (
+  <Page size="A4" orientation="landscape" style={[styles.contentPageOuter, { backgroundColor: getThemedPrimary(partnerTheme) }]}>
     <View style={styles.contentPageInner}>
       {/* ページタイトル（中央配置） */}
       {title && <Text style={styles.pageTitle}>{title}</Text>}
@@ -1812,7 +1825,7 @@ const NPSDistributionCard = ({ npsDistribution }) => {
 /**
  * NPSトレンドチャートコンポーネント
  */
-const NPSTrendChart = ({ monthlyPerformance }) => {
+const NPSTrendChart = ({ monthlyPerformance, partnerTheme }) => {
   const data = monthlyPerformance || [];
 
   if (data.length === 0) {
@@ -1874,16 +1887,16 @@ const NPSTrendChart = ({ monthlyPerformance }) => {
       <View style={styles.trendChartContainer}>
         <Svg width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
           {/* エリア塗りつぶし */}
-          <Path d={areaPath} fill={colors.primary} fillOpacity={0.15} />
+          <Path d={areaPath} fill={getThemedPrimary(partnerTheme)} fillOpacity={0.15} />
           {/* 折れ線 */}
-          <Path d={linePath} stroke={colors.primary} strokeWidth={2.5} fill="none" />
+          <Path d={linePath} stroke={getThemedPrimary(partnerTheme)} strokeWidth={2.5} fill="none" />
           {/* ポイント */}
           {points.map((p, i) => (
             <React.Fragment key={i}>
               <Path
                 d={`M ${p.x - 4} ${p.y} a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0`}
                 fill={colors.white}
-                stroke={colors.primary}
+                stroke={getThemedPrimary(partnerTheme)}
                 strokeWidth={2}
               />
             </React.Fragment>
@@ -1904,7 +1917,7 @@ const NPSTrendChart = ({ monthlyPerformance }) => {
 /**
  * 概要ページコンポーネント（KPIカード3枚 + チャート2枚）
  */
-const OverviewPage = ({ reportData, pageNumber, comment }) => {
+const OverviewPage = ({ reportData, pageNumber, comment, partnerTheme }) => {
   // KPIデータを取得（reportData.overviewから）
   const overview = reportData?.overview || {};
   const kpi = overview.kpi || {
@@ -1949,9 +1962,9 @@ const OverviewPage = ({ reportData, pageNumber, comment }) => {
   ];
 
   return (
-    <ContentPage>
+    <ContentPage partnerTheme={partnerTheme}>
       {/* セクションヘッダー */}
-      <SectionHeader title="概要" pageNumber={pageNumber} />
+      <SectionHeader partnerTheme={partnerTheme} title="概要" pageNumber={pageNumber} />
 
       {/* KPIカード（3枚） */}
       <View style={styles.kpiGrid}>
@@ -1970,11 +1983,11 @@ const OverviewPage = ({ reportData, pageNumber, comment }) => {
       {/* チャートセクション（2枚） */}
       <View style={styles.chartSection}>
         <NPSDistributionCard npsDistribution={npsDistribution} />
-        <NPSTrendChart monthlyPerformance={monthlyPerformance} />
+        <NPSTrendChart monthlyPerformance={monthlyPerformance} partnerTheme={partnerTheme} />
       </View>
 
       {/* コメント */}
-      <PageComment comment={comment} />
+      <PageComment comment={comment} partnerTheme={partnerTheme} />
     </ContentPage>
   );
 };
@@ -2131,7 +2144,7 @@ const SegmentTable = ({ segments }) => {
 /**
  * 売上影響ページコンポーネント（3ページ目）
  */
-const SalesImpactPage = ({ reportData, pageNumber, comment }) => {
+const SalesImpactPage = ({ reportData, pageNumber, comment, partnerTheme }) => {
   // カテゴリーデータ
   const categoryData = reportData?.salesImpact?.categoryData || {
     newChurn: { count: 0 },
@@ -2162,9 +2175,9 @@ const SalesImpactPage = ({ reportData, pageNumber, comment }) => {
   ];
 
   return (
-    <ContentPage>
+    <ContentPage partnerTheme={partnerTheme}>
       {/* セクションヘッダー */}
-      <SectionHeader title="売上影響" pageNumber={pageNumber} />
+      <SectionHeader partnerTheme={partnerTheme} title="売上影響" pageNumber={pageNumber} />
 
       {/* 顧客カテゴリーカード（4枚） */}
       <View style={styles.categoryCardGrid}>
@@ -2184,7 +2197,7 @@ const SalesImpactPage = ({ reportData, pageNumber, comment }) => {
       <SegmentTable segments={segments} />
 
       {/* コメント */}
-      <PageComment comment={comment} />
+      <PageComment comment={comment} partnerTheme={partnerTheme} />
     </ContentPage>
   );
 };
@@ -2484,7 +2497,7 @@ const QSCDetailItem = ({ label, positive, neutral, negative }) => (
 /**
  * QSC詳細ページコンポーネント（5ページ目：Quality）
  */
-const QSCDetailPage = ({ reportData, category, pageNumber }) => {
+const QSCDetailPage = ({ reportData, category, pageNumber, partnerTheme }) => {
   // QSCスコアデータ
   const qscScores = reportData?.storeEvaluation?.qscScores || {
     Q: { label: 'クオリティ', score: 0, trend: 0, color: 'violet' },
@@ -2616,9 +2629,9 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
   const rightItems = items.slice(5, 10);
 
   return (
-    <ContentPage>
+    <ContentPage partnerTheme={partnerTheme}>
       {/* セクションヘッダー */}
-      <SectionHeader title="店舗評価" pageNumber={pageNumber} />
+      <SectionHeader partnerTheme={partnerTheme} title="店舗評価" pageNumber={pageNumber} />
 
       {/* 上部セクション：左（タイトル＋説明）、右（ミニスコアカード） */}
       <View style={styles.qscDetailPageHeader}>
@@ -2680,7 +2693,7 @@ const QSCDetailPage = ({ reportData, category, pageNumber }) => {
 /**
  * 顧客傾向ページコンポーネント
  */
-const CustomerTrendsPage = ({ reportData, pageNumber }) => {
+const CustomerTrendsPage = ({ reportData, pageNumber, partnerTheme }) => {
   // 顧客傾向データ
   const customerTrends = reportData?.customerTrends || {};
   const genderDistribution = customerTrends.genderDistribution || [];
@@ -2738,9 +2751,9 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
   };
 
   return (
-    <ContentPage>
+    <ContentPage partnerTheme={partnerTheme}>
       {/* セクションヘッダー */}
-      <SectionHeader title="顧客傾向" pageNumber={pageNumber} />
+      <SectionHeader partnerTheme={partnerTheme} title="顧客傾向" pageNumber={pageNumber} />
 
       {/* 上段: 性別比率 + 顧客タイプ（半円ゲージ） */}
       <View style={styles.customerTrendsTopRow}>
@@ -2844,7 +2857,7 @@ const CustomerTrendsPage = ({ reportData, pageNumber }) => {
 /**
  * 顧客の重視ポイントページコンポーネント
  */
-const CustomerPriorityPage = ({ reportData, pageNumber }) => {
+const CustomerPriorityPage = ({ reportData, pageNumber, partnerTheme }) => {
   const customerTrends = reportData?.customerTrends || {};
   const radarData = customerTrends.radarData || [];
 
@@ -2958,8 +2971,8 @@ const CustomerPriorityPage = ({ reportData, pageNumber }) => {
   };
 
   return (
-    <ContentPage>
-      <SectionHeader title="顧客の重視ポイント" pageNumber={pageNumber} />
+    <ContentPage partnerTheme={partnerTheme}>
+      <SectionHeader partnerTheme={partnerTheme} title="顧客の重視ポイント" pageNumber={pageNumber} />
 
       <View style={styles.priorityColumnsContainer}>
         {/* 全体の評価 */}
@@ -3020,7 +3033,7 @@ const CustomerPriorityPage = ({ reportData, pageNumber }) => {
 /**
  * 店舗評価ページコンポーネント（未使用）
  */
-const StoreEvaluationPage = ({ reportData, pageNumber }) => {
+const StoreEvaluationPage = ({ reportData, pageNumber, partnerTheme }) => {
   // QSCスコアデータ
   const qscScores = reportData?.storeEvaluation?.qscScores || {
     Q: { label: 'クオリティ', score: 0, trend: 0, color: 'violet' },
@@ -3029,9 +3042,9 @@ const StoreEvaluationPage = ({ reportData, pageNumber }) => {
   };
 
   return (
-    <ContentPage>
+    <ContentPage partnerTheme={partnerTheme}>
       {/* セクションヘッダー */}
-      <SectionHeader title="店舗評価" pageNumber={pageNumber} />
+      <SectionHeader partnerTheme={partnerTheme} title="店舗評価" pageNumber={pageNumber} />
 
       {/* QSCカード（3枚） */}
       <View style={styles.qscCardGrid}>
@@ -3053,7 +3066,7 @@ const StoreEvaluationPage = ({ reportData, pageNumber }) => {
 /**
  * 店舗別インサイトページ（カード一覧）
  */
-const StoreInsightCardsPage = ({ reportData, pageNumber }) => {
+const StoreInsightCardsPage = ({ reportData, pageNumber, partnerTheme }) => {
   const segments = reportData?.salesImpact?.segments || [];
 
   const issueSegments = segments
@@ -3066,8 +3079,8 @@ const StoreInsightCardsPage = ({ reportData, pageNumber }) => {
     .slice(0, 3);
 
   return (
-    <ContentPage>
-      <SectionHeader title="店舗別インサイト" pageNumber={pageNumber} />
+    <ContentPage partnerTheme={partnerTheme}>
+      <SectionHeader partnerTheme={partnerTheme} title="店舗別インサイト" pageNumber={pageNumber} />
 
       {issueSegments.length > 0 ? (
         <View style={styles.insightCardGrid}>
@@ -3117,15 +3130,15 @@ const StoreInsightCardsPage = ({ reportData, pageNumber }) => {
 /**
  * インサイト詳細ページ パターンA（顧客の声）
  */
-const InsightDetailVoicePage = ({ insight, pageNumber }) => {
+const InsightDetailVoicePage = ({ insight, pageNumber, partnerTheme }) => {
   if (!insight) return null;
 
   const { categoryTag, npsTag } = getTagsFromResultType(insight.result_type);
   const points = [insight.point_1, insight.point_2, insight.point_3].filter(Boolean);
 
   return (
-    <ContentPage>
-      <SectionHeader title="課題" pageNumber={pageNumber} />
+    <ContentPage partnerTheme={partnerTheme}>
+      <SectionHeader partnerTheme={partnerTheme} title="課題" pageNumber={pageNumber} />
 
       {/* タグ行 */}
       {categoryTag && npsTag && (
@@ -3150,12 +3163,12 @@ const InsightDetailVoicePage = ({ insight, pageNumber }) => {
 
       {/* 顧客の声 コールアウト */}
       {insight.comment && (
-        <View style={styles.voiceCallout}>
+        <View style={[styles.voiceCallout, { borderColor: getThemedPrimary(partnerTheme) }]}>
           <View style={styles.voiceCalloutIconWrap}>
             <Svg width={22} height={22} viewBox="0 0 24 24">
               <Path
                 d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-                stroke={colors.primary}
+                stroke={getThemedPrimary(partnerTheme)}
                 strokeWidth={2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -3195,7 +3208,7 @@ const InsightDetailVoicePage = ({ insight, pageNumber }) => {
 /**
  * インサイト詳細ページ パターンB（評価バーチャート）
  */
-const InsightDetailChartPage = ({ insight, pageNumber }) => {
+const InsightDetailChartPage = ({ insight, pageNumber, partnerTheme }) => {
   if (!insight) return null;
 
   const { categoryTag, npsTag } = getTagsFromResultType(insight.result_type);
@@ -3209,8 +3222,8 @@ const InsightDetailChartPage = ({ insight, pageNumber }) => {
   const prevNeu = Math.max(0, 100 - prevPos - prevNeg);
 
   return (
-    <ContentPage>
-      <SectionHeader title="課題" pageNumber={pageNumber} />
+    <ContentPage partnerTheme={partnerTheme}>
+      <SectionHeader partnerTheme={partnerTheme} title="課題" pageNumber={pageNumber} />
 
       {/* タグ行 */}
       {categoryTag && npsTag && (
@@ -3310,7 +3323,7 @@ const InsightDetailChartPage = ({ insight, pageNumber }) => {
 /**
  * PDFドキュメントコンポーネント
  */
-export const PDFDocument = ({ report, reportData, storeName, companyName = '' }) => {
+export const PDFDocument = ({ report, reportData, storeName, companyName = '', partnerTheme = null }) => {
   // インサイトデータを取得（最大3件）
   const insights = reportData?.insights || [];
   let insightPageNumber = 0;
@@ -3322,6 +3335,7 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       report={report}
       storeName={storeName}
       companyName={companyName}
+      partnerTheme={partnerTheme}
     />
 
     {/* インサイト詳細ページ（動的） */}
@@ -3333,6 +3347,7 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
             key={insight.id || idx}
             insight={insight}
             pageNumber={insightPageNumber}
+            partnerTheme={partnerTheme}
           />
         );
       }
@@ -3342,6 +3357,7 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
           key={insight.id || idx}
           insight={insight}
           pageNumber={insightPageNumber}
+          partnerTheme={partnerTheme}
         />
       );
     })}
@@ -3351,6 +3367,7 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       reportData={reportData}
       pageNumber={insightPageNumber + 1}
       comment={reportData?.aiText?.overview || reportData?.overview?.comment || '先月と比較してNPSスコアが改善傾向にあります。リピート率も安定しており、顧客満足度の向上が見られます。'}
+      partnerTheme={partnerTheme}
     />
 
     {/* 売上影響ページ */}
@@ -3358,6 +3375,7 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       reportData={reportData}
       pageNumber={insightPageNumber + 2}
       comment={reportData?.aiText?.sales_impact || reportData?.salesImpact?.comment || '新規顧客のリピーター転換率が先月より向上しています。一方でリピーター離脱の割合も微増しているため、既存顧客へのフォローアップ施策の検討をお勧めします。'}
+      partnerTheme={partnerTheme}
     />
 
     {/* Quality詳細ページ */}
@@ -3365,6 +3383,7 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       reportData={reportData}
       category="Q"
       pageNumber={insightPageNumber + 3}
+      partnerTheme={partnerTheme}
     />
 
     {/* Service詳細ページ */}
@@ -3372,6 +3391,7 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       reportData={reportData}
       category="S"
       pageNumber={insightPageNumber + 4}
+      partnerTheme={partnerTheme}
     />
 
     {/* Cleanliness詳細ページ */}
@@ -3379,18 +3399,21 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
       reportData={reportData}
       category="C"
       pageNumber={insightPageNumber + 5}
+      partnerTheme={partnerTheme}
     />
 
     {/* 顧客傾向ページ */}
     <CustomerTrendsPage
       reportData={reportData}
       pageNumber={insightPageNumber + 6}
+      partnerTheme={partnerTheme}
     />
 
     {/* 顧客の重視ポイントページ */}
     <CustomerPriorityPage
       reportData={reportData}
       pageNumber={insightPageNumber + 7}
+      partnerTheme={partnerTheme}
     />
   </Document>
   );
@@ -3399,13 +3422,14 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '' })
 /**
  * PDFをBlobとして生成
  */
-export const generatePDFBlob = async (report, reportData, storeName, companyName = '') => {
+export const generatePDFBlob = async (report, reportData, storeName, companyName = '', partnerTheme = null) => {
   const blob = await pdf(
     <PDFDocument
       report={report}
       reportData={reportData}
       storeName={storeName}
       companyName={companyName}
+      partnerTheme={partnerTheme}
     />
   ).toBlob();
   return blob;
@@ -3414,8 +3438,8 @@ export const generatePDFBlob = async (report, reportData, storeName, companyName
 /**
  * PDFをダウンロード
  */
-export const downloadPDF = async (report, reportData, storeName, companyName = '') => {
-  const blob = await generatePDFBlob(report, reportData, storeName, companyName);
+export const downloadPDF = async (report, reportData, storeName, companyName = '', partnerTheme = null) => {
+  const blob = await generatePDFBlob(report, reportData, storeName, companyName, partnerTheme);
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;

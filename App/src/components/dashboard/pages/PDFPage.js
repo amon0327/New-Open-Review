@@ -25,7 +25,7 @@ import {
 // PDFテンプレートコンポーネントをインポート
 import { PDFDocument, downloadPDF, generatePDFBlob } from './pdf/PDFTemplate';
 
-export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) {
+export default function PDFPage({ onNavCollapse, companyId, companyName = '', partnerTheme = null }) {
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState('');
   const [reports, setReports] = useState([]);
@@ -181,7 +181,7 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
     setPdfError(null);
 
     try {
-      const blob = await generatePDFBlob(report, data, storeName, companyName);
+      const blob = await generatePDFBlob(report, data, storeName, companyName, partnerTheme);
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
     } catch (error) {
@@ -220,7 +220,7 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '' }) 
       const data = reportData || await fetchReportData(report.yearMonth);
       if (data) {
         const storeName = getStoreName();
-        await downloadPDF(report, data, storeName, companyName);
+        await downloadPDF(report, data, storeName, companyName, partnerTheme);
       }
     } catch (error) {
       console.error('PDF生成エラー:', error);
