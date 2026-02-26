@@ -243,6 +243,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   // パートナーテーマ
   const [partnerTheme, setPartnerTheme] = useState(null);
+  const [isThemeLoaded, setIsThemeLoaded] = useState(false);
 
   useEffect(() => {
     const fetchPartnerTheme = async () => {
@@ -294,6 +295,8 @@ export default function CreatePage({ onBackClick, user, formId }) {
         }
       } catch (err) {
         console.log('ℹ️ No partner theme found:', err);
+      } finally {
+        setIsThemeLoaded(true);
       }
     };
     fetchPartnerTheme();
@@ -2050,7 +2053,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
   };
 
   return (
-    <PartnerThemeProvider partnerTheme={partnerTheme}>
+    <PartnerThemeProvider partnerTheme={partnerTheme} isThemeLoaded={isThemeLoaded}>
     <Box
       className={`main-container ${showSettings ? 'settings-active' : ''}`}
       sx={{

@@ -53,7 +53,7 @@ const LeftNavigationBar = ({
       sx={{
         width: 80,
         height: '100vh',
-        background: theme.secondaryGradient,
+        background: theme.isThemeLoaded ? theme.secondaryGradient : '#ffffff',
         borderRadius: 0,
         display: 'flex',
         flexDirection: 'column',
@@ -94,36 +94,39 @@ const LeftNavigationBar = ({
               }}
             >
               {item.isLogo ? (
-                <Box
-                  component="img"
-                  src={theme.logoIcon || "https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"}
-                  alt="Logo"
-                  sx={{
-                    width: 44,
-                    height: 44,
-                    objectFit: 'contain',
-                    borderRadius: theme.logoIcon ? '8px' : '50%'
-                  }}
-                  onError={(e) => {
-                    // 画像読み込みエラー時のフォールバック
-                    e.target.style.display = 'none';
-                    e.target.parentNode.innerHTML = `
-                      <div style="
-                        width: 44px; 
-                        height: 44px; 
-                        border-radius: 4px; 
-                        background: rgba(255, 255, 255, 0.2); 
-                        display: flex; 
-                        align-items: center; 
-                        justify-content: center;
-                        backdrop-filter: blur(10px);
-                        color: white;
-                        font-weight: bold;
-                        font-size: 0.8rem;
-                      ">OR</div>
-                    `;
-                  }}
-                />
+                theme.isThemeLoaded ? (
+                  <Box
+                    component="img"
+                    src={theme.logoIcon || "https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"}
+                    alt="Logo"
+                    sx={{
+                      width: 44,
+                      height: 44,
+                      objectFit: 'contain',
+                      borderRadius: theme.logoIcon ? '8px' : '50%'
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.parentNode.innerHTML = `
+                        <div style="
+                          width: 44px;
+                          height: 44px;
+                          border-radius: 4px;
+                          background: rgba(255, 255, 255, 0.2);
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          backdrop-filter: blur(10px);
+                          color: white;
+                          font-weight: bold;
+                          font-size: 0.8rem;
+                        ">OR</div>
+                      `;
+                    }}
+                  />
+                ) : (
+                  <Box sx={{ width: 44, height: 44 }} />
+                )
               ) : (
                 React.cloneElement(item.icon, { sx: { fontSize: '2rem' } })
               )}

@@ -55,8 +55,8 @@ const buildThemeColors = (partnerTheme) => {
   };
 };
 
-export const PartnerThemeProvider = ({ partnerTheme, children }) => {
-  const theme = buildThemeColors(partnerTheme);
+export const PartnerThemeProvider = ({ partnerTheme, isThemeLoaded = true, children }) => {
+  const theme = { ...buildThemeColors(partnerTheme), isThemeLoaded };
   return (
     <PartnerThemeContext.Provider value={theme}>
       {children}
@@ -67,7 +67,7 @@ export const PartnerThemeProvider = ({ partnerTheme, children }) => {
 export const usePartnerTheme = () => {
   const theme = useContext(PartnerThemeContext);
   // Context外でも動作するようデフォルト値を返す
-  if (!theme) return buildThemeColors(null);
+  if (!theme) return { ...buildThemeColors(null), isThemeLoaded: true };
   return theme;
 };
 
