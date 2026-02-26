@@ -55,7 +55,9 @@ import {
   CloudUpload as CloudUploadIcon,
   Image as ImageIcon,
   LightMode,
-  DarkMode
+  DarkMode,
+  Schedule,
+  Cancel
 } from '@mui/icons-material';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { ChromePicker } from 'react-color';
@@ -122,7 +124,8 @@ export default function PartnerDashboard({ user, onLogout }) {
             phone_number,
             email,
             created_at,
-            is_active
+            is_active,
+            deactivation_scheduled_at
           )
         `)
         .eq('partner_company_id', partnerMembership.partner_company_id)
@@ -258,9 +261,10 @@ export default function PartnerDashboard({ user, onLogout }) {
   const handleToggleCompanyActive = async (companyId, currentIsActive) => {
     try {
       const newIsActive = !currentIsActive;
+      // 手動切り替え時はスケジュールもクリア
       const { error } = await supabase
         .from('companies')
-        .update({ is_active: newIsActive })
+        .update({ is_active: newIsActive, deactivation_scheduled_at: null })
         .eq('id', companyId);
 
       if (error) {
@@ -271,7 +275,7 @@ export default function PartnerDashboard({ user, onLogout }) {
 
       toast.success(newIsActive ? '企業をアクティブにしました' : '企業を非アクティブにしました');
       // ローカルステートを更新
-      setCompanies(prev => prev.map(c => c.id === companyId ? { ...c, is_active: newIsActive } : c));
+      setCompanies(prev => prev.map(c => c.id === companyId ? { ...c, is_active: newIsActive, deactivation_scheduled_at: null } : c));
     } catch (error) {
       console.error('企業ステータス更新エラー:', error);
       toast.error('企業ステータスの更新に失敗しました');
@@ -291,6 +295,80 @@ export default function PartnerDashboard({ user, onLogout }) {
   const handleCloseCardMenu = () => {
     setCardMenuAnchor(null);
     setCardMenuCompany(null);
+  };
+
+  // 非アクティブ化スケジュールダイアログ
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [scheduleCompany, setScheduleCompany] = useState(null);
+  const [scheduleDateTime, setScheduleDateTime] = useState('');
+
+  const handleOpenScheduleDialog = (company) => {
+    setScheduleCompany(company);
+    // デフォルトを1時間後に設定
+    const defaultDate = new Date(Date.now() + 60 * 60 * 1000);
+    const offset = defaultDate.getTimezoneOffset();
+    const local = new Date(defaultDate.getTime() - offset * 60 * 1000);
+    setScheduleDateTime(local.toISOString().slice(0, 16));
+    setScheduleDialogOpen(true);
+  };
+
+  const handleCloseScheduleDialog = () => {
+    setScheduleDialogOpen(false);
+    setScheduleCompany(null);
+    setScheduleDateTime('');
+  };
+
+  const handleSetSchedule = async () => {
+    if (!scheduleCompany || !scheduleDateTime) return;
+    const scheduledAt = new Date(scheduleDateTime);
+    if (scheduledAt <= new Date()) {
+      toast.error('未来の日時を指定してください');
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ deactivation_scheduled_at: scheduledAt.toISOString() })
+        .eq('id', scheduleCompany.id);
+
+      if (error) {
+        console.error('スケジュール設定エラー:', error);
+        toast.error('スケジュールの設定に失敗しました');
+        return;
+      }
+
+      toast.success('非アクティブ化をスケジュールしました');
+      setCompanies(prev => prev.map(c =>
+        c.id === scheduleCompany.id ? { ...c, deactivation_scheduled_at: scheduledAt.toISOString() } : c
+      ));
+      handleCloseScheduleDialog();
+    } catch (error) {
+      console.error('スケジュール設定エラー:', error);
+      toast.error('スケジュールの設定に失敗しました');
+    }
+  };
+
+  const handleCancelSchedule = async (companyId) => {
+    try {
+      const { error } = await supabase
+        .from('companies')
+        .update({ deactivation_scheduled_at: null })
+        .eq('id', companyId);
+
+      if (error) {
+        console.error('スケジュールキャンセルエラー:', error);
+        toast.error('スケジュールのキャンセルに失敗しました');
+        return;
+      }
+
+      toast.success('非アクティブ化スケジュールをキャンセルしました');
+      setCompanies(prev => prev.map(c =>
+        c.id === companyId ? { ...c, deactivation_scheduled_at: null } : c
+      ));
+    } catch (error) {
+      console.error('スケジュールキャンセルエラー:', error);
+      toast.error('スケジュールのキャンセルに失敗しました');
+    }
   };
 
   // 企業編集ダイアログ
@@ -832,6 +910,30 @@ export default function PartnerDashboard({ user, onLogout }) {
                                   color: '#ef4444',
                                   fontSize: '0.75rem',
                                   fontWeight: 600
+                                }}
+                              />
+                            )}
+                            {company.deactivation_scheduled_at && company.is_active !== false && (
+                              <Chip
+                                icon={<Schedule sx={{ fontSize: 14 }} />}
+                                label={`${new Date(company.deactivation_scheduled_at).toLocaleString('ja-JP', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} に停止`}
+                                size="small"
+                                onDelete={(e) => {
+                                  e.stopPropagation();
+                                  handleCancelSchedule(company.id);
+                                }}
+                                deleteIcon={<Cancel sx={{ fontSize: 16 }} />}
+                                onClick={(e) => e.stopPropagation()}
+                                sx={{
+                                  bgcolor: '#fffbeb',
+                                  color: '#d97706',
+                                  fontSize: '0.7rem',
+                                  fontWeight: 600,
+                                  '& .MuiChip-icon': { color: '#d97706' },
+                                  '& .MuiChip-deleteIcon': {
+                                    color: '#d97706',
+                                    '&:hover': { color: '#b45309' }
+                                  }
                                 }}
                               />
                             )}
@@ -1397,6 +1499,19 @@ export default function PartnerDashboard({ user, onLogout }) {
           <EditIcon sx={{ fontSize: 20, color: '#64748b' }} />
           編集
         </MenuItem>
+        {cardMenuCompany?.is_active !== false && (
+          <MenuItem
+            onClick={() => {
+              const company = cardMenuCompany;
+              handleCloseCardMenu();
+              if (company) handleOpenScheduleDialog(company);
+            }}
+            sx={{ gap: 1.5, py: 1.5 }}
+          >
+            <Schedule sx={{ fontSize: 20, color: '#f59e0b' }} />
+            非アクティブ化スケジュール
+          </MenuItem>
+        )}
         <Divider />
         <MenuItem
           onClick={() => {
@@ -1506,6 +1621,54 @@ export default function PartnerDashboard({ user, onLogout }) {
             }}
           >
             削除する
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 非アクティブ化スケジュールダイアログ */}
+      <Dialog
+        open={scheduleDialogOpen}
+        onClose={handleCloseScheduleDialog}
+        PaperProps={{
+          sx: { borderRadius: 2, minWidth: 420, p: 1 }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
+          非アクティブ化スケジュール
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: '#475569', mb: 2 }}>
+            <strong>{scheduleCompany?.name}</strong> を指定日時に自動で非アクティブにします。
+          </DialogContentText>
+          <TextField
+            label="非アクティブ化日時"
+            type="datetime-local"
+            value={scheduleDateTime}
+            onChange={(e) => setScheduleDateTime(e.target.value)}
+            fullWidth
+            size="small"
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ min: new Date().toISOString().slice(0, 16) }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+          <Button
+            onClick={handleCloseScheduleDialog}
+            sx={{ color: '#64748b', borderRadius: 2 }}
+          >
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleSetSchedule}
+            variant="contained"
+            disabled={!scheduleDateTime}
+            sx={{
+              background: 'linear-gradient(45deg, #f59e0b 30%, #d97706 90%)',
+              borderRadius: 2,
+              '&:hover': { background: 'linear-gradient(45deg, #d97706 30%, #b45309 90%)' }
+            }}
+          >
+            スケジュール設定
           </Button>
         </DialogActions>
       </Dialog>
