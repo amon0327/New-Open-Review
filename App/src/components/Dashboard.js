@@ -112,13 +112,25 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     fetchPartnerTheme();
   }, [companyId, currentCompany?.id]);
 
-  // テーマカラー（Contextから派生）
-  const theme = usePartnerTheme();
+  // テーマカラー（partnerTheme stateから直接計算 — Providerの外なのでusePartnerThemeは使えない）
+  const hasPrimary = !!partnerTheme?.primary_color;
   const themeColor = partnerTheme?.primary_color || '#5e17eb';
-  const sidebarGradient = theme.sidebarGradient;
-  const accentGradient = theme.accentGradient;
-  const shadowColor = theme.primaryAlpha30;
-  const backdropColor = theme.primaryAlpha10;
+  const themeSecondary = hasPrimary ? themeColor + 'cc' : '#764ba2';
+  const themeAccent = hasPrimary ? themeColor : '#667eea';
+  const sidebarGradient = hasPrimary
+    ? `linear-gradient(135deg, ${themeColor} 0%, ${themeSecondary} 100%)`
+    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+  const accentGradient = hasPrimary
+    ? `linear-gradient(45deg, ${themeColor} 30%, ${themeSecondary} 90%)`
+    : 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)';
+  const hexToRgba = (hex, alpha) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+  const shadowColor = hexToRgba(themeColor, 0.3);
+  const backdropColor = hexToRgba(themeColor, 0.1);
 
   // フォーム作成時のハンドラー - URL遷移を行う
   const handleFormCreated = (formId) => {
