@@ -1476,7 +1476,7 @@ const svgToPngDataUrl = async (svgUrl, width = 400, height = 400) => {
     const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     return new Promise((resolve, reject) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
         canvas.width = width;
