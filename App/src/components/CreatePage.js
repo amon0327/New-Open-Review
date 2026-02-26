@@ -246,29 +246,58 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
   useEffect(() => {
     const fetchPartnerTheme = async () => {
+      console.log('🎨 CreatePage fetchPartnerTheme - user?.id:', user?.id, 'formId:', formId);
       if (!user?.id) return;
+
+      let targetCompanyId = null;
+
       try {
-        // ユーザーの企業IDを取得
-        const { data: membership } = await supabase
-          .from('company_memberships')
-          .select('company_id')
-          .eq('business_user_id', user.id)
-          .limit(1)
-          .single();
-        if (!membership?.company_id) return;
-        // パートナーテーマを取得
+        // 方法1: formIdからフォームのcompany_idを取得
+        if (formId) {
+          const { data: form, error: formError } = await supabase
+            .from('review_forms')
+            .select('company_id')
+            .eq('id', formId)
+            .single();
+          console.log('🎨 CreatePage - form lookup:', form, 'error:', formError);
+          if (form?.company_id) {
+            targetCompanyId = form.company_id;
+          }
+        }
+
+        // 方法2: formIdからcompany_idが取れなかった場合、company_membershipsから取得
+        if (!targetCompanyId) {
+          const { data: membership, error: memError } = await supabase
+            .from('company_memberships')
+            .select('company_id')
+            .eq('business_user_id', user.id)
+            .limit(1)
+            .single();
+          console.log('🎨 CreatePage - membership lookup:', membership, 'error:', memError);
+          if (membership?.company_id) {
+            targetCompanyId = membership.company_id;
+          }
+        }
+
+        if (!targetCompanyId) {
+          console.log('🎨 CreatePage - No company_id found');
+          return;
+        }
+
+        console.log('🎨 CreatePage - calling get_partner_theme with company_id:', targetCompanyId);
         const { data, error } = await supabase.rpc('get_partner_theme', {
-          p_company_id: membership.company_id
+          p_company_id: targetCompanyId
         });
+        console.log('🎨 CreatePage - RPC result:', data, 'error:', error);
         if (!error && data) {
           setPartnerTheme(data);
         }
       } catch (err) {
-        console.log('ℹ️ No partner theme found');
+        console.log('ℹ️ No partner theme found:', err);
       }
     };
     fetchPartnerTheme();
-  }, [user?.id]);
+  }, [user?.id, formId]);
 
   const theme = useMemo(() => buildThemeColors(partnerTheme), [partnerTheme]);
 
