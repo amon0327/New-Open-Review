@@ -52,7 +52,9 @@ export default function CompanyCreationDialog({ open, onClose, onCompanyCreated 
       });
 
       if (error) {
-        throw new Error(`企業アカウント作成に失敗しました: ${error.message}`);
+        // Edge Functionがnon-2xxを返した場合、dataにエラー詳細が含まれる
+        const detail = data?.error || error.message;
+        throw new Error(detail);
       }
 
       if (!data.success) {
