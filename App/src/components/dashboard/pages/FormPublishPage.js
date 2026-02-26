@@ -382,10 +382,11 @@ export default function FormPublishPage({ user, companyId: propCompanyId, compan
     });
   };
 
-  // QRコードをダウンロード
+  // QRコードをダウンロード（LINEミニアプリURL優先）
   const handleDownloadQR = async (store) => {
     try {
-      const url = getStoreFormUrl(store);
+      const lineUrl = getLineMiniAppUrl(store);
+      const url = lineUrl || getStoreFormUrl(store);
       const qrDataUrl = await QRCode.toDataURL(url, {
         width: 512,
         margin: 2,
