@@ -251,15 +251,14 @@ export default function CreatePage({ onBackClick, user, formId }) {
         // ユーザーの企業IDを取得
         const { data: membership } = await supabase
           .from('company_memberships')
-          .select('companies_id')
-          .eq('business_users_id', user.id)
-          .eq('is_active', true)
+          .select('company_id')
+          .eq('business_user_id', user.id)
           .limit(1)
           .single();
-        if (!membership?.companies_id) return;
+        if (!membership?.company_id) return;
         // パートナーテーマを取得
         const { data, error } = await supabase.rpc('get_partner_theme', {
-          p_company_id: membership.companies_id
+          p_company_id: membership.company_id
         });
         if (!error && data) {
           setPartnerTheme(data);
