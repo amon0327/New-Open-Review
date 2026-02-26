@@ -1220,6 +1220,7 @@ const LinearScaleQuestion = ({ question, themeColor, currentQuestion, totalQuest
 
 // Pull Down Question Component - ズーム対応版
 const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestions, onAnswerChange, zoom = 1 }) => {
+  const theme = usePartnerTheme();
   const [selectedValue, setSelectedValue] = useState('');
 
   const handleValueChange = (value) => {
@@ -1348,7 +1349,7 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                         minHeight: '44px',
                         padding: '8px 16px',
                         '&:hover': {
-                          backgroundColor: 'rgba(94, 23, 235, 0.08)'
+                          backgroundColor: theme.primaryAlpha08
                         }
                       },
                       '&::-webkit-scrollbar': {
@@ -1419,12 +1420,12 @@ const PullDownQuestion = ({ question, themeColor, currentQuestion, totalQuestion
                       minHeight: '44px',
                       padding: '10px 16px',
                       '&:hover': {
-                        backgroundColor: 'rgba(94, 23, 235, 0.08)'
+                        backgroundColor: theme.primaryAlpha08
                       },
                       '&.Mui-selected': {
-                        backgroundColor: 'rgba(94, 23, 235, 0.12)',
+                        backgroundColor: theme.primaryAlpha10,
                         '&:hover': {
-                          backgroundColor: 'rgba(94, 23, 235, 0.16)'
+                          backgroundColor: theme.primaryAlpha15
                         }
                       }
                     }}
@@ -1899,7 +1900,7 @@ const PreviewQuestions = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: 'rgba(94, 23, 235, 0.2)',
+                  backgroundColor: theme.primaryAlpha20,
                   borderRadius: 1,
                   zIndex: 2,
                   pointerEvents: 'none'
@@ -1961,7 +1962,7 @@ const PreviewQuestions = ({
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(94, 23, 235, 0.2)',
+              backgroundColor: theme.primaryAlpha20,
               zIndex: 3,
               pointerEvents: 'none'
             }}
@@ -1996,7 +1997,7 @@ const PreviewQuestions = ({
               }}
               onMouseEnter={(e) => {
                 e.target.style.transform = 'scale(1.1)';
-                e.target.style.filter = 'drop-shadow(0 4px 12px rgba(94, 23, 235, 0.3))';
+                e.target.style.filter = `drop-shadow(0 4px 12px ${theme.primaryAlpha30})`;
               }}
               onMouseLeave={(e) => {
                 e.target.style.transform = 'scale(1)';
@@ -2011,7 +2012,7 @@ const PreviewQuestions = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: 'rgba(94, 23, 235, 0.2)',
+                  backgroundColor: theme.primaryAlpha20,
                   borderRadius: 1,
                   zIndex: 2,
                   pointerEvents: 'none'
@@ -2180,14 +2181,14 @@ const PreviewQuestions = ({
                         px: 3,
                         py: 1.5,
                         borderRadius: 2,
-                        backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                        border: '1px solid rgba(94, 23, 235, 0.1)'
+                        backgroundColor: theme.primaryAlpha05,
+                        border: `1px solid ${theme.primaryAlpha10}`
                       }}
                     >
                       <Typography 
                         variant="body2" 
                         sx={{ 
-                          color: '#5e17eb',
+                          color: theme.primary,
                           fontWeight: 500
                         }}
                       >

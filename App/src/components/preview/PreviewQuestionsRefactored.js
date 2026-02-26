@@ -13,6 +13,7 @@ import {
   LinearScaleQuestion,
   PullDownQuestion
 } from './questions';
+import { usePartnerTheme } from '../../contexts/PartnerThemeContext';
 
 const PreviewQuestionsRefactored = ({ 
   previewMode, 
@@ -33,15 +34,16 @@ const PreviewQuestionsRefactored = ({
   onElementSelect,
   selectedElement
 }) => {
+  const theme = usePartnerTheme();
   const [answers, setAnswers] = useState({});
   const [hoveredQuestionId, setHoveredQuestionId] = useState(null);
   const [prevQuestionsCount, setPrevQuestionsCount] = useState(0);
   const scrollContainerRef = useRef(null);
   const isMobile = previewMode === 'mobile';
 
-  const themeColor = '#5e17eb';
+  const themeColor = theme.primary;
   const defaultHeaderImage = 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
-  const defaultLogoUrl = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const defaultLogoUrl = theme.logoLight || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   
   const currentHeaderImage = headerImage || defaultHeaderImage;
   const currentLogoUrl = logoImage || defaultLogoUrl;
@@ -144,11 +146,11 @@ const PreviewQuestionsRefactored = ({
         <Box
           sx={{
             borderRadius: 3,
-            border: isSelected ? '2px solid #5e17eb' : 
-                   isHovered ? '2px solid rgba(94, 23, 235, 0.3)' : 
+            border: isSelected ? `2px solid ${theme.primary}` :
+                   isHovered ? `2px solid ${theme.primaryAlpha30}` :
                    '2px solid transparent',
-            backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : 
-                           isHovered ? 'rgba(94, 23, 235, 0.01)' : 
+            backgroundColor: isSelected ? theme.primaryAlpha02 :
+                           isHovered ? theme.primaryAlpha02 :
                            'transparent',
             transition: 'all 0.3s ease',
             overflow: 'hidden'
@@ -171,7 +173,7 @@ const PreviewQuestionsRefactored = ({
     transform: `scale(${zoom})`,
     transformOrigin: 'center center',
     margin: '0 auto',
-    border: isDragActive ? '3px dashed #5e17eb' : '1px solid #e0e7ff'
+    border: isDragActive ? `3px dashed ${theme.primary}` : '1px solid #e0e7ff'
   }), [isMobile, zoom, isDragActive]);
 
   return (
@@ -202,7 +204,7 @@ const PreviewQuestionsRefactored = ({
             backgroundPosition: 'center',
             position: 'relative',
             cursor: 'pointer',
-            border: selectedElement === 'header' ? '3px solid #5e17eb' : 'none',
+            border: selectedElement === 'header' ? `3px solid ${theme.primary}` : 'none',
             borderRadius: selectedElement === 'header' ? '8px' : '0',
             margin: selectedElement === 'header' ? '4px' : '0',
             transition: 'all 0.3s ease',
@@ -214,7 +216,7 @@ const PreviewQuestionsRefactored = ({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: 'rgba(94, 23, 235, 0.1)',
+                background: theme.primaryAlpha10,
                 pointerEvents: 'none'
               }
             }
@@ -231,7 +233,7 @@ const PreviewQuestionsRefactored = ({
               top: '20px',
               left: '20px',
               cursor: 'pointer',
-              border: selectedElement === 'logo' ? '3px solid #5e17eb' : 'none',
+              border: selectedElement === 'logo' ? `3px solid ${theme.primary}` : 'none',
               borderRadius: selectedElement === 'logo' ? '8px' : '0',
               padding: selectedElement === 'logo' ? '4px' : '0',
               transition: 'all 0.3s ease',
@@ -243,7 +245,7 @@ const PreviewQuestionsRefactored = ({
                   left: -2,
                   right: -2,
                   bottom: -2,
-                  background: 'rgba(94, 23, 235, 0.2)',
+                  background: theme.primaryAlpha20,
                   borderRadius: '6px',
                   pointerEvents: 'none'
                 }
@@ -318,10 +320,10 @@ const PreviewQuestionsRefactored = ({
               <Box
                 sx={{
                   padding: '20px 40px',
-                  backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                  border: '2px dashed #5e17eb',
+                  backgroundColor: theme.primaryAlpha10,
+                  border: `2px dashed ${theme.primary}`,
                   borderRadius: '12px',
-                  color: '#5e17eb',
+                  color: theme.primary,
                   fontSize: '1.1rem',
                   fontWeight: 600,
                   textAlign: 'center',
