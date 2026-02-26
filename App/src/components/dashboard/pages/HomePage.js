@@ -44,7 +44,7 @@ import FormDataService from '../../../services/FormDataService';
 import { toast } from 'react-hot-toast';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 
-export default function HomePage({ user, onCreateFormClick, onCreateForm, isCreatingForm }) {
+export default function HomePage({ user, companyId, onCreateFormClick, onCreateForm, isCreatingForm }) {
   const theme = usePartnerTheme();
   const navigate = useNavigate();
   const [forms, setForms] = useState([]);
@@ -64,17 +64,17 @@ export default function HomePage({ user, onCreateFormClick, onCreateForm, isCrea
 
   useEffect(() => {
     fetchForms();
-  }, [user]);
+  }, [user, companyId]);
 
   const fetchForms = async () => {
     if (!user?.id) {
       setLoading(false);
       return;
     }
-    
+
     try {
       setLoading(true);
-      const result = await FormDataService.getUserForms(user.id);
+      const result = await FormDataService.getUserForms(user.id, companyId);
       
       if (result.success) {
         setForms(result.data);

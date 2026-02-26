@@ -88,6 +88,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
   useEffect(() => {
     const fetchPartnerTheme = async () => {
       const targetCompanyId = companyId || currentCompany?.id;
+      console.log('🎨 fetchPartnerTheme called, targetCompanyId:', targetCompanyId, 'companyId:', companyId, 'currentCompany?.id:', currentCompany?.id);
       if (!targetCompanyId) {
         setIsThemeLoaded(true);
         return;
@@ -98,12 +99,16 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           p_company_id: targetCompanyId
         });
 
+        console.log('🎨 RPC result - data:', data, 'error:', error);
+
         if (!error && data) {
           console.log('🎨 Partner theme loaded:', data);
           setPartnerTheme(data);
+        } else {
+          console.log('🎨 No theme data or error:', error);
         }
       } catch (err) {
-        console.log('ℹ️ No partner theme found for company');
+        console.error('🎨 Exception fetching partner theme:', err);
       } finally {
         setIsThemeLoaded(true);
       }
@@ -413,7 +418,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     if (navigationItems[activeTab].text === '設定') {
       return <ActiveComponent user={user} onLogout={onLogout} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     } else if (navigationItems[activeTab].text === 'ホーム') {
-      return <ActiveComponent user={user} onCreateFormClick={onCreateClick} onCreateForm={onCreateForm} isCreatingForm={isCreatingForm} />;
+      return <ActiveComponent user={user} companyId={companyId || currentCompany?.id} onCreateFormClick={onCreateClick} onCreateForm={onCreateForm} isCreatingForm={isCreatingForm} />;
     } else if (navigationItems[activeTab].text === '分析') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} />;
     } else if (navigationItems[activeTab].text === 'フォーム公開') {

@@ -331,52 +331,11 @@ export class FormDataService {
    * company_idベースで所属会社のフォームを取得
    * パートナーメンバーシップ経由のアクセスにも対応
    * @param {string} userId - ユーザーID
+   * @param {string} [companyId] - 特定の企業IDでフィルタリング（指定時はその企業のフォームのみ取得）
    * @returns {Promise<Object>} フォーム一覧
    */
-  static async getUserForms(userId) {
+  static async getUserForms(userId, companyId = null) {
     try {
-      // アクセス可能な会社IDを収集
-      let accessibleCompanyIds = [];
-
-      // 1. ユーザーが所属する会社を取得（company_memberships）
-      const { data: companyMemberships, error: companyMembershipError } = await supabase
-        .from('company_memberships')
-        .select('company_id')
-        .eq('business_user_id', userId);
-
-      if (companyMembershipError) {
-        console.error('Company membership fetch error:', companyMembershipError);
-      } else if (companyMemberships && companyMemberships.length > 0) {
-        accessibleCompanyIds.push(...companyMemberships.map(m => m.company_id));
-      }
-
-      // 2. パートナーメンバーシップ経由でアクセス可能な会社を取得
-      const { data: partnerMemberships, error: partnerMembershipError } = await supabase
-        .from('partner_memberships')
-        .select('partner_company_id')
-        .eq('business_users_id', userId);
-
-      if (partnerMembershipError) {
-        console.error('Partner membership fetch error:', partnerMembershipError);
-      } else if (partnerMemberships && partnerMemberships.length > 0) {
-        const partnerCompanyIds = partnerMemberships.map(m => m.partner_company_id);
-
-        // パートナー企業が管理する企業（affiliate companies）を取得
-        const { data: affiliateCompanies, error: affiliateError } = await supabase
-          .from('partner_affiliate_companies')
-          .select('companies_id')
-          .in('partner_company_id', partnerCompanyIds);
-
-        if (affiliateError) {
-          console.error('Affiliate companies fetch error:', affiliateError);
-        } else if (affiliateCompanies && affiliateCompanies.length > 0) {
-          accessibleCompanyIds.push(...affiliateCompanies.map(ac => ac.companies_id));
-        }
-      }
-
-      // 重複を除去
-      accessibleCompanyIds = [...new Set(accessibleCompanyIds)];
-
       // 3. フォームを取得
       let query = supabase
         .from('review_forms')
@@ -393,14 +352,55 @@ export class FormDataService {
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
-      // アクセス可能なフォームを取得
-      // - 自分が作成したフォーム（business_users = userId）
-      // - アクセス可能な会社のフォーム（company_id in accessibleCompanyIds）
-      if (accessibleCompanyIds.length > 0) {
-        query = query.or(`business_users.eq.${userId},company_id.in.(${accessibleCompanyIds.join(',')})`);
+      if (companyId) {
+        // 特定の企業IDが指定されている場合、その企業のフォームのみ取得
+        query = query.eq('company_id', companyId);
       } else {
-        // 会社への所属がない場合は自分が作成したもののみ
-        query = query.eq('business_users', userId);
+        // 企業ID未指定の場合、アクセス可能な全フォームを取得
+        let accessibleCompanyIds = [];
+
+        // 1. ユーザーが所属する会社を取得（company_memberships）
+        const { data: companyMemberships, error: companyMembershipError } = await supabase
+          .from('company_memberships')
+          .select('company_id')
+          .eq('business_user_id', userId);
+
+        if (companyMembershipError) {
+          console.error('Company membership fetch error:', companyMembershipError);
+        } else if (companyMemberships && companyMemberships.length > 0) {
+          accessibleCompanyIds.push(...companyMemberships.map(m => m.company_id));
+        }
+
+        // 2. パートナーメンバーシップ経由でアクセス可能な会社を取得
+        const { data: partnerMemberships, error: partnerMembershipError } = await supabase
+          .from('partner_memberships')
+          .select('partner_company_id')
+          .eq('business_users_id', userId);
+
+        if (partnerMembershipError) {
+          console.error('Partner membership fetch error:', partnerMembershipError);
+        } else if (partnerMemberships && partnerMemberships.length > 0) {
+          const partnerCompanyIds = partnerMemberships.map(m => m.partner_company_id);
+
+          const { data: affiliateCompanies, error: affiliateError } = await supabase
+            .from('partner_affiliate_companies')
+            .select('companies_id')
+            .in('partner_company_id', partnerCompanyIds);
+
+          if (affiliateError) {
+            console.error('Affiliate companies fetch error:', affiliateError);
+          } else if (affiliateCompanies && affiliateCompanies.length > 0) {
+            accessibleCompanyIds.push(...affiliateCompanies.map(ac => ac.companies_id));
+          }
+        }
+
+        accessibleCompanyIds = [...new Set(accessibleCompanyIds)];
+
+        if (accessibleCompanyIds.length > 0) {
+          query = query.or(`business_users.eq.${userId},company_id.in.(${accessibleCompanyIds.join(',')})`);
+        } else {
+          query = query.eq('business_users', userId);
+        }
       }
 
       const { data, error } = await query;
