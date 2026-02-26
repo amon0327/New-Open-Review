@@ -32,6 +32,7 @@ import {
   CloudDone,
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
+import { usePartnerTheme } from '../contexts/PartnerThemeContext';
 import PreviewUrlDialog from './PreviewUrlDialog';
 import PublishDialog from './PublishDialog';
 import { validateForm } from '../utils/validation';
@@ -73,6 +74,7 @@ const HeaderBar = ({
   onNavigateToCompletionScreen,
   onShowCompletionError,
 }) => {
+  const theme = usePartnerTheme();
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
   // プレビューダイアログの状態
@@ -469,10 +471,10 @@ const HeaderBar = ({
             color: colors.textPrimary,
             minWidth: 200,
             '&:before': {
-              borderBottom: `2px solid ${colors.primary}`
+              borderBottom: `2px solid ${theme.primary}`
             },
             '&:after': {
-              borderBottom: `2px solid ${colors.primary}`
+              borderBottom: `2px solid ${theme.primary}`
             }
           }}
         />
@@ -487,8 +489,8 @@ const HeaderBar = ({
             padding: '4px 8px',
             borderRadius: 1,
             '&:hover': {
-              backgroundColor: 'rgba(94, 23, 235, 0.05)',
-              color: colors.primary
+              backgroundColor: theme.primaryAlpha05,
+              color: theme.primary
             },
             transition: 'all 0.2s ease'
           }}

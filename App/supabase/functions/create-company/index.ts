@@ -124,26 +124,6 @@ serve(async (req) => {
       throw new Error(`企業アカウントの作成に失敗: ${companyError.message}`)
     }
 
-    // company_membershipsに関連付け
-    const { error: membershipError } = await supabase
-      .from('company_memberships')
-      .insert([
-        {
-          business_user_id: user.id,
-          company_id: company.id
-        }
-      ])
-
-    if (membershipError) {
-      // 企業作成をロールバック（手動削除）
-      await supabase
-        .from('companies')
-        .delete()
-        .eq('id', company.id)
-
-      throw new Error(`メンバーシップの作成に失敗: ${membershipError.message}`)
-    }
-
     // partner_affiliate_companiesに関連付け
     const { error: affiliationError } = await supabase
       .from('partner_affiliate_companies')
@@ -155,12 +135,7 @@ serve(async (req) => {
       ])
 
     if (affiliationError) {
-      // 企業とメンバーシップをロールバック（手動削除）
-      await supabase
-        .from('company_memberships')
-        .delete()
-        .eq('company_id', company.id)
-
+      // 企業をロールバック（手動削除）
       await supabase
         .from('companies')
         .delete()

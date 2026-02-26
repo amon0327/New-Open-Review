@@ -6,7 +6,7 @@ import {
   Tooltip,
   Typography
 } from '@mui/material';
-import { gradients } from '../constants/theme';
+import { usePartnerTheme } from '../contexts/PartnerThemeContext';
 
 const LeftNavigationBar = ({ 
   leftNavigationItems,
@@ -18,6 +18,8 @@ const LeftNavigationBar = ({
   setShowSettings,
   setSelectedTool
 }) => {
+  const theme = usePartnerTheme();
+
   const handleItemClick = (item) => {
     if (item.isLogo) {
       onBackClick();
@@ -51,7 +53,7 @@ const LeftNavigationBar = ({
       sx={{
         width: 80,
         height: '100vh',
-        background: gradients.secondary,
+        background: theme.secondaryGradient,
         borderRadius: 0,
         display: 'flex',
         flexDirection: 'column',
@@ -94,12 +96,13 @@ const LeftNavigationBar = ({
               {item.isLogo ? (
                 <Box
                   component="img"
-                  src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"
-                  alt="OpenReview Logo"
+                  src={theme.logoIcon || "https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewLogo.png"}
+                  alt="Logo"
                   sx={{
                     width: 44,
                     height: 44,
-                    objectFit: 'contain'
+                    objectFit: 'contain',
+                    borderRadius: theme.logoIcon ? '8px' : '50%'
                   }}
                   onError={(e) => {
                     // 画像読み込みエラー時のフォールバック
