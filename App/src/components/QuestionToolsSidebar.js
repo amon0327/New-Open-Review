@@ -230,8 +230,8 @@ const QuestionToolsSidebar = ({
                     sx={{
                       height: 18,
                       fontSize: '0.65rem',
-                      backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                      color: '#5e17eb',
+                      backgroundColor: theme.primaryAlpha10,
+                      color: theme.primary,
                       flexShrink: 0
                     }}
                   />
@@ -239,7 +239,7 @@ const QuestionToolsSidebar = ({
                 <ExpandMoreIcon
                   sx={{
                     fontSize: '1rem',
-                    color: '#5e17eb',
+                    color: theme.primary,
                     transform: expandedForms[formGroup.formId] ? 'rotate(180deg)' : 'rotate(0deg)',
                     transition: 'transform 0.3s ease',
                     flexShrink: 0

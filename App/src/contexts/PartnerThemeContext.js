@@ -40,6 +40,9 @@ const buildThemeColors = (partnerTheme) => {
       ? `linear-gradient(135deg, ${accent} 0%, ${secondary} 100%)`
       : `linear-gradient(135deg, ${DEFAULT_ACCENT} 0%, ${DEFAULT_SECONDARY} 100%)`,
     // 透明度バリエーション
+    primaryAlpha02: hexToRgba(primary, 0.02),
+    primaryAlpha05: hexToRgba(primary, 0.05),
+    primaryAlpha08: hexToRgba(primary, 0.08),
     primaryAlpha10: hexToRgba(primary, 0.1),
     primaryAlpha15: hexToRgba(primary, 0.15),
     primaryAlpha20: hexToRgba(primary, 0.2),

@@ -135,9 +135,9 @@ const QuestionSettings = ({ question, onUpdate, onDelete }) => {
             height: 40,
             borderRadius: 2,
             background: `linear-gradient(135deg, ${
-              ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][(tempQuestion.question_types_id - 1) % 7]
+              [theme.accent, '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][(tempQuestion.question_types_id - 1) % 7]
             } 0%, ${
-              ['#764ba2', '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][(tempQuestion.question_types_id - 1) % 7]
+              [theme.secondary, '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][(tempQuestion.question_types_id - 1) % 7]
             } 100%)`,
             display: 'flex',
             alignItems: 'center',
@@ -159,8 +159,8 @@ const QuestionSettings = ({ question, onUpdate, onDelete }) => {
               label={getQuestionTypeName(tempQuestion.question_types_id)}
               size="small"
               sx={{
-                backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                color: '#5e17eb',
+                backgroundColor: theme.primaryAlpha10,
+                color: theme.primary,
                 fontWeight: 500
               }}
             />
@@ -183,8 +183,8 @@ const QuestionSettings = ({ question, onUpdate, onDelete }) => {
               setIsEditing(!isEditing);
             }}
             sx={{
-              color: isEditing ? '#5e17eb' : '#64748b',
-              backgroundColor: isEditing ? 'rgba(94, 23, 235, 0.1)' : 'transparent'
+              color: isEditing ? theme.primary : '#64748b',
+              backgroundColor: isEditing ? theme.primaryAlpha10 : 'transparent'
             }}
           >
             {isEditing ? <CancelIcon /> : <EditIcon />}
@@ -261,9 +261,9 @@ const QuestionSettings = ({ question, onUpdate, onDelete }) => {
                   disabled={!isEditing}
                   sx={{
                     '& .MuiSwitch-switchBase.Mui-checked': {
-                      color: '#5e17eb',
+                      color: theme.primary,
                       '& + .MuiSwitch-track': {
-                        backgroundColor: '#5e17eb'
+                        backgroundColor: theme.primary
                       }
                     }
                   }}

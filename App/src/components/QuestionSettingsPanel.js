@@ -479,6 +479,7 @@ const ScaleSettings = ({ settings, onChange, disabled = false, questionTypeId })
 
 // 個別質問設定コンポーネント
 const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExpanded, onToggleExpand, questionErrorHighlight }) => {
+  const theme = usePartnerTheme();
   const [localQuestion, setLocalQuestion] = useState(question);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -527,11 +528,11 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
           mb: 2,
           borderRadius: 3,
           overflow: 'hidden',
-          border: isExpanded ? '2px solid #5e17eb' : '1px solid #e5e7eb',
+          border: isExpanded ? `2px solid ${theme.primary}` : '1px solid #e5e7eb',
           transition: 'all 0.3s ease',
           '&:hover': {
-            borderColor: '#5e17eb',
-            boxShadow: '0 4px 20px rgba(94, 23, 235, 0.15)'
+            borderColor: theme.primary,
+            boxShadow: `0 4px 20px ${theme.primaryAlpha15}`
           }
         }}
       >
@@ -540,8 +541,8 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
           onClick={onToggleExpand}
           sx={{
             p: 2,
-            background: isExpanded 
-              ? 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)'
+            background: isExpanded
+              ? theme.primaryGradient
               : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
             color: isExpanded ? 'white' : '#374151',
             cursor: 'pointer',
