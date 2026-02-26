@@ -758,14 +758,18 @@ export default function PartnerDashboard({ user, onLogout }) {
                 {companies.map((company) => (
                   <Grid item xs={12} md={6} lg={4} key={company.id}>
                     <Card
-                      onClick={() => navigate(`/company/${company.id}/dashboard`)}
+                      onClick={() => {
+                        if (company.is_active !== false) {
+                          navigate(`/company/${company.id}/dashboard`);
+                        }
+                      }}
                       sx={{
                         borderRadius: 1.5,
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
                         transition: 'transform 0.2s, box-shadow 0.2s, opacity 0.2s',
-                        cursor: 'pointer',
+                        cursor: company.is_active === false ? 'default' : 'pointer',
                         opacity: company.is_active === false ? 0.6 : 1,
-                        '&:hover': {
+                        '&:hover': company.is_active === false ? {} : {
                           transform: 'translateY(-4px)',
                           boxShadow: '0 8px 30px rgba(94, 23, 235, 0.15)'
                         }
