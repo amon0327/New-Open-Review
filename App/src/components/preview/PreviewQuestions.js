@@ -1539,9 +1539,9 @@ const PreviewQuestions = ({
   };
 
   // Supabaseのデータからテーマカラー、ロゴ、ヘッダー画像を取得
-  const themeColor = formSettings.theme_color || pageSettings.reviewFormSettings?.theme_color || '#5e17eb';
+  const themeColor = formSettings.theme_color || pageSettings.reviewFormSettings?.theme_color || theme.primary;
   const defaultHeaderImage = pageSettings.questionScreenSettings?.header_image_url || 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
-  const defaultLogoUrl = formSettings.logo_image_url || pageSettings.reviewFormSettings?.logo_image_url || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const defaultLogoUrl = formSettings.logo_image_url || pageSettings.reviewFormSettings?.logo_image_url || theme.logoLight || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   
   const currentHeaderImage = headerImage || formSettings.header_image_url || defaultHeaderImage;
   const currentLogoUrl = logoImage || defaultLogoUrl;
@@ -1649,15 +1649,15 @@ const PreviewQuestions = ({
         <Box
           sx={{
             borderRadius: 3,
-            border: isSelected ? '2px solid #5e17eb' : 
-                   isHovered ? '2px solid rgba(94, 23, 235, 0.3)' : 
+            border: isSelected ? `2px solid ${theme.primary}` :
+                   isHovered ? `2px solid ${theme.primaryAlpha30}` :
                    '2px solid transparent',
-            backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : 
-                           isHovered ? 'rgba(94, 23, 235, 0.01)' : 
+            backgroundColor: isSelected ? theme.primaryAlpha02 :
+                           isHovered ? theme.primaryAlpha02 :
                            'transparent',
             padding: (isSelected || isHovered) ? '24px' : '0',
-            boxShadow: isSelected ? '0 8px 32px rgba(94, 23, 235, 0.15)' : 
-                      isHovered ? '0 4px 16px rgba(94, 23, 235, 0.1)' : 
+            boxShadow: isSelected ? `0 8px 32px ${theme.primaryAlpha15}` :
+                      isHovered ? `0 4px 16px ${theme.primaryAlpha10}` :
                       'none',
             position: 'relative',
             transition: 'all 0.3s ease',
@@ -1668,14 +1668,14 @@ const PreviewQuestions = ({
               position: 'absolute',
               top: -12,
               right: 16,
-              backgroundColor: '#5e17eb',
+              backgroundColor: theme.primary,
               color: 'white',
               fontSize: '0.7rem',
               fontWeight: 600,
               padding: '4px 12px',
               borderRadius: '16px',
               zIndex: 10,
-              boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
+              boxShadow: `0 2px 8px ${theme.primaryAlpha30}`
             } : {}
           }}
         >

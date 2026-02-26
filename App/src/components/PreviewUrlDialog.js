@@ -11,8 +11,10 @@ import {
 } from '@mui/icons-material';
 import QRCode from 'qrcode';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePartnerTheme } from '../contexts/PartnerThemeContext';
 
 const PreviewUrlDialog = ({ open, onClose, formId }) => {
+  const theme = usePartnerTheme();
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
 
   // プレビューURLを生成
@@ -25,14 +27,14 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
         width: 200,
         margin: 2,
         color: {
-          dark: '#5e17eb',
+          dark: theme.primary,
           light: '#ffffff'
         }
       })
       .then(url => setQrCodeDataUrl(url))
       .catch(err => console.error('QR Code generation error:', err));
     }
-  }, [open, formId, previewUrl]);
+  }, [open, formId, previewUrl, theme.primary]);
 
   return (
     <AnimatePresence>
@@ -49,9 +51,9 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
             transition: { duration: 0.4, ease: "easeOut" },
             sx: {
               borderRadius: 5,
-              boxShadow: '0 25px 50px -12px rgba(94, 23, 235, 0.3)',
+              boxShadow: `0 25px 50px -12px ${theme.primaryAlpha30}`,
               overflow: 'hidden',
-              background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+              background: theme.primaryGradient,
               color: 'white',
               minWidth: 320
             }
@@ -77,7 +79,7 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
                 color: 'rgba(255, 255, 255, 0.8)',
                 width: 40,
                 height: 40,
-                '&:hover': { 
+                '&:hover': {
                   backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   color: 'white'
                 }
@@ -94,7 +96,7 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
             >
               <Box
                 component="img"
-                src="https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png"
+                src={theme.logoDark || "https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png"}
                 alt="OpenReview Logo"
                 sx={{
                   height: 40,
@@ -110,9 +112,9 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <Typography 
-                variant="h6" 
-                sx={{ 
+              <Typography
+                variant="h6"
+                sx={{
                   fontWeight: 700,
                   mb: 1,
                   fontSize: '1.25rem'
@@ -120,9 +122,9 @@ const PreviewUrlDialog = ({ open, onClose, formId }) => {
               >
                 プレビューを確認
               </Typography>
-              <Typography 
-                variant="body2" 
-                sx={{ 
+              <Typography
+                variant="body2"
+                sx={{
                   opacity: 0.9,
                   mb: 3,
                   fontSize: '0.9rem'

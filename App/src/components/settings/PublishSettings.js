@@ -22,6 +22,7 @@ import {
 import PublishDialog from '../PublishDialog';
 import { validateForm } from '../../utils/validation';
 import { svgRenderer } from '../../utils/SvgTemplateRenderer';
+import { usePartnerTheme } from '../../contexts/PartnerThemeContext';
 
 const PublishSettings = ({
   isPublished,
@@ -31,6 +32,7 @@ const PublishSettings = ({
   formData = {}, // フォームデータ (検証用)
   onPublishClick // HeaderBarの公開処理を呼び出すためのコールバック関数
 }) => {
+  const theme = usePartnerTheme();
   const formUrl = `https://reviewform.openreview.jp/?reviewFormId=${formId}`;
   
   // 公開ダイアログの状態
@@ -377,8 +379,8 @@ const PublishSettings = ({
   // プロジェクト情報を取得してデザインに適用
   const getProjectDesignConfig = () => {
     // フォームデータからテーマカラー情報を取得
-    const primaryColor = formData?.formSettings?.primaryColor || '#5e17eb';
-    const secondaryColor = formData?.formSettings?.secondaryColor || '#764ba2';
+    const primaryColor = formData?.formSettings?.primaryColor || theme.primary;
+    const secondaryColor = formData?.formSettings?.secondaryColor || theme.secondary;
     
     // ロゴ画像情報を取得
     const logoImage = formData?.headerImage?.logo || formData?.logoImage;
@@ -567,17 +569,17 @@ const PublishSettings = ({
                   sx={{
                     height: 40,
                     borderRadius: 2,
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: theme.secondaryGradient,
                     color: 'white',
                     fontSize: '0.875rem',
                     fontWeight: 600,
                     textTransform: 'none',
-                    boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                    boxShadow: `0 4px 12px ${theme.primaryAlpha30}`,
                     minWidth: 'fit-content',
                     flexShrink: 0,
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
-                      boxShadow: '0 6px 16px rgba(102, 126, 234, 0.4)',
+                      background: theme.secondaryGradient,
+                      boxShadow: `0 6px 16px ${theme.primaryAlpha40}`,
                       transform: 'translateY(-1px)'
                     },
                     transition: 'all 0.2s ease'
@@ -721,7 +723,7 @@ const PublishSettings = ({
                       aspectRatio: '9.1/5.5',
                       border: '2px solid #e2e8f0',
                       borderRadius: 2,
-                      background: `linear-gradient(135deg, ${formData?.formSettings?.primaryColor || '#5e17eb'}15, ${formData?.formSettings?.secondaryColor || '#764ba2'}15)`,
+                      background: `linear-gradient(135deg, ${formData?.formSettings?.primaryColor || theme.primary}15, ${formData?.formSettings?.secondaryColor || theme.secondary}15)`,
                       position: 'relative',
                       marginBottom: '16px',
                       overflow: 'hidden'
@@ -794,7 +796,7 @@ const PublishSettings = ({
                           right: '15px',
                           width: '45px',
                           height: '45px',
-                          border: `2px solid ${formData?.formSettings?.primaryColor || '#5e17eb'}`,
+                          border: `2px solid ${formData?.formSettings?.primaryColor || theme.primary}`,
                           borderRadius: '6px',
                           backgroundColor: '#ffffff',
                           padding: '4px'
