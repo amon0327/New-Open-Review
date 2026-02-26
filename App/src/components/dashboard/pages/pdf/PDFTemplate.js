@@ -1468,21 +1468,43 @@ const DEFAULT_LOGO_WITH_TEXT_URL = 'https://otfreskkeaenahqziriz.supabase.co/sto
 const isSvgUrl = (url) => url && url.endsWith('.svg');
 const toImageSrc = (url) => ({ uri: url, method: 'GET', headers: { 'Cache-Control': 'no-cache' } });
 
-// SVGをfetchしてCanvas経由でPNG Data URLに変換
-const svgToPngDataUrl = async (svgUrl, width = 400, height = 400) => {
+// SVGをfetchしてCanvas経由でPNG Data URLに変換（SVGの自然なサイズを維持）
+const svgToPngDataUrl = async (svgUrl, scale = 3) => {
   try {
     const response = await fetch(svgUrl);
     const svgText = await response.text();
+
+    // SVGからviewBox or width/heightを取得してアスペクト比を維持
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+    const svgEl = svgDoc.querySelector('svg');
+    let svgWidth = 200, svgHeight = 200;
+    const viewBox = svgEl?.getAttribute('viewBox');
+    if (viewBox) {
+      const parts = viewBox.split(/[\s,]+/).map(Number);
+      if (parts.length === 4) {
+        svgWidth = parts[2];
+        svgHeight = parts[3];
+      }
+    } else {
+      const w = parseFloat(svgEl?.getAttribute('width'));
+      const h = parseFloat(svgEl?.getAttribute('height'));
+      if (w && h) { svgWidth = w; svgHeight = h; }
+    }
+
+    const canvasWidth = Math.round(svgWidth * scale);
+    const canvasHeight = Math.round(svgHeight * scale);
+
     const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     return new Promise((resolve, reject) => {
       const img = new window.Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
+        ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
         URL.revokeObjectURL(url);
         resolve(canvas.toDataURL('image/png'));
       };
