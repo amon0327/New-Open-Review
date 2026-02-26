@@ -563,9 +563,9 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                 background: isExpanded 
                   ? 'rgba(255, 255, 255, 0.2)' 
                   : `linear-gradient(135deg, ${
-                      ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][(typeId - 1) % 7]
+                      [theme.accent, '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][(typeId - 1) % 7]
                     } 0%, ${
-                      ['#764ba2', '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][(typeId - 1) % 7]
+                      [theme.secondary, '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][(typeId - 1) % 7]
                     } 100%)`,
                 display: 'flex',
                 alignItems: 'center',
@@ -597,8 +597,8 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                   label={getQuestionTypeName(typeId)}
                   size="small"
                   sx={{
-                    backgroundColor: isExpanded ? 'rgba(255, 255, 255, 0.2)' : 'rgba(94, 23, 235, 0.1)',
-                    color: isExpanded ? 'white' : '#5e17eb',
+                    backgroundColor: isExpanded ? 'rgba(255, 255, 255, 0.2)' : theme.primaryAlpha10,
+                    color: isExpanded ? 'white' : theme.primary,
                     fontWeight: 500,
                     fontSize: '0.7rem',
                     height: 20
@@ -719,8 +719,8 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                           onChange={(e) => handleLocalChange('is_required', e.target.checked)}
                           sx={{
                             '& .MuiSwitch-switchBase.Mui-checked': {
-                              color: '#5e17eb',
-                              '& + .MuiSwitch-track': { backgroundColor: '#5e17eb' }
+                              color: theme.primary,
+                              '& + .MuiSwitch-track': { backgroundColor: theme.primary }
                             }
                           }}
                         />

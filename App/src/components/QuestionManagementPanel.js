@@ -290,7 +290,7 @@ const QuestionSettings = ({ question, onUpdate, onDelete }) => {
                     startIcon={<AddIcon />}
                     onClick={addChoice}
                     sx={{
-                      color: '#5e17eb',
+                      color: theme.primary,
                       textTransform: 'none',
                       fontSize: '0.875rem'
                     }}
@@ -355,7 +355,7 @@ const QuestionSettings = ({ question, onUpdate, onDelete }) => {
                 size="small"
                 onClick={handleSave}
                 sx={{
-                  backgroundColor: '#5e17eb',
+                  backgroundColor: theme.primary,
                   textTransform: 'none',
                   '&:hover': { backgroundColor: '#4c1d95' }
                 }}
@@ -477,7 +477,7 @@ const QuestionManagementPanel = ({ selectedPage, questions = [], onUpdateQuestio
             startIcon={<AddIcon />}
             onClick={handleAddQuestion}
             sx={{
-              backgroundColor: '#5e17eb',
+              backgroundColor: theme.primary,
               textTransform: 'none',
               '&:hover': { backgroundColor: '#4c1d95' }
             }}
