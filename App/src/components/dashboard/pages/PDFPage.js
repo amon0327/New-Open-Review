@@ -26,6 +26,7 @@ import {
 import { PDFDocument, downloadPDF, generatePDFBlob } from './pdf/PDFTemplate';
 
 export default function PDFPage({ onNavCollapse, companyId, companyName = '', partnerTheme = null }) {
+  const primaryColor = partnerTheme?.primary_color || '#5e17eb';
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState('');
   const [reports, setReports] = useState([]);
@@ -381,7 +382,7 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
         <div className="mb-6 flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <FileText className="w-7 h-7 text-purple-600" />
+              <FileText className="w-7 h-7" style={{ color: primaryColor }} />
               レポート
             </h1>
             <p className="text-gray-500 mt-1">レポートをプレビュー・PDFダウンロードできます</p>
@@ -433,8 +434,8 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
-                          <Calendar className="w-4.5 h-4.5 text-purple-600" />
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${primaryColor}1a` }}>
+                          <Calendar className="w-4.5 h-4.5" style={{ color: primaryColor }} />
                         </div>
                         <span className="font-medium text-gray-900">{report.displayName}</span>
                       </div>
@@ -468,7 +469,8 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
                         <button
                           onClick={() => handleDownload(report)}
                           disabled={previewLoading || downloadLoading}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                          style={{ backgroundColor: primaryColor }}
                         >
                           {downloadLoading && selectedReport?.yearMonth === report.yearMonth ? (
                             <CircularProgress size={14} sx={{ color: 'white' }} />

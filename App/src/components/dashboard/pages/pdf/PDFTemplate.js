@@ -1464,15 +1464,76 @@ const DEFAULT_LOGO_ICON_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/
 const DEFAULT_LOGO_WITH_TEXT_URL = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewDarkThemeLoog.png';
 
 // パートナーテーマからロゴ・カラーを取得するヘルパー
-// react-pdfのImageはSVG非対応のため、SVG URLの場合はデフォルトPNGにフォールバック
-// また、リモート画像は { uri, method, headers } 形式で指定しCORS/fetch問題を回避
-const isPngUrl = (url) => url && !url.endsWith('.svg');
+// react-pdfのImageはSVG非対応のため、SVG URLの場合はCanvas経由でPNG Data URLに変換
+const isSvgUrl = (url) => url && url.endsWith('.svg');
 const toImageSrc = (url) => ({ uri: url, method: 'GET', headers: { 'Cache-Control': 'no-cache' } });
-const getThemedLogos = (partnerTheme) => ({
-  logoUrl: toImageSrc((isPngUrl(partnerTheme?.logo_light_url) ? partnerTheme.logo_light_url : null) || DEFAULT_LOGO_URL),
-  logoIconUrl: toImageSrc((isPngUrl(partnerTheme?.logo_icon_url) ? partnerTheme.logo_icon_url : null) || DEFAULT_LOGO_ICON_URL),
-  logoWithTextUrl: toImageSrc((isPngUrl(partnerTheme?.logo_dark_url) ? partnerTheme.logo_dark_url : null) || DEFAULT_LOGO_WITH_TEXT_URL),
-});
+
+// SVGをfetchしてCanvas経由でPNG Data URLに変換
+const svgToPngDataUrl = async (svgUrl, width = 400, height = 400) => {
+  try {
+    const response = await fetch(svgUrl);
+    const svgText = await response.text();
+    const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('SVG to PNG conversion failed'));
+      };
+      img.src = url;
+    });
+  } catch (err) {
+    console.error('SVG to PNG conversion error:', err);
+    return null;
+  }
+};
+
+// ロゴURLを解決（SVGの場合はPNG Data URLに変換）
+const resolveLogoUrl = async (url, fallbackUrl) => {
+  if (!url) return toImageSrc(fallbackUrl);
+  if (isSvgUrl(url)) {
+    const pngDataUrl = await svgToPngDataUrl(url);
+    return pngDataUrl || toImageSrc(fallbackUrl);
+  }
+  return toImageSrc(url);
+};
+
+// 非同期でロゴを準備（PDF生成前に呼ぶ）
+const prepareThemedLogos = async (partnerTheme) => {
+  const [logoUrl, logoIconUrl, logoWithTextUrl] = await Promise.all([
+    resolveLogoUrl(partnerTheme?.logo_light_url, DEFAULT_LOGO_URL),
+    resolveLogoUrl(partnerTheme?.logo_icon_url, DEFAULT_LOGO_ICON_URL),
+    resolveLogoUrl(partnerTheme?.logo_dark_url, DEFAULT_LOGO_WITH_TEXT_URL),
+  ]);
+  return { logoUrl, logoIconUrl, logoWithTextUrl };
+};
+
+// 同期版（partnerTheme._resolvedLogos があればそれを使う）
+const getThemedLogos = (partnerTheme) => {
+  if (partnerTheme?._resolvedLogos) return partnerTheme._resolvedLogos;
+  return {
+    logoUrl: toImageSrc(DEFAULT_LOGO_URL),
+    logoIconUrl: toImageSrc(DEFAULT_LOGO_ICON_URL),
+    logoWithTextUrl: toImageSrc(DEFAULT_LOGO_WITH_TEXT_URL),
+  };
+};
+
+// partnerThemeのロゴを事前解決してコピーを返す
+const resolvePartnerThemeLogos = async (partnerTheme) => {
+  if (!partnerTheme) return null;
+  const logos = await prepareThemedLogos(partnerTheme);
+  return { ...partnerTheme, _resolvedLogos: logos };
+};
 
 const getThemedPrimary = (partnerTheme) => partnerTheme?.primary_color || colors.primary;
 
@@ -3167,7 +3228,7 @@ const InsightDetailVoicePage = ({ insight, pageNumber, partnerTheme }) => {
 
       {/* 顧客の声 コールアウト */}
       {insight.comment && (
-        <View style={[styles.voiceCallout, { borderColor: getThemedPrimary(partnerTheme) }]}>
+        <View style={[styles.voiceCallout, { borderColor: getThemedPrimary(partnerTheme), backgroundColor: getThemedPrimary(partnerTheme) + '0d' }]}>
           <View style={styles.voiceCalloutIconWrap}>
             <Svg width={22} height={22} viewBox="0 0 24 24">
               <Path
@@ -3427,13 +3488,15 @@ export const PDFDocument = ({ report, reportData, storeName, companyName = '', p
  * PDFをBlobとして生成
  */
 export const generatePDFBlob = async (report, reportData, storeName, companyName = '', partnerTheme = null) => {
+  // SVGロゴを事前にPNG Data URLに変換
+  const resolvedTheme = await resolvePartnerThemeLogos(partnerTheme);
   const blob = await pdf(
     <PDFDocument
       report={report}
       reportData={reportData}
       storeName={storeName}
       companyName={companyName}
-      partnerTheme={partnerTheme}
+      partnerTheme={resolvedTheme}
     />
   ).toBlob();
   return blob;
