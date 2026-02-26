@@ -41,6 +41,12 @@ export default function CompanyCreationDialog({ open, onClose, onCompanyCreated 
       if (!formData.name.trim()) {
         throw new Error('企業名を入力してください');
       }
+      if (!formData.phone_number.trim()) {
+        throw new Error('電話番号を入力してください');
+      }
+      if (!formData.email.trim()) {
+        throw new Error('メールアドレスを入力してください');
+      }
 
       // Edge Function呼び出し
       const { data, error } = await supabase.functions.invoke('create-company', {
@@ -164,6 +170,7 @@ export default function CompanyCreationDialog({ open, onClose, onCompanyCreated 
               label="電話番号"
               value={formData.phone_number}
               onChange={handleInputChange('phone_number')}
+              required
               fullWidth
               disabled={isSubmitting}
               placeholder="03-1234-5678"
@@ -180,6 +187,7 @@ export default function CompanyCreationDialog({ open, onClose, onCompanyCreated 
               type="email"
               value={formData.email}
               onChange={handleInputChange('email')}
+              required
               fullWidth
               disabled={isSubmitting}
               placeholder="contact@example.com"
