@@ -1465,11 +1465,13 @@ const DEFAULT_LOGO_WITH_TEXT_URL = 'https://otfreskkeaenahqziriz.supabase.co/sto
 
 // パートナーテーマからロゴ・カラーを取得するヘルパー
 // react-pdfのImageはSVG非対応のため、SVG URLの場合はデフォルトPNGにフォールバック
+// また、リモート画像は { uri, method, headers } 形式で指定しCORS/fetch問題を回避
 const isPngUrl = (url) => url && !url.endsWith('.svg');
+const toImageSrc = (url) => ({ uri: url, method: 'GET', headers: { 'Cache-Control': 'no-cache' } });
 const getThemedLogos = (partnerTheme) => ({
-  logoUrl: (isPngUrl(partnerTheme?.logo_light_url) ? partnerTheme.logo_light_url : null) || DEFAULT_LOGO_URL,
-  logoIconUrl: (isPngUrl(partnerTheme?.logo_icon_url) ? partnerTheme.logo_icon_url : null) || DEFAULT_LOGO_ICON_URL,
-  logoWithTextUrl: (isPngUrl(partnerTheme?.logo_dark_url) ? partnerTheme.logo_dark_url : null) || DEFAULT_LOGO_WITH_TEXT_URL,
+  logoUrl: toImageSrc((isPngUrl(partnerTheme?.logo_light_url) ? partnerTheme.logo_light_url : null) || DEFAULT_LOGO_URL),
+  logoIconUrl: toImageSrc((isPngUrl(partnerTheme?.logo_icon_url) ? partnerTheme.logo_icon_url : null) || DEFAULT_LOGO_ICON_URL),
+  logoWithTextUrl: toImageSrc((isPngUrl(partnerTheme?.logo_dark_url) ? partnerTheme.logo_dark_url : null) || DEFAULT_LOGO_WITH_TEXT_URL),
 });
 
 const getThemedPrimary = (partnerTheme) => partnerTheme?.primary_color || colors.primary;
