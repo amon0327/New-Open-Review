@@ -19,6 +19,7 @@ import {
   SupportAgentOutlined
 } from '@mui/icons-material';
 import { FormDataService } from '../../services/FormDataService';
+import { usePartnerTheme } from '../../contexts/PartnerThemeContext';
 
 // QSCテーマの定義
 const QSC_THEMES = [
@@ -50,6 +51,7 @@ const QSCThemeSettings = ({
   initialTheme = null,
   onThemeUpdate
 }) => {
+  const partnerTheme = usePartnerTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -362,7 +364,7 @@ const QSCThemeSettings = ({
             disabled={!hasChanges || saving}
             startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveOutlined />}
             sx={{
-              background: hasChanges ? 'linear-gradient(135deg, #5e17eb 0%, #7c3aed 100%)' : '#e2e8f0',
+              background: hasChanges ? partnerTheme.primaryGradient : '#e2e8f0',
               color: hasChanges ? 'white' : '#94a3b8',
               '&:hover': {
                 background: hasChanges ? 'linear-gradient(135deg, #4c0fd9 0%, #6d28d9 100%)' : '#e2e8f0'

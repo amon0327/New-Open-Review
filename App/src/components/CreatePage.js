@@ -2273,7 +2273,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background: 'radial-gradient(circle at 20% 20%, rgba(94, 23, 235, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.05) 0%, transparent 50%)',
+                  background: `radial-gradient(circle at 20% 20%, ${theme.primaryAlpha05} 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.05) 0%, transparent 50%)`,
                   zIndex: 0,
                   cursor: 'default'
                 }}

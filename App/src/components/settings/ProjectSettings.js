@@ -7,6 +7,7 @@ import {
   TextField
 } from '@mui/material';
 import { Folder } from '@mui/icons-material';
+import { usePartnerTheme } from '../../contexts/PartnerThemeContext';
 
 const ProjectSettings = ({
   projectTitle,
@@ -14,6 +15,7 @@ const ProjectSettings = ({
   // Supabase連携用のprops
   onProjectTitleUpdate
 }) => {
+  const theme = usePartnerTheme();
   // デバウンス用のタイムアウト
   const [debounceTimeout, setDebounceTimeout] = React.useState(null);
 
@@ -108,7 +110,7 @@ const ProjectSettings = ({
                   borderColor: '#cbd5e1'
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: '#5e17eb',
+                  borderColor: theme.primary,
                   borderWidth: '2px'
                 },
                 '&.Mui-focused': {

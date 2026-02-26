@@ -5,6 +5,7 @@ import {
   Button
 } from '@mui/material';
 import { getLoginPageData } from '../../services/LoginScreenService';
+import { usePartnerTheme } from '../../contexts/PartnerThemeContext';
 
 const PreviewLogin = ({ 
   previewMode,
@@ -30,6 +31,7 @@ const PreviewLogin = ({
   // エラーハイライト
   loginErrorHighlight
 }) => {
+  const theme = usePartnerTheme();
   const [loginData, setLoginData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -70,9 +72,9 @@ const PreviewLogin = ({
   }, [formId]);
 
   // デフォルト値とSupabaseデータ、propsから受け取ったデータの統合
-  const themeColor = formSettings.theme_color || propThemeColor || (loginData?.formSettings?.theme_color) || '#5e17eb';
+  const themeColor = formSettings.theme_color || propThemeColor || (loginData?.formSettings?.theme_color) || theme.primary;
   const backgroundImage = loginScreenSettings.background_image_url || loginBackgroundImage || (loginData?.loginSettings?.background_image_url) || 'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg';
-  const logoUrl = logoImage || loginLogoImage || (loginData?.formSettings?.logo_image_url) || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const logoUrl = logoImage || loginLogoImage || (loginData?.formSettings?.logo_image_url) || theme.logoLight || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   const titleText = (loginScreenSettings.title_text !== undefined && loginScreenSettings.title_text !== '') 
     ? loginScreenSettings.title_text 
     : (loginTitleText || (loginData?.loginSettings?.title_text) || 'テキストを入力...');
@@ -124,7 +126,7 @@ const PreviewLogin = ({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(94, 23, 235, 0.3)',
+            backgroundColor: theme.primaryAlpha30,
             zIndex: 1,
             pointerEvents: 'none'
           } : {}
@@ -177,7 +179,7 @@ const PreviewLogin = ({
                   left: -8,
                   right: -8,
                   bottom: -8,
-                  backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                  backgroundColor: theme.primaryAlpha30,
                   borderRadius: 2,
                   zIndex: -1,
                   pointerEvents: 'none'
@@ -228,7 +230,7 @@ const PreviewLogin = ({
                   left: -16,
                   right: -16,
                   bottom: -8,
-                  backgroundColor: (loginErrorHighlight?.fieldType === 'title') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
+                  backgroundColor: (loginErrorHighlight?.fieldType === 'title') ? 'rgba(255, 0, 0, 0.3)' : theme.primaryAlpha30,
                   borderRadius: 2,
                   zIndex: -1,
                   pointerEvents: 'none'
@@ -268,7 +270,7 @@ const PreviewLogin = ({
                   left: -16,
                   right: -16,
                   bottom: -8,
-                  backgroundColor: (loginErrorHighlight?.fieldType === 'detail') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
+                  backgroundColor: (loginErrorHighlight?.fieldType === 'detail') ? 'rgba(255, 0, 0, 0.3)' : theme.primaryAlpha30,
                   borderRadius: 2,
                   zIndex: -1,
                   pointerEvents: 'none'
@@ -327,7 +329,7 @@ const PreviewLogin = ({
                   left: -8,
                   right: -8,
                   bottom: -8,
-                  backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                  backgroundColor: theme.primaryAlpha30,
                   borderRadius: isMobile ? '36px' : '40px',
                   zIndex: -1,
                   pointerEvents: 'none'

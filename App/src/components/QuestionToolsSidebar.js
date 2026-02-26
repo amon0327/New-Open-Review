@@ -101,7 +101,7 @@ const QuestionToolsSidebar = ({
                   '&:hover': {
                     transform: 'translateY(-2px)',
                     boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
-                    background: 'rgba(94, 23, 235, 0.05)'
+                    background: theme.primaryAlpha05
                   },
                   '&:active': {
                     cursor: 'grabbing'
@@ -194,7 +194,7 @@ const QuestionToolsSidebar = ({
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
                   transition: 'all 0.3s ease',
                   '&:hover': {
-                    backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                    backgroundColor: theme.primaryAlpha05,
                     borderColor: theme.primaryAlpha20,
                     transform: 'translateY(-1px)',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'

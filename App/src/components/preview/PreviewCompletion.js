@@ -5,6 +5,7 @@ import {
   Button
 } from '@mui/material';
 import FormDataService from '../../services/FormDataService';
+import { usePartnerTheme } from '../../contexts/PartnerThemeContext';
 
 const PreviewCompletion = ({ 
   previewMode,
@@ -30,6 +31,7 @@ const PreviewCompletion = ({
   // エラーハイライト
   completionErrorHighlight
 }) => {
+  const theme = usePartnerTheme();
   const [completionData, setCompletionData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -99,9 +101,9 @@ const PreviewCompletion = ({
   }, [buttonEnabled, previousButtonEnabled]);
 
   // デフォルト値とSupabaseデータ、propsから受け取ったデータの統合
-  const themeColor = formSettings.theme_color || propThemeColor || (completionData?.formSettings?.theme_color) || '#5e17eb';
+  const themeColor = formSettings.theme_color || propThemeColor || (completionData?.formSettings?.theme_color) || theme.primary;
   const backgroundImage = completionScreenSettings.background_image_url || completionBackgroundImage || (completionData?.completionSettings?.background_image_url) || 'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg';
-  const logoUrl = logoImage || completionLogoImage || formSettings.logo_image_url || (completionData?.formSettings?.logo_image_url) || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const logoUrl = logoImage || completionLogoImage || formSettings.logo_image_url || (completionData?.formSettings?.logo_image_url) || theme.logoLight || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   const titleText = (completionScreenSettings.title_text !== undefined && completionScreenSettings.title_text !== '') 
     ? completionScreenSettings.title_text 
     : (completionTitleText || (completionData?.completionSettings?.title_text) || 'テキストを入力...');
@@ -166,7 +168,7 @@ const PreviewCompletion = ({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(94, 23, 235, 0.3)',
+            backgroundColor: theme.primaryAlpha30,
             zIndex: 1,
             pointerEvents: 'none'
           } : {}
@@ -224,7 +226,7 @@ const PreviewCompletion = ({
                 left: -8,
                 right: -8,
                 bottom: -8,
-                backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                backgroundColor: theme.primaryAlpha30,
                 borderRadius: 2,
                 zIndex: -1,
                 pointerEvents: 'none'
@@ -275,7 +277,7 @@ const PreviewCompletion = ({
                 left: -16,
                 right: -16,
                 bottom: -8,
-                backgroundColor: (completionErrorHighlight?.fieldType === 'title') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
+                backgroundColor: (completionErrorHighlight?.fieldType === 'title') ? 'rgba(255, 0, 0, 0.3)' : theme.primaryAlpha30,
                 borderRadius: 2,
                 zIndex: -1,
                 pointerEvents: 'none'
@@ -315,7 +317,7 @@ const PreviewCompletion = ({
                 left: -16,
                 right: -16,
                 bottom: -8,
-                backgroundColor: (completionErrorHighlight?.fieldType === 'detail') ? 'rgba(255, 0, 0, 0.3)' : 'rgba(94, 23, 235, 0.3)',
+                backgroundColor: (completionErrorHighlight?.fieldType === 'detail') ? 'rgba(255, 0, 0, 0.3)' : theme.primaryAlpha30,
                 borderRadius: 2,
                 zIndex: -1,
                 pointerEvents: 'none'
@@ -376,7 +378,7 @@ const PreviewCompletion = ({
                   left: -8,
                   right: -8,
                   bottom: -8,
-                  backgroundColor: 'rgba(94, 23, 235, 0.3)',
+                  backgroundColor: theme.primaryAlpha30,
                   borderRadius: isMobile ? '36px' : '40px',
                   zIndex: -1,
                   pointerEvents: 'none'

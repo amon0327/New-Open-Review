@@ -20,6 +20,7 @@ import {
 } from './questions';
 
 import { stringToColor } from './utils/colorUtils';
+import { usePartnerTheme } from '../../contexts/PartnerThemeContext';
 
 // Main PreviewQuestions component - リファクタリング版
 const PreviewQuestions = ({ 
@@ -41,15 +42,16 @@ const PreviewQuestions = ({
   onElementSelect,
   selectedElement
 }) => {
+  const theme = usePartnerTheme();
   const [answers, setAnswers] = useState({});
   const [hoveredQuestionId, setHoveredQuestionId] = useState(null);
   const [prevQuestionsCount, setPrevQuestionsCount] = useState(0);
   const scrollContainerRef = useRef(null);
   const isMobile = previewMode === 'mobile';
 
-  const themeColor = '#5e17eb';
+  const themeColor = theme.primary;
   const defaultHeaderImage = 'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png';
-  const defaultLogoUrl = 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
+  const defaultLogoUrl = theme.logoLight || 'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png';
   
   const currentHeaderImage = headerImage || defaultHeaderImage;
   const currentLogoUrl = logoImage || defaultLogoUrl;
@@ -117,15 +119,15 @@ const PreviewQuestions = ({
         <Box
           sx={{
             borderRadius: 3,
-            border: isSelected ? '2px solid #5e17eb' : 
-                   isHovered ? '2px solid rgba(94, 23, 235, 0.3)' : 
+            border: isSelected ? `2px solid ${theme.primary}` :
+                   isHovered ? `2px solid ${theme.primaryAlpha30}` :
                    '2px solid transparent',
-            backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : 
-                           isHovered ? 'rgba(94, 23, 235, 0.01)' : 
+            backgroundColor: isSelected ? theme.primaryAlpha02 :
+                           isHovered ? theme.primaryAlpha02 :
                            'transparent',
             padding: (isSelected || isHovered) ? '24px' : '0',
-            boxShadow: isSelected ? '0 8px 32px rgba(94, 23, 235, 0.15)' : 
-                      isHovered ? '0 4px 16px rgba(94, 23, 235, 0.1)' : 
+            boxShadow: isSelected ? `0 8px 32px ${theme.primaryAlpha15}` :
+                      isHovered ? `0 4px 16px ${theme.primaryAlpha10}` :
                       'none',
             position: 'relative',
             transition: 'all 0.3s ease',
@@ -135,14 +137,14 @@ const PreviewQuestions = ({
               position: 'absolute',
               top: -12,
               right: 16,
-              backgroundColor: '#5e17eb',
+              backgroundColor: theme.primary,
               color: 'white',
               fontSize: '0.7rem',
               fontWeight: 600,
               padding: '4px 12px',
               borderRadius: '16px',
               zIndex: 10,
-              boxShadow: '0 2px 8px rgba(94, 23, 235, 0.3)'
+              boxShadow: `0 2px 8px ${theme.primaryAlpha30}`
             } : {}
           }}
         >
@@ -281,7 +283,7 @@ const PreviewQuestions = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: 'rgba(94, 23, 235, 0.2)',
+                  backgroundColor: theme.primaryAlpha20,
                   borderRadius: 1,
                   zIndex: 2,
                   pointerEvents: 'none'
@@ -343,7 +345,7 @@ const PreviewQuestions = ({
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(94, 23, 235, 0.2)',
+              backgroundColor: theme.primaryAlpha20,
               zIndex: 3,
               pointerEvents: 'none'
             }}
@@ -378,7 +380,7 @@ const PreviewQuestions = ({
               }}
               onMouseEnter={(e) => {
                 e.target.style.transform = 'scale(1.1)';
-                e.target.style.filter = 'drop-shadow(0 4px 12px rgba(94, 23, 235, 0.3))';
+                e.target.style.filter = `drop-shadow(0 4px 12px ${theme.primaryAlpha30})`;
               }}
               onMouseLeave={(e) => {
                 e.target.style.transform = 'scale(1)';
@@ -393,7 +395,7 @@ const PreviewQuestions = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: 'rgba(94, 23, 235, 0.2)',
+                  backgroundColor: theme.primaryAlpha20,
                   borderRadius: 1,
                   zIndex: 2,
                   pointerEvents: 'none'
@@ -490,14 +492,14 @@ const PreviewQuestions = ({
                     px: 3,
                     py: 1.5,
                     borderRadius: 2,
-                    backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                    border: '1px solid rgba(94, 23, 235, 0.1)'
+                    backgroundColor: theme.primaryAlpha05,
+                    border: `1px solid ${theme.primaryAlpha10}`
                   }}
                 >
                   <Typography 
                     variant="body2" 
                     sx={{ 
-                      color: '#5e17eb',
+                      color: theme.primary,
                       fontWeight: 500
                     }}
                   >

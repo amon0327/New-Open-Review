@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { SingleChoiceTwoColumnQuestion, MultipleChoiceTwoColumnQuestion } from './questions';
 import { getQuestionsWithOptions, getQuestionPageSettings } from '../../services/QuestionService';
+import { usePartnerTheme } from '../../contexts/PartnerThemeContext';
 
 // Color utility function (AnswerAppと同じ)
 const stringToColor = (colorString) => {
@@ -1467,6 +1468,7 @@ const PreviewQuestions = ({
   highlightAnimation,
   pageErrorHighlight
 }) => {
+  const theme = usePartnerTheme();
   const [answers, setAnswers] = useState({});
   const [hoveredQuestionId, setHoveredQuestionId] = useState(null);
   const [prevQuestionsCount, setPrevQuestionsCount] = useState(0);

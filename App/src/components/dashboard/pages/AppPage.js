@@ -581,7 +581,7 @@ const AppPage = () => {
                   variant="h4"
                   sx={{
                     fontWeight: 700,
-                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                    background: theme.accentGradient,
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent'
@@ -601,11 +601,11 @@ const AppPage = () => {
                 startIcon={refreshing ? <CircularProgress size={20} /> : <Refresh />}
                 variant="outlined"
                 sx={{
-                  borderColor: '#667eea',
-                  color: '#667eea',
+                  borderColor: theme.accent,
+                  color: theme.accent,
                   '&:hover': {
-                    borderColor: '#5a67d8',
-                    backgroundColor: 'rgba(102, 126, 234, 0.05)'
+                    borderColor: theme.accent,
+                    backgroundColor: theme.primaryAlpha05
                   }
                 }}
               >
@@ -626,9 +626,9 @@ const AppPage = () => {
           <Grid item xs={12} md={3}>
             <Card
               sx={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: theme.secondaryGradient,
                 color: 'white',
-                boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
+                boxShadow: `0 10px 30px ${theme.primaryAlpha30}`
               }}
             >
               <CardContent>
@@ -744,7 +744,7 @@ const AppPage = () => {
               onChange={(e, value) => setTabValue(value)}
               sx={{
                 '& .MuiTabs-indicator': {
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                  background: theme.secondaryGradient
                 }
               }}
             >
@@ -753,7 +753,7 @@ const AppPage = () => {
                 sx={{
                   fontWeight: 600,
                   '&.Mui-selected': {
-                    background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+                    background: theme.accentGradient,
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent'
@@ -765,7 +765,7 @@ const AppPage = () => {
                 sx={{
                   fontWeight: 600,
                   '&.Mui-selected': {
-                    background: 'linear-gradient(45deg, #667eea 30%, #764ba2 90%)',
+                    background: theme.accentGradient,
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent'
@@ -782,7 +782,7 @@ const AppPage = () => {
               <Box
                 sx={{
                   p: 3,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: theme.secondaryGradient,
                   color: 'white',
                   display: 'flex',
                   alignItems: 'center',
@@ -844,7 +844,7 @@ const AppPage = () => {
                             borderBottom: index < reviewForms.length - 1 ? '1px solid rgba(0, 0, 0, 0.05)' : 'none',
                             cursor: 'pointer',
                             '&:hover': {
-                              backgroundColor: 'rgba(94, 23, 235, 0.02)'
+                              backgroundColor: theme.primaryAlpha05
                             }
                           }}
                           onClick={() => handleFormSelect(form)}
@@ -855,7 +855,7 @@ const AppPage = () => {
                                 width: 40,
                                 height: 40,
                                 borderRadius: 2,
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                background: theme.secondaryGradient,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -923,7 +923,7 @@ const AppPage = () => {
                             px: 3,
                             borderBottom: index < questions.length - 1 ? '1px solid rgba(0, 0, 0, 0.05)' : 'none',
                             '&:hover': {
-                              backgroundColor: 'rgba(94, 23, 235, 0.02)'
+                              backgroundColor: theme.primaryAlpha05
                             }
                           }}
                         >
@@ -998,7 +998,7 @@ const AppPage = () => {
                                   <IconButton
                                     onClick={() => handleAddDisplaySetting(question)}
                                     sx={{
-                                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                      background: theme.secondaryGradient,
                                       color: 'white',
                                       '&:hover': {
                                         background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)'
@@ -1074,7 +1074,7 @@ const AppPage = () => {
                           component={TableRow}
                           sx={{
                             '&:hover': {
-                              backgroundColor: 'rgba(94, 23, 235, 0.02)'
+                              backgroundColor: theme.primaryAlpha05
                             }
                           }}
                         >
@@ -1127,9 +1127,9 @@ const AppPage = () => {
                                   size="small"
                                   onClick={() => handleEditDisplaySetting(setting)}
                                   sx={{
-                                    color: '#667eea',
+                                    color: theme.accent,
                                     '&:hover': {
-                                      backgroundColor: 'rgba(102, 126, 234, 0.1)'
+                                      backgroundColor: theme.primaryAlpha10
                                     }
                                   }}
                                 >
@@ -1185,7 +1185,7 @@ const AppPage = () => {
       >
         <DialogTitle
           sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: theme.secondaryGradient,
             color: 'white',
             display: 'flex',
             alignItems: 'center',
@@ -1300,7 +1300,7 @@ const AppPage = () => {
             startIcon={<Save />}
             disabled={loading}
             sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: theme.secondaryGradient,
               '&:hover': {
                 background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)'
               }
@@ -1331,7 +1331,7 @@ const AppPage = () => {
       >
         <DialogTitle
           sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: theme.secondaryGradient,
             color: 'white',
             display: 'flex',
             alignItems: 'center',
@@ -1382,7 +1382,7 @@ const AppPage = () => {
             startIcon={<Save />}
             disabled={loading}
             sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: theme.secondaryGradient,
               '&:hover': {
                 background: 'linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%)'
               }

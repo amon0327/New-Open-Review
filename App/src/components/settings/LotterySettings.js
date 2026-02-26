@@ -13,11 +13,13 @@ import {
 } from '@mui/material';
 import { CasinoOutlined, SaveOutlined } from '@mui/icons-material';
 import { LotteryService } from '../../services/LotteryService';
+import { usePartnerTheme } from '../../contexts/PartnerThemeContext';
 
 const LotterySettings = ({
   formId,
   onLotteryUpdate
 }) => {
+  const theme = usePartnerTheme();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -240,7 +242,7 @@ const LotterySettings = ({
                     borderColor: '#cbd5e1'
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#5e17eb',
+                    borderColor: theme.primary,
                     borderWidth: '2px'
                   },
                   '&.Mui-focused': {
@@ -283,7 +285,7 @@ const LotterySettings = ({
                     borderColor: '#cbd5e1'
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: '#5e17eb',
+                    borderColor: theme.primary,
                     borderWidth: '2px'
                   },
                   '&.Mui-focused': {
@@ -325,7 +327,7 @@ const LotterySettings = ({
             disabled={!hasChanges || saving}
             startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveOutlined />}
             sx={{
-              background: hasChanges ? 'linear-gradient(135deg, #5e17eb 0%, #7c3aed 100%)' : '#e2e8f0',
+              background: hasChanges ? theme.primaryGradient : '#e2e8f0',
               color: hasChanges ? 'white' : '#94a3b8',
               '&:hover': {
                 background: hasChanges ? 'linear-gradient(135deg, #4c0fd9 0%, #6d28d9 100%)' : '#e2e8f0'

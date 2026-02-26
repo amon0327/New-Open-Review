@@ -114,7 +114,7 @@ const QuestionSettings = ({ question, onUpdate, onDelete }) => {
         border: '1px solid rgba(0,0,0,0.08)',
         '&:before': { display: 'none' },
         '&.Mui-expanded': {
-          boxShadow: '0 4px 16px rgba(94, 23, 235, 0.12)',
+          boxShadow: `0 4px 16px ${theme.primaryAlpha15}`,
           borderColor: theme.primaryAlpha20
         }
       }}
