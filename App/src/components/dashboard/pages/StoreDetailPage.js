@@ -43,6 +43,7 @@ import {
 // import { useParams, useNavigate } from 'react-router-dom'; // TODO: React Router設定後に有効化
 import { supabase } from '../../../lib/supabase';
 import StaffInvitationForm from '../../StaffInvitationForm';
+import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import toast from 'react-hot-toast';
 
 function TabPanel({ children, value, index, ...other }) {
@@ -64,6 +65,7 @@ function TabPanel({ children, value, index, ...other }) {
 }
 
 export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
+  const theme = usePartnerTheme();
   // TODO: React Router設定後に有効化
   // const { storeId } = useParams();
   // const navigate = useNavigate();
@@ -299,7 +301,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
           justifyContent: 'center'
         }}
       >
-        <CircularProgress size={50} sx={{ color: '#5e17eb' }} />
+        <CircularProgress size={50} sx={{ color: theme.primary }} />
       </Box>
     );
   }
@@ -339,12 +341,12 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
               >
                 <ArrowBack />
               </IconButton>
-              <Store sx={{ fontSize: 32, color: '#5e17eb', mr: 2 }} />
+              <Store sx={{ fontSize: 32, color: theme.primary, mr: 2 }} />
               <Typography
                 variant="h4"
                 sx={{
                   fontWeight: 700,
-                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                  background: theme.accentGradient,
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent'
@@ -367,11 +369,11 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
               startIcon={<PersonAdd />}
               onClick={() => setShowInvitationForm(true)}
               sx={{
-                background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
+                background: theme.accentGradient,
+                boxShadow: `0 4px 15px ${theme.primaryAlpha30}`,
                 '&:hover': {
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                  boxShadow: `0 6px 20px ${theme.primaryAlpha40}`,
                 }
               }}
             >
@@ -405,11 +407,11 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                   startIcon={<PersonAdd />}
                   onClick={() => setShowInvitationForm(true)}
                   sx={{
-                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                    boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
+                    background: theme.accentGradient,
+                    boxShadow: `0 4px 15px ${theme.primaryAlpha30}`,
                     '&:hover': {
                       transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                      boxShadow: `0 6px 20px ${theme.primaryAlpha40}`,
                     }
                   }}
                 >
@@ -486,11 +488,11 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                   startIcon={<PersonAdd />}
                   onClick={() => setShowInvitationForm(true)}
                   sx={{
-                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                    boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
+                    background: theme.accentGradient,
+                    boxShadow: `0 4px 15px ${theme.primaryAlpha30}`,
                     '&:hover': {
                       transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                      boxShadow: `0 6px 20px ${theme.primaryAlpha40}`,
                     }
                   }}
                 >
@@ -501,11 +503,11 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                   startIcon={<Email />}
                   onClick={() => setTabValue(1)}
                   sx={{
-                    borderColor: '#5e17eb',
-                    color: '#5e17eb',
+                    borderColor: theme.primary,
+                    color: theme.primary,
                     '&:hover': {
-                      borderColor: '#4c1d95',
-                      backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                      borderColor: theme.secondary,
+                      backgroundColor: theme.primaryAlpha05,
                     }
                   }}
                 >
@@ -533,11 +535,11 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                   startIcon={<PersonAdd />}
                   onClick={() => setShowInvitationForm(true)}
                   sx={{
-                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                    boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
+                    background: theme.accentGradient,
+                    boxShadow: `0 4px 15px ${theme.primaryAlpha30}`,
                     '&:hover': {
                       transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                      boxShadow: `0 6px 20px ${theme.primaryAlpha40}`,
                     }
                   }}
                 >
@@ -568,7 +570,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                       onClick={copySelectedInvitations}
                       disabled={selectedInvitations.length === 0}
                       sx={{
-                        background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                        background: theme.accentGradient,
                         '&:disabled': {
                           background: '#e2e8f0',
                           color: '#94a3b8'
@@ -595,8 +597,8 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                           checked={invitedInvitations.length > 0 && selectedInvitations.length === invitedInvitations.length}
                           onChange={handleSelectAll}
                           sx={{
-                            '&.Mui-checked': { color: '#5e17eb' },
-                            '&.MuiCheckbox-indeterminate': { color: '#5e17eb' }
+                            '&.Mui-checked': { color: theme.primary },
+                            '&.MuiCheckbox-indeterminate': { color: theme.primary }
                           }}
                         />
                       </TableCell>
@@ -614,10 +616,10 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                         selected={selectedInvitations.includes(invitation.id)}
                         sx={{
                           '&.Mui-selected': {
-                            backgroundColor: 'rgba(94, 23, 235, 0.08)',
+                            backgroundColor: theme.primaryAlpha08,
                           },
                           '&.Mui-selected:hover': {
-                            backgroundColor: 'rgba(94, 23, 235, 0.12)',
+                            backgroundColor: theme.primaryAlpha15,
                           }
                         }}
                       >
@@ -626,7 +628,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                             <Checkbox
                               checked={selectedInvitations.includes(invitation.id)}
                               onChange={() => handleSelectInvitation(invitation.id)}
-                              sx={{ '&.Mui-checked': { color: '#5e17eb' } }}
+                              sx={{ '&.Mui-checked': { color: theme.primary } }}
                             />
                           ) : (
                             <Checkbox disabled />
@@ -664,9 +666,9 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                                 size="small"
                                 onClick={() => copyInvitationUrl(invitation.token, 'production')}
                                 sx={{
-                                  color: '#5e17eb',
+                                  color: theme.primary,
                                   '&:hover': {
-                                    backgroundColor: 'rgba(94, 23, 235, 0.1)'
+                                    backgroundColor: theme.primaryAlpha10
                                   }
                                 }}
                                 title="URLをコピー"
@@ -702,11 +704,11 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                   startIcon={<PersonAdd />}
                   onClick={() => setShowInvitationForm(true)}
                   sx={{
-                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
-                    boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
+                    background: theme.accentGradient,
+                    boxShadow: `0 4px 15px ${theme.primaryAlpha30}`,
                     '&:hover': {
                       transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                      boxShadow: `0 6px 20px ${theme.primaryAlpha40}`,
                     }
                   }}
                 >
@@ -717,11 +719,11 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
                   startIcon={<Person />}
                   onClick={() => setTabValue(0)}
                   sx={{
-                    borderColor: '#5e17eb',
-                    color: '#5e17eb',
+                    borderColor: theme.primary,
+                    color: theme.primary,
                     '&:hover': {
-                      borderColor: '#4c1d95',
-                      backgroundColor: 'rgba(94, 23, 235, 0.05)',
+                      borderColor: theme.secondary,
+                      backgroundColor: theme.primaryAlpha05,
                     }
                   }}
                 >
@@ -740,7 +742,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
             position: 'fixed',
             bottom: 24,
             right: 24,
-            background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+            background: theme.accentGradient,
             '&:hover': {
               transform: 'scale(1.1)',
             }
