@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { usePartnerTheme } from '../contexts/PartnerThemeContext';
 import {
   Box,
   Paper,
@@ -21,6 +22,7 @@ const QuestionToolsSidebar = ({
   pastQuestions = [],
   isLoadingPastQuestions = false
 }) => {
+  const theme = usePartnerTheme();
   const [expandedForms, setExpandedForms] = useState({});
 
   // ドラッグ開始時の処理
@@ -108,7 +110,7 @@ const QuestionToolsSidebar = ({
                   '&:is([dragging])': {
                     opacity: 0.6,
                     transform: 'scale(1.05)',
-                    boxShadow: '0 8px 32px rgba(94, 23, 235, 0.3)'
+                    boxShadow: `0 8px 32px ${theme.primaryAlpha30}`
                   }
                 }}
                 onClick={() => setSelectedTool(item)}
@@ -119,9 +121,9 @@ const QuestionToolsSidebar = ({
                     height: 28,
                     borderRadius: 1,
                     background: `linear-gradient(135deg, ${
-                      ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7]
+                      [theme.accent, '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7]
                     } 0%, ${
-                      ['#764ba2', '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][index % 7]
+                      [theme.secondary, '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][index % 7]
                     } 100%)`,
                     display: 'flex',
                     alignItems: 'center',
@@ -153,7 +155,7 @@ const QuestionToolsSidebar = ({
 
       {/* 作成済みの質問セクション */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <History sx={{ fontSize: 18, color: '#5e17eb' }} />
+        <History sx={{ fontSize: 18, color: theme.primary }} />
         <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#64748b' }}>
           作成済みの質問
         </Typography>
@@ -162,7 +164,7 @@ const QuestionToolsSidebar = ({
       <Box sx={{ flex: 1 }}>
         {isLoadingPastQuestions ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={24} sx={{ color: '#5e17eb' }} />
+            <CircularProgress size={24} sx={{ color: theme.primary }} />
           </Box>
         ) : pastQuestions.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4, color: '#94a3b8' }}>
@@ -188,12 +190,12 @@ const QuestionToolsSidebar = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  border: '1px solid rgba(94, 23, 235, 0.1)',
+                  border: `1px solid ${theme.primaryAlpha10}`,
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
                   transition: 'all 0.3s ease',
                   '&:hover': {
                     backgroundColor: 'rgba(94, 23, 235, 0.05)',
-                    borderColor: 'rgba(94, 23, 235, 0.2)',
+                    borderColor: theme.primaryAlpha20,
                     transform: 'translateY(-1px)',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)'
                   }

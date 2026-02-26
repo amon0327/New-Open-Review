@@ -18,6 +18,7 @@ import FormDataService from '../services/FormDataService';
 import { createQuestionWithOptions, updateReviewQuestion, getCompanyPastQuestions, linkQuestionToForm } from '../services/QuestionService';
 // import CompletionScreenService from '../services/CompletionScreenService'; // FormDataServiceを使用するため削除
 import { supabase } from '../lib/supabase';
+import { PartnerThemeProvider, usePartnerTheme, buildThemeColors } from '../contexts/PartnerThemeContext';
 import {
   Box,
   Paper,
@@ -68,7 +69,14 @@ import {
   Quiz
 } from '@mui/icons-material';
 
-// スタイル定数
+// スタイル定数（テーマカラー対応）
+const getGradientTextStyle = (theme) => ({
+  fontWeight: 600,
+  background: theme?.accentGradient || 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+  backgroundClip: 'text',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent'
+});
 const PURPLE_GRADIENT_TEXT_STYLE = {
   fontWeight: 600,
   background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
@@ -104,11 +112,14 @@ const SLIDE_IN_RIGHT_ANIMATION = {
 };
 
 // カテゴリグラデーション関数
-const getCategoryGradient = (categoryId) => {
+const getCategoryGradient = (categoryId, theme) => {
+  const primary = theme?.primary || '#5e17eb';
+  const secondary = theme?.secondary || '#764ba2';
+  const accent = theme?.accent || '#667eea';
   const gradients = {
-    account: '#667eea, #764ba2',
-    database: '#5e17eb, #764ba2',
-    forms: '#5e17eb, #764ba2',
+    account: `${accent}, ${secondary}`,
+    database: `${primary}, ${secondary}`,
+    forms: `${primary}, ${secondary}`,
     security: '#ef4444, #dc2626',
     integrations: '#3b82f6, #1d4ed8',
     advanced: '#6b7280, #4b5563'
@@ -229,6 +240,38 @@ export default function CreatePage({ onBackClick, user, formId }) {
     detail_text: ''
   });
   const [isLoadingLoginSettings, setIsLoadingLoginSettings] = useState(false);
+
+  // パートナーテーマ
+  const [partnerTheme, setPartnerTheme] = useState(null);
+
+  useEffect(() => {
+    const fetchPartnerTheme = async () => {
+      if (!user?.id) return;
+      try {
+        // ユーザーの企業IDを取得
+        const { data: membership } = await supabase
+          .from('company_memberships')
+          .select('companies_id')
+          .eq('business_users_id', user.id)
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+        if (!membership?.companies_id) return;
+        // パートナーテーマを取得
+        const { data, error } = await supabase.rpc('get_partner_theme', {
+          p_company_id: membership.companies_id
+        });
+        if (!error && data) {
+          setPartnerTheme(data);
+        }
+      } catch (err) {
+        console.log('ℹ️ No partner theme found');
+      }
+    };
+    fetchPartnerTheme();
+  }, [user?.id]);
+
+  const theme = useMemo(() => buildThemeColors(partnerTheme), [partnerTheme]);
 
   // プロジェクトタイトル読み込み
   useEffect(() => {
@@ -1979,6 +2022,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
   };
 
   return (
+    <PartnerThemeProvider partnerTheme={partnerTheme}>
     <Box
       className={`main-container ${showSettings ? 'settings-active' : ''}`}
       sx={{
@@ -2358,7 +2402,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                       <Typography
                         variant="h6"
-                        sx={PURPLE_GRADIENT_TEXT_STYLE}
+                        sx={getGradientTextStyle(theme)}
                       >
                         ページ管理
                       </Typography>
@@ -2367,10 +2411,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
                           onClick={handleAddPage}
                           disabled={isAddingPage}
                           sx={{
-                            color: isAddingPage ? '#9ca3af' : '#5e17eb',
-                            backgroundColor: isAddingPage ? 'rgba(156, 163, 175, 0.1)' : 'rgba(94, 23, 235, 0.1)',
-                            '&:hover': isAddingPage ? {} : { 
-                              backgroundColor: 'rgba(94, 23, 235, 0.2)',
+                            color: isAddingPage ? '#9ca3af' : theme.primary,
+                            backgroundColor: isAddingPage ? 'rgba(156, 163, 175, 0.1)' : theme.primaryAlpha10,
+                            '&:hover': isAddingPage ? {} : {
+                              backgroundColor: theme.primaryAlpha20,
                               transform: 'scale(1.05)'
                             },
                             '&.Mui-disabled': {
@@ -2443,19 +2487,19 @@ export default function CreatePage({ onBackClick, user, formId }) {
                               borderRadius: 1,
                               backgroundColor: sortingAnimation?.id === page.id && sortingAnimation.direction === 'success'
                                 ? 'rgba(34, 197, 94, 0.1)'
-                                : draggedPage?.id === page.id 
-                                ? 'rgba(94, 23, 235, 0.1)' 
+                                : draggedPage?.id === page.id
+                                ? theme.primaryAlpha10
                                 : dropIndicator === page.id
-                                ? 'rgba(94, 23, 235, 0.08)'
+                                ? theme.primaryAlpha10
                                 : selectedPage?.id === page.id
-                                ? 'rgba(94, 23, 235, 0.12)'
+                                ? theme.primaryAlpha15
                                 : 'rgba(255, 255, 255, 0.8)',
-                              border: dropIndicator === page.id 
-                                ? '2px dashed #5e17eb'
+                              border: dropIndicator === page.id
+                                ? `2px dashed ${theme.primary}`
                                 : sortingAnimation?.id === page.id && sortingAnimation.direction === 'success'
                                 ? '1px solid rgba(34, 197, 94, 0.3)'
                                 : selectedPage?.id === page.id
-                                ? '2px solid #5e17eb'
+                                ? `2px solid ${theme.primary}`
                                 : '1px solid rgba(0, 0, 0, 0.06)',
                               boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
                               minHeight: 72,
@@ -2469,19 +2513,19 @@ export default function CreatePage({ onBackClick, user, formId }) {
                               '&:hover': {
                                 backgroundColor: deleteMode && page.canDelete
                                   ? 'rgba(239, 68, 68, 0.05)'
-                                  : draggedPage?.id === page.id 
-                                  ? 'rgba(94, 23, 235, 0.1)' 
+                                  : draggedPage?.id === page.id
+                                  ? theme.primaryAlpha10
                                   : selectedPage?.id === page.id
-                                  ? 'rgba(94, 23, 235, 0.15)'
-                                  : 'rgba(94, 23, 235, 0.04)',
+                                  ? theme.primaryAlpha15
+                                  : theme.primaryAlpha10,
                                 borderColor: deleteMode && page.canDelete
                                   ? 'rgba(239, 68, 68, 0.3)'
                                   : selectedPage?.id === page.id
-                                  ? '#5e17eb'
-                                  : 'rgba(94, 23, 235, 0.15)',
+                                  ? theme.primary
+                                  : theme.primaryAlpha15,
                                 transform: draggedPage?.id === page.id ? 'none' : 'translateY(-1px)',
-                                boxShadow: selectedPage?.id === page.id 
-                                  ? '0 4px 16px rgba(94, 23, 235, 0.2)'
+                                boxShadow: selectedPage?.id === page.id
+                                  ? `0 4px 16px ${theme.primaryAlpha20}`
                                   : '0 3px 12px rgba(0, 0, 0, 0.1)'
                               }
                             }}
@@ -2493,13 +2537,13 @@ export default function CreatePage({ onBackClick, user, formId }) {
                                   color: '#94a3b8',
                                   cursor: 'grab',
                                   '&:active': { cursor: 'grabbing' },
-                                  '&:hover': { color: '#5e17eb' },
+                                  '&:hover': { color: theme.primary },
                                   padding: '4px',
                                   borderRadius: '4px',
                                   mr: 1,
                                   '&:hover': {
-                                    backgroundColor: 'rgba(94, 23, 235, 0.1)',
-                                    color: '#5e17eb'
+                                    backgroundColor: theme.primaryAlpha10,
+                                    color: theme.primary
                                   }
                                 }}
                               >
@@ -2516,17 +2560,17 @@ export default function CreatePage({ onBackClick, user, formId }) {
                                 height: 32,
                                 borderRadius: 1,
                                 background: selectedPage?.id === page.id
-                                  ? 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)'
-                                  : page.type === 'system' 
-                                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                                  : 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+                                  ? theme.primaryGradient
+                                  : page.type === 'system'
+                                  ? theme.secondaryGradient
+                                  : theme.primaryGradient,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 flexShrink: 0,
                                 boxShadow: selectedPage?.id === page.id
-                                  ? '0 4px 12px rgba(76, 29, 149, 0.4)'
-                                  : '0 2px 8px rgba(94, 23, 235, 0.3)',
+                                  ? `0 4px 12px ${theme.primaryAlpha40}`
+                                  : `0 2px 8px ${theme.primaryAlpha30}`,
                                 transform: selectedPage?.id === page.id ? 'scale(1.05)' : 'scale(1)',
                                 transition: 'all 0.2s ease'
                               }}
@@ -2551,10 +2595,10 @@ export default function CreatePage({ onBackClick, user, formId }) {
                                     fontSize: '0.8rem',
                                     width: '100%',
                                     '&:before': {
-                                      borderBottom: '2px solid #5e17eb'
+                                      borderBottom: `2px solid ${theme.primary}`
                                     },
                                     '&:after': {
-                                      borderBottom: '2px solid #5e17eb'
+                                      borderBottom: `2px solid ${theme.primary}`
                                     }
                                   }}
                                 />
@@ -2576,7 +2620,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                                   }}
                                   sx={{
                                     fontWeight: 600,
-                                    color: selectedPage?.id === page.id ? '#5e17eb' : '#2d3748',
+                                    color: selectedPage?.id === page.id ? theme.primary : '#2d3748',
                                     fontSize: '0.8rem',
                                     mb: 0.3,
                                     cursor: page.type === 'question' && !deleteMode ? 
@@ -2588,7 +2632,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                                     maxWidth: '100%',
                                     '&:hover': page.type === 'question' && !deleteMode ? {
                                       textDecoration: selectedPage?.id === page.id ? 'underline' : 'none',
-                                      color: '#5e17eb'
+                                      color: theme.primary
                                     } : {}
                                   }}
                                   title={page.title} // ホバー時に全文表示
@@ -2744,12 +2788,12 @@ export default function CreatePage({ onBackClick, user, formId }) {
               backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.95) 100%), ' +
                               (publishDialogErrors.length > 0 
                                 ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
-                                : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)'),
+                                : `linear-gradient(135deg, ${theme.accent} 0%, ${theme.secondary} 50%, #ff6b6b 100%)`),
               backgroundOrigin: 'border-box',
               backgroundClip: 'content-box, border-box',
-              boxShadow: publishDialogErrors.length > 0 
-                ? '0 32px 80px rgba(239, 68, 68, 0.25)' 
-                : '0 32px 80px rgba(102, 126, 234, 0.25)',
+              boxShadow: publishDialogErrors.length > 0
+                ? '0 32px 80px rgba(239, 68, 68, 0.25)'
+                : `0 32px 80px ${theme.primaryAlpha30}`,
               overflow: 'hidden'
             }
           }}
@@ -2766,9 +2810,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
                 textAlign: 'center',
                 py: 6,
                 px: 4,
-                background: publishDialogErrors.length > 0 
+                background: publishDialogErrors.length > 0
                   ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.08) 50%, rgba(185, 28, 28, 0.08) 100%)'
-                  : 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(255, 107, 107, 0.08) 100%)',
+                  : `linear-gradient(135deg, ${theme.primaryAlpha10} 0%, ${theme.primaryAlpha10} 50%, rgba(255, 107, 107, 0.08) 100%)`,
                 color: '#374151',
                 mb: 0,
                 minHeight: 360,
@@ -2783,9 +2827,9 @@ export default function CreatePage({ onBackClick, user, formId }) {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background: publishDialogErrors.length > 0 
+                  background: publishDialogErrors.length > 0
                     ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.03) 0%, rgba(220, 38, 38, 0.03) 50%, rgba(185, 28, 28, 0.03) 100%)'
-                    : 'linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 50%, rgba(255, 107, 107, 0.03) 100%)',
+                    : 'linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.01) 50%, rgba(255, 107, 107, 0.03) 100%)',
                   zIndex: -1
                 }
               }}
@@ -2808,7 +2852,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                       borderRadius: '50%',
                       background: publishDialogErrors.length > 0
                         ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.15) 50%, rgba(185, 28, 28, 0.15) 100%)'
-                        : 'linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(255, 107, 107, 0.15) 100%)',
+                        : `linear-gradient(135deg, ${theme.primaryAlpha15} 0%, ${theme.primaryAlpha15} 50%, rgba(255, 107, 107, 0.15) 100%)`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -2816,7 +2860,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                       fontSize: '2.8rem',
                       boxShadow: publishDialogErrors.length > 0
                         ? '0 12px 32px rgba(239, 68, 68, 0.2)'
-                        : '0 12px 32px rgba(102, 126, 234, 0.2)',
+                        : `0 12px 32px ${theme.primaryAlpha20}`,
                       animation: 'pulse 2s ease-in-out infinite',
                       '@keyframes pulse': {
                         '0%, 100%': { transform: 'scale(1)' },
@@ -2839,7 +2883,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                         fontSize: '1.8rem',
                         background: publishDialogErrors.length > 0
                           ? 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)'
-                          : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff6b6b 100%)',
+                          : `linear-gradient(135deg, ${theme.accent} 0%, ${theme.secondary} 50%, #ff6b6b 100%)`,
                         backgroundClip: 'text',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
@@ -2951,7 +2995,7 @@ export default function CreatePage({ onBackClick, user, formId }) {
                         fontWeight: 600,
                         mb: 3,
                         fontSize: '1.1rem',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        background: theme.secondaryGradient,
                         backgroundClip: 'text',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
@@ -3045,15 +3089,15 @@ export default function CreatePage({ onBackClick, user, formId }) {
                     minWidth: 120,
                     height: 52,
                     borderRadius: '26px',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: theme.secondaryGradient,
                     color: 'white',
                     fontSize: '1rem',
                     fontWeight: 600,
                     textTransform: 'none',
-                    boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+                    boxShadow: `0 8px 24px ${theme.primaryAlpha40}`,
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #5a67d8 0%, #6b46a3 100%)',
-                      boxShadow: '0 12px 32px rgba(102, 126, 234, 0.5)',
+                      background: theme.primaryGradient,
+                      boxShadow: `0 12px 32px ${theme.primaryAlpha40}`,
                       transform: 'translateY(-2px)'
                     },
                     '&.Mui-disabled': {
@@ -3072,5 +3116,6 @@ export default function CreatePage({ onBackClick, user, formId }) {
 
       </Box>
     </Box>
+    </PartnerThemeProvider>
   );
 }

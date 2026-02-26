@@ -265,50 +265,22 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: sidebarGradient
+          background: '#ffffff'
         }}
       >
-        <Card
-          sx={{
-            minWidth: 300,
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: `0 20px 60px ${shadowColor}`,
-            borderRadius: 3,
-            textAlign: 'center'
-          }}
-        >
-          <CardContent sx={{ p: 4 }}>
-            <CircularProgress
-              size={50}
-              thickness={4}
-              sx={{
-                color: themeColor,
-                mb: 2
-              }}
-            />
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 600,
-                background: accentGradient,
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                mb: 1
-              }}
-            >
-              読み込み中...
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: '#64748b' }}
-            >
-              アカウント情報を確認しています
-            </Typography>
-          </CardContent>
-        </Card>
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress
+            size={40}
+            thickness={3}
+            sx={{ color: '#94a3b8', mb: 2 }}
+          />
+          <Typography
+            variant="body2"
+            sx={{ color: '#94a3b8' }}
+          >
+            読み込み中...
+          </Typography>
+        </Box>
       </Box>
     );
   }
@@ -342,55 +314,71 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: sidebarGradient
+          background: isThemeLoaded ? sidebarGradient : '#ffffff'
         }}
       >
-        <Card
-          sx={{
-            maxWidth: 480,
-            width: '90%',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: `0 20px 60px ${shadowColor}`,
-            borderRadius: 3,
-            textAlign: 'center'
-          }}
-        >
-          <CardContent sx={{ p: 5 }}>
-            <Block sx={{ fontSize: 64, color: '#ef4444', mb: 2 }} />
+        {!isThemeLoaded ? (
+          <Box sx={{ textAlign: 'center' }}>
+            <CircularProgress
+              size={40}
+              thickness={3}
+              sx={{ color: '#94a3b8', mb: 2 }}
+            />
             <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 700,
-                color: '#1a202c',
-                mb: 2
-              }}
+              variant="body2"
+              sx={{ color: '#94a3b8' }}
             >
-              現在ご利用いただけません
+              読み込み中...
             </Typography>
-            <Typography
-              variant="body1"
-              sx={{ color: '#64748b', mb: 4 }}
-            >
-              この企業アカウントは現在非アクティブに設定されています。管理者にお問い合わせください。
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<Logout />}
-              onClick={onLogout}
-              sx={{
-                background: accentGradient,
-                borderRadius: 2,
-                px: 4,
-                py: 1.5,
-                fontSize: '1rem'
-              }}
-            >
-              ログアウト
-            </Button>
-          </CardContent>
-        </Card>
+          </Box>
+        ) : (
+          <Card
+            sx={{
+              maxWidth: 480,
+              width: '90%',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: `0 20px 60px ${shadowColor}`,
+              borderRadius: 3,
+              textAlign: 'center'
+            }}
+          >
+            <CardContent sx={{ p: 5 }}>
+              <Block sx={{ fontSize: 64, color: '#ef4444', mb: 2 }} />
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 700,
+                  color: '#1a202c',
+                  mb: 2
+                }}
+              >
+                現在ご利用いただけません
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{ color: '#64748b', mb: 4 }}
+              >
+                この企業アカウントは現在非アクティブに設定されています。管理者にお問い合わせください。
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<Logout />}
+                onClick={onLogout}
+                sx={{
+                  background: accentGradient,
+                  borderRadius: 2,
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1rem'
+                }}
+              >
+                ログアウト
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </Box>
     );
   }

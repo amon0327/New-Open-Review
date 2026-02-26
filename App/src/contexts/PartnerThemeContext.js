@@ -68,4 +68,5 @@ export const usePartnerTheme = () => {
   return theme;
 };
 
+export { buildThemeColors };
 export default PartnerThemeContext;

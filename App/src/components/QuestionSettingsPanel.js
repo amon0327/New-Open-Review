@@ -44,9 +44,11 @@ import {
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QuestionDisplayService } from '../services/QuestionDisplayService';
+import { usePartnerTheme } from '../contexts/PartnerThemeContext';
 
 // ルール設定セクションコンポーネント
 const RuleSettingsSection = ({ questionId, questionType, choices }) => {
+  const theme = usePartnerTheme();
   const [categorization, setCategorization] = useState(null);
   const [showCategorization, setShowCategorization] = useState(false);
 
@@ -169,7 +171,7 @@ const RuleSettingsSection = ({ questionId, questionType, choices }) => {
                     size="small"
                     onClick={handleSaveCategorization}
                     sx={{
-                      backgroundColor: '#5e17eb',
+                      backgroundColor: theme.primary,
                       textTransform: 'none',
                       '&:hover': { backgroundColor: '#4c1d95' }
                     }}
@@ -239,6 +241,7 @@ const getQuestionTypeDescription = (typeId) => {
 
 // 選択肢編集コンポーネント
 const ChoicesEditor = ({ choices, onChange, disabled = false }) => {
+  const theme = usePartnerTheme();
   const handleAddChoice = () => {
     onChange([...choices, `選択肢 ${choices.length + 1}`]);
   };
@@ -276,11 +279,11 @@ const ChoicesEditor = ({ choices, onChange, disabled = false }) => {
             startIcon={<AddIcon />}
             onClick={handleAddChoice}
             sx={{
-              color: '#5e17eb',
+              color: theme.primary,
               textTransform: 'none',
               fontSize: '0.8rem',
               fontWeight: 500,
-              '&:hover': { backgroundColor: 'rgba(94, 23, 235, 0.08)' }
+              '&:hover': { backgroundColor: theme.primaryAlpha10 }
             }}
           >
             追加
@@ -305,7 +308,7 @@ const ChoicesEditor = ({ choices, onChange, disabled = false }) => {
                   border: '1px solid #e5e7eb',
                   borderRadius: 2,
                   backgroundColor: '#fafafa',
-                  '&:hover': !disabled ? { borderColor: '#5e17eb', backgroundColor: '#f8f9ff' } : {}
+                  '&:hover': !disabled ? { borderColor: theme.primary, backgroundColor: '#f8f9ff' } : {}
                 }}
               >
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -317,7 +320,7 @@ const ChoicesEditor = ({ choices, onChange, disabled = false }) => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: '#5e17eb',
+                      backgroundColor: theme.primary,
                       color: 'white',
                       borderRadius: 1,
                       fontSize: '0.7rem',
@@ -339,8 +342,8 @@ const ChoicesEditor = ({ choices, onChange, disabled = false }) => {
                         backgroundColor: disabled ? '#f1f5f9' : 'white',
                         fontSize: '0.85rem',
                         '& fieldset': { borderColor: 'transparent' },
-                        '&:hover fieldset': { borderColor: disabled ? 'transparent' : '#5e17eb' },
-                        '&.Mui-focused fieldset': { borderColor: '#5e17eb' }
+                        '&:hover fieldset': { borderColor: disabled ? 'transparent' : theme.primary },
+                        '&.Mui-focused fieldset': { borderColor: theme.primary }
                       }
                     }}
                   />

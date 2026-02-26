@@ -7,6 +7,7 @@ import {
   Alert
 } from '@mui/material';
 import { colors, gradients, shadows } from '../constants/theme';
+import { usePartnerTheme } from '../contexts/PartnerThemeContext';
 import PreviewLogin from './preview/PreviewLogin';
 import PreviewQuestions from './preview/PreviewQuestions';
 import PreviewCompletion from './preview/PreviewCompletion';
@@ -48,6 +49,7 @@ const PreviewArea = ({
   loginErrorHighlight,
   completionErrorHighlight
 }) => {
+  const theme = usePartnerTheme();
   const dropRef = useRef(null);
   const [dropIndicator, setDropIndicator] = useState(null);
   // ドラッグ&ドロップイベントハンドラ - プレビュー画面全体でドロップ可能にする
@@ -237,16 +239,16 @@ const PreviewArea = ({
                       px: isCenter ? 3.5 : 2.5,
                       py: isCenter ? 1.5 : 1,
                       borderRadius: 3,
-                      backgroundColor: isActive ? '#5e17eb' : 'rgba(255, 255, 255, 0.9)',
+                      backgroundColor: isActive ? theme.primary : 'rgba(255, 255, 255, 0.9)',
                       color: isActive ? 'white' : '#6b7280',
                       fontSize: isCenter ? '0.85rem' : '0.75rem',
                       fontWeight: isActive ? 600 : 500,
                       cursor: 'pointer',
                       transition: 'all 0.3s ease',
                       border: '1px solid',
-                      borderColor: isActive ? '#5e17eb' : 'rgba(0, 0, 0, 0.1)',
-                      boxShadow: isActive 
-                        ? '0 3px 12px rgba(94, 23, 235, 0.4)'
+                      borderColor: isActive ? theme.primary : 'rgba(0, 0, 0, 0.1)',
+                      boxShadow: isActive
+                        ? `0 3px 12px ${theme.primaryAlpha30}`
                         : '0 1px 3px rgba(0, 0, 0, 0.1)',
                       width: isCenter ? '150px' : '110px', // 固定幅でサイズ統一
                       overflow: 'hidden', // テキストオーバーフロー対応
@@ -256,13 +258,13 @@ const PreviewArea = ({
                       transform: isCenter ? 'scale(1.05)' : 'scale(1)',
                       opacity: isCenter ? 1 : 0.7,
                       '&:hover': {
-                        backgroundColor: isActive ? '#4c1d95' : 'rgba(94, 23, 235, 0.1)',
-                        borderColor: '#5e17eb',
+                        backgroundColor: isActive ? '#4c1d95' : theme.primaryAlpha10,
+                        borderColor: theme.primary,
                         transform: isCenter ? 'scale(1.08) translateY(-1px)' : 'scale(1.02) translateY(-1px)',
                         opacity: 1,
-                        boxShadow: isActive 
-                          ? '0 4px 16px rgba(94, 23, 235, 0.5)'
-                          : '0 2px 8px rgba(94, 23, 235, 0.2)'
+                        boxShadow: isActive
+                          ? `0 4px 16px ${theme.primaryAlpha30}`
+                          : `0 2px 8px ${theme.primaryAlpha20}`
                       }
                     }}
                   >
@@ -293,13 +295,13 @@ const PreviewArea = ({
             border: previewMode === 'mobile' 
               ? '8px solid #1a1a1a' 
               : isDragActive
-                ? '4px solid rgba(94, 23, 235, 0.5)'
+                ? `4px solid ${theme.primaryAlpha30}`
                 : '2px solid #e2e8f0',
             boxShadow: isDragActive
               ? `
-                0 0 0 4px rgba(94, 23, 235, 0.3),
-                0 0 40px rgba(94, 23, 235, 0.4),
-                0 20px 80px rgba(94, 23, 235, 0.2),
+                0 0 0 4px ${theme.primaryAlpha30},
+                0 0 40px ${theme.primaryAlpha30},
+                0 20px 80px ${theme.primaryAlpha20},
                 ${previewMode === 'mobile' ? shadows.mobile : shadows.card}
               `
               : previewMode === 'mobile' 
@@ -316,7 +318,7 @@ const PreviewArea = ({
               left: -8,
               right: -8,
               bottom: -8,
-              background: 'linear-gradient(45deg, #5e17eb, #764ba2, #667eea, #5e17eb)',
+              background: `linear-gradient(45deg, ${theme.primary}, ${theme.secondary}, ${theme.accent}, ${theme.primary})`,
               borderRadius: previewMode === 'mobile' ? 14 : 8,
               zIndex: -1,
               backgroundSize: '300% 300%',

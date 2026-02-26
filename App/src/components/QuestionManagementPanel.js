@@ -36,6 +36,7 @@ import {
   Cancel as CancelIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePartnerTheme } from '../contexts/PartnerThemeContext';
 
 // 質問タイプのアイコンマッピング
 const getQuestionTypeIcon = (typeId) => {
@@ -69,6 +70,7 @@ const getQuestionTypeName = (typeId) => {
 
 // 質問設定コンポーネント
 const QuestionSettings = ({ question, onUpdate, onDelete }) => {
+  const theme = usePartnerTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [tempQuestion, setTempQuestion] = useState(question);
 
@@ -113,7 +115,7 @@ const QuestionSettings = ({ question, onUpdate, onDelete }) => {
         '&:before': { display: 'none' },
         '&.Mui-expanded': {
           boxShadow: '0 4px 16px rgba(94, 23, 235, 0.12)',
-          borderColor: 'rgba(94, 23, 235, 0.2)'
+          borderColor: theme.primaryAlpha20
         }
       }}
     >
@@ -370,6 +372,7 @@ const QuestionSettings = ({ question, onUpdate, onDelete }) => {
 
 // メインコンポーネント
 const QuestionManagementPanel = ({ selectedPage, questions = [], onUpdateQuestions }) => {
+  const theme = usePartnerTheme();
   const [newQuestionType, setNewQuestionType] = useState(1);
 
   const handleAddQuestion = () => {
