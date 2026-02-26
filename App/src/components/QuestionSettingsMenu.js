@@ -240,9 +240,9 @@ const StylishSwitch = ({ label, checked, onChange, description, theme }) => (
       sx={{
         '& .MuiSwitch-switchBase': {
           '&.Mui-checked': {
-            color: '#5E17EB',
+            color: theme?.primary || '#5E17EB',
             '& + .MuiSwitch-track': {
-              backgroundColor: '#5E17EB'
+              backgroundColor: theme?.primary || '#5E17EB'
             }
           }
         }
@@ -287,7 +287,7 @@ const QuestionSettingsMenu = ({
   onCompletionButton1EnabledUpdate,
   onCompletionButton1TextUpdate,
   onCompletionButton1UrlUpdate,
-  selectedColor = '#5e17eb',
+  selectedColor: selectedColorProp,
   onThemeColorChange,
   onThemeColorPreview,
   // テキスト設定のprops
@@ -305,6 +305,8 @@ const QuestionSettingsMenu = ({
   loginErrorHighlight,
   completionErrorHighlight
 }) => {
+  const theme = usePartnerTheme();
+  const selectedColor = selectedColorProp || theme.primary;
   const [editingChoices, setEditingChoices] = useState({});
   const [selectedTab, setSelectedTab] = useState(2); // デフォルトで基本設定タブ
   const [draggedItem, setDraggedItem] = useState(null);
@@ -1034,12 +1036,12 @@ const QuestionSettingsMenu = ({
                 minWidth: 80,
                 px: 1.5,
                 '&.Mui-selected': {
-                  color: '#5E17EB',
+                  color: theme.primary,
                   fontWeight: 600
                 }
               },
               '& .MuiTabs-indicator': {
-                backgroundColor: '#5E17EB',
+                backgroundColor: theme.primary,
                 height: 2
               },
               '& .MuiTabs-scroller': {
@@ -1150,9 +1152,9 @@ const QuestionSettingsMenu = ({
                 sx={{
                   '& .MuiSwitch-switchBase': {
                     '&.Mui-checked': {
-                      color: '#5E17EB',
+                      color: theme.primary,
                       '& + .MuiSwitch-track': {
-                        backgroundColor: '#5E17EB'
+                        backgroundColor: theme.primary
                       }
                     }
                   }
@@ -1224,15 +1226,15 @@ const QuestionSettingsMenu = ({
                     size="small"
                     sx={{
                       borderColor: '#E5E7EB',
-                      color: '#5E17EB',
+                      color: theme.primary,
                       textTransform: 'none',
                       fontSize: '0.75rem',
                       px: 1.5,
                       py: 0.5,
                       minWidth: 'auto',
                       '&:hover': {
-                        borderColor: '#5E17EB',
-                        backgroundColor: 'rgba(94, 23, 235, 0.05)'
+                        borderColor: theme.primary,
+                        backgroundColor: theme.primaryAlpha05
                       }
                     }}
                   >
@@ -1260,7 +1262,7 @@ const QuestionSettingsMenu = ({
                             borderBottomColor: '#D1D5DB'
                           },
                           '& .MuiInput-underline:after': {
-                            borderBottomColor: currentQuestion && questionErrorHighlight?.choiceIndex === index && questionErrorHighlight?.errorId === `missing-choice-text-${currentQuestion.id}-${index}` ? '#ef4444' : '#5E17EB'
+                            borderBottomColor: currentQuestion && questionErrorHighlight?.choiceIndex === index && questionErrorHighlight?.errorId === `missing-choice-text-${currentQuestion.id}-${index}` ? '#ef4444' : theme.primary
                           },
                           '& input': {
                             fontSize: '0.875rem',
@@ -1384,8 +1386,8 @@ const QuestionSettingsMenu = ({
                   }
                 }}
                 sx={{
-                  color: '#5E17EB',
-                  borderColor: '#5E17EB',
+                  color: theme.primary,
+                  borderColor: theme.primary,
                   textTransform: 'none',
                   fontSize: '0.8rem',
                   fontWeight: 500,
@@ -1393,8 +1395,8 @@ const QuestionSettingsMenu = ({
                   py: 0.75,
                   width: '100%',
                   mb: 1,
-                  '&:hover': { 
-                    backgroundColor: 'rgba(94, 23, 235, 0.08)',
+                  '&:hover': {
+                    backgroundColor: theme.primaryAlpha08,
                     borderColor: '#4c1d95'
                   }
                 }}
@@ -1463,11 +1465,11 @@ const QuestionSettingsMenu = ({
                   const config = questionTypeData ? {
                     icon: <SvgIcon src={questionTypeData.image} size={16} color="white" />,
                     name: questionTypeData.japanese,
-                    color: ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7],
+                    color: [theme.accent, '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7],
                     gradient: `linear-gradient(135deg, ${
-                      ['#667eea', '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7]
+                      [theme.accent, '#ff9a9e', '#a8edea', '#fed6e3', '#d299c2', '#89f7fe', '#66a6ff'][index % 7]
                     } 0%, ${
-                      ['#764ba2', '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][index % 7]
+                      [theme.secondary, '#fecfef', '#d299c2', '#d8edea', '#fecfef', '#bfe9ff', '#8aa7ff'][index % 7]
                     } 100%)`
                   } : getQuestionTypeConfig(question.question_types_id);
                   const isSelected = selectedQuestionId === question.id;
@@ -1491,7 +1493,7 @@ const QuestionSettingsMenu = ({
                             left: 0,
                             right: 0,
                             height: 4,
-                            backgroundColor: '#5E17EB',
+                            backgroundColor: theme.primary,
                             borderRadius: 2,
                             zIndex: 10
                           } : {}
@@ -1510,19 +1512,19 @@ const QuestionSettingsMenu = ({
                           }}
                           sx={{
                             borderRadius: 0,
-                            border: isSelected ? '2px solid #5E17EB' : '1px solid #E5E7EB',
-                            backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
-                            boxShadow: isSelected 
-                              ? '0 4px 20px rgba(94, 23, 235, 0.15)' 
+                            border: isSelected ? `2px solid ${theme.primary}` : '1px solid #E5E7EB',
+                            backgroundColor: isSelected ? theme.primaryAlpha02 : '#FFFFFF',
+                            boxShadow: isSelected
+                              ? `0 4px 20px ${theme.primaryAlpha15}`
                               : '0 1px 3px rgba(0, 0, 0, 0.05)',
                             transition: 'all 0.2s ease',
                             cursor: 'pointer',
                             '&:hover': {
-                              backgroundColor: isSelected ? 'rgba(94, 23, 235, 0.05)' : '#F9FAFB',
-                              borderColor: isSelected ? '#5E17EB' : '#D1D5DB',
+                              backgroundColor: isSelected ? theme.primaryAlpha05 : '#F9FAFB',
+                              borderColor: isSelected ? theme.primary : '#D1D5DB',
                               transform: draggedItem?.question.id === question.id ? 'none' : 'translateY(-1px)',
-                              boxShadow: isSelected 
-                                ? '0 6px 25px rgba(94, 23, 235, 0.2)' 
+                              boxShadow: isSelected
+                                ? `0 6px 25px ${theme.primaryAlpha20}`
                                 : '0 4px 12px rgba(0, 0, 0, 0.1)'
                             },
                             opacity: draggedItem?.question.id === question.id ? 0.5 : 1
@@ -1570,7 +1572,7 @@ const QuestionSettingsMenu = ({
                                 variant="body2"
                                 sx={{
                                   fontWeight: 600,
-                                  color: isSelected ? '#5E17EB' : '#1F2937',
+                                  color: isSelected ? theme.primary : '#1F2937',
                                   fontSize: '0.85rem',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
@@ -1702,7 +1704,7 @@ const QuestionSettingsMenu = ({
               border: '1px solid #E5E7EB',
               boxShadow: 'none',
               '&:before': { display: 'none' },
-              backgroundColor: expandedAccordion === 'theme-color' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+              backgroundColor: expandedAccordion === 'theme-color' ? theme.primaryAlpha02 : '#FFFFFF',
               mb: 2
             }}
           >
@@ -1830,7 +1832,7 @@ const QuestionSettingsMenu = ({
                           onThemeColorChange(e.target.value);
                         }
                       }}
-                      placeholder="#5e17eb"
+                      placeholder={theme.primary}
                       sx={{ 
                         flex: 1,
                         '& .MuiOutlinedInput-input': {
@@ -1887,7 +1889,7 @@ const QuestionSettingsMenu = ({
                 border: '1px solid #E5E7EB',
                 boxShadow: 'none',
                 '&:before': { display: 'none' },
-                backgroundColor: expandedAccordion === 'header' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                backgroundColor: expandedAccordion === 'header' ? theme.primaryAlpha02 : '#FFFFFF',
                 mb: 2
               }}
             >
@@ -1989,7 +1991,7 @@ const QuestionSettingsMenu = ({
                       startIcon={<CloudUploadIcon />}
                       component="label"
                       sx={{
-                        backgroundColor: '#5E17EB',
+                        backgroundColor: theme.primary,
                         '&:hover': { backgroundColor: '#4C1D95' },
                         fontSize: '0.75rem',
                         px: 2,
@@ -2051,7 +2053,7 @@ const QuestionSettingsMenu = ({
                 border: '1px solid #E5E7EB',
                 boxShadow: 'none',
                 '&:before': { display: 'none' },
-                backgroundColor: expandedAccordion === 'logo' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+                backgroundColor: expandedAccordion === 'logo' ? theme.primaryAlpha02 : '#FFFFFF'
               }}
             >
               <AccordionSummary
@@ -2152,7 +2154,7 @@ const QuestionSettingsMenu = ({
                       startIcon={<CloudUploadIcon />}
                       component="label"
                       sx={{
-                        backgroundColor: '#5E17EB',
+                        backgroundColor: theme.primary,
                         '&:hover': { backgroundColor: '#4C1D95' },
                         fontSize: '0.75rem',
                         px: 2,
@@ -2216,7 +2218,7 @@ const QuestionSettingsMenu = ({
                   border: '1px solid #E5E7EB',
                   boxShadow: 'none',
                   '&:before': { display: 'none' },
-                  backgroundColor: expandedAccordion === 'login-background' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                  backgroundColor: expandedAccordion === 'login-background' ? theme.primaryAlpha02 : '#FFFFFF',
                   mb: 2
                 }}
               >
@@ -2318,7 +2320,7 @@ const QuestionSettingsMenu = ({
                         startIcon={<CloudUploadIcon />}
                         component="label"
                         sx={{
-                          backgroundColor: '#5E17EB',
+                          backgroundColor: theme.primary,
                           '&:hover': { backgroundColor: '#4C1D95' },
                           fontSize: '0.75rem',
                           px: 2,
@@ -2377,7 +2379,7 @@ const QuestionSettingsMenu = ({
                   border: '1px solid #E5E7EB',
                   boxShadow: 'none',
                   '&:before': { display: 'none' },
-                  backgroundColor: expandedAccordion === 'login-logo' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                  backgroundColor: expandedAccordion === 'login-logo' ? theme.primaryAlpha02 : '#FFFFFF',
                   mb: 2
                 }}
               >
@@ -2479,7 +2481,7 @@ const QuestionSettingsMenu = ({
                         startIcon={<CloudUploadIcon />}
                         component="label"
                         sx={{
-                          backgroundColor: '#5E17EB',
+                          backgroundColor: theme.primary,
                           '&:hover': { backgroundColor: '#4C1D95' },
                           fontSize: '0.75rem',
                           px: 2,
@@ -2538,7 +2540,7 @@ const QuestionSettingsMenu = ({
                   border: '1px solid #E5E7EB',
                   boxShadow: 'none',
                   '&:before': { display: 'none' },
-                  backgroundColor: expandedAccordion === 'login-title' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                  backgroundColor: expandedAccordion === 'login-title' ? theme.primaryAlpha02 : '#FFFFFF',
                   mb: 2
                 }}
               >
@@ -2609,7 +2611,7 @@ const QuestionSettingsMenu = ({
                   border: '1px solid #E5E7EB',
                   boxShadow: 'none',
                   '&:before': { display: 'none' },
-                  backgroundColor: expandedAccordion === 'login-detail' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                  backgroundColor: expandedAccordion === 'login-detail' ? theme.primaryAlpha02 : '#FFFFFF',
                   mb: 2
                 }}
               >
@@ -2689,7 +2691,7 @@ const QuestionSettingsMenu = ({
                 border: '1px solid #E5E7EB',
                 boxShadow: 'none',
                 '&:before': { display: 'none' },
-                backgroundColor: expandedAccordion === 'completion-background' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                backgroundColor: expandedAccordion === 'completion-background' ? theme.primaryAlpha02 : '#FFFFFF',
                 mb: 2
               }}
             >
@@ -2792,7 +2794,7 @@ const QuestionSettingsMenu = ({
                       startIcon={<CloudUploadIcon />}
                       component="label"
                       sx={{
-                        backgroundColor: '#5E17EB',
+                        backgroundColor: theme.primary,
                         '&:hover': { backgroundColor: '#4C1D95' },
                         fontSize: '0.75rem',
                         px: 2,
@@ -2853,7 +2855,7 @@ const QuestionSettingsMenu = ({
                 border: '1px solid #E5E7EB',
                 boxShadow: 'none',
                 '&:before': { display: 'none' },
-                backgroundColor: expandedAccordion === 'completion-button' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                backgroundColor: expandedAccordion === 'completion-button' ? theme.primaryAlpha02 : '#FFFFFF',
                 mb: 2
               }}
             >
@@ -2953,7 +2955,7 @@ const QuestionSettingsMenu = ({
                 border: '1px solid #E5E7EB',
                 boxShadow: 'none',
                 '&:before': { display: 'none' },
-                backgroundColor: expandedAccordion === 'completion-title' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF',
+                backgroundColor: expandedAccordion === 'completion-title' ? theme.primaryAlpha02 : '#FFFFFF',
                 mb: 2
               }}
             >
@@ -3025,7 +3027,7 @@ const QuestionSettingsMenu = ({
                 border: '1px solid #E5E7EB',
                 boxShadow: 'none',
                 '&:before': { display: 'none' },
-                backgroundColor: expandedAccordion === 'completion-detail' ? 'rgba(94, 23, 235, 0.02)' : '#FFFFFF'
+                backgroundColor: expandedAccordion === 'completion-detail' ? theme.primaryAlpha02 : '#FFFFFF'
               }}
             >
               <AccordionSummary
