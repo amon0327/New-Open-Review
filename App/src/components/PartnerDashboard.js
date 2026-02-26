@@ -857,6 +857,56 @@ export default function PartnerDashboard({ user, onLogout }) {
                             </Box>
                           )}
 
+                          {/* 非アクティブ化スケジュール ドロップダウン */}
+                          {company.is_active !== false && (
+                            <FormControl fullWidth size="small" onClick={(e) => e.stopPropagation()}>
+                              <Select
+                                value={(() => {
+                                  if (!company.deactivation_scheduled_at) return '';
+                                  const saved = new Date(company.deactivation_scheduled_at);
+                                  const match = getScheduleOptions().find(opt => {
+                                    const optDate = new Date(opt.value);
+                                    return optDate.getFullYear() === saved.getFullYear()
+                                      && optDate.getMonth() === saved.getMonth()
+                                      && optDate.getDate() === saved.getDate();
+                                  });
+                                  return match ? match.value : '';
+                                })()}
+                                onChange={(e) => handleScheduleChange(company.id, e.target.value)}
+                                displayEmpty
+                                sx={{
+                                  borderRadius: 0.5,
+                                  fontSize: '0.8rem',
+                                  bgcolor: company.deactivation_scheduled_at ? '#fffbeb' : '#f8fafc',
+                                  '& .MuiSelect-select': {
+                                    py: 0.8,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                  },
+                                  '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: company.deactivation_scheduled_at ? '#fcd34d' : '#e2e8f0',
+                                  },
+                                }}
+                              >
+                                <MenuItem value="" sx={{ fontSize: '0.85rem' }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <CheckCircle sx={{ fontSize: 16, color: '#10b981' }} />
+                                    継続予定
+                                  </Box>
+                                </MenuItem>
+                                {getScheduleOptions().map((opt) => (
+                                  <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: '0.85rem' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                      <Schedule sx={{ fontSize: 16, color: '#d97706' }} />
+                                      {opt.label}
+                                    </Box>
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          )}
+
                           <Box sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Chip
                               label={`登録日: ${new Date(company.created_at).toLocaleDateString('ja-JP')}`}
@@ -919,64 +969,6 @@ export default function PartnerDashboard({ user, onLogout }) {
                         </Box>
                       </CardContent>
 
-                      {/* 非アクティブ化スケジュール ドロップダウン */}
-                      {company.is_active !== false && (
-                        <Box
-                          onClick={(e) => e.stopPropagation()}
-                          sx={{
-                            px: 2, pb: 2,
-                            borderTop: '1px solid #f1f5f9',
-                          }}
-                        >
-                          <FormControl fullWidth size="small" sx={{ mt: 1.5 }}>
-                            <Select
-                              value={(() => {
-                                if (!company.deactivation_scheduled_at) return '';
-                                // 保存済みの値に最も近い選択肢を探す
-                                const saved = new Date(company.deactivation_scheduled_at);
-                                const match = getScheduleOptions().find(opt => {
-                                  const optDate = new Date(opt.value);
-                                  return optDate.getFullYear() === saved.getFullYear()
-                                    && optDate.getMonth() === saved.getMonth()
-                                    && optDate.getDate() === saved.getDate();
-                                });
-                                return match ? match.value : '';
-                              })()}
-                              onChange={(e) => handleScheduleChange(company.id, e.target.value)}
-                              displayEmpty
-                              sx={{
-                                borderRadius: 1.5,
-                                fontSize: '0.8rem',
-                                bgcolor: company.deactivation_scheduled_at ? '#fffbeb' : '#f8fafc',
-                                '& .MuiSelect-select': {
-                                  py: 1,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 1,
-                                },
-                                '& .MuiOutlinedInput-notchedOutline': {
-                                  borderColor: company.deactivation_scheduled_at ? '#fcd34d' : '#e2e8f0',
-                                },
-                              }}
-                            >
-                              <MenuItem value="" sx={{ fontSize: '0.85rem' }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <CheckCircle sx={{ fontSize: 16, color: '#10b981' }} />
-                                  継続予定
-                                </Box>
-                              </MenuItem>
-                              {getScheduleOptions().map((opt) => (
-                                <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: '0.85rem' }}>
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    <Schedule sx={{ fontSize: 16, color: '#d97706' }} />
-                                    {opt.label}
-                                  </Box>
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                      )}
                     </Card>
                   </Grid>
                 ))}
