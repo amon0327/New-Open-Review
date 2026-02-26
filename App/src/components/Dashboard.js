@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -44,7 +44,7 @@ import CompanySetup from './CompanySetup';
 import PartnerCompanySetup from './PartnerCompanySetup';
 import PartnerDashboard from './PartnerDashboard';
 import { supabase } from '../lib/supabase';
-import { PartnerThemeProvider, usePartnerTheme, buildThemeColors } from '../contexts/PartnerThemeContext';
+import { PartnerThemeProvider, usePartnerTheme } from '../contexts/PartnerThemeContext';
 
 // 分離したページコンポーネントをインポート
 import HomePage from './dashboard/pages/HomePage';
@@ -112,8 +112,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
     fetchPartnerTheme();
   }, [companyId, currentCompany?.id]);
 
-  // テーマカラー（partnerThemeから直接派生）
-  const theme = useMemo(() => buildThemeColors(partnerTheme), [partnerTheme]);
+  // テーマカラー（Contextから派生）
+  const theme = usePartnerTheme();
   const themeColor = partnerTheme?.primary_color || '#5e17eb';
   const sidebarGradient = theme.sidebarGradient;
   const accentGradient = theme.accentGradient;
