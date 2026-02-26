@@ -48,7 +48,8 @@ export class FormDataService {
 
       if (error) {
         console.error('❌ Edge Function error:', error);
-        throw new Error(`Edge Function呼び出しエラー: ${error.message}`);
+        const detail = data?.error || error.message;
+        throw new Error(detail);
       }
 
       if (!data.success) {

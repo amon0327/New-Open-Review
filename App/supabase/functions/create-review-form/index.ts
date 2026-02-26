@@ -214,16 +214,16 @@ serve(async (req) => {
         throw new Error(`デフォルト店舗の取得に失敗: ${firstStoreError.message}`)
       }
 
-      if (!firstStore || firstStore.length === 0) {
-        throw new Error('店舗が見つかりません。先に店舗を作成してください')
-      }
+      if (firstStore && firstStore.length > 0) {
+        const { error: storeReviewFormError } = await supabaseAdmin
+          .from('store_review_forms')
+          .insert([{ store_id: firstStore[0].id, review_form_id: reviewForm.id }])
 
-      const { error: storeReviewFormError } = await supabaseAdmin
-        .from('store_review_forms')
-        .insert([{ store_id: firstStore[0].id, review_form_id: reviewForm.id }])
-
-      if (storeReviewFormError) {
-        throw new Error(`店舗とレビューフォームの関連付けに失敗: ${storeReviewFormError.message}`)
+        if (storeReviewFormError) {
+          throw new Error(`店舗とレビューフォームの関連付けに失敗: ${storeReviewFormError.message}`)
+        }
+      } else {
+        console.log('No stores found for company, skipping store_review_forms')
       }
     }
 
