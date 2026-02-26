@@ -7,7 +7,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button
+  Button,
+  Snackbar
 } from '@mui/material';
 import { supabase } from '../../../lib/supabase';
 import { Skeleton } from '../../ui/skeleton';
@@ -50,7 +51,7 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
   const [pdfError, setPdfError] = useState(null);
   const [publishedMap, setPublishedMap] = useState({});
   const [confirmDialog, setConfirmDialog] = useState({ open: false, report: null, newState: false });
-  const [publishing, setPublishing] = useState(false);
+  const [publishingYearMonth, setPublishingYearMonth] = useState(null);
 
   // 店舗名を取得するヘルパー関数
   const getStoreName = () => {
@@ -316,7 +317,7 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
   const handleConfirmPublish = async () => {
     const { report, newState } = confirmDialog;
     setConfirmDialog({ open: false, report: null, newState: false });
-    setPublishing(true);
+    setPublishingYearMonth(report.yearMonth);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -392,7 +393,7 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
     } catch (error) {
       console.error('公開処理エラー:', error);
     } finally {
-      setPublishing(false);
+      setPublishingYearMonth(null);
     }
   };
 
@@ -590,20 +591,44 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <Switch
-                        checked={!!publishedMap[report.yearMonth]}
-                        onChange={() => handlePublishToggle(report, !!publishedMap[report.yearMonth])}
-                        disabled={publishing}
-                        size="small"
-                        sx={{
-                          '& .MuiSwitch-switchBase.Mui-checked': {
-                            color: primaryColor,
-                          },
-                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                            backgroundColor: primaryColor,
-                          },
-                        }}
-                      />
+                      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+                        {publishingYearMonth === report.yearMonth ? (
+                          <CircularProgress size={18} sx={{ color: primaryColor }} />
+                        ) : (
+                          <Switch
+                            checked={!!publishedMap[report.yearMonth]}
+                            onChange={() => handlePublishToggle(report, !!publishedMap[report.yearMonth])}
+                            disabled={!!publishingYearMonth}
+                            sx={{
+                              width: 44,
+                              height: 24,
+                              p: 0,
+                              '& .MuiSwitch-switchBase': {
+                                p: '3px',
+                                '&.Mui-checked': {
+                                  transform: 'translateX(20px)',
+                                  color: '#fff',
+                                  '& + .MuiSwitch-track': {
+                                    backgroundColor: primaryColor,
+                                    opacity: 1,
+                                  },
+                                },
+                              },
+                              '& .MuiSwitch-thumb': {
+                                width: 18,
+                                height: 18,
+                                boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+                              },
+                              '& .MuiSwitch-track': {
+                                borderRadius: 12,
+                                backgroundColor: '#cbd5e1',
+                                opacity: 1,
+                                transition: 'background-color 0.3s ease',
+                              },
+                            }}
+                          />
+                        )}
+                      </Box>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
@@ -641,6 +666,26 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
           </div>
         )}
       </div>
+
+      {/* 公開処理中スナックバー */}
+      <Snackbar
+        open={!!publishingYearMonth}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        message={
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CircularProgress size={16} sx={{ color: '#fff' }} />
+            <span>公開処理中...</span>
+          </Box>
+        }
+        ContentProps={{
+          sx: {
+            bgcolor: primaryColor,
+            borderRadius: '10px',
+            fontWeight: 500,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+          }
+        }}
+      />
 
       {/* スタッフ公開確認ダイアログ */}
       <Dialog
