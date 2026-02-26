@@ -739,15 +739,15 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                       onClick={() => onDuplicate(question)}
                       startIcon={<CopyIcon />}
                       sx={{
-                        color: '#5e17eb',
-                        borderColor: '#5e17eb',
+                        color: theme.primary,
+                        borderColor: theme.primary,
                         textTransform: 'none',
                         fontWeight: 500,
                         fontSize: '0.8rem',
                         py: 0.5,
                         px: 1.5,
-                        '&:hover': { 
-                          backgroundColor: 'rgba(94, 23, 235, 0.08)',
+                        '&:hover': {
+                          backgroundColor: theme.primaryAlpha10,
                           borderColor: '#4c1d95'
                         }
                       }}
@@ -820,7 +820,7 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
                     onClick={handleSave}
                     startIcon={<SaveIcon />}
                     sx={{
-                      backgroundColor: '#5e17eb',
+                      backgroundColor: theme.primary,
                       textTransform: 'none',
                       fontWeight: 500,
                       '&:hover': { backgroundColor: '#4c1d95' }
@@ -840,6 +840,7 @@ const QuestionSettingsCard = ({ question, onUpdate, onDelete, onDuplicate, isExp
 
 // メインコンポーネント
 const QuestionSettingsPanel = ({ selectedPage, questions = [], onUpdateQuestions, questionErrorHighlight }) => {
+  const theme = usePartnerTheme();
   const [expandedQuestion, setExpandedQuestion] = useState(null);
   const [newQuestionType, setNewQuestionType] = useState(1);
 
@@ -905,7 +906,7 @@ const QuestionSettingsPanel = ({ selectedPage, questions = [], onUpdateQuestions
             width: 80,
             height: 80,
             borderRadius: 3,
-            background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+            background: theme.primaryGradient,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -937,7 +938,7 @@ const QuestionSettingsPanel = ({ selectedPage, questions = [], onUpdateQuestions
               width: 32,
               height: 32,
               borderRadius: 1.5,
-              background: 'linear-gradient(135deg, #5e17eb 0%, #764ba2 100%)',
+              background: theme.primaryGradient,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -982,7 +983,7 @@ const QuestionSettingsPanel = ({ selectedPage, questions = [], onUpdateQuestions
             startIcon={<AddIcon />}
             onClick={handleAddQuestion}
             sx={{
-              backgroundColor: '#5e17eb',
+              backgroundColor: theme.primary,
               textTransform: 'none',
               fontWeight: 500,
               fontSize: '0.85rem',

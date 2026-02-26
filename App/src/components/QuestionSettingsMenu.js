@@ -57,6 +57,7 @@ import {
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import SvgIcon from './SvgIcon';
+import { usePartnerTheme } from '../contexts/PartnerThemeContext';
 
 // 質問タイプのアイコンとカラーマッピング
 const getQuestionTypeConfig = (typeId) => {
@@ -76,7 +77,7 @@ const getQuestionTypeConfig = (typeId) => {
 };
 
 // スタイリッシュなテキストフィールドコンポーネント
-const StylishTextField = ({ label, value, onChange, onBlur, multiline = false, rows = 1, maxRows, minRows, placeholder, required = false, hasError = false, ...props }) => (
+const StylishTextField = ({ label, value, onChange, onBlur, multiline = false, rows = 1, maxRows, minRows, placeholder, required = false, hasError = false, theme, ...props }) => (
   <Box>
     <Typography 
       variant="body2" 
@@ -120,7 +121,7 @@ const StylishTextField = ({ label, value, onChange, onBlur, multiline = false, r
           '&.Mui-focused': {
             backgroundColor: '#FFFFFF',
             '& fieldset': {
-              borderColor: hasError ? '#ef4444' : '#5E17EB',
+              borderColor: hasError ? '#ef4444' : (theme?.primary || '#5E17EB'),
               borderWidth: '1px'
             }
           },
@@ -196,7 +197,7 @@ const StylishTextField = ({ label, value, onChange, onBlur, multiline = false, r
 );
 
 // スタイリッシュなスイッチコンポーネント
-const StylishSwitch = ({ label, checked, onChange, description }) => (
+const StylishSwitch = ({ label, checked, onChange, description, theme }) => (
   <Box 
     sx={{ 
       display: 'flex', 
