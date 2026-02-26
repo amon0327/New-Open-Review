@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Box, CircularProgress } from '@mui/material';
+import {
+  Box,
+  CircularProgress,
+  Switch,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button
+} from '@mui/material';
 import { supabase } from '../../../lib/supabase';
 import { Skeleton } from '../../ui/skeleton';
 import {
@@ -39,6 +48,9 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState(null);
+  const [publishedMap, setPublishedMap] = useState({});
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, report: null, newState: false });
+  const [publishing, setPublishing] = useState(false);
 
   // 店舗名を取得するヘルパー関数
   const getStoreName = () => {
@@ -260,6 +272,130 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
     };
   }, [pdfUrl]);
 
+  // 公開状態を取得
+  useEffect(() => {
+    const fetchPublishedStates = async () => {
+      if (!companyId || !selectedStore) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('published_reports')
+          .select('year_month, is_published')
+          .eq('company_id', companyId)
+          .eq('store_id', selectedStore);
+
+        if (error) {
+          console.error('公開状態の取得エラー:', error);
+          return;
+        }
+
+        const map = {};
+        (data || []).forEach(row => {
+          map[row.year_month] = row.is_published;
+        });
+        setPublishedMap(map);
+      } catch (error) {
+        console.error('公開状態の取得エラー:', error);
+      }
+    };
+
+    fetchPublishedStates();
+  }, [companyId, selectedStore]);
+
+  // スイッチ切り替え時 — 確認ダイアログを開く
+  const handlePublishToggle = (report, currentState) => {
+    setConfirmDialog({ open: true, report, newState: !currentState });
+  };
+
+  // 確認ダイアログでキャンセル
+  const handleConfirmClose = () => {
+    setConfirmDialog({ open: false, report: null, newState: false });
+  };
+
+  // 公開確定
+  const handleConfirmPublish = async () => {
+    const { report, newState } = confirmDialog;
+    setConfirmDialog({ open: false, report: null, newState: false });
+    setPublishing(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      if (newState) {
+        // 公開ON: PDFを生成してStorageにアップロード
+        const data = await fetchReportData(report.yearMonth);
+        if (!data) {
+          console.error('レポートデータの取得に失敗しました');
+          return;
+        }
+
+        const storeName = getStoreName();
+        const blob = await generatePDFBlob(report, data, storeName, companyName, partnerTheme);
+
+        const storagePath = `${companyId}/${selectedStore}/${report.yearMonth}.pdf`;
+
+        // Storageにアップロード（upsert）
+        const { error: uploadError } = await supabase.storage
+          .from('report-pdfs')
+          .upload(storagePath, blob, {
+            contentType: 'application/pdf',
+            upsert: true
+          });
+
+        if (uploadError) {
+          console.error('PDFアップロードエラー:', uploadError);
+          return;
+        }
+
+        // published_reportsテーブルにupsert
+        const { error: upsertError } = await supabase
+          .from('published_reports')
+          .upsert({
+            company_id: companyId,
+            store_id: selectedStore,
+            year_month: report.yearMonth,
+            is_published: true,
+            pdf_storage_path: storagePath,
+            published_at: new Date().toISOString(),
+            published_by: session.user.id,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'company_id,store_id,year_month'
+          });
+
+        if (upsertError) {
+          console.error('公開状態の更新エラー:', upsertError);
+          return;
+        }
+
+        setPublishedMap(prev => ({ ...prev, [report.yearMonth]: true }));
+      } else {
+        // 公開OFF: is_publishedをfalseに更新（Storageからは削除しない）
+        const { error } = await supabase
+          .from('published_reports')
+          .update({
+            is_published: false,
+            updated_at: new Date().toISOString()
+          })
+          .eq('company_id', companyId)
+          .eq('store_id', selectedStore)
+          .eq('year_month', report.yearMonth);
+
+        if (error) {
+          console.error('公開停止エラー:', error);
+          return;
+        }
+
+        setPublishedMap(prev => ({ ...prev, [report.yearMonth]: false }));
+      }
+    } catch (error) {
+      console.error('公開処理エラー:', error);
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   // スケルトンスクリーン
   if (loading) {
     return (
@@ -423,6 +559,7 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
                   <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">期間</th>
                   <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">店舗</th>
                   <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ステータス</th>
+                  <th className="text-center px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">スタッフ公開</th>
                   <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">操作</th>
                 </tr>
               </thead>
@@ -451,6 +588,22 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
                         <CheckCircle2 className="w-3 h-3" />
                         作成済み
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <Switch
+                        checked={!!publishedMap[report.yearMonth]}
+                        onChange={() => handlePublishToggle(report, !!publishedMap[report.yearMonth])}
+                        disabled={publishing}
+                        size="small"
+                        sx={{
+                          '& .MuiSwitch-switchBase.Mui-checked': {
+                            color: primaryColor,
+                          },
+                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                            backgroundColor: primaryColor,
+                          },
+                        }}
+                      />
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
@@ -488,6 +641,41 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
           </div>
         )}
       </div>
+
+      {/* スタッフ公開確認ダイアログ */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={handleConfirmClose}
+        PaperProps={{ sx: { borderRadius: '12px', minWidth: 360 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          {confirmDialog.newState ? 'スタッフに公開' : '公開を停止'}
+        </DialogTitle>
+        <DialogContent>
+          <p style={{ color: '#64748b', margin: 0 }}>
+            {confirmDialog.newState
+              ? `${confirmDialog.report?.displayName}のレポートをスタッフに公開しますか？`
+              : `${confirmDialog.report?.displayName}のレポートのスタッフへの公開を停止しますか？`}
+          </p>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={handleConfirmClose} sx={{ color: '#64748b' }}>
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleConfirmPublish}
+            variant="contained"
+            sx={{
+              bgcolor: primaryColor,
+              '&:hover': { bgcolor: primaryColor, opacity: 0.9 },
+              borderRadius: '8px',
+              textTransform: 'none',
+            }}
+          >
+            {confirmDialog.newState ? '公開する' : '停止する'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
