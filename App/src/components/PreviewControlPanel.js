@@ -15,6 +15,7 @@ import {
   FitScreen
 } from '@mui/icons-material';
 import { colors, glassPaperStyles, iconButtonStyles } from '../constants/theme';
+import { usePartnerTheme } from '../contexts/PartnerThemeContext';
 
 const PreviewControlPanel = ({ 
   previewMode, 
@@ -25,6 +26,14 @@ const PreviewControlPanel = ({
   handleFitScreen,
   formId
 }) => {
+  const theme = usePartnerTheme();
+  const themedPrimaryStyle = {
+    color: theme.primary,
+    backgroundColor: theme.primaryAlpha10,
+    '&:hover': {
+      backgroundColor: theme.primaryAlpha10
+    }
+  };
   return (
     <Box
       sx={{
@@ -57,7 +66,7 @@ const PreviewControlPanel = ({
           <Tooltip title="モバイル表示">
             <IconButton
               onClick={() => setPreviewMode('mobile')}
-              sx={previewMode === 'mobile' ? iconButtonStyles.primary : iconButtonStyles.secondary}
+              sx={previewMode === 'mobile' ? themedPrimaryStyle : iconButtonStyles.secondary}
             >
               <PhoneAndroid />
             </IconButton>
@@ -66,7 +75,7 @@ const PreviewControlPanel = ({
           <Tooltip title="PC表示">
             <IconButton
               onClick={() => setPreviewMode('desktop')}
-              sx={previewMode === 'desktop' ? iconButtonStyles.primary : iconButtonStyles.secondary}
+              sx={previewMode === 'desktop' ? themedPrimaryStyle : iconButtonStyles.secondary}
             >
               <Computer />
             </IconButton>

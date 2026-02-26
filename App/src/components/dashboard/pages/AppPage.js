@@ -64,11 +64,12 @@ import {
   ArrowBack,
   Folder
 } from '@mui/icons-material';
-import { gradients } from '../../../constants/theme';
+import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import QuestionDisplayService from '../../../services/QuestionDisplayService';
 import toast from 'react-hot-toast';
 
 const AppPage = () => {
+  const theme = usePartnerTheme();
   const [questions, setQuestions] = useState([]);
   const [reviewForms, setReviewForms] = useState([]);
   const [selectedForm, setSelectedForm] = useState(null);
@@ -566,11 +567,11 @@ const AppPage = () => {
                   width: 56,
                   height: 56,
                   borderRadius: 2,
-                  background: gradients.primary,
+                  background: theme.primaryGradient,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 10px 30px rgba(94, 23, 235, 0.3)'
+                  boxShadow: `0 10px 30px ${theme.primaryAlpha30}`
                 }}
               >
                 <Apps sx={{ fontSize: '2rem', color: 'white' }} />
