@@ -1082,9 +1082,6 @@ export default function PartnerDashboard({ user, onLogout }) {
                                     primary={member.business_users?.name || '名前なし'}
                                     secondary={
                                       <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                        <Typography variant="body2" component="span" sx={{ color: '#64748b' }}>
-                                          {member.business_users?.email}
-                                        </Typography>
                                         <Chip
                                           label={member.role === 'owner' ? 'オーナー' : member.role}
                                           size="small"
