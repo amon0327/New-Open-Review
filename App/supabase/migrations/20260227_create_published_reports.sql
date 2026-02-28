@@ -18,8 +18,8 @@ CREATE TABLE published_reports (
 -- RLS有効化
 ALTER TABLE published_reports ENABLE ROW LEVEL SECURITY;
 
--- 企業メンバー・パートナーがSELECT可能
-CREATE POLICY "company_members_select" ON published_reports
+-- 企業メンバー・パートナー・店舗スタッフがSELECT可能
+CREATE POLICY "published_reports_select" ON published_reports
 FOR SELECT USING (
   auth.role() = 'service_role'
   OR company_id IN (
@@ -28,6 +28,10 @@ FOR SELECT USING (
   )
   OR company_id IN (
     SELECT company_id FROM get_partner_affiliated_companies(auth.uid())
+  )
+  OR store_id IN (
+    SELECT store_id FROM store_memberships
+    WHERE business_user_id = auth.uid()
   )
 );
 
