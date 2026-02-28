@@ -264,13 +264,16 @@ function buildOverviewPrompt(current: any, prev: any, avg: any, yearMonth: strin
   const prevRepeaterRevisit = prev?.repeater_revisit_rate ?? null
   const prevNewRevisit = prev?.new_revisit_rate ?? null
 
-  return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}の概要コメントを1つだけ生成してください。
+  return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}の今月の状況を概要コメントとして1つだけ生成してください。
 
 【ルール】
 - 50文字から100文字以内で簡潔にまとめる
+- 今月のデータを主役とし、前月データや全体平均は今月を理解するための比較材料として使う
 - 具体的な数値を含める
 - コメントの本文のみを出力する（前置きや説明は不要）
 - 日本語で書く
+- このデータはアンケート調査の結果であり、回答数は来店数ではなくアンケート回答数である
+- 一定の回答数がある場合は件数より比率（%）に注目して分析すること
 
 【今月のデータ】
 - 回答数: ${current.total_responses}件
@@ -306,13 +309,16 @@ function buildSalesImpactPrompt(current: any, prev: any, avg: any, yearMonth: st
     segmentInfo += `- ${seg.name}: ${count}人(${percent}%) 影響度:${seg.impact} ${prevCount !== null ? `前月:${prevCount}人` : ''}\n`
   }
 
-  return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}の売上影響に関するコメントを1つだけ生成してください。
+  return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}の今月の売上影響に関するコメントを1つだけ生成してください。
 
 【ルール】
 - 50文字から100文字以内で簡潔にまとめる
-- 売上へのプラス・マイナスの影響を中心に分析する
+- 今月のセグメント構成から見える売上へのプラス・マイナスの影響を中心に分析する
+- 前月データは今月の変化を理解するための比較材料として使う
 - コメントの本文のみを出力する（前置きや説明は不要）
 - 日本語で書く
+- このデータはアンケート調査の結果であり、回答数は来店数ではなくアンケート回答数である
+- 一定の回答数がある場合は件数より比率（%）に注目して分析すること
 
 【12セグメント別データ】
 ${segmentInfo}
@@ -338,14 +344,17 @@ function buildQualityPrompt(current: any, prev: any, avg: any, yearMonth: string
     }
   }
 
-  return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}のQSC品質（Quality）に関するコメントを1つだけ生成してください。
+  return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}の今月のQSC品質（Quality）に関するコメントを1つだけ生成してください。
 
 【ルール】
 - 70文字から130文字以内でまとめる
+- 今月のデータを主役とし、前月や全体平均は今月の位置づけを理解するための比較材料として使う
 - 具体的な項目名と数値を含める
-- 良い点と改善点をバランスよく分析する
+- 今月の特徴的な点（強み・改善点）をバランスよく分析する
 - コメントの本文のみを出力する（前置きや説明は不要）
 - 日本語で書く
+- このデータはアンケート調査の結果であり、回答数は来店数ではなくアンケート回答数である
+- 一定の回答数がある場合は件数より比率（%）に注目して分析すること
 
 【品質スコア】
 - 総合スコア: ${current.qsc_quality_score}/5.0 ${delta(current.qsc_quality_score, prev?.qsc_quality_score)}（前月比） ${avgCompare(current.qsc_quality_score, avg?.qsc_quality_score)}
@@ -373,14 +382,17 @@ function buildServicePrompt(current: any, prev: any, avg: any, yearMonth: string
     }
   }
 
-  return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}のQSCサービス（Service）に関するコメントを1つだけ生成してください。
+  return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}の今月のQSCサービス（Service）に関するコメントを1つだけ生成してください。
 
 【ルール】
 - 70文字から130文字以内でまとめる
+- 今月のデータを主役とし、前月や全体平均は今月の位置づけを理解するための比較材料として使う
 - 具体的な項目名と数値を含める
-- 良い点と改善点をバランスよく分析する
+- 今月の特徴的な点（強み・改善点）をバランスよく分析する
 - コメントの本文のみを出力する（前置きや説明は不要）
 - 日本語で書く
+- このデータはアンケート調査の結果であり、回答数は来店数ではなくアンケート回答数である
+- 一定の回答数がある場合は件数より比率（%）に注目して分析すること
 
 【サービススコア】
 - 総合スコア: ${current.qsc_service_score}/5.0 ${delta(current.qsc_service_score, prev?.qsc_service_score)}（前月比） ${avgCompare(current.qsc_service_score, avg?.qsc_service_score)}
@@ -408,14 +420,17 @@ function buildCleanlinessPrompt(current: any, prev: any, avg: any, yearMonth: st
     }
   }
 
-  return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}のQSCクレンリネス（Cleanliness）に関するコメントを1つだけ生成してください。
+  return `あなたは飲食店の月次レポートのAIアナリストです。以下のデータに基づいて、${yearMonth}の今月のQSCクレンリネス（Cleanliness）に関するコメントを1つだけ生成してください。
 
 【ルール】
 - 70文字から130文字以内でまとめる
+- 今月のデータを主役とし、前月や全体平均は今月の位置づけを理解するための比較材料として使う
 - 具体的な項目名と数値を含める
-- 良い点と改善点をバランスよく分析する
+- 今月の特徴的な点（強み・改善点）をバランスよく分析する
 - コメントの本文のみを出力する（前置きや説明は不要）
 - 日本語で書く
+- このデータはアンケート調査の結果であり、回答数は来店数ではなくアンケート回答数である
+- 一定の回答数がある場合は件数より比率（%）に注目して分析すること
 
 【クレンリネススコア】
 - 総合スコア: ${current.qsc_cleanliness_score}/5.0 ${delta(current.qsc_cleanliness_score, prev?.qsc_cleanliness_score)}（前月比） ${avgCompare(current.qsc_cleanliness_score, avg?.qsc_cleanliness_score)}

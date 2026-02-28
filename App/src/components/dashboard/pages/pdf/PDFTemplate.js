@@ -2002,6 +2002,89 @@ const NPSTrendChart = ({ monthlyPerformance, partnerTheme }) => {
 };
 
 /**
+ * 汎用トレンドチャートコンポーネント（リピート率・再来店意向用）
+ */
+const GenericTrendChart = ({ monthlyPerformance, dataKey, title, subtitle, partnerTheme, formatValue }) => {
+  const data = monthlyPerformance || [];
+
+  if (data.length === 0) {
+    return (
+      <View style={styles.chartCard}>
+        <Text style={styles.chartTitle}>{title}</Text>
+        <Text style={styles.chartSubtitle}>{subtitle}</Text>
+        <View style={{ height: 140, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 11, color: colors.gray400 }}>データがありません</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (data.length === 1) {
+    return (
+      <View style={styles.chartCard}>
+        <Text style={styles.chartTitle}>{title}</Text>
+        <Text style={styles.chartSubtitle}>{subtitle}</Text>
+        <View style={{ height: 140, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 11, color: colors.gray400 }}>推移グラフの表示には2ヶ月以上のデータが必要です</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const values = data.map(d => d[dataKey] != null ? d[dataKey] : 0);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  const range = maxValue - minValue || 1;
+  const padding = range * 0.1;
+  const chartMin = minValue - padding;
+  const chartMax = maxValue + padding;
+  const chartRange = chartMax - chartMin;
+
+  const chartWidth = 320;
+  const chartHeight = 120;
+
+  const points = data.map((d, i) => {
+    const val = d[dataKey] != null ? d[dataKey] : 0;
+    const x = (i / (data.length - 1 || 1)) * chartWidth;
+    const y = chartHeight - ((val - chartMin) / chartRange) * chartHeight;
+    return { x, y, value: val, month: d.month };
+  });
+
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  const areaPath = `${linePath} L ${chartWidth} ${chartHeight} L 0 ${chartHeight} Z`;
+
+  return (
+    <View style={styles.chartCard}>
+      <Text style={styles.chartTitle}>{title}</Text>
+      <Text style={styles.chartSubtitle}>{subtitle}</Text>
+
+      <View style={styles.trendChartContainer}>
+        <Svg width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+          <Path d={areaPath} fill={getThemedPrimary(partnerTheme)} fillOpacity={0.15} />
+          <Path d={linePath} stroke={getThemedPrimary(partnerTheme)} strokeWidth={2.5} fill="none" />
+          {points.map((p, i) => (
+            <React.Fragment key={i}>
+              <Path
+                d={`M ${p.x - 4} ${p.y} a 4 4 0 1 0 8 0 a 4 4 0 1 0 -8 0`}
+                fill={colors.white}
+                stroke={getThemedPrimary(partnerTheme)}
+                strokeWidth={2}
+              />
+            </React.Fragment>
+          ))}
+        </Svg>
+      </View>
+
+      <View style={styles.trendXAxis}>
+        {data.slice(0, 6).map((d, i) => (
+          <Text key={i} style={styles.trendXLabel}>{d.month}</Text>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+/**
  * 概要ページコンポーネント（KPIカード3枚 + チャート2枚）
  */
 const OverviewPage = ({ reportData, pageNumber, comment, partnerTheme }) => {
@@ -2067,10 +2150,27 @@ const OverviewPage = ({ reportData, pageNumber, comment, partnerTheme }) => {
         ))}
       </View>
 
-      {/* チャートセクション（2枚） */}
+      {/* チャートセクション */}
       <View style={styles.chartSection}>
         <NPSDistributionCard npsDistribution={npsDistribution} />
         <NPSTrendChart monthlyPerformance={monthlyPerformance} partnerTheme={partnerTheme} />
+      </View>
+
+      <View style={styles.chartSection}>
+        <GenericTrendChart
+          monthlyPerformance={monthlyPerformance}
+          dataKey="repeatRate"
+          title="リピート率推移"
+          subtitle="月別のリピート率トレンド"
+          partnerTheme={partnerTheme}
+        />
+        <GenericTrendChart
+          monthlyPerformance={monthlyPerformance}
+          dataKey="repeatVisit"
+          title="再来店意向推移（リピーター）"
+          subtitle="3ヶ月以内再来店意向率"
+          partnerTheme={partnerTheme}
+        />
       </View>
 
       {/* コメント */}

@@ -105,8 +105,11 @@ serve(async (req) => {
     }
 
     // 当月を除外（当月のデータはまだ確定していないため）
+    // JSTで現在月を計算（サーバーはUTCで動作するため）
     const now = new Date()
-    const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    const jstOffset = 9 * 60 * 60 * 1000
+    const jstNow = new Date(now.getTime() + jstOffset)
+    const currentYearMonth = `${jstNow.getFullYear()}-${String(jstNow.getMonth() + 1).padStart(2, '0')}`
 
     // 重複を除去し、当月を除外
     const availablePeriods = [...new Set((availablePeriodsData || []).map(d => d.year_month))]
