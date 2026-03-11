@@ -848,15 +848,6 @@ export default function PartnerDashboard({ user, onLogout }) {
                             </Box>
                           )}
 
-                          {company.email && (
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Email sx={{ fontSize: 18, color: '#64748b', mr: 1 }} />
-                              <Typography variant="body2" sx={{ color: '#64748b' }}>
-                                {company.email}
-                              </Typography>
-                            </Box>
-                          )}
-
                           {/* 非アクティブ化スケジュール ドロップダウン */}
                           {company.is_active !== false && (
                             <FormControl fullWidth size="small" onClick={(e) => e.stopPropagation()}>

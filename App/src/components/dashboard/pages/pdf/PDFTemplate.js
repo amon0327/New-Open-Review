@@ -2150,27 +2150,10 @@ const OverviewPage = ({ reportData, pageNumber, comment, partnerTheme }) => {
         ))}
       </View>
 
-      {/* チャートセクション */}
+      {/* チャートセクション（2枚） */}
       <View style={styles.chartSection}>
         <NPSDistributionCard npsDistribution={npsDistribution} />
         <NPSTrendChart monthlyPerformance={monthlyPerformance} partnerTheme={partnerTheme} />
-      </View>
-
-      <View style={styles.chartSection}>
-        <GenericTrendChart
-          monthlyPerformance={monthlyPerformance}
-          dataKey="repeatRate"
-          title="リピート率推移"
-          subtitle="月別のリピート率トレンド"
-          partnerTheme={partnerTheme}
-        />
-        <GenericTrendChart
-          monthlyPerformance={monthlyPerformance}
-          dataKey="repeatVisit"
-          title="再来店意向推移（リピーター）"
-          subtitle="3ヶ月以内再来店意向率"
-          partnerTheme={partnerTheme}
-        />
       </View>
 
       {/* コメント */}
