@@ -1,7 +1,7 @@
 -- ========================================
 -- AI系Edge Functionのcronジョブ追加
--- 毎月1日 日本時間 2:00 / 2:30 に実行
--- (update-monthly-analyticsが毎日1:05に走るため、その後に実行)
+-- 毎月1日 日本時間 0:02 / 0:05 に実行
+-- (update-monthly-analyticsが毎月1日 0:01に走るため、その後に実行)
 -- ========================================
 
 -- ========================================
@@ -66,28 +66,39 @@ $$;
 
 -- ========================================
 -- 3. Cronジョブ登録
--- 毎月1日 UTC 17:00 = 日本時間 2:00 にAIテキスト生成
--- 毎月1日 UTC 17:30 = 日本時間 2:30 にインサイト生成
+-- 毎月1日 UTC 15:01 = 日本時間 0:01 にデータ集計
+-- 毎月1日 UTC 15:02 = 日本時間 0:02 にAIテキスト生成
+-- 毎月1日 UTC 15:05 = 日本時間 0:05 にインサイト生成
 -- ========================================
 
 -- 既存ジョブ削除（存在する場合）
+SELECT cron.unschedule('update-monthly-analytics')
+WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'update-monthly-analytics');
+
 SELECT cron.unschedule('generate-analytics-ai-text')
 WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'generate-analytics-ai-text');
 
 SELECT cron.unschedule('generate-analytics-insights')
 WHERE EXISTS (SELECT 1 FROM cron.job WHERE jobname = 'generate-analytics-insights');
 
--- AIテキスト生成: 毎月1日 UTC 17:00 (JST 2:00)
+-- データ集計: 毎月1日 UTC 15:01 (JST 0:01)
+SELECT cron.schedule(
+  'update-monthly-analytics',
+  '1 15 1 * *',
+  'SELECT call_update_monthly_analytics()'
+);
+
+-- AIテキスト生成: 毎月1日 UTC 15:02 (JST 0:02)
 SELECT cron.schedule(
   'generate-analytics-ai-text',
-  '0 17 1 * *',
+  '2 15 1 * *',
   'SELECT call_generate_analytics_ai_text()'
 );
 
--- インサイト生成: 毎月1日 UTC 17:30 (JST 2:30)
+-- インサイト生成: 毎月1日 UTC 15:05 (JST 0:05)
 SELECT cron.schedule(
   'generate-analytics-insights',
-  '30 17 1 * *',
+  '5 15 1 * *',
   'SELECT call_generate_analytics_insights()'
 );
 
