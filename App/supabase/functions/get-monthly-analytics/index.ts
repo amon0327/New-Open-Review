@@ -81,7 +81,21 @@ serve(async (req) => {
       partnerAccess = affiliations
     }
 
-    const hasAccess = companyMembership || (partnerAccess && partnerAccess.length > 0)
+    // 3. スタッフ（store_memberships経由）でアクセス可能かどうか
+    let staffAccess = null
+    if (!companyMembership && !(partnerAccess && partnerAccess.length > 0)) {
+      // store_memberships → stores → company_id でチェック
+      const { data: staffStores } = await supabaseAdmin
+        .from('store_memberships')
+        .select('store_id, stores!inner(company_id)')
+        .eq('business_user_id', user.id)
+
+      if (staffStores && staffStores.length > 0) {
+        staffAccess = staffStores.find((s: any) => s.stores?.company_id === companyId)
+      }
+    }
+
+    const hasAccess = companyMembership || (partnerAccess && partnerAccess.length > 0) || staffAccess
 
     if (!hasAccess) {
       throw new Error('この企業のデータにアクセスする権限がありません')

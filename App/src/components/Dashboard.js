@@ -528,7 +528,7 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           '& .MuiDrawer-paper': {
             width: isNavCollapsed ? collapsedDrawerWidth : drawerWidth,
             boxSizing: 'border-box',
-            background: sidebarGradient,
+            background: isThemeLoaded ? sidebarGradient : '#ffffff',
             border: 'none',
             boxShadow: '4px 0 20px rgba(0, 0, 0, 0.1)',
             borderRadius: 0,
