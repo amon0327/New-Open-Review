@@ -23,6 +23,7 @@ import {
   ListItemText,
   Paper,
   CircularProgress,
+  LinearProgress,
   Chip,
   Tabs,
   Tab,
@@ -34,7 +35,8 @@ import {
   DialogActions,
   TextField,
   Select,
-  FormControl
+  FormControl,
+  Tooltip
 } from '@mui/material';
 import {
   Business,
@@ -58,7 +60,8 @@ import {
   Image as ImageIcon,
   LightMode,
   DarkMode,
-  Schedule
+  Schedule,
+  Assessment
 } from '@mui/icons-material';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { ChromePicker } from 'react-color';
@@ -571,9 +574,109 @@ export default function PartnerDashboard({ user, onLogout }) {
   const navigationItems = [
     { id: 'dashboard', label: 'ダッシュボード', icon: <DashboardIcon /> },
     { id: 'companies', label: '企業管理', icon: <Business /> },
+    { id: 'analytics', label: '分析', icon: <Assessment /> },
     { id: 'members', label: 'メンバー招待', icon: <PersonAdd /> },
     { id: 'settings', label: '設定', icon: <Settings /> },
   ];
+
+  // 分析: 月セレクタは「実データのある月」のみ表示
+  const [availableMonths, setAvailableMonths] = useState([]); // [{value: 'YYYY-MM', label: '○○○○年○月'}]
+  const [analyticsMonth, setAnalyticsMonth] = useState(null);
+  // RPC が返す行をそのまま保持: [{ company_id, company_name, response_count, comment_count, is_active }]
+  const [analyticsRows, setAnalyticsRows] = useState([]);
+  // 日次ヒートマップデータ: [{ company_id, company_name, day_of_month, response_count, comment_count }]
+  const [dailyAnalytics, setDailyAnalytics] = useState([]);
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+  const [isLoadingMonths, setIsLoadingMonths] = useState(false);
+
+  // 指定月の各企業の回答数 / コメント数 (月次サマリ + 日次ヒートマップ) を RPC で取得
+  const fetchAnalyticsForMonth = async (yyyyMm) => {
+    setIsLoadingAnalytics(true);
+    try {
+      const [monthlyRes, dailyRes] = await Promise.all([
+        supabase.rpc('get_partner_company_analytics', { p_year_month: yyyyMm }),
+        supabase.rpc('get_partner_company_daily_analytics', { p_year_month: yyyyMm }),
+      ]);
+      if (monthlyRes.error) throw monthlyRes.error;
+      if (dailyRes.error) throw dailyRes.error;
+      setAnalyticsRows(monthlyRes.data || []);
+      setDailyAnalytics(dailyRes.data || []);
+    } catch (e) {
+      console.error('分析データ取得エラー:', e);
+      toast.error('分析データの取得に失敗しました');
+      setAnalyticsRows([]);
+      setDailyAnalytics([]);
+    } finally {
+      setIsLoadingAnalytics(false);
+    }
+  };
+
+  // 分析タブを開いた / companies が変化した時: 利用可能月を取得
+  useEffect(() => {
+    if (activeTab !== 'analytics') return;
+    if (!companies || companies.length === 0) {
+      setAvailableMonths([]);
+      setAnalyticsMonth(null);
+      setAnalyticsRows([]);
+      setDailyAnalytics([]);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      setIsLoadingMonths(true);
+      try {
+        const { data, error } = await supabase.rpc('get_partner_analytics_months');
+        if (error) throw error;
+        if (cancelled) return;
+
+        const list = (data || [])
+          .map((row) => {
+            const ym = row.year_month;
+            const [y, m] = ym.split('-').map(Number);
+            return { value: ym, label: `${y}年${m}月` };
+          })
+          .sort((a, b) => b.value.localeCompare(a.value));
+
+        setAvailableMonths(list);
+        setAnalyticsMonth((prev) =>
+          prev && list.some((m) => m.value === prev) ? prev : list[0]?.value || null
+        );
+      } catch (e) {
+        console.error('期間取得エラー:', e);
+        if (!cancelled) toast.error('期間の取得に失敗しました');
+      } finally {
+        if (!cancelled) setIsLoadingMonths(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, companies.length]);
+
+  // 月変更時 (または上のeffectで月が確定した時) に統計を取得
+  useEffect(() => {
+    if (activeTab !== 'analytics') return;
+    if (!analyticsMonth) {
+      setAnalyticsRows([]);
+      setDailyAnalytics([]);
+      return;
+    }
+    fetchAnalyticsForMonth(analyticsMonth);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, analyticsMonth]);
+
+  // 描画用に RPC の結果を整形
+  const buildCompanyAnalyticsRows = () =>
+    (analyticsRows || []).map((r) => ({
+      id: r.company_id,
+      name: r.company_name || '(無名企業)',
+      responseCount: Number(r.response_count) || 0,
+      commentCount: Number(r.comment_count) || 0,
+      isActive: r.is_active !== false,
+    }));
 
   const renderContent = () => {
     switch (activeTab) {
@@ -750,6 +853,544 @@ export default function PartnerDashboard({ user, onLogout }) {
             </Grid>
           </Box>
         );
+
+      case 'analytics': {
+        const rows = buildCompanyAnalyticsRows();
+        const sortedByResponse = [...rows].sort((a, b) => b.responseCount - a.responseCount);
+        const totalResponses = rows.reduce((sum, s) => sum + s.responseCount, 0);
+        const totalComments = rows.reduce((sum, s) => sum + s.commentCount, 0);
+        const avgResponses = rows.length ? Math.round(totalResponses / rows.length) : 0;
+        const topResponseCompany = sortedByResponse[0];
+        const responseBarColor = '#5e17eb';
+        const commentBarColor = '#10b981';
+        const monthLabel =
+          availableMonths.find((m) => m.value === analyticsMonth)?.label || '';
+        const hasMonths = availableMonths.length > 0;
+
+        return (
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 1 }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, color: '#1a202c' }}>
+                分析
+              </Typography>
+              <FormControl size="small" sx={{ minWidth: 180 }} disabled={!hasMonths}>
+                <Select
+                  value={hasMonths && analyticsMonth ? analyticsMonth : ''}
+                  displayEmpty
+                  onChange={(e) => setAnalyticsMonth(e.target.value)}
+                  sx={{ bgcolor: '#ffffff', borderRadius: 1.5 }}
+                  renderValue={(val) => {
+                    if (!hasMonths) return 'データのある月がありません';
+                    const found = availableMonths.find((m) => m.value === val);
+                    return found ? found.label : '月を選択';
+                  }}
+                >
+                  {availableMonths.map((m) => (
+                    <MenuItem key={m.value} value={m.value}>
+                      {m.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Typography variant="body2" sx={{ color: '#64748b', mb: 4 }}>
+              {hasMonths && monthLabel
+                ? `${monthLabel} の提携企業別の回答数とコメント数です。`
+                : '回答が記録された月のみがドロップダウンに表示されます。'}
+            </Typography>
+
+            {isLoadingCompanies || isLoadingAnalytics || isLoadingMonths ? (
+              <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                <CardContent>
+                  <Box sx={{ textAlign: 'center', py: 8 }}>
+                    <CircularProgress sx={{ color: '#5e17eb' }} />
+                    <Typography variant="body1" sx={{ color: '#64748b', mt: 2 }}>
+                      データを読み込み中...
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            ) : rows.length === 0 ? (
+              <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                <CardContent>
+                  <Box sx={{ textAlign: 'center', py: 8 }}>
+                    <Assessment sx={{ fontSize: 80, color: '#e2e8f0', mb: 2 }} />
+                    <Typography variant="body1" sx={{ color: '#64748b' }}>
+                      表示できる企業がまだありません
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            ) : !hasMonths ? (
+              <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                <CardContent>
+                  <Box sx={{ textAlign: 'center', py: 8 }}>
+                    <Assessment sx={{ fontSize: 80, color: '#e2e8f0', mb: 2 }} />
+                    <Typography variant="body1" sx={{ color: '#64748b' }}>
+                      まだ回答が記録されていません
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {/* 概要カード */}
+                <Grid container spacing={3} sx={{ mb: 4 }}>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                      <CardContent>
+                        <Typography variant="body2" sx={{ color: '#64748b', mb: 1 }}>
+                          合計回答数
+                        </Typography>
+                        <Typography variant="h3" sx={{ fontWeight: 700, color: responseBarColor }}>
+                          {totalResponses.toLocaleString()}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                      <CardContent>
+                        <Typography variant="body2" sx={{ color: '#64748b', mb: 1 }}>
+                          合計コメント数
+                        </Typography>
+                        <Typography variant="h3" sx={{ fontWeight: 700, color: commentBarColor }}>
+                          {totalComments.toLocaleString()}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                      <CardContent>
+                        <Typography variant="body2" sx={{ color: '#64748b', mb: 1 }}>
+                          1社あたり平均回答数
+                        </Typography>
+                        <Typography variant="h3" sx={{ fontWeight: 700, color: '#1a202c' }}>
+                          {avgResponses.toLocaleString()}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                      <CardContent>
+                        <Typography variant="body2" sx={{ color: '#64748b', mb: 1 }}>
+                          最多回答企業
+                        </Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a202c', mb: 0.5 }} noWrap>
+                          {topResponseCompany && topResponseCompany.responseCount > 0
+                            ? topResponseCompany.name
+                            : '-'}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: responseBarColor, fontWeight: 600 }}>
+                          {topResponseCompany && topResponseCompany.responseCount > 0
+                            ? `${topResponseCompany.responseCount.toLocaleString()} 件`
+                            : ''}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
+
+                {/* 企業別サマリー (ゲージ表示) */}
+                {(() => {
+                  const maxResponse = Math.max(1, ...sortedByResponse.map((s) => s.responseCount));
+                  const maxComment = Math.max(1, ...sortedByResponse.map((s) => s.commentCount));
+                  return (
+                    <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' }}>
+                      <CardContent>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a202c', mb: 3 }}>
+                          企業別サマリー ({monthLabel})
+                        </Typography>
+                        <List sx={{ p: 0 }}>
+                          {sortedByResponse.map((s, idx) => {
+                            const responsePct = (s.responseCount / maxResponse) * 100;
+                            const commentPct = (s.commentCount / maxComment) * 100;
+                            return (
+                              <ListItem
+                                key={s.id}
+                                sx={{
+                                  px: 2,
+                                  py: 1.5,
+                                  borderBottom:
+                                    idx === sortedByResponse.length - 1 ? 'none' : '1px solid #f1f5f9',
+                                }}
+                              >
+                                {/* 1社1行: ランク | 企業名 | 回答ゲージ | コメントゲージ */}
+                                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2 }}>
+                                  {/* ランク */}
+                                  <Box
+                                    sx={{
+                                      width: 32,
+                                      height: 32,
+                                      borderRadius: '50%',
+                                      bgcolor: idx < 3 ? responseBarColor : '#e2e8f0',
+                                      color: idx < 3 ? '#ffffff' : '#64748b',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontWeight: 700,
+                                      fontSize: 14,
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    {idx + 1}
+                                  </Box>
+                                  {/* 企業名 + 非アクティブ */}
+                                  <Box
+                                    sx={{
+                                      width: 180,
+                                      minWidth: 0,
+                                      flexShrink: 0,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 1,
+                                    }}
+                                  >
+                                    <Typography
+                                      variant="body2"
+                                      sx={{ fontWeight: 600, color: '#1a202c' }}
+                                      noWrap
+                                      title={s.name}
+                                    >
+                                      {s.name}
+                                    </Typography>
+                                    {!s.isActive && (
+                                      <Chip
+                                        label="非"
+                                        size="small"
+                                        sx={{
+                                          bgcolor: '#fee2e2',
+                                          color: '#b91c1c',
+                                          fontWeight: 700,
+                                          height: 18,
+                                          fontSize: 10,
+                                          flexShrink: 0,
+                                        }}
+                                      />
+                                    )}
+                                  </Box>
+                                  {/* 回答ゲージ */}
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
+                                    <Typography
+                                      variant="caption"
+                                      sx={{ color: '#64748b', fontWeight: 600, flexShrink: 0, width: 40 }}
+                                    >
+                                      回答
+                                    </Typography>
+                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                      <LinearProgress
+                                        variant="determinate"
+                                        value={responsePct}
+                                        sx={{
+                                          height: 10,
+                                          borderRadius: 5,
+                                          bgcolor: '#f1f5f9',
+                                          '& .MuiLinearProgress-bar': {
+                                            backgroundColor: responseBarColor,
+                                            borderRadius: 5,
+                                          },
+                                        }}
+                                      />
+                                    </Box>
+                                    <Typography
+                                      variant="body2"
+                                      sx={{
+                                        fontWeight: 700,
+                                        color: responseBarColor,
+                                        textAlign: 'right',
+                                        width: 64,
+                                        flexShrink: 0,
+                                      }}
+                                    >
+                                      {s.responseCount.toLocaleString()} 件
+                                    </Typography>
+                                  </Box>
+                                  {/* コメントゲージ */}
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
+                                    <Typography
+                                      variant="caption"
+                                      sx={{ color: '#64748b', fontWeight: 600, flexShrink: 0, width: 56 }}
+                                    >
+                                      コメント
+                                    </Typography>
+                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                      <LinearProgress
+                                        variant="determinate"
+                                        value={commentPct}
+                                        sx={{
+                                          height: 10,
+                                          borderRadius: 5,
+                                          bgcolor: '#f1f5f9',
+                                          '& .MuiLinearProgress-bar': {
+                                            backgroundColor: commentBarColor,
+                                            borderRadius: 5,
+                                          },
+                                        }}
+                                      />
+                                    </Box>
+                                    <Typography
+                                      variant="body2"
+                                      sx={{
+                                        fontWeight: 700,
+                                        color: commentBarColor,
+                                        textAlign: 'right',
+                                        width: 64,
+                                        flexShrink: 0,
+                                      }}
+                                    >
+                                      {s.commentCount.toLocaleString()} 件
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              </ListItem>
+                            );
+                          })}
+                        </List>
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
+
+                {/* 日次ヒートマップ */}
+                {(() => {
+                  if (!analyticsMonth) return null;
+                  const [hY, hM] = analyticsMonth.split('-').map(Number);
+                  const daysInMonth = new Date(hY, hM, 0).getDate();
+                  const dayList = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+                  // company_id → { name, days: { dom: { responseCount, commentCount } } }
+                  const dailyMap = {};
+                  (dailyAnalytics || []).forEach((row) => {
+                    const cid = row.company_id;
+                    if (!dailyMap[cid]) {
+                      dailyMap[cid] = { name: row.company_name, days: {} };
+                    }
+                    dailyMap[cid].days[row.day_of_month] = {
+                      responseCount: Number(row.response_count) || 0,
+                      commentCount: Number(row.comment_count) || 0,
+                    };
+                  });
+
+                  // 色のスケール基準: 企業ごとに max を計算 (企業単位で正規化)
+                  const perCompanyMax = {};
+                  (dailyAnalytics || []).forEach((row) => {
+                    const cid = row.company_id;
+                    const c = Number(row.response_count) || 0;
+                    if (!perCompanyMax[cid] || c > perCompanyMax[cid]) {
+                      perCompanyMax[cid] = c;
+                    }
+                  });
+
+                  const weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+                  const cellSize = 22;
+                  const cellGap = 3;
+                  const labelWidth = 160;
+
+                  return (
+                    <Card sx={{ borderRadius: 1.5, boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)', mt: 4 }}>
+                      <CardContent>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a202c', mb: 3 }}>
+                          日次ヒートマップ ({monthLabel})
+                        </Typography>
+
+                        <Box sx={{ overflowX: 'auto', pb: 1 }}>
+                          <Box
+                            sx={{
+                              minWidth: `${
+                                labelWidth + cellSize * dayList.length + cellGap * dayList.length
+                              }px`,
+                            }}
+                          >
+                            {/* ヘッダー: 日付 + 曜日 */}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'flex-end',
+                                gap: `${cellGap}px`,
+                                mb: 0.75,
+                              }}
+                            >
+                              <Box sx={{ width: labelWidth, flexShrink: 0 }} />
+                              {dayList.map((day) => {
+                                const date = new Date(hY, hM - 1, day);
+                                const dow = date.getDay();
+                                const wd = weekdayLabels[dow];
+                                const wdColor =
+                                  dow === 0 ? '#ef4444' : dow === 6 ? '#3b82f6' : '#94a3b8';
+                                return (
+                                  <Box
+                                    key={day}
+                                    sx={{
+                                      flex: '1 1 0',
+                                      minWidth: cellSize,
+                                      textAlign: 'center',
+                                    }}
+                                  >
+                                    <Typography
+                                      sx={{
+                                        display: 'block',
+                                        fontSize: 10,
+                                        color: '#64748b',
+                                        fontWeight: 600,
+                                        lineHeight: 1.2,
+                                      }}
+                                    >
+                                      {day}
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        display: 'block',
+                                        fontSize: 10,
+                                        color: wdColor,
+                                        fontWeight: 600,
+                                        lineHeight: 1.2,
+                                      }}
+                                    >
+                                      {wd}
+                                    </Typography>
+                                  </Box>
+                                );
+                              })}
+                            </Box>
+
+                            {/* 各企業の行 */}
+                            {sortedByResponse.map((s) => (
+                              <Box
+                                key={s.id}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: `${cellGap}px`,
+                                  mb: `${cellGap}px`,
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    width: labelWidth,
+                                    flexShrink: 0,
+                                    pr: 1,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      fontWeight: 600,
+                                      color: '#1a202c',
+                                      display: 'block',
+                                    }}
+                                    noWrap
+                                    title={s.name}
+                                  >
+                                    {s.name}
+                                  </Typography>
+                                </Box>
+                                {dayList.map((day) => {
+                                  const cell = dailyMap[s.id]?.days?.[day];
+                                  const respCount = cell?.responseCount || 0;
+                                  const commCount = cell?.commentCount || 0;
+                                  const companyMax = perCompanyMax[s.id] || 0;
+                                  const intensity = companyMax
+                                    ? respCount / companyMax
+                                    : 0;
+                                  const bgColor =
+                                    respCount > 0
+                                      ? `rgba(94, 23, 235, ${0.12 + 0.88 * intensity})`
+                                      : '#f1f5f9';
+                                  const date = new Date(hY, hM - 1, day);
+                                  const wd = weekdayLabels[date.getDay()];
+                                  const tooltipTitle = (
+                                    <Box sx={{ p: 0.5 }}>
+                                      <Typography
+                                        sx={{ fontWeight: 700, fontSize: 12, mb: 0.5 }}
+                                      >
+                                        {s.name}
+                                      </Typography>
+                                      <Typography sx={{ fontSize: 11, mb: 0.25 }}>
+                                        {`${hY}年${hM}月${day}日 (${wd})`}
+                                      </Typography>
+                                      <Typography sx={{ fontSize: 11 }}>
+                                        回答: {respCount.toLocaleString()} 件
+                                      </Typography>
+                                      <Typography sx={{ fontSize: 11 }}>
+                                        コメント: {commCount.toLocaleString()} 件
+                                      </Typography>
+                                    </Box>
+                                  );
+                                  return (
+                                    <Tooltip
+                                      key={day}
+                                      title={tooltipTitle}
+                                      arrow
+                                      placement="top"
+                                    >
+                                      <Box
+                                        sx={{
+                                          flex: '1 1 0',
+                                          minWidth: cellSize,
+                                          height: cellSize,
+                                          bgcolor: bgColor,
+                                          borderRadius: 0.75,
+                                          cursor: 'pointer',
+                                          transition: 'transform 120ms',
+                                          '&:hover': {
+                                            outline: '2px solid #5e17eb',
+                                            transform: 'scale(1.15)',
+                                          },
+                                        }}
+                                      />
+                                    </Tooltip>
+                                  );
+                                })}
+                              </Box>
+                            ))}
+                          </Box>
+                        </Box>
+
+                        {/* 凡例 */}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 1,
+                            mt: 2,
+                            color: '#64748b',
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                            少ない
+                          </Typography>
+                          {[0, 0.25, 0.5, 0.75, 1].map((v) => (
+                            <Box
+                              key={v}
+                              sx={{
+                                width: 14,
+                                height: 14,
+                                borderRadius: 0.5,
+                                bgcolor:
+                                  v === 0
+                                    ? '#f1f5f9'
+                                    : `rgba(94, 23, 235, ${0.12 + 0.88 * v})`,
+                              }}
+                            />
+                          ))}
+                          <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                            多い
+                          </Typography>
+                          <Typography variant="caption" sx={{ ml: 1 }}>
+                            (企業ごとに最大値を100%として正規化)
+                          </Typography>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
+              </>
+            )}
+          </Box>
+        );
+      }
 
       case 'companies':
         return (
@@ -1708,7 +2349,15 @@ export default function PartnerDashboard({ user, onLogout }) {
         </Paper>
 
         {/* Content Area */}
-        <Box sx={{ flexGrow: 1, ml: '280px', p: 4 }}>
+        <Box
+          sx={{
+            flexGrow: 1,
+            ml: '280px',
+            p: 4,
+            height: 'calc(100vh - 64px)',
+            overflowY: 'auto',
+          }}
+        >
           <Container maxWidth="xl">
             <motion.div
               key={activeTab}
