@@ -4,6 +4,7 @@
 -- 顧客コメントを埋め込みベクトル化し、
 -- 月次インサイト生成時に類似コメントをクラスタリングして
 -- AI に「テーマ」として渡せるようにする。
+-- 埋め込みサービスは Voyage AI (Anthropic 推奨) の voyage-3 (1024 次元)。
 
 -- pgvector 拡張を有効化
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -15,8 +16,8 @@ CREATE TABLE IF NOT EXISTS public.comment_embeddings (
   store_id uuid NOT NULL,
   company_id uuid NOT NULL,
   year_month text NOT NULL,
-  embedding vector(1536) NOT NULL,
-  embedding_model text NOT NULL DEFAULT 'text-embedding-3-small',
+  embedding vector(1024) NOT NULL,
+  embedding_model text NOT NULL DEFAULT 'voyage-3',
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE(comment_id, embedding_model)
 );

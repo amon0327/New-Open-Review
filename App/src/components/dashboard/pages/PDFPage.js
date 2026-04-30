@@ -29,8 +29,7 @@ import {
   Store,
   CheckCircle2,
   X,
-  RefreshCw,
-  Settings
+  RefreshCw
 } from 'lucide-react';
 
 // PDFテンプレートコンポーネントをインポート
@@ -53,10 +52,6 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
   const [publishedMap, setPublishedMap] = useState({});
   const [confirmDialog, setConfirmDialog] = useState({ open: false, report: null, newState: false });
   const [publishingYearMonth, setPublishingYearMonth] = useState(null);
-  const [autoPublish, setAutoPublish] = useState(false);
-  const [autoPublishLoading, setAutoPublishLoading] = useState(false);
-  const [autoPublishing, setAutoPublishing] = useState(false);
-  const [autoPublishProcessed, setAutoPublishProcessed] = useState(false);
 
   // 店舗名を取得するヘルパー関数
   const getStoreName = () => {
@@ -308,137 +303,6 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
     fetchPublishedStates();
   }, [companyId, selectedStore]);
 
-  // auto_publish_reports設定を取得
-  useEffect(() => {
-    const fetchAutoPublishSetting = async () => {
-      if (!companyId) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('companies')
-          .select('auto_publish_reports')
-          .eq('id', companyId)
-          .single();
-
-        if (!error && data) {
-          setAutoPublish(!!data.auto_publish_reports);
-        }
-      } catch (error) {
-        console.error('自動公開設定の取得エラー:', error);
-      }
-    };
-
-    fetchAutoPublishSetting();
-  }, [companyId]);
-
-  // 自動公開設定の切り替え
-  const handleAutoPublishToggle = async () => {
-    const newValue = !autoPublish;
-    setAutoPublishLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from('companies')
-        .update({ auto_publish_reports: newValue })
-        .eq('id', companyId);
-
-      if (error) {
-        console.error('自動公開設定の更新エラー:', error);
-        return;
-      }
-
-      setAutoPublish(newValue);
-    } catch (error) {
-      console.error('自動公開設定の更新エラー:', error);
-    } finally {
-      setAutoPublishLoading(false);
-    }
-  };
-
-  // 新レポート検出時の自動公開処理
-  useEffect(() => {
-    if (!autoPublish || autoPublishProcessed || reports.length === 0 || !selectedStore || !companyId) return;
-
-    const autoPublishNewReports = async () => {
-      // publishedMapに存在しないperiodが「新レポート」
-      const newReports = reports.filter(r => publishedMap[r.yearMonth] === undefined);
-      if (newReports.length === 0) {
-        setAutoPublishProcessed(true);
-        return;
-      }
-
-      setAutoPublishing(true);
-
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) return;
-
-        for (const report of newReports) {
-          try {
-            // レポートデータ取得
-            const data = await fetchReportData(report.yearMonth);
-            if (!data) continue;
-
-            // PDF生成
-            const storeName = getStoreName();
-            const blob = await generatePDFBlob(report, data, storeName, companyName, partnerTheme);
-
-            // Storageにアップロード
-            const storagePath = `${companyId}/${selectedStore}/${report.yearMonth}.pdf`;
-            const { error: uploadError } = await supabase.storage
-              .from('report-pdfs')
-              .upload(storagePath, blob, {
-                contentType: 'application/pdf',
-                upsert: true
-              });
-
-            if (uploadError) {
-              console.error(`自動公開エラー (${report.yearMonth}):`, uploadError);
-              continue;
-            }
-
-            // published_reportsにupsert
-            const { error: upsertError } = await supabase
-              .from('published_reports')
-              .upsert({
-                company_id: companyId,
-                store_id: selectedStore,
-                year_month: report.yearMonth,
-                is_published: true,
-                pdf_storage_path: storagePath,
-                published_at: new Date().toISOString(),
-                published_by: session.user.id,
-                updated_at: new Date().toISOString()
-              }, {
-                onConflict: 'company_id,store_id,year_month'
-              });
-
-            if (upsertError) {
-              console.error(`自動公開エラー (${report.yearMonth}):`, upsertError);
-              continue;
-            }
-
-            setPublishedMap(prev => ({ ...prev, [report.yearMonth]: true }));
-          } catch (err) {
-            console.error(`自動公開エラー (${report.yearMonth}):`, err);
-          }
-        }
-      } catch (error) {
-        console.error('自動公開処理エラー:', error);
-      } finally {
-        setAutoPublishing(false);
-        setAutoPublishProcessed(true);
-      }
-    };
-
-    autoPublishNewReports();
-  }, [autoPublish, reports, publishedMap, autoPublishProcessed, selectedStore, companyId]);
-
-  // 店舗変更時にautoPublishProcessedをリセット
-  useEffect(() => {
-    setAutoPublishProcessed(false);
-  }, [selectedStore]);
-
   // スイッチ切り替え時 — 確認ダイアログを開く
   const handlePublishToggle = (report, currentState) => {
     setConfirmDialog({ open: true, report, newState: !currentState });
@@ -677,57 +541,6 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
           </Select>
         </div>
 
-        {/* 自動公開設定 */}
-        <div className="mb-4 flex items-center justify-between bg-white rounded-xl shadow-sm border border-gray-100 px-5 py-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${primaryColor}1a` }}>
-              <Settings className="w-4 h-4" style={{ color: primaryColor }} />
-            </div>
-            <div>
-              <span className="text-sm font-medium text-gray-900">新しいレポートを自動的に公開</span>
-              <p className="text-xs text-gray-500">ONにすると、新しいレポートが追加された際に自動でスタッフに公開されます</p>
-            </div>
-          </div>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {autoPublishLoading ? (
-              <CircularProgress size={18} sx={{ color: primaryColor }} />
-            ) : (
-              <Switch
-                checked={autoPublish}
-                onChange={handleAutoPublishToggle}
-                disabled={autoPublishLoading}
-                sx={{
-                  width: 44,
-                  height: 24,
-                  p: 0,
-                  '& .MuiSwitch-switchBase': {
-                    p: '3px',
-                    '&.Mui-checked': {
-                      transform: 'translateX(20px)',
-                      color: '#fff',
-                      '& + .MuiSwitch-track': {
-                        backgroundColor: primaryColor,
-                        opacity: 1,
-                      },
-                    },
-                  },
-                  '& .MuiSwitch-thumb': {
-                    width: 18,
-                    height: 18,
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-                  },
-                  '& .MuiSwitch-track': {
-                    borderRadius: 12,
-                    backgroundColor: '#cbd5e1',
-                    opacity: 1,
-                    transition: 'background-color 0.3s ease',
-                  },
-                }}
-              />
-            )}
-          </Box>
-        </div>
-
         {/* レポート一覧 */}
         {reports.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16">
@@ -853,26 +666,6 @@ export default function PDFPage({ onNavCollapse, companyId, companyName = '', pa
           </div>
         )}
       </div>
-
-      {/* 自動公開処理中スナックバー */}
-      <Snackbar
-        open={autoPublishing}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        message={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <CircularProgress size={16} sx={{ color: '#fff' }} />
-            <span>新しいレポートを自動公開中...</span>
-          </Box>
-        }
-        ContentProps={{
-          sx: {
-            bgcolor: primaryColor,
-            borderRadius: '10px',
-            fontWeight: 500,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-          }
-        }}
-      />
 
       {/* 公開処理中スナックバー */}
       <Snackbar

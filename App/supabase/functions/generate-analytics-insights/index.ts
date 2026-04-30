@@ -366,7 +366,7 @@ serve(async (req) => {
 
     const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? ''
     if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY is not set')
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY') ?? '' // similar 検索用 (任意)
+    const VOYAGE_API_KEY = Deno.env.get('VOYAGE_API_KEY') ?? '' // similar 検索用 (任意)
 
     let requestTargetYearMonth: string | null = null
     try {
@@ -418,7 +418,7 @@ serve(async (req) => {
       for (const store of stores || []) {
         try {
           const insightCount = await processStoreInsights(
-            supabaseAdmin, ANTHROPIC_API_KEY, OPENAI_API_KEY,
+            supabaseAdmin, ANTHROPIC_API_KEY, VOYAGE_API_KEY,
             company.id, store.id, store.name,
             targetYearMonth, prevYearMonth,
             monthStart, monthEnd, prevMonthStart, prevMonthEnd
@@ -456,7 +456,7 @@ serve(async (req) => {
 async function processStoreInsights(
   supabase: any,
   anthropicKey: string,
-  openaiKey: string,
+  voyageKey: string,
   companyId: string,
   storeId: string,
   storeName: string,
@@ -586,7 +586,7 @@ async function processStoreInsights(
   // ----------------------------------------
   const dbContext: DbContext = {
     supabase,
-    openaiKey,
+    voyageKey,
     companyId,
     storeId,
     targetYearMonth,
@@ -657,6 +657,10 @@ async function processStoreInsights(
       point_1: insight.point_1 || null,
       point_2: insight.point_2 || null,
       point_3: insight.point_3 || null,
+      comparison_axis: insight.comparison_axis || null,
+      chronic: insight.chronic ?? null,
+      confidence: typeof insight.confidence === 'number' ? insight.confidence : null,
+      evidence_count: typeof insight.evidence_count === 'number' ? insight.evidence_count : null,
     }
     if (insight.issue_type === 'comment') {
       insertData.comment = insight.comment || null
@@ -1042,7 +1046,7 @@ async function callClaudeStageB(apiKey: string, userPrompt: string): Promise<any
 // ========================================
 interface DbContext {
   supabase: any
-  openaiKey: string
+  voyageKey: string
   companyId: string
   storeId: string
   targetYearMonth: string
@@ -1148,19 +1152,22 @@ function execQueryByKeyword(args: any, ctx: DbContext) {
 async function execQuerySimilar(args: any, ctx: DbContext) {
   const text = String(args?.text || '')
   const limit = Math.min(args?.limit ?? 10, 30)
-  if (!text || !ctx.openaiKey) {
+  if (!text || !ctx.voyageKey) {
     // フォールバック: テキスト一致でアプローチ
     return execQueryByKeyword({ keyword: text.slice(0, 10), limit }, ctx)
   }
-  // 入力テキストを埋め込んで、当月コメントの埋め込みとコサイン類似度比較
+  // 入力テキストを Voyage で埋め込み、当月コメントの埋め込みとコサイン類似度比較
   let queryVec: number[]
   try {
-    const r = await fetch('https://api.openai.com/v1/embeddings', {
+    const r = await fetch('https://api.voyageai.com/v1/embeddings', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${ctx.openaiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'text-embedding-3-small', input: text, dimensions: 1536 }),
+      headers: { 'Authorization': `Bearer ${ctx.voyageKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'voyage-3', input: text, input_type: 'query' }),
     })
-    if (!r.ok) throw new Error(`embed API ${r.status}`)
+    if (!r.ok) {
+      const errBody = await r.text()
+      throw new Error(`voyage API ${r.status}: ${errBody.slice(0, 200)}`)
+    }
     const j = await r.json()
     queryVec = j.data[0].embedding
   } catch (e: any) {

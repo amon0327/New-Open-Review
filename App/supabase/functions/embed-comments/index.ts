@@ -1,12 +1,14 @@
 // ========================================
 // embed-comments
 // ----------------------------------------
-// 未埋め込みのコメントを取得 → OpenAI text-embedding-3-small で
+// 未埋め込みのコメントを取得 → Voyage AI (voyage-3) で
 // 埋め込み → comment_embeddings に保存。
 // 月次インサイト生成 (構想 #9) で類似コメントクラスタリングに使う。
 //
+// Voyage AI は Anthropic 公式が推奨する埋め込みサービス。
+//
 // 環境変数:
-//   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OPENAI_API_KEY
+//   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, VOYAGE_API_KEY
 // 起動方法:
 //   - cron で定期実行 (1時間に1回など)
 //   - 手動 invoke で全店舗一括処理も可能
@@ -23,8 +25,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const EMBEDDING_MODEL = 'text-embedding-3-small'
-const EMBEDDING_DIMS = 1536
+const EMBEDDING_MODEL = 'voyage-3'
+const EMBEDDING_DIMS = 1024
+// Voyage は 1 リクエストあたり 128 件まで。1 件あたり最大 32k tokens
 const DEFAULT_BATCH_SIZE = 64
 const DEFAULT_MAX_BATCHES = 30
 
@@ -39,8 +42,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY') ?? ''
-    if (!OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not set')
+    const VOYAGE_API_KEY = Deno.env.get('VOYAGE_API_KEY') ?? ''
+    if (!VOYAGE_API_KEY) throw new Error('VOYAGE_API_KEY is not set')
 
     let body: any = {}
     try {
@@ -76,7 +79,7 @@ serve(async (req) => {
 
       let vectors: number[][]
       try {
-        vectors = await embedBatch(OPENAI_API_KEY, inputs)
+        vectors = await embedBatch(VOYAGE_API_KEY, inputs)
       } catch (e: any) {
         console.error(`Embedding API failed in batch ${batchIdx}:`, e.message)
         totalErrors += inputs.length
@@ -192,10 +195,10 @@ async function fetchUnembeddedComments(
 }
 
 // ========================================
-// OpenAI Embeddings API 呼び出し
+// Voyage AI Embeddings 呼び出し (Anthropic 推奨)
 // ========================================
 async function embedBatch(apiKey: string, inputs: string[]): Promise<number[][]> {
-  const response = await fetch('https://api.openai.com/v1/embeddings', {
+  const response = await fetch('https://api.voyageai.com/v1/embeddings', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -204,17 +207,24 @@ async function embedBatch(apiKey: string, inputs: string[]): Promise<number[][]>
     body: JSON.stringify({
       model: EMBEDDING_MODEL,
       input: inputs,
-      dimensions: EMBEDDING_DIMS,
+      input_type: 'document', // 検索される側のドキュメント
     }),
   })
 
   if (!response.ok) {
     const errBody = await response.text()
-    throw new Error(`OpenAI embeddings API error: ${response.status} ${errBody.slice(0, 300)}`)
+    throw new Error(`Voyage embeddings API error: ${response.status} ${errBody.slice(0, 300)}`)
   }
   const data = await response.json()
   if (!data?.data || !Array.isArray(data.data)) {
-    throw new Error(`Invalid OpenAI response: ${JSON.stringify(data).slice(0, 300)}`)
+    throw new Error(`Invalid Voyage response: ${JSON.stringify(data).slice(0, 300)}`)
   }
-  return data.data.map((d: any) => d.embedding as number[])
+  // Voyage の data は順序保証されているが、念のため index 順でソート
+  data.data.sort((a: any, b: any) => (a.index ?? 0) - (b.index ?? 0))
+  const vectors = data.data.map((d: any) => d.embedding as number[])
+  // 次元チェック
+  if (vectors.length > 0 && vectors[0].length !== EMBEDDING_DIMS) {
+    throw new Error(`Unexpected embedding dimension: ${vectors[0].length} (expected ${EMBEDDING_DIMS})`)
+  }
+  return vectors
 }
