@@ -64,6 +64,12 @@ const MIN_EVIDENCE_COUNT = 3
 const CLUSTER_SIMILARITY_THRESHOLD = 0.78
 const MAX_TOOL_TURNS = 8
 
+// evaluation 型 (ゲージ) で出してはいけない result_type:
+// 再来店意向あり × (推奨者 or 中立者) = type 1 / 2 / 5 / 6
+// これらは「来月も来たい」と答えている層で、ゲージで「課題」として扱うとミスリード。
+// コメント型なら可。
+const EVALUATION_FORBIDDEN_TYPES = new Set([1, 2, 5, 6])
+
 // ========================================
 // 共通: 役割定義 (全ステージのキャッシュ対象)
 // ========================================
@@ -262,6 +268,16 @@ Stage B が選別した仮説候補を受け取り、必要なら追加データ
   - previous_positive/previous_negative は概算で良い (サーバ側で再計算)
 - パターンB(month_vs_month): 今月 vs 先月の同一項目
 
+【evaluation 型の result_type 制約 (絶対遵守)】
+result_type が次の 4 type のいずれかの場合、evaluation 型 (ゲージ表示) のインサイトを作成してはいけない:
+  - type 1: 推奨者で再来店意向ありのリピーターのお客様 (安定リピーター×推奨者)
+  - type 2: 推奨者で再来店意向ありの新規のお客様 (新規リピーター×推奨者)
+  - type 5: 中立者で再来店意向ありのリピーターのお客様 (安定リピーター×中立者)
+  - type 6: 中立者で再来店意向ありの新規のお客様 (新規リピーター×中立者)
+理由: これらは「来月も来たい」と答えている再訪意向のある層で、ゲージで「課題」として扱うと読み手をミスリードする。
+これらの type を取り上げる場合は、必ず issue_type='comment' (コメント型) で記述すること。
+他の 8 type (再来店意向なし、または批判者) では evaluation 型を使ってよい。
+
 【QSC項目キー】
 Quality: q1=料理の味, q2=料理の見た目, q3=料理の量/ボリューム, q4=ドリンクの味, q5=ドリンクの温度, q6=食べたい料理, q7=飲みたいドリンク, q8=メニューの種類, q9=料理・ドリンクの温度, q10=特徴や独自性
 Service: s1=入店時の挨拶, s2=席への案内, s3=注文時の対応, s4=メニュー説明・提案, s5=提供スピード, s6=注文・提供の正確さ, s7=スタッフの気配り, s8=スタッフの笑顔, s9=スタッフの言葉遣い, s10=特に良かったスタッフ
@@ -303,7 +319,7 @@ const INSIGHTS_TOOL = {
               type: 'string',
               description: '同上。質問→もし〜の場合→具体提案→期待効果。命令形禁止。',
             },
-            result_type: { type: 'integer', minimum: 1, maximum: 12 },
+            result_type: { type: 'integer', minimum: 1, maximum: 12, description: '対象 12type 番号 (1-12)。issue_type=evaluation で result_type が 1/2/5/6 (再来店意向あり×推奨者or中立者) は禁止。これらの再訪意向のある層をゲージで課題化しない。コメント型なら可。' },
             confidence: { type: 'number', minimum: 0, maximum: 1 },
             evidence_count: { type: 'integer', minimum: 0 },
             comparison_axis: {
@@ -714,6 +730,11 @@ async function processStoreInsights(
     }
     if ((ins.evidence_count ?? 0) < MIN_EVIDENCE_COUNT) {
       console.log(`[${storeName}] drop low-evidence: ${ins.issue_title}`)
+      return false
+    }
+    // evaluation 型は再来店意向あり×推奨者or中立者 (type 1/2/5/6) では出さない
+    if (ins.issue_type === 'evaluation' && EVALUATION_FORBIDDEN_TYPES.has(ins.result_type)) {
+      console.log(`[${storeName}] drop evaluation for high-satisfaction segment (type=${ins.result_type}): ${ins.issue_title}`)
       return false
     }
     return true
