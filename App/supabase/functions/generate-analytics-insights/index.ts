@@ -85,7 +85,12 @@ const ROLE_PREAMBLE = `あなたは飲食店の月次レポートのAIアナリ�
 - 件数より比率(%)で語る
 
 【セグメント名表記の絶対ルール】
-「安定推奨層」「離脱リスク層」などの抽象的な内部名称は禁止。必ず「推奨者で再来店意向ありのリピーターのお客様」のように具体的な属性で記述する。`
+- 「安定推奨層」「離脱リスク層」などの抽象的な内部名称は禁止。必ず「推奨者で再来店意向ありのリピーターのお客様」のように具体的な属性で記述する。
+- 「type1」「type6」「(type5)」のような内部分類番号は**絶対に出力に含めない**。これは内部処理用のラベルであり、レポートを読む店長には何のことか分からない。
+  - ✗ 悪い例: 「新規のお客様(type6)」「推奨者リピーター(type1)」「中立リピーター(type5)」
+  - ✓ 良い例: 「中立者で再来店意向ありの新規のお客様」「推奨者で再来店意向ありのリピーターのお客様」
+- 括弧書きで type 番号を補足することも禁止。属性名のみで記述すること。
+- これは issue_title / issue_detail / current_title / previous_title / point_1〜3 / comment 等、**全ての出力フィールド** に適用する。`
 
 // ========================================
 // Stage A: 異常検知 用 system prompt
@@ -284,8 +289,8 @@ const INSIGHTS_TOOL = {
           type: 'object',
           properties: {
             issue_type: { type: 'string', enum: ['comment', 'evaluation'] },
-            issue_title: { type: 'string', description: '20文字以内' },
-            issue_detail: { type: 'string', description: '50〜200文字' },
+            issue_title: { type: 'string', description: '20文字以内。「type1」「(type6)」のような内部番号表記は禁止。' },
+            issue_detail: { type: 'string', description: '50〜200文字。「type1」「(type6)」のような内部番号表記は禁止。セグメントは具体的な属性名で記述。' },
             point_1: {
               type: 'string',
               description: '形式厳守: "<現状を問う質問>？→ もし<条件節>場合、<具体提案>すると、<期待効果>。" の3要素構成。命令形(〜してください)禁止。例: "メニューに量の選択肢は用意されていますか？→ もし選択肢がない場合、+200円で大盛りオプションを追加すると、満足度向上と客単価向上を両立できます。" 80〜120文字',
@@ -309,10 +314,10 @@ const INSIGHTS_TOOL = {
             comment: { type: 'string', description: 'comment型: 代表コメント原文引用' },
             qsc_key: { type: 'string', description: 'evaluation型: q1〜c10' },
             comparison_type: { type: 'string', enum: ['segment_vs_overall', 'month_vs_month'] },
-            current_title: { type: 'string' },
+            current_title: { type: 'string', description: 'バーチャートのラベル。「type1」「(type6)」のような内部番号は禁止。例: 「中立リピーターの床評価」「1月の中立リピーターの床評価」' },
             current_positive: { type: 'integer' },
             current_negative: { type: 'integer' },
-            previous_title: { type: 'string' },
+            previous_title: { type: 'string', description: 'バーチャートのラベル。「type1」「(type6)」のような内部番号は禁止。例: 「他セグメント全体の床評価」「12月の中立リピーターの床評価」' },
             previous_positive: { type: 'integer' },
             previous_negative: { type: 'integer' },
           },
