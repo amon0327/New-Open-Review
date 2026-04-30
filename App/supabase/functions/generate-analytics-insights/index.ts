@@ -369,9 +369,13 @@ serve(async (req) => {
     const VOYAGE_API_KEY = Deno.env.get('VOYAGE_API_KEY') ?? '' // similar 検索用 (任意)
 
     let requestTargetYearMonth: string | null = null
+    let storeIdsFilter: string[] | null = null
     try {
       const body = await req.json()
       requestTargetYearMonth = body?.target_year_month || null
+      if (Array.isArray(body?.store_ids) && body.store_ids.length > 0) {
+        storeIdsFilter = body.store_ids
+      }
     } catch { /* no body */ }
 
     let targetYearMonth: string
@@ -402,44 +406,90 @@ serve(async (req) => {
 
     console.log(`Generating insights for ${targetYearMonth} (3-stage pipeline)`)
 
-    const { data: companies, error: companiesError } = await supabaseAdmin
-      .from('companies')
-      .select('id, name')
-    if (companiesError) throw new Error(`Failed to fetch companies: ${companiesError.message}`)
+    // 同期モード: ?wait=true もしくは body.wait=true で結果を待つ。デフォルトは fire-and-forget。
+    const url = new URL(req.url)
+    const waitForResult = url.searchParams.get('wait') === 'true'
 
-    const results: any[] = []
-
-    for (const company of companies || []) {
-      const { data: stores } = await supabaseAdmin
-        .from('stores')
+    const runAll = async (): Promise<any[]> => {
+      const { data: companies, error: companiesError } = await supabaseAdmin
+        .from('companies')
         .select('id, name')
-        .eq('company_id', company.id)
+      if (companiesError) throw new Error(`Failed to fetch companies: ${companiesError.message}`)
 
-      for (const store of stores || []) {
-        try {
-          const insightCount = await processStoreInsights(
-            supabaseAdmin, ANTHROPIC_API_KEY, VOYAGE_API_KEY,
-            company.id, store.id, store.name,
-            targetYearMonth, prevYearMonth,
-            monthStart, monthEnd, prevMonthStart, prevMonthEnd
-          )
-          results.push({ companyId: company.id, storeId: store.id, status: 'success', insightCount })
-        } catch (storeError: any) {
-          console.error(`Error processing store ${store.id}:`, storeError)
-          results.push({ companyId: company.id, storeId: store.id, status: 'error', message: storeError.message })
+      const tasks: Array<{ companyId: string; storeId: string; storeName: string }> = []
+      for (const company of companies || []) {
+        const { data: stores } = await supabaseAdmin
+          .from('stores')
+          .select('id, name')
+          .eq('company_id', company.id)
+        for (const store of stores || []) {
+          if (storeIdsFilter && !storeIdsFilter.includes(store.id)) continue
+          tasks.push({ companyId: company.id, storeId: store.id, storeName: store.name })
         }
       }
+      if (storeIdsFilter) {
+        console.log(`Filter active: targeting ${tasks.length} stores`)
+      }
+
+      // 並列度 3 で店舗を処理 (Anthropic レート制限と Edge Function CPU を考慮)
+      const CONCURRENCY = 3
+      const results: any[] = []
+      for (let i = 0; i < tasks.length; i += CONCURRENCY) {
+        const chunk = tasks.slice(i, i + CONCURRENCY)
+        const chunkResults = await Promise.all(chunk.map(async (t) => {
+          try {
+            const insightCount = await processStoreInsights(
+              supabaseAdmin, ANTHROPIC_API_KEY, VOYAGE_API_KEY,
+              t.companyId, t.storeId, t.storeName,
+              targetYearMonth, prevYearMonth,
+              monthStart, monthEnd, prevMonthStart, prevMonthEnd
+            )
+            return { companyId: t.companyId, storeId: t.storeId, status: 'success', insightCount }
+          } catch (e: any) {
+            console.error(`Error processing store ${t.storeId}:`, e)
+            return { companyId: t.companyId, storeId: t.storeId, status: 'error', message: e.message }
+          }
+        }))
+        results.push(...chunkResults)
+      }
+      console.log(`[${targetYearMonth}] all done, ${results.length} stores`)
+      return results
     }
 
+    if (waitForResult) {
+      // 同期モード (テスト・手動 invoke 用)
+      const results = await runAll()
+      return new Response(
+        JSON.stringify({
+          success: true,
+          targetYearMonth,
+          prevYearMonth,
+          processedAt: new Date().toISOString(),
+          results,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      )
+    }
+
+    // 非同期モード: バックグラウンドで実行し、即レスポンス (cron 用)
+    // @ts-ignore EdgeRuntime は Supabase Edge Function 環境のグローバル
+    if (typeof EdgeRuntime !== 'undefined' && EdgeRuntime.waitUntil) {
+      // @ts-ignore
+      EdgeRuntime.waitUntil(runAll().catch((e) => console.error('Background run failed:', e)))
+    } else {
+      // フォールバック (ローカル等): 待たずに開始だけして即返す
+      runAll().catch((e) => console.error('Background run failed:', e))
+    }
     return new Response(
       JSON.stringify({
         success: true,
+        mode: 'async',
         targetYearMonth,
         prevYearMonth,
-        processedAt: new Date().toISOString(),
-        results,
+        startedAt: new Date().toISOString(),
+        message: 'Processing in background. Poll monthly_analytics_issue for results.',
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 202 }
     )
   } catch (error: any) {
     console.error('Generate analytics insights error:', error)
@@ -560,6 +610,9 @@ async function processStoreInsights(
   console.log(`[${storeName}] Stage A: detecting anomalies...`)
   const stageAOut = await callClaudeStageA(anthropicKey, stageAUserPrompt)
   console.log(`[${storeName}] Stage A: ${stageAOut.anomalies?.length || 0} anomalies`)
+  if (stageAOut.anomalies?.length) {
+    console.log(`[${storeName}] Stage A first anomalies: ${JSON.stringify(stageAOut.anomalies.slice(0, 3)).slice(0, 600)}`)
+  }
 
   if (!stageAOut.anomalies || stageAOut.anomalies.length === 0) {
     console.log(`[${storeName}] No anomalies detected, skipping`)
@@ -573,8 +626,15 @@ async function processStoreInsights(
   console.log(`[${storeName}] Stage B: generating hypotheses...`)
   const stageBOut = await callClaudeStageB(anthropicKey, stageBUserPrompt)
 
-  const kept = (stageBOut.hypotheses || []).filter((h: any) => h.keep === true)
-  console.log(`[${storeName}] Stage B: ${kept.length} kept of ${stageBOut.hypotheses?.length || 0}`)
+  const allHypotheses = stageBOut.hypotheses || []
+  const kept = allHypotheses.filter((h: any) => h.keep === true)
+  console.log(`[${storeName}] Stage B: ${kept.length} kept of ${allHypotheses.length}`)
+  if (allHypotheses.length > 0) {
+    console.log(`[${storeName}] Stage B all hypotheses: ${JSON.stringify(allHypotheses.map((h: any) => ({ idx: h.anomaly_idx, keep: h.keep, reason: h.keep_reason }))).slice(0, 800)}`)
+  } else {
+    // 空配列 — Stage A の anomaly が hypothesis 化されなかった理由が不明
+    console.log(`[${storeName}] Stage B returned EMPTY hypotheses despite ${stageAOut.anomalies?.length || 0} anomalies`)
+  }
 
   if (kept.length === 0) {
     console.log(`[${storeName}] No hypotheses kept, skipping`)
@@ -1026,19 +1086,55 @@ async function callClaudeStageA(apiKey: string, userPrompt: string): Promise<any
 
 // ========================================
 // Stage B: Sonnet 4.6 + thinking 呼び出し
+// 1段目で空配列ならフォールバック (fresh call、no thinking、forced tool)
 // ========================================
 async function callClaudeStageB(apiKey: string, userPrompt: string): Promise<any> {
+  // 1段目: thinking + auto (深い推論で hypotheses を生成)
   const data = await callAnthropic(apiKey, {
     model: 'claude-sonnet-4-6',
     max_tokens: 6000,
-    thinking: { type: 'enabled', budget_tokens: 2000 },
+    thinking: { type: 'adaptive' },
     system: [{ type: 'text', text: SYSTEM_PROMPT_STAGE_B, cache_control: { type: 'ephemeral' } }],
     tools: [HYPOTHESES_TOOL],
-    tool_choice: { type: 'any' },
+    tool_choice: { type: 'auto' },
     messages: [{ role: 'user', content: userPrompt }],
   })
   const tu = (data.content || []).find((c: any) => c.type === 'tool_use')
-  return tu?.input || { hypotheses: [] }
+  // tool が呼ばれて、かつ非空配列が返ったら採用
+  if (tu?.input?.hypotheses && Array.isArray(tu.input.hypotheses) && tu.input.hypotheses.length > 0) {
+    return tu.input
+  }
+
+  // 2段目フォールバック: 全く新しい呼び出し (thinking 無効、tool_choice 強制)
+  // 注: thinking ブロック付き assistant メッセージは thinking 無効リクエストで replay 不可。
+  // よってここでは元の userPrompt をそのまま強い指示と共に再投入する。
+  const reason = !tu ? `no tool_use (stop_reason=${data.stop_reason})` : 'empty hypotheses array'
+  console.warn(`[Stage B] fallback triggered: ${reason}`)
+  const fallbackPrompt = `${userPrompt}
+
+【重要・絶対遵守】
+Stage A の異常リストに含まれる**全ての**異常について、必ず1つずつ仮説を作成して submit_hypotheses ツールで提出してください。
+- 弱いと判断したものは keep=false にしてください (リストから外すのではなく)
+- 仮説リストは空であってはいけません。Stage A の異常数と同じ数の仮説エントリを必ず含めてください
+- 各仮説は anomaly_idx を Stage A のインデックスに合わせて記載すること`
+  try {
+    const data2 = await callAnthropic(apiKey, {
+      model: 'claude-sonnet-4-6',
+      max_tokens: 6000,
+      system: [{ type: 'text', text: SYSTEM_PROMPT_STAGE_B, cache_control: { type: 'ephemeral' } }],
+      tools: [HYPOTHESES_TOOL],
+      tool_choice: { type: 'tool', name: 'submit_hypotheses' },
+      messages: [{ role: 'user', content: fallbackPrompt }],
+    })
+    const tu2 = (data2.content || []).find((c: any) => c.type === 'tool_use')
+    if (tu2?.input) {
+      console.log(`[Stage B] fallback returned ${tu2.input.hypotheses?.length || 0} hypotheses`)
+      return tu2.input
+    }
+  } catch (e: any) {
+    console.error('[Stage B] fallback failed:', e.message)
+  }
+  return { hypotheses: [] }
 }
 
 // ========================================
@@ -1064,28 +1160,36 @@ async function callClaudeStageC(
 ): Promise<any[]> {
   const messages: any[] = [{ role: 'user', content: userPrompt }]
   let finalInsights: any[] = []
+  let submitCalled = false
+  let lastContent: any[] = []
 
   for (let turn = 0; turn < MAX_TOOL_TURNS; turn++) {
     const data = await callAnthropic(apiKey, {
       model: 'claude-opus-4-7',
       max_tokens: 16000,
-      thinking: { type: 'enabled', budget_tokens: 8000 },
+      thinking: { type: 'adaptive' },
       system: [{ type: 'text', text: SYSTEM_PROMPT_STAGE_C, cache_control: { type: 'ephemeral' } }],
       tools: [INSIGHTS_TOOL, ...QUERY_TOOLS],
-      tool_choice: { type: 'any' },
+      // 注: thinking 有効時は tool_choice で強制不可。auto に固定し、
+      // submit_insights が呼ばれない場合は下のフォールバックで補完。
+      tool_choice: { type: 'auto' },
       messages,
     })
 
     const content = data.content || []
+    lastContent = content
     const toolUses = content.filter((c: any) => c.type === 'tool_use')
     const submit = toolUses.find((t: any) => t.name === 'submit_insights')
     if (submit) {
       finalInsights = Array.isArray(submit.input?.insights) ? submit.input.insights : []
+      submitCalled = true
       break
     }
 
     if (toolUses.length === 0) {
-      console.warn(`[Stage C] no tool_use in turn ${turn}, stopping`)
+      // 推論を続けたい / submit を呼ばずに end_turn → フォールバックで強制パッケージング
+      console.warn(`[Stage C] no tool_use in turn ${turn} (stop_reason=${data.stop_reason}), forcing submit_insights`)
+      messages.push({ role: 'assistant', content })
       break
     }
 
@@ -1112,6 +1216,42 @@ async function callClaudeStageC(
       }
     }
     messages.push({ role: 'user', content: toolResults })
+  }
+
+  // フォールバック: submit_insights が呼ばれなかった場合、
+  // thinking 無効化で tool_choice を強制してパッケージングを完了させる。
+  // 注: thinking 無効リクエストには thinking ブロックを含む assistant メッセージは送れないので、
+  //     既存履歴から thinking ブロックを剥がす。
+  if (!submitCalled) {
+    try {
+      const sanitizedMessages = messages.map((m: any) => {
+        if (m.role !== 'assistant' || !Array.isArray(m.content)) return m
+        return {
+          role: 'assistant',
+          content: m.content.filter((c: any) => c.type !== 'thinking' && c.type !== 'redacted_thinking'),
+        }
+      })
+      sanitizedMessages.push({
+        role: 'user',
+        content: 'これまでの分析を踏まえ、submit_insights ツールを呼び出して最終インサイトを提出してください。条件 (信頼度0.7以上) を満たすものが無ければ空配列で構いません。',
+      })
+      const data = await callAnthropic(apiKey, {
+        model: 'claude-opus-4-7',
+        max_tokens: 8000,
+        // thinking 無し → tool_choice 強制可能
+        system: [{ type: 'text', text: SYSTEM_PROMPT_STAGE_C, cache_control: { type: 'ephemeral' } }],
+        tools: [INSIGHTS_TOOL],
+        tool_choice: { type: 'tool', name: 'submit_insights' },
+        messages: sanitizedMessages,
+      })
+      const tu = (data.content || []).find((c: any) => c.type === 'tool_use')
+      if (tu?.input?.insights && Array.isArray(tu.input.insights)) {
+        finalInsights = tu.input.insights
+        console.log(`[Stage C] fallback recovered ${finalInsights.length} insights`)
+      }
+    } catch (e: any) {
+      console.error('[Stage C] fallback failed:', e.message)
+    }
   }
 
   return finalInsights
@@ -1238,20 +1378,49 @@ async function execQueryHistoricalTrend(args: any, ctx: DbContext) {
 // Anthropic API 共通呼び出し
 // ========================================
 async function callAnthropic(apiKey: string, body: any): Promise<any> {
-  const r = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify(body),
-  })
-  if (!r.ok) {
-    const errBody = await r.text()
-    throw new Error(`Anthropic API ${r.status}: ${errBody.slice(0, 500)}`)
+  // 一時的エラー (5xx, 429, ネットワーク) は指数バックオフで最大 4 回リトライ
+  const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504, 529])
+  const MAX_ATTEMPTS = 4
+  let lastError: Error | null = null
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify(body),
+      })
+      if (r.ok) return await r.json()
+
+      const errBody = await r.text()
+      const errMsg = `Anthropic API ${r.status}: ${errBody.slice(0, 500)}`
+
+      if (RETRYABLE_STATUSES.has(r.status) && attempt < MAX_ATTEMPTS) {
+        const wait = Math.min(30000, 1000 * Math.pow(2, attempt - 1)) + Math.floor(Math.random() * 1000)
+        console.warn(`Retryable ${r.status}, attempt ${attempt}/${MAX_ATTEMPTS}, waiting ${wait}ms`)
+        await new Promise((res) => setTimeout(res, wait))
+        lastError = new Error(errMsg)
+        continue
+      }
+      throw new Error(errMsg)
+    } catch (e: any) {
+      // ネットワークエラーもリトライ
+      const isNetworkError = e?.name === 'TypeError' || /fetch|network|aborted|timeout/i.test(e?.message || '')
+      if (isNetworkError && attempt < MAX_ATTEMPTS) {
+        const wait = Math.min(30000, 1000 * Math.pow(2, attempt - 1))
+        console.warn(`Network error, attempt ${attempt}/${MAX_ATTEMPTS}, waiting ${wait}ms: ${e.message}`)
+        await new Promise((res) => setTimeout(res, wait))
+        lastError = e
+        continue
+      }
+      throw e
+    }
   }
-  return await r.json()
+  throw lastError || new Error('Anthropic API failed after retries')
 }
 
 // ========================================
