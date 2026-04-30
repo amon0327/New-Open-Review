@@ -61,6 +61,7 @@ const TYPE_NAMES: Record<number, string> = {
 
 const MIN_CONFIDENCE = 0.7
 const MIN_EVIDENCE_COUNT = 3
+const CLUSTER_SIMILARITY_THRESHOLD = 0.78
 const MAX_TOOL_TURNS = 8
 
 // ========================================
@@ -208,12 +209,13 @@ Stage B が選別した仮説候補を受け取り、必要なら追加データ
 
 【利用可能なツール】
 - query_comments_by_keyword(keyword, limit?): 当月コメントのキーワード検索
+- query_similar_comments(text, limit?): 当月コメントから意味的に類似したものを取得 (埋め込み類似度)
 - query_segment_qsc(type): 特定セグメントの当月QSC全項目を取得
 - query_historical_trend(metric, months?): 指定指標の直近Nヶ月推移を取得
 - submit_insights(insights): 最終インサイトの提出 (これを呼ぶと完了)
 
 【ツール使用方針】
-- Stage B で支持材料が不十分な仮説は、関連コメントを keyword で引いて検証する
+- Stage B で支持材料が不十分な仮説は、関連コメントを keyword/similar で引いて検証する
 - 数値が前月比で動いた場合は、historical_trend でトレンドが本物か確認
 - 不要に深掘りせず、必要最小限の確認で済ませる (3-5 ツール呼び出しまでが目安)
 
@@ -305,6 +307,18 @@ const QUERY_TOOLS = [
     },
   },
   {
+    name: 'query_similar_comments',
+    description: '当月のコメントから意味的に類似したものを埋め込みベクトル検索で取得する',
+    input_schema: {
+      type: 'object',
+      properties: {
+        text: { type: 'string', description: '基準テキスト' },
+        limit: { type: 'integer', minimum: 1, maximum: 30, default: 10 },
+      },
+      required: ['text'],
+    },
+  },
+  {
     name: 'query_segment_qsc',
     description: '特定セグメントの当月 QSC 全項目を取得する',
     input_schema: {
@@ -352,6 +366,7 @@ serve(async (req) => {
 
     const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? ''
     if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY is not set')
+    const VOYAGE_API_KEY = Deno.env.get('VOYAGE_API_KEY') ?? '' // similar 検索用 (任意)
 
     let requestTargetYearMonth: string | null = null
     try {
@@ -403,7 +418,7 @@ serve(async (req) => {
       for (const store of stores || []) {
         try {
           const insightCount = await processStoreInsights(
-            supabaseAdmin, ANTHROPIC_API_KEY,
+            supabaseAdmin, ANTHROPIC_API_KEY, VOYAGE_API_KEY,
             company.id, store.id, store.name,
             targetYearMonth, prevYearMonth,
             monthStart, monthEnd, prevMonthStart, prevMonthEnd
@@ -441,6 +456,7 @@ serve(async (req) => {
 async function processStoreInsights(
   supabase: any,
   anthropicKey: string,
+  voyageKey: string,
   companyId: string,
   storeId: string,
   storeName: string,
@@ -508,19 +524,36 @@ async function processStoreInsights(
   }
   const enrichedCurrent = allComments.map(enrichComment)
   const enrichedPrev = (prevComments || []).map(enrichComment)
-  console.log(`[${storeName}] current=${enrichedCurrent.length} prev=${enrichedPrev.length}`)
 
   // ----------------------------------------
-  // 3. 過去 3 ヶ月のインサイト履歴 (#5)
+  // 3. 当月コメントの埋め込み取得 + クラスタリング (#9)
+  // ----------------------------------------
+  const commentIds = enrichedCurrent.map((c: any) => c.id).filter(Boolean)
+  let embeddings: Map<string, number[]> = new Map()
+  if (commentIds.length > 0) {
+    const { data: embRows } = await supabase
+      .from('comment_embeddings')
+      .select('comment_id, embedding')
+      .in('comment_id', commentIds)
+    for (const row of embRows || []) {
+      const v = parseEmbedding(row.embedding)
+      if (v) embeddings.set(row.comment_id, v)
+    }
+  }
+  const clusters = clusterComments(enrichedCurrent, embeddings, CLUSTER_SIMILARITY_THRESHOLD)
+  console.log(`[${storeName}] ${enrichedCurrent.length} comments → ${clusters.length} clusters (${embeddings.size} embedded)`)
+
+  // ----------------------------------------
+  // 4. 過去 3 ヶ月のインサイト履歴 (#5)
   // ----------------------------------------
   const pastInsights = await fetchPastInsights(supabase, companyId, storeId, targetYearMonth, 3)
 
   // ----------------------------------------
-  // 4. Stage A: 異常検知 (Haiku 4.5)
+  // 5. Stage A: 異常検知 (Haiku 4.5)
   // ----------------------------------------
   const stageAUserPrompt = buildStageAPrompt(
     storeName, targetYearMonth, prevYearMonth,
-    enrichedCurrent, enrichedPrev,
+    clusters, enrichedPrev,
     currentByType || [], prevByType || [],
     storeSummary, pastInsights
   )
@@ -553,12 +586,14 @@ async function processStoreInsights(
   // ----------------------------------------
   const dbContext: DbContext = {
     supabase,
+    voyageKey,
     companyId,
     storeId,
     targetYearMonth,
     monthStart,
     monthEnd,
     enrichedCurrent,
+    embeddings,
     currentByType: currentByType || [],
   }
 
@@ -671,6 +706,40 @@ function classifyType(answer: any): number {
   return 12
 }
 
+// ========================================
+// 埋め込みパース (pgvector は文字列 "[0.1, 0.2, ...]" として返ることがある)
+// ========================================
+function parseEmbedding(raw: any): number[] | null {
+  if (!raw) return null
+  if (Array.isArray(raw)) return raw as number[]
+  if (typeof raw === 'string') {
+    try {
+      const arr = JSON.parse(raw)
+      if (Array.isArray(arr)) return arr
+    } catch { /* fallthrough */ }
+    // "(0.1,0.2,...)" や "[0.1,0.2,...]" 形式
+    const inner = raw.replace(/^[\[\(]/, '').replace(/[\]\)]$/, '')
+    const arr = inner.split(',').map((s: string) => parseFloat(s.trim()))
+    if (arr.every((n) => Number.isFinite(n))) return arr
+  }
+  return null
+}
+
+// ========================================
+// クラスタリング (Union-Find with cosine similarity)
+// ========================================
+function cosine(a: number[], b: number[]): number {
+  let dot = 0, na = 0, nb = 0
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i]
+    na += a[i] * a[i]
+    nb += b[i] * b[i]
+  }
+  const denom = Math.sqrt(na) * Math.sqrt(nb)
+  if (denom === 0) return 0
+  return dot / denom
+}
+
 interface CommentItem {
   id: string
   comment: string
@@ -678,6 +747,93 @@ interface CommentItem {
   question_number: any
   is_positive: any
   type: number
+}
+
+interface Cluster {
+  cluster_id: number
+  size: number
+  representative: CommentItem
+  members: CommentItem[]
+  dominant_type: number
+  positive_count: number
+  negative_count: number
+}
+
+function clusterComments(
+  comments: CommentItem[],
+  embeddings: Map<string, number[]>,
+  threshold: number
+): Cluster[] {
+  if (comments.length === 0) return []
+  // Union-Find
+  const parent: number[] = comments.map((_, i) => i)
+  const find = (x: number): number => parent[x] === x ? x : (parent[x] = find(parent[x]))
+  const union = (a: number, b: number) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb }
+
+  // 埋め込みありのものだけペアワイズ比較
+  const withEmb: { idx: number; vec: number[] }[] = []
+  for (let i = 0; i < comments.length; i++) {
+    const v = embeddings.get(comments[i].id)
+    if (v && v.length > 0) withEmb.push({ idx: i, vec: v })
+  }
+
+  for (let i = 0; i < withEmb.length; i++) {
+    for (let j = i + 1; j < withEmb.length; j++) {
+      const sim = cosine(withEmb[i].vec, withEmb[j].vec)
+      if (sim >= threshold) union(withEmb[i].idx, withEmb[j].idx)
+    }
+  }
+
+  // クラスタ集約
+  const groups: Map<number, number[]> = new Map()
+  for (let i = 0; i < comments.length; i++) {
+    const r = find(i)
+    if (!groups.has(r)) groups.set(r, [])
+    groups.get(r)!.push(i)
+  }
+
+  const clusters: Cluster[] = []
+  let cidCounter = 0
+  for (const [, idxs] of groups) {
+    const members = idxs.map((i) => comments[i])
+    // 代表は最も中心に近い (他とのコサイン類似度平均が最大) もの。埋め込みなければ最初のメンバ
+    let rep = members[0]
+    if (idxs.length > 1) {
+      let bestAvg = -Infinity
+      for (const i of idxs) {
+        const vi = embeddings.get(comments[i].id)
+        if (!vi) continue
+        let s = 0, n = 0
+        for (const j of idxs) {
+          if (j === i) continue
+          const vj = embeddings.get(comments[j].id)
+          if (!vj) continue
+          s += cosine(vi, vj); n++
+        }
+        const avg = n > 0 ? s / n : -Infinity
+        if (avg > bestAvg) { bestAvg = avg; rep = comments[i] }
+      }
+    }
+    // 主要 type
+    const typeCount: Record<number, number> = {}
+    members.forEach((m) => { typeCount[m.type] = (typeCount[m.type] || 0) + 1 })
+    const dominantType = Number(Object.entries(typeCount).sort((a, b) => b[1] - a[1])[0][0])
+    const positive_count = members.filter((m) => m.is_positive === true).length
+    const negative_count = members.filter((m) => m.is_positive === false).length
+
+    clusters.push({
+      cluster_id: cidCounter++,
+      size: members.length,
+      representative: rep,
+      members,
+      dominant_type: dominantType,
+      positive_count,
+      negative_count,
+    })
+  }
+  // 大きい順
+  clusters.sort((a, b) => b.size - a.size)
+  return clusters
 }
 
 // ========================================
@@ -719,8 +875,8 @@ function buildStageAPrompt(
   storeName: string,
   targetYearMonth: string,
   prevYearMonth: string,
-  currentComments: CommentItem[],
-  prevComments: CommentItem[],
+  clusters: Cluster[],
+  prevComments: any[],
   currentByType: any[],
   prevByType: any[],
   storeSummary: any,
@@ -728,11 +884,11 @@ function buildStageAPrompt(
 ): string {
   return `店舗「${storeName}」の${targetYearMonth}データを俯瞰し、submit_anomalies で異常リストを提出してください。
 
-=== 当月コメント (12type 別、合計${currentComments.length}件) ===
-${formatCommentsByType(currentComments, `今月(${targetYearMonth})`)}
+=== 当月コメントクラスタ (${clusters.length}個) ===
+${formatClusters(clusters)}
 
-=== 前月コメント (12type 別、合計${prevComments.length}件) ===
-${formatCommentsByType(prevComments, `前月(${prevYearMonth})`)}
+=== 前月コメント (テーマ把握用、上位件数) ===
+${formatPrevTopComments(prevComments)}
 
 === 店舗全体QSC(今月) ===
 ${formatStoreSummary(storeSummary)}
@@ -794,26 +950,25 @@ ${keptText}
 // ========================================
 // フォーマッタ
 // ========================================
-function formatCommentsByType(comments: CommentItem[], label: string): string {
-  if (!comments || comments.length === 0) return `${label}: コメントなし`
-  const grouped: Record<number, CommentItem[]> = {}
-  comments.forEach((c) => {
-    if (!grouped[c.type]) grouped[c.type] = []
-    grouped[c.type].push(c)
-  })
-  let text = `${label}:\n`
-  for (const [type, list] of Object.entries(grouped)) {
-    const typeName = TYPE_NAMES[Number(type)] || `type${type}`
-    const pos = list.filter((c) => c.is_positive === true).length
-    const neg = list.filter((c) => c.is_positive === false).length
-    text += `\n  [${typeName}] ${list.length}件 (👍${pos}/👎${neg})\n`
-    for (const c of list.slice(0, 10)) {
-      const s = c.is_positive === true ? '👍' : c.is_positive === false ? '👎' : '➖'
-      text += `    ${s} ${c.selected_qsc || ''}/${c.question_number || ''}: "${c.comment}"\n`
-    }
-    if (list.length > 10) text += `    ...他${list.length - 10}件\n`
-  }
-  return text
+function formatClusters(clusters: Cluster[]): string {
+  if (clusters.length === 0) return '(コメントなし)'
+  return clusters.slice(0, 20).map((c) => {
+    const typeName = TYPE_NAMES[c.dominant_type] || `type${c.dominant_type}`
+    const sentiment = c.positive_count > c.negative_count ? '👍優勢' : c.negative_count > c.positive_count ? '👎優勢' : '➖中立'
+    const sample = c.members.slice(0, 3).map((m) => `    "${m.comment}"`).join('\n')
+    return `[クラスタ#${c.cluster_id}] ${c.size}件 (主に${typeName}, ${sentiment}, ポジ${c.positive_count}/ネガ${c.negative_count})
+  代表: "${c.representative.comment}"
+  例:
+${sample}`
+  }).join('\n\n')
+}
+
+function formatPrevTopComments(comments: any[]): string {
+  if (!comments || comments.length === 0) return '(なし)'
+  return comments.slice(0, 15).map((c) => {
+    const s = c.is_positive === true ? '👍' : c.is_positive === false ? '👎' : '➖'
+    return `  ${s} "${c.comment}"`
+  }).join('\n')
 }
 
 function formatStoreSummary(s: any): string {
@@ -891,12 +1046,14 @@ async function callClaudeStageB(apiKey: string, userPrompt: string): Promise<any
 // ========================================
 interface DbContext {
   supabase: any
+  voyageKey: string
   companyId: string
   storeId: string
   targetYearMonth: string
   monthStart: Date
   monthEnd: Date
   enrichedCurrent: CommentItem[]
+  embeddings: Map<string, number[]>
   currentByType: any[]
 }
 
@@ -966,6 +1123,7 @@ async function callClaudeStageC(
 async function execTool(name: string, args: any, ctx: DbContext): Promise<any> {
   switch (name) {
     case 'query_comments_by_keyword': return execQueryByKeyword(args, ctx)
+    case 'query_similar_comments':    return execQuerySimilar(args, ctx)
     case 'query_segment_qsc':         return execQuerySegmentQsc(args, ctx)
     case 'query_historical_trend':    return execQueryHistoricalTrend(args, ctx)
     default: throw new Error(`Unknown tool: ${name}`)
@@ -986,6 +1144,52 @@ function execQueryByKeyword(args: any, ctx: DbContext) {
       sentiment: c.is_positive === true ? 'positive' : c.is_positive === false ? 'negative' : 'neutral',
       qsc: c.selected_qsc,
       question: c.question_number,
+      comment: c.comment,
+    })),
+  }
+}
+
+async function execQuerySimilar(args: any, ctx: DbContext) {
+  const text = String(args?.text || '')
+  const limit = Math.min(args?.limit ?? 10, 30)
+  if (!text || !ctx.voyageKey) {
+    // フォールバック: テキスト一致でアプローチ
+    return execQueryByKeyword({ keyword: text.slice(0, 10), limit }, ctx)
+  }
+  // 入力テキストを Voyage で埋め込み、当月コメントの埋め込みとコサイン類似度比較
+  let queryVec: number[]
+  try {
+    const r = await fetch('https://api.voyageai.com/v1/embeddings', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${ctx.voyageKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'voyage-3', input: text, input_type: 'query' }),
+    })
+    if (!r.ok) {
+      const errBody = await r.text()
+      throw new Error(`voyage API ${r.status}: ${errBody.slice(0, 200)}`)
+    }
+    const j = await r.json()
+    queryVec = j.data[0].embedding
+  } catch (e: any) {
+    return { error: `embedding failed: ${e.message}`, fallback: 'use query_comments_by_keyword' }
+  }
+
+  const scored: any[] = []
+  for (const c of ctx.enrichedCurrent) {
+    const v = ctx.embeddings.get(c.id)
+    if (!v) continue
+    scored.push({ c, sim: cosine(queryVec, v) })
+  }
+  scored.sort((a, b) => b.sim - a.sim)
+  const top = scored.slice(0, limit)
+  return {
+    query: text,
+    found: top.length,
+    results: top.map(({ c, sim }) => ({
+      similarity: Math.round(sim * 1000) / 1000,
+      type: c.type,
+      sentiment: c.is_positive === true ? 'positive' : c.is_positive === false ? 'negative' : 'neutral',
+      qsc: c.selected_qsc,
       comment: c.comment,
     })),
   }
