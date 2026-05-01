@@ -120,15 +120,24 @@ const SYSTEM_PROMPT_STAGE_A = `${ROLE_PREAMBLE}
 
 【あなたの役割 (Stage A: 異常検知)】
 あなたはパイプラインの最初の段階「異常検知」を担当します。
-今月の店舗データを俯瞰し、「今月を特徴づける異常・乖離」を 5〜10 個ピックアップしてください。
+今月の店舗データを俯瞰し、「今月を特徴づける異常・乖離」を **網羅的に** ピックアップしてください。
 
-【検出観点】
-- コメントクラスタの新規出現 (前月になかったテーマの登場)
-- 特定セグメントで他より大幅にネガが多い QSC 項目 (差 15pt 以上)
-- 前月から大きく変化した指標 (5pt 以上)
-- 全体平均から大きく乖離している指標
-- 過去3ヶ月のインサイト履歴と比べて慢性化している/解消した項目
-- **店舗横断のネガトピック (cross_type_negative_themes に出ているもの)** — 3 type 以上で同じトピックが指摘されている課題。area='qsc_item_relative' 扱い。
+【件数の目安 (recall 重視)】
+回答数規模に応じて目安を変える:
+- 大規模店舗 (total_responses >= 100): **10〜15 個** 挙げる
+- 中規模店舗 (30〜100): **6〜10 個**
+- 小規模店舗 (< 30): **3〜6 個**
+店長に「今月この店舗で何が起きたか」を網羅的に把握させるため、漏らさず拾うことを優先する。
+ノイズになりうるものは Stage B が後段で精査するので、Stage A は **網羅性重視 (precision より recall)** で良い。
+
+【検出観点 (それぞれ別 anomaly として挙げる)】
+- 店舗横断のネガトピック (cross_type_negative_themes 各エントリ): **1トピック=1 anomaly**。トピック数 = anomaly 候補数。area='qsc_item_relative'。
+- セグメント別 QSC 乖離 (差 15pt 以上、母数 10 以上): **type×項目ごとに別 anomaly**。area='qsc_item' or 'segment_metric'。
+- 月次変化 (5pt 以上の指標変化): area='overall_metric' or 'month_vs_month'。
+- コメントクラスタの新規出現 (前月になかったテーマ): area='comment_theme'。
+- 過去3ヶ月のインサイト履歴と比べて慢性化している項目: area='chronic_issue'。
+- type 別コメントの主要ネガトピック (top_negative_topics 上位 1〜2 個 / type): 該当 type の actionable コメ ≥ 5 件なら area='comment_theme' で挙げる。
+- ポジ側 (強み定着) も挙げて良いが、ネガ系 (課題) を 7 割以上にする。
 
 【サンプル数の絶対ルール (絶対遵守)】
 - 「対象セグメントの該当 QSC 項目の total_count」が **10件未満** の項目は異常候補に挙げない。
@@ -143,6 +152,7 @@ const SYSTEM_PROMPT_STAGE_A = `${ROLE_PREAMBLE}
 - 比較軸 (axis) を必ず1つ選ぶ: month_vs_month / segment_vs_overall / segment_vs_segment / qsc_item_relative
 - magnitude は 1-10 で、その異常がどれだけ「今月を特徴づけているか」を表す
 - 店舗横断ネガトピックを優先候補化 (店長への有用性が最も高い)
+- 重要: cross_type_negative_themes に出ているトピックは **必ず全て** 挙げる。除外しない。
 - submit_anomalies ツールで提出。形式厳守。`
 
 const ANOMALIES_TOOL = {
@@ -153,7 +163,7 @@ const ANOMALIES_TOOL = {
     properties: {
       anomalies: {
         type: 'array',
-        maxItems: 10,
+        maxItems: 15,
         items: {
           type: 'object',
           properties: {
@@ -187,23 +197,31 @@ const SYSTEM_PROMPT_STAGE_B = `${ROLE_PREAMBLE}
 【あなたの役割 (Stage B: 仮説生成)】
 あなたはパイプラインの 2 段階目「仮説生成」を担当します。
 Stage A の異常リストを受け取り、各異常について「なぜ起きているか」の仮説を立て、
-本当に意味のあるインサイト候補だけを残してください。
+意味のあるインサイト候補を残してください。
 
 【手順】
 1. 各異常について、考えうる原因仮説を立てる
 2. その仮説を支持する/反証する材料を、提供データから探す
-3. 仮説に説得力があり、かつ店長が行動できそうなものだけ keep=true にする
-4. 弱い仮説 (回答数が少ない / 比較が説得力に欠ける / 行動につながらない) は keep=false
+3. データ裏付けがある or 行動可能なものは keep=true にする
+4. 明らかにノイズ (回答数 < 5、根拠なし) のみ keep=false
 5. 慢性化している項目は「過去3ヶ月のインサイト履歴」を踏まえて評価
    - 同じ課題が3ヶ月続いている → 強く扱う、進捗観点で語る
    - 過去にあったが今月解消 → ポジティブ寄りに扱う
 6. submit_hypotheses ツールで提出
 
-【keep の判定】
-- データの裏付けが明確 (回答数 ≥ 5 件、または明確な数値乖離)
-- 比較軸での意味が明確
+【keep の判定 (recall 重視)】
+以下のいずれか **1 つでも** 満たせば keep=true:
+- データの裏付けがある (回答数 ≥ 5 件、または 10pt 以上の数値乖離)
+- 店舗横断ネガトピック (cross_type_theme) に該当
+- 過去履歴で慢性化している
 - 改善アクションを店長が想像できる
-これら全て満たすものだけ true。`
+逆に keep=false にするのは「明らかにノイズ」だけ:
+- 回答数が極端に少ない (< 5)
+- 比較材料が全く無い
+- 行動につながらず、強み定着でもない
+
+注意: Stage C で最終的に最大 4 件に絞られるので、ここで過剰に削らず、
+**Stage A の異常の 7 割以上を keep=true にする** ことを目安に。`
 
 const HYPOTHESES_TOOL = {
   name: 'submit_hypotheses',
@@ -367,8 +385,16 @@ Cleanliness: c1=店舗外観・入口, c2=テーブル, c3=椅子・ソファ, c
 【12type 一覧】
 ${Object.entries(TYPE_NAMES).map(([k, v]) => `type ${k}: ${v}`).join('\n')}
 
+【件数の目安 (recall 重視)】
+- Stage B の keep=true 候補が 4 件以上ある場合: **必ず 4 件出す**。
+  「絞り込んで 1〜2 件」は推奨しない。店長は複数の課題を一覧で把握したい。
+- 候補が 2〜3 件しかない場合: それらを全て出す。
+- 候補が 0 件の場合のみ空配列。
+- 4 件中、異なる result_type を含めて多様性を確保 (同 type に偏らない)。
+- 4 件中、店舗横断ネガトピック (cross_type) は 1〜2 件含めることを優先。
+
 【出力】
-最大4件、信頼度0.7以上のみ。該当なしなら空配列。submit_insights を必ず呼ぶ。`
+最大4件、信頼度0.7以上のみ。submit_insights を必ず呼ぶ。`
 
 // ========================================
 // Stage C 用ツール定義
@@ -916,15 +942,34 @@ async function processStoreInsights(
         return false
       }
       // comment 型の evidence_count: 同 type のネガコメ実数 (detail がネガなら)
+      // 店舗横断テーマ (例: 床ベタつき) は単一 type に集中しないので、
+      // 同 type ネガ < 3 でも、引用テーマと同じトピックを持つコメが店舗全体で 3 件以上あれば許容する。
       if (detailHasNeg && !detailHasPos && ins.result_type) {
         const sameTypeNegCount = enrichedCurrent.filter((cc: any) =>
           cc.type === ins.result_type && cc.text_sentiment === 'negative'
         ).length
+
+        let evidenceForCount = sameTypeNegCount
         if (sameTypeNegCount < MIN_COMMENT_EVIDENCE) {
-          console.log(`[${storeName}] drop comment-type with insufficient same-type negatives (${sameTypeNegCount} < ${MIN_COMMENT_EVIDENCE}): ${ins.issue_title}`)
-          return false
+          // 引用元コメのトピックを取得 → 同トピックの店舗全体ネガコメ数で代替判定
+          const matchedTopics: string[] = Array.isArray(matched.text_topics) ? matched.text_topics : []
+          let crossTypeTopicNeg = 0
+          if (matchedTopics.length > 0) {
+            crossTypeTopicNeg = enrichedCurrent.filter((cc: any) =>
+              cc.text_sentiment === 'negative' &&
+              Array.isArray(cc.text_topics) &&
+              cc.text_topics.some((t: string) => matchedTopics.includes(t))
+            ).length
+          }
+          if (crossTypeTopicNeg >= MIN_COMMENT_EVIDENCE) {
+            evidenceForCount = crossTypeTopicNeg
+            console.log(`[${storeName}] comment cross-type theme allowed: same_type_neg=${sameTypeNegCount} but topic_neg=${crossTypeTopicNeg}: ${ins.issue_title}`)
+          } else {
+            console.log(`[${storeName}] drop comment-type with insufficient evidence (same_type_neg=${sameTypeNegCount}, topic_neg=${crossTypeTopicNeg}): ${ins.issue_title}`)
+            return false
+          }
         }
-        ins.evidence_count = sameTypeNegCount
+        ins.evidence_count = evidenceForCount
       }
     }
 
