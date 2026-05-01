@@ -99,58 +99,6 @@ serve(async (req) => {
       }
     }
 
-    // ========================================
-    // auto_publish_reports=true の企業のレポートを自動公開
-    // ========================================
-    try {
-      const { data: autoPublishCompanies } = await supabaseAdmin
-        .from('companies')
-        .select('id')
-        .eq('auto_publish_reports', true)
-
-      if (autoPublishCompanies && autoPublishCompanies.length > 0) {
-        for (const company of autoPublishCompanies) {
-          // この企業の処理済み店舗・月を取得
-          const { data: summaries } = await supabaseAdmin
-            .from('monthly_analytics_summary')
-            .select('store_id, year_month')
-            .eq('company_id', company.id)
-            .in('year_month', [yearMonth, prevYearMonth])
-
-          if (!summaries || summaries.length === 0) continue
-
-          for (const summary of summaries) {
-            // 既にpublished_reportsにレコードがあるかチェック
-            const { data: existing } = await supabaseAdmin
-              .from('published_reports')
-              .select('id')
-              .eq('company_id', company.id)
-              .eq('store_id', summary.store_id)
-              .eq('year_month', summary.year_month)
-              .maybeSingle()
-
-            if (existing) continue
-
-            // 新規レコードを挿入（is_published: true）
-            await supabaseAdmin
-              .from('published_reports')
-              .insert({
-                company_id: company.id,
-                store_id: summary.store_id,
-                year_month: summary.year_month,
-                is_published: true,
-                published_at: new Date().toISOString(),
-              })
-
-            console.log(`Auto-published report: company=${company.id}, store=${summary.store_id}, month=${summary.year_month}`)
-          }
-        }
-      }
-    } catch (autoPublishError) {
-      console.error('Auto-publish error:', autoPublishError)
-      // 自動公開のエラーはメイン処理の失敗にしない
-    }
-
     return new Response(
       JSON.stringify({
         success: true,
