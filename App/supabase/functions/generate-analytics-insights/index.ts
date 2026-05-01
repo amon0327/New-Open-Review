@@ -65,6 +65,9 @@ const MIN_CONFIDENCE = 0.7
 const MIN_QSC_SAMPLE = 10
 // comment 型: 引用元と同 type/同テーマのネガコメ実数の下限
 const MIN_COMMENT_EVIDENCE = 3
+// evaluation 型ゲージ表示: current vs previous のポジ率差の最小値。
+// これ未満ならゲージで「差がある」と読み手に誤認させるので破棄。
+const MIN_EVAL_POS_DELTA = 10
 // 旧名称で残しているフィルタ (互換のため、QSC 母数に転用される)
 const MIN_EVIDENCE_COUNT = 2
 const CLUSTER_SIMILARITY_THRESHOLD = 0.78
@@ -304,6 +307,15 @@ Stage B が選別した仮説候補を受け取り、必要なら追加データ
 - パターンA(segment_vs_overall): 特定セグメント vs それを除外した全体平均
   - previous_positive/previous_negative は概算で良い (サーバ側で再計算)
 - パターンB(month_vs_month): 今月 vs 先月の同一項目
+
+【evaluation 型の差分ルール (絶対遵守)】
+- ゲージで表示する current_positive と previous_positive のポジ率差は **10pt 以上** ないと出さない。
+  ゲージは「2 つのバーを並べて差を見せる」UI なので、差が小さいと読み手が「大した差はないのに何が課題?」と混乱する。
+- 「対象 type の QSC 項目 X のポジ率が、その type 内で他の QSC 項目 (例: 料理の味) より低い」という
+  qsc_item_relative の発想で課題を語りたい場合、evaluation 型で出すと segment_vs_overall に強制描画されて
+  detail と表示が乖離する。このようなケースは **comment 型** で具体コメを引用する形に切り替えること。
+- 「店舗全体で QSC 項目 X が低水準」(全 type 共通で低い) のような店舗構造的課題も、
+  segment_vs_overall では差が出ないので evaluation 型に向かない。comment 型 (横断コメ引用) で出す。
 
 【evaluation 型の result_type 制約 (絶対遵守)】
 result_type が次の 4 type のいずれかの場合、evaluation 型 (ゲージ表示) のインサイトを作成してはいけない:
@@ -853,6 +865,19 @@ async function processStoreInsights(
       } else if ((ins.evidence_count ?? 0) < MIN_EVIDENCE_COUNT) {
         console.log(`[${storeName}] drop low-evidence (evaluation, no qsc_key): ${ins.issue_title}`)
         return false
+      }
+
+      // ゲージで描画されるポジ率の差が小さすぎる場合は破棄
+      // (AI が detail で qsc_item_relative の発想を語ったのに、ゲージ表示は
+      //  segment_vs_overall になり、両者が乖離する問題を防ぐ)
+      const curPos = Number(ins.current_positive)
+      const prevPos = Number(ins.previous_positive)
+      if (Number.isFinite(curPos) && Number.isFinite(prevPos)) {
+        const delta = Math.abs(curPos - prevPos)
+        if (delta < MIN_EVAL_POS_DELTA) {
+          console.log(`[${storeName}] drop evaluation with insufficient gauge delta (|${curPos}-${prevPos}|=${delta} < ${MIN_EVAL_POS_DELTA}): ${ins.issue_title}`)
+          return false
+        }
       }
     }
 
