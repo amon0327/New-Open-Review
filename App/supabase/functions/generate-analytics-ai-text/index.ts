@@ -234,7 +234,7 @@ async function generateSummary(apiKey: string, userPrompt: string): Promise<any>
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-opus-4-7',
       max_tokens: 1500,
       system: [
         {
