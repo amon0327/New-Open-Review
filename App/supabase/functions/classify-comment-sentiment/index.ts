@@ -175,13 +175,21 @@ serve(async (req) => {
     const errorSamples: any[] = []
 
     try {
-      for (let batchIdx = 0; batchIdx < maxBatches; batchIdx += concurrency) {
-        // 並列でバッチを引いて処理
-        const batchPromises: Promise<{ classified: number; failed: number; candidates: number; errors?: any[] }>[] = []
-        for (let p = 0; p < concurrency && batchIdx + p < maxBatches; p++) {
-          batchPromises.push((async () => {
-            const targets = await fetchTargets(supabase, mode, targetYearMonth, storeIds, batchSize)
-            if (!targets || targets.length === 0) return { classified: 0, failed: 0, candidates: 0 }
+      // 並列処理時の同一行重複取得バグを避けるため、
+      // 全候補を1回のクエリで取得 → メモリ上で chunk に分割 → 並列実行。
+      const totalNeeded = batchSize * maxBatches
+      const allTargets = await fetchTargets(supabase, mode, targetYearMonth, storeIds, totalNeeded)
+      if (!allTargets || allTargets.length === 0) {
+        console.log('No candidates to classify.')
+      } else {
+        console.log(`Fetched ${allTargets.length} candidates total. Splitting into batches of ${batchSize} (concurrency=${concurrency}).`)
+        const chunks: any[][] = []
+        for (let i = 0; i < allTargets.length; i += batchSize) {
+          chunks.push(allTargets.slice(i, i + batchSize))
+        }
+        for (let i = 0; i < chunks.length; i += concurrency) {
+          const slice = chunks.slice(i, i + concurrency)
+          const sliceResults = await Promise.all(slice.map(async (targets) => {
             try {
               const results = await classifyBatch(ANTHROPIC_API_KEY, targets)
               const { classified, failed, errors } = await applyResults(supabase, targets, results)
@@ -190,21 +198,13 @@ serve(async (req) => {
               console.error('Batch failed:', e.message)
               return { classified: 0, failed: targets.length, candidates: targets.length, errors: [{ batch_error: e.message }] }
             }
-          })())
-        }
-        const batchResults = await Promise.all(batchPromises)
-        let batchTotal = 0
-        for (const r of batchResults) {
-          totalCandidates += r.candidates
-          totalClassified += r.classified
-          totalFailed += r.failed
-          batchTotal += r.candidates
-          if (r.errors) errorSamples.push(...r.errors.slice(0, 3))
-        }
-        // 全バッチが空だったらこれ以上ない
-        if (batchTotal === 0) {
-          console.log(`No more candidates. Stopping after batch ${batchIdx}.`)
-          break
+          }))
+          for (const r of sliceResults) {
+            totalCandidates += r.candidates
+            totalClassified += r.classified
+            totalFailed += r.failed
+            if (r.errors) errorSamples.push(...r.errors.slice(0, 3))
+          }
         }
       }
 
