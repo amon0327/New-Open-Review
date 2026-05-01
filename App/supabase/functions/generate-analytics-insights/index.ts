@@ -60,7 +60,13 @@ const TYPE_NAMES: Record<number, string> = {
 }
 
 const MIN_CONFIDENCE = 0.7
-const MIN_EVIDENCE_COUNT = 2  // 案 A+B の証拠主義適用後は 2 件で十分根拠あり (mismatch フィルタが品質担保)
+// evaluation 型: 対象 QSC 項目の母数 (total_count) に下限。
+// 旧 MIN_EVIDENCE_COUNT=2 は AI 自己申告の type total_responses で抜け穴になっていた。
+const MIN_QSC_SAMPLE = 10
+// comment 型: 引用元と同 type/同テーマのネガコメ実数の下限
+const MIN_COMMENT_EVIDENCE = 3
+// 旧名称で残しているフィルタ (互換のため、QSC 母数に転用される)
+const MIN_EVIDENCE_COUNT = 2
 const CLUSTER_SIMILARITY_THRESHOLD = 0.78
 const MAX_TOOL_TURNS = 8
 
@@ -119,12 +125,21 @@ const SYSTEM_PROMPT_STAGE_A = `${ROLE_PREAMBLE}
 - 前月から大きく変化した指標 (5pt 以上)
 - 全体平均から大きく乖離している指標
 - 過去3ヶ月のインサイト履歴と比べて慢性化している/解消した項目
+- **店舗横断のネガトピック (cross_type_negative_themes に出ているもの)** — 3 type 以上で同じトピックが指摘されている課題。area='qsc_item_relative' 扱い。
+
+【サンプル数の絶対ルール (絶対遵守)】
+- 「対象セグメントの該当 QSC 項目の total_count」が **10件未満** の項目は異常候補に挙げない。
+  プロンプトのデータには [SAMPLE_TOO_SMALL] とマークされた項目が含まれることがあり、これらは無視する。
+- 「対象セグメントのコメ件数 (actionable のみ)」が **5件未満** の type 単位コメントテーマは挙げない。
+- store 全体の指標は 20件以上、type 別の指標は 10件以上を最低ラインとする。
+- ※ ここで言うサンプル数は「セグメント全体の total_responses」ではなく「比較対象になっている QSC 項目 / トピックそのものの母数」。
 
 【ルール】
 - 「明確な乖離・変化」のみを挙げる。曖昧なものは挙げない
 - ポジティブ・ネガティブ両方を含めてよい
 - 比較軸 (axis) を必ず1つ選ぶ: month_vs_month / segment_vs_overall / segment_vs_segment / qsc_item_relative
 - magnitude は 1-10 で、その異常がどれだけ「今月を特徴づけているか」を表す
+- 店舗横断ネガトピックを優先候補化 (店長への有用性が最も高い)
 - submit_anomalies ツールで提出。形式厳守。`
 
 const ANOMALIES_TOOL = {
@@ -225,15 +240,18 @@ Stage B が選別した仮説候補を受け取り、必要なら追加データ
 最終インサイトを最大4件、submit_insights ツールで提出してください。
 
 【利用可能なツール】
-- query_comments_by_keyword(keyword, limit?): 当月コメントのキーワード検索
-- query_similar_comments(text, limit?): 当月コメントから意味的に類似したものを取得 (埋め込み類似度)
-- query_segment_qsc(type): 特定セグメントの当月QSC全項目を取得
-- query_historical_trend(metric, months?): 指定指標の直近Nヶ月推移を取得
+- query_topic_comments(topic, type?): **特定トピックを含むコメをそのまま取得** (text_topics 一致、推奨)
+- query_comments_by_keyword(keyword, type?, sentiment?, limit?): キーワード検索 (type/sentiment 絞込可)
+- query_similar_comments(text, limit?): 意味的に類似したコメ (埋め込み)
+- query_segment_qsc(type): 特定セグメントの当月QSC全項目
+- query_historical_trend(metric, months?): 指定指標の直近Nヶ月推移
 - submit_insights(insights): 最終インサイトの提出 (これを呼ぶと完了)
 
-【ツール使用方針】
-- Stage B で支持材料が不十分な仮説は、関連コメントを keyword/similar で引いて検証する
-- 数値が前月比で動いた場合は、historical_trend でトレンドが本物か確認
+【ツール使用方針 (絶対遵守)】
+- 特定 type のセグメントについて課題を語るときの根拠コメは **必ず query_topic_comments(topic, type=X) または query_comments_by_keyword(keyword, type=X) で同 type のものを取得** する。
+  全 type 横断で取った comment を特定 type のインサイトに紐付けると、サーバ側検証で破棄される。
+- ネガ課題の根拠は sentiment='negative' のコメに限る (query_comments_by_keyword の sentiment 引数で絞れる)。
+- 数値が前月比で動いた場合は historical_trend でトレンドが本物か確認
 - 不要に深掘りせず、必要最小限の確認で済ませる (3-5 ツール呼び出しまでが目安)
 
 【インサイトの絶対ルール】
@@ -241,6 +259,19 @@ Stage B が選別した仮説候補を受け取り、必要なら追加データ
 - confidence (0-1) と evidence_count を必ず付与。confidence < 0.7 のものは出さない
 - 「頑張りましょう」「意識を高めましょう」のような精神論は禁止
 - 慢性化している課題は issue_title/issue_detail に「3ヶ月続いている」「2月から悪化」などの時系列文脈を含める
+
+【母数 (evidence_count) の定義 (絶対遵守)】
+- evaluation 型: 「対象 type の対象 QSC 項目の total_count」(セグメント全体の total_responses ではない)。
+  この値が 10 未満なら出さない (サーバ側でも破棄)。
+- comment 型: 「同じトピック / 同じ type で sentiment='negative' (or課題の方向と一致) なコメの実数」。
+  3 件未満なら出さない (サーバ側でも破棄)。
+
+【コメ引用の検証 (絶対遵守)】
+- evaluation 型でも issue_detail 内に「『〜〜』」で囲んだコメ引用を入れる場合、
+  そのコメは: (a) 当月実在 (b) 同 type から発生 (c) sentiment が detail の方向と一致、を全て満たす必要がある。
+  違反したインサイトは破棄される。
+- comment 型の comment フィールドは text_sentiment ('positive'/'negative') が detail の方向と一致すること。
+  is_positive (アンケート分岐) ではなく text_sentiment (本文の意味的センチメント) を見ること。
 
 【point_1/point_2/point_3 の書式 (絶対遵守)】
 店長への押し付けではなく「現状確認 → 条件分岐 → 提案」の柔らかい構造にすること。
@@ -357,7 +388,7 @@ const INSIGHTS_TOOL = {
             },
             result_type: { type: 'integer', minimum: 1, maximum: 12, description: '対象 12type 番号 (1-12)。issue_type=evaluation で result_type が 1/2/5/6 (再来店意向あり×推奨者or中立者) は禁止。これらの再訪意向のある層をゲージで課題化しない。コメント型なら可。' },
             confidence: { type: 'number', minimum: 0, maximum: 1 },
-            evidence_count: { type: 'integer', minimum: 0, description: '根拠となる回答件数。comment 型ならそのテーマに言及したコメント数、evaluation 型なら対象セグメントの total_responses 件数を入れる。「自分が証拠として参照した最低限の数」ではなく「データ全体としてその傾向を裏付ける母数」を入れること。' },
+            evidence_count: { type: 'integer', minimum: 0, description: 'evaluation 型: 対象 type の対象 QSC 項目の total_count (NOT セグメント全体の total_responses)。comment 型: 同 type で text_sentiment が detail と一致するコメ数。サーバ側で本物の値に上書きされる。' },
             comparison_axis: {
               type: 'string',
               enum: ['month_vs_month', 'segment_vs_overall', 'segment_vs_segment', 'qsc_item_relative'],
@@ -387,12 +418,28 @@ const INSIGHTS_TOOL = {
 
 const QUERY_TOOLS = [
   {
-    name: 'query_comments_by_keyword',
-    description: '当月のコメントから指定キーワードを含むものを検索する',
+    name: 'query_topic_comments',
+    description: '当月のコメントから text_topics に指定トピックを含むものを検索 (type で絞込可)。インサイト根拠の取得に推奨。',
     input_schema: {
       type: 'object',
       properties: {
-        keyword: { type: 'string', description: '検索キーワード(部分一致)' },
+        topic: { type: 'string', description: 'トピック名 (例: "床", "ベタつき")。text_topics 配列で完全一致' },
+        type: { type: 'integer', minimum: 1, maximum: 12, description: '12type 番号で絞込 (省略可)' },
+        sentiment: { type: 'string', enum: ['positive', 'negative', 'neutral', 'mixed'], description: 'text_sentiment で絞込 (省略可)' },
+        limit: { type: 'integer', minimum: 1, maximum: 30, default: 15 },
+      },
+      required: ['topic'],
+    },
+  },
+  {
+    name: 'query_comments_by_keyword',
+    description: '当月のコメントからキーワード部分一致で検索 (type/sentiment で絞込可)',
+    input_schema: {
+      type: 'object',
+      properties: {
+        keyword: { type: 'string', description: '検索キーワード (部分一致)' },
+        type: { type: 'integer', minimum: 1, maximum: 12, description: '12type 番号で絞込 (省略可)' },
+        sentiment: { type: 'string', enum: ['positive', 'negative', 'neutral', 'mixed'], description: 'text_sentiment で絞込 (省略可)' },
         limit: { type: 'integer', minimum: 1, maximum: 30, default: 15 },
       },
       required: ['keyword'],
@@ -612,9 +659,11 @@ async function processStoreInsights(
   // ----------------------------------------
   // 1. データ取得
   // ----------------------------------------
+  const COMMENT_COLUMNS = 'id, comment, selected_qsc, question_number, is_positive, text_sentiment, text_sentiment_score, text_topics, text_is_actionable, preset_question_answer!inner(p1_q1, p1_q2, p1_q3, store_id, company_id, created_at)'
+
   const { data: currentComments } = await supabase
     .from('preset_question_answer_comment')
-    .select('id, comment, selected_qsc, question_number, is_positive, preset_question_answer!inner(p1_q1, p1_q2, p1_q3, store_id, company_id, created_at)')
+    .select(COMMENT_COLUMNS)
     .eq('preset_question_answer.company_id', companyId)
     .eq('preset_question_answer.store_id', storeId)
     .gte('preset_question_answer.created_at', monthStart.toISOString())
@@ -622,7 +671,7 @@ async function processStoreInsights(
 
   const { data: prevComments } = await supabase
     .from('preset_question_answer_comment')
-    .select('id, comment, selected_qsc, question_number, is_positive, preset_question_answer!inner(p1_q1, p1_q2, p1_q3, store_id, company_id, created_at)')
+    .select(COMMENT_COLUMNS)
     .eq('preset_question_answer.company_id', companyId)
     .eq('preset_question_answer.store_id', storeId)
     .gte('preset_question_answer.created_at', prevMonthStart.toISOString())
@@ -644,6 +693,17 @@ async function processStoreInsights(
     .eq('company_id', companyId).eq('store_id', storeId).eq('year_month', targetYearMonth)
     .maybeSingle()
 
+  // ----- コメ本文センチメント集計 (新) -----
+  const { data: sentimentByType } = await supabase
+    .from('monthly_comment_sentiment_by_type')
+    .select('*')
+    .eq('company_id', companyId).eq('store_id', storeId).eq('year_month', targetYearMonth)
+  const { data: sentimentSummary } = await supabase
+    .from('monthly_comment_sentiment_summary')
+    .select('*')
+    .eq('company_id', companyId).eq('store_id', storeId).eq('year_month', targetYearMonth)
+    .maybeSingle()
+
   const allComments = currentComments || []
   if (allComments.length === 0 && (!currentByType || currentByType.length === 0)) {
     console.log(`Skipping store ${storeId}: no comments or type data`)
@@ -661,6 +721,10 @@ async function processStoreInsights(
       selected_qsc: c.selected_qsc,
       question_number: c.question_number,
       is_positive: c.is_positive,
+      text_sentiment: c.text_sentiment,
+      text_sentiment_score: c.text_sentiment_score,
+      text_topics: Array.isArray(c.text_topics) ? c.text_topics : [],
+      text_is_actionable: c.text_is_actionable,
       type: classifyType(ans),
     }
   }
@@ -697,7 +761,8 @@ async function processStoreInsights(
     storeName, targetYearMonth, prevYearMonth,
     clusters, enrichedPrev,
     currentByType || [], prevByType || [],
-    storeSummary, pastInsights
+    storeSummary, pastInsights,
+    sentimentByType || [], sentimentSummary
   )
   console.log(`[${storeName}] Stage A: detecting anomalies...`)
   const stageAOut = await callClaudeStageA(anthropicKey, stageAUserPrompt)
@@ -747,6 +812,8 @@ async function processStoreInsights(
     enrichedCurrent,
     embeddings,
     currentByType: currentByType || [],
+    sentimentByType: sentimentByType || [],
+    sentimentSummary: sentimentSummary || null,
   }
 
   const stageCUserPrompt = buildStageCPrompt(
@@ -764,42 +831,89 @@ async function processStoreInsights(
       console.log(`[${storeName}] drop low-confidence: ${ins.issue_title}`)
       return false
     }
-    if ((ins.evidence_count ?? 0) < MIN_EVIDENCE_COUNT) {
-      console.log(`[${storeName}] drop low-evidence: ${ins.issue_title}`)
-      return false
-    }
     // evaluation 型は再来店意向あり×推奨者or中立者 (type 1/2/5/6) では出さない
     if (ins.issue_type === 'evaluation' && EVALUATION_FORBIDDEN_TYPES.has(ins.result_type)) {
       console.log(`[${storeName}] drop evaluation for high-satisfaction segment (type=${ins.result_type}): ${ins.issue_title}`)
       return false
     }
-    // 案 A: comment 型で comment フィールド空 → 証拠なしのため破棄
+
+    // ----- evaluation 型: 対象 QSC 項目の母数チェック (本物の数字を取得して判定) -----
+    if (ins.issue_type === 'evaluation') {
+      const qscKey: string | undefined = ins.qsc_key
+      const resultType: number | undefined = ins.result_type
+      if (qscKey && resultType) {
+        const td = (currentByType || []).find((t: any) => t.type === resultType)
+        const total = td?.[`${qscKey}_total_count`] ?? 0
+        if (total < MIN_QSC_SAMPLE) {
+          console.log(`[${storeName}] drop evaluation: type=${resultType} ${qscKey} total=${total} < ${MIN_QSC_SAMPLE}: ${ins.issue_title}`)
+          return false
+        }
+        // evidence_count をサーバ側で本物の値に上書き (AI 自己申告を信用しない)
+        ins.evidence_count = total
+      } else if ((ins.evidence_count ?? 0) < MIN_EVIDENCE_COUNT) {
+        console.log(`[${storeName}] drop low-evidence (evaluation, no qsc_key): ${ins.issue_title}`)
+        return false
+      }
+    }
+
+    // ----- comment 型: 引用検証 (text_sentiment ベース) -----
     if (ins.issue_type === 'comment') {
       const c = (ins.comment || '').trim()
       if (c.length < 5) {
         console.log(`[${storeName}] drop comment-type without quote: ${ins.issue_title}`)
         return false
       }
-      // 案 A 続: 引用コメントの sentiment と issue_detail の方向が矛盾していないか
       const matched = findQuotedComment(c, enrichedCurrent)
       if (!matched) {
         console.log(`[${storeName}] drop comment-type with non-existent quote: ${ins.issue_title} | quote="${c.slice(0,80)}"`)
         return false
       }
+      // 引用元の type が result_type と一致するかチェック
+      if (ins.result_type && matched.type !== ins.result_type) {
+        console.log(`[${storeName}] drop comment-type with type mismatch: insight=${ins.result_type} actual_quote_type=${matched.type}: ${ins.issue_title}`)
+        return false
+      }
+      // sentiment 整合 (本文の意味的センチメント vs detail 方向)
       const detail = ins.issue_detail || ''
       const detailHasNeg = NEGATIVE_DETAIL_PATTERN.test(detail)
       const detailHasPos = POSITIVE_DETAIL_PATTERN.test(detail)
-      // ポジコメ + 批判 detail = 矛盾
-      if (matched.is_positive === true && detailHasNeg && !detailHasPos) {
-        console.log(`[${storeName}] drop comment-detail mismatch (positive comment quoted in negative detail): ${ins.issue_title}`)
+      if (matched.text_sentiment === 'positive' && detailHasNeg && !detailHasPos) {
+        console.log(`[${storeName}] drop comment-detail mismatch (positive text_sentiment quoted in negative detail): ${ins.issue_title}`)
         return false
       }
-      // ネガコメ + 称賛 detail = 矛盾
-      if (matched.is_positive === false && detailHasPos && !detailHasNeg) {
-        console.log(`[${storeName}] drop comment-detail mismatch (negative comment quoted in positive detail): ${ins.issue_title}`)
+      if (matched.text_sentiment === 'negative' && detailHasPos && !detailHasNeg) {
+        console.log(`[${storeName}] drop comment-detail mismatch (negative text_sentiment quoted in positive detail): ${ins.issue_title}`)
         return false
+      }
+      // comment 型の evidence_count: 同 type のネガコメ実数 (detail がネガなら)
+      if (detailHasNeg && !detailHasPos && ins.result_type) {
+        const sameTypeNegCount = enrichedCurrent.filter((cc: any) =>
+          cc.type === ins.result_type && cc.text_sentiment === 'negative'
+        ).length
+        if (sameTypeNegCount < MIN_COMMENT_EVIDENCE) {
+          console.log(`[${storeName}] drop comment-type with insufficient same-type negatives (${sameTypeNegCount} < ${MIN_COMMENT_EVIDENCE}): ${ins.issue_title}`)
+          return false
+        }
+        ins.evidence_count = sameTypeNegCount
       }
     }
+
+    // ----- evaluation 型: issue_detail 内の引用も検証 -----
+    if (ins.issue_type === 'evaluation') {
+      const quotes = extractQuotesFromDetail(ins.issue_detail || '')
+      for (const q of quotes) {
+        const matched = findQuotedComment(q, enrichedCurrent)
+        if (!matched) {
+          console.log(`[${storeName}] drop evaluation with hallucinated quote in detail: "${q.slice(0,40)}": ${ins.issue_title}`)
+          return false
+        }
+        if (ins.result_type && matched.type !== ins.result_type) {
+          console.log(`[${storeName}] drop evaluation with quote from wrong type (insight=${ins.result_type} quote_type=${matched.type}): ${ins.issue_title}`)
+          return false
+        }
+      }
+    }
+
     return true
   }).slice(0, 4)
 
@@ -930,6 +1044,10 @@ interface CommentItem {
   selected_qsc: any
   question_number: any
   is_positive: any
+  text_sentiment?: string | null
+  text_sentiment_score?: number | null
+  text_topics?: string[]
+  text_is_actionable?: boolean | null
   type: number
 }
 
@@ -1002,8 +1120,9 @@ function clusterComments(
     const typeCount: Record<number, number> = {}
     members.forEach((m) => { typeCount[m.type] = (typeCount[m.type] || 0) + 1 })
     const dominantType = Number(Object.entries(typeCount).sort((a, b) => b[1] - a[1])[0][0])
-    const positive_count = members.filter((m) => m.is_positive === true).length
-    const negative_count = members.filter((m) => m.is_positive === false).length
+    // 本文センチメント (text_sentiment) ベース。is_positive (アンケート分岐) は使わない。
+    const positive_count = members.filter((m) => m.text_sentiment === 'positive').length
+    const negative_count = members.filter((m) => m.text_sentiment === 'negative').length
 
     clusters.push({
       cluster_id: cidCounter++,
@@ -1064,7 +1183,9 @@ function buildStageAPrompt(
   currentByType: any[],
   prevByType: any[],
   storeSummary: any,
-  pastInsights: any[]
+  pastInsights: any[],
+  sentimentByType: any[],
+  sentimentSummary: any
 ): string {
   return `店舗「${storeName}」の${targetYearMonth}データを俯瞰し、submit_anomalies で異常リストを提出してください。
 
@@ -1075,17 +1196,65 @@ ${formatClusters(clusters)}
 ${formatPrevTopComments(prevComments)}
 
 === 店舗全体QSC(今月) ===
+※ [SAMPLE_TOO_SMALL] とマークされた項目は母数 10 未満。異常候補に挙げない。
 ${formatStoreSummary(storeSummary)}
 
 === セグメント別QSC(今月) ===
+※ [SAMPLE_TOO_SMALL] とマークされた項目は母数 10 未満。異常候補に挙げない。
 ${formatQscByType(currentByType)}
 
-=== セグメント別QSC(前月) ===
+=== セグメント別QSC(前月、参照用) ===
 ${formatQscByType(prevByType)}
+
+=== コメ本文センチメント集計 (今月、type別、actionable のみ) ===
+${formatSentimentByType(sentimentByType)}
+
+=== 店舗横断のネガ/ポジテーマ (今月、AI 分類) ===
+${formatSentimentSummary(sentimentSummary)}
 
 === 過去3ヶ月のインサイト履歴 ===
 ${formatPastInsights(pastInsights)}
 `
+}
+
+function formatSentimentByType(rows: any[]): string {
+  if (!rows || rows.length === 0) return '(なし)'
+  const sorted = [...rows].sort((a, b) => (b.actionable_count || 0) - (a.actionable_count || 0))
+  return sorted.map((r) => {
+    const name = TYPE_NAMES[r.type] || `type${r.type}`
+    let out = `\n【${name}】(コメ ${r.total_comments}件 / actionable ${r.actionable_count}件、平均score ${r.avg_sentiment_score ?? 'N/A'})\n`
+    out += `  ポジ${r.positive_count} / ネガ${r.negative_count} / 中立${r.neutral_count} / 混在${r.mixed_count}\n`
+    out += `  ネガ内訳: quality=${r.quality_negative_count} / service=${r.service_negative_count} / cleanliness=${r.cleanliness_negative_count}\n`
+    if (Array.isArray(r.top_negative_topics) && r.top_negative_topics.length > 0) {
+      out += `  ネガ上位トピック: ${r.top_negative_topics.map((t: any) => `"${t.topic}"(${t.count}件)`).join(', ')}\n`
+    }
+    if (Array.isArray(r.top_positive_topics) && r.top_positive_topics.length > 0) {
+      out += `  ポジ上位トピック: ${r.top_positive_topics.map((t: any) => `"${t.topic}"(${t.count}件)`).join(', ')}\n`
+    }
+    return out
+  }).join('')
+}
+
+function formatSentimentSummary(s: any): string {
+  if (!s) return '(なし)'
+  let out = `店舗全体: コメ ${s.total_comments}件 / actionable ${s.actionable_count}件\n`
+  if (Array.isArray(s.cross_type_negative_themes) && s.cross_type_negative_themes.length > 0) {
+    out += `\n【店舗横断ネガテーマ (3 type 以上 + 5件以上)】\n`
+    for (const t of s.cross_type_negative_themes.slice(0, 8)) {
+      const dist = Object.entries(t.type_distribution || {})
+        .map(([k, v]) => `t${k}:${v}`).join(',')
+      out += `  - "${t.topic}" 計${t.total}件 / ${t.type_count}type に出現 (${dist})\n`
+    }
+  } else {
+    out += `\n(横断テーマ該当なし)\n`
+  }
+  if (Array.isArray(s.cross_type_positive_themes) && s.cross_type_positive_themes.length > 0) {
+    out += `\n【店舗横断ポジテーマ】\n`
+    for (const t of s.cross_type_positive_themes.slice(0, 5)) {
+      out += `  - "${t.topic}" 計${t.total}件\n`
+    }
+  }
+  return out
 }
 
 function buildStageBPrompt(anomalies: any[], pastInsights: any[], storeName: string): string {
@@ -1170,7 +1339,10 @@ function qscBlock(src: any, prefix: string, labels: string[]): string {
     const pos = src[`${prefix}${i}_positive_percent`] || 0
     const neg = src[`${prefix}${i}_negative_percent`] || 0
     const total = src[`${prefix}${i}_total_count`] || 0
-    if (total > 0) out += `  ${labels[i - 1]}: ポジ${pos}% / ネガ${neg}% (${total}件)\n`
+    if (total > 0) {
+      const mark = total < MIN_QSC_SAMPLE ? ' [SAMPLE_TOO_SMALL]' : ''
+      out += `  ${labels[i - 1]}: ポジ${pos}% / ネガ${neg}% (${total}件)${mark}\n`
+    }
   }
   return out
 }
@@ -1275,6 +1447,8 @@ interface DbContext {
   enrichedCurrent: CommentItem[]
   embeddings: Map<string, number[]>
   currentByType: any[]
+  sentimentByType: any[]
+  sentimentSummary: any | null
 }
 
 async function callClaudeStageC(
@@ -1386,6 +1560,7 @@ async function callClaudeStageC(
 // ========================================
 async function execTool(name: string, args: any, ctx: DbContext): Promise<any> {
   switch (name) {
+    case 'query_topic_comments':      return execQueryTopic(args, ctx)
     case 'query_comments_by_keyword': return execQueryByKeyword(args, ctx)
     case 'query_similar_comments':    return execQuerySimilar(args, ctx)
     case 'query_segment_qsc':         return execQuerySegmentQsc(args, ctx)
@@ -1394,21 +1569,45 @@ async function execTool(name: string, args: any, ctx: DbContext): Promise<any> {
   }
 }
 
+function execQueryTopic(args: any, ctx: DbContext) {
+  const topic = String(args?.topic || '').trim()
+  const typeFilter = typeof args?.type === 'number' ? args.type : null
+  const sentFilter = typeof args?.sentiment === 'string' ? args.sentiment : null
+  const limit = Math.min(args?.limit ?? 15, 30)
+  if (!topic) return { results: [], note: 'empty topic' }
+  let matches = ctx.enrichedCurrent.filter((c) => Array.isArray(c.text_topics) && c.text_topics.includes(topic))
+  if (typeFilter) matches = matches.filter((c) => c.type === typeFilter)
+  if (sentFilter) matches = matches.filter((c) => c.text_sentiment === sentFilter)
+  matches = matches.slice(0, limit)
+  return {
+    topic, type: typeFilter, sentiment: sentFilter, found: matches.length,
+    results: matches.map((c) => ({
+      id: c.id,
+      type: c.type, type_name: TYPE_NAMES[c.type],
+      sentiment: c.text_sentiment, score: c.text_sentiment_score,
+      qsc: c.selected_qsc, comment: c.comment, topics: c.text_topics,
+    })),
+  }
+}
+
 function execQueryByKeyword(args: any, ctx: DbContext) {
   const kw = String(args?.keyword || '').toLowerCase()
+  const typeFilter = typeof args?.type === 'number' ? args.type : null
+  const sentFilter = typeof args?.sentiment === 'string' ? args.sentiment : null
   const limit = Math.min(args?.limit ?? 15, 30)
   if (!kw) return { results: [], note: 'empty keyword' }
-  const matches = ctx.enrichedCurrent.filter((c) => (c.comment || '').toLowerCase().includes(kw)).slice(0, limit)
+  let matches = ctx.enrichedCurrent.filter((c) => (c.comment || '').toLowerCase().includes(kw))
+  if (typeFilter) matches = matches.filter((c) => c.type === typeFilter)
+  if (sentFilter) matches = matches.filter((c) => c.text_sentiment === sentFilter)
+  matches = matches.slice(0, limit)
   return {
-    keyword: kw,
-    found: matches.length,
+    keyword: kw, type: typeFilter, sentiment: sentFilter, found: matches.length,
     results: matches.map((c) => ({
-      type: c.type,
-      type_name: TYPE_NAMES[c.type],
-      sentiment: c.is_positive === true ? 'positive' : c.is_positive === false ? 'negative' : 'neutral',
-      qsc: c.selected_qsc,
-      question: c.question_number,
-      comment: c.comment,
+      id: c.id,
+      type: c.type, type_name: TYPE_NAMES[c.type],
+      sentiment: c.text_sentiment, score: c.text_sentiment_score,
+      qsc: c.selected_qsc, question: c.question_number,
+      comment: c.comment, topics: c.text_topics,
     })),
   }
 }
@@ -1550,6 +1749,27 @@ async function callAnthropic(apiKey: string, body: any): Promise<any> {
 // ========================================
 // 小ヘルパー
 // ========================================
+// issue_detail 内の「『〜〜』」「『〜〜』」「"〜〜"" 引用を抽出
+function extractQuotesFromDetail(detail: string): string[] {
+  if (!detail) return []
+  const out: string[] = []
+  // 「」, 『』, " ", "" "" のいずれかで囲まれた 5 文字以上の文字列
+  const patterns = [
+    /「([^」]{5,})」/g,
+    /『([^』]{5,})』/g,
+    /"([^"]{5,})"/g,
+    /"([^"]{5,})"/g,
+  ]
+  for (const p of patterns) {
+    let m: RegExpExecArray | null
+    while ((m = p.exec(detail)) !== null) {
+      const inner = (m[1] || '').trim()
+      if (inner.length >= 5) out.push(inner)
+    }
+  }
+  return out
+}
+
 // 引用された comment 文字列を当月コメントから探す。AI が一部のみ抜粋・連結引用しても拾えるよう
 // 正規化したサブストリング双方向マッチを使う。
 function findQuotedComment(quoted: string, current: CommentItem[]): CommentItem | null {

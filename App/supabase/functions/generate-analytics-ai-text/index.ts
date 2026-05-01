@@ -150,8 +150,17 @@ serve(async (req) => {
             .eq('year_month', prevYearMonth)
             .maybeSingle()
 
+          // コメントセンチメント集計 (内部 AI 入力用、UI 非表示)
+          const { data: sentimentSummary } = await supabaseAdmin
+            .from('monthly_comment_sentiment_summary')
+            .select('*')
+            .eq('company_id', company.id)
+            .eq('store_id', store.id)
+            .eq('year_month', targetYearMonth)
+            .maybeSingle()
+
           // 5フィールドを1回のツール呼び出しで一括生成
-          const userPrompt = buildCombinedPrompt(currentSummary, prevSummary, avgData, targetYearMonth)
+          const userPrompt = buildCombinedPrompt(currentSummary, prevSummary, avgData, targetYearMonth, sentimentSummary)
           const summary = await generateSummary(ANTHROPIC_API_KEY, userPrompt)
           console.log(`[${store.name}] generated:`, JSON.stringify(summary).slice(0, 200))
 
@@ -318,7 +327,31 @@ const CLEANLINESS_LABELS = [
   'メニュー表・卓上備品', 'トイレ', '店内の空気や匂い', '店内の整理整頓', 'スタッフの身だしなみ',
 ]
 
-function buildCombinedPrompt(current: any, prev: any, avg: any, yearMonth: string): string {
+function formatSentimentSummary(s: any): string {
+  if (!s || (!s.actionable_count && !s.cross_type_negative_themes && !s.cross_type_positive_themes)) {
+    return '(コメントセンチメント集計なし)'
+  }
+  let out = `回答コメ ${s.total_comments}件 (内容ありコメ ${s.actionable_count}件)\n`
+  out += `内訳: ポジ${s.positive_count} / ネガ${s.negative_count} / 中立${s.neutral_count} / 混在${s.mixed_count}\n`
+  if (s.avg_sentiment_score !== null && s.avg_sentiment_score !== undefined) {
+    out += `平均センチメントスコア(actionable): ${s.avg_sentiment_score}\n`
+  }
+  if (Array.isArray(s.cross_type_negative_themes) && s.cross_type_negative_themes.length > 0) {
+    out += `\n【店舗横断のネガトピック (3 type 以上 + 5件以上)】\n`
+    for (const t of s.cross_type_negative_themes.slice(0, 8)) {
+      out += `  - "${t.topic}" : 計${t.total}件 / ${t.type_count}type に出現\n`
+    }
+  }
+  if (Array.isArray(s.cross_type_positive_themes) && s.cross_type_positive_themes.length > 0) {
+    out += `\n【店舗横断のポジトピック】\n`
+    for (const t of s.cross_type_positive_themes.slice(0, 5)) {
+      out += `  - "${t.topic}" : 計${t.total}件\n`
+    }
+  }
+  return out
+}
+
+function buildCombinedPrompt(current: any, prev: any, avg: any, yearMonth: string, sentimentSummary?: any): string {
   // セグメント
   let segmentInfo = ''
   for (const seg of SEGMENT_LABELS) {
@@ -384,5 +417,16 @@ ${qscBlock('s', SERVICE_LABELS)}
 - 総合スコア: ${current.qsc_cleanliness_score}/5.0 ${delta(current.qsc_cleanliness_score, prev?.qsc_cleanliness_score)}(前月比) ${avgCompare(current.qsc_cleanliness_score, avg?.qsc_cleanliness_score)}
 - 回答数: ${current.qsc_cleanliness_count}件
 ${qscBlock('c', CLEANLINESS_LABELS)}
+
+============================
+■ コメント本文の意味解析 (LLM 分類済み、補助情報)
+============================
+${formatSentimentSummary(sentimentSummary)}
+
+【補助情報の使い方】
+- 数値%だけでなく、上記の横断ネガトピックを QSC セクションの分析に織り込む
+  (例: "床" がネガトピック上位なら cleanliness セクションで具体名を出す)
+- ポジトピックは強み認識として overview / quality / service の文章に活用
+- 「内容ありコメ」(actionable) が回答数より極端に少ない場合は記述を控えめに
 `
 }
