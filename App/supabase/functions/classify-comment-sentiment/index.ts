@@ -313,9 +313,15 @@ ${JSON.stringify(items, null, 2)}
 
 各エントリの id を出力で必ず一致させてください。`
 
+  // 50件処理時の出力 token は実測 ~3,500 程度。
+  // max_tokens は OTPM (output tokens per minute) の予約量として消費されるため
+  // 必要最小限に絞る (実際の出力 + 余裕)。
+  // 50 件 × 1件 ~80 token = 4,000 → 余裕込みで 5,500
+  const maxTokens = Math.max(1000, Math.min(8000, targets.length * 110))
+
   const response = await callAnthropic(apiKey, {
     model: MODEL,
-    max_tokens: 8000,
+    max_tokens: maxTokens,
     system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
     tools: [CLASSIFY_TOOL],
     tool_choice: { type: 'tool', name: 'classify_comments' },
