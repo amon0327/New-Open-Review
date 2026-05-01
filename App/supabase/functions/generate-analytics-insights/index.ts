@@ -303,19 +303,21 @@ Stage B が選別した仮説候補を受け取り、必要なら追加データ
 
 各 point は 80〜120 文字程度。「？→ もし」を必ず含むこと。
 
-【evaluation 型の比較パターン】
-- パターンA(segment_vs_overall): 特定セグメント vs それを除外した全体平均
-  - previous_positive/previous_negative は概算で良い (サーバ側で再計算)
-- パターンB(month_vs_month): 今月 vs 先月の同一項目
+【evaluation 型は「候補制」 (絶対遵守)】
+ユーザープロンプトに「evaluation 候補リスト」(seg_t* / mom_t* で始まる candidate_id) が渡される。
+これらはサーバが事前計算した「ゲージで描画して意味のある比較組合せ」(母数 10件以上 + ポジ率差 10pt 以上)。
+- evaluation 型を出すなら **必ず candidate_id を 1 つ指定** すること。
+- 候補リストに無い type / QSC 項目を evaluation 型で扱うのは禁止。サーバ側で破棄される。
+- candidate_id を指定すれば current_title / current_positive / current_negative /
+  previous_title / previous_positive / previous_negative はサーバが候補から自動補完するので
+  AI 側で値を埋めなくて良い (埋めても上書きされる)。
+- 候補リストが空 (該当なし) の場合は evaluation 型を 1 件も出さない。すべて comment 型で出す。
 
-【evaluation 型の差分ルール (絶対遵守)】
-- ゲージで表示する current_positive と previous_positive のポジ率差は **10pt 以上** ないと出さない。
-  ゲージは「2 つのバーを並べて差を見せる」UI なので、差が小さいと読み手が「大した差はないのに何が課題?」と混乱する。
-- 「対象 type の QSC 項目 X のポジ率が、その type 内で他の QSC 項目 (例: 料理の味) より低い」という
-  qsc_item_relative の発想で課題を語りたい場合、evaluation 型で出すと segment_vs_overall に強制描画されて
-  detail と表示が乖離する。このようなケースは **comment 型** で具体コメを引用する形に切り替えること。
-- 「店舗全体で QSC 項目 X が低水準」(全 type 共通で低い) のような店舗構造的課題も、
-  segment_vs_overall では差が出ないので evaluation 型に向かない。comment 型 (横断コメ引用) で出す。
+【qsc_item_relative / 店舗横断課題の扱い】
+- 「対象 type の QSC 項目 X が、その type 内で他の QSC 項目 (例: 料理の味) より低い」(qsc_item_relative)
+  や「店舗全体で QSC 項目 X が低水準」(全 type 共通で低い) のような構造的課題は、
+  segment_vs_overall でも month_vs_month でも 10pt の差が出にくく候補に並ばない。
+  これらは **comment 型** で具体コメを引用する形に切り替えること。
 
 【evaluation 型の result_type 制約 (絶対遵守)】
 result_type が次の 4 type のいずれかの場合、evaluation 型 (ゲージ表示) のインサイトを作成してはいけない:
@@ -407,14 +409,15 @@ const INSIGHTS_TOOL = {
             },
             chronic: { type: 'boolean', description: '3ヶ月以上続いている課題か' },
             comment: { type: 'string', description: 'comment型: 課題を直接支持・証言する顧客コメントの原文引用。issue_detail の主張と方向(ポジ/ネガ)が一致していること。ポジコメントを批判的 detail に紐付けるのは絶対禁止。実在する顧客コメントの原文をそのまま使い、改変や創作は禁止。支持コメントが無ければこのインサイト自体を作らないこと。' },
-            qsc_key: { type: 'string', description: 'evaluation型: q1〜c10' },
-            comparison_type: { type: 'string', enum: ['segment_vs_overall', 'month_vs_month'] },
-            current_title: { type: 'string', description: 'バーチャートのラベル。「type1」「(type6)」のような内部番号は禁止。例: 「中立リピーターの床評価」「1月の中立リピーターの床評価」' },
-            current_positive: { type: 'integer' },
-            current_negative: { type: 'integer' },
-            previous_title: { type: 'string', description: 'バーチャートのラベル。「type1」「(type6)」のような内部番号は禁止。例: 「他セグメント全体の床評価」「12月の中立リピーターの床評価」' },
-            previous_positive: { type: 'integer' },
-            previous_negative: { type: 'integer' },
+            candidate_id: { type: 'string', description: 'evaluation型: ユーザープロンプトに渡された evaluation 候補リスト (seg_t* / mom_t*) から選んだ id。candidate_id を伴わない evaluation 型はサーバ側で破棄される。current_title / current_positive 等のバー値はサーバが候補から自動補完するので AI 側で値を埋める必要は無い。' },
+            qsc_key: { type: 'string', description: 'evaluation型: q1〜c10。candidate_id を指定するなら省略可 (サーバが候補から取得)。' },
+            comparison_type: { type: 'string', enum: ['segment_vs_overall', 'month_vs_month'], description: 'candidate_id を指定するなら省略可 (サーバが候補から取得)。' },
+            current_title: { type: 'string', description: 'candidate_id を指定するなら省略可。サーバが候補から自動補完する。' },
+            current_positive: { type: 'integer', description: 'candidate_id を指定するなら省略可。サーバが候補から自動補完する。' },
+            current_negative: { type: 'integer', description: 'candidate_id を指定するなら省略可。サーバが候補から自動補完する。' },
+            previous_title: { type: 'string', description: 'candidate_id を指定するなら省略可。サーバが候補から自動補完する。' },
+            previous_positive: { type: 'integer', description: 'candidate_id を指定するなら省略可。サーバが候補から自動補完する。' },
+            previous_negative: { type: 'integer', description: 'candidate_id を指定するなら省略可。サーバが候補から自動補完する。' },
           },
           required: [
             'issue_type', 'issue_title', 'issue_detail',
@@ -769,12 +772,20 @@ async function processStoreInsights(
   // ----------------------------------------
   // 5. Stage A: 異常検知 (Haiku 4.5)
   // ----------------------------------------
+  // ----- evaluation 候補を事前計算 (Stage A/C で参照) -----
+  const evalCandidates = buildEvaluationCandidates(
+    currentByType || [], prevByType || [], storeSummary,
+    targetYearMonth, prevYearMonth
+  )
+  console.log(`[${storeName}] eval candidates: ${evalCandidates.length}`)
+
   const stageAUserPrompt = buildStageAPrompt(
     storeName, targetYearMonth, prevYearMonth,
     clusters, enrichedPrev,
     currentByType || [], prevByType || [],
     storeSummary, pastInsights,
-    sentimentByType || [], sentimentSummary
+    sentimentByType || [], sentimentSummary,
+    evalCandidates
   )
   console.log(`[${storeName}] Stage A: detecting anomalies...`)
   const stageAOut = await callClaudeStageA(anthropicKey, stageAUserPrompt)
@@ -830,7 +841,7 @@ async function processStoreInsights(
 
   const stageCUserPrompt = buildStageCPrompt(
     stageAOut.anomalies, stageBOut.hypotheses, kept,
-    storeName, targetYearMonth
+    storeName, targetYearMonth, evalCandidates
   )
   console.log(`[${storeName}] Stage C: writing insights with tool access...`)
   const insightsRaw = await callClaudeStageC(anthropicKey, stageCUserPrompt, dbContext)
@@ -849,36 +860,30 @@ async function processStoreInsights(
       return false
     }
 
-    // ----- evaluation 型: 対象 QSC 項目の母数チェック (本物の数字を取得して判定) -----
+    // ----- evaluation 型: candidate_id 制 -----
+    // ゲージで意味ある比較組合せはサーバが事前に列挙し、AI はそこから candidate_id で選ぶだけ。
+    // current_title / current_positive 等のバー値はサーバが候補から上書きする。
     if (ins.issue_type === 'evaluation') {
-      const qscKey: string | undefined = ins.qsc_key
-      const resultType: number | undefined = ins.result_type
-      if (qscKey && resultType) {
-        const td = (currentByType || []).find((t: any) => t.type === resultType)
-        const total = td?.[`${qscKey}_total_count`] ?? 0
-        if (total < MIN_QSC_SAMPLE) {
-          console.log(`[${storeName}] drop evaluation: type=${resultType} ${qscKey} total=${total} < ${MIN_QSC_SAMPLE}: ${ins.issue_title}`)
-          return false
-        }
-        // evidence_count をサーバ側で本物の値に上書き (AI 自己申告を信用しない)
-        ins.evidence_count = total
-      } else if ((ins.evidence_count ?? 0) < MIN_EVIDENCE_COUNT) {
-        console.log(`[${storeName}] drop low-evidence (evaluation, no qsc_key): ${ins.issue_title}`)
+      const candidateId: string | undefined = ins.candidate_id
+      const cand = candidateId ? evalCandidates.find((c) => c.candidate_id === candidateId) : null
+      if (!cand) {
+        console.log(`[${storeName}] drop evaluation without valid candidate_id (id=${candidateId ?? 'none'}): ${ins.issue_title}`)
         return false
       }
-
-      // ゲージで描画されるポジ率の差が小さすぎる場合は破棄
-      // (AI が detail で qsc_item_relative の発想を語ったのに、ゲージ表示は
-      //  segment_vs_overall になり、両者が乖離する問題を防ぐ)
-      const curPos = Number(ins.current_positive)
-      const prevPos = Number(ins.previous_positive)
-      if (Number.isFinite(curPos) && Number.isFinite(prevPos)) {
-        const delta = Math.abs(curPos - prevPos)
-        if (delta < MIN_EVAL_POS_DELTA) {
-          console.log(`[${storeName}] drop evaluation with insufficient gauge delta (|${curPos}-${prevPos}|=${delta} < ${MIN_EVAL_POS_DELTA}): ${ins.issue_title}`)
-          return false
-        }
-      }
+      // result_type を候補の値で強制統一 (AI が誤った type を選んでも修正)
+      ins.result_type = cand.result_type
+      ins.evidence_count = cand.current_total
+      // バー値・ラベルをサーバ計算値で完全上書き
+      ins.current_title = cand.current_title
+      ins.current_positive = cand.current_positive
+      ins.current_negative = cand.current_negative
+      ins.previous_title = cand.previous_title
+      ins.previous_positive = cand.previous_positive
+      ins.previous_negative = cand.previous_negative
+      // qsc_key / comparison_type はサーバ側で削除される (insert データに残らないが、
+      // 候補参照の事実を debug ログに残すため上書きしておく)
+      ins.qsc_key = cand.qsc_key
+      ins.comparison_type = cand.comparison_type
     }
 
     // ----- comment 型: 引用検証 (text_sentiment ベース) -----
@@ -942,27 +947,12 @@ async function processStoreInsights(
     return true
   }).slice(0, 4)
 
-  // パターンA(segment_vs_overall) の previous 値をサーバ側で再計算
+  // 候補参照で current/previous 値はフィルタ段階でサーバ計算値に置換済み。
+  // DB スキーマに無いフィールドは insert 前に剥がす。
   for (const insight of insights) {
-    if (insight.issue_type === 'evaluation' && insight.comparison_type === 'segment_vs_overall' && insight.qsc_key && insight.result_type) {
-      const td = (currentByType || []).find((t: any) => t.type === insight.result_type)
-      if (td && storeSummary) {
-        const key = insight.qsc_key
-        const storeTotal = storeSummary[`${key}_total_count`] || 0
-        const typeTotal = td[`${key}_total_count`] || 0
-        const excludedTotal = storeTotal - typeTotal
-        if (excludedTotal > 0) {
-          const storePosCount = (storeSummary[`${key}_positive_percent`] || 0) * storeTotal / 100
-          const typePosCount = (td[`${key}_positive_percent`] || 0) * typeTotal / 100
-          const storeNegCount = (storeSummary[`${key}_negative_percent`] || 0) * storeTotal / 100
-          const typeNegCount = (td[`${key}_negative_percent`] || 0) * typeTotal / 100
-          insight.previous_positive = clampPct(Math.round((storePosCount - typePosCount) / excludedTotal * 100))
-          insight.previous_negative = clampPct(Math.round((storeNegCount - typeNegCount) / excludedTotal * 100))
-        }
-      }
-    }
     delete insight.qsc_key
     delete insight.comparison_type
+    delete insight.candidate_id
   }
 
   await supabase.from('monthly_analytics_issue').delete()
@@ -1197,6 +1187,163 @@ async function fetchPastInsights(
 }
 
 // ========================================
+// evaluation 候補事前計算
+// ----------------------------------------
+// ゲージで描画して意味のある比較組合せを全列挙する。
+// AI は evaluation 型を提出するときに candidate_id でこれを参照するだけ。
+// バー値はサーバが本物の値を埋めるので、AI 自己申告は使わない。
+// ========================================
+interface EvaluationCandidate {
+  candidate_id: string
+  comparison_type: 'segment_vs_overall' | 'month_vs_month'
+  result_type: number
+  qsc_key: string
+  qsc_label: string
+  segment_label: string
+  current_title: string
+  current_positive: number
+  current_negative: number
+  current_total: number
+  previous_title: string
+  previous_positive: number
+  previous_negative: number
+  delta_pos: number
+}
+
+function qscLabel(key: string): string {
+  const i = parseInt(key.slice(1), 10) - 1
+  if (i < 0 || i > 9) return key
+  if (key.startsWith('q')) return QUALITY_LABELS[i]
+  if (key.startsWith('s')) return SERVICE_LABELS[i]
+  if (key.startsWith('c')) return CLEANLINESS_LABELS[i]
+  return key
+}
+
+const ALL_QSC_KEYS = (() => {
+  const out: string[] = []
+  for (let i = 1; i <= 10; i++) out.push(`q${i}`, `s${i}`, `c${i}`)
+  return out
+})()
+
+function buildEvaluationCandidates(
+  currentByType: any[],
+  prevByType: any[],
+  storeSummary: any,
+  yearMonth: string,
+  prevYearMonth: string
+): EvaluationCandidate[] {
+  const out: EvaluationCandidate[] = []
+  const minPosDelta = MIN_EVAL_POS_DELTA
+  const minSample = MIN_QSC_SAMPLE
+  const ymLabel = (ym: string) => {
+    const [, m] = ym.split('-')
+    return `${parseInt(m, 10)}月`
+  }
+
+  // ----- segment_vs_overall -----
+  if (storeSummary) {
+    for (const td of currentByType) {
+      const t = td.type
+      if (!t) continue
+      for (const k of ALL_QSC_KEYS) {
+        const typeTotal = td[`${k}_total_count`] || 0
+        if (typeTotal < minSample) continue
+        const storeTotal = storeSummary[`${k}_total_count`] || 0
+        const excludedTotal = storeTotal - typeTotal
+        if (excludedTotal < minSample) continue
+
+        const typePos = td[`${k}_positive_percent`] || 0
+        const typeNeg = td[`${k}_negative_percent`] || 0
+        const storePos = storeSummary[`${k}_positive_percent`] || 0
+        const storeNeg = storeSummary[`${k}_negative_percent`] || 0
+        // 除外後の pos/neg を逆算
+        const typePosCount = (typePos * typeTotal) / 100
+        const typeNegCount = (typeNeg * typeTotal) / 100
+        const storePosCount = (storePos * storeTotal) / 100
+        const storeNegCount = (storeNeg * storeTotal) / 100
+        const excludedPos = Math.round((storePosCount - typePosCount) / excludedTotal * 100)
+        const excludedNeg = Math.round((storeNegCount - typeNegCount) / excludedTotal * 100)
+        const delta = Math.abs(typePos - excludedPos)
+        if (delta < minPosDelta) continue
+
+        const segLabel = TYPE_NAMES[t] || `type${t}`
+        const itemLabel = qscLabel(k)
+        out.push({
+          candidate_id: `seg_t${t}_${k}`,
+          comparison_type: 'segment_vs_overall',
+          result_type: t,
+          qsc_key: k,
+          qsc_label: itemLabel,
+          segment_label: segLabel,
+          current_title: `${segLabel}の${itemLabel}評価`,
+          current_positive: clampPct(typePos),
+          current_negative: clampPct(typeNeg),
+          current_total: typeTotal,
+          previous_title: `他セグメント全体の${itemLabel}評価`,
+          previous_positive: clampPct(excludedPos),
+          previous_negative: clampPct(excludedNeg),
+          delta_pos: delta,
+        })
+      }
+    }
+  }
+
+  // ----- month_vs_month -----
+  for (const td of currentByType) {
+    const t = td.type
+    if (!t) continue
+    const prev = (prevByType || []).find((x: any) => x.type === t)
+    if (!prev) continue
+    for (const k of ALL_QSC_KEYS) {
+      const curTotal = td[`${k}_total_count`] || 0
+      const prevTotal = prev[`${k}_total_count`] || 0
+      if (curTotal < minSample || prevTotal < minSample) continue
+      const curPos = td[`${k}_positive_percent`] || 0
+      const curNeg = td[`${k}_negative_percent`] || 0
+      const prevPos = prev[`${k}_positive_percent`] || 0
+      const prevNeg = prev[`${k}_negative_percent`] || 0
+      const delta = Math.abs(curPos - prevPos)
+      if (delta < minPosDelta) continue
+
+      const segLabel = TYPE_NAMES[t] || `type${t}`
+      const itemLabel = qscLabel(k)
+      out.push({
+        candidate_id: `mom_t${t}_${k}`,
+        comparison_type: 'month_vs_month',
+        result_type: t,
+        qsc_key: k,
+        qsc_label: itemLabel,
+        segment_label: segLabel,
+        current_title: `${ymLabel(yearMonth)}の${segLabel}の${itemLabel}評価`,
+        current_positive: clampPct(curPos),
+        current_negative: clampPct(curNeg),
+        current_total: curTotal,
+        previous_title: `${ymLabel(prevYearMonth)}の${segLabel}の${itemLabel}評価`,
+        previous_positive: clampPct(prevPos),
+        previous_negative: clampPct(prevNeg),
+        delta_pos: delta,
+      })
+    }
+  }
+
+  // 上位 12 件
+  out.sort((a, b) => b.delta_pos - a.delta_pos)
+  return out.slice(0, 12)
+}
+
+function formatEvaluationCandidates(cands: EvaluationCandidate[]): string {
+  if (!cands || cands.length === 0) {
+    return '(該当なし — 母数 10 件以上 + ポジ率差 10pt 以上を満たす組合せが今月は存在しない。evaluation 型は出さず、すべて comment 型で出すこと。)'
+  }
+  return cands.map((c) => (
+    `[${c.candidate_id}] ${c.comparison_type} | type=${c.result_type} ${c.segment_label} × ${c.qsc_key}(${c.qsc_label})\n` +
+    `  → 当: ポジ${c.current_positive}% / ネガ${c.current_negative}% (n=${c.current_total}) "${c.current_title}"\n` +
+    `  → 比較: ポジ${c.previous_positive}% / ネガ${c.previous_negative}% "${c.previous_title}"\n` +
+    `  → ポジ率差: ${c.delta_pos}pt`
+  )).join('\n\n')
+}
+
+// ========================================
 // プロンプトビルダー
 // ========================================
 function buildStageAPrompt(
@@ -1210,7 +1357,8 @@ function buildStageAPrompt(
   storeSummary: any,
   pastInsights: any[],
   sentimentByType: any[],
-  sentimentSummary: any
+  sentimentSummary: any,
+  evalCandidates: EvaluationCandidate[]
 ): string {
   return `店舗「${storeName}」の${targetYearMonth}データを俯瞰し、submit_anomalies で異常リストを提出してください。
 
@@ -1236,6 +1384,12 @@ ${formatSentimentByType(sentimentByType)}
 
 === 店舗横断のネガ/ポジテーマ (今月、AI 分類) ===
 ${formatSentimentSummary(sentimentSummary)}
+
+=== evaluation 候補 (ゲージ表示で意味ある比較組合せのみ事前算出) ===
+※ 母数 10 件以上 + ポジ率差 10pt 以上の組合せだけが候補に並ぶ。
+※ 異常検知でゲージ表示すべきものは、必ずこのリストの candidate_id と紐づけて挙げる。
+※ 候補にない数値乖離 (差が小さい / 母数不足) は evaluation 型として扱わず、コメ証言があれば comment 型で。
+${formatEvaluationCandidates(evalCandidates)}
 
 === 過去3ヶ月のインサイト履歴 ===
 ${formatPastInsights(pastInsights)}
@@ -1300,7 +1454,8 @@ function buildStageCPrompt(
   hypotheses: any[],
   kept: any[],
   storeName: string,
-  yearMonth: string
+  yearMonth: string,
+  evalCandidates: EvaluationCandidate[]
 ): string {
   const keptText = kept.map((h, i) => {
     const ano = anomalies[h.anomaly_idx] || {}
@@ -1316,11 +1471,18 @@ function buildStageCPrompt(
 === Stage B が選別した候補 ===
 ${keptText}
 
+=== evaluation 候補 (ゲージ表示で意味ある比較組合せのみ事前算出) ===
+※ issue_type='evaluation' を出すなら、必ずここから 1 つ選んで candidate_id を指定すること。
+※ candidate_id を指定しない / リストにない id を指定した evaluation 型はサーバ側で破棄される。
+※ current_title / current_positive / current_negative / previous_title / previous_positive / previous_negative はサーバが候補から自動補完するので AI 側では値を埋めなくて良い (埋めても上書きされる)。
+${formatEvaluationCandidates(evalCandidates)}
+
 【作業手順】
 1. 各候補について、必要なら query_xxx ツールで追加データ確認
 2. 信頼度0.7以上で、比較軸が明確で、店長が行動できるものだけ採用
 3. 慢性化している課題は issue_detail に時系列文脈 (例: 「3月から続いている」) を含める
-4. submit_insights を呼んで完了
+4. evaluation 型は候補リストから選ぶ。候補に該当しない知見は comment 型で。
+5. submit_insights を呼んで完了
 
 注意: ツールは合計5回程度までを目安に。深掘りしすぎない。`
 }
