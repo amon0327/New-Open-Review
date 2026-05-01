@@ -60,15 +60,21 @@ const TYPE_NAMES: Record<number, string> = {
 }
 
 const MIN_CONFIDENCE = 0.7
-const MIN_EVIDENCE_COUNT = 3
+const MIN_EVIDENCE_COUNT = 2  // 案 A+B の証拠主義適用後は 2 件で十分根拠あり (mismatch フィルタが品質担保)
 const CLUSTER_SIMILARITY_THRESHOLD = 0.78
 const MAX_TOOL_TURNS = 8
 
 // evaluation 型 (ゲージ) で出してはいけない result_type:
 // 再来店意向あり × (推奨者 or 中立者) = type 1 / 2 / 5 / 6
 // これらは「来月も来たい」と答えている層で、ゲージで「課題」として扱うとミスリード。
-// コメント型なら可。
+// コメント型なら可だが、後段の sentiment 一致チェックも適用される。
 const EVALUATION_FORBIDDEN_TYPES = new Set([1, 2, 5, 6])
+
+// comment 型インサイトの issue_detail 方向性を判定するパターン
+// 否定的: 課題・低水準・不満を語る語彙
+const NEGATIVE_DETAIL_PATTERN = /(低い|低水準|低位|低調|低迷|低下|不満|課題|懸念|下回|下げ|下落|落ち|落ちて|遅れ|遅い|不足|偏り|偏在|乖離|不十分|悪化|減少|手薄|抜け|脆弱|物足りな|ばらつき|不均一|偏って|乏しい|未対応|機会損失)/
+// 肯定的: 強み・改善・好評を語る語彙
+const POSITIVE_DETAIL_PATTERN = /(高い|高水準|高評価|改善|向上|上昇|好評|称賛|強み|満点|定着|向上|底上げ|押し上げ|波及|功を奏|顕在化|初出現|評価された)/
 
 // ========================================
 // 共通: 役割定義 (全ステージのキャッシュ対象)
@@ -275,8 +281,38 @@ result_type が次の 4 type のいずれかの場合、evaluation 型 (ゲー�
   - type 5: 中立者で再来店意向ありのリピーターのお客様 (安定リピーター×中立者)
   - type 6: 中立者で再来店意向ありの新規のお客様 (新規リピーター×中立者)
 理由: これらは「来月も来たい」と答えている再訪意向のある層で、ゲージで「課題」として扱うと読み手をミスリードする。
-これらの type を取り上げる場合は、必ず issue_type='comment' (コメント型) で記述すること。
-他の 8 type (再来店意向なし、または批判者) では evaluation 型を使ってよい。
+
+【満足層 (type 1/2/5/6) のインサイト作成ルール (絶対遵守)】
+これらの満足層 (再来店意向あり×推奨者or中立者) では、evaluation 型禁止に加え以下も適用:
+- QSC 数値が他層より「単に低い」だけを根拠にしたインサイトは作らない (= comment 型でも禁止)。
+  数値が低くても「再来店したい」と答えている層を課題として取り上げると読み手を混乱させる。
+- 取り上げてよいのは、その層の **批判的なコメント (is_positive=false/中立)** が実際に存在し、
+  それを直接の根拠にできる場合のみ。元になる Stage A の異常が area='comment_theme' または
+  'chronic_issue' で、否定的なコメントを伴うことが必要。
+- ポジティブコメントしか見つからない層は、課題化せず「強みとして言及する」か、取り上げない。
+
+【comment 型の絶対ルール (証拠主義)】
+- comment 型は、その課題を【直接支持・証言する顧客コメント】が実在する場合のみ作成する。
+- 引用する comment は issue_detail の主張と方向 (ポジ/ネガ) が一致していること。
+  - 課題 (低水準・不満・不足・乖離 等) を語るなら → 否定的コメントを引用
+  - 強み (高評価・改善 等) を語るなら → 肯定的コメントを引用
+- ポジティブコメントを批判的 issue_detail に紐付けるのは絶対禁止 (= データ偽証)。
+  ✗ 悪い例: comment「料理がたくさんあって良かった」+ detail「メニュー満足度が低い」
+- 該当する支持コメントが無い課題は、comment 型として出力しないこと (空配列で構わない)。
+- 引用する comment は実在する顧客コメントの原文をそのまま使い、改変や創作は禁止。
+
+【非満足層 (type 3/4/7/8/9/10/11/12) のインサイト方針】
+これらは満足度が低い・再来店意向がない・批判的な層で、店舗の収益や定着に直接影響する重要なシグナル。
+- 上記 type に対しては evaluation 型 (ゲージ) を積極的に使ってよい。QSC 数値の明確な乖離は遠慮せず取り上げること。
+- comment 型もネガティブコメントが裏付けにあれば積極的に作成。
+- 「課題化を控える」という配慮は満足層 (type 1/2/5/6) のみに適用するルールであり、
+  非満足層では 4 件中の 2-3 件は非満足層からの課題インサイトを含めることが望ましい。
+- 特に評価データで顕著な乖離 (10pt 以上) があるセグメント・項目は、必ず候補として検討する。
+
+【インサイトの組み合わせバランス目安】
+- 4 件中、満足層 (type 1/2/5/6) からの強み・継続観察コメントは 0-1 件で十分
+- 残りは非満足層 (type 3/4/7/8/9/10/11/12) の課題 (evaluation/comment) を中心に
+- 全件が満足層の強み一色になるのは「読み手に行動材料を提供しない」失敗パターン
 
 【QSC項目キー】
 Quality: q1=料理の味, q2=料理の見た目, q3=料理の量/ボリューム, q4=ドリンクの味, q5=ドリンクの温度, q6=食べたい料理, q7=飲みたいドリンク, q8=メニューの種類, q9=料理・ドリンクの温度, q10=特徴や独自性
@@ -321,13 +357,13 @@ const INSIGHTS_TOOL = {
             },
             result_type: { type: 'integer', minimum: 1, maximum: 12, description: '対象 12type 番号 (1-12)。issue_type=evaluation で result_type が 1/2/5/6 (再来店意向あり×推奨者or中立者) は禁止。これらの再訪意向のある層をゲージで課題化しない。コメント型なら可。' },
             confidence: { type: 'number', minimum: 0, maximum: 1 },
-            evidence_count: { type: 'integer', minimum: 0 },
+            evidence_count: { type: 'integer', minimum: 0, description: '根拠となる回答件数。comment 型ならそのテーマに言及したコメント数、evaluation 型なら対象セグメントの total_responses 件数を入れる。「自分が証拠として参照した最低限の数」ではなく「データ全体としてその傾向を裏付ける母数」を入れること。' },
             comparison_axis: {
               type: 'string',
               enum: ['month_vs_month', 'segment_vs_overall', 'segment_vs_segment', 'qsc_item_relative'],
             },
             chronic: { type: 'boolean', description: '3ヶ月以上続いている課題か' },
-            comment: { type: 'string', description: 'comment型: 代表コメント原文引用' },
+            comment: { type: 'string', description: 'comment型: 課題を直接支持・証言する顧客コメントの原文引用。issue_detail の主張と方向(ポジ/ネガ)が一致していること。ポジコメントを批判的 detail に紐付けるのは絶対禁止。実在する顧客コメントの原文をそのまま使い、改変や創作は禁止。支持コメントが無ければこのインサイト自体を作らないこと。' },
             qsc_key: { type: 'string', description: 'evaluation型: q1〜c10' },
             comparison_type: { type: 'string', enum: ['segment_vs_overall', 'month_vs_month'] },
             current_title: { type: 'string', description: 'バーチャートのラベル。「type1」「(type6)」のような内部番号は禁止。例: 「中立リピーターの床評価」「1月の中立リピーターの床評価」' },
@@ -736,6 +772,33 @@ async function processStoreInsights(
     if (ins.issue_type === 'evaluation' && EVALUATION_FORBIDDEN_TYPES.has(ins.result_type)) {
       console.log(`[${storeName}] drop evaluation for high-satisfaction segment (type=${ins.result_type}): ${ins.issue_title}`)
       return false
+    }
+    // 案 A: comment 型で comment フィールド空 → 証拠なしのため破棄
+    if (ins.issue_type === 'comment') {
+      const c = (ins.comment || '').trim()
+      if (c.length < 5) {
+        console.log(`[${storeName}] drop comment-type without quote: ${ins.issue_title}`)
+        return false
+      }
+      // 案 A 続: 引用コメントの sentiment と issue_detail の方向が矛盾していないか
+      const matched = findQuotedComment(c, enrichedCurrent)
+      if (!matched) {
+        console.log(`[${storeName}] drop comment-type with non-existent quote: ${ins.issue_title} | quote="${c.slice(0,80)}"`)
+        return false
+      }
+      const detail = ins.issue_detail || ''
+      const detailHasNeg = NEGATIVE_DETAIL_PATTERN.test(detail)
+      const detailHasPos = POSITIVE_DETAIL_PATTERN.test(detail)
+      // ポジコメ + 批判 detail = 矛盾
+      if (matched.is_positive === true && detailHasNeg && !detailHasPos) {
+        console.log(`[${storeName}] drop comment-detail mismatch (positive comment quoted in negative detail): ${ins.issue_title}`)
+        return false
+      }
+      // ネガコメ + 称賛 detail = 矛盾
+      if (matched.is_positive === false && detailHasPos && !detailHasNeg) {
+        console.log(`[${storeName}] drop comment-detail mismatch (negative comment quoted in positive detail): ${ins.issue_title}`)
+        return false
+      }
     }
     return true
   }).slice(0, 4)
@@ -1487,6 +1550,32 @@ async function callAnthropic(apiKey: string, body: any): Promise<any> {
 // ========================================
 // 小ヘルパー
 // ========================================
+// 引用された comment 文字列を当月コメントから探す。AI が一部のみ抜粋・連結引用しても拾えるよう
+// 正規化したサブストリング双方向マッチを使う。
+function findQuotedComment(quoted: string, current: CommentItem[]): CommentItem | null {
+  const normalize = (s: string) => (s || '').replace(/\s+/g, '').trim()
+  const q = normalize(quoted)
+  if (q.length < 5) return null
+  // 完全一致
+  let m = current.find((c) => normalize(c.comment) === q)
+  if (m) return m
+  // サブストリング (双方向)
+  m = current.find((c) => {
+    const n = normalize(c.comment)
+    return n.length >= 5 && (q.includes(n) || n.includes(q))
+  })
+  if (m) return m
+  // AI が "A / B / C" のように複数コメントを連結していた場合の分割マッチ
+  for (const part of quoted.split(/[／/、,]/).map(normalize).filter((s) => s.length >= 5)) {
+    const f = current.find((c) => {
+      const n = normalize(c.comment)
+      return n.length >= 5 && (part.includes(n) || n.includes(part))
+    })
+    if (f) return f
+  }
+  return null
+}
+
 function clampPct(n: number): number {
   if (!Number.isFinite(n)) return 0
   return Math.min(100, Math.max(0, Math.round(n)))
