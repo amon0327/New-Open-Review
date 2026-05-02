@@ -6,6 +6,33 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// ----------------------------------------
+// 失敗理由の分類 (フロント側で文言切り替え用)
+//   フロントは error.reason で分岐し、ユーザー向けメッセージを表示する。
+//   ここで使う文字列はフロントの STAFF_INVITATION_REASON_MESSAGES と完全一致させること。
+// ----------------------------------------
+type FailReason =
+  | 'auth_required'        // ログイントークンが無い
+  | 'auth_failed'          // セッション失効など
+  | 'bad_request'          // body 不正、token 不在など
+  | 'invitation_not_found' // 招待が無い (URL 改変や削除)
+  | 'invitation_used_by_other' // 完了済みで別ユーザー
+  | 'invitation_status_unknown' // 想定外ステータス
+  | 'store_info_missing'   // 招待は取れたが store / company が解決できない
+  | 'user_create_failed'   // business_users insert/update 失敗
+  | 'membership_failed'    // store_memberships upsert 失敗
+  | 'unknown'
+
+class InvitationError extends Error {
+  reason: FailReason
+  status: number
+  constructor(message: string, reason: FailReason, status = 400) {
+    super(message)
+    this.reason = reason
+    this.status = status
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -38,33 +65,33 @@ serve(async (req) => {
     const token = req.headers.get('Authorization')?.replace('Bearer ', '')
     console.log('Authorization token present:', !!token)
     if (!token) {
-      throw new Error('認証トークンが必要です')
+      throw new InvitationError('認証トークンが必要です', 'auth_required', 401)
     }
 
     const { data: { user }, error: userError } = await supabase.auth.getUser(token)
     console.log('User auth result:', { user: !!user, userError })
     if (userError || !user) {
       console.error('Auth error details:', userError)
-      throw new Error('認証に失敗しました: ' + (userError?.message || 'Unknown error'))
+      throw new InvitationError('認証に失敗しました: ' + (userError?.message || 'Unknown error'), 'auth_failed', 401)
     }
 
     // リクエストボディから招待トークンを取得
     const requestBody = await req.text()
     console.log('Request body:', requestBody)
-    
+
     let parsedBody
     try {
       parsedBody = JSON.parse(requestBody)
     } catch (parseError) {
       console.error('JSON parse error:', parseError)
-      throw new Error('リクエストボディが無効なJSONです')
+      throw new InvitationError('リクエストボディが無効なJSONです', 'bad_request', 400)
     }
-    
+
     const { invitationToken } = parsedBody
     console.log('Invitation token:', invitationToken)
-    
+
     if (!invitationToken) {
-      throw new Error('招待トークンが必要です')
+      throw new InvitationError('招待トークンが必要です', 'bad_request', 400)
     }
 
     // 招待情報を取得（サービスロールで）
@@ -90,11 +117,11 @@ serve(async (req) => {
     console.log('Invitation query result:', { invitationData, invitationError })
 
     if (invitationError) {
-      throw new Error(`招待情報の取得に失敗: ${invitationError.message}`)
+      throw new InvitationError(`招待情報の取得に失敗: ${invitationError.message}`, 'store_info_missing', 500)
     }
 
     if (!invitationData || invitationData.length === 0) {
-      throw new Error('招待が見つからないか、既に使用済みです')
+      throw new InvitationError('招待が見つからないか、既に使用済みです', 'invitation_not_found', 404)
     }
 
     const invitation = invitationData[0]
@@ -114,7 +141,7 @@ serve(async (req) => {
         .maybeSingle()
       if (alreadyErr) {
         console.error('Idempotent membership check error:', alreadyErr)
-        throw new Error(`メンバーシップの確認に失敗: ${alreadyErr.message}`)
+        throw new InvitationError(`メンバーシップの確認に失敗: ${alreadyErr.message}`, 'membership_failed', 500)
       }
       if (alreadyMember) {
         console.log('Idempotent re-entry: already registered, returning 200')
@@ -130,12 +157,12 @@ serve(async (req) => {
         )
       }
       // 別ユーザーが完了済 = 共有/盗用された可能性
-      throw new Error('招待は既に他のユーザーで使用済みです')
+      throw new InvitationError('招待は既に他のユーザーで使用済みです', 'invitation_used_by_other', 409)
     }
 
     // expired は 24時間制限無効化に伴い受け入れる。それ以外の未知ステータスは拒否。
     if (invitation.status && invitation.status !== 'invited' && invitation.status !== 'expired') {
-      throw new Error(`招待は既に${invitation.status}です`)
+      throw new InvitationError(`招待は既に${invitation.status}です`, 'invitation_status_unknown', 400)
     }
 
     // 24時間チェック（一時的に無効化）
@@ -169,7 +196,7 @@ serve(async (req) => {
 
     if (checkError) {
       console.error('business_users確認エラー:', checkError)
-      throw new Error(`ユーザー情報の確認に失敗: ${checkError.message}`)
+      throw new InvitationError(`ユーザー情報の確認に失敗: ${checkError.message}`, 'user_create_failed', 500)
     }
 
     if (!existingBusinessUser || existingBusinessUser.length === 0) {
@@ -220,7 +247,7 @@ serve(async (req) => {
 
       if (businessUserError) {
         console.error('business_users作成エラー:', businessUserError)
-        throw new Error(`ユーザー情報の作成に失敗: ${businessUserError.message}`)
+        throw new InvitationError(`ユーザー情報の作成に失敗: ${businessUserError.message}`, 'user_create_failed', 500)
       }
       
       console.log('Business user created successfully:', newBusinessUser)
@@ -279,7 +306,7 @@ serve(async (req) => {
 
     if (membershipError) {
       console.error('store_memberships登録エラー:', membershipError)
-      throw new Error(`メンバー登録に失敗: ${membershipError.message}`)
+      throw new InvitationError(`メンバー登録に失敗: ${membershipError.message}`, 'membership_failed', 500)
     }
 
     // ignoreDuplicates: true の場合、既存行があると select は空配列を返すが、
@@ -318,41 +345,33 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Complete staff invitation error:', error)
-    
+
     // エラーの詳細をログに記録
     console.error('Error details:', {
       message: error.message,
       stack: error.stack,
-      name: error.name
+      name: error.name,
+      reason: error.reason,
     })
-    
-    // より詳細なエラーメッセージを返す
-    let errorMessage = error.message
-    let statusCode = 400
-    
-    // 特定のエラーケースに対する対処
-    if (error.message.includes('招待が見つからない')) {
-      statusCode = 404
-      errorMessage = '指定された招待URLは無効です。'
-    } else if (error.message.includes('有効期限が切れています')) {
-      statusCode = 410
-      errorMessage = '招待の有効期限が切れています（24時間）。新しい招待をリクエストしてください。'
-    } else if (error.message.includes('既にこの店舗のメンバー')) {
-      statusCode = 409
-      errorMessage = '既にこの店舗のメンバーです。'
-    } else if (error.message.includes('認証')) {
-      statusCode = 401
-      errorMessage = '認証に失敗しました。再度ログインしてください。'
+
+    // InvitationError なら reason / status をそのまま使う。
+    // それ以外はメッセージ含意で推定 (旧呼び出し互換)、最終的に unknown。
+    let reason: FailReason = (error as InvitationError).reason
+    let statusCode: number = (error as InvitationError).status || 400
+
+    if (!reason) {
+      const m = String(error?.message || '')
+      if (m.includes('認証')) { reason = 'auth_failed'; statusCode = 401 }
+      else if (m.includes('招待が見つからない') || m.includes('使用済み')) { reason = 'invitation_not_found'; statusCode = 404 }
+      else if (m.includes('既にこの店舗のメンバー')) { reason = 'membership_failed'; statusCode = 500 }
+      else { reason = 'unknown'; statusCode = 400 }
     }
-    
+
     return new Response(
       JSON.stringify({
         success: false,
-        error: errorMessage,
-        details: {
-          originalError: error.message,
-          timestamp: new Date().toISOString()
-        }
+        reason,                 // フロント側で文言マッピングのキーとして使う
+        error: error.message,   // デバッグ用 (ユーザーには表示しない)
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

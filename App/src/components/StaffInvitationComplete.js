@@ -15,23 +15,81 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
+// ----------------------------------------
+// Edge Function の reason → ユーザー向けメッセージ
+//   タイトル: 何が起きたか (短く)
+//   description: どうしたら良いか (具体的に、操作可能に)
+//   コードや内部用語は出さない。フロントの状態だけで自己完結する文言。
+// ----------------------------------------
+const REASON_MESSAGES = {
+  auth_required: {
+    title: 'ログインが切れています',
+    description: 'ログインの有効期限が切れた可能性があります。一度ログアウトして、招待 URL を開き直してください。',
+  },
+  auth_failed: {
+    title: 'ログイン情報を確認できませんでした',
+    description: 'お使いのアカウントのログインが正しく完了していないようです。一度ログアウトしてから、招待 URL を開き直してください。',
+  },
+  bad_request: {
+    title: 'うまく処理を始められませんでした',
+    description: 'お手数ですが、招待 URL を開き直してから、もう一度お試しください。',
+  },
+  invitation_not_found: {
+    title: 'この招待は見つかりませんでした',
+    description: 'URL が古いか、招待が取り消されている可能性があります。招待元の管理者に新しい招待を発行してもらってください。',
+  },
+  invitation_used_by_other: {
+    title: 'この招待は別のアカウントで使用済みです',
+    description: '招待を受け取ったご本人のアカウントでログインし直すか、招待元の管理者にご相談ください。',
+  },
+  invitation_status_unknown: {
+    title: 'この招待は現在ご利用いただけません',
+    description: '招待の状態が想定外でした。お手数ですが招待元の管理者にご連絡ください。',
+  },
+  store_info_missing: {
+    title: '店舗情報の取得に失敗しました',
+    description: '通信が一時的に不安定な可能性があります。少し時間をおいてからもう一度お試しください。続く場合は招待元の管理者にお知らせください。',
+  },
+  user_create_failed: {
+    title: 'アカウント情報の登録に失敗しました',
+    description: 'お客様情報の保存中に問題が発生しました。少し時間をおいてからもう一度お試しください。',
+  },
+  membership_failed: {
+    title: '店舗への登録を保存できませんでした',
+    description: 'ネットワークやサーバ側の一時的な問題かもしれません。少し時間をおいてからもう一度お試しください。',
+  },
+  unknown: {
+    title: '登録処理で予期しない問題が発生しました',
+    description: 'お手数ですが、もう一度お試しください。同じ問題が続く場合は招待元の管理者にご連絡ください。',
+  },
+}
+
+function pickReason(data, errorObj) {
+  // Edge Function からの構造化レスポンス優先
+  const r = data?.reason
+  if (r && REASON_MESSAGES[r]) return r
+
+  // ネットワークエラー (Edge Function に到達できなかった等)
+  const m = String(errorObj?.message || '')
+  if (/Failed to fetch|NetworkError|network|TimeoutError|aborted/i.test(m)) {
+    return 'membership_failed' // ネットワーク扱い
+  }
+  return 'unknown'
+}
+
 export default function StaffInvitationComplete() {
   const { token } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [errorReason, setErrorReason] = useState(null); // FailReason key
   const [success, setSuccess] = useState(false);
   const [storeInfo, setStoreInfo] = useState(null);
   const [alreadyMember, setAlreadyMember] = useState(false);
 
   useEffect(() => {
     if (!token) {
-      setError('無効なURLです。招待URLが正しくありません。');
+      setErrorReason('bad_request');
       setLoading(false);
-      // 2秒後にログアウト
-      setTimeout(async () => {
-        await supabase.auth.signOut();
-      }, 2000);
       return;
     }
     handleInvitationComplete();
@@ -40,39 +98,32 @@ export default function StaffInvitationComplete() {
   const handleInvitationComplete = async () => {
     try {
       setLoading(true);
-      setError(null);
+      setErrorReason(null);
 
       console.log('StaffInvitationComplete - token:', token);
 
       // 認証情報の取得
       const { data: sessionData } = await supabase.auth.getSession();
-      
       console.log('StaffInvitationComplete - sessionData:', sessionData);
-      
-      if (!sessionData.session) {
-        throw new Error('ログインが確認できません。再度ログインしてください。');
-      }
 
-      console.log('StaffInvitationComplete - calling Edge Function with token:', token);
+      if (!sessionData.session) {
+        setErrorReason('auth_required');
+        return;
+      }
 
       // Edge Functionを使用して招待を完了
       const { data, error } = await supabase.functions.invoke('complete-staff-invitation', {
-        body: {
-          invitationToken: token
-        },
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`,
-        },
+        body: { invitationToken: token },
+        headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
       });
 
       console.log('StaffInvitationComplete - Edge Function response:', { data, error });
 
-      if (error) {
-        throw new Error(`招待完了処理に失敗しました: ${error.message}`);
-      }
-
-      if (!data.success) {
-        throw new Error(data.error || '招待完了処理に失敗しました');
+      if (error || !data?.success) {
+        // Edge Function は失敗時に { success:false, reason } を返す
+        const reason = pickReason(data, error)
+        setErrorReason(reason)
+        return
       }
 
       console.log('StaffInvitationComplete - 登録成功:', data.store, 'alreadyMember:', data.alreadyMember);
@@ -81,29 +132,13 @@ export default function StaffInvitationComplete() {
       setSuccess(true);
 
       // 既登録ユーザーが招待URLを踏んだ場合は、ホーム (/) へ自動遷移する。
-      // 初回登録は通常の成功画面のままでユーザーが次のアクションを選べるように残す。
       if (data.alreadyMember) {
         setTimeout(() => navigate('/', { replace: true }), 1500)
       }
 
     } catch (err) {
       console.error('StaffInvitationComplete - エラー:', err);
-      
-      // エラーメッセージを具体的に設定
-      let errorMessage = err.message;
-      if (err.message.includes('招待が見つからない') || err.message.includes('使用済み')) {
-        errorMessage = '無効なURLです。招待が見つからないか、既に使用済みです。';
-      } else if (err.message.includes('有効期限')) {
-        errorMessage = '無効なURLです。招待の有効期限が切れています（24時間）。';
-      } else if (err.message.includes('既にこの店舗のメンバー')) {
-        errorMessage = '無効なURLです。既にこの店舗のメンバーです。';
-      } else if (err.message.includes('ログインが確認できません')) {
-        errorMessage = '無効なURLです。ログイン情報を確認できませんでした。';
-      } else {
-        errorMessage = '無効なURLです。招待処理に失敗しました。';
-      }
-      
-      setError(errorMessage);
+      setErrorReason(pickReason(null, err));
     } finally {
       setLoading(false);
     }
@@ -237,13 +272,10 @@ export default function StaffInvitationComplete() {
                       mb: 2
                     }}
                   >
-                    登録に失敗
+                    {(REASON_MESSAGES[errorReason] || REASON_MESSAGES.unknown).title}
                   </Typography>
-                  <Typography variant="body1" sx={{ color: '#64748b', mb: 4 }}>
-                    {error}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-                    招待元の管理者にお問い合わせください。
+                  <Typography variant="body1" sx={{ color: '#64748b', mb: 4, whiteSpace: 'pre-line' }}>
+                    {(REASON_MESSAGES[errorReason] || REASON_MESSAGES.unknown).description}
                   </Typography>
                 </motion.div>
               )}
