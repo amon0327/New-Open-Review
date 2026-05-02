@@ -21,11 +21,12 @@ import {
   AdminPanelSettings,
   WorkOutline
 } from '@mui/icons-material';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
 export default function StaffInvitationLogin() {
   const { token } = useParams();
+  const navigate = useNavigate();
   const [invitation, setInvitation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -91,14 +92,14 @@ export default function StaffInvitationLogin() {
           if (error) {
             // ユーザーフレンドリーなエラーメッセージに変換
             console.error('Edge Function error:', error.message);
-            throw new Error('この招待は無効になっているか、既に使用済みの可能性があります。招待元にお問い合わせください。');
+            throw new Error('この招待は無効になっているか、既に使用済みの可能性があります。招待元の管理者にお問い合わせください。');
           }
 
           if (!data.success) {
             // サーバーからのエラーメッセージがある場合はそれを使用、なければ汎用メッセージ
             const userFriendlyError = data.error && !data.error.includes('Edge Function')
               ? data.error
-              : 'この招待は無効になっているか、既に使用済みの可能性があります。招待元にお問い合わせください。';
+              : 'この招待は無効になっているか、既に使用済みの可能性があります。招待元の管理者にお問い合わせください。';
             throw new Error(userFriendlyError);
           }
           
@@ -112,7 +113,39 @@ export default function StaffInvitationLogin() {
           };
 
           setInvitation(invitationForState);
-          return; // 成功時は関数を終了
+
+          // 既ログインユーザーの自動誘導:
+          //   - 既にこの店舗のメンバー → ホーム (/) に遷移
+          //   - 未メンバー → complete ページへ自動遷移して新規 membership を作成
+          // (別店舗の招待 URL を踏んだ場合に複数 membership を持てるように)
+          try {
+            const { data: sessionData } = await supabase.auth.getSession()
+            if (sessionData?.session?.user) {
+              const userId = sessionData.session.user.id
+              const storeId = invitationForState.store?.id || invitationForState.stores?.id
+              if (storeId) {
+                const { data: existingMember } = await supabase
+                  .from('store_memberships')
+                  .select('id')
+                  .eq('business_user_id', userId)
+                  .eq('store_id', storeId)
+                  .maybeSingle()
+                if (existingMember) {
+                  console.log('Already a member of this store. Navigating to home.')
+                  navigate('/', { replace: true })
+                  return
+                }
+              }
+              // 既ログイン + 未メンバー → complete に自動進行
+              console.log('Logged in but not yet a member. Auto-advancing to complete.')
+              navigate(`/staff-invitation/${token}/complete`, { replace: true })
+              return
+            }
+          } catch (autoErr) {
+            console.warn('auto-advance check failed (non-fatal):', autoErr)
+          }
+
+          return; // 未ログインならログインボタン表示で終了
           
         } catch (err) {
           console.error(`試行 ${attempt} でエラー:`, err);

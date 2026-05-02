@@ -12,15 +12,17 @@ import {
   CheckCircle,
   Error as ErrorIcon
 } from '@mui/icons-material';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 
 export default function StaffInvitationComplete() {
   const { token } = useParams();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [storeInfo, setStoreInfo] = useState(null);
+  const [alreadyMember, setAlreadyMember] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -73,11 +75,16 @@ export default function StaffInvitationComplete() {
         throw new Error(data.error || '招待完了処理に失敗しました');
       }
 
-      console.log('StaffInvitationComplete - 登録成功:', data.store);
+      console.log('StaffInvitationComplete - 登録成功:', data.store, 'alreadyMember:', data.alreadyMember);
       setStoreInfo(data.store);
+      setAlreadyMember(!!data.alreadyMember);
       setSuccess(true);
 
-      // 自動ログアウトを削除 - ユーザーが手動で店舗アプリに移動
+      // 既登録ユーザーが招待URLを踏んだ場合は、ホーム (/) へ自動遷移する。
+      // 初回登録は通常の成功画面のままでユーザーが次のアクションを選べるように残す。
+      if (data.alreadyMember) {
+        setTimeout(() => navigate('/', { replace: true }), 1500)
+      }
 
     } catch (err) {
       console.error('StaffInvitationComplete - エラー:', err);
@@ -201,7 +208,7 @@ export default function StaffInvitationComplete() {
                       mb: 2
                     }}
                   >
-                    登録完了！
+                    {alreadyMember ? 'すでに登録済みです' : '登録完了！'}
                   </Typography>
                   <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
                     {storeInfo?.name}
@@ -210,7 +217,9 @@ export default function StaffInvitationComplete() {
                     {storeInfo?.companies?.name}
                   </Typography>
                   <Typography variant="body1" sx={{ color: '#64748b', mb: 4 }}>
-                    メンバーとして正常に登録されました。
+                    {alreadyMember
+                      ? 'この店舗にはすでにメンバーとして登録されています。ホームへ移動します...'
+                      : 'メンバーとして正常に登録されました。'}
                   </Typography>
                 </motion.div>
               ) : (
@@ -234,7 +243,7 @@ export default function StaffInvitationComplete() {
                     {error}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
-                    エラーが発生しました。サポートにお問い合わせください。
+                    招待元の管理者にお問い合わせください。
                   </Typography>
                 </motion.div>
               )}
