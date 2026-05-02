@@ -100,8 +100,40 @@ serve(async (req) => {
     const invitation = invitationData[0]
     console.log('Found invitation:', invitation)
 
-    // ステータスチェック（expired以外をブロック）
-    // 24時間制限無効化に伴い、expiredステータスも受け入れる
+    // ----- 冪等性ガード -----
+    // status='completed' の招待を再送信してきた場合:
+    //   - 同じ user が既にこの店舗のメンバーなら「すでに登録済み」として 200 を返す
+    //   - 別 user が completed にしたなら 409 (このトークンは使用済み)
+    // これによりリロード/再送/StrictMode 二重実行で 400 が返る誤動作を防ぐ。
+    if (invitation.status === 'completed') {
+      const { data: alreadyMember, error: alreadyErr } = await supabaseAdmin
+        .from('store_memberships')
+        .select('id')
+        .eq('business_user_id', user.id)
+        .eq('store_id', invitation.store_id)
+        .maybeSingle()
+      if (alreadyErr) {
+        console.error('Idempotent membership check error:', alreadyErr)
+        throw new Error(`メンバーシップの確認に失敗: ${alreadyErr.message}`)
+      }
+      if (alreadyMember) {
+        console.log('Idempotent re-entry: already registered, returning 200')
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'すでに登録済みです',
+            alreadyMember: true,
+            store: invitation.stores,
+            role: invitation.role,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        )
+      }
+      // 別ユーザーが完了済 = 共有/盗用された可能性
+      throw new Error('招待は既に他のユーザーで使用済みです')
+    }
+
+    // expired は 24時間制限無効化に伴い受け入れる。それ以外の未知ステータスは拒否。
     if (invitation.status && invitation.status !== 'invited' && invitation.status !== 'expired') {
       throw new Error(`招待は既に${invitation.status}です`)
     }
@@ -220,50 +252,45 @@ serve(async (req) => {
       }
     }
 
-    // 既に登録されているかチェック（サービスロールで）
-    console.log('Checking existing membership for user:', user.id, 'store:', invitation.store_id)
-    const { data: existingMembership, error: membershipCheckError } = await supabaseAdmin
-      .from('store_memberships')
-      .select('id')
-      .eq('business_user_id', user.id)
-      .eq('store_id', invitation.store_id)
-
-    console.log('Membership check result:', { existingMembership, membershipCheckError })
-
-    if (membershipCheckError) {
-      console.error('メンバーシップ確認エラー:', membershipCheckError)
-      throw new Error(`メンバーシップの確認に失敗: ${membershipCheckError.message}`)
-    }
-
-    if (existingMembership && existingMembership.length > 0) {
-      throw new Error('既にこの店舗のメンバーです')
-    }
-
     // store_membershipsに登録（サービスロールで）
+    // UNIQUE(business_user_id, store_id) 制約 + onConflict 'ignoreDuplicates' で
+    // race condition による重複行挿入を物理的に防ぐ。
+    // 並列 POST が走っても、後発のリクエストは insert がスキップされて 0 行になる。
     const membershipData = {
       business_user_id: user.id,
       store_id: invitation.store_id,
       role: invitation.role,
       company_id: invitation.stores?.company_id || null,
       shift_name: invitation.shift_name || null,
-      name: invitation.name || null
+      name: invitation.name || null,
     }
-    
-    console.log('Creating store membership with data:', membershipData)
-    
+
+    console.log('Upserting store membership with data:', membershipData)
+
     const { data: membershipResult, error: membershipError } = await supabaseAdmin
       .from('store_memberships')
-      .insert([membershipData])
+      .upsert([membershipData], {
+        onConflict: 'business_user_id,store_id',
+        ignoreDuplicates: true,
+      })
       .select()
 
-    console.log('Store membership creation result:', { membershipResult, membershipError })
+    console.log('Store membership upsert result:', { membershipResult, membershipError })
 
     if (membershipError) {
       console.error('store_memberships登録エラー:', membershipError)
       throw new Error(`メンバー登録に失敗: ${membershipError.message}`)
     }
 
-    console.log('store_memberships登録成功:', membershipResult)
+    // ignoreDuplicates: true の場合、既存行があると select は空配列を返すが、
+    // それは「既に登録済み = 成功」と等価なので 200 で返す。
+    // (上の冪等性ガードで完全には拾えない、UNIQUE 違反タイミングのケース対応)
+    const isAlreadyMember = !membershipResult || membershipResult.length === 0
+    if (isAlreadyMember) {
+      console.log('Membership already existed (race-safe path), treating as success')
+    } else {
+      console.log('store_memberships登録成功:', membershipResult)
+    }
 
     // 招待ステータスを完了に更新（サービスロールで）
     const { error: statusError } = await supabaseAdmin
@@ -278,9 +305,10 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'スタッフ登録が完了しました',
+        message: isAlreadyMember ? 'すでに登録済みです' : 'スタッフ登録が完了しました',
+        alreadyMember: isAlreadyMember,
         store: invitation.stores,
-        role: invitation.role
+        role: invitation.role,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
