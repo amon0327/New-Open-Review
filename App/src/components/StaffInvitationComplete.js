@@ -40,7 +40,7 @@ const REASON_MESSAGES = {
   },
   invitation_used_by_other: {
     title: 'この招待は別のアカウントで使用済みです',
-    description: '招待を受け取ったご本人のアカウントでログインしているかご確認のうえ、この画面のスクリーンショットを添えて招待元の管理者にお知らせください。',
+    description: 'この画面のスクリーンショットを添えて、招待元の管理者にお知らせください。',
   },
   invitation_status_unknown: {
     title: 'この招待は現在ご利用いただけません',
