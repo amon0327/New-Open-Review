@@ -57,8 +57,10 @@ serve(async (req) => {
     if (formsError) throw formsError
 
     // 2. 公開中のフォームを特定
+    // 未公開時に先頭フォームへフォールバックすると、UI 上は選択済みに見えるが
+    // DB には保存されていない状態が発生するため、必ず null を返す
     const publishedForm = forms?.find(f => f.is_published)
-    const selectedFormId = publishedForm?.id || forms?.[0]?.id
+    const selectedFormId = publishedForm?.id || null
 
     // 3. 抽選設定を取得（企業単位: company_lottery_settings）
     const { data: lotterySettings } = await supabaseAdmin
