@@ -36,7 +36,8 @@ import {
   Rocket,
   Description,
   Logout,
-  Block
+  Block,
+  Chat
 } from '@mui/icons-material';
 import FormCreator from './FormCreator';
 import NotificationDropdown from './NotificationDropdown';
@@ -54,6 +55,7 @@ import StoresManagementPage from './dashboard/pages/StoresManagementPage';
 import FormPublishPage from './dashboard/pages/FormPublishPage';
 import AnalyticsPage from './dashboard/pages/AnalyticsPage';
 import PDFPage from './dashboard/pages/PDFPage';
+import OfficialLinePage from './dashboard/pages/OfficialLinePage';
 
 const drawerWidth = 280;
 const collapsedDrawerWidth = 72;
@@ -64,6 +66,7 @@ const navigationItems = [
   { text: 'レポート', icon: <Description />, component: PDFPage },
   { text: '分析', icon: <Analytics />, component: AnalyticsPage },
   { text: '店舗情報', icon: <Business />, component: StoresManagementPage },
+  { text: '公式LINE', icon: <Chat />, component: OfficialLinePage },
   { text: '設定', icon: <Settings />, component: SettingsPage },
 ];
 
@@ -425,6 +428,8 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
       return <ActiveComponent user={user} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} />;
     } else if (navigationItems[activeTab].text === 'レポート') {
       return <ActiveComponent onNavCollapse={(collapsed) => setIsNavCollapsed(collapsed)} companyId={companyId || currentCompany?.id} companyName={currentCompany?.name} partnerTheme={partnerTheme} />;
+    } else if (navigationItems[activeTab].text === '公式LINE') {
+      return <ActiveComponent companyId={companyId || currentCompany?.id} user={user} />;
     }
     return <ActiveComponent />;
   };

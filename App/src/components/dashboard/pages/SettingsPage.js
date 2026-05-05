@@ -31,6 +31,7 @@ import { supabase } from '../../../lib/supabase';
 import toast from 'react-hot-toast';
 import CompanyInvitationForm from '../../CompanyInvitationForm';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
+import LineSettingsCard from '../line/LineSettingsCard';
 
 export default function SettingsPage({ user, onLogout, companyId, companyName }) {
   const theme = usePartnerTheme();
@@ -189,6 +190,9 @@ export default function SettingsPage({ user, onLogout, companyId, companyName })
             {message.text}
           </Alert>
         )}
+
+        {/* LINE 公式アカウント連携設定 */}
+        <LineSettingsCard companyId={companyId} />
 
         {/* 管理メンバー設定 */}
         <Card
