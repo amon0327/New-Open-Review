@@ -459,13 +459,6 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
                       <Chip label={`抽選${c.acquisition_lottery_probability ? ` ${c.acquisition_lottery_probability}%` : ''}`}
                         size="small" sx={{ bgcolor: '#fef3c7', color: '#92400e', fontWeight: 600 }} />
                     )}
-                    {c.line_coupon_id ? (
-                      <Chip label="LINE 公式登録済み" size="small"
-                        sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 600 }} />
-                    ) : (
-                      <Chip label="未同期 (再保存が必要)" size="small"
-                        sx={{ bgcolor: '#fee2e2', color: '#991b1b', fontWeight: 600 }} />
-                    )}
                   </Box>
                   {c.description && (
                     <Typography variant="body2" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
