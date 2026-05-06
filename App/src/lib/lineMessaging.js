@@ -108,6 +108,18 @@ export async function deleteCoupon(id) {
   if (error) throw error;
 }
 
+// 月の送信可能残数を取得
+export async function fetchLineQuota(companyId) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const { data, error } = await supabase.functions.invoke('get-line-message-quota', {
+    body: { company_id: companyId },
+    headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
+  });
+  if (error) throw error;
+  if (data && data.success === false) throw new Error(data.error || 'quota 取得失敗');
+  return data;
+}
+
 // LINE 公式 Coupon API へクーポンを登録 (POST /v2/bot/coupon)
 export async function syncLineCoupon(couponId) {
   const { data: { session } } = await supabase.auth.getSession();

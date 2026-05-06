@@ -1,12 +1,75 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Tabs, Tab, Typography, Card, Alert } from '@mui/material';
-import { Mail, FilterAlt, LocalOffer, Chat as ChatIcon } from '@mui/icons-material';
-import { fetchLineSettings } from '../../../lib/lineMessaging';
+import { Box, Tabs, Tab, Typography, Card, Alert, Skeleton, Tooltip, alpha } from '@mui/material';
+import { Mail, FilterAlt, LocalOffer, Chat as ChatIcon, Send, AllInclusive, Info } from '@mui/icons-material';
+import { fetchLineSettings, fetchLineQuota } from '../../../lib/lineMessaging';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import MessagesTab from '../line/MessagesTab';
 import SegmentsTab from '../line/SegmentsTab';
 import CouponsTab from '../line/CouponsTab';
 import { OfficialLineSkeleton } from '../line/LineSkeletons';
+
+// 今月の送信可能残数カード
+function QuotaCard({ quota, loading, theme }) {
+  if (loading) {
+    return (
+      <Box sx={{
+        px: 2.5, py: 1.5, borderRadius: 1,
+        border: '1px solid #e2e8f0', minWidth: 240,
+      }}>
+        <Skeleton variant="text" width={140} height={16} />
+        <Skeleton variant="text" width={120} height={32} sx={{ mt: 0.5 }} />
+        <Skeleton variant="text" width={180} height={14} />
+      </Box>
+    );
+  }
+  if (!quota || quota.enabled === false) return null;
+
+  const isUnlimited = !!quota.unlimited;
+
+  return (
+    <Box sx={{
+      px: 2.5, py: 1.5, borderRadius: 1,
+      border: `1px solid ${alpha(theme.primary, 0.2)}`,
+      background: alpha(theme.primary, 0.04),
+      minWidth: 240,
+      display: 'flex', flexDirection: 'column', gap: 0.25,
+    }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+        <Send sx={{ fontSize: 14, color: theme.primary }} />
+        <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', letterSpacing: 0.5 }}>
+          今月の送信可能数
+        </Typography>
+        <Tooltip title="LINE 公式アカウントの月次配信枠の残量。送信するごとに減ります。">
+          <Info sx={{ fontSize: 14, color: '#94a3b8', cursor: 'help' }} />
+        </Tooltip>
+      </Box>
+      {isUnlimited ? (
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75 }}>
+          <AllInclusive sx={{ fontSize: 28, color: theme.primary }} />
+          <Typography sx={{
+            fontSize: '1.5rem', fontWeight: 700, color: theme.primary, lineHeight: 1.1,
+          }}>
+            無制限
+          </Typography>
+        </Box>
+      ) : (
+        <>
+          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
+            <Typography sx={{
+              fontSize: '1.75rem', fontWeight: 800, color: theme.primary, lineHeight: 1.1,
+            }}>
+              {quota.remaining?.toLocaleString() ?? '-'}
+            </Typography>
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>通</Typography>
+          </Box>
+          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+            使用 {quota.used?.toLocaleString() ?? 0} / 上限 {quota.limit?.toLocaleString() ?? 0} 通
+          </Typography>
+        </>
+      )}
+    </Box>
+  );
+}
 
 export default function OfficialLinePage({ companyId, user }) {
   const theme = usePartnerTheme();
@@ -18,6 +81,10 @@ export default function OfficialLinePage({ companyId, user }) {
   // フォーム中は header / tabs を非表示にして「新しいページに遷移した」体験を出す
   const [inFormMode, setInFormMode] = useState(false);
 
+  // LINE 月次送信枠
+  const [quota, setQuota] = useState(null);
+  const [quotaLoading, setQuotaLoading] = useState(false);
+
   useEffect(() => {
     const load = async () => {
       if (!companyId) return;
@@ -25,6 +92,18 @@ export default function OfficialLinePage({ companyId, user }) {
         setLoading(true);
         const s = await fetchLineSettings(companyId);
         setEnabled(!!s?.line_messaging_enabled);
+        if (s?.line_messaging_enabled) {
+          setQuotaLoading(true);
+          try {
+            const q = await fetchLineQuota(companyId);
+            setQuota(q);
+          } catch (e) {
+            // quota 取得失敗時は表示しない (連携自体は有効)
+            setQuota(null);
+          } finally {
+            setQuotaLoading(false);
+          }
+        }
       } finally { setLoading(false); }
     };
     load();
@@ -42,20 +121,24 @@ export default function OfficialLinePage({ companyId, user }) {
     }}>
       {!inFormMode && (
         <Box sx={{ p: 3, pb: 0 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 2 }}>
             <Box sx={{
               width: 48, height: 48, borderRadius: 1,
               background: theme.primaryGradient || theme.primary,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 2,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <ChatIcon sx={{ color: 'white', fontSize: 28 }} />
             </Box>
-            <Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a202c' }}>LINEメッセージ</Typography>
               <Typography variant="body2" sx={{ color: '#64748b' }}>
                 アンケート回答者にターゲットを絞ったメッセージやクーポンを配信
               </Typography>
             </Box>
+            {/* 今月の送信枠表示 */}
+            {enabled && (
+              <QuotaCard quota={quota} loading={quotaLoading} theme={theme} />
+            )}
           </Box>
 
           {!enabled && (
