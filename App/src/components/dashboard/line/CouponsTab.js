@@ -16,6 +16,7 @@ import ConfirmDialog from './ConfirmDialog';
 const empty = {
   id: null,
   title: '', description: '', image_url: '',
+  has_start_at: false,
   start_at: '', expires_at: '',
   max_use_count_per_ticket: 1,
   usage_condition: '',
@@ -27,7 +28,6 @@ const empty = {
   acquisition_type: 'normal',
   acquisition_lottery_probability: '',
   acquisition_max_acquire_count: '',
-  is_active: true,
 };
 
 const REWARD_TYPES = [
@@ -98,6 +98,7 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
     setEditing({
       ...empty, ...c,
       title: c.title || c.name || '',
+      has_start_at: !!c.start_at,
       start_at: c.start_at ? c.start_at.slice(0, 16) : '',
       expires_at: c.expires_at ? c.expires_at.slice(0, 16) : '',
       reward_type: ['discount','free','gift'].includes(c.reward_type) ? c.reward_type : 'discount',
@@ -117,7 +118,7 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
 
   const handleSave = async () => {
     if (!editing.title?.trim()) return toast.error('クーポンタイトルを入力してください');
-    if (!editing.start_at) return toast.error('開始日時を指定してください');
+    if (editing.has_start_at && !editing.start_at) return toast.error('開始日時を指定してください');
     if (!editing.expires_at) return toast.error('終了日時を指定してください');
 
     if (editing.reward_type === 'discount') {
@@ -137,6 +138,8 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
       setSaving(true);
       await upsertCoupon({
         id: editing.id, companyId, ...editing,
+        start_at: editing.has_start_at ? editing.start_at : null,
+        is_active: true,
         // 削除した項目は固定値を送る
         coupon_timezone: 'ASIA_TOKYO',
         visibility: 'UNLISTED',
@@ -335,16 +338,38 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
 
             <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
               <SectionHeader title="有効期間" />
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField label="開始日時" type="datetime-local" fullWidth size="small"
-                  value={editing.start_at}
-                  onChange={(e) => setEditing({ ...editing, start_at: e.target.value })}
-                  InputLabelProps={{ shrink: true }} />
-                <TextField label="終了日時" type="datetime-local" fullWidth size="small"
-                  value={editing.expires_at}
-                  onChange={(e) => setEditing({ ...editing, expires_at: e.target.value })}
-                  InputLabelProps={{ shrink: true }} />
-              </Box>
+              <Stack spacing={2}>
+                <FormControlLabel
+                  control={
+                    <Switch checked={editing.has_start_at}
+                      onChange={(e) => setEditing({
+                        ...editing,
+                        has_start_at: e.target.checked,
+                        ...(e.target.checked ? {} : { start_at: '' }),
+                      })} />
+                  }
+                  label={
+                    <Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: '0.9rem' }}>開始日時を指定する</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        オフにすると保存時に即時開始
+                      </Typography>
+                    </Box>
+                  }
+                />
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  {editing.has_start_at && (
+                    <TextField label="開始日時" type="datetime-local" fullWidth size="small"
+                      value={editing.start_at}
+                      onChange={(e) => setEditing({ ...editing, start_at: e.target.value })}
+                      InputLabelProps={{ shrink: true }} />
+                  )}
+                  <TextField label="終了日時" type="datetime-local" fullWidth size="small"
+                    value={editing.expires_at}
+                    onChange={(e) => setEditing({ ...editing, expires_at: e.target.value })}
+                    InputLabelProps={{ shrink: true }} />
+                </Box>
+              </Stack>
             </Card>
 
             <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
@@ -363,11 +388,6 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
                 <TextField label={optLabel('利用条件', true)} multiline rows={2} fullWidth size="small"
                   value={editing.usage_condition}
                   onChange={(e) => setEditing({ ...editing, usage_condition: e.target.value })} />
-                <FormControlLabel
-                  control={<Switch checked={editing.is_active}
-                    onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} />}
-                  label="クーポンを有効にする"
-                />
               </Stack>
             </Card>
           </Stack>
@@ -432,7 +452,6 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
                       <Chip label={`抽選${c.acquisition_lottery_probability ? ` ${c.acquisition_lottery_probability}%` : ''}`}
                         size="small" sx={{ bgcolor: '#fef3c7', color: '#92400e', fontWeight: 600 }} />
                     )}
-                    {!c.is_active && <Chip label="無効" size="small" />}
                   </Box>
                   {c.description && (
                     <Typography variant="body2" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
