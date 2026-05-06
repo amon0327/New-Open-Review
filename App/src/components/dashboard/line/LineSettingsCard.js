@@ -6,6 +6,7 @@ import { Chat as ChatIcon, CheckCircle, Visibility, VisibilityOff } from '@mui/i
 import toast from 'react-hot-toast';
 import { fetchLineSettings, updateLineCredentials } from '../../../lib/lineMessaging';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
+import { SettingsCardSkeleton } from './LineSkeletons';
 
 export default function LineSettingsCard({ companyId }) {
   const theme = usePartnerTheme();
@@ -63,6 +64,10 @@ export default function LineSettingsCard({ companyId }) {
 
   const isEnabled = settings?.line_messaging_enabled;
 
+  if (loading) {
+    return <SettingsCardSkeleton />;
+  }
+
   return (
     <Card sx={{ borderRadius: 1, boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)', mb: 4 }}>
       <CardContent sx={{ p: 3 }}>
@@ -87,17 +92,13 @@ export default function LineSettingsCard({ companyId }) {
           LINE 公式アカウントの管理画面で発行された情報を入力してください。入力した情報は暗号化して安全に保管されます。
         </Typography>
 
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress sx={{ color: theme.primary }} /></Box>
-        ) : (
-          <>
-            {isEnabled && (
-              <Alert severity="success" sx={{ mb: 2 }}>
-                LINE 連携が有効です。メッセージの送信ができます。
-              </Alert>
-            )}
+        {isEnabled && (
+          <Alert severity="success" sx={{ mb: 2 }}>
+            LINE 連携が有効です。メッセージの送信ができます。
+          </Alert>
+        )}
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField label="チャネル ID" value={channelId}
                 onChange={(e) => setChannelId(e.target.value)}
                 placeholder="数字10桁ほどの ID"
@@ -137,10 +138,8 @@ export default function LineSettingsCard({ companyId }) {
                   }}>
                   {saving ? <CircularProgress size={20} sx={{ color: 'white' }} /> : (isEnabled ? '更新する' : '連携する')}
                 </Button>
-              </Box>
-            </Box>
-          </>
-        )}
+          </Box>
+        </Box>
       </CardContent>
     </Card>
   );

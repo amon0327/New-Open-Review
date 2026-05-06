@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Tabs, Tab, Typography, Card, Alert, CircularProgress } from '@mui/material';
+import { Box, Tabs, Tab, Typography, Card, Alert } from '@mui/material';
 import { Mail, FilterAlt, LocalOffer, Chat as ChatIcon } from '@mui/icons-material';
 import { fetchLineSettings } from '../../../lib/lineMessaging';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import MessagesTab from '../line/MessagesTab';
 import SegmentsTab from '../line/SegmentsTab';
 import CouponsTab from '../line/CouponsTab';
+import { OfficialLineSkeleton } from '../line/LineSkeletons';
 
 export default function OfficialLinePage({ companyId, user }) {
   const theme = usePartnerTheme();
@@ -30,11 +31,7 @@ export default function OfficialLinePage({ companyId, user }) {
   }, [companyId]);
 
   if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <CircularProgress sx={{ color: theme.primary }} />
-      </Box>
-    );
+    return <OfficialLineSkeleton />;
   }
 
   return (

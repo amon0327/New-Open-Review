@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import { fetchCoupons, upsertCoupon, deleteCoupon, uploadLineImage } from '../../../lib/lineMessaging';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import ConfirmDialog from './ConfirmDialog';
+import { ListSkeleton } from './LineSkeletons';
 
 const empty = {
   id: null,
@@ -409,7 +410,7 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
       </Box>
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress sx={{ color: theme.primary }} /></Box>
+        <ListSkeleton count={4} />
       ) : coupons.length === 0 ? (
         <Card sx={{ p: 6, textAlign: 'center', borderRadius: 1 }}>
           <LocalOffer sx={{ fontSize: 48, color: '#cbd5e1', mb: 1 }} />

@@ -16,6 +16,7 @@ import {
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import ConfirmDialog from './ConfirmDialog';
 import LineAudienceTable from './LineAudienceTable';
+import { ListSkeleton, FormSkeleton } from './LineSkeletons';
 
 const newBlock = (type) => ({
   block_type: type,
@@ -114,6 +115,9 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
     await loadAudienceForSegment('');
   };
   const openEdit = async (m) => {
+    // 先に form モードへ切り替えてスケルトンを表示
+    setEditing(null);
+    setMode('form');
     try {
       const full = await fetchMessageWithBlocks(m.id);
       setEditing({
@@ -124,9 +128,11 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
           ? full.blocks.filter(b => ['text','image','coupon'].includes(b.block_type))
           : [newBlock('text')],
       });
-      setMode('form');
       await loadAudienceForSegment(full.target_segment_id || '');
-    } catch (e) { toast.error('読み込み失敗'); }
+    } catch (e) {
+      toast.error('読み込み失敗');
+      setMode('list');
+    }
   };
   const backToList = () => { setEditing(null); setAudience([]); setMode('list'); };
 
@@ -273,6 +279,10 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
     </Card>
   );
 
+  if (mode === 'form' && !editing) {
+    return <FormSkeleton sections={4} />;
+  }
+
   if (mode === 'form' && editing) {
     return (
       <Box sx={{ minHeight: '100%', background: '#f8fafc' }}>
@@ -399,7 +409,7 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
       </Box>
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress sx={{ color: theme.primary }} /></Box>
+        <ListSkeleton count={4} />
       ) : messages.length === 0 ? (
         <Card sx={{ p: 6, textAlign: 'center', borderRadius: 1 }}>
           <Mail sx={{ fontSize: 48, color: '#cbd5e1', mb: 1 }} />

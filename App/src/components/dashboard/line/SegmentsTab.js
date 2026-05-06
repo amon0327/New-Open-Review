@@ -14,6 +14,7 @@ import {
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import ConfirmDialog from './ConfirmDialog';
 import LineAudienceTable from './LineAudienceTable';
+import { ListSkeleton } from './LineSkeletons';
 
 const NPS_OPTIONS = [
   { value: 'promoter', label: '推奨者' },
@@ -406,7 +407,7 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
       </Box>
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress sx={{ color: theme.primary }} /></Box>
+        <ListSkeleton count={4} />
       ) : segments.length === 0 ? (
         <Card sx={{ p: 6, textAlign: 'center', borderRadius: 1 }}>
           <FilterAlt sx={{ fontSize: 48, color: '#cbd5e1', mb: 1 }} />
