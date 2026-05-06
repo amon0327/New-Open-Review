@@ -122,6 +122,10 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
       const full = await fetchMessageWithBlocks(m.id);
       setEditing({
         id: full.id,
+        status: full.status,
+        sent_at: full.sent_at,
+        recipient_count: full.recipient_count,
+        delivered_count: full.delivered_count,
         title: full.title || '',
         target_segment_id: full.target_segment_id || '',
         blocks: (full.blocks || []).filter(b => ['text','image','coupon'].includes(b.block_type)).length > 0
@@ -293,21 +297,40 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
           boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
         }}>
           <IconButton onClick={backToList}><ArrowBack /></IconButton>
-          <Typography variant="h6" sx={{ fontWeight: 700, flex: 1 }}>
-            {editing.id ? 'メッセージを編集' : '新規メッセージ作成'}
-          </Typography>
-          <Button onClick={backToList} sx={{ color: '#64748b' }}>キャンセル</Button>
-          <Button onClick={handleSave} disabled={saving} variant="outlined" startIcon={<Save />}
-            sx={{ borderColor: theme.primary, color: theme.primary }}>
-            {saving ? <CircularProgress size={20} /> : '下書き保存'}
-          </Button>
-          <Button onClick={() => setConfirmSend(true)} disabled={sending || saving} variant="contained" startIcon={<Send />}
-            sx={{
-              background: theme.primaryGradient || theme.primary, color: 'white', px: 3, fontWeight: 600,
-              '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
-            }}>
-            {sending ? <CircularProgress size={20} sx={{ color: 'white' }} /> : '送信'}
-          </Button>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              {!editing.id ? '新規メッセージ作成'
+                : editing.status === 'sent' ? 'メッセージを表示 (送信済み)'
+                : editing.status === 'failed' ? 'メッセージを表示 (送信失敗)'
+                : 'メッセージを編集'}
+            </Typography>
+            {editing.status === 'sent' && editing.sent_at && (
+              <Typography variant="caption" color="text.secondary">
+                送信日時: {new Date(editing.sent_at).toLocaleString('ja-JP')} / 配信 {editing.delivered_count} / {editing.recipient_count} 名
+              </Typography>
+            )}
+          </Box>
+          {editing.status === 'sent' || editing.status === 'failed' ? (
+            <Button onClick={backToList} variant="outlined"
+              sx={{ borderColor: theme.primary, color: theme.primary }}>
+              閉じる
+            </Button>
+          ) : (
+            <>
+              <Button onClick={backToList} sx={{ color: '#64748b' }}>キャンセル</Button>
+              <Button onClick={handleSave} disabled={saving} variant="outlined" startIcon={<Save />}
+                sx={{ borderColor: theme.primary, color: theme.primary }}>
+                {saving ? <CircularProgress size={20} /> : '下書き保存'}
+              </Button>
+              <Button onClick={() => setConfirmSend(true)} disabled={sending || saving} variant="contained" startIcon={<Send />}
+                sx={{
+                  background: theme.primaryGradient || theme.primary, color: 'white', px: 3, fontWeight: 600,
+                  '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
+                }}>
+                {sending ? <CircularProgress size={20} sx={{ color: 'white' }} /> : '送信'}
+              </Button>
+            </>
+          )}
         </Box>
 
         <Box sx={{ p: 3 }}>
