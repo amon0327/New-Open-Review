@@ -63,10 +63,10 @@ const collapsedDrawerWidth = 72;
 const navigationItems = [
   { text: 'ホーム', icon: <Home />, component: HomePage },
   { text: 'フォーム公開', icon: <Rocket />, component: FormPublishPage },
+  { text: '公式LINE', icon: <Chat />, component: OfficialLinePage },
   { text: 'レポート', icon: <Description />, component: PDFPage },
   { text: '分析', icon: <Analytics />, component: AnalyticsPage },
   { text: '店舗情報', icon: <Business />, component: StoresManagementPage },
-  { text: '公式LINE', icon: <Chat />, component: OfficialLinePage },
   { text: '設定', icon: <Settings />, component: SettingsPage },
 ];
 
