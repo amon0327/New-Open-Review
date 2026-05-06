@@ -22,24 +22,34 @@ const NPS_OPTIONS = [
   { value: 'detractor', label: '批判者' },
 ];
 
-const QSC_OPTIONS = [
-  { value: 'quality', label: '品質 (Q)' },
-  { value: 'service', label: '接客 (S)' },
-  { value: 'cleanliness', label: '清潔感 (C)' },
-];
-
-const PREFERENCES = ['品質', '接客', '空間', '衛生', '価格感度'];
-
 const NPS_LABELS = { promoter: '推奨者', passive: '中立者', detractor: '批判者' };
+
+// 回答属性 (preset_question_answer)
+const GENDERS = ['男性', '女性', 'その他'];
+const AGE_GROUPS = [
+  '~19歳', '20歳~24歳', '25歳~29歳', '30歳~34歳', '35歳~39歳',
+  '40歳~44歳', '45歳~49歳', '50歳~54歳', '55歳~59歳',
+  '60歳~69歳', '70歳~79歳', '80歳~',
+];
+const VISIT_COUNTS = ['初めて', '2回目', '3回目', '4回目', '5回目', '6回目~10回目', '11回目以上'];
+const COMPANIONS = [
+  'お一人', 'ご家族', 'ご友人', '恋人・パートナー',
+  '職場の同僚', 'お取引先・ビジネス関係', 'その他',
+];
+const REVISIT_PERIODS = ['1ヶ月以内', '3ヶ月以内', '6ヶ月以内', '10ヶ月以内', '1年以内', '1年以上'];
 
 const empty = {
   id: null, name: '', description: '',
   conditions: {
-    store_ids: [], selected_qsc: [],
-    top_preferences: [], second_preferences: [],
+    store_ids: [],
     nps_segments: [],
     is_repeater: null,
     has_revisit_intent: null,
+    genders: [],
+    age_groups: [],
+    visit_counts: [],
+    companions: [],
+    revisit_periods: [],
     answered_from: '', answered_to: '',
   },
 };
@@ -190,12 +200,14 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
       id: s.id, name: s.name, description: s.description || '',
       conditions: {
         store_ids: s.conditions?.store_ids || [],
-        selected_qsc: s.conditions?.selected_qsc || [],
-        top_preferences: s.conditions?.top_preferences || [],
-        second_preferences: s.conditions?.second_preferences || [],
         nps_segments: s.conditions?.nps_segments || [],
         is_repeater: typeof s.conditions?.is_repeater === 'boolean' ? s.conditions.is_repeater : null,
         has_revisit_intent: typeof s.conditions?.has_revisit_intent === 'boolean' ? s.conditions.has_revisit_intent : null,
+        genders: s.conditions?.genders || [],
+        age_groups: s.conditions?.age_groups || [],
+        visit_counts: s.conditions?.visit_counts || [],
+        companions: s.conditions?.companions || [],
+        revisit_periods: s.conditions?.revisit_periods || [],
         answered_from: s.conditions?.answered_from || '',
         answered_to: s.conditions?.answered_to || '',
       },
@@ -241,8 +253,11 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
     if (c.nps_segments?.length) chips.push(`推奨度 ${c.nps_segments.map(n => NPS_LABELS[n]).join('/')}`);
     if (typeof c.is_repeater === 'boolean') chips.push(c.is_repeater ? 'リピーター' : '新規');
     if (typeof c.has_revisit_intent === 'boolean') chips.push(c.has_revisit_intent ? 'リピート意向あり' : 'リピート意向なし');
-    if (c.selected_qsc?.length) chips.push(`QSC ${c.selected_qsc.length}件`);
-    if (c.top_preferences?.length) chips.push(`重視 ${c.top_preferences.length}件`);
+    if (c.genders?.length) chips.push(`性別 ${c.genders.join('/')}`);
+    if (c.age_groups?.length) chips.push(`年齢 ${c.age_groups.length}件`);
+    if (c.visit_counts?.length) chips.push(`来店回数 ${c.visit_counts.length}件`);
+    if (c.companions?.length) chips.push(`同伴者 ${c.companions.length}件`);
+    if (c.revisit_periods?.length) chips.push(`再訪時期 ${c.revisit_periods.length}件`);
     if (c.answered_from || c.answered_to) chips.push('期間指定');
     return chips;
   };
@@ -313,9 +328,9 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
               </Stack>
             </Card>
 
-            {/* 詳細条件 */}
+            {/* 来店者属性 */}
             <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-              <SectionHeader title="詳細条件" optional />
+              <SectionHeader title="来店者属性" optional />
               <Stack spacing={2.5}>
                 <Box>
                   <FieldLabel>店舗</FieldLabel>
@@ -325,23 +340,34 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
                     onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, store_ids: arr } })} />
                 </Box>
                 <Box>
-                  <FieldLabel>選択 QSC</FieldLabel>
-                  <ChipMultiSelect options={QSC_OPTIONS}
-                    getKey={(o) => o.value}
-                    selected={editing.conditions.selected_qsc}
-                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, selected_qsc: arr } })} />
+                  <FieldLabel>性別</FieldLabel>
+                  <ChipMultiSelect options={GENDERS}
+                    selected={editing.conditions.genders}
+                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, genders: arr } })} />
                 </Box>
                 <Box>
-                  <FieldLabel>最重視ポイント</FieldLabel>
-                  <ChipMultiSelect options={PREFERENCES}
-                    selected={editing.conditions.top_preferences}
-                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, top_preferences: arr } })} />
+                  <FieldLabel>年齢層</FieldLabel>
+                  <ChipMultiSelect options={AGE_GROUPS}
+                    selected={editing.conditions.age_groups}
+                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, age_groups: arr } })} />
                 </Box>
                 <Box>
-                  <FieldLabel>次点ポイント</FieldLabel>
-                  <ChipMultiSelect options={PREFERENCES}
-                    selected={editing.conditions.second_preferences}
-                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, second_preferences: arr } })} />
+                  <FieldLabel>来店回数</FieldLabel>
+                  <ChipMultiSelect options={VISIT_COUNTS}
+                    selected={editing.conditions.visit_counts}
+                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, visit_counts: arr } })} />
+                </Box>
+                <Box>
+                  <FieldLabel>同伴者</FieldLabel>
+                  <ChipMultiSelect options={COMPANIONS}
+                    selected={editing.conditions.companions}
+                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, companions: arr } })} />
+                </Box>
+                <Box>
+                  <FieldLabel>再訪意向時期</FieldLabel>
+                  <ChipMultiSelect options={REVISIT_PERIODS}
+                    selected={editing.conditions.revisit_periods}
+                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, revisit_periods: arr } })} />
                 </Box>
               </Stack>
             </Card>
