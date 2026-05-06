@@ -95,22 +95,24 @@ const buildCouponFlex = (coupon: Coupon, vars: Record<string, string>) => {
 
   const bodyContents: unknown[] = []
 
-  // バッジ (抽選 / 公開)
+  // バッジ (抽選 / 公開) - 親は horizontal layout (baseline 内には box を入れられない)
   const badges: unknown[] = []
   if (coupon.acquisition_type === 'lottery') {
     badges.push({
-      type: 'box', layout: 'baseline', cornerRadius: 'md', backgroundColor: '#fef3c7', paddingAll: 'xs', flex: 0,
-      contents: [{ type: 'text', text: '抽選', size: 'xs', color: '#92400e', weight: 'bold', flex: 0 }],
+      type: 'box', layout: 'vertical', cornerRadius: 'md',
+      backgroundColor: '#fef3c7', paddingAll: 'xs',
+      contents: [{ type: 'text', text: '抽選', size: 'xs', color: '#92400e', weight: 'bold', align: 'center' }],
     })
   }
   if (coupon.visibility === 'PUBLIC') {
     badges.push({
-      type: 'box', layout: 'baseline', cornerRadius: 'md', backgroundColor: '#dbeafe', paddingAll: 'xs', flex: 0, margin: 'sm',
-      contents: [{ type: 'text', text: 'PUBLIC', size: 'xs', color: '#1e40af', weight: 'bold', flex: 0 }],
+      type: 'box', layout: 'vertical', cornerRadius: 'md',
+      backgroundColor: '#dbeafe', paddingAll: 'xs',
+      contents: [{ type: 'text', text: 'PUBLIC', size: 'xs', color: '#1e40af', weight: 'bold', align: 'center' }],
     })
   }
   if (badges.length > 0) {
-    bodyContents.push({ type: 'box', layout: 'baseline', contents: badges, spacing: 'sm', margin: 'none' })
+    bodyContents.push({ type: 'box', layout: 'horizontal', contents: badges, spacing: 'sm' })
   }
 
   bodyContents.push({ type: 'text', text: substituteVars(title, vars), weight: 'bold', size: 'xl', wrap: true, margin: badges.length > 0 ? 'md' : 'none' })
@@ -137,10 +139,10 @@ const buildCouponFlex = (coupon: Coupon, vars: Record<string, string>) => {
       ? `${formatDate(coupon.start_at)} 〜 ${formatDate(coupon.expires_at)}`
       : coupon.expires_at ? formatDate(coupon.expires_at) : `${formatDate(coupon.start_at)} 〜`
     bodyContents.push({
-      type: 'box', layout: 'baseline', margin: 'lg', spacing: 'sm',
+      type: 'box', layout: 'vertical', margin: 'lg', spacing: 'xs',
       contents: [
-        { type: 'text', text: '有効期限', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: period, size: 'sm', flex: 5, wrap: true },
+        { type: 'text', text: '有効期限', size: 'xs', color: '#888888' },
+        { type: 'text', text: period || '-', size: 'sm', wrap: true },
       ],
     })
   }
@@ -151,12 +153,12 @@ const buildCouponFlex = (coupon: Coupon, vars: Record<string, string>) => {
   // フッター (使用回数 / 獲得枚数)
   const footerChips: unknown[] = []
   if (coupon.max_use_count_per_ticket === -1) {
-    footerChips.push({ type: 'text', text: '使用無制限', size: 'xxs', color: '#64748b', flex: 0 })
+    footerChips.push({ type: 'text', text: '使用無制限', size: 'xxs', color: '#64748b' })
   } else {
-    footerChips.push({ type: 'text', text: '1人1回', size: 'xxs', color: '#64748b', flex: 0 })
+    footerChips.push({ type: 'text', text: '1人1回', size: 'xxs', color: '#64748b' })
   }
   if (coupon.max_ticket_per_user) {
-    footerChips.push({ type: 'text', text: `最大${coupon.max_ticket_per_user}枚`, size: 'xxs', color: '#64748b', flex: 0, margin: 'md' })
+    footerChips.push({ type: 'text', text: `最大${coupon.max_ticket_per_user}枚`, size: 'xxs', color: '#64748b', margin: 'md' })
   }
   if (footerChips.length > 0) {
     bodyContents.push({ type: 'box', layout: 'baseline', margin: 'lg', contents: footerChips })
@@ -400,8 +402,13 @@ serve(async (req) => {
         })
         if (!res.ok) {
           chunkSucceeded = false
-          lastError = `${res.status}: ${(await res.text()).slice(0, 300)}`
-          console.error('LINE multicast failed:', lastError)
+          const body = await res.text()
+          lastError = `${res.status}: ${body.slice(0, 500)}`
+          console.error('LINE multicast failed:', {
+            status: res.status,
+            error_body: body,
+            request_messages: JSON.stringify(batch).slice(0, 2000),
+          })
           break
         }
       }
