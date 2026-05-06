@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Button, Card, TextField, IconButton, Chip, CircularProgress,
-  Stack, FormControl, InputLabel, Select, MenuItem, Avatar, Divider, Alert,
-  FormControlLabel, Switch,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
+  Stack, FormControl, InputLabel, Select, MenuItem, Avatar, Divider,
+  FormControlLabel, Switch, alpha,
   Accordion, AccordionSummary, AccordionDetails,
 } from '@mui/material';
 import {
@@ -19,6 +18,7 @@ import {
 } from '../../../lib/lineMessaging';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import ConfirmDialog from './ConfirmDialog';
+import LineAudienceTable from './LineAudienceTable';
 
 const newBlock = (type) => {
   const base = {
@@ -84,7 +84,7 @@ export default function MessagesTab({ companyId, user }) {
   const [uploadingIdx, setUploadingIdx] = useState(-1);
   const [uploadingSenderIcon, setUploadingSenderIcon] = useState(false);
   const [audience, setAudience] = useState([]);
-  const [audienceCount, setAudienceCount] = useState(null);
+  const [audienceLoading, setAudienceLoading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmSend, setConfirmSend] = useState(false);
 
@@ -103,7 +103,7 @@ export default function MessagesTab({ companyId, user }) {
 
   const openNew = () => {
     setEditing({ ...emptyMessage, blocks: [newBlock('text')] });
-    setAudience([]); setAudienceCount(null);
+    setAudience([]);
     setMode('form');
   };
   const openEdit = async (m) => {
@@ -120,7 +120,7 @@ export default function MessagesTab({ companyId, user }) {
         custom_aggregation_units: Array.isArray(full.custom_aggregation_units) ? full.custom_aggregation_units : [],
         blocks: full.blocks.length > 0 ? full.blocks : [newBlock('text')],
       });
-      setAudience([]); setAudienceCount(null);
+      setAudience([]);
       setMode('form');
     } catch (e) { toast.error('読み込み失敗'); }
   };
@@ -245,15 +245,16 @@ export default function MessagesTab({ companyId, user }) {
 
   const handlePreviewAudience = async () => {
     try {
+      setAudienceLoading(true);
       let conditions = {};
       if (editing.target_segment_id) {
         const s = segments.find(x => x.id === editing.target_segment_id);
         conditions = s?.conditions || {};
       }
-      const list = await fetchAudienceList({ companyId, conditions, limit: 500 });
+      const list = await fetchAudienceList({ companyId, conditions, limit: 5000 });
       setAudience(list);
-      setAudienceCount(list.length);
     } catch (e) { toast.error(e?.message || 'プレビュー失敗'); }
+    finally { setAudienceLoading(false); }
   };
 
   // Quick Reply (LINE 全 action タイプ対応)
@@ -475,7 +476,7 @@ export default function MessagesTab({ companyId, user }) {
             <FormControl fullWidth>
               <InputLabel>送信先セグメント</InputLabel>
               <Select value={editing.target_segment_id}
-                onChange={(e) => { setEditing({ ...editing, target_segment_id: e.target.value }); setAudience([]); setAudienceCount(null); }}
+                onChange={(e) => { setEditing({ ...editing, target_segment_id: e.target.value }); setAudience([]); }}
                 label="送信先セグメント"
               >
                 <MenuItem value=""><em>全 LINE 連携回答者</em></MenuItem>
@@ -485,43 +486,28 @@ export default function MessagesTab({ companyId, user }) {
               </Select>
             </FormControl>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Button startIcon={<Visibility />} onClick={handlePreviewAudience} variant="outlined" size="small">
-                対象ユーザーを表示
-              </Button>
-              {audienceCount !== null && (
-                <Alert severity="info" sx={{ flex: 1, py: 0 }}>
-                  対象 LINE ユーザー数: <strong>{audienceCount}</strong> 名
-                </Alert>
-              )}
-            </Box>
-
-            {audience.length > 0 && (
-              <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 300 }}>
-                <Table size="small" stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 700 }}>表示名</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>LINE userId</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }} align="right">回答回数</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>最終回答日</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {audience.map((a) => (
-                      <TableRow key={a.line_user_id} hover>
-                        <TableCell>{a.display_name}</TableCell>
-                        <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#64748b' }}>
-                          {a.line_user_id?.slice(0, 8)}...
-                        </TableCell>
-                        <TableCell align="right">{a.answer_count}</TableCell>
-                        <TableCell>{a.last_answered_at ? new Date(a.last_answered_at).toLocaleString('ja-JP') : '-'}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
+            <Card variant="outlined" sx={{ borderRadius: 1, overflow: 'hidden' }}>
+              <Box sx={{
+                px: 2, py: 1.5,
+                display: 'flex', alignItems: 'center', gap: 2,
+                background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+                borderBottom: '1px solid #e2e8f0',
+              }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, flex: 1 }}>対象ユーザー</Typography>
+                <Chip label={`${audience.length} 名`} size="small"
+                  sx={{ bgcolor: theme.primaryAlpha10 || alpha(theme.primary, 0.1), color: theme.primary, fontWeight: 700 }} />
+                <Button onClick={handlePreviewAudience} disabled={audienceLoading}
+                  variant="contained" size="small" startIcon={audienceLoading ? <CircularProgress size={14} sx={{ color: 'white' }} /> : <Visibility />}
+                  sx={{
+                    background: theme.primaryGradient || theme.primary, color: 'white', fontWeight: 600,
+                    '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
+                  }}>
+                  フィルタリング
+                </Button>
+              </Box>
+              <LineAudienceTable rows={audience} loading={audienceLoading}
+                emptyHint="「フィルタリング」をクリックして対象ユーザーを取得" />
+            </Card>
 
             <Divider><Chip label="メッセージ内容" size="small" /></Divider>
 
@@ -728,7 +714,7 @@ export default function MessagesTab({ companyId, user }) {
         <ConfirmDialog
           open={confirmSend}
           title="メッセージを送信"
-          message={`「${editing.title}」を ${audienceCount ?? '対象'} 名に送信します。よろしいですか?\n送信後の取り消しはできません。`}
+          message={`「${editing.title}」を ${audience.length || '対象'} 名に送信します。よろしいですか?\n送信後の取り消しはできません。`}
           confirmLabel="送信する"
           onConfirm={handleSend}
           onCancel={() => setConfirmSend(false)}
