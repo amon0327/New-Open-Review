@@ -1,30 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Box, Typography, Chip, Skeleton, alpha,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
 } from '@mui/material';
-import { FilterAlt } from '@mui/icons-material';
+import { FilterAlt, CheckCircle, RemoveCircle } from '@mui/icons-material';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 
-const NPS_CHIP = {
-  promoter: { label: '推奨者', sx: { bgcolor: '#dcfce7', color: '#166534' } },
-  passive: { label: '中立者', sx: { bgcolor: '#fef3c7', color: '#92400e' } },
-  detractor: { label: '批判者', sx: { bgcolor: '#fee2e2', color: '#991b1b' } },
+const NPS_STYLE = {
+  promoter: { label: '推奨者', color: '#15803d', bg: '#dcfce7', dot: '#22c55e' },
+  passive: { label: '中立者', color: '#92400e', bg: '#fef3c7', dot: '#f59e0b' },
+  detractor: { label: '批判者', color: '#991b1b', bg: '#fee2e2', dot: '#ef4444' },
 };
-
-const ROWS_PER_PAGE = 100;
 
 export default function LineAudienceTable({ rows, loading, emptyHint }) {
   const theme = usePartnerTheme();
-  const [page, setPage] = useState(0);
-
-  useEffect(() => { setPage(0); }, [rows]);
 
   if (loading) {
     return (
-      <Box sx={{ p: 2 }}>
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} variant="rectangular" height={48} sx={{ mb: 1, borderRadius: 1 }} />
+      <Box sx={{ p: 3 }}>
+        {[...Array(6)].map((_, i) => (
+          <Skeleton key={i} variant="rectangular" height={56} sx={{ mb: 1, borderRadius: 1 }} />
         ))}
       </Box>
     );
@@ -32,89 +27,109 @@ export default function LineAudienceTable({ rows, loading, emptyHint }) {
 
   if (!rows || rows.length === 0) {
     return (
-      <Box sx={{ p: 6, textAlign: 'center' }}>
-        <FilterAlt sx={{ fontSize: 48, color: '#cbd5e1', mb: 1 }} />
-        <Typography color="text.secondary">該当するユーザーがいません</Typography>
+      <Box sx={{ p: 8, textAlign: 'center' }}>
+        <Box sx={{
+          width: 64, height: 64, mx: 'auto', mb: 2, borderRadius: '50%',
+          background: alpha(theme.primary, 0.08),
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <FilterAlt sx={{ fontSize: 32, color: theme.primary, opacity: 0.6 }} />
+        </Box>
+        <Typography sx={{ fontWeight: 600, mb: 0.5, color: '#475569' }}>該当するユーザーがいません</Typography>
         {emptyHint && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-            {emptyHint}
-          </Typography>
+          <Typography variant="caption" color="text.secondary">{emptyHint}</Typography>
         )}
       </Box>
     );
   }
 
-  const slice = rows.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
-
   return (
-    <>
-      <TableContainer sx={{ maxHeight: 480 }}>
-        <Table size="small" stickyHeader>
-          <TableHead>
-            <TableRow sx={{ '& th': {
-              fontWeight: 700, fontSize: '0.78rem',
-              color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5,
-              borderBottom: `2px solid ${theme.primary}`,
-              backgroundColor: '#f8fafc',
-            }}}>
-              <TableCell width={48} align="center">#</TableCell>
-              <TableCell>推奨度</TableCell>
-              <TableCell>リピーター</TableCell>
-              <TableCell>リピート意向</TableCell>
-              <TableCell>最終回答日</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {slice.map((a, i) => {
-              const nps = NPS_CHIP[a.nps_segment] || { label: '不明', sx: {} };
-              return (
-                <TableRow key={a.line_user_id || i} hover
-                  sx={{
-                    '&:hover': { backgroundColor: alpha(theme.primary, 0.04) },
-                    '& td': { borderBottom: '1px solid #f1f5f9', py: 1.25 },
-                  }}>
-                  <TableCell align="center" sx={{ color: '#94a3b8', fontWeight: 600, fontSize: '0.75rem' }}>
-                    {page * ROWS_PER_PAGE + i + 1}
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={nps.label} size="small" sx={{ ...nps.sx, fontWeight: 700 }} />
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={a.is_repeater ? 'リピーター' : '新規'} size="small"
-                      sx={{
-                        fontWeight: 600,
-                        bgcolor: a.is_repeater ? alpha(theme.primary, 0.12) : '#f1f5f9',
-                        color: a.is_repeater ? theme.primary : '#64748b',
-                      }} />
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={a.has_revisit_intent ? 'あり' : 'なし'} size="small" variant="outlined"
-                      sx={{
-                        fontWeight: 600,
-                        borderColor: a.has_revisit_intent ? '#22c55e' : '#cbd5e1',
-                        color: a.has_revisit_intent ? '#15803d' : '#64748b',
-                      }} />
-                  </TableCell>
-                  <TableCell sx={{ color: '#64748b', fontSize: '0.8rem' }}>
-                    {a.last_answered_at ? new Date(a.last_answered_at).toLocaleString('ja-JP') : '-'}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        component="div"
-        count={rows.length}
-        page={page}
-        onPageChange={(_, p) => setPage(p)}
-        rowsPerPage={ROWS_PER_PAGE}
-        rowsPerPageOptions={[ROWS_PER_PAGE]}
-        labelRowsPerPage=""
-        labelDisplayedRows={({ from, to, count }) => `${from}〜${to} / ${count} 名`}
-        sx={{ borderTop: '1px solid #f1f5f9', '.MuiTablePagination-toolbar': { minHeight: 48 } }}
-      />
-    </>
+    <TableContainer>
+      <Table sx={{ tableLayout: 'fixed' }}>
+        <TableHead>
+          <TableRow sx={{ '& th': {
+            fontWeight: 700, fontSize: '0.7rem',
+            color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1.2,
+            borderBottom: `1px solid ${alpha(theme.primary, 0.15)}`,
+            backgroundColor: '#fafbfc', py: 1.5,
+          }}}>
+            <TableCell width={64} align="center">No.</TableCell>
+            <TableCell>推奨度</TableCell>
+            <TableCell>リピーター</TableCell>
+            <TableCell>リピート意向</TableCell>
+            <TableCell>最終回答日</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((a, i) => {
+            const nps = NPS_STYLE[a.nps_segment] || { label: '不明', color: '#64748b', bg: '#f1f5f9', dot: '#94a3b8' };
+            const date = a.last_answered_at ? new Date(a.last_answered_at) : null;
+            return (
+              <TableRow key={a.line_user_id || i}
+                sx={{
+                  transition: 'background 0.15s',
+                  '&:nth-of-type(even)': { backgroundColor: '#fafbfc' },
+                  '&:hover': { backgroundColor: alpha(theme.primary, 0.04) },
+                  '& td': { borderBottom: '1px solid #f1f5f9', py: 1.5 },
+                }}>
+                <TableCell align="center" sx={{ color: '#cbd5e1', fontWeight: 700, fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                  {String(i + 1).padStart(3, '0')}
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: nps.dot, flexShrink: 0 }} />
+                    <Box sx={{
+                      px: 1.25, py: 0.25, borderRadius: 1,
+                      backgroundColor: nps.bg, color: nps.color,
+                      fontSize: '0.78rem', fontWeight: 700,
+                    }}>
+                      {nps.label}
+                    </Box>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  {a.is_repeater ? (
+                    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, color: theme.primary, fontWeight: 600, fontSize: '0.85rem' }}>
+                      <CheckCircle sx={{ fontSize: 16 }} />
+                      リピーター
+                    </Box>
+                  ) : (
+                    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, color: '#94a3b8', fontSize: '0.85rem' }}>
+                      <RemoveCircle sx={{ fontSize: 16 }} />
+                      新規
+                    </Box>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {a.has_revisit_intent ? (
+                    <Chip label="あり" size="small" sx={{
+                      fontWeight: 700, height: 24,
+                      backgroundColor: '#dcfce7', color: '#15803d',
+                    }} />
+                  ) : (
+                    <Chip label="なし" size="small" variant="outlined" sx={{
+                      fontWeight: 600, height: 24,
+                      borderColor: '#e2e8f0', color: '#94a3b8',
+                    }} />
+                  )}
+                </TableCell>
+                <TableCell sx={{ color: '#64748b', fontSize: '0.85rem' }}>
+                  {date ? (
+                    <>
+                      <Box component="span" sx={{ fontWeight: 600, color: '#334155' }}>
+                        {date.toLocaleDateString('ja-JP')}
+                      </Box>
+                      <Box component="span" sx={{ ml: 1, color: '#94a3b8', fontSize: '0.78rem' }}>
+                        {date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                      </Box>
+                    </>
+                  ) : '-'}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }

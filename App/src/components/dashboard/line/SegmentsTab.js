@@ -241,9 +241,16 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
         {/* 名前/説明 */}
         <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', mb: 2 }}>
           <Stack spacing={2}>
-            <TextField label="セグメント名 *" fullWidth value={editing.name}
+            <TextField label="セグメント名" fullWidth value={editing.name}
               onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
-            <TextField label="説明" fullWidth value={editing.description}
+            <TextField
+              label={
+                <Box component="span">
+                  説明
+                  <Box component="span" sx={{ ml: 0.5, color: '#94a3b8', fontSize: '0.78em' }}>(任意)</Box>
+                </Box>
+              }
+              fullWidth value={editing.description}
               onChange={(e) => setEditing({ ...editing, description: e.target.value })} />
           </Stack>
         </Card>
