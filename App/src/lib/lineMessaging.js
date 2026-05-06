@@ -108,6 +108,18 @@ export async function deleteCoupon(id) {
   if (error) throw error;
 }
 
+// LINE 公式 Coupon API へクーポンを登録 (POST /v2/bot/coupon)
+export async function syncLineCoupon(couponId) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const { data, error } = await supabase.functions.invoke('sync-line-coupon', {
+    body: { coupon_id: couponId },
+    headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
+  });
+  if (error) throw error;
+  if (data && data.success === false) throw new Error(data.error || 'LINE 公式クーポン登録失敗');
+  return data;
+}
+
 // ============================================================================
 // ターゲットセグメント
 // ============================================================================

@@ -9,7 +9,7 @@ import {
   Add, Delete, Edit, LocalOffer, Image as ImageIcon, Upload, ArrowBack, Save,
 } from '@mui/icons-material';
 import toast from 'react-hot-toast';
-import { fetchCoupons, upsertCoupon, deleteCoupon, uploadLineImage } from '../../../lib/lineMessaging';
+import { fetchCoupons, upsertCoupon, deleteCoupon, uploadLineImage, syncLineCoupon } from '../../../lib/lineMessaging';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import ConfirmDialog from './ConfirmDialog';
 import { ListSkeleton } from './LineSkeletons';
@@ -136,7 +136,7 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
 
     try {
       setSaving(true);
-      await upsertCoupon({
+      const saved = await upsertCoupon({
         id: editing.id, companyId, ...editing,
         start_at: editing.has_start_at ? editing.start_at : null,
         is_active: true,
@@ -146,7 +146,15 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
         max_ticket_per_user: null,
         code: null,
       });
-      toast.success('クーポンを保存しました');
+
+      // LINE 公式 Coupon API へ登録
+      try {
+        await syncLineCoupon(saved.id);
+        toast.success('クーポンを LINE に登録しました');
+      } catch (syncErr) {
+        toast.error(`LINE への登録に失敗: ${syncErr?.message || '不明なエラー'}`, { duration: 8000 });
+      }
+
       backToList();
       await load();
     } catch (e) { toast.error(e?.message || '保存失敗'); }

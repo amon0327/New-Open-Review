@@ -36,6 +36,7 @@ interface Block {
 
 interface Coupon {
   id: string
+  line_coupon_id: string | null  // LINE 公式 Coupon API で発行された ID
   // 新スキーマ (LINE Coupon API 準拠)
   title: string | null
   description: string | null
@@ -253,8 +254,14 @@ const buildLineMessages = (
     } else if (b.block_type === 'coupon' && b.coupon_id) {
       const coupon = couponsById.get(b.coupon_id)
       if (!coupon) continue
-      const bubble = buildCouponFlex(coupon, vars)
-      msg = { type: 'flex', altText: `クーポン: ${coupon.title || coupon.name || ''}`, contents: bubble }
+      // LINE 公式 Coupon API で発行された ID があれば公式クーポンメッセージで送信
+      // 無ければ Flex Message にフォールバック
+      if (coupon.line_coupon_id) {
+        msg = { type: 'coupon', couponId: coupon.line_coupon_id }
+      } else {
+        const bubble = buildCouponFlex(coupon, vars)
+        msg = { type: 'flex', altText: `クーポン: ${coupon.title || coupon.name || ''}`, contents: bubble }
+      }
     }
 
     if (!msg) continue
@@ -326,7 +333,7 @@ serve(async (req) => {
     if (couponIds.length > 0) {
       const { data: coupons } = await admin
         .from('line_coupons')
-        .select('id, title, name, description, image_url, code, discount_text, start_at, expires_at, coupon_timezone, max_use_count_per_ticket, visibility, max_ticket_per_user, usage_condition, terms_text, reward_type, reward_price_info_type, reward_fixed_amount, reward_percentage, reward_currency, acquisition_type, acquisition_lottery_probability, acquisition_max_acquire_count')
+        .select('id, line_coupon_id, title, name, description, image_url, code, discount_text, start_at, expires_at, coupon_timezone, max_use_count_per_ticket, visibility, max_ticket_per_user, usage_condition, terms_text, reward_type, reward_price_info_type, reward_fixed_amount, reward_percentage, reward_currency, acquisition_type, acquisition_lottery_probability, acquisition_max_acquire_count')
         .in('id', couponIds)
       for (const c of (coupons ?? []) as Coupon[]) couponsById.set(c.id, c)
     }
