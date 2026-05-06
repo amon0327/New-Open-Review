@@ -54,7 +54,7 @@ export function SettingsCardSkeleton() {
   );
 }
 
-// 公式LINE ページ全体のスケルトン
+// LINEメッセージ ページ全体のスケルトン (ヘッダー + Quota + タブ + 一覧)
 export function OfficialLineSkeleton() {
   return (
     <Box sx={{
@@ -62,18 +62,21 @@ export function OfficialLineSkeleton() {
       background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
     }}>
       <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Skeleton variant="rounded" width={48} height={48} sx={{ mr: 2 }} animation="wave" />
-          <Box>
-            <Skeleton variant="text" width={140} height={30} animation="wave" />
-            <Skeleton variant="text" width={360} height={18} animation="wave" />
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Skeleton variant="text" width={180} height={32} animation="wave" />
+            <Skeleton variant="text" width={400} height={20} animation="wave" />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+            <Skeleton variant="text" width={140} height={16} animation="wave" />
+            <Skeleton variant="text" width={120} height={32} animation="wave" />
           </Box>
         </Box>
       </Box>
       <Card sx={{ mx: 3, mb: 3, borderRadius: 1, boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)' }}>
-        <Box sx={{ borderBottom: '1px solid #e2e8f0', display: 'flex', gap: 4, px: 3, py: 1.5 }}>
+        <Box sx={{ borderBottom: '1px solid #e2e8f0', display: 'flex', gap: 4, px: 3 }}>
           {[0, 1, 2].map((i) => (
-            <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 1.5 }}>
+            <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 2 }}>
               <Skeleton variant="circular" width={20} height={20} animation="wave" />
               <Skeleton variant="text" width={100} height={20} animation="wave" />
             </Box>
