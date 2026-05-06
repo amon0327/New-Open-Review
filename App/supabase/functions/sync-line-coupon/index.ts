@@ -41,7 +41,11 @@ const buildLineCouponPayload = (c: Record<string, unknown>) => {
     type: c.acquisition_type ?? 'normal',
   }
   if (c.acquisition_type === 'lottery') {
-    acquisitionCondition.lotteryProbability = Number(c.acquisition_lottery_probability)
+    // LINE 仕様: lotteryProbability は 1〜99 の範囲
+    let prob = Number(c.acquisition_lottery_probability)
+    if (isNaN(prob) || prob < 1) prob = 1
+    if (prob > 99) prob = 99
+    acquisitionCondition.lotteryProbability = prob
     acquisitionCondition.maxAcquireCount = Number(c.acquisition_max_acquire_count)
   }
 
