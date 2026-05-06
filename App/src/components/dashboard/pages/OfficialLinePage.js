@@ -51,7 +51,7 @@ export default function OfficialLinePage({ companyId, user }) {
               <ChatIcon sx={{ color: 'white', fontSize: 28 }} />
             </Box>
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a202c' }}>公式LINE</Typography>
+              <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a202c' }}>LINEメッセージ</Typography>
               <Typography variant="body2" sx={{ color: '#64748b' }}>
                 アンケート回答者にターゲットを絞ったメッセージやクーポンを配信
               </Typography>
