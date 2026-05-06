@@ -27,22 +27,20 @@ function QuotaCard({ quota, loading, theme }) {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.25 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-        <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', letterSpacing: 0.5 }}>
-          今月の送信可能数
-        </Typography>
-        <Tooltip title={tooltipText} arrow>
-          <Info sx={{ fontSize: 14, color: '#94a3b8', cursor: 'help' }} />
-        </Tooltip>
-      </Box>
+      <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', letterSpacing: 0.5 }}>
+        今月の送信可能数
+      </Typography>
       {isUnlimited ? (
-        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
           <AllInclusive sx={{ fontSize: 28, color: theme.primary }} />
           <Typography sx={{
             fontSize: '1.5rem', fontWeight: 700, color: theme.primary, lineHeight: 1.1,
           }}>
             無制限
           </Typography>
+          <Tooltip title={tooltipText} arrow>
+            <Info sx={{ fontSize: 16, color: '#94a3b8', cursor: 'help', ml: 0.25 }} />
+          </Tooltip>
         </Box>
       ) : (
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
@@ -52,6 +50,9 @@ function QuotaCard({ quota, loading, theme }) {
             {quota.remaining?.toLocaleString() ?? '-'}
           </Typography>
           <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>通</Typography>
+          <Tooltip title={tooltipText} arrow>
+            <Info sx={{ fontSize: 16, color: '#94a3b8', cursor: 'help', ml: 0.5, alignSelf: 'center' }} />
+          </Tooltip>
         </Box>
       )}
     </Box>
