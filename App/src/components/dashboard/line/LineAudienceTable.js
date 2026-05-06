@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-  Box, Typography, Chip, Skeleton, alpha,
+  Box, Typography, Skeleton, alpha,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
 } from '@mui/material';
-import { FilterAlt, CheckCircle, RemoveCircle } from '@mui/icons-material';
+import { FilterAlt } from '@mui/icons-material';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 
 const NPS_STYLE = {
@@ -11,6 +11,19 @@ const NPS_STYLE = {
   passive: { label: '中立者', color: '#92400e', bg: '#fef3c7', dot: '#f59e0b' },
   detractor: { label: '批判者', color: '#991b1b', bg: '#fee2e2', dot: '#ef4444' },
 };
+
+const SoftPill = ({ children, color = '#475569', bg = '#f1f5f9' }) => (
+  <Box sx={{
+    display: 'inline-block',
+    px: 1.25, py: 0.25, borderRadius: 1,
+    backgroundColor: bg, color,
+    fontSize: '0.78rem', fontWeight: 600,
+    lineHeight: 1.4,
+    whiteSpace: 'nowrap',
+  }}>
+    {children}
+  </Box>
+);
 
 export default function LineAudienceTable({ rows, loading, emptyHint }) {
   const theme = usePartnerTheme();
@@ -45,18 +58,21 @@ export default function LineAudienceTable({ rows, loading, emptyHint }) {
 
   return (
     <TableContainer>
-      <Table sx={{ tableLayout: 'fixed' }}>
+      <Table>
         <TableHead>
           <TableRow sx={{ '& th': {
             fontWeight: 700, fontSize: '0.7rem',
             color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1.2,
             borderBottom: `1px solid ${alpha(theme.primary, 0.15)}`,
-            backgroundColor: '#fafbfc', py: 1.5,
+            backgroundColor: '#fafbfc', py: 1.5, whiteSpace: 'nowrap',
           }}}>
             <TableCell width={64} align="center">No.</TableCell>
             <TableCell>推奨度</TableCell>
-            <TableCell>リピーター</TableCell>
-            <TableCell>リピート意向</TableCell>
+            <TableCell>来店回数</TableCell>
+            <TableCell>再訪意向時期</TableCell>
+            <TableCell>性別</TableCell>
+            <TableCell>年齢層</TableCell>
+            <TableCell>同伴者</TableCell>
             <TableCell>最終回答日</TableCell>
           </TableRow>
         </TableHead>
@@ -78,42 +94,25 @@ export default function LineAudienceTable({ rows, loading, emptyHint }) {
                 <TableCell>
                   <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: nps.dot, flexShrink: 0 }} />
-                    <Box sx={{
-                      px: 1.25, py: 0.25, borderRadius: 1,
-                      backgroundColor: nps.bg, color: nps.color,
-                      fontSize: '0.78rem', fontWeight: 700,
-                    }}>
-                      {nps.label}
-                    </Box>
+                    <SoftPill color={nps.color} bg={nps.bg}>{nps.label}</SoftPill>
                   </Box>
                 </TableCell>
                 <TableCell>
-                  {a.is_repeater ? (
-                    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, color: theme.primary, fontWeight: 600, fontSize: '0.85rem' }}>
-                      <CheckCircle sx={{ fontSize: 16 }} />
-                      リピーター
-                    </Box>
-                  ) : (
-                    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, color: '#94a3b8', fontSize: '0.85rem' }}>
-                      <RemoveCircle sx={{ fontSize: 16 }} />
-                      新規
-                    </Box>
-                  )}
+                  {a.visit_count ? <SoftPill>{a.visit_count}</SoftPill> : <Typography component="span" sx={{ color: '#cbd5e1', fontSize: '0.85rem' }}>—</Typography>}
                 </TableCell>
                 <TableCell>
-                  {a.has_revisit_intent ? (
-                    <Chip label="あり" size="small" sx={{
-                      fontWeight: 700, height: 24,
-                      backgroundColor: '#dcfce7', color: '#15803d',
-                    }} />
-                  ) : (
-                    <Chip label="なし" size="small" variant="outlined" sx={{
-                      fontWeight: 600, height: 24,
-                      borderColor: '#e2e8f0', color: '#94a3b8',
-                    }} />
-                  )}
+                  {a.revisit_period ? <SoftPill>{a.revisit_period}</SoftPill> : <Typography component="span" sx={{ color: '#cbd5e1', fontSize: '0.85rem' }}>—</Typography>}
                 </TableCell>
-                <TableCell sx={{ color: '#64748b', fontSize: '0.85rem' }}>
+                <TableCell>
+                  {a.gender ? <SoftPill>{a.gender}</SoftPill> : <Typography component="span" sx={{ color: '#cbd5e1', fontSize: '0.85rem' }}>—</Typography>}
+                </TableCell>
+                <TableCell>
+                  {a.age_group ? <SoftPill>{a.age_group}</SoftPill> : <Typography component="span" sx={{ color: '#cbd5e1', fontSize: '0.85rem' }}>—</Typography>}
+                </TableCell>
+                <TableCell>
+                  {a.companion ? <SoftPill>{a.companion}</SoftPill> : <Typography component="span" sx={{ color: '#cbd5e1', fontSize: '0.85rem' }}>—</Typography>}
+                </TableCell>
+                <TableCell sx={{ color: '#64748b', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
                   {date ? (
                     <>
                       <Box component="span" sx={{ fontWeight: 600, color: '#334155' }}>

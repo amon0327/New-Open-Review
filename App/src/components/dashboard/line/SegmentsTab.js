@@ -43,8 +43,6 @@ const empty = {
   conditions: {
     store_ids: [],
     nps_segments: [],
-    is_repeater: null,
-    has_revisit_intent: null,
     genders: [],
     age_groups: [],
     visit_counts: [],
@@ -111,35 +109,6 @@ function ChipMultiSelect({ options, selected, onChange, getKey, getLabel }) {
   );
 }
 
-function ChipTernary({ value, onChange, trueLabel, falseLabel }) {
-  const theme = usePartnerTheme();
-  const opts = [
-    { val: null, label: '指定なし' },
-    { val: true, label: trueLabel },
-    { val: false, label: falseLabel },
-  ];
-  return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-      {opts.map((o) => {
-        const sel = value === o.val;
-        return (
-          <Chip key={String(o.val)} label={o.label}
-            onClick={() => onChange(o.val)}
-            variant={sel ? 'filled' : 'outlined'}
-            sx={{
-              fontWeight: 600, height: 32,
-              background: sel ? (theme.primaryGradient || theme.primary) : 'transparent',
-              color: sel ? 'white' : '#475569',
-              borderColor: sel ? 'transparent' : '#cbd5e1',
-              '&:hover': { background: sel ? (theme.primaryGradient || theme.primary) : '#f1f5f9', opacity: sel ? 0.9 : 1 },
-            }}
-          />
-        );
-      })}
-    </Box>
-  );
-}
-
 export default function SegmentsTab({ companyId, onFormModeChange }) {
   const theme = usePartnerTheme();
   const [segments, setSegments] = useState([]);
@@ -173,8 +142,6 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
     const out = { ...c };
     if (!out.answered_from) delete out.answered_from;
     if (!out.answered_to) delete out.answered_to;
-    if (out.is_repeater === null || out.is_repeater === undefined) delete out.is_repeater;
-    if (out.has_revisit_intent === null || out.has_revisit_intent === undefined) delete out.has_revisit_intent;
     return out;
   }, []);
 
@@ -202,8 +169,6 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
       conditions: {
         store_ids: s.conditions?.store_ids || [],
         nps_segments: s.conditions?.nps_segments || [],
-        is_repeater: typeof s.conditions?.is_repeater === 'boolean' ? s.conditions.is_repeater : null,
-        has_revisit_intent: typeof s.conditions?.has_revisit_intent === 'boolean' ? s.conditions.has_revisit_intent : null,
         genders: s.conditions?.genders || [],
         age_groups: s.conditions?.age_groups || [],
         visit_counts: s.conditions?.visit_counts || [],
@@ -252,8 +217,6 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
     const chips = [];
     if (c.store_ids?.length) chips.push(`店舗 ${c.store_ids.length}件`);
     if (c.nps_segments?.length) chips.push(`推奨度 ${c.nps_segments.map(n => NPS_LABELS[n]).join('/')}`);
-    if (typeof c.is_repeater === 'boolean') chips.push(c.is_repeater ? 'リピーター' : '新規');
-    if (typeof c.has_revisit_intent === 'boolean') chips.push(c.has_revisit_intent ? 'リピート意向あり' : 'リピート意向なし');
     if (c.genders?.length) chips.push(`性別 ${c.genders.join('/')}`);
     if (c.age_groups?.length) chips.push(`年齢 ${c.age_groups.length}件`);
     if (c.visit_counts?.length) chips.push(`来店回数 ${c.visit_counts.length}件`);
@@ -303,36 +266,17 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
               </Stack>
             </Card>
 
-            {/* ユーザー属性 */}
+            {/* 絞り込み条件 (統合) */}
             <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-              <SectionHeader title="ユーザー属性" optional />
+              <SectionHeader title="絞り込み条件" optional />
               <Stack spacing={2.5}>
                 <Box>
-                  <FieldLabel>推奨度 (NPS)</FieldLabel>
+                  <FieldLabel>推奨度</FieldLabel>
                   <ChipMultiSelect options={NPS_OPTIONS}
                     getKey={(o) => o.value}
                     selected={editing.conditions.nps_segments}
                     onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, nps_segments: arr } })} />
                 </Box>
-                <Box>
-                  <FieldLabel>リピーター区分</FieldLabel>
-                  <ChipTernary value={editing.conditions.is_repeater}
-                    trueLabel="リピーターのみ" falseLabel="新規のみ"
-                    onChange={(v) => setEditing({ ...editing, conditions: { ...editing.conditions, is_repeater: v } })} />
-                </Box>
-                <Box>
-                  <FieldLabel>リピート意向</FieldLabel>
-                  <ChipTernary value={editing.conditions.has_revisit_intent}
-                    trueLabel="意向あり" falseLabel="意向なし"
-                    onChange={(v) => setEditing({ ...editing, conditions: { ...editing.conditions, has_revisit_intent: v } })} />
-                </Box>
-              </Stack>
-            </Card>
-
-            {/* 来店者属性 */}
-            <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-              <SectionHeader title="来店者属性" optional />
-              <Stack spacing={2.5}>
                 <Box>
                   <FieldLabel>店舗</FieldLabel>
                   <ChipMultiSelect options={stores}
