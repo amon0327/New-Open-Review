@@ -45,23 +45,53 @@ export async function fetchCoupons(companyId) {
   return data || [];
 }
 
+// LINE 公式 Coupon API スキーマに準拠
 export async function upsertCoupon({
-  id, companyId, name, description, image_url, code, discount_text,
-  start_at, expires_at, terms_text, is_active = true,
-  bubble_size, background_color, header_text, header_color,
-  cta_label, cta_uri, cta_color,
+  id, companyId,
+  // === Coupon API トップレベル ===
+  title, description, image_url,
+  start_at, expires_at, coupon_timezone = 'ASIA_TOKYO',
+  max_use_count_per_ticket = 1,
+  visibility = 'UNLISTED',
+  max_ticket_per_user,
+  code,
+  usage_condition,
+  // === reward ===
+  reward_type = 'discount',
+  reward_price_info_type, reward_fixed_amount, reward_percentage, reward_currency = 'JPY',
+  // === acquisitionCondition ===
+  acquisition_type = 'normal',
+  acquisition_lottery_probability,
+  acquisition_max_acquire_count,
+  // === 旧フィールド (UI 互換用) ===
+  is_active = true,
+  discount_text,
 }) {
   const payload = {
-    company_id: companyId, name, description, image_url, code, discount_text,
-    start_at: start_at || null, expires_at: expires_at || null,
-    terms_text, is_active,
-    bubble_size: bubble_size || 'kilo',
-    background_color: background_color || null,
-    header_text: header_text || null,
-    header_color: header_color || null,
-    cta_label: cta_label || null,
-    cta_uri: cta_uri || null,
-    cta_color: cta_color || null,
+    company_id: companyId,
+    name: title || null,        // 旧 name と同期 (互換)
+    title: title || null,
+    description: description || null,
+    image_url: image_url || null,
+    code: code || null,
+    discount_text: discount_text || null,
+    start_at: start_at || null,
+    expires_at: expires_at || null,
+    terms_text: usage_condition || null,    // 旧フィールド互換
+    usage_condition: usage_condition || null,
+    is_active,
+    coupon_timezone: coupon_timezone || 'ASIA_TOKYO',
+    max_use_count_per_ticket: max_use_count_per_ticket === -1 ? -1 : 1,
+    visibility: visibility === 'PUBLIC' ? 'PUBLIC' : 'UNLISTED',
+    max_ticket_per_user: max_ticket_per_user != null && max_ticket_per_user !== '' ? Number(max_ticket_per_user) : null,
+    reward_type: reward_type || 'discount',
+    reward_price_info_type: ['fixed','percentage'].includes(reward_price_info_type) ? reward_price_info_type : null,
+    reward_fixed_amount: reward_fixed_amount != null && reward_fixed_amount !== '' ? Number(reward_fixed_amount) : null,
+    reward_percentage: reward_percentage != null && reward_percentage !== '' ? Number(reward_percentage) : null,
+    reward_currency: reward_currency || 'JPY',
+    acquisition_type: acquisition_type || 'normal',
+    acquisition_lottery_probability: acquisition_lottery_probability != null && acquisition_lottery_probability !== '' ? Number(acquisition_lottery_probability) : null,
+    acquisition_max_acquire_count: acquisition_max_acquire_count != null && acquisition_max_acquire_count !== '' ? Number(acquisition_max_acquire_count) : null,
   };
   if (id) {
     const { data, error } = await supabase.from('line_coupons').update(payload).eq('id', id).select().single();

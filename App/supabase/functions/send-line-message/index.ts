@@ -36,21 +36,30 @@ interface Block {
 
 interface Coupon {
   id: string
-  name: string
+  // 新スキーマ (LINE Coupon API 準拠)
+  title: string | null
   description: string | null
   image_url: string | null
   code: string | null
-  discount_text: string | null
-  expires_at: string | null
   start_at: string | null
+  expires_at: string | null
+  coupon_timezone: string | null
+  max_use_count_per_ticket: number | null
+  visibility: string | null
+  max_ticket_per_user: number | null
+  usage_condition: string | null
+  reward_type: string | null
+  reward_price_info_type: string | null
+  reward_fixed_amount: number | null
+  reward_percentage: number | null
+  reward_currency: string | null
+  acquisition_type: string | null
+  acquisition_lottery_probability: number | null
+  acquisition_max_acquire_count: number | null
+  // 旧スキーマ (互換)
+  name: string | null
+  discount_text: string | null
   terms_text: string | null
-  bubble_size: string | null
-  background_color: string | null
-  header_text: string | null
-  header_color: string | null
-  cta_label: string | null
-  cta_uri: string | null
-  cta_color: string | null
 }
 
 const formatDate = (iso: string | null): string => {
@@ -62,26 +71,64 @@ const formatDate = (iso: string | null): string => {
 const substituteVars = (text: string, vars: Record<string, string>): string =>
   text.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, key) => vars[key] ?? '')
 
-const buildCouponFlex = (coupon: Coupon, vars: Record<string, string>) => {
-  const headerColor = coupon.header_color || '#ffffff'
-  const ctaColor = coupon.cta_color || '#06C755'
-  const bgColor = coupon.background_color || '#ffffff'
+const formatRewardLabel = (c: Coupon): string => {
+  const t = c.reward_type || 'discount'
+  if (t === 'discount' || t === 'cashBack') {
+    const suffix = t === 'cashBack' ? 'キャッシュバック' : 'OFF'
+    if (c.reward_price_info_type === 'percentage' && c.reward_percentage != null) {
+      return `${c.reward_percentage}%${suffix}`
+    }
+    if (c.reward_price_info_type === 'fixed' && c.reward_fixed_amount != null) {
+      const cur = c.reward_currency === 'JPY' ? '円' : ` ${c.reward_currency || ''}`
+      return `${c.reward_fixed_amount}${cur}${suffix}`
+    }
+  }
+  if (t === 'free') return '無料提供'
+  if (t === 'gift') return 'プレゼント'
+  return c.discount_text || ''
+}
 
-  const bodyContents: unknown[] = [
-    { type: 'text', text: substituteVars(coupon.name, vars), weight: 'bold', size: 'xl', wrap: true },
-  ]
-  if (coupon.discount_text) {
-    bodyContents.push({ type: 'text', text: substituteVars(coupon.discount_text, vars), size: 'lg', color: ctaColor, weight: 'bold', wrap: true, margin: 'md' })
+const buildCouponFlex = (coupon: Coupon, vars: Record<string, string>) => {
+  const title = coupon.title || coupon.name || 'クーポン'
+  const reward = formatRewardLabel(coupon)
+  const usage = coupon.usage_condition || coupon.terms_text
+
+  const bodyContents: unknown[] = []
+
+  // バッジ (抽選 / 公開)
+  const badges: unknown[] = []
+  if (coupon.acquisition_type === 'lottery') {
+    badges.push({
+      type: 'box', layout: 'baseline', cornerRadius: 'md', backgroundColor: '#fef3c7', paddingAll: 'xs', flex: 0,
+      contents: [{ type: 'text', text: '抽選', size: 'xs', color: '#92400e', weight: 'bold', flex: 0 }],
+    })
+  }
+  if (coupon.visibility === 'PUBLIC') {
+    badges.push({
+      type: 'box', layout: 'baseline', cornerRadius: 'md', backgroundColor: '#dbeafe', paddingAll: 'xs', flex: 0, margin: 'sm',
+      contents: [{ type: 'text', text: 'PUBLIC', size: 'xs', color: '#1e40af', weight: 'bold', flex: 0 }],
+    })
+  }
+  if (badges.length > 0) {
+    bodyContents.push({ type: 'box', layout: 'baseline', contents: badges, spacing: 'sm', margin: 'none' })
+  }
+
+  bodyContents.push({ type: 'text', text: substituteVars(title, vars), weight: 'bold', size: 'xl', wrap: true, margin: badges.length > 0 ? 'md' : 'none' })
+
+  if (reward) {
+    bodyContents.push({ type: 'text', text: reward, size: 'xxl', color: '#06C755', weight: 'bold', wrap: true, margin: 'md' })
   }
   if (coupon.description) {
     bodyContents.push({ type: 'text', text: substituteVars(coupon.description, vars), size: 'sm', color: '#555555', wrap: true, margin: 'md' })
   }
   if (coupon.code) {
     bodyContents.push({
-      type: 'box', layout: 'baseline', margin: 'lg',
+      type: 'box', layout: 'vertical', margin: 'lg',
+      cornerRadius: 'md', borderWidth: '1px', borderColor: '#cbd5e1',
+      backgroundColor: '#f8fafc', paddingAll: 'sm',
       contents: [
-        { type: 'text', text: 'コード', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: substituteVars(coupon.code, vars), size: 'sm', weight: 'bold', flex: 5 },
+        { type: 'text', text: 'コード', size: 'xs', color: '#94a3b8', align: 'center' },
+        { type: 'text', text: substituteVars(coupon.code, vars), size: 'lg', weight: 'bold', align: 'center' },
       ],
     })
   }
@@ -90,46 +137,46 @@ const buildCouponFlex = (coupon: Coupon, vars: Record<string, string>) => {
       ? `${formatDate(coupon.start_at)} 〜 ${formatDate(coupon.expires_at)}`
       : coupon.expires_at ? formatDate(coupon.expires_at) : `${formatDate(coupon.start_at)} 〜`
     bodyContents.push({
-      type: 'box', layout: 'baseline', margin: 'sm',
+      type: 'box', layout: 'baseline', margin: 'lg', spacing: 'sm',
       contents: [
         { type: 'text', text: '有効期限', size: 'sm', color: '#888888', flex: 2 },
-        { type: 'text', text: period, size: 'sm', flex: 5 },
+        { type: 'text', text: period, size: 'sm', flex: 5, wrap: true },
       ],
     })
   }
-  if (coupon.terms_text) {
-    bodyContents.push({ type: 'text', text: substituteVars(coupon.terms_text, vars), size: 'xs', color: '#aaaaaa', wrap: true, margin: 'lg' })
+  if (usage) {
+    bodyContents.push({ type: 'text', text: substituteVars(usage, vars), size: 'xs', color: '#aaaaaa', wrap: true, margin: 'lg' })
+  }
+
+  // フッター (使用回数 / 獲得枚数)
+  const footerChips: unknown[] = []
+  if (coupon.max_use_count_per_ticket === -1) {
+    footerChips.push({ type: 'text', text: '使用無制限', size: 'xxs', color: '#64748b', flex: 0 })
+  } else {
+    footerChips.push({ type: 'text', text: '1人1回', size: 'xxs', color: '#64748b', flex: 0 })
+  }
+  if (coupon.max_ticket_per_user) {
+    footerChips.push({ type: 'text', text: `最大${coupon.max_ticket_per_user}枚`, size: 'xxs', color: '#64748b', flex: 0, margin: 'md' })
+  }
+  if (footerChips.length > 0) {
+    bodyContents.push({ type: 'box', layout: 'baseline', margin: 'lg', contents: footerChips })
   }
 
   const bubble: Record<string, unknown> = {
     type: 'bubble',
-    size: coupon.bubble_size || 'kilo',
-    body: {
-      type: 'box', layout: 'vertical', contents: bodyContents,
-      backgroundColor: bgColor,
+    size: 'kilo',
+    header: {
+      type: 'box', layout: 'vertical', paddingAll: 'sm',
+      backgroundColor: '#06C755',
+      contents: [{ type: 'text', text: 'COUPON', color: '#ffffff', weight: 'bold', size: 'xs', align: 'center' }],
     },
+    body: { type: 'box', layout: 'vertical', contents: bodyContents },
   }
 
   if (coupon.image_url) {
     bubble.hero = { type: 'image', url: coupon.image_url, size: 'full', aspectMode: 'cover', aspectRatio: '20:13' }
   }
-  if (coupon.header_text) {
-    bubble.header = {
-      type: 'box', layout: 'vertical',
-      contents: [{ type: 'text', text: substituteVars(coupon.header_text, vars), color: headerColor, weight: 'bold', size: 'sm', align: 'center' }],
-      backgroundColor: ctaColor,
-      paddingAll: 'sm',
-    }
-  }
-  if (coupon.cta_label && coupon.cta_uri) {
-    bubble.footer = {
-      type: 'box', layout: 'vertical',
-      contents: [{
-        type: 'button', style: 'primary', color: ctaColor,
-        action: { type: 'uri', label: substituteVars(coupon.cta_label, vars), uri: coupon.cta_uri },
-      }],
-    }
-  }
+
   return bubble
 }
 
@@ -205,7 +252,7 @@ const buildLineMessages = (
       const coupon = couponsById.get(b.coupon_id)
       if (!coupon) continue
       const bubble = buildCouponFlex(coupon, vars)
-      msg = { type: 'flex', altText: `クーポン: ${coupon.name}`, contents: bubble }
+      msg = { type: 'flex', altText: `クーポン: ${coupon.title || coupon.name || ''}`, contents: bubble }
     }
 
     if (!msg) continue
@@ -277,7 +324,7 @@ serve(async (req) => {
     if (couponIds.length > 0) {
       const { data: coupons } = await admin
         .from('line_coupons')
-        .select('id, name, description, image_url, code, discount_text, expires_at, start_at, terms_text, bubble_size, background_color, header_text, header_color, cta_label, cta_uri, cta_color')
+        .select('id, title, name, description, image_url, code, discount_text, start_at, expires_at, coupon_timezone, max_use_count_per_ticket, visibility, max_ticket_per_user, usage_condition, terms_text, reward_type, reward_price_info_type, reward_fixed_amount, reward_percentage, reward_currency, acquisition_type, acquisition_lottery_probability, acquisition_max_acquire_count')
         .in('id', couponIds)
       for (const c of (coupons ?? []) as Coupon[]) couponsById.set(c.id, c)
     }

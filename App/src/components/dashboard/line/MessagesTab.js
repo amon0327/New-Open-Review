@@ -71,7 +71,7 @@ const BLOCK_LABEL = {
   sticker: 'スタンプ', video: '動画', location: '位置情報', audio: '音声',
 };
 
-export default function MessagesTab({ companyId, user }) {
+export default function MessagesTab({ companyId, user, onFormModeChange }) {
   const theme = usePartnerTheme();
   const [messages, setMessages] = useState([]);
   const [segments, setSegments] = useState([]);
@@ -100,6 +100,11 @@ export default function MessagesTab({ companyId, user }) {
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [companyId]);
+
+  useEffect(() => {
+    onFormModeChange?.(mode === 'form');
+    return () => onFormModeChange?.(false);
+  }, [mode, onFormModeChange]);
 
   const openNew = () => {
     setEditing({ ...emptyMessage, blocks: [newBlock('text')] });

@@ -102,7 +102,7 @@ function ChipTernary({ value, onChange, trueLabel, falseLabel }) {
 
 const NPS_LABELS = { promoter: '推奨者', passive: '中立者', detractor: '批判者' };
 
-export default function SegmentsTab({ companyId }) {
+export default function SegmentsTab({ companyId, onFormModeChange }) {
   const theme = usePartnerTheme();
   const [segments, setSegments] = useState([]);
   const [stores, setStores] = useState([]);
@@ -125,6 +125,11 @@ export default function SegmentsTab({ companyId }) {
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [companyId]);
+
+  useEffect(() => {
+    onFormModeChange?.(mode === 'form');
+    return () => onFormModeChange?.(false);
+  }, [mode, onFormModeChange]);
 
   const cleanConditions = useCallback((c) => {
     const out = { ...c };
