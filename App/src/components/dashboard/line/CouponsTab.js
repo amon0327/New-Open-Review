@@ -33,7 +33,6 @@ const empty = {
 const REWARD_TYPES = [
   { value: 'discount', label: '割引' },
   { value: 'free', label: '無料提供' },
-  { value: 'gift', label: 'プレゼント' },
 ];
 
 const MAX_ACQUIRE_OPTIONS = [
@@ -101,7 +100,7 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
       has_start_at: !!c.start_at,
       start_at: c.start_at ? c.start_at.slice(0, 16) : '',
       expires_at: c.expires_at ? c.expires_at.slice(0, 16) : '',
-      reward_type: ['discount','free','gift'].includes(c.reward_type) ? c.reward_type : 'discount',
+      reward_type: ['discount','free'].includes(c.reward_type) ? c.reward_type : 'discount',
       reward_price_info_type: c.reward_price_info_type || 'fixed',
       reward_fixed_amount: c.reward_fixed_amount ?? '',
       reward_percentage: c.reward_percentage ?? '',
@@ -426,7 +425,6 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
                 if (c.reward_price_info_type === 'fixed' && c.reward_fixed_amount) return `${c.reward_fixed_amount}${c.reward_currency === 'JPY' ? '円' : ''}`;
               }
               if (c.reward_type === 'free') return '無料';
-              if (c.reward_type === 'gift') return 'プレゼント';
               return null;
             })();
             return (
