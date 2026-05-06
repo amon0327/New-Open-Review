@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import {
   Add, Delete, Edit, Send, Mail, TextFields, Image as ImageIcon, LocalOffer,
-  ArrowUpward, ArrowDownward, Upload, Link as LinkIcon, Visibility,
+  ArrowUpward, ArrowDownward, Upload, Link as LinkIcon,
   ArrowBack, Save,
 } from '@mui/icons-material';
 import toast from 'react-hot-toast';
@@ -92,10 +92,26 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
     return () => onFormModeChange?.(false);
   }, [mode, onFormModeChange]);
 
-  const openNew = () => {
+  // 対象ユーザー取得 (セグメント or 全員)
+  const loadAudienceForSegment = async (segmentId, segs = segments) => {
+    if (!companyId) return;
+    try {
+      setAudienceLoading(true);
+      let conditions = {};
+      if (segmentId) {
+        const s = segs.find(x => x.id === segmentId);
+        conditions = s?.conditions || {};
+      }
+      const list = await fetchAudienceList({ companyId, conditions, limit: 5000 });
+      setAudience(list);
+    } catch (e) { toast.error(e?.message || '対象ユーザーの取得失敗'); }
+    finally { setAudienceLoading(false); }
+  };
+
+  const openNew = async () => {
     setEditing({ ...emptyMessage, blocks: [newBlock('text')] });
-    setAudience([]);
     setMode('form');
+    await loadAudienceForSegment('');
   };
   const openEdit = async (m) => {
     try {
@@ -108,11 +124,11 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
           ? full.blocks.filter(b => ['text','image','coupon'].includes(b.block_type))
           : [newBlock('text')],
       });
-      setAudience([]);
       setMode('form');
+      await loadAudienceForSegment(full.target_segment_id || '');
     } catch (e) { toast.error('読み込み失敗'); }
   };
-  const backToList = () => { setEditing(null); setMode('list'); };
+  const backToList = () => { setEditing(null); setAudience([]); setMode('list'); };
 
   const handleDelete = async () => {
     if (!confirmDelete) return;
@@ -197,20 +213,6 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
       toast.success('画像をアップロード');
     } catch (err) { toast.error(err?.message || 'アップロード失敗'); }
     finally { setUploadingIdx(-1); e.target.value = ''; }
-  };
-
-  const handlePreviewAudience = async () => {
-    try {
-      setAudienceLoading(true);
-      let conditions = {};
-      if (editing.target_segment_id) {
-        const s = segments.find(x => x.id === editing.target_segment_id);
-        conditions = s?.conditions || {};
-      }
-      const list = await fetchAudienceList({ companyId, conditions, limit: 5000 });
-      setAudience(list);
-    } catch (e) { toast.error(e?.message || 'プレビュー失敗'); }
-    finally { setAudienceLoading(false); }
   };
 
   const renderBlockEditor = (b, i) => (
@@ -311,7 +313,11 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
               <FormControl fullWidth>
                 <InputLabel>送信先セグメント</InputLabel>
                 <Select value={editing.target_segment_id} label="送信先セグメント"
-                  onChange={(e) => { setEditing({ ...editing, target_segment_id: e.target.value }); setAudience([]); }}>
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setEditing({ ...editing, target_segment_id: v });
+                    loadAudienceForSegment(v);
+                  }}>
                   <MenuItem value=""><em>全 LINE 連携回答者</em></MenuItem>
                   {segments.map((s) => (
                     <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
@@ -360,18 +366,9 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
                 <Typography sx={{ fontWeight: 700, fontSize: '1rem', flex: 1 }}>対象ユーザー</Typography>
                 <Chip label={`${audience.length} 名`} size="small"
                   sx={{ bgcolor: alpha(theme.primary, 0.1), color: theme.primary, fontWeight: 700 }} />
-                <Button onClick={handlePreviewAudience} disabled={audienceLoading}
-                  variant="contained" size="small"
-                  startIcon={audienceLoading ? <CircularProgress size={14} sx={{ color: 'white' }} /> : <Visibility />}
-                  sx={{
-                    background: theme.primaryGradient || theme.primary, color: 'white', fontWeight: 600,
-                    '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
-                  }}>
-                  絞り込み
-                </Button>
               </Box>
               <LineAudienceTable rows={audience} loading={audienceLoading}
-                emptyHint="「絞り込み」をクリックして対象ユーザーを取得" />
+                emptyHint="送信先セグメントを選択すると対象ユーザーが表示されます" />
             </Card>
           </Stack>
         </Box>
