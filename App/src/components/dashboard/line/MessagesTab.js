@@ -10,7 +10,7 @@ import {
   Add, Delete, Edit, Send, Mail, TextFields, Image as ImageIcon, LocalOffer,
   ArrowUpward, ArrowDownward, Upload, Link as LinkIcon, Visibility,
   EmojiEmotions, OndemandVideo, LocationOn, ArrowBack, ExpandMore, NotificationsOff,
-  Notifications,
+  Notifications, AudioFile,
 } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 import {
@@ -23,8 +23,11 @@ import ConfirmDialog from './ConfirmDialog';
 const newBlock = (type) => {
   const base = {
     block_type: type,
-    text_content: null, image_url: null, link_url: null, coupon_id: null,
-    sticker_package_id: null, sticker_id: null, video_url: null,
+    text_content: null, emojis: null,
+    image_url: null, link_url: null, coupon_id: null,
+    sticker_package_id: null, sticker_id: null,
+    video_url: null, video_tracking_id: null,
+    audio_url: null, audio_duration_ms: null,
     location_title: null, location_address: null,
     location_latitude: null, location_longitude: null,
   };
@@ -40,8 +43,21 @@ const emptyMessage = {
   sender_name: '',
   sender_icon_url: '',
   quick_reply_items: [],
+  custom_aggregation_units: [],
   blocks: [],
 };
+
+// LINE Quick Reply の action タイプ仕様
+const QR_ACTION_TYPES = [
+  { value: 'uri', label: 'リンクを開く' },
+  { value: 'message', label: 'メッセージ送信 (固定文)' },
+  { value: 'postback', label: 'ポストバック' },
+  { value: 'datetimepicker', label: '日時ピッカー' },
+  { value: 'camera', label: 'カメラ起動' },
+  { value: 'cameraRoll', label: 'カメラロール' },
+  { value: 'location', label: '位置情報共有' },
+  { value: 'clipboard', label: 'クリップボードコピー' },
+];
 
 const STATUS_CHIP = {
   draft: { label: '下書き', sx: { bgcolor: '#e2e8f0', color: '#475569' } },
@@ -52,7 +68,7 @@ const STATUS_CHIP = {
 
 const BLOCK_LABEL = {
   text: 'テキスト', image: '画像', coupon: 'クーポン',
-  sticker: 'スタンプ', video: '動画', location: '位置情報',
+  sticker: 'スタンプ', video: '動画', location: '位置情報', audio: '音声',
 };
 
 export default function MessagesTab({ companyId, user }) {
@@ -101,6 +117,7 @@ export default function MessagesTab({ companyId, user }) {
         sender_name: full.sender_name || '',
         sender_icon_url: full.sender_icon_url || '',
         quick_reply_items: Array.isArray(full.quick_reply_items) ? full.quick_reply_items : [],
+        custom_aggregation_units: Array.isArray(full.custom_aggregation_units) ? full.custom_aggregation_units : [],
         blocks: full.blocks.length > 0 ? full.blocks : [newBlock('text')],
       });
       setAudience([]); setAudienceCount(null);
@@ -139,7 +156,8 @@ export default function MessagesTab({ companyId, user }) {
         notification_disabled: editing.notification_disabled,
         sender_name: editing.sender_name?.trim() || null,
         sender_icon_url: editing.sender_icon_url || null,
-        quick_reply_items: (editing.quick_reply_items || []).filter(q => q.label && q.value),
+        quick_reply_items: (editing.quick_reply_items || []).filter(q => q?.action?.label),
+        custom_aggregation_units: (editing.custom_aggregation_units || []).filter(Boolean),
         blocks: editing.blocks,
         userId: user?.id,
       });
@@ -165,7 +183,8 @@ export default function MessagesTab({ companyId, user }) {
         notification_disabled: editing.notification_disabled,
         sender_name: editing.sender_name?.trim() || null,
         sender_icon_url: editing.sender_icon_url || null,
-        quick_reply_items: (editing.quick_reply_items || []).filter(q => q.label && q.value),
+        quick_reply_items: (editing.quick_reply_items || []).filter(q => q?.action?.label),
+        custom_aggregation_units: (editing.custom_aggregation_units || []).filter(Boolean),
         blocks: editing.blocks,
         userId: user?.id,
       });
@@ -237,7 +256,7 @@ export default function MessagesTab({ companyId, user }) {
     } catch (e) { toast.error(e?.message || 'プレビュー失敗'); }
   };
 
-  // Quick Reply
+  // Quick Reply (LINE 全 action タイプ対応)
   const addQuickReply = () => {
     if ((editing.quick_reply_items || []).length >= 13) {
       return toast.error('クイックリプライは最大13個');
@@ -246,20 +265,42 @@ export default function MessagesTab({ companyId, user }) {
       ...editing,
       quick_reply_items: [
         ...(editing.quick_reply_items || []),
-        { type: 'action', action: { type: 'uri', label: '', uri: '' }, label: '', value: '' },
+        { type: 'action', imageUrl: null, action: { type: 'uri', label: '', uri: '' } },
       ],
     });
   };
-  const updateQuickReply = (i, patch) => {
+  const updateQRAction = (i, patchAction) => {
     const items = [...(editing.quick_reply_items || [])];
-    items[i] = { ...items[i], ...patch };
-    // LINE 用 action オブジェクトを整える
-    items[i].action = { type: 'uri', label: items[i].label || '', uri: items[i].value || '' };
+    items[i] = { ...items[i], action: { ...items[i].action, ...patchAction } };
+    setEditing({ ...editing, quick_reply_items: items });
+  };
+  const changeQRType = (i, newType) => {
+    const items = [...(editing.quick_reply_items || [])];
+    const oldLabel = items[i]?.action?.label || '';
+    let action;
+    switch (newType) {
+      case 'uri': action = { type: 'uri', label: oldLabel, uri: '' }; break;
+      case 'message': action = { type: 'message', label: oldLabel, text: '' }; break;
+      case 'postback': action = { type: 'postback', label: oldLabel, data: '', displayText: '' }; break;
+      case 'datetimepicker': action = { type: 'datetimepicker', label: oldLabel, data: '', mode: 'date' }; break;
+      case 'camera': action = { type: 'camera', label: oldLabel || 'カメラ' }; break;
+      case 'cameraRoll': action = { type: 'cameraRoll', label: oldLabel || '写真選択' }; break;
+      case 'location': action = { type: 'location', label: oldLabel || '位置共有' }; break;
+      case 'clipboard': action = { type: 'clipboardAction', label: oldLabel, clipboardText: '' }; break;
+      default: action = { type: 'uri', label: oldLabel, uri: '' };
+    }
+    items[i] = { ...items[i], action };
     setEditing({ ...editing, quick_reply_items: items });
   };
   const removeQuickReply = (i) => setEditing({
     ...editing, quick_reply_items: (editing.quick_reply_items || []).filter((_, idx) => idx !== i),
   });
+
+  // Custom Aggregation Units
+  const updateCAU = (val) => {
+    const arr = (val || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 1);
+    setEditing({ ...editing, custom_aggregation_units: arr });
+  };
 
   const renderBlockEditor = (b, i) => (
     <Card key={i} variant="outlined" sx={{ p: 2, borderRadius: 1, mb: 1.5 }}>
@@ -273,9 +314,29 @@ export default function MessagesTab({ companyId, user }) {
       </Box>
 
       {b.block_type === 'text' && (
-        <TextField fullWidth multiline rows={3} placeholder="本文 (5000字まで)。{{company_name}} で企業名を埋め込み"
-          value={b.text_content || ''}
-          onChange={(e) => updateBlock(i, { text_content: e.target.value })} />
+        <Stack spacing={1.5}>
+          <TextField fullWidth multiline rows={3} placeholder="本文 (5000字まで)。{{company_name}} で企業名を埋め込み"
+            value={b.text_content || ''}
+            onChange={(e) => updateBlock(i, { text_content: e.target.value })} />
+          <Accordion variant="outlined">
+            <AccordionSummary expandIcon={<ExpandMore />}>
+              <Typography variant="caption" sx={{ fontWeight: 600 }}>LINE 公式絵文字 (emojis)</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <TextField fullWidth size="small" multiline rows={3}
+                placeholder='[{"index":0,"productId":"5ac1bfd5040ab15980c9b435","emojiId":"001"}]'
+                value={b.emojis ? JSON.stringify(b.emojis, null, 2) : ''}
+                onChange={(e) => {
+                  const v = e.target.value.trim();
+                  if (!v) { updateBlock(i, { emojis: null }); return; }
+                  try { updateBlock(i, { emojis: JSON.parse(v) }); }
+                  catch { updateBlock(i, { emojis: v }); }
+                }}
+                helperText="本文中の $ 位置 (index) に LINE 公式絵文字を埋め込み。JSON 配列で入力。"
+              />
+            </AccordionDetails>
+          </Accordion>
+        </Stack>
       )}
 
       {b.block_type === 'image' && (
@@ -350,6 +411,23 @@ export default function MessagesTab({ companyId, user }) {
               <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(i, e)} />
             </Button>
           </Box>
+          <TextField label="trackingId (任意)" fullWidth size="small"
+            value={b.video_tracking_id || ''}
+            onChange={(e) => updateBlock(i, { video_tracking_id: e.target.value })}
+            helperText="動画再生分析用。LINE Insights API で取得時のトラッキング ID" />
+        </Stack>
+      )}
+
+      {b.block_type === 'audio' && (
+        <Stack spacing={1.5}>
+          <TextField label="音声 URL (m4a) *" fullWidth size="small"
+            value={b.audio_url || ''}
+            onChange={(e) => updateBlock(i, { audio_url: e.target.value })}
+            placeholder="https://.../audio.m4a" />
+          <TextField label="再生時間 (ミリ秒) *" type="number" fullWidth size="small"
+            value={b.audio_duration_ms ?? ''}
+            onChange={(e) => updateBlock(i, { audio_duration_ms: e.target.value })}
+            helperText="例: 60000 = 60 秒" />
         </Stack>
       )}
 
@@ -463,6 +541,7 @@ export default function MessagesTab({ companyId, user }) {
                   { type: 'coupon', icon: <LocalOffer />, label: 'クーポン' },
                   { type: 'sticker', icon: <EmojiEmotions />, label: 'スタンプ' },
                   { type: 'video', icon: <OndemandVideo />, label: '動画' },
+                  { type: 'audio', icon: <AudioFile />, label: '音声' },
                   { type: 'location', icon: <LocationOn />, label: '位置情報' },
                 ].map((opt) => (
                   <Button key={opt.type} size="small" startIcon={opt.icon} variant="outlined"
@@ -509,28 +588,108 @@ export default function MessagesTab({ companyId, user }) {
 
             <Accordion variant="outlined">
               <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>クイックリプライ (最後のメッセージに付与)</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  クイックリプライ (最後のメッセージに付与 / 最大13件 / 全アクションタイプ対応)
+                </Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Stack spacing={1.5}>
-                  {(editing.quick_reply_items || []).map((q, i) => (
-                    <Box key={i} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                      <TextField label="ラベル" size="small" sx={{ flex: 1 }}
-                        value={q.label || ''}
-                        onChange={(e) => updateQuickReply(i, { label: e.target.value })} />
-                      <TextField label="リンク URL" size="small" sx={{ flex: 2 }}
-                        value={q.value || ''}
-                        onChange={(e) => updateQuickReply(i, { value: e.target.value })}
-                        placeholder="https://..." />
-                      <IconButton size="small" sx={{ color: '#ef4444' }} onClick={() => removeQuickReply(i)}>
-                        <Delete fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  ))}
-                  <Button size="small" startIcon={<Add />} onClick={addQuickReply} variant="outlined">
+                <Stack spacing={2}>
+                  {(editing.quick_reply_items || []).map((q, i) => {
+                    const a = q.action || {};
+                    return (
+                      <Card key={i} variant="outlined" sx={{ p: 1.5, borderRadius: 1 }}>
+                        <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                          <FormControl size="small" sx={{ minWidth: 180 }}>
+                            <InputLabel>アクション種別</InputLabel>
+                            <Select label="アクション種別" value={a.type || 'uri'}
+                              onChange={(e) => changeQRType(i, e.target.value)}>
+                              {QR_ACTION_TYPES.map((t) => (
+                                <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                          <TextField label="ラベル *" size="small" sx={{ flex: 1 }}
+                            value={a.label || ''}
+                            onChange={(e) => updateQRAction(i, { label: e.target.value })} />
+                          <IconButton size="small" sx={{ color: '#ef4444' }} onClick={() => removeQuickReply(i)}>
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          {a.type === 'uri' && (
+                            <TextField label="URI" size="small" fullWidth placeholder="https://..."
+                              value={a.uri || ''} onChange={(e) => updateQRAction(i, { uri: e.target.value })} />
+                          )}
+                          {a.type === 'message' && (
+                            <TextField label="送信テキスト" size="small" fullWidth
+                              value={a.text || ''} onChange={(e) => updateQRAction(i, { text: e.target.value })}
+                              helperText="タップ時にユーザーがこのテキストを送信" />
+                          )}
+                          {a.type === 'postback' && (
+                            <>
+                              <TextField label="data (postback で送信)" size="small" fullWidth
+                                value={a.data || ''} onChange={(e) => updateQRAction(i, { data: e.target.value })} />
+                              <TextField label="表示テキスト (任意)" size="small" fullWidth
+                                value={a.displayText || ''} onChange={(e) => updateQRAction(i, { displayText: e.target.value })} />
+                            </>
+                          )}
+                          {a.type === 'datetimepicker' && (
+                            <>
+                              <FormControl size="small" sx={{ minWidth: 160 }}>
+                                <InputLabel>モード</InputLabel>
+                                <Select label="モード" value={a.mode || 'date'}
+                                  onChange={(e) => updateQRAction(i, { mode: e.target.value })}>
+                                  <MenuItem value="date">date (日付)</MenuItem>
+                                  <MenuItem value="time">time (時刻)</MenuItem>
+                                  <MenuItem value="datetime">datetime (両方)</MenuItem>
+                                </Select>
+                              </FormControl>
+                              <TextField label="data" size="small" fullWidth
+                                value={a.data || ''} onChange={(e) => updateQRAction(i, { data: e.target.value })} />
+                              <Box sx={{ display: 'flex', gap: 1 }}>
+                                <TextField label="initial (任意)" size="small" sx={{ flex: 1 }}
+                                  value={a.initial || ''} onChange={(e) => updateQRAction(i, { initial: e.target.value })}
+                                  placeholder="2026-05-06" />
+                                <TextField label="min (任意)" size="small" sx={{ flex: 1 }}
+                                  value={a.min || ''} onChange={(e) => updateQRAction(i, { min: e.target.value })} />
+                                <TextField label="max (任意)" size="small" sx={{ flex: 1 }}
+                                  value={a.max || ''} onChange={(e) => updateQRAction(i, { max: e.target.value })} />
+                              </Box>
+                            </>
+                          )}
+                          {a.type === 'clipboardAction' && (
+                            <TextField label="クリップボードに貼り付ける文字列" size="small" fullWidth
+                              value={a.clipboardText || ''}
+                              onChange={(e) => updateQRAction(i, { clipboardText: e.target.value })} />
+                          )}
+                          {(a.type === 'camera' || a.type === 'cameraRoll' || a.type === 'location') && (
+                            <Typography variant="caption" color="text.secondary">
+                              このアクションは追加パラメータ不要 (LINE 標準動作)
+                            </Typography>
+                          )}
+                        </Box>
+                      </Card>
+                    );
+                  })}
+                  <Button size="small" startIcon={<Add />} onClick={addQuickReply} variant="outlined"
+                    sx={{ alignSelf: 'flex-start', borderColor: theme.primary, color: theme.primary }}>
                     クイックリプライを追加
                   </Button>
                 </Stack>
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion variant="outlined">
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>集計単位 (customAggregationUnits)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <TextField fullWidth size="small"
+                  label="集計タグ (英数 + アンダースコア / 最大1個)"
+                  value={(editing.custom_aggregation_units || []).join(', ')}
+                  onChange={(e) => updateCAU(e.target.value)}
+                  helperText="LINE 公式アカウントマネージャーの「メッセージ配信効果計測」で集計するためのタグ。例: campaign_2026_may"
+                />
               </AccordionDetails>
             </Accordion>
 

@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { userHasCompanyAccess } from '../_shared/companyAccess.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -42,14 +43,8 @@ serve(async (req) => {
 
     const admin = createClient(supabaseUrl, supabaseServiceKey)
 
-    // 企業所属チェック
-    const { data: membership } = await admin
-      .from('company_memberships')
-      .select('id')
-      .eq('company_id', company_id)
-      .eq('business_user_id', user.id)
-      .maybeSingle()
-    if (!membership) throw new Error('この企業の LINE 連携設定を更新する権限がありません')
+    const allowed = await userHasCompanyAccess(admin, user.id, company_id)
+    if (!allowed) throw new Error('この企業の LINE 連携設定を更新する権限がありません')
 
     // LINE Messaging API 疎通テスト (botInfo で access_token 検証)
     const verifyRes = await fetch('https://api.line.me/v2/bot/info', {

@@ -45,8 +45,24 @@ export async function fetchCoupons(companyId) {
   return data || [];
 }
 
-export async function upsertCoupon({ id, companyId, name, description, image_url, code, discount_text, expires_at, terms_text, is_active = true }) {
-  const payload = { company_id: companyId, name, description, image_url, code, discount_text, expires_at, terms_text, is_active };
+export async function upsertCoupon({
+  id, companyId, name, description, image_url, code, discount_text,
+  start_at, expires_at, terms_text, is_active = true,
+  bubble_size, background_color, header_text, header_color,
+  cta_label, cta_uri, cta_color,
+}) {
+  const payload = {
+    company_id: companyId, name, description, image_url, code, discount_text,
+    start_at: start_at || null, expires_at: expires_at || null,
+    terms_text, is_active,
+    bubble_size: bubble_size || 'kilo',
+    background_color: background_color || null,
+    header_text: header_text || null,
+    header_color: header_color || null,
+    cta_label: cta_label || null,
+    cta_uri: cta_uri || null,
+    cta_color: cta_color || null,
+  };
   if (id) {
     const { data, error } = await supabase.from('line_coupons').update(payload).eq('id', id).select().single();
     if (error) throw error;
@@ -150,6 +166,7 @@ export async function saveMessage({
   id, companyId, title, blocks,
   target_segment_id, target_snapshot,
   notification_disabled, sender_name, sender_icon_url, quick_reply_items,
+  custom_aggregation_units,
   userId,
 }) {
   const messagePayload = {
@@ -160,6 +177,7 @@ export async function saveMessage({
     sender_name: sender_name || null,
     sender_icon_url: sender_icon_url || null,
     quick_reply_items: quick_reply_items && quick_reply_items.length > 0 ? quick_reply_items : null,
+    custom_aggregation_units: custom_aggregation_units && custom_aggregation_units.length > 0 ? custom_aggregation_units : null,
   };
 
   let messageId = id;
@@ -182,12 +200,16 @@ export async function saveMessage({
       message_id: messageId,
       block_type: b.block_type,
       text_content: b.text_content || null,
+      emojis: Array.isArray(b.emojis) && b.emojis.length > 0 ? b.emojis : null,
       image_url: b.image_url || null,
       link_url: b.link_url || null,
       coupon_id: b.coupon_id || null,
-      sticker_package_id: b.sticker_package_id != null ? Number(b.sticker_package_id) : null,
-      sticker_id: b.sticker_id != null ? Number(b.sticker_id) : null,
+      sticker_package_id: b.sticker_package_id != null && b.sticker_package_id !== '' ? Number(b.sticker_package_id) : null,
+      sticker_id: b.sticker_id != null && b.sticker_id !== '' ? Number(b.sticker_id) : null,
       video_url: b.video_url || null,
+      video_tracking_id: b.video_tracking_id || null,
+      audio_url: b.audio_url || null,
+      audio_duration_ms: b.audio_duration_ms != null && b.audio_duration_ms !== '' ? Number(b.audio_duration_ms) : null,
       location_title: b.location_title || null,
       location_address: b.location_address || null,
       location_latitude: b.location_latitude !== '' && b.location_latitude != null ? Number(b.location_latitude) : null,

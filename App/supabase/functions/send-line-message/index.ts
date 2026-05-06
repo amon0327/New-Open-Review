@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { userHasCompanyAccess } from '../_shared/companyAccess.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,20 +11,22 @@ const corsHeaders = {
 const MAX_MESSAGES_PER_MULTICAST = 5
 const MAX_USERS_PER_MULTICAST = 500
 
-interface RequestBody {
-  message_id: string
-}
+interface RequestBody { message_id: string }
 
 interface Block {
   id: string
-  block_type: 'text' | 'image' | 'coupon' | 'sticker' | 'video' | 'location'
+  block_type: 'text' | 'image' | 'coupon' | 'sticker' | 'video' | 'location' | 'audio'
   text_content: string | null
+  emojis: unknown[] | null
   image_url: string | null
   link_url: string | null
   coupon_id: string | null
   sticker_package_id: number | null
   sticker_id: number | null
   video_url: string | null
+  video_tracking_id: string | null
+  audio_url: string | null
+  audio_duration_ms: number | null
   location_title: string | null
   location_address: string | null
   location_latitude: number | string | null
@@ -39,7 +42,15 @@ interface Coupon {
   code: string | null
   discount_text: string | null
   expires_at: string | null
+  start_at: string | null
   terms_text: string | null
+  bubble_size: string | null
+  background_color: string | null
+  header_text: string | null
+  header_color: string | null
+  cta_label: string | null
+  cta_uri: string | null
+  cta_color: string | null
 }
 
 const formatDate = (iso: string | null): string => {
@@ -48,8 +59,78 @@ const formatDate = (iso: string | null): string => {
   return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
 }
 
-const substituteVars = (text: string, vars: Record<string, string>): string => {
-  return text.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, key) => vars[key] ?? '')
+const substituteVars = (text: string, vars: Record<string, string>): string =>
+  text.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, key) => vars[key] ?? '')
+
+const buildCouponFlex = (coupon: Coupon, vars: Record<string, string>) => {
+  const headerColor = coupon.header_color || '#ffffff'
+  const ctaColor = coupon.cta_color || '#06C755'
+  const bgColor = coupon.background_color || '#ffffff'
+
+  const bodyContents: unknown[] = [
+    { type: 'text', text: substituteVars(coupon.name, vars), weight: 'bold', size: 'xl', wrap: true },
+  ]
+  if (coupon.discount_text) {
+    bodyContents.push({ type: 'text', text: substituteVars(coupon.discount_text, vars), size: 'lg', color: ctaColor, weight: 'bold', wrap: true, margin: 'md' })
+  }
+  if (coupon.description) {
+    bodyContents.push({ type: 'text', text: substituteVars(coupon.description, vars), size: 'sm', color: '#555555', wrap: true, margin: 'md' })
+  }
+  if (coupon.code) {
+    bodyContents.push({
+      type: 'box', layout: 'baseline', margin: 'lg',
+      contents: [
+        { type: 'text', text: 'コード', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: substituteVars(coupon.code, vars), size: 'sm', weight: 'bold', flex: 5 },
+      ],
+    })
+  }
+  if (coupon.start_at || coupon.expires_at) {
+    const period = coupon.start_at && coupon.expires_at
+      ? `${formatDate(coupon.start_at)} 〜 ${formatDate(coupon.expires_at)}`
+      : coupon.expires_at ? formatDate(coupon.expires_at) : `${formatDate(coupon.start_at)} 〜`
+    bodyContents.push({
+      type: 'box', layout: 'baseline', margin: 'sm',
+      contents: [
+        { type: 'text', text: '有効期限', size: 'sm', color: '#888888', flex: 2 },
+        { type: 'text', text: period, size: 'sm', flex: 5 },
+      ],
+    })
+  }
+  if (coupon.terms_text) {
+    bodyContents.push({ type: 'text', text: substituteVars(coupon.terms_text, vars), size: 'xs', color: '#aaaaaa', wrap: true, margin: 'lg' })
+  }
+
+  const bubble: Record<string, unknown> = {
+    type: 'bubble',
+    size: coupon.bubble_size || 'kilo',
+    body: {
+      type: 'box', layout: 'vertical', contents: bodyContents,
+      backgroundColor: bgColor,
+    },
+  }
+
+  if (coupon.image_url) {
+    bubble.hero = { type: 'image', url: coupon.image_url, size: 'full', aspectMode: 'cover', aspectRatio: '20:13' }
+  }
+  if (coupon.header_text) {
+    bubble.header = {
+      type: 'box', layout: 'vertical',
+      contents: [{ type: 'text', text: substituteVars(coupon.header_text, vars), color: headerColor, weight: 'bold', size: 'sm', align: 'center' }],
+      backgroundColor: ctaColor,
+      paddingAll: 'sm',
+    }
+  }
+  if (coupon.cta_label && coupon.cta_uri) {
+    bubble.footer = {
+      type: 'box', layout: 'vertical',
+      contents: [{
+        type: 'button', style: 'primary', color: ctaColor,
+        action: { type: 'uri', label: substituteVars(coupon.cta_label, vars), uri: coupon.cta_uri },
+      }],
+    }
+  }
+  return bubble
 }
 
 const buildLineMessages = (
@@ -64,15 +145,19 @@ const buildLineMessages = (
     ? { ...(senderName ? { name: senderName } : {}), ...(senderIconUrl ? { iconUrl: senderIconUrl } : {}) }
     : undefined
   const out: Record<string, unknown>[] = []
+
   for (const b of blocks) {
     let msg: Record<string, unknown> | null = null
+
     if (b.block_type === 'text' && b.text_content) {
       msg = { type: 'text', text: substituteVars(b.text_content, vars).slice(0, 5000) }
+      if (Array.isArray(b.emojis) && b.emojis.length > 0) {
+        msg.emojis = b.emojis
+      }
     } else if (b.block_type === 'image' && b.image_url) {
       if (b.link_url) {
         msg = {
-          type: 'flex',
-          altText: '画像',
+          type: 'flex', altText: '画像',
           contents: {
             type: 'bubble',
             hero: {
@@ -97,6 +182,13 @@ const buildLineMessages = (
         originalContentUrl: b.video_url,
         previewImageUrl: b.image_url || b.video_url,
       }
+      if (b.video_tracking_id) msg.trackingId = b.video_tracking_id
+    } else if (b.block_type === 'audio' && b.audio_url && b.audio_duration_ms) {
+      msg = {
+        type: 'audio',
+        originalContentUrl: b.audio_url,
+        duration: Number(b.audio_duration_ms),
+      }
     } else if (b.block_type === 'location') {
       const lat = typeof b.location_latitude === 'string' ? parseFloat(b.location_latitude) : b.location_latitude
       const lng = typeof b.location_longitude === 'string' ? parseFloat(b.location_longitude) : b.location_longitude
@@ -112,45 +204,7 @@ const buildLineMessages = (
     } else if (b.block_type === 'coupon' && b.coupon_id) {
       const coupon = couponsById.get(b.coupon_id)
       if (!coupon) continue
-
-      const bodyContents: unknown[] = [
-        { type: 'text', text: substituteVars(coupon.name, vars), weight: 'bold', size: 'xl', wrap: true },
-      ]
-      if (coupon.discount_text) {
-        bodyContents.push({ type: 'text', text: substituteVars(coupon.discount_text, vars), size: 'lg', color: '#06C755', weight: 'bold', wrap: true, margin: 'md' })
-      }
-      if (coupon.description) {
-        bodyContents.push({ type: 'text', text: substituteVars(coupon.description, vars), size: 'sm', color: '#555555', wrap: true, margin: 'md' })
-      }
-      if (coupon.code) {
-        bodyContents.push({
-          type: 'box', layout: 'baseline', margin: 'lg',
-          contents: [
-            { type: 'text', text: 'コード', size: 'sm', color: '#888888', flex: 2 },
-            { type: 'text', text: substituteVars(coupon.code, vars), size: 'sm', weight: 'bold', flex: 5 },
-          ],
-        })
-      }
-      if (coupon.expires_at) {
-        bodyContents.push({
-          type: 'box', layout: 'baseline', margin: 'sm',
-          contents: [
-            { type: 'text', text: '有効期限', size: 'sm', color: '#888888', flex: 2 },
-            { type: 'text', text: formatDate(coupon.expires_at), size: 'sm', flex: 5 },
-          ],
-        })
-      }
-      if (coupon.terms_text) {
-        bodyContents.push({ type: 'text', text: substituteVars(coupon.terms_text, vars), size: 'xs', color: '#aaaaaa', wrap: true, margin: 'lg' })
-      }
-
-      const bubble: Record<string, unknown> = {
-        type: 'bubble',
-        body: { type: 'box', layout: 'vertical', contents: bodyContents },
-      }
-      if (coupon.image_url) {
-        bubble.hero = { type: 'image', url: coupon.image_url, size: 'full', aspectMode: 'cover', aspectRatio: '20:13' }
-      }
+      const bubble = buildCouponFlex(coupon, vars)
       msg = { type: 'flex', altText: `クーポン: ${coupon.name}`, contents: bubble }
     }
 
@@ -194,10 +248,8 @@ serve(async (req) => {
     if (msgErr || !message) throw new Error('メッセージが見つかりません')
     if (message.status === 'sent') throw new Error('既に送信済みのメッセージです')
 
-    const { data: membership } = await admin
-      .from('company_memberships').select('id')
-      .eq('company_id', message.company_id).eq('business_user_id', user.id).maybeSingle()
-    if (!membership) throw new Error('このメッセージを送信する権限がありません')
+    const allowed = await userHasCompanyAccess(admin, user.id, message.company_id)
+    if (!allowed) throw new Error('このメッセージを送信する権限がありません')
 
     const { data: company } = await admin
       .from('companies')
@@ -225,7 +277,7 @@ serve(async (req) => {
     if (couponIds.length > 0) {
       const { data: coupons } = await admin
         .from('line_coupons')
-        .select('id, name, description, image_url, code, discount_text, expires_at, terms_text')
+        .select('id, name, description, image_url, code, discount_text, expires_at, start_at, terms_text, bubble_size, background_color, header_text, header_color, cta_label, cta_uri, cta_color')
         .in('id', couponIds)
       for (const c of (coupons ?? []) as Coupon[]) couponsById.set(c.id, c)
     }
@@ -275,6 +327,9 @@ serve(async (req) => {
     let failedCount = 0
     const deliveryRows: Array<{ message_id: string; line_user_id: string; user_id: string; status: string; error_message?: string; sent_at?: string }> = []
 
+    const customAggregationUnits = Array.isArray(message.custom_aggregation_units)
+      ? message.custom_aggregation_units as string[] : null
+
     for (let i = 0; i < audience.length; i += MAX_USERS_PER_MULTICAST) {
       const chunk = audience.slice(i, i + MAX_USERS_PER_MULTICAST)
       const userIds = chunk.map(a => a.line_user_id)
@@ -283,14 +338,18 @@ serve(async (req) => {
       let lastError: string | null = null
 
       for (const batch of messageBatches) {
+        const payload: Record<string, unknown> = {
+          to: userIds,
+          messages: batch,
+          notificationDisabled: !!message.notification_disabled,
+        }
+        if (customAggregationUnits && customAggregationUnits.length > 0) {
+          payload.customAggregationUnits = customAggregationUnits
+        }
         const res = await fetch('https://api.line.me/v2/bot/message/multicast', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
-          body: JSON.stringify({
-            to: userIds,
-            messages: batch,
-            notificationDisabled: !!message.notification_disabled,
-          }),
+          body: JSON.stringify(payload),
         })
         if (!res.ok) {
           chunkSucceeded = false
