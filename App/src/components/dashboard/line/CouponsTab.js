@@ -40,6 +40,11 @@ const MAX_ACQUIRE_OPTIONS = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 30, 50, 100, 200, 500, 1000, 2000, 5000, 10000,
 ];
 
+// 1〜5%, 10/15/20/25/30%, 40/50/60/70/80/90/100%
+const LOTTERY_PROBABILITY_OPTIONS = [
+  1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100,
+];
+
 // シンプルなラベル: 任意の場合のみ「(任意)」を後置
 const optLabel = (text, optional) => optional ? (
   <Box component="span">
@@ -303,10 +308,16 @@ export default function CouponsTab({ companyId, onFormModeChange }) {
 
               {isLottery && (
                 <Box sx={{ display: 'flex', gap: 2, mt: 1.5, p: 2, bgcolor: alpha(theme.primary, 0.04), borderRadius: 1 }}>
-                  <TextField label="当選確率" type="number" size="small" sx={{ flex: 1 }}
-                    value={editing.acquisition_lottery_probability}
-                    onChange={(e) => setEditing({ ...editing, acquisition_lottery_probability: e.target.value })}
-                    InputProps={{ endAdornment: <InputAdornment position="end">%</InputAdornment> }} />
+                  <FormControl size="small" sx={{ flex: 1 }}>
+                    <InputLabel>当選確率</InputLabel>
+                    <Select label="当選確率" value={editing.acquisition_lottery_probability}
+                      onChange={(e) => setEditing({ ...editing, acquisition_lottery_probability: e.target.value })}>
+                      <MenuItem value=""><em>選択してください</em></MenuItem>
+                      {LOTTERY_PROBABILITY_OPTIONS.map((n) => (
+                        <MenuItem key={n} value={n}>{n} %</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                   <FormControl size="small" sx={{ flex: 1 }}>
                     <InputLabel>当選上限数</InputLabel>
                     <Select label="当選上限数" value={editing.acquisition_max_acquire_count}

@@ -37,9 +37,9 @@ export default function LineSettingsCard({ companyId }) {
   useEffect(() => { load(); }, [companyId]);
 
   const handleSave = async () => {
-    if (!channelId.trim()) return toast.error('Channel ID を入力してください');
-    if (!channelSecret.trim()) return toast.error('Channel Secret を入力してください');
-    if (!channelAccessToken.trim()) return toast.error('Channel Access Token を入力してください');
+    if (!channelId.trim()) return toast.error('チャネル ID を入力してください');
+    if (!channelSecret.trim()) return toast.error('シークレットキーを入力してください');
+    if (!channelAccessToken.trim()) return toast.error('アクセストークンを入力してください');
 
     try {
       setSaving(true);
@@ -76,15 +76,15 @@ export default function LineSettingsCard({ companyId }) {
           </Box>
           <Box sx={{ flex: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: 700, color: '#1a202c' }}>LINE 公式アカウント連携</Typography>
-            <Typography variant="body2" sx={{ color: '#64748b' }}>Messaging API チャネルの認証情報</Typography>
+            <Typography variant="body2" sx={{ color: '#64748b' }}>お客様のLINE公式アカウントにメッセージを配信</Typography>
           </Box>
           {isEnabled && (
-            <Chip icon={<CheckCircle />} label="有効" color="success" size="small" sx={{ fontWeight: 600 }} />
+            <Chip icon={<CheckCircle />} label="連携済み" color="success" size="small" sx={{ fontWeight: 600 }} />
           )}
         </Box>
 
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Channel Secret と Channel Access Token は Supabase Vault に暗号化保管されます。Basic ID は LINE API から自動取得します。
+          LINE 公式アカウントの管理画面で発行された情報を入力してください。入力した情報は暗号化して安全に保管されます。
         </Typography>
 
         {loading ? (
@@ -93,18 +93,19 @@ export default function LineSettingsCard({ companyId }) {
           <>
             {isEnabled && (
               <Alert severity="success" sx={{ mb: 2 }}>
-                <strong>Channel ID: {settings.line_channel_id}</strong>{settings.line_basic_id && <> / Basic ID: {settings.line_basic_id}</>}
+                LINE 連携が有効です。メッセージの送信ができます。
               </Alert>
             )}
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField label="Channel ID *" value={channelId}
+              <TextField label="チャネル ID" value={channelId}
                 onChange={(e) => setChannelId(e.target.value)}
-                placeholder="例: 1656987654" size="small" fullWidth />
-              <TextField label="Channel Secret *" type={showSecret ? 'text' : 'password'}
+                placeholder="数字10桁ほどの ID"
+                size="small" fullWidth />
+              <TextField label="シークレットキー" type={showSecret ? 'text' : 'password'}
                 value={channelSecret}
                 onChange={(e) => setChannelSecret(e.target.value)}
-                placeholder={isEnabled ? '更新する場合のみ入力' : '32文字の Channel Secret'}
+                placeholder={isEnabled ? '更新する場合のみ入力' : '半角英数 32 文字のキー'}
                 size="small" fullWidth
                 InputProps={{
                   endAdornment: (
@@ -114,10 +115,10 @@ export default function LineSettingsCard({ companyId }) {
                   ),
                 }}
               />
-              <TextField label="Channel Access Token (long-lived) *" type={showToken ? 'text' : 'password'}
+              <TextField label="アクセストークン" type={showToken ? 'text' : 'password'}
                 value={channelAccessToken}
                 onChange={(e) => setChannelAccessToken(e.target.value)}
-                placeholder={isEnabled ? '更新する場合のみ入力' : '長期 Access Token'}
+                placeholder={isEnabled ? '更新する場合のみ入力' : '長期利用のアクセストークン'}
                 size="small" fullWidth multiline maxRows={3}
                 InputProps={{
                   endAdornment: (
