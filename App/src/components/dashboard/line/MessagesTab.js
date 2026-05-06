@@ -298,7 +298,7 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
           </Button>
         </Box>
 
-        <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
+        <Box sx={{ p: 3 }}>
           <Stack spacing={2.5}>
             <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
               <SectionHeader title="基本情報" />

@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box, Typography, Button, Card, TextField, IconButton, Chip,
-  CircularProgress, Stack, Divider,
-  alpha,
+  CircularProgress, Stack, alpha,
 } from '@mui/material';
 import {
-  Add, Delete, Edit, FilterAlt, ArrowBack, Tune, Save, PlayArrow,
+  Add, Delete, Edit, FilterAlt, ArrowBack, Save, Visibility,
 } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 import {
@@ -30,17 +29,47 @@ const QSC_OPTIONS = [
 
 const PREFERENCES = ['品質', '接客', '空間', '衛生', '価格感度'];
 
+const NPS_LABELS = { promoter: '推奨者', passive: '中立者', detractor: '批判者' };
+
 const empty = {
   id: null, name: '', description: '',
   conditions: {
     store_ids: [], selected_qsc: [],
     top_preferences: [], second_preferences: [],
     nps_segments: [],
-    is_repeater: null,        // null=指定なし / true=リピーター / false=新規
-    has_revisit_intent: null, // 同
+    is_repeater: null,
+    has_revisit_intent: null,
     answered_from: '', answered_to: '',
   },
 };
+
+function SectionHeader({ title, optional }) {
+  const theme = usePartnerTheme();
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5 }}>
+      <Box sx={{
+        width: 4, height: 24, borderRadius: 4,
+        background: theme.primaryGradient || theme.primary, mr: 1.5,
+      }} />
+      <Typography sx={{ fontWeight: 700, fontSize: '1rem' }}>
+        {title}
+        {optional && <Box component="span" sx={{ ml: 0.75, color: '#94a3b8', fontSize: '0.78em', fontWeight: 400 }}>(任意)</Box>}
+      </Typography>
+    </Box>
+  );
+}
+
+function FieldLabel({ children, optional }) {
+  return (
+    <Typography sx={{
+      fontSize: '0.78rem', fontWeight: 700, color: '#475569',
+      mb: 1, display: 'block', letterSpacing: 0.3,
+    }}>
+      {children}
+      {optional && <Box component="span" sx={{ ml: 0.5, color: '#94a3b8', fontWeight: 400 }}>(任意)</Box>}
+    </Typography>
+  );
+}
 
 function ChipMultiSelect({ options, selected, onChange, getKey, getLabel }) {
   const theme = usePartnerTheme();
@@ -57,7 +86,7 @@ function ChipMultiSelect({ options, selected, onChange, getKey, getLabel }) {
             onClick={() => toggle(k)}
             variant={sel ? 'filled' : 'outlined'}
             sx={{
-              fontWeight: 600,
+              fontWeight: 600, height: 32,
               background: sel ? (theme.primaryGradient || theme.primary) : 'transparent',
               color: sel ? 'white' : '#475569',
               borderColor: sel ? 'transparent' : '#cbd5e1',
@@ -70,11 +99,10 @@ function ChipMultiSelect({ options, selected, onChange, getKey, getLabel }) {
   );
 }
 
-// 三値 toggle (全体 / true / false)
 function ChipTernary({ value, onChange, trueLabel, falseLabel }) {
   const theme = usePartnerTheme();
   const opts = [
-    { val: null, label: '全体' },
+    { val: null, label: '指定なし' },
     { val: true, label: trueLabel },
     { val: false, label: falseLabel },
   ];
@@ -87,7 +115,7 @@ function ChipTernary({ value, onChange, trueLabel, falseLabel }) {
             onClick={() => onChange(o.val)}
             variant={sel ? 'filled' : 'outlined'}
             sx={{
-              fontWeight: 600,
+              fontWeight: 600, height: 32,
               background: sel ? (theme.primaryGradient || theme.primary) : 'transparent',
               color: sel ? 'white' : '#475569',
               borderColor: sel ? 'transparent' : '#cbd5e1',
@@ -99,8 +127,6 @@ function ChipTernary({ value, onChange, trueLabel, falseLabel }) {
     </Box>
   );
 }
-
-const NPS_LABELS = { promoter: '推奨者', passive: '中立者', detractor: '批判者' };
 
 export default function SegmentsTab({ companyId, onFormModeChange }) {
   const theme = usePartnerTheme();
@@ -156,7 +182,6 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
     setEditing(initial);
     setAudience([]);
     setMode('form');
-    // 初期表示で全員表示
     await runFilter(initial.conditions);
   };
   const openEdit = async (s) => {
@@ -223,12 +248,19 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
 
   if (mode === 'form' && editing) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <IconButton onClick={backToList} sx={{ mr: 1 }}><ArrowBack /></IconButton>
+      <Box sx={{ minHeight: '100%', background: '#f8fafc' }}>
+        {/* スティッキーヘッダー */}
+        <Box sx={{
+          position: 'sticky', top: 0, zIndex: 10,
+          backgroundColor: '#fff', borderBottom: '1px solid #e2e8f0',
+          px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 2,
+          boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+        }}>
+          <IconButton onClick={backToList}><ArrowBack /></IconButton>
           <Typography variant="h6" sx={{ fontWeight: 700, flex: 1 }}>
-            {editing.id ? 'セグメントを編集' : '新規セグメント'}
+            {editing.id ? 'セグメントを編集' : '新規セグメント作成'}
           </Typography>
+          <Button onClick={backToList} sx={{ color: '#64748b' }}>キャンセル</Button>
           <Button onClick={handleSave} variant="contained" disabled={saving} startIcon={<Save />}
             sx={{
               background: theme.primaryGradient || theme.primary, color: 'white', px: 3, fontWeight: 600,
@@ -238,135 +270,124 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
           </Button>
         </Box>
 
-        {/* 名前/説明 */}
-        <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', mb: 2 }}>
-          <Stack spacing={2}>
-            <TextField label="セグメント名" fullWidth value={editing.name}
-              onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
-            <TextField
-              label={
-                <Box component="span">
-                  説明
-                  <Box component="span" sx={{ ml: 0.5, color: '#94a3b8', fontSize: '0.78em' }}>(任意)</Box>
-                </Box>
-              }
-              fullWidth value={editing.description}
-              onChange={(e) => setEditing({ ...editing, description: e.target.value })} />
-          </Stack>
-        </Card>
-
-        {/* フィルタ条件 */}
-        <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Tune sx={{ color: theme.primary, mr: 1 }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, flex: 1 }}>フィルタ条件</Typography>
-            <Button onClick={() => runFilter(editing.conditions)} disabled={audienceLoading}
-              variant="contained" startIcon={audienceLoading ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <PlayArrow />}
-              sx={{
-                background: theme.primaryGradient || theme.primary, color: 'white', fontWeight: 600,
-                '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
-              }}>
-              フィルタリング
-            </Button>
-          </Box>
-
+        <Box sx={{ p: 3 }}>
           <Stack spacing={2.5}>
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
-                推奨度 (NPS)
-              </Typography>
-              <ChipMultiSelect options={NPS_OPTIONS}
-                getKey={(o) => o.value}
-                selected={editing.conditions.nps_segments}
-                onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, nps_segments: arr } })} />
-            </Box>
 
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
-                リピーター区分
-              </Typography>
-              <ChipTernary value={editing.conditions.is_repeater}
-                trueLabel="リピーターのみ" falseLabel="新規のみ"
-                onChange={(v) => setEditing({ ...editing, conditions: { ...editing.conditions, is_repeater: v } })} />
-            </Box>
+            {/* 基本情報 */}
+            <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <SectionHeader title="基本情報" />
+              <Stack spacing={2.5}>
+                <TextField label="セグメント名" fullWidth value={editing.name}
+                  onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+                <TextField
+                  label={<Box component="span">説明<Box component="span" sx={{ ml: 0.5, color: '#94a3b8', fontSize: '0.78em' }}>(任意)</Box></Box>}
+                  fullWidth value={editing.description}
+                  onChange={(e) => setEditing({ ...editing, description: e.target.value })} />
+              </Stack>
+            </Card>
 
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
-                リピート意向
-              </Typography>
-              <ChipTernary value={editing.conditions.has_revisit_intent}
-                trueLabel="意向あり" falseLabel="意向なし"
-                onChange={(v) => setEditing({ ...editing, conditions: { ...editing.conditions, has_revisit_intent: v } })} />
-            </Box>
+            {/* ユーザー属性 */}
+            <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <SectionHeader title="ユーザー属性" optional />
+              <Stack spacing={2.5}>
+                <Box>
+                  <FieldLabel>推奨度 (NPS)</FieldLabel>
+                  <ChipMultiSelect options={NPS_OPTIONS}
+                    getKey={(o) => o.value}
+                    selected={editing.conditions.nps_segments}
+                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, nps_segments: arr } })} />
+                </Box>
+                <Box>
+                  <FieldLabel>リピーター区分</FieldLabel>
+                  <ChipTernary value={editing.conditions.is_repeater}
+                    trueLabel="リピーターのみ" falseLabel="新規のみ"
+                    onChange={(v) => setEditing({ ...editing, conditions: { ...editing.conditions, is_repeater: v } })} />
+                </Box>
+                <Box>
+                  <FieldLabel>リピート意向</FieldLabel>
+                  <ChipTernary value={editing.conditions.has_revisit_intent}
+                    trueLabel="意向あり" falseLabel="意向なし"
+                    onChange={(v) => setEditing({ ...editing, conditions: { ...editing.conditions, has_revisit_intent: v } })} />
+                </Box>
+              </Stack>
+            </Card>
 
-            <Divider />
+            {/* 詳細条件 */}
+            <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <SectionHeader title="詳細条件" optional />
+              <Stack spacing={2.5}>
+                <Box>
+                  <FieldLabel>店舗</FieldLabel>
+                  <ChipMultiSelect options={stores}
+                    getKey={(s) => s.id} getLabel={(s) => s.name}
+                    selected={editing.conditions.store_ids}
+                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, store_ids: arr } })} />
+                </Box>
+                <Box>
+                  <FieldLabel>選択 QSC</FieldLabel>
+                  <ChipMultiSelect options={QSC_OPTIONS}
+                    getKey={(o) => o.value}
+                    selected={editing.conditions.selected_qsc}
+                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, selected_qsc: arr } })} />
+                </Box>
+                <Box>
+                  <FieldLabel>最重視ポイント</FieldLabel>
+                  <ChipMultiSelect options={PREFERENCES}
+                    selected={editing.conditions.top_preferences}
+                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, top_preferences: arr } })} />
+                </Box>
+                <Box>
+                  <FieldLabel>次点ポイント</FieldLabel>
+                  <ChipMultiSelect options={PREFERENCES}
+                    selected={editing.conditions.second_preferences}
+                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, second_preferences: arr } })} />
+                </Box>
+              </Stack>
+            </Card>
 
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
-                店舗
-              </Typography>
-              <ChipMultiSelect options={stores}
-                getKey={(s) => s.id} getLabel={(s) => s.name}
-                selected={editing.conditions.store_ids}
-                onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, store_ids: arr } })} />
-            </Box>
+            {/* 回答期間 */}
+            <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <SectionHeader title="回答期間" optional />
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField label="開始日時" type="datetime-local" fullWidth size="small"
+                  value={editing.conditions.answered_from}
+                  onChange={(e) => setEditing({ ...editing, conditions: { ...editing.conditions, answered_from: e.target.value } })}
+                  InputLabelProps={{ shrink: true }} />
+                <TextField label="終了日時" type="datetime-local" fullWidth size="small"
+                  value={editing.conditions.answered_to}
+                  onChange={(e) => setEditing({ ...editing, conditions: { ...editing.conditions, answered_to: e.target.value } })}
+                  InputLabelProps={{ shrink: true }} />
+              </Box>
+            </Card>
 
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
-                選択 QSC
-              </Typography>
-              <ChipMultiSelect options={QSC_OPTIONS}
-                getKey={(o) => o.value}
-                selected={editing.conditions.selected_qsc}
-                onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, selected_qsc: arr } })} />
-            </Box>
-
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
-                最重視 (top preference)
-              </Typography>
-              <ChipMultiSelect options={PREFERENCES}
-                selected={editing.conditions.top_preferences}
-                onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, top_preferences: arr } })} />
-            </Box>
-
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 1 }}>
-                次点 (second preference)
-              </Typography>
-              <ChipMultiSelect options={PREFERENCES}
-                selected={editing.conditions.second_preferences}
-                onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, second_preferences: arr } })} />
-            </Box>
-
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField label="回答日 (開始)" type="datetime-local" fullWidth size="small"
-                value={editing.conditions.answered_from}
-                onChange={(e) => setEditing({ ...editing, conditions: { ...editing.conditions, answered_from: e.target.value } })}
-                InputLabelProps={{ shrink: true }} />
-              <TextField label="回答日 (終了)" type="datetime-local" fullWidth size="small"
-                value={editing.conditions.answered_to}
-                onChange={(e) => setEditing({ ...editing, conditions: { ...editing.conditions, answered_to: e.target.value } })}
-                InputLabelProps={{ shrink: true }} />
-            </Box>
+            {/* 対象ユーザー */}
+            <Card sx={{ borderRadius: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
+              <Box sx={{
+                px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 2,
+                borderBottom: '1px solid #e2e8f0',
+              }}>
+                <Box sx={{
+                  width: 4, height: 24, borderRadius: 4,
+                  background: theme.primaryGradient || theme.primary, mr: 0.5,
+                }} />
+                <Typography sx={{ fontWeight: 700, fontSize: '1rem', flex: 1 }}>対象ユーザー</Typography>
+                <Chip label={`${audience.length} 名`} size="small"
+                  sx={{ bgcolor: alpha(theme.primary, 0.1), color: theme.primary, fontWeight: 700 }} />
+                <Button onClick={() => runFilter(editing.conditions)} disabled={audienceLoading}
+                  variant="contained" size="small"
+                  startIcon={audienceLoading ? <CircularProgress size={14} sx={{ color: 'white' }} /> : <Visibility />}
+                  sx={{
+                    background: theme.primaryGradient || theme.primary, color: 'white', fontWeight: 600,
+                    '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
+                  }}>
+                  フィルタリング
+                </Button>
+              </Box>
+              <LineAudienceTable rows={audience} loading={audienceLoading}
+                emptyHint="条件を変更して「フィルタリング」をクリック" />
+            </Card>
           </Stack>
-        </Card>
-
-        {/* 対象ユーザー表 */}
-        <Card sx={{ borderRadius: 1, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-          <Box sx={{
-            px: 3, py: 2,
-            display: 'flex', alignItems: 'center', gap: 2,
-            background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-            borderBottom: '1px solid #e2e8f0',
-          }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, flex: 1 }}>対象ユーザー</Typography>
-            <Chip label={`${audience.length} 名`} size="small"
-              sx={{ bgcolor: theme.primaryAlpha10 || alpha(theme.primary, 0.1), color: theme.primary, fontWeight: 700 }} />
-          </Box>
-          <LineAudienceTable rows={audience} loading={audienceLoading}
-            emptyHint="条件を変更して「フィルタリング」をクリックしてください" />
-        </Card>
+        </Box>
       </Box>
     );
   }
@@ -402,7 +423,7 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
               }} onClick={() => openEdit(s)}>
                 <Box sx={{
                   width: 48, height: 48, borderRadius: 1,
-                  background: theme.primaryAlpha10 || alpha(theme.primary, 0.1),
+                  background: alpha(theme.primary, 0.1),
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   <FilterAlt sx={{ color: theme.primary }} />
@@ -417,7 +438,7 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
                       <Chip label="条件なし (全員)" size="small" />
                     ) : chips.map((c, i) => (
                       <Chip key={i} label={c} size="small"
-                        sx={{ bgcolor: theme.primaryAlpha10 || alpha(theme.primary, 0.1), color: theme.primary, fontWeight: 600 }} />
+                        sx={{ bgcolor: alpha(theme.primary, 0.1), color: theme.primary, fontWeight: 600 }} />
                     ))}
                   </Box>
                 </Box>
