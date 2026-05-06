@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Tabs, Tab, Typography, Card, Alert, Skeleton, Tooltip, alpha } from '@mui/material';
+import { Box, Tabs, Tab, Typography, Card, Alert, Skeleton, Tooltip } from '@mui/material';
 import { Mail, FilterAlt, LocalOffer, Chat as ChatIcon, Send, AllInclusive, Info } from '@mui/icons-material';
 import { fetchLineSettings, fetchLineQuota } from '../../../lib/lineMessaging';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
@@ -8,38 +8,31 @@ import SegmentsTab from '../line/SegmentsTab';
 import CouponsTab from '../line/CouponsTab';
 import { OfficialLineSkeleton } from '../line/LineSkeletons';
 
-// 今月の送信可能残数カード
+// 今月の送信可能残数 (枠なし)
 function QuotaCard({ quota, loading, theme }) {
   if (loading) {
     return (
-      <Box sx={{
-        px: 2.5, py: 1.5, borderRadius: 1,
-        border: '1px solid #e2e8f0', minWidth: 240,
-      }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
         <Skeleton variant="text" width={140} height={16} />
-        <Skeleton variant="text" width={120} height={32} sx={{ mt: 0.5 }} />
-        <Skeleton variant="text" width={180} height={14} />
+        <Skeleton variant="text" width={120} height={32} />
       </Box>
     );
   }
   if (!quota || quota.enabled === false) return null;
 
   const isUnlimited = !!quota.unlimited;
+  const tooltipText = isUnlimited
+    ? '月ごとの送信上限は無制限です。'
+    : `現在の月ごとの上限は ${(quota.limit ?? 0).toLocaleString()} 通です。`;
 
   return (
-    <Box sx={{
-      px: 2.5, py: 1.5, borderRadius: 1,
-      border: `1px solid ${alpha(theme.primary, 0.2)}`,
-      background: alpha(theme.primary, 0.04),
-      minWidth: 240,
-      display: 'flex', flexDirection: 'column', gap: 0.25,
-    }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.25 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
         <Send sx={{ fontSize: 14, color: theme.primary }} />
         <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', letterSpacing: 0.5 }}>
           今月の送信可能数
         </Typography>
-        <Tooltip title="LINE 公式アカウントの月次配信枠の残量。送信するごとに減ります。">
+        <Tooltip title={tooltipText} arrow>
           <Info sx={{ fontSize: 14, color: '#94a3b8', cursor: 'help' }} />
         </Tooltip>
       </Box>
@@ -53,19 +46,14 @@ function QuotaCard({ quota, loading, theme }) {
           </Typography>
         </Box>
       ) : (
-        <>
-          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-            <Typography sx={{
-              fontSize: '1.75rem', fontWeight: 800, color: theme.primary, lineHeight: 1.1,
-            }}>
-              {quota.remaining?.toLocaleString() ?? '-'}
-            </Typography>
-            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>通</Typography>
-          </Box>
-          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-            使用 {quota.used?.toLocaleString() ?? 0} / 上限 {quota.limit?.toLocaleString() ?? 0} 通
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
+          <Typography sx={{
+            fontSize: '1.75rem', fontWeight: 800, color: theme.primary, lineHeight: 1.1,
+          }}>
+            {quota.remaining?.toLocaleString() ?? '-'}
           </Typography>
-        </>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569' }}>通</Typography>
+        </Box>
       )}
     </Box>
   );
