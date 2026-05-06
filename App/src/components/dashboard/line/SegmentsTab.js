@@ -271,18 +271,18 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
               <SectionHeader title="絞り込み条件" optional />
               <Stack spacing={2.5}>
                 <Box>
-                  <FieldLabel>推奨度</FieldLabel>
-                  <ChipMultiSelect options={NPS_OPTIONS}
-                    getKey={(o) => o.value}
-                    selected={editing.conditions.nps_segments}
-                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, nps_segments: arr } })} />
-                </Box>
-                <Box>
                   <FieldLabel>店舗</FieldLabel>
                   <ChipMultiSelect options={stores}
                     getKey={(s) => s.id} getLabel={(s) => s.name}
                     selected={editing.conditions.store_ids}
                     onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, store_ids: arr } })} />
+                </Box>
+                <Box>
+                  <FieldLabel>推奨度</FieldLabel>
+                  <ChipMultiSelect options={NPS_OPTIONS}
+                    getKey={(o) => o.value}
+                    selected={editing.conditions.nps_segments}
+                    onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, nps_segments: arr } })} />
                 </Box>
                 <Box>
                   <FieldLabel>性別</FieldLabel>
