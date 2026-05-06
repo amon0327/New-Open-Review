@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Tabs, Tab, Typography, Card, Alert, Skeleton, Tooltip } from '@mui/material';
-import { Mail, FilterAlt, LocalOffer, Chat as ChatIcon, Send, AllInclusive, Info } from '@mui/icons-material';
+import { Mail, FilterAlt, LocalOffer, AllInclusive, Info } from '@mui/icons-material';
 import { fetchLineSettings, fetchLineQuota } from '../../../lib/lineMessaging';
 import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import MessagesTab from '../line/MessagesTab';
@@ -28,7 +28,6 @@ function QuotaCard({ quota, loading, theme }) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.25 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-        <Send sx={{ fontSize: 14, color: theme.primary }} />
         <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', letterSpacing: 0.5 }}>
           今月の送信可能数
         </Typography>
@@ -110,13 +109,6 @@ export default function OfficialLinePage({ companyId, user }) {
       {!inFormMode && (
         <Box sx={{ p: 3, pb: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 2 }}>
-            <Box sx={{
-              width: 48, height: 48, borderRadius: 1,
-              background: theme.primaryGradient || theme.primary,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <ChatIcon sx={{ color: 'white', fontSize: 28 }} />
-            </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a202c' }}>LINEメッセージ</Typography>
               <Typography variant="body2" sx={{ color: '#64748b' }}>
