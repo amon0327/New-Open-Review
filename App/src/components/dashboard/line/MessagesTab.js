@@ -367,11 +367,11 @@ export default function MessagesTab({ companyId, user, onFormModeChange }) {
                     background: theme.primaryGradient || theme.primary, color: 'white', fontWeight: 600,
                     '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
                   }}>
-                  フィルタリング
+                  絞り込み
                 </Button>
               </Box>
               <LineAudienceTable rows={audience} loading={audienceLoading}
-                emptyHint="「フィルタリング」をクリックして対象ユーザーを取得" />
+                emptyHint="「絞り込み」をクリックして対象ユーザーを取得" />
             </Card>
           </Stack>
         </Box>

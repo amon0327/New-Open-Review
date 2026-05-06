@@ -380,11 +380,11 @@ export default function SegmentsTab({ companyId, onFormModeChange }) {
                     background: theme.primaryGradient || theme.primary, color: 'white', fontWeight: 600,
                     '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
                   }}>
-                  フィルタリング
+                  絞り込み
                 </Button>
               </Box>
               <LineAudienceTable rows={audience} loading={audienceLoading}
-                emptyHint="条件を変更して「フィルタリング」をクリック" />
+                emptyHint="条件を変更して「絞り込み」をクリック" />
             </Card>
           </Stack>
         </Box>
