@@ -1,60 +1,82 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, Button, Card, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, IconButton, Chip, ListItem, ListItemText, CircularProgress,
+  Box, Typography, Button, Card, TextField, IconButton, Chip, CircularProgress,
   Stack, FormControl, InputLabel, Select, MenuItem, Avatar, Divider, Alert,
+  FormControlLabel, Switch,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
+  Accordion, AccordionSummary, AccordionDetails,
 } from '@mui/material';
 import {
   Add, Delete, Edit, Send, Mail, TextFields, Image as ImageIcon, LocalOffer,
   ArrowUpward, ArrowDownward, Upload, Link as LinkIcon, Visibility,
+  EmojiEmotions, OndemandVideo, LocationOn, ArrowBack, ExpandMore, NotificationsOff,
+  Notifications,
 } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 import {
   fetchMessages, fetchMessageWithBlocks, saveMessage, deleteMessage, sendMessage,
-  fetchSegments, fetchCoupons, uploadLineImage, previewAudience,
+  fetchSegments, fetchCoupons, uploadLineImage, fetchAudienceList,
 } from '../../../lib/lineMessaging';
+import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
+import ConfirmDialog from './ConfirmDialog';
 
-const newBlock = (type) => ({
-  block_type: type,
-  text_content: type === 'text' ? '' : null,
-  image_url: type === 'image' ? '' : null,
-  link_url: null,
-  coupon_id: type === 'coupon' ? '' : null,
-});
-
-const emptyMessage = {
-  id: null, title: '', target_segment_id: '', blocks: [],
+const newBlock = (type) => {
+  const base = {
+    block_type: type,
+    text_content: null, image_url: null, link_url: null, coupon_id: null,
+    sticker_package_id: null, sticker_id: null, video_url: null,
+    location_title: null, location_address: null,
+    location_latitude: null, location_longitude: null,
+  };
+  if (type === 'text') base.text_content = '';
+  if (type === 'image') base.image_url = '';
+  return base;
 };
 
-const statusChip = (s) => {
-  const map = {
-    draft: { label: '下書き', color: 'default' },
-    sending: { label: '送信中', color: 'info' },
-    sent: { label: '送信済', color: 'success' },
-    failed: { label: '失敗', color: 'error' },
-  };
-  const m = map[s] || { label: s, color: 'default' };
-  return <Chip label={m.label} color={m.color} size="small" />;
+const emptyMessage = {
+  id: null, title: '',
+  target_segment_id: '',
+  notification_disabled: false,
+  sender_name: '',
+  sender_icon_url: '',
+  quick_reply_items: [],
+  blocks: [],
+};
+
+const STATUS_CHIP = {
+  draft: { label: '下書き', sx: { bgcolor: '#e2e8f0', color: '#475569' } },
+  sending: { label: '送信中', sx: { bgcolor: '#dbeafe', color: '#1e40af' } },
+  sent: { label: '送信済', sx: { bgcolor: '#dcfce7', color: '#166534' } },
+  failed: { label: '失敗', sx: { bgcolor: '#fee2e2', color: '#991b1b' } },
+};
+
+const BLOCK_LABEL = {
+  text: 'テキスト', image: '画像', coupon: 'クーポン',
+  sticker: 'スタンプ', video: '動画', location: '位置情報',
 };
 
 export default function MessagesTab({ companyId, user }) {
+  const theme = usePartnerTheme();
   const [messages, setMessages] = useState([]);
   const [segments, setSegments] = useState([]);
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mode, setMode] = useState('list');
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [uploadingIdx, setUploadingIdx] = useState(-1);
+  const [uploadingSenderIcon, setUploadingSenderIcon] = useState(false);
+  const [audience, setAudience] = useState([]);
   const [audienceCount, setAudienceCount] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmSend, setConfirmSend] = useState(false);
 
   const load = async () => {
     if (!companyId) return;
     try {
       setLoading(true);
-      const [m, s, c] = await Promise.all([
-        fetchMessages(companyId), fetchSegments(companyId), fetchCoupons(companyId),
-      ]);
+      const [m, s, c] = await Promise.all([fetchMessages(companyId), fetchSegments(companyId), fetchCoupons(companyId)]);
       setMessages(m); setSegments(s); setCoupons(c);
     } catch (e) {
       toast.error('一覧の取得失敗');
@@ -65,33 +87,48 @@ export default function MessagesTab({ companyId, user }) {
 
   const openNew = () => {
     setEditing({ ...emptyMessage, blocks: [newBlock('text')] });
-    setAudienceCount(null);
+    setAudience([]); setAudienceCount(null);
+    setMode('form');
   };
   const openEdit = async (m) => {
     try {
       const full = await fetchMessageWithBlocks(m.id);
       setEditing({
-        id: full.id, title: full.title,
+        id: full.id,
+        title: full.title || '',
         target_segment_id: full.target_segment_id || '',
+        notification_disabled: !!full.notification_disabled,
+        sender_name: full.sender_name || '',
+        sender_icon_url: full.sender_icon_url || '',
+        quick_reply_items: Array.isArray(full.quick_reply_items) ? full.quick_reply_items : [],
         blocks: full.blocks.length > 0 ? full.blocks : [newBlock('text')],
       });
-      setAudienceCount(null);
+      setAudience([]); setAudienceCount(null);
+      setMode('form');
     } catch (e) { toast.error('読み込み失敗'); }
   };
+  const backToList = () => { setEditing(null); setMode('list'); };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('このメッセージを削除しますか?')) return;
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
     try {
-      await deleteMessage(id);
+      await deleteMessage(confirmDelete.id);
       toast.success('削除しました');
+      setConfirmDelete(null);
       await load();
     } catch (e) { toast.error(e?.message || '削除失敗'); }
   };
 
+  const validate = () => {
+    if (!editing.title.trim()) return 'タイトルを入力してください';
+    if (editing.blocks.length === 0) return 'ブロックを1つ以上追加してください';
+    if (editing.blocks.length > 5) return 'ブロックは最大5個までです (LINE 仕様)';
+    return null;
+  };
+
   const handleSave = async () => {
-    if (!editing.title.trim()) return toast.error('タイトルを入力してください');
-    if (editing.blocks.length === 0) return toast.error('ブロックを1つ以上追加してください');
-    if (editing.blocks.length > 5) return toast.error('ブロックは最大5個までです (LINE 仕様)');
+    const err = validate();
+    if (err) return toast.error(err);
     try {
       setSaving(true);
       await saveMessage({
@@ -99,11 +136,15 @@ export default function MessagesTab({ companyId, user }) {
         title: editing.title.trim(),
         target_segment_id: editing.target_segment_id || null,
         target_snapshot: null,
+        notification_disabled: editing.notification_disabled,
+        sender_name: editing.sender_name?.trim() || null,
+        sender_icon_url: editing.sender_icon_url || null,
+        quick_reply_items: (editing.quick_reply_items || []).filter(q => q.label && q.value),
         blocks: editing.blocks,
         userId: user?.id,
       });
       toast.success('保存しました');
-      setEditing(null);
+      backToList();
       await load();
     } catch (e) {
       toast.error(e?.message || '保存失敗');
@@ -111,9 +152,9 @@ export default function MessagesTab({ companyId, user }) {
   };
 
   const handleSend = async () => {
-    if (!editing.title.trim()) return toast.error('タイトルを入力してください');
-    if (editing.blocks.length === 0) return toast.error('ブロックを1つ以上追加してください');
-    if (!window.confirm(`「${editing.title}」を送信します。よろしいですか?`)) return;
+    setConfirmSend(false);
+    const err = validate();
+    if (err) return toast.error(err);
     try {
       setSending(true);
       const messageId = await saveMessage({
@@ -121,12 +162,16 @@ export default function MessagesTab({ companyId, user }) {
         title: editing.title.trim(),
         target_segment_id: editing.target_segment_id || null,
         target_snapshot: null,
+        notification_disabled: editing.notification_disabled,
+        sender_name: editing.sender_name?.trim() || null,
+        sender_icon_url: editing.sender_icon_url || null,
+        quick_reply_items: (editing.quick_reply_items || []).filter(q => q.label && q.value),
         blocks: editing.blocks,
         userId: user?.id,
       });
       const res = await sendMessage(messageId);
       toast.success(`送信完了: ${res.delivered_count} / ${res.recipient_count} 名`);
-      setEditing(null);
+      backToList();
       await load();
     } catch (e) {
       toast.error(e?.message || '送信失敗');
@@ -145,10 +190,7 @@ export default function MessagesTab({ companyId, user }) {
     [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
     setEditing({ ...editing, blocks });
   };
-  const removeBlock = (i) => {
-    const blocks = editing.blocks.filter((_, idx) => idx !== i);
-    setEditing({ ...editing, blocks });
-  };
+  const removeBlock = (i) => setEditing({ ...editing, blocks: editing.blocks.filter((_, idx) => idx !== i) });
 
   const handleImageUpload = async (i, e) => {
     const file = e.target.files?.[0];
@@ -166,215 +208,450 @@ export default function MessagesTab({ companyId, user }) {
     }
   };
 
-  const handlePreviewCount = async () => {
+  const handleSenderIconUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     try {
-      const segId = editing.target_segment_id;
+      setUploadingSenderIcon(true);
+      const url = await uploadLineImage({ companyId, file });
+      setEditing({ ...editing, sender_icon_url: url });
+      toast.success('送信元アイコンをアップロード');
+    } catch (err) {
+      toast.error(err?.message || 'アップロード失敗');
+    } finally {
+      setUploadingSenderIcon(false);
+      e.target.value = '';
+    }
+  };
+
+  const handlePreviewAudience = async () => {
+    try {
       let conditions = {};
-      if (segId) {
-        const s = segments.find((x) => x.id === segId);
+      if (editing.target_segment_id) {
+        const s = segments.find(x => x.id === editing.target_segment_id);
         conditions = s?.conditions || {};
       }
-      const c = await previewAudience({ companyId, conditions });
-      setAudienceCount(c);
+      const list = await fetchAudienceList({ companyId, conditions, limit: 500 });
+      setAudience(list);
+      setAudienceCount(list.length);
     } catch (e) { toast.error(e?.message || 'プレビュー失敗'); }
   };
 
+  // Quick Reply
+  const addQuickReply = () => {
+    if ((editing.quick_reply_items || []).length >= 13) {
+      return toast.error('クイックリプライは最大13個');
+    }
+    setEditing({
+      ...editing,
+      quick_reply_items: [
+        ...(editing.quick_reply_items || []),
+        { type: 'action', action: { type: 'uri', label: '', uri: '' }, label: '', value: '' },
+      ],
+    });
+  };
+  const updateQuickReply = (i, patch) => {
+    const items = [...(editing.quick_reply_items || [])];
+    items[i] = { ...items[i], ...patch };
+    // LINE 用 action オブジェクトを整える
+    items[i].action = { type: 'uri', label: items[i].label || '', uri: items[i].value || '' };
+    setEditing({ ...editing, quick_reply_items: items });
+  };
+  const removeQuickReply = (i) => setEditing({
+    ...editing, quick_reply_items: (editing.quick_reply_items || []).filter((_, idx) => idx !== i),
+  });
+
+  const renderBlockEditor = (b, i) => (
+    <Card key={i} variant="outlined" sx={{ p: 2, borderRadius: 1, mb: 1.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+        <Chip size="small" label={`${i + 1}. ${BLOCK_LABEL[b.block_type]}`}
+          sx={{ bgcolor: theme.primaryAlpha10 || `${theme.primary}1a`, color: theme.primary, fontWeight: 600 }} />
+        <Box sx={{ flex: 1 }} />
+        <IconButton size="small" disabled={i === 0} onClick={() => moveBlock(i, -1)}><ArrowUpward fontSize="small" /></IconButton>
+        <IconButton size="small" disabled={i === editing.blocks.length - 1} onClick={() => moveBlock(i, 1)}><ArrowDownward fontSize="small" /></IconButton>
+        <IconButton size="small" sx={{ color: '#ef4444' }} onClick={() => removeBlock(i)}><Delete fontSize="small" /></IconButton>
+      </Box>
+
+      {b.block_type === 'text' && (
+        <TextField fullWidth multiline rows={3} placeholder="本文 (5000字まで)。{{company_name}} で企業名を埋め込み"
+          value={b.text_content || ''}
+          onChange={(e) => updateBlock(i, { text_content: e.target.value })} />
+      )}
+
+      {b.block_type === 'image' && (
+        <Stack spacing={1.5}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {b.image_url ? (
+              <Avatar src={b.image_url} variant="rounded" sx={{ width: 120, height: 80 }} />
+            ) : (
+              <Avatar variant="rounded" sx={{ width: 120, height: 80, bgcolor: '#f1f5f9' }}>
+                <ImageIcon sx={{ color: '#94a3b8' }} />
+              </Avatar>
+            )}
+            <Button component="label" variant="outlined" startIcon={<Upload />} disabled={uploadingIdx === i}>
+              {uploadingIdx === i ? '...' : '画像を選択'}
+              <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(i, e)} />
+            </Button>
+            {b.image_url && <Button size="small" color="error" onClick={() => updateBlock(i, { image_url: '' })}>削除</Button>}
+          </Box>
+          <TextField fullWidth size="small" label="リンク URL (任意)" placeholder="https://..."
+            value={b.link_url || ''}
+            onChange={(e) => updateBlock(i, { link_url: e.target.value || null })}
+            InputProps={{ startAdornment: <LinkIcon fontSize="small" sx={{ mr: 1, color: '#94a3b8' }} /> }}
+            helperText="設定すると画像タップでリンクに飛びます"
+          />
+        </Stack>
+      )}
+
+      {b.block_type === 'coupon' && (
+        <FormControl fullWidth>
+          <InputLabel>クーポンを選択</InputLabel>
+          <Select value={b.coupon_id || ''}
+            onChange={(e) => updateBlock(i, { coupon_id: e.target.value })}
+            label="クーポンを選択"
+          >
+            <MenuItem value=""><em>選択してください</em></MenuItem>
+            {coupons.map((c) => (
+              <MenuItem key={c.id} value={c.id}>{c.name}{c.discount_text ? ` (${c.discount_text})` : ''}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      )}
+
+      {b.block_type === 'sticker' && (
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <TextField label="packageId *" type="number" size="small" fullWidth
+            value={b.sticker_package_id ?? ''}
+            onChange={(e) => updateBlock(i, { sticker_package_id: e.target.value })}
+            helperText="LINE 公式スタンプ packageId (例: 446)" />
+          <TextField label="stickerId *" type="number" size="small" fullWidth
+            value={b.sticker_id ?? ''}
+            onChange={(e) => updateBlock(i, { sticker_id: e.target.value })}
+            helperText="例: 1988" />
+        </Box>
+      )}
+
+      {b.block_type === 'video' && (
+        <Stack spacing={1.5}>
+          <TextField label="動画 URL (mp4) *" fullWidth size="small"
+            value={b.video_url || ''}
+            onChange={(e) => updateBlock(i, { video_url: e.target.value })}
+            placeholder="https://.../video.mp4" />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            {b.image_url ? (
+              <Avatar src={b.image_url} variant="rounded" sx={{ width: 120, height: 80 }} />
+            ) : (
+              <Avatar variant="rounded" sx={{ width: 120, height: 80, bgcolor: '#f1f5f9' }}>
+                <ImageIcon sx={{ color: '#94a3b8' }} />
+              </Avatar>
+            )}
+            <Button component="label" variant="outlined" size="small" startIcon={<Upload />} disabled={uploadingIdx === i}>
+              {uploadingIdx === i ? '...' : 'プレビュー画像'}
+              <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(i, e)} />
+            </Button>
+          </Box>
+        </Stack>
+      )}
+
+      {b.block_type === 'location' && (
+        <Stack spacing={1.5}>
+          <TextField label="タイトル *" fullWidth size="small"
+            value={b.location_title || ''}
+            onChange={(e) => updateBlock(i, { location_title: e.target.value })} />
+          <TextField label="住所" fullWidth size="small"
+            value={b.location_address || ''}
+            onChange={(e) => updateBlock(i, { location_address: e.target.value })} />
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField label="緯度 *" type="number" fullWidth size="small"
+              value={b.location_latitude ?? ''}
+              onChange={(e) => updateBlock(i, { location_latitude: e.target.value })} />
+            <TextField label="経度 *" type="number" fullWidth size="small"
+              value={b.location_longitude ?? ''}
+              onChange={(e) => updateBlock(i, { location_longitude: e.target.value })} />
+          </Box>
+        </Stack>
+      )}
+    </Card>
+  );
+
+  if (mode === 'form' && editing) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <IconButton onClick={backToList} sx={{ mr: 1 }}><ArrowBack /></IconButton>
+          <Typography variant="h6" sx={{ fontWeight: 700, flex: 1 }}>
+            {editing.id ? 'メッセージを編集' : '新規メッセージ'}
+          </Typography>
+          {editing.id && (
+            <Chip {...(STATUS_CHIP.draft)} size="small" />
+          )}
+        </Box>
+
+        <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', mb: 2 }}>
+          <Stack spacing={2.5}>
+            <TextField label="タイトル (管理用) *" fullWidth value={editing.title}
+              onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
+
+            <Divider><Chip label="ターゲット" size="small" /></Divider>
+
+            <FormControl fullWidth>
+              <InputLabel>送信先セグメント</InputLabel>
+              <Select value={editing.target_segment_id}
+                onChange={(e) => { setEditing({ ...editing, target_segment_id: e.target.value }); setAudience([]); setAudienceCount(null); }}
+                label="送信先セグメント"
+              >
+                <MenuItem value=""><em>全 LINE 連携回答者</em></MenuItem>
+                {segments.map((s) => (
+                  <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Button startIcon={<Visibility />} onClick={handlePreviewAudience} variant="outlined" size="small">
+                対象ユーザーを表示
+              </Button>
+              {audienceCount !== null && (
+                <Alert severity="info" sx={{ flex: 1, py: 0 }}>
+                  対象 LINE ユーザー数: <strong>{audienceCount}</strong> 名
+                </Alert>
+              )}
+            </Box>
+
+            {audience.length > 0 && (
+              <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 300 }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 700 }}>表示名</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>LINE userId</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }} align="right">回答回数</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>最終回答日</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {audience.map((a) => (
+                      <TableRow key={a.line_user_id} hover>
+                        <TableCell>{a.display_name}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#64748b' }}>
+                          {a.line_user_id?.slice(0, 8)}...
+                        </TableCell>
+                        <TableCell align="right">{a.answer_count}</TableCell>
+                        <TableCell>{a.last_answered_at ? new Date(a.last_answered_at).toLocaleString('ja-JP') : '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+
+            <Divider><Chip label="メッセージ内容" size="small" /></Divider>
+
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              ブロック (最大5個 / 上から順に送信)
+            </Typography>
+
+            <Box>
+              {editing.blocks.map((b, i) => renderBlockEditor(b, i))}
+            </Box>
+
+            {editing.blocks.length < 5 && (
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {[
+                  { type: 'text', icon: <TextFields />, label: 'テキスト' },
+                  { type: 'image', icon: <ImageIcon />, label: '画像' },
+                  { type: 'coupon', icon: <LocalOffer />, label: 'クーポン' },
+                  { type: 'sticker', icon: <EmojiEmotions />, label: 'スタンプ' },
+                  { type: 'video', icon: <OndemandVideo />, label: '動画' },
+                  { type: 'location', icon: <LocationOn />, label: '位置情報' },
+                ].map((opt) => (
+                  <Button key={opt.type} size="small" startIcon={opt.icon} variant="outlined"
+                    onClick={() => setEditing({ ...editing, blocks: [...editing.blocks, newBlock(opt.type)] })}
+                    sx={{ borderColor: theme.primary, color: theme.primary,
+                      '&:hover': { borderColor: theme.primary, background: theme.primaryAlpha10 } }}>
+                    {opt.label}
+                  </Button>
+                ))}
+              </Box>
+            )}
+
+            <Divider><Chip label="詳細オプション" size="small" /></Divider>
+
+            <Accordion variant="outlined">
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>送信元の表示 (sender)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack spacing={2}>
+                  <TextField label="送信元名" fullWidth size="small"
+                    helperText="未入力なら LINE 公式アカウントの設定が使われる"
+                    value={editing.sender_name}
+                    onChange={(e) => setEditing({ ...editing, sender_name: e.target.value })} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    {editing.sender_icon_url ? (
+                      <Avatar src={editing.sender_icon_url} sx={{ width: 64, height: 64 }} />
+                    ) : (
+                      <Avatar sx={{ width: 64, height: 64, bgcolor: '#f1f5f9' }}>
+                        <ImageIcon sx={{ color: '#94a3b8' }} />
+                      </Avatar>
+                    )}
+                    <Button component="label" startIcon={<Upload />} variant="outlined" size="small" disabled={uploadingSenderIcon}>
+                      {uploadingSenderIcon ? '...' : 'アイコン選択'}
+                      <input type="file" accept="image/*" hidden onChange={handleSenderIconUpload} />
+                    </Button>
+                    {editing.sender_icon_url && (
+                      <Button size="small" color="error" onClick={() => setEditing({ ...editing, sender_icon_url: '' })}>削除</Button>
+                    )}
+                  </Box>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+
+            <Accordion variant="outlined">
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>クイックリプライ (最後のメッセージに付与)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Stack spacing={1.5}>
+                  {(editing.quick_reply_items || []).map((q, i) => (
+                    <Box key={i} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <TextField label="ラベル" size="small" sx={{ flex: 1 }}
+                        value={q.label || ''}
+                        onChange={(e) => updateQuickReply(i, { label: e.target.value })} />
+                      <TextField label="リンク URL" size="small" sx={{ flex: 2 }}
+                        value={q.value || ''}
+                        onChange={(e) => updateQuickReply(i, { value: e.target.value })}
+                        placeholder="https://..." />
+                      <IconButton size="small" sx={{ color: '#ef4444' }} onClick={() => removeQuickReply(i)}>
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  ))}
+                  <Button size="small" startIcon={<Add />} onClick={addQuickReply} variant="outlined">
+                    クイックリプライを追加
+                  </Button>
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+
+            <FormControlLabel
+              control={
+                <Switch checked={editing.notification_disabled}
+                  onChange={(e) => setEditing({ ...editing, notification_disabled: e.target.checked })} />
+              }
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {editing.notification_disabled ? <NotificationsOff fontSize="small" /> : <Notifications fontSize="small" />}
+                  サイレント送信 (受信者にプッシュ通知しない)
+                </Box>
+              }
+            />
+
+            <Divider />
+
+            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', pt: 1 }}>
+              <Button onClick={backToList}>キャンセル</Button>
+              <Button onClick={handleSave} disabled={saving} variant="outlined"
+                sx={{ borderColor: theme.primary, color: theme.primary }}>
+                {saving ? <CircularProgress size={20} /> : '下書き保存'}
+              </Button>
+              <Button onClick={() => setConfirmSend(true)} disabled={sending || saving} variant="contained" startIcon={<Send />}
+                sx={{
+                  background: theme.primaryGradient || theme.primary, color: 'white', px: 3,
+                  '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
+                }}>
+                {sending ? <CircularProgress size={20} sx={{ color: 'white' }} /> : '送信'}
+              </Button>
+            </Box>
+          </Stack>
+        </Card>
+
+        <ConfirmDialog
+          open={confirmSend}
+          title="メッセージを送信"
+          message={`「${editing.title}」を ${audienceCount ?? '対象'} 名に送信します。よろしいですか?\n送信後の取り消しはできません。`}
+          confirmLabel="送信する"
+          onConfirm={handleSend}
+          onCancel={() => setConfirmSend(false)}
+        />
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', mb: 2, alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', mb: 3, alignItems: 'center' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, flex: 1 }}>メッセージ</Typography>
         <Button variant="contained" startIcon={<Add />} onClick={openNew}
-          sx={{ backgroundColor: '#06C755', '&:hover': { backgroundColor: '#05a648' } }}>
+          sx={{
+            background: theme.primaryGradient || theme.primary, color: 'white', px: 3,
+            '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
+          }}>
           新規メッセージ
         </Button>
       </Box>
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress sx={{ color: theme.primary }} /></Box>
       ) : messages.length === 0 ? (
-        <Card sx={{ p: 4, textAlign: 'center' }}>
+        <Card sx={{ p: 6, textAlign: 'center', borderRadius: 1 }}>
           <Mail sx={{ fontSize: 48, color: '#cbd5e1', mb: 1 }} />
           <Typography color="text.secondary">メッセージがまだありません</Typography>
         </Card>
       ) : (
         <Stack spacing={1.5}>
-          {messages.map((m) => (
-            <Card key={m.id} sx={{ borderRadius: 2 }}>
-              <ListItem
-                button
-                onClick={() => openEdit(m)}
-                secondaryAction={
-                  <Box>
-                    <IconButton onClick={(e) => { e.stopPropagation(); openEdit(m); }}><Edit /></IconButton>
-                    <IconButton onClick={(e) => { e.stopPropagation(); handleDelete(m.id); }} sx={{ color: '#ef4444' }}><Delete /></IconButton>
+          {messages.map((m) => {
+            const status = STATUS_CHIP[m.status] || STATUS_CHIP.draft;
+            return (
+              <Card key={m.id} sx={{ borderRadius: 1, p: 2, cursor: 'pointer', transition: 'all 0.2s',
+                display: 'flex', alignItems: 'center', gap: 2,
+                '&:hover': { boxShadow: '0 6px 18px rgba(0,0,0,0.1)', transform: 'translateY(-1px)' },
+              }} onClick={() => openEdit(m)}>
+                <Box sx={{
+                  width: 48, height: 48, borderRadius: 1,
+                  background: theme.primaryAlpha10 || `${theme.primary}1a`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Mail sx={{ color: theme.primary }} />
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
+                    <Typography sx={{ fontWeight: 700 }}>{m.title}</Typography>
+                    <Chip label={status.label} size="small" sx={status.sx} />
+                    {m.line_target_segments?.name && (
+                      <Chip label={`→ ${m.line_target_segments.name}`} size="small" variant="outlined" />
+                    )}
                   </Box>
-                }
-              >
-                <ListItemText
-                  primary={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography sx={{ fontWeight: 600 }}>{m.title}</Typography>
-                      {statusChip(m.status)}
-                    </Box>
-                  }
-                  secondary={
-                    <>
-                      {m.line_target_segments?.name && (
-                        <Typography component="span" variant="body2" sx={{ display: 'block' }}>
-                          ターゲット: {m.line_target_segments.name}
-                        </Typography>
-                      )}
-                      {m.status === 'sent' && (
-                        <Typography component="span" variant="caption" color="text.secondary">
-                          送信日時: {new Date(m.sent_at).toLocaleString('ja-JP')} / 配信 {m.delivered_count} / {m.recipient_count} 名
-                        </Typography>
-                      )}
-                      {m.status === 'draft' && (
-                        <Typography component="span" variant="caption" color="text.secondary">
-                          作成: {new Date(m.created_at).toLocaleString('ja-JP')}
-                        </Typography>
-                      )}
-                    </>
-                  }
-                />
-              </ListItem>
-            </Card>
-          ))}
+                  {m.status === 'sent' ? (
+                    <Typography variant="caption" color="text.secondary">
+                      送信日時: {new Date(m.sent_at).toLocaleString('ja-JP')} / 配信 {m.delivered_count} / {m.recipient_count} 名
+                      {m.failed_count > 0 && <span style={{ color: '#ef4444' }}> (失敗 {m.failed_count})</span>}
+                    </Typography>
+                  ) : (
+                    <Typography variant="caption" color="text.secondary">
+                      作成: {new Date(m.created_at).toLocaleString('ja-JP')}
+                    </Typography>
+                  )}
+                </Box>
+                <Box>
+                  <IconButton onClick={(e) => { e.stopPropagation(); openEdit(m); }}><Edit /></IconButton>
+                  <IconButton onClick={(e) => { e.stopPropagation(); setConfirmDelete(m); }} sx={{ color: '#ef4444' }}><Delete /></IconButton>
+                </Box>
+              </Card>
+            );
+          })}
         </Stack>
       )}
 
-      <Dialog open={!!editing} onClose={() => setEditing(null)} fullWidth maxWidth="md">
-        <DialogTitle>
-          {editing?.id ? 'メッセージを編集' : '新規メッセージ'}
-        </DialogTitle>
-        <DialogContent dividers>
-          {editing && (
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              <TextField label="タイトル (管理用) *" fullWidth value={editing.title}
-                onChange={(e) => setEditing({ ...editing, title: e.target.value })} />
-
-              <FormControl fullWidth>
-                <InputLabel>ターゲット</InputLabel>
-                <Select
-                  value={editing.target_segment_id}
-                  onChange={(e) => { setEditing({ ...editing, target_segment_id: e.target.value }); setAudienceCount(null); }}
-                  label="ターゲット"
-                >
-                  <MenuItem value=""><em>全 LINE 連携回答者</em></MenuItem>
-                  {segments.map((s) => (
-                    <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Button size="small" startIcon={<Visibility />} onClick={handlePreviewCount} variant="outlined">
-                  対象人数を確認
-                </Button>
-                {audienceCount !== null && (
-                  <Alert severity="info" sx={{ flex: 1, py: 0 }}>
-                    対象 LINE ユーザー数: <strong>{audienceCount}</strong> 名
-                  </Alert>
-                )}
-              </Box>
-
-              <Divider />
-
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                ブロック (最大5個 / 上から順に送信)
-              </Typography>
-
-              <Stack spacing={2}>
-                {editing.blocks.map((b, i) => (
-                  <Card key={i} variant="outlined" sx={{ p: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Chip
-                        icon={b.block_type === 'text' ? <TextFields /> : b.block_type === 'image' ? <ImageIcon /> : <LocalOffer />}
-                        label={b.block_type === 'text' ? 'テキスト' : b.block_type === 'image' ? '画像' : 'クーポン'}
-                        size="small"
-                      />
-                      <Box sx={{ flex: 1 }} />
-                      <IconButton size="small" disabled={i === 0} onClick={() => moveBlock(i, -1)}><ArrowUpward fontSize="small" /></IconButton>
-                      <IconButton size="small" disabled={i === editing.blocks.length - 1} onClick={() => moveBlock(i, 1)}><ArrowDownward fontSize="small" /></IconButton>
-                      <IconButton size="small" sx={{ color: '#ef4444' }} onClick={() => removeBlock(i)}><Delete fontSize="small" /></IconButton>
-                    </Box>
-
-                    {b.block_type === 'text' && (
-                      <TextField fullWidth multiline rows={3} placeholder="本文 (5000字まで)。{{company_name}} で企業名を埋め込めます"
-                        value={b.text_content || ''}
-                        onChange={(e) => updateBlock(i, { text_content: e.target.value })} />
-                    )}
-
-                    {b.block_type === 'image' && (
-                      <Stack spacing={1.5}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          {b.image_url ? (
-                            <Avatar src={b.image_url} variant="rounded" sx={{ width: 120, height: 80 }} />
-                          ) : (
-                            <Avatar variant="rounded" sx={{ width: 120, height: 80, bgcolor: '#f1f5f9' }}>
-                              <ImageIcon sx={{ color: '#94a3b8' }} />
-                            </Avatar>
-                          )}
-                          <Button component="label" variant="outlined" startIcon={<Upload />} disabled={uploadingIdx === i}>
-                            {uploadingIdx === i ? '...' : '画像を選択'}
-                            <input type="file" accept="image/*" hidden onChange={(e) => handleImageUpload(i, e)} />
-                          </Button>
-                          {b.image_url && <Button size="small" onClick={() => updateBlock(i, { image_url: '' })}>削除</Button>}
-                        </Box>
-                        <TextField fullWidth size="small" label="リンク URL (任意)" placeholder="https://..."
-                          value={b.link_url || ''}
-                          onChange={(e) => updateBlock(i, { link_url: e.target.value || null })}
-                          InputProps={{ startAdornment: <LinkIcon fontSize="small" sx={{ mr: 1, color: '#94a3b8' }} /> }}
-                          helperText="設定すると画像タップでリンクに飛びます"
-                        />
-                      </Stack>
-                    )}
-
-                    {b.block_type === 'coupon' && (
-                      <FormControl fullWidth>
-                        <InputLabel>クーポンを選択</InputLabel>
-                        <Select value={b.coupon_id || ''}
-                          onChange={(e) => updateBlock(i, { coupon_id: e.target.value })}
-                          label="クーポンを選択"
-                        >
-                          <MenuItem value=""><em>選択してください</em></MenuItem>
-                          {coupons.map((c) => (
-                            <MenuItem key={c.id} value={c.id}>{c.name}{c.discount_text ? ` (${c.discount_text})` : ''}</MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    )}
-                  </Card>
-                ))}
-              </Stack>
-
-              {editing.blocks.length < 5 && (
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button size="small" startIcon={<TextFields />} onClick={() => setEditing({ ...editing, blocks: [...editing.blocks, newBlock('text')] })}>
-                    テキスト追加
-                  </Button>
-                  <Button size="small" startIcon={<ImageIcon />} onClick={() => setEditing({ ...editing, blocks: [...editing.blocks, newBlock('image')] })}>
-                    画像追加
-                  </Button>
-                  <Button size="small" startIcon={<LocalOffer />} onClick={() => setEditing({ ...editing, blocks: [...editing.blocks, newBlock('coupon')] })}>
-                    クーポン追加
-                  </Button>
-                </Box>
-              )}
-            </Stack>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditing(null)}>キャンセル</Button>
-          <Button onClick={handleSave} disabled={saving} variant="outlined">
-            {saving ? <CircularProgress size={20} /> : '下書き保存'}
-          </Button>
-          <Button onClick={handleSend} disabled={sending || saving} variant="contained" startIcon={<Send />}
-            sx={{ backgroundColor: '#06C755', '&:hover': { backgroundColor: '#05a648' } }}>
-            {sending ? <CircularProgress size={20} sx={{ color: 'white' }} /> : '送信'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="メッセージを削除"
+        message={`「${confirmDelete?.title}」を削除します。よろしいですか?`}
+        confirmLabel="削除"
+        danger
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </Box>
   );
 }

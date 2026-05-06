@@ -16,11 +16,18 @@ interface RequestBody {
 
 interface Block {
   id: string
-  block_type: 'text' | 'image' | 'coupon'
+  block_type: 'text' | 'image' | 'coupon' | 'sticker' | 'video' | 'location'
   text_content: string | null
   image_url: string | null
   link_url: string | null
   coupon_id: string | null
+  sticker_package_id: number | null
+  sticker_id: number | null
+  video_url: string | null
+  location_title: string | null
+  location_address: string | null
+  location_latitude: number | string | null
+  location_longitude: number | string | null
   display_order: number
 }
 
@@ -45,35 +52,62 @@ const substituteVars = (text: string, vars: Record<string, string>): string => {
   return text.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, key) => vars[key] ?? '')
 }
 
-const buildLineMessages = (blocks: Block[], couponsById: Map<string, Coupon>, vars: Record<string, string>) => {
-  const out: unknown[] = []
+const buildLineMessages = (
+  blocks: Block[],
+  couponsById: Map<string, Coupon>,
+  vars: Record<string, string>,
+  senderName: string | null,
+  senderIconUrl: string | null,
+  quickReplyItems: unknown[] | null,
+) => {
+  const sender = (senderName || senderIconUrl)
+    ? { ...(senderName ? { name: senderName } : {}), ...(senderIconUrl ? { iconUrl: senderIconUrl } : {}) }
+    : undefined
+  const out: Record<string, unknown>[] = []
   for (const b of blocks) {
+    let msg: Record<string, unknown> | null = null
     if (b.block_type === 'text' && b.text_content) {
-      out.push({ type: 'text', text: substituteVars(b.text_content, vars).slice(0, 5000) })
+      msg = { type: 'text', text: substituteVars(b.text_content, vars).slice(0, 5000) }
     } else if (b.block_type === 'image' && b.image_url) {
       if (b.link_url) {
-        // 画像 + タップでリンク → Flex Message
-        out.push({
+        msg = {
           type: 'flex',
           altText: '画像',
           contents: {
             type: 'bubble',
             hero: {
-              type: 'image',
-              url: b.image_url,
-              size: 'full',
-              aspectMode: 'cover',
-              aspectRatio: '1.51:1',
+              type: 'image', url: b.image_url, size: 'full',
+              aspectMode: 'cover', aspectRatio: '1.51:1',
               action: { type: 'uri', uri: b.link_url },
             },
           },
-        })
+        }
       } else {
-        out.push({
-          type: 'image',
-          originalContentUrl: b.image_url,
-          previewImageUrl: b.image_url,
-        })
+        msg = { type: 'image', originalContentUrl: b.image_url, previewImageUrl: b.image_url }
+      }
+    } else if (b.block_type === 'sticker' && b.sticker_package_id != null && b.sticker_id != null) {
+      msg = {
+        type: 'sticker',
+        packageId: String(b.sticker_package_id),
+        stickerId: String(b.sticker_id),
+      }
+    } else if (b.block_type === 'video' && b.video_url) {
+      msg = {
+        type: 'video',
+        originalContentUrl: b.video_url,
+        previewImageUrl: b.image_url || b.video_url,
+      }
+    } else if (b.block_type === 'location') {
+      const lat = typeof b.location_latitude === 'string' ? parseFloat(b.location_latitude) : b.location_latitude
+      const lng = typeof b.location_longitude === 'string' ? parseFloat(b.location_longitude) : b.location_longitude
+      if (lat != null && lng != null && b.location_title) {
+        msg = {
+          type: 'location',
+          title: substituteVars(b.location_title, vars),
+          address: substituteVars(b.location_address || '', vars),
+          latitude: lat,
+          longitude: lng,
+        }
       }
     } else if (b.block_type === 'coupon' && b.coupon_id) {
       const coupon = couponsById.get(b.coupon_id)
@@ -115,18 +149,21 @@ const buildLineMessages = (blocks: Block[], couponsById: Map<string, Coupon>, va
         body: { type: 'box', layout: 'vertical', contents: bodyContents },
       }
       if (coupon.image_url) {
-        bubble.hero = {
-          type: 'image',
-          url: coupon.image_url,
-          size: 'full',
-          aspectMode: 'cover',
-          aspectRatio: '20:13',
-        }
+        bubble.hero = { type: 'image', url: coupon.image_url, size: 'full', aspectMode: 'cover', aspectRatio: '20:13' }
       }
-
-      out.push({ type: 'flex', altText: `クーポン: ${coupon.name}`, contents: bubble })
+      msg = { type: 'flex', altText: `クーポン: ${coupon.name}`, contents: bubble }
     }
+
+    if (!msg) continue
+    if (sender) msg.sender = sender
+    out.push(msg)
   }
+
+  // quickReply は最後のメッセージにのみ付与 (LINE 仕様)
+  if (quickReplyItems && Array.isArray(quickReplyItems) && quickReplyItems.length > 0 && out.length > 0) {
+    out[out.length - 1].quickReply = { items: quickReplyItems }
+  }
+
   return out
 }
 
@@ -152,51 +189,37 @@ serve(async (req) => {
 
     const admin = createClient(supabaseUrl, supabaseServiceKey)
 
-    // メッセージとブロックを取得
     const { data: message, error: msgErr } = await admin
-      .from('line_messages')
-      .select('*')
-      .eq('id', message_id)
-      .maybeSingle()
+      .from('line_messages').select('*').eq('id', message_id).maybeSingle()
     if (msgErr || !message) throw new Error('メッセージが見つかりません')
     if (message.status === 'sent') throw new Error('既に送信済みのメッセージです')
 
-    // 企業所属チェック
     const { data: membership } = await admin
-      .from('company_memberships')
-      .select('id')
-      .eq('company_id', message.company_id)
-      .eq('business_user_id', user.id)
-      .maybeSingle()
+      .from('company_memberships').select('id')
+      .eq('company_id', message.company_id).eq('business_user_id', user.id).maybeSingle()
     if (!membership) throw new Error('このメッセージを送信する権限がありません')
 
-    // 企業情報 + Channel Access Token
     const { data: company } = await admin
       .from('companies')
       .select('id, name, line_messaging_enabled, line_channel_access_token_vault_id')
-      .eq('id', message.company_id)
-      .maybeSingle()
+      .eq('id', message.company_id).maybeSingle()
     if (!company) throw new Error('企業が見つかりません')
     if (!company.line_messaging_enabled || !company.line_channel_access_token_vault_id) {
-      throw new Error('LINE 連携が有効化されていません。先に LINE 設定を行ってください')
+      throw new Error('LINE 連携が有効化されていません')
     }
 
     const { data: tokenData, error: tokenErr } = await admin.rpc('vault_get_decrypted_secret', {
       p_id: company.line_channel_access_token_vault_id,
     })
-    if (tokenErr || !tokenData) throw new Error('Channel Access Token の取得失敗: ' + (tokenErr?.message ?? 'empty'))
+    if (tokenErr || !tokenData) throw new Error('Channel Access Token の取得失敗')
     const accessToken = tokenData as string
 
-    // ブロック取得
     const { data: blocksData } = await admin
-      .from('line_message_blocks')
-      .select('*')
-      .eq('message_id', message_id)
+      .from('line_message_blocks').select('*').eq('message_id', message_id)
       .order('display_order', { ascending: true })
     const blocks = (blocksData ?? []) as Block[]
     if (blocks.length === 0) throw new Error('メッセージにブロックがありません')
 
-    // クーポン情報を一括取得
     const couponIds = blocks.filter(b => b.coupon_id).map(b => b.coupon_id!) as string[]
     const couponsById = new Map<string, Coupon>()
     if (couponIds.length > 0) {
@@ -207,14 +230,11 @@ serve(async (req) => {
       for (const c of (coupons ?? []) as Coupon[]) couponsById.set(c.id, c)
     }
 
-    // 配信対象を取得
     let conditions: Record<string, unknown> = {}
     if (message.target_segment_id) {
       const { data: seg } = await admin
-        .from('line_target_segments')
-        .select('conditions')
-        .eq('id', message.target_segment_id)
-        .maybeSingle()
+        .from('line_target_segments').select('conditions')
+        .eq('id', message.target_segment_id).maybeSingle()
       if (seg?.conditions) conditions = seg.conditions as Record<string, unknown>
     } else if (message.target_snapshot) {
       conditions = message.target_snapshot as Record<string, unknown>
@@ -229,7 +249,6 @@ serve(async (req) => {
     const audience = (audienceData ?? []) as Array<{ line_user_id: string; user_id: string }>
     if (audience.length === 0) throw new Error('配信対象が 0 件です')
 
-    // 状態を sending に
     await admin.from('line_messages').update({
       status: 'sending',
       recipient_count: audience.length,
@@ -237,21 +256,21 @@ serve(async (req) => {
       sent_by: user.id,
     }).eq('id', message_id)
 
-    // 変数置換: 企業名のみ (per-user 変数は multicast 不可のため非対応)
-    const vars: Record<string, string> = {
-      company_name: company.name ?? '',
-    }
+    const vars: Record<string, string> = { company_name: company.name ?? '' }
 
-    const lineMessages = buildLineMessages(blocks, couponsById, vars)
-    if (lineMessages.length === 0) throw new Error('送信可能なメッセージブロックがありません')
+    const lineMessages = buildLineMessages(
+      blocks, couponsById, vars,
+      message.sender_name || null,
+      message.sender_icon_url || null,
+      Array.isArray(message.quick_reply_items) ? message.quick_reply_items as unknown[] : null,
+    )
+    if (lineMessages.length === 0) throw new Error('送信可能なメッセージがありません')
 
-    // メッセージは LINE 仕様で multicast あたり最大 5 個
     const messageBatches: unknown[][] = []
     for (let i = 0; i < lineMessages.length; i += MAX_MESSAGES_PER_MULTICAST) {
       messageBatches.push(lineMessages.slice(i, i + MAX_MESSAGES_PER_MULTICAST))
     }
 
-    // ユーザーは 500 件ずつ
     let deliveredCount = 0
     let failedCount = 0
     const deliveryRows: Array<{ message_id: string; line_user_id: string; user_id: string; status: string; error_message?: string; sent_at?: string }> = []
@@ -266,11 +285,12 @@ serve(async (req) => {
       for (const batch of messageBatches) {
         const res = await fetch('https://api.line.me/v2/bot/message/multicast', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({ to: userIds, messages: batch }),
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+          body: JSON.stringify({
+            to: userIds,
+            messages: batch,
+            notificationDisabled: !!message.notification_disabled,
+          }),
         })
         if (!res.ok) {
           chunkSucceeded = false
@@ -292,7 +312,6 @@ serve(async (req) => {
       }
     }
 
-    // 一括 insert (1000 件ずつ)
     for (let i = 0; i < deliveryRows.length; i += 1000) {
       const slice = deliveryRows.slice(i, i + 1000)
       const { error: insErr } = await admin.from('line_message_deliveries').insert(slice)

@@ -104,6 +104,18 @@ export async function previewAudience({ companyId, conditions }) {
   return data?.count ?? 0;
 }
 
+// 配信対象の詳細リスト (line_user_id + display_name + last_answered_at + answer_count)
+export async function fetchAudienceList({ companyId, conditions, limit = 1000 }) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const { data, error } = await supabase.functions.invoke('compute-line-target-audience', {
+    body: { company_id: companyId, conditions, preview_only: false, limit },
+    headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
+  });
+  if (error) throw error;
+  if (data && data.success === false) throw new Error(data.error || 'ターゲット計算失敗');
+  return data?.audience ?? [];
+}
+
 // ============================================================================
 // メッセージ
 // ============================================================================
@@ -134,29 +146,36 @@ export async function fetchMessageWithBlocks(messageId) {
   return { ...message, blocks: blocks || [] };
 }
 
-export async function saveMessage({ id, companyId, title, blocks, target_segment_id, target_snapshot, userId }) {
+export async function saveMessage({
+  id, companyId, title, blocks,
+  target_segment_id, target_snapshot,
+  notification_disabled, sender_name, sender_icon_url, quick_reply_items,
+  userId,
+}) {
+  const messagePayload = {
+    title,
+    target_segment_id: target_segment_id || null,
+    target_snapshot: target_snapshot || null,
+    notification_disabled: !!notification_disabled,
+    sender_name: sender_name || null,
+    sender_icon_url: sender_icon_url || null,
+    quick_reply_items: quick_reply_items && quick_reply_items.length > 0 ? quick_reply_items : null,
+  };
+
   let messageId = id;
   if (!messageId) {
     const { data, error } = await supabase
       .from('line_messages')
-      .insert({
-        company_id: companyId, title, status: 'draft',
-        target_segment_id, target_snapshot,
-        created_by: userId,
-      })
+      .insert({ ...messagePayload, company_id: companyId, status: 'draft', created_by: userId })
       .select()
       .single();
     if (error) throw error;
     messageId = data.id;
   } else {
-    const { error } = await supabase
-      .from('line_messages')
-      .update({ title, target_segment_id, target_snapshot })
-      .eq('id', messageId);
+    const { error } = await supabase.from('line_messages').update(messagePayload).eq('id', messageId);
     if (error) throw error;
   }
 
-  // ブロック差し替え (削除 → 一括 insert)
   await supabase.from('line_message_blocks').delete().eq('message_id', messageId);
   if (blocks && blocks.length > 0) {
     const rows = blocks.map((b, i) => ({
@@ -166,6 +185,13 @@ export async function saveMessage({ id, companyId, title, blocks, target_segment
       image_url: b.image_url || null,
       link_url: b.link_url || null,
       coupon_id: b.coupon_id || null,
+      sticker_package_id: b.sticker_package_id != null ? Number(b.sticker_package_id) : null,
+      sticker_id: b.sticker_id != null ? Number(b.sticker_id) : null,
+      video_url: b.video_url || null,
+      location_title: b.location_title || null,
+      location_address: b.location_address || null,
+      location_latitude: b.location_latitude !== '' && b.location_latitude != null ? Number(b.location_latitude) : null,
+      location_longitude: b.location_longitude !== '' && b.location_longitude != null ? Number(b.location_longitude) : null,
       display_order: i,
     }));
     const { error } = await supabase.from('line_message_blocks').insert(rows);

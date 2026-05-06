@@ -60,7 +60,13 @@ serve(async (req) => {
     })
     if (error) throw new Error('audience 計算失敗: ' + error.message)
 
-    const rows = (data ?? []) as Array<{ line_user_id: string; user_id: string }>
+    const rows = (data ?? []) as Array<{
+      line_user_id: string
+      user_id: string
+      display_name: string
+      last_answered_at: string
+      answer_count: number
+    }>
 
     return new Response(
       JSON.stringify({
@@ -68,6 +74,7 @@ serve(async (req) => {
         count: rows.length,
         line_user_ids: preview_only ? undefined : rows.map(r => r.line_user_id),
         user_ids: preview_only ? undefined : rows.map(r => r.user_id),
+        audience: preview_only ? undefined : rows,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )

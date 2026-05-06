@@ -1,52 +1,102 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, Button, Card, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, IconButton, ListItem, ListItemText, CircularProgress,
-  Stack, FormControl, InputLabel, Select, MenuItem, OutlinedInput, Checkbox,
-  Alert,
+  Box, Typography, Button, Card, TextField, IconButton, Chip,
+  CircularProgress, Stack, Divider, Alert,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
 } from '@mui/material';
-import { Add, Delete, Edit, FilterAlt, Visibility } from '@mui/icons-material';
+import {
+  Add, Delete, Edit, FilterAlt, Visibility, ArrowBack,
+} from '@mui/icons-material';
 import toast from 'react-hot-toast';
 import {
   fetchSegments, upsertSegment, deleteSegment,
-  fetchCompanyStores, previewAudience,
+  fetchCompanyStores, fetchAudienceList,
 } from '../../../lib/lineMessaging';
+import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
+import ConfirmDialog from './ConfirmDialog';
 
-const RESULT_TYPES = [
-  { value: 1, label: '評価1 (満足)' },
-  { value: 2, label: '評価2' },
-  { value: 3, label: '評価3' },
-  { value: 4, label: '評価4' },
-  { value: 5, label: '評価5 (不満)' },
-];
+// result_type 1-12 のラベル (推奨者/中立者/批判者 × 安定/新規リピーター/離脱)
+const getResultTypeLabel = (t) => {
+  const npsLabel = t <= 4 ? '推奨者' : t <= 8 ? '中立者' : '批判者';
+  const isRepeater = t % 2 === 1;
+  const hasRevisit = [1, 2, 5, 6, 9, 10].includes(t);
+  let cat;
+  if (isRepeater && hasRevisit) cat = '安定リピーター';
+  else if (isRepeater && !hasRevisit) cat = 'リピーター離脱';
+  else if (!isRepeater && hasRevisit) cat = '新規リピーター';
+  else cat = '新規離脱';
+  return `${cat} × ${npsLabel}`;
+};
+
+const RESULT_TYPES = Array.from({ length: 12 }, (_, i) => ({
+  value: i + 1, label: getResultTypeLabel(i + 1),
+}));
 
 const QSC_OPTIONS = [
-  { value: 'cleanliness', label: '清潔感' },
-  { value: 'quality', label: '品質' },
-  { value: 'service', label: 'サービス' },
+  { value: 'quality', label: '品質 (Q)' },
+  { value: 'service', label: '接客 (S)' },
+  { value: 'cleanliness', label: '清潔感 (C)' },
 ];
+
+const PREFERENCES = ['品質', '接客', '空間', '衛生', '価格感度'];
 
 const empty = {
   id: null, name: '', description: '',
-  conditions: { store_ids: [], result_types: [], selected_qsc: [], answered_from: '', answered_to: '' },
+  conditions: {
+    store_ids: [], result_types: [], selected_qsc: [],
+    top_preferences: [], second_preferences: [],
+    answered_from: '', answered_to: '',
+  },
 };
 
+// Chip toggle group
+function ChipMultiSelect({ options, selected, onChange, getKey, getLabel }) {
+  const theme = usePartnerTheme();
+  const isSelected = (v) => selected.includes(v);
+  const toggle = (v) => onChange(isSelected(v) ? selected.filter(x => x !== v) : [...selected, v]);
+  return (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+      {options.map((opt) => {
+        const k = getKey ? getKey(opt) : opt;
+        const lbl = getLabel ? getLabel(opt) : (opt.label ?? String(opt));
+        const sel = isSelected(k);
+        return (
+          <Chip key={k} label={lbl}
+            onClick={() => toggle(k)}
+            variant={sel ? 'filled' : 'outlined'}
+            sx={{
+              fontWeight: 600,
+              background: sel ? (theme.primaryGradient || theme.primary) : 'transparent',
+              color: sel ? 'white' : '#475569',
+              borderColor: sel ? 'transparent' : '#cbd5e1',
+              '&:hover': { background: sel ? (theme.primaryGradient || theme.primary) : '#f1f5f9', opacity: sel ? 0.9 : 1 },
+            }}
+          />
+        );
+      })}
+    </Box>
+  );
+}
+
 export default function SegmentsTab({ companyId }) {
+  const theme = usePartnerTheme();
   const [segments, setSegments] = useState([]);
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mode, setMode] = useState('list');
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [previewing, setPreviewing] = useState(false);
-  const [previewCount, setPreviewCount] = useState(null);
+  const [audience, setAudience] = useState([]);
+  const [audienceCount, setAudienceCount] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const load = async () => {
     if (!companyId) return;
     try {
       setLoading(true);
       const [s, st] = await Promise.all([fetchSegments(companyId), fetchCompanyStores(companyId)]);
-      setSegments(s);
-      setStores(st);
+      setSegments(s); setStores(st);
     } catch (e) {
       toast.error('セグメント一覧の取得失敗');
     } finally { setLoading(false); }
@@ -56,7 +106,7 @@ export default function SegmentsTab({ companyId }) {
 
   const openNew = () => {
     setEditing(JSON.parse(JSON.stringify(empty)));
-    setPreviewCount(null);
+    setAudience([]); setAudienceCount(null); setMode('form');
   };
   const openEdit = (s) => {
     setEditing({
@@ -65,40 +115,47 @@ export default function SegmentsTab({ companyId }) {
         store_ids: s.conditions?.store_ids || [],
         result_types: s.conditions?.result_types || [],
         selected_qsc: s.conditions?.selected_qsc || [],
+        top_preferences: s.conditions?.top_preferences || [],
+        second_preferences: s.conditions?.second_preferences || [],
         answered_from: s.conditions?.answered_from || '',
         answered_to: s.conditions?.answered_to || '',
       },
     });
-    setPreviewCount(null);
+    setAudience([]); setAudienceCount(null); setMode('form');
+  };
+  const backToList = () => { setEditing(null); setMode('list'); };
+
+  const cleanConditions = () => {
+    const c = { ...editing.conditions };
+    if (!c.answered_from) delete c.answered_from;
+    if (!c.answered_to) delete c.answered_to;
+    return c;
   };
 
   const handleSave = async () => {
     if (!editing.name.trim()) return toast.error('セグメント名を入力してください');
     try {
       setSaving(true);
-      const conditions = { ...editing.conditions };
-      // 空文字を除外
-      if (!conditions.answered_from) delete conditions.answered_from;
-      if (!conditions.answered_to) delete conditions.answered_to;
       await upsertSegment({
         id: editing.id, companyId,
         name: editing.name.trim(),
         description: editing.description || null,
-        conditions,
+        conditions: cleanConditions(),
       });
       toast.success('セグメントを保存しました');
-      setEditing(null);
+      backToList();
       await load();
     } catch (e) {
       toast.error(e?.message || '保存失敗');
     } finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('このセグメントを削除しますか?')) return;
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
     try {
-      await deleteSegment(id);
+      await deleteSegment(confirmDelete.id);
       toast.success('削除しました');
+      setConfirmDelete(null);
       await load();
     } catch (e) { toast.error(e?.message || '削除失敗'); }
   };
@@ -106,11 +163,9 @@ export default function SegmentsTab({ companyId }) {
   const handlePreview = async () => {
     try {
       setPreviewing(true);
-      const conditions = { ...editing.conditions };
-      if (!conditions.answered_from) delete conditions.answered_from;
-      if (!conditions.answered_to) delete conditions.answered_to;
-      const count = await previewAudience({ companyId, conditions });
-      setPreviewCount(count);
+      const list = await fetchAudienceList({ companyId, conditions: cleanConditions(), limit: 500 });
+      setAudience(list);
+      setAudienceCount(list.length);
     } catch (e) {
       toast.error(e?.message || 'プレビュー失敗');
     } finally { setPreviewing(false); }
@@ -118,160 +173,215 @@ export default function SegmentsTab({ companyId }) {
 
   const summarize = (s) => {
     const c = s.conditions || {};
-    const parts = [];
-    if (c.store_ids?.length) parts.push(`店舗 ${c.store_ids.length}件`);
-    if (c.result_types?.length) parts.push(`評価 ${c.result_types.join(',')}`);
-    if (c.selected_qsc?.length) parts.push(`QSC ${c.selected_qsc.length}件`);
-    if (c.answered_from || c.answered_to) parts.push('期間指定');
-    return parts.join(' / ') || '条件なし (全 LINE 連携回答者)';
+    const chips = [];
+    if (c.store_ids?.length) chips.push(`店舗 ${c.store_ids.length}件`);
+    if (c.result_types?.length) chips.push(`タイプ ${c.result_types.length}件`);
+    if (c.selected_qsc?.length) chips.push(`QSC ${c.selected_qsc.length}件`);
+    if (c.top_preferences?.length) chips.push(`重視 ${c.top_preferences.length}件`);
+    if (c.second_preferences?.length) chips.push(`次点 ${c.second_preferences.length}件`);
+    if (c.answered_from || c.answered_to) chips.push('期間指定');
+    return chips;
   };
+
+  if (mode === 'form' && editing) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <IconButton onClick={backToList} sx={{ mr: 1 }}><ArrowBack /></IconButton>
+          <Typography variant="h6" sx={{ fontWeight: 700, flex: 1 }}>
+            {editing.id ? 'セグメントを編集' : '新規セグメント'}
+          </Typography>
+        </Box>
+
+        <Card sx={{ p: 3, borderRadius: 1, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', mb: 2 }}>
+          <Stack spacing={2.5}>
+            <TextField label="セグメント名 *" fullWidth value={editing.name}
+              onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
+            <TextField label="説明" fullWidth value={editing.description}
+              onChange={(e) => setEditing({ ...editing, description: e.target.value })} />
+
+            <Divider />
+
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>店舗</Typography>
+              <ChipMultiSelect options={stores}
+                getKey={(s) => s.id} getLabel={(s) => s.name}
+                selected={editing.conditions.store_ids}
+                onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, store_ids: arr } })} />
+            </Box>
+
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>回答タイプ (12 分類)</Typography>
+              <ChipMultiSelect options={RESULT_TYPES}
+                getKey={(o) => o.value}
+                getLabel={(o) => `${o.value}. ${o.label}`}
+                selected={editing.conditions.result_types}
+                onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, result_types: arr } })} />
+            </Box>
+
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>選択 QSC</Typography>
+              <ChipMultiSelect options={QSC_OPTIONS}
+                getKey={(o) => o.value}
+                selected={editing.conditions.selected_qsc}
+                onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, selected_qsc: arr } })} />
+            </Box>
+
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>最重視 (top preference)</Typography>
+              <ChipMultiSelect options={PREFERENCES}
+                selected={editing.conditions.top_preferences}
+                onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, top_preferences: arr } })} />
+            </Box>
+
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>次点 (second preference)</Typography>
+              <ChipMultiSelect options={PREFERENCES}
+                selected={editing.conditions.second_preferences}
+                onChange={(arr) => setEditing({ ...editing, conditions: { ...editing.conditions, second_preferences: arr } })} />
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField label="回答日 (開始)" type="datetime-local" fullWidth size="small"
+                value={editing.conditions.answered_from}
+                onChange={(e) => setEditing({ ...editing, conditions: { ...editing.conditions, answered_from: e.target.value } })}
+                InputLabelProps={{ shrink: true }} />
+              <TextField label="回答日 (終了)" type="datetime-local" fullWidth size="small"
+                value={editing.conditions.answered_to}
+                onChange={(e) => setEditing({ ...editing, conditions: { ...editing.conditions, answered_to: e.target.value } })}
+                InputLabelProps={{ shrink: true }} />
+            </Box>
+
+            <Divider />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Button startIcon={previewing ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <Visibility />}
+                onClick={handlePreview} disabled={previewing} variant="contained"
+                sx={{
+                  background: theme.primaryGradient || theme.primary, color: 'white',
+                  '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
+                }}>
+                対象ユーザーを表示
+              </Button>
+              {audienceCount !== null && (
+                <Alert severity="info" sx={{ flex: 1, py: 0 }}>
+                  対象 LINE ユーザー数: <strong>{audienceCount}</strong> 名
+                </Alert>
+              )}
+            </Box>
+
+            {audience.length > 0 && (
+              <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 400 }}>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 700 }}>表示名</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>LINE userId</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }} align="right">回答回数</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>最終回答日</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {audience.map((a) => (
+                      <TableRow key={a.line_user_id} hover>
+                        <TableCell>{a.display_name}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#64748b' }}>
+                          {a.line_user_id?.slice(0, 8)}...
+                        </TableCell>
+                        <TableCell align="right">{a.answer_count}</TableCell>
+                        <TableCell>{a.last_answered_at ? new Date(a.last_answered_at).toLocaleString('ja-JP') : '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+
+            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', pt: 1 }}>
+              <Button onClick={backToList}>キャンセル</Button>
+              <Button onClick={handleSave} variant="contained" disabled={saving}
+                sx={{
+                  background: theme.primaryGradient || theme.primary, color: 'white', px: 3,
+                  '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
+                }}>
+                {saving ? <CircularProgress size={20} sx={{ color: 'white' }} /> : '保存'}
+              </Button>
+            </Box>
+          </Stack>
+        </Card>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', mb: 2, alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', mb: 3, alignItems: 'center' }}>
         <Typography variant="h6" sx={{ fontWeight: 700, flex: 1 }}>ターゲットセグメント</Typography>
         <Button variant="contained" startIcon={<Add />} onClick={openNew}
-          sx={{ backgroundColor: '#06C755', '&:hover': { backgroundColor: '#05a648' } }}>
+          sx={{
+            background: theme.primaryGradient || theme.primary, color: 'white', px: 3,
+            '&:hover': { background: theme.primaryGradient || theme.primary, opacity: 0.9 },
+          }}>
           新規セグメント
         </Button>
       </Box>
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress sx={{ color: theme.primary }} /></Box>
       ) : segments.length === 0 ? (
-        <Card sx={{ p: 4, textAlign: 'center' }}>
+        <Card sx={{ p: 6, textAlign: 'center', borderRadius: 1 }}>
           <FilterAlt sx={{ fontSize: 48, color: '#cbd5e1', mb: 1 }} />
           <Typography color="text.secondary">セグメントがまだありません</Typography>
         </Card>
       ) : (
         <Stack spacing={1.5}>
-          {segments.map((s) => (
-            <Card key={s.id} sx={{ borderRadius: 2 }}>
-              <ListItem
-                secondaryAction={
-                  <Box>
-                    <IconButton onClick={() => openEdit(s)}><Edit /></IconButton>
-                    <IconButton onClick={() => handleDelete(s.id)} sx={{ color: '#ef4444' }}><Delete /></IconButton>
+          {segments.map((s) => {
+            const chips = summarize(s);
+            return (
+              <Card key={s.id} sx={{ borderRadius: 1, p: 2, cursor: 'pointer', transition: 'all 0.2s',
+                display: 'flex', alignItems: 'center', gap: 2,
+                '&:hover': { boxShadow: '0 6px 18px rgba(0,0,0,0.1)', transform: 'translateY(-1px)' },
+              }} onClick={() => openEdit(s)}>
+                <Box sx={{
+                  width: 48, height: 48, borderRadius: 1,
+                  background: theme.primaryAlpha10 || `${theme.primary}1a`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <FilterAlt sx={{ color: theme.primary }} />
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 700, mb: 0.5 }}>{s.name}</Typography>
+                  {s.description && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>{s.description}</Typography>
+                  )}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                    {chips.length === 0 ? (
+                      <Chip label="条件なし (全員)" size="small" />
+                    ) : chips.map((c, i) => (
+                      <Chip key={i} label={c} size="small"
+                        sx={{ bgcolor: theme.primaryAlpha10 || `${theme.primary}1a`, color: theme.primary, fontWeight: 600 }} />
+                    ))}
                   </Box>
-                }
-              >
-                <ListItemText
-                  primary={<Typography sx={{ fontWeight: 600 }}>{s.name}</Typography>}
-                  secondary={
-                    <>
-                      {s.description && <Typography component="span" variant="body2" sx={{ display: 'block' }}>{s.description}</Typography>}
-                      <Typography component="span" variant="caption" color="text.secondary">{summarize(s)}</Typography>
-                    </>
-                  }
-                />
-              </ListItem>
-            </Card>
-          ))}
+                </Box>
+                <Box>
+                  <IconButton onClick={(e) => { e.stopPropagation(); openEdit(s); }}><Edit /></IconButton>
+                  <IconButton onClick={(e) => { e.stopPropagation(); setConfirmDelete(s); }} sx={{ color: '#ef4444' }}><Delete /></IconButton>
+                </Box>
+              </Card>
+            );
+          })}
         </Stack>
       )}
 
-      <Dialog open={!!editing} onClose={() => setEditing(null)} fullWidth maxWidth="sm">
-        <DialogTitle>{editing?.id ? 'セグメントを編集' : '新規セグメント'}</DialogTitle>
-        <DialogContent dividers>
-          {editing && (
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              <TextField label="セグメント名 *" fullWidth value={editing.name}
-                onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
-              <TextField label="説明" fullWidth value={editing.description}
-                onChange={(e) => setEditing({ ...editing, description: e.target.value })} />
-
-              <FormControl fullWidth>
-                <InputLabel>店舗</InputLabel>
-                <Select multiple
-                  value={editing.conditions.store_ids}
-                  onChange={(e) => setEditing({
-                    ...editing,
-                    conditions: { ...editing.conditions, store_ids: e.target.value },
-                  })}
-                  input={<OutlinedInput label="店舗" />}
-                  renderValue={(selected) => `${selected.length}店舗 選択`}
-                >
-                  {stores.map((st) => (
-                    <MenuItem key={st.id} value={st.id}>
-                      <Checkbox checked={editing.conditions.store_ids.includes(st.id)} />
-                      <ListItemText primary={st.name} />
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl fullWidth>
-                <InputLabel>評価 (result_type)</InputLabel>
-                <Select multiple
-                  value={editing.conditions.result_types}
-                  onChange={(e) => setEditing({
-                    ...editing,
-                    conditions: { ...editing.conditions, result_types: e.target.value },
-                  })}
-                  input={<OutlinedInput label="評価 (result_type)" />}
-                  renderValue={(selected) => selected.join(', ')}
-                >
-                  {RESULT_TYPES.map((r) => (
-                    <MenuItem key={r.value} value={r.value}>
-                      <Checkbox checked={editing.conditions.result_types.includes(r.value)} />
-                      <ListItemText primary={r.label} />
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl fullWidth>
-                <InputLabel>QSC</InputLabel>
-                <Select multiple
-                  value={editing.conditions.selected_qsc}
-                  onChange={(e) => setEditing({
-                    ...editing,
-                    conditions: { ...editing.conditions, selected_qsc: e.target.value },
-                  })}
-                  input={<OutlinedInput label="QSC" />}
-                  renderValue={(selected) => selected.join(', ')}
-                >
-                  {QSC_OPTIONS.map((q) => (
-                    <MenuItem key={q.value} value={q.value}>
-                      <Checkbox checked={editing.conditions.selected_qsc.includes(q.value)} />
-                      <ListItemText primary={q.label} />
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField label="回答日 (開始)" type="datetime-local" fullWidth size="small"
-                  value={editing.conditions.answered_from}
-                  onChange={(e) => setEditing({ ...editing, conditions: { ...editing.conditions, answered_from: e.target.value } })}
-                  InputLabelProps={{ shrink: true }} />
-                <TextField label="回答日 (終了)" type="datetime-local" fullWidth size="small"
-                  value={editing.conditions.answered_to}
-                  onChange={(e) => setEditing({ ...editing, conditions: { ...editing.conditions, answered_to: e.target.value } })}
-                  InputLabelProps={{ shrink: true }} />
-              </Box>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Button startIcon={<Visibility />} onClick={handlePreview} disabled={previewing} variant="outlined">
-                  {previewing ? <CircularProgress size={18} /> : '対象人数をプレビュー'}
-                </Button>
-                {previewCount !== null && (
-                  <Alert severity="info" sx={{ flex: 1, py: 0 }}>
-                    対象 LINE ユーザー数: <strong>{previewCount}</strong> 名
-                  </Alert>
-                )}
-              </Box>
-            </Stack>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditing(null)}>キャンセル</Button>
-          <Button onClick={handleSave} variant="contained" disabled={saving}
-            sx={{ backgroundColor: '#06C755', '&:hover': { backgroundColor: '#05a648' } }}>
-            {saving ? <CircularProgress size={20} sx={{ color: 'white' }} /> : '保存'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="セグメントを削除"
+        message={`「${confirmDelete?.name}」を削除します。よろしいですか?`}
+        confirmLabel="削除"
+        danger
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </Box>
   );
 }

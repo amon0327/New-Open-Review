@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Tabs, Tab, Typography, Card, Alert, Button, CircularProgress } from '@mui/material';
-import { Mail, FilterAlt, LocalOffer, Chat as ChatIcon, OpenInNew } from '@mui/icons-material';
+import { Box, Tabs, Tab, Typography, Card, Alert, CircularProgress } from '@mui/material';
+import { Mail, FilterAlt, LocalOffer, Chat as ChatIcon } from '@mui/icons-material';
 import { fetchLineSettings } from '../../../lib/lineMessaging';
+import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
 import MessagesTab from '../line/MessagesTab';
 import SegmentsTab from '../line/SegmentsTab';
 import CouponsTab from '../line/CouponsTab';
 
 export default function OfficialLinePage({ companyId, user }) {
+  const theme = usePartnerTheme();
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [enabled, setEnabled] = useState(false);
@@ -24,41 +26,58 @@ export default function OfficialLinePage({ companyId, user }) {
   }, [companyId]);
 
   if (loading) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}><CircularProgress /></Box>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <CircularProgress sx={{ color: theme.primary }} />
+      </Box>
+    );
   }
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc' }}>
+    <Box sx={{
+      minHeight: '100vh',
+      display: 'flex', flexDirection: 'column',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+    }}>
       <Box sx={{ p: 3, pb: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-          <ChatIcon sx={{ color: '#06C755', mr: 1.5, fontSize: 32 }} />
-          <Typography variant="h5" sx={{ fontWeight: 700, flex: 1 }}>公式LINE</Typography>
+          <Box sx={{
+            width: 48, height: 48, borderRadius: 1,
+            background: theme.primaryGradient || theme.primary,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 2,
+          }}>
+            <ChatIcon sx={{ color: 'white', fontSize: 28 }} />
+          </Box>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#1a202c' }}>公式LINE</Typography>
+            <Typography variant="body2" sx={{ color: '#64748b' }}>
+              アンケート回答者にターゲットを絞ったメッセージやクーポンを配信
+            </Typography>
+          </Box>
         </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          LINE 公式アカウントを通じて、アンケート回答者にターゲットを絞ったメッセージやクーポンを配信できます。
-        </Typography>
 
         {!enabled && (
-          <Alert severity="warning" sx={{ mb: 2 }}
-            action={
-              <Button color="inherit" size="small" endIcon={<OpenInNew />}
-                onClick={() => alert('左メニューの「設定」→「LINE 公式アカウント連携」から認証情報を登録してください。')}>
-                設定方法
-              </Button>
-            }
-          >
-            LINE 連携が未設定です。まず「設定」ページで Channel ID / Channel Secret / Channel Access Token を登録してください。メッセージの作成はできますが、送信はできません。
+          <Alert severity="warning" sx={{ mt: 2, mb: 2, borderRadius: 1 }}>
+            LINE 連携が未設定です。「設定」ページで Channel ID / Channel Secret / Channel Access Token を登録してください。メッセージの作成はできますが、送信はできません。
           </Alert>
         )}
       </Box>
 
-      <Card sx={{ mx: 3, mb: 3, borderRadius: 3, overflow: 'hidden', flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <Card sx={{
+        mx: 3, mb: 3,
+        borderRadius: 1,
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
+        overflow: 'hidden', flex: 1,
+        display: 'flex', flexDirection: 'column',
+      }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)}
           sx={{
             borderBottom: '1px solid #e2e8f0',
-            '& .MuiTab-root': { textTransform: 'none', fontWeight: 600, minHeight: 60 },
-            '& .Mui-selected': { color: '#06C755' },
-            '& .MuiTabs-indicator': { backgroundColor: '#06C755', height: 3 },
+            '& .MuiTab-root': {
+              textTransform: 'none', fontWeight: 600, fontSize: '1rem', minHeight: 60,
+              '&.Mui-selected': { color: theme.primary },
+            },
+            '& .MuiTabs-indicator': { backgroundColor: theme.primary, height: 3 },
           }}
         >
           <Tab icon={<Mail />} iconPosition="start" label="メッセージ作成" />
