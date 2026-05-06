@@ -84,8 +84,9 @@ function FieldLabel({ children, optional }) {
 
 function ChipMultiSelect({ options, selected, onChange, getKey, getLabel }) {
   const theme = usePartnerTheme();
-  const isSelected = (v) => selected.includes(v);
-  const toggle = (v) => onChange(isSelected(v) ? selected.filter(x => x !== v) : [...selected, v]);
+  const safeSelected = Array.isArray(selected) ? selected : [];
+  const isSelected = (v) => safeSelected.includes(v);
+  const toggle = (v) => onChange(isSelected(v) ? safeSelected.filter(x => x !== v) : [...safeSelected, v]);
   return (
     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
       {options.map((opt) => {
