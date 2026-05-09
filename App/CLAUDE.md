@@ -118,14 +118,19 @@ npm test
 ### 接続情報
 
 - **URL**: `https://otfreskkeaenahqziriz.supabase.co`
-- **API Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90ZnJlc2trZWFlbmFocXppcml6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MDc0Nzk1NCwiZXhwIjoyMDY2MzIzOTU0fQ.IMskAi-s81h8l3CDo72guYqEyY2lDUvl4RTAohaItjo`
+- **API Key**: `App/.env` の `SUPABASE_SERVICE_ROLE_KEY` を参照すること（リポジトリには絶対に書かない）
 
 ### 記録フォーマット
 
+`.env` から service_role キーを読み出して使う前提です。シェルから実行する場合の例:
+
 ```bash
-curl -X POST 'https://otfreskkeaenahqziriz.supabase.co/rest/v1/change_logs' \
-  -H "apikey: YOUR_API_KEY" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
+export SUPABASE_URL="https://otfreskkeaenahqziriz.supabase.co"
+export SUPABASE_SERVICE_ROLE_KEY="$(grep '^SUPABASE_SERVICE_ROLE_KEY=' App/.env | cut -d= -f2-)"
+
+curl -X POST "${SUPABASE_URL}/rest/v1/change_logs" \
+  -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+  -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
   -H "Content-Type: application/json" \
   -d '{
     "changes": "変更内容の説明",
