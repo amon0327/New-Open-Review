@@ -64,13 +64,10 @@ export default function StaffInvitationForm({
   const [showPasteArea, setShowPasteArea] = useState(false);
   const [urlType, setUrlType] = useState('production'); // 'production' or 'development'
 
-  // 招待 URL 生成: 本番は LIFF (LINE アプリ内ブラウザで自動ログイン可能) を使う。
-  // LIFF アプリの Endpoint URL を https://store.openreview.jp/ に設定しておくと
-  // LIFF が subpath をそのまま付加するので 既存の React ルートが受けてくれる。
-  const LIFF_INVITE_BASE = 'https://liff.line.me/2008499451-m9heDaev/staff-invitation';
-  const LOCAL_INVITE_BASE = 'http://localhost:3000/staff-invitation';
   const buildInviteUrl = (token) => {
-    const base = urlType === 'production' ? LIFF_INVITE_BASE : LOCAL_INVITE_BASE;
+    const base = urlType === 'production'
+      ? 'https://store.openreview.jp/staff-invitation'
+      : 'http://localhost:3000/staff-invitation';
     return `${base}/${token}`;
   };
 

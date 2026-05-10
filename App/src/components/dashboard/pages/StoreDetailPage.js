@@ -188,9 +188,7 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
     }
   };
 
-  // LIFF URL (LINE アプリ内で開いたら自動ログインできる)
-  // Endpoint URL = https://store.openreview.jp/ に LIFF が subpath を引き継ぐ
-  const STAFF_INVITE_BASE = 'https://liff.line.me/2008499451-m9heDaev/staff-invitation';
+  const STAFF_INVITE_BASE = 'https://store.openreview.jp/staff-invitation';
 
   const copyInvitationUrl = (token) => {
     const url = `${STAFF_INVITE_BASE}/${token}`;
