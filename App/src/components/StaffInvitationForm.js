@@ -64,6 +64,16 @@ export default function StaffInvitationForm({
   const [showPasteArea, setShowPasteArea] = useState(false);
   const [urlType, setUrlType] = useState('production'); // 'production' or 'development'
 
+  // 招待 URL 生成: 本番は LIFF (LINE アプリ内ブラウザで自動ログイン可能) を使う。
+  // LIFF アプリの Endpoint URL を https://store.openreview.jp/ に設定しておくと
+  // LIFF が subpath をそのまま付加するので 既存の React ルートが受けてくれる。
+  const LIFF_INVITE_BASE = 'https://liff.line.me/2008499451-m9heDaev/staff-invitation';
+  const LOCAL_INVITE_BASE = 'http://localhost:3000/staff-invitation';
+  const buildInviteUrl = (token) => {
+    const base = urlType === 'production' ? LIFF_INVITE_BASE : LOCAL_INVITE_BASE;
+    return `${base}/${token}`;
+  };
+
   const handleInputChange = (index, field) => (event) => {
     const newRows = [...rows];
     newRows[index][field] = event.target.value;
@@ -219,12 +229,8 @@ export default function StaffInvitationForm({
       return;
     }
 
-    const baseUrl = urlType === 'production'
-      ? 'https://store.openreview.jp/staff-invitation/'
-      : 'http://localhost:3000/staff-invitation/';
-
     const data = successRows.map(row => {
-      const url = `${baseUrl}${row.result.token}`;
+      const url = buildInviteUrl(row.result.token);
       return `${row.result.name}さん\n下記URLをタップしてスタッフ登録をお願いします\n${url}`;
     }).join('\n\n---\n\n');
 
@@ -241,14 +247,10 @@ export default function StaffInvitationForm({
       return;
     }
 
-    const baseUrl = urlType === 'production'
-      ? 'https://store.openreview.jp/staff-invitation/'
-      : 'http://localhost:3000/staff-invitation/';
-
     const header = '名前\tロール\tURL';
     const data = successRows.map(row => {
       const roleLabel = row.role === 'STORE' ? '店舗管理者' : 'スタッフ';
-      const url = `${baseUrl}${row.result.token}`;
+      const url = buildInviteUrl(row.result.token);
       return `${row.result.name}\t${roleLabel}\t${url}`;
     }).join('\n');
 
@@ -435,7 +437,7 @@ export default function StaffInvitationForm({
                 </Typography>
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#374151', whiteSpace: 'pre-line' }}>
                   {rows.filter(row => row.status === 'success').slice(0, 1).map(row =>
-                    `${row.result?.name}さん\n下記URLをタップしてスタッフ登録をお願いします\n${urlType === 'production' ? 'https://store.openreview.jp' : 'http://localhost:3000'}/staff-invitation/${row.result?.token?.slice(0, 8)}...`
+                    `${row.result?.name}さん\n下記URLをタップしてスタッフ登録をお願いします\n${buildInviteUrl((row.result?.token || '').slice(0, 8) + '...')}`
                   ).join('') || '（招待成功後に表示されます）'}
                 </Typography>
               </Box>
@@ -501,17 +503,12 @@ export default function StaffInvitationForm({
                                 textOverflow: 'ellipsis'
                               }}
                             >
-                              {urlType === 'production'
-                                ? `https://store.openreview.jp/staff-invitation/${row.result.token}`
-                                : `http://localhost:3000/staff-invitation/${row.result.token}`
-                              }
+                              {buildInviteUrl(row.result.token)}
                             </Typography>
                             <IconButton
                               size="small"
                               onClick={() => {
-                                const url = urlType === 'production'
-                                  ? `https://store.openreview.jp/staff-invitation/${row.result.token}`
-                                  : `http://localhost:3000/staff-invitation/${row.result.token}`;
+                                const url = buildInviteUrl(row.result.token);
                                 navigator.clipboard.writeText(url);
                               }}
                             >

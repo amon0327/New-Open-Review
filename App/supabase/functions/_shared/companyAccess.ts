@@ -25,16 +25,29 @@ export async function userHasCompanyAccess(
     .eq('business_users_id', userId)
     .eq('is_active', true)
 
-  if (!partnerMemberships || partnerMemberships.length === 0) return false
+  if (partnerMemberships && partnerMemberships.length > 0) {
+    const partnerCompanyIds = (partnerMemberships as Array<{ partner_company_id: string }>)
+      .map(pm => pm.partner_company_id)
 
-  const partnerCompanyIds = (partnerMemberships as Array<{ partner_company_id: string }>)
-    .map(pm => pm.partner_company_id)
+    const { data: affiliations } = await admin
+      .from('partner_affiliate_companies')
+      .select('id')
+      .eq('companies_id', companyId)
+      .in('partner_company_id', partnerCompanyIds)
 
-  const { data: affiliations } = await admin
-    .from('partner_affiliate_companies')
-    .select('id')
-    .eq('companies_id', companyId)
-    .in('partner_company_id', partnerCompanyIds)
+    if (affiliations && affiliations.length > 0) return true
+  }
 
-  return !!(affiliations && affiliations.length > 0)
+  // 3. 店舗管理者経由 (店舗管理アプリの STORE ロール)
+  // store_memberships.role = 'STORE' AND stores.company_id = companyId
+  const { data: storeAccess } = await admin
+    .from('store_memberships')
+    .select('id, stores!inner(company_id)')
+    .eq('business_user_id', userId)
+    .eq('role', 'STORE')
+    .eq('stores.company_id', companyId)
+    .limit(1)
+    .maybeSingle()
+
+  return !!storeAccess
 }

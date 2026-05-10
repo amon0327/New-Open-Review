@@ -188,8 +188,12 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
     }
   };
 
+  // LIFF URL (LINE アプリ内で開いたら自動ログインできる)
+  // Endpoint URL = https://store.openreview.jp/ に LIFF が subpath を引き継ぐ
+  const STAFF_INVITE_BASE = 'https://liff.line.me/2008499451-m9heDaev/staff-invitation';
+
   const copyInvitationUrl = (token) => {
-    const url = `https://store.openreview.jp/staff-invitation/${token}`;
+    const url = `${STAFF_INVITE_BASE}/${token}`;
     navigator.clipboard.writeText(url);
     toast.success('URLをコピーしました');
   };
@@ -226,10 +230,8 @@ export default function StoreDetailPage({ storeId: propStoreId, onClose }) {
       return;
     }
 
-    const baseUrl = 'https://store.openreview.jp/staff-invitation/';
-
     const text = selectedItems.map(inv => {
-      const url = `${baseUrl}${inv.token}`;
+      const url = `${STAFF_INVITE_BASE}/${inv.token}`;
       return `${inv.name}さん\n下記URLをタップしてスタッフ登録をお願いします\n${url}`;
     }).join('\n\n');
 
