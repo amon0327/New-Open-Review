@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -144,6 +144,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentFormId, setCurrentFormId] = useState(null);
+  const checkedUserIdRef = useRef(null);
 
 
   const ensureBusinessUserExists = async (user) => {
@@ -209,41 +210,36 @@ function App() {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
 
-
       try {
         setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // URLに招待トークンが含まれているかチェック
-          const currentPath = window.location.pathname;
-          const isInvitationFlow = currentPath.includes('/staff-invitation/') || currentPath.includes('/partner-invitation/') || currentPath.includes('/company-invitation/');
 
-          console.log('App.js - currentPath:', currentPath);
-          console.log('App.js - isInvitationFlow:', isInvitationFlow);
-          
-          // 初回ロード時のみダッシュボードに遷移（招待フロー以外）
-          if (isMounted && isInitialLoad && !isInvitationFlow) {
+        // タブ復帰時の自動トークンリフレッシュなどは setUser のみで早期復帰し、
+        // DB 往復(ensureBusinessUserExists)を再実行しない
+        if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          return;
+        }
+
+        if (session?.user) {
+          const currentPath = window.location.pathname;
+          const isInvitationFlow =
+            currentPath.includes('/staff-invitation/') ||
+            currentPath.includes('/partner-invitation/') ||
+            currentPath.includes('/company-invitation/');
+
+          if (isInitialLoad && !isInvitationFlow) {
             setCurrentView('dashboard');
           }
-          
-          // business_usersチェックを非同期で実行（UIブロッキングを避ける）
-          if (isInitialLoad) {
-            // 初回ロード時は高速化のため非同期実行
-            ensureBusinessUserExists(session.user).catch(error => {
-              console.error('初回business_users処理エラー:', error);
-            });
-          } else {
-            // 初回以外は同期実行
-            try {
-              await ensureBusinessUserExists(session.user);
-            } catch (error) {
+
+          // セッション中に同じ user で business_users チェックを重複実行しない
+          if (checkedUserIdRef.current !== session.user.id) {
+            checkedUserIdRef.current = session.user.id;
+            ensureBusinessUserExists(session.user).catch((error) => {
               console.error('business_users処理エラー:', error);
-            }
+            });
           }
         } else {
-          if (isMounted) {
-            setCurrentView('login');
-          }
+          checkedUserIdRef.current = null;
+          setCurrentView('login');
         }
       } catch (error) {
         console.error('認証状態変更エラー:', error);
