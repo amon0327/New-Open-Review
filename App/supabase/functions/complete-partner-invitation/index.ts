@@ -169,7 +169,7 @@ serve(async (req) => {
       console.log('Reactivating inactive membership:', existing.id)
       const { data: reactivatedResult, error: reactivateError } = await supabaseAdmin
         .from('partner_memberships')
-        .update({ is_active: true, role: invitation.role })
+        .update({ is_active: true, role: invitation.role, name: invitation.name || null })
         .eq('id', existing.id)
         .select()
 
@@ -183,10 +183,12 @@ serve(async (req) => {
       membershipResult = reactivatedResult
     } else {
       // 新規登録
+      // name には 招待時に設定された名前を保存 (メンバー一覧で表示するため)
       const membershipData = {
         business_users_id: user.id,
         partner_company_id: invitation.partner_company_id,
-        role: invitation.role
+        role: invitation.role,
+        name: invitation.name || null
       }
 
       console.log('Creating partner membership with data:', membershipData)

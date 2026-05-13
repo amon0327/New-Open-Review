@@ -163,12 +163,15 @@ export default function PartnerDashboard({ user, onLogout }) {
       setIsLoadingMembers(true);
 
       // メンバー一覧を取得
+      // name はメンバーシップ単位の値 (= 招待時に指定された名前 or バックフィル値)。
+      // 表示優先順位は pm.name → business_users.name → '名前なし' とする。
       const { data: membersData, error: membersError } = await supabase
         .from('partner_memberships')
         .select(`
           id,
           created_at,
           role,
+          name,
           business_users:business_users_id (
             id,
             name,
@@ -1691,7 +1694,7 @@ export default function PartnerDashboard({ user, onLogout }) {
                                     members.length > 1 && (
                                       <IconButton
                                         size="small"
-                                        onClick={() => handleDeleteMember(member.id, member.business_users?.name || '名前なし')}
+                                        onClick={() => handleDeleteMember(member.id, member.name || member.business_users?.name || '名前なし')}
                                         sx={{
                                           color: '#94a3b8',
                                           '&:hover': {
@@ -1707,11 +1710,11 @@ export default function PartnerDashboard({ user, onLogout }) {
                                 >
                                   <ListItemIcon>
                                     <Avatar sx={{ bgcolor: '#5e17eb' }}>
-                                      {member.business_users?.name?.[0] || '?'}
+                                      {(member.name || member.business_users?.name)?.[0] || '?'}
                                     </Avatar>
                                   </ListItemIcon>
                                   <ListItemText
-                                    primary={member.business_users?.name || '名前なし'}
+                                    primary={member.name || member.business_users?.name || '名前なし'}
                                     secondary={
                                       <Box component="span" sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                                         <Chip
