@@ -206,7 +206,24 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
           return;
         }
 
-        // 1. まずcompany_membershipsをチェック
+        // 1. まずpartner_membershipsをチェック（両方所属時は partner ロールを優先）
+        const { data: partnerData, error: partnerError } = await supabase
+          .from('partner_memberships')
+          .select('id, partner_company_id')
+          .eq('business_users_id', currentUser.id);
+
+        if (!partnerError && partnerData && partnerData.length > 0) {
+          // partner_memberships にレコードがある → PartnerDashboard表示
+          console.log('✅ Partner membership found - showing partner dashboard');
+          setShowPartnerDashboard(true);
+          setIsCheckingCompany(false);
+          return;
+        }
+
+        // partner で無い場合は state を明示的に false にリセット（前回 state 残留対策）
+        setShowPartnerDashboard(false);
+
+        // 2. partner_memberships に無い場合、company_membershipsをチェック
         const { data: companyData, error: companyError } = await supabase
           .from('company_memberships')
           .select(`
@@ -233,20 +250,6 @@ export default function Dashboard({ onCreateClick, onLogout, user }) {
               setIsCompanyInactive(true);
             }
           }
-          setIsCheckingCompany(false);
-          return;
-        }
-
-        // 2. company_membershipsにない場合、partner_membershipsをチェック
-        const { data: partnerData, error: partnerError } = await supabase
-          .from('partner_memberships')
-          .select('id, partner_company_id')
-          .eq('business_users_id', currentUser.id);
-
-        if (!partnerError && partnerData && partnerData.length > 0) {
-          // partner_company_membershipsにレコードがある → PartnerDashboard表示
-          console.log('✅ Partner membership found - showing partner dashboard');
-          setShowPartnerDashboard(true);
           setIsCheckingCompany(false);
           return;
         }
