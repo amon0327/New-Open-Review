@@ -51,7 +51,8 @@ import {
   User,
   UtensilsCrossed,
   Sparkles,
-  MessageSquare
+  MessageSquare,
+  Download
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -78,6 +79,65 @@ import {
   PolarRadiusAxis,
   Radar
 } from 'recharts';
+
+// ============================================
+// CSV出力ユーティリティ（リアルタイム顧客コメント用）
+// ============================================
+// RFC 4180 準拠のフィールドエスケープ
+const escapeCsvField = (value) => {
+  const str = value == null ? '' : String(value);
+  if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+};
+
+// ファイル名の禁止文字を _ に置換
+const sanitizeFilename = (name) => String(name || '').replace(/[\\/:*?"<>|]/g, '_');
+
+// 表示中のコメント配列 → CSV テキスト
+const commentsToCsv = (comments) => {
+  const headers = [
+    '日付', '時刻', '性別', '年齢',
+    '推奨スコア', '評価区分', '来客タイプ', '再来店意向', 'コメント'
+  ];
+  const rows = comments.map((c) => {
+    const dt = c.createdAt ? new Date(c.createdAt) : null;
+    const datePart = dt
+      ? `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+      : '';
+    const timePart = dt
+      ? `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`
+      : '';
+    return [
+      datePart,
+      timePart,
+      c.gender || '',
+      c.age || '',
+      c.npsScore != null ? c.npsScore : '',
+      c.npsType || '',
+      c.isRepeater ? 'リピーター' : '新規',
+      c.revisitIntent || '',
+      c.comment || ''
+    ].map(escapeCsvField).join(',');
+  });
+  return [headers.join(','), ...rows].join('\r\n');
+};
+
+// CSV テキストをファイルとしてダウンロード（UTF-8 BOM + CRLF）
+const downloadCsv = (filename, csvContent) => {
+  const bom = '﻿';
+  const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
 
 // タブパネルコンポーネント
 const TabPanel = ({ children, value, index, ...other }) => (
@@ -2949,6 +3009,7 @@ const CommentsTab = ({ companyId, selectedStore, selectedPeriod }) => {
               hour: '2-digit',
               minute: '2-digit'
             }),
+            createdAt: item.created_at,
             storeId: answer.store_id
           };
         });
@@ -3634,6 +3695,7 @@ const RealtimeTab = ({ companyId }) => {
               hour: '2-digit',
               minute: '2-digit'
             }),
+            createdAt: item.created_at,
             storeId: answer.store_id
           };
         });
@@ -3729,6 +3791,19 @@ const RealtimeTab = ({ companyId }) => {
       setTempFilters(filters);
     }
     setShowFilters(!showFilters);
+  };
+
+  // CSV 出力（画面表示中の絞り込み結果を CSV ダウンロード）
+  const handleExportCsv = () => {
+    if (filteredComments.length === 0) return;
+    const storeName = selectedStore === 'all'
+      ? '全店舗'
+      : (stores.find(s => s.id === selectedStore)?.name || '店舗');
+    const today = new Date();
+    const ymd = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const filename = `コメント_${sanitizeFilename(storeName)}_${ymd}.csv`;
+    const csv = commentsToCsv(filteredComments);
+    downloadCsv(filename, csv);
   };
 
   // ページネーション制御
@@ -3827,6 +3902,17 @@ const RealtimeTab = ({ companyId }) => {
               </span>
             </div>
             <div className="flex items-center gap-4">
+              {/* CSV出力ボタン */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportCsv}
+                disabled={filteredComments.length === 0}
+                className="flex items-center gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Download className="w-4 h-4" />
+                CSV出力
+              </Button>
               {/* 検索ボックス */}
               <div className="relative">
                 <input
