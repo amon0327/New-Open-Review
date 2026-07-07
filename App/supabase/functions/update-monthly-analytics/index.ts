@@ -17,27 +17,60 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // オプション: target_year_month で対象月を指定可能（履歴データ再集計用）
+    // 指定時: その月のみ再集計、指定なし: 従来通り「今月＋先月」を集計
+    let targetYearMonth: string | null = null
+    try {
+      const body = await req.json().catch(() => ({}))
+      if (body && typeof body.target_year_month === 'string' && /^\d{4}-\d{2}$/.test(body.target_year_month)) {
+        targetYearMonth = body.target_year_month
+      }
+    } catch (_) {
+      // no body / invalid json — 従来通り動作
+    }
+
     // 日本時間で現在の年月を取得
-    const now = new Date()
     const jstOffset = 9 * 60 * 60 * 1000 // 9時間
-    const jstNow = new Date(now.getTime() + jstOffset)
-    const yearMonth = `${jstNow.getFullYear()}-${String(jstNow.getMonth() + 1).padStart(2, '0')}`
 
-    // 先月の年月を計算
-    const prevMonth = new Date(jstNow.getFullYear(), jstNow.getMonth() - 1, 1)
-    const prevYearMonth = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, '0')}`
+    let yearMonth: string
+    let prevYearMonth: string | null
+    let monthStart: Date
+    let monthEnd: Date
+    let prevMonthStart: Date | null
+    let prevMonthEnd: Date | null
 
-    // 今月の開始日と終了日（UTC）
-    const monthStart = new Date(Date.UTC(jstNow.getFullYear(), jstNow.getMonth(), 1) - jstOffset)
-    const monthEnd = new Date(Date.UTC(jstNow.getFullYear(), jstNow.getMonth() + 1, 0, 23, 59, 59, 999) - jstOffset)
+    if (targetYearMonth) {
+      // 指定月のみ処理（履歴修正用途）
+      const [ty, tm] = targetYearMonth.split('-').map(Number)
+      yearMonth = targetYearMonth
+      prevYearMonth = null
+      monthStart = new Date(Date.UTC(ty, tm - 1, 1) - jstOffset)
+      monthEnd = new Date(Date.UTC(ty, tm, 0, 23, 59, 59, 999) - jstOffset)
+      prevMonthStart = null
+      prevMonthEnd = null
+    } else {
+      const now = new Date()
+      const jstNow = new Date(now.getTime() + jstOffset)
+      yearMonth = `${jstNow.getFullYear()}-${String(jstNow.getMonth() + 1).padStart(2, '0')}`
 
-    // 先月の開始日と終了日（UTC）
-    const prevMonthStart = new Date(Date.UTC(prevMonth.getFullYear(), prevMonth.getMonth(), 1) - jstOffset)
-    const prevMonthEnd = new Date(Date.UTC(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0, 23, 59, 59, 999) - jstOffset)
+      // 先月の年月を計算
+      const prevMonth = new Date(jstNow.getFullYear(), jstNow.getMonth() - 1, 1)
+      prevYearMonth = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, '0')}`
 
-    console.log(`Processing monthly analytics for ${yearMonth} and ${prevYearMonth}`)
+      // 今月の開始日と終了日（UTC）
+      monthStart = new Date(Date.UTC(jstNow.getFullYear(), jstNow.getMonth(), 1) - jstOffset)
+      monthEnd = new Date(Date.UTC(jstNow.getFullYear(), jstNow.getMonth() + 1, 0, 23, 59, 59, 999) - jstOffset)
+
+      // 先月の開始日と終了日（UTC）
+      prevMonthStart = new Date(Date.UTC(prevMonth.getFullYear(), prevMonth.getMonth(), 1) - jstOffset)
+      prevMonthEnd = new Date(Date.UTC(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 0, 23, 59, 59, 999) - jstOffset)
+    }
+
+    console.log(`Processing monthly analytics for ${yearMonth}${prevYearMonth ? ` and ${prevYearMonth}` : ' (target specified, skipping prev)'}`)
     console.log(`Current month range: ${monthStart.toISOString()} to ${monthEnd.toISOString()}`)
-    console.log(`Previous month range: ${prevMonthStart.toISOString()} to ${prevMonthEnd.toISOString()}`)
+    if (prevMonthStart && prevMonthEnd) {
+      console.log(`Previous month range: ${prevMonthStart.toISOString()} to ${prevMonthEnd.toISOString()}`)
+    }
 
     // 全企業を取得
     const { data: companies, error: companiesError } = await supabaseAdmin
@@ -71,17 +104,19 @@ serve(async (req) => {
           results.push({ companyId: company.id, storeId: store.id, status: 'error', message: storeError.message })
         }
 
-        // 先月分
-        try {
-          const result = await processAnalytics(supabaseAdmin, company.id, store.id, prevYearMonth, prevMonthStart, prevMonthEnd)
-          if (result.skipped) {
-            results.push({ companyId: company.id, storeId: store.id, status: 'skipped', message: `No responses for ${prevYearMonth}` })
-          } else {
-            results.push({ companyId: company.id, storeId: store.id, status: 'success', message: `prev month ${prevYearMonth}` })
+        // 先月分（target_year_month 指定時はスキップ）
+        if (prevYearMonth && prevMonthStart && prevMonthEnd) {
+          try {
+            const result = await processAnalytics(supabaseAdmin, company.id, store.id, prevYearMonth, prevMonthStart, prevMonthEnd)
+            if (result.skipped) {
+              results.push({ companyId: company.id, storeId: store.id, status: 'skipped', message: `No responses for ${prevYearMonth}` })
+            } else {
+              results.push({ companyId: company.id, storeId: store.id, status: 'success', message: `prev month ${prevYearMonth}` })
+            }
+          } catch (storeError) {
+            console.error(`Error processing store ${store.id} for ${prevYearMonth}:`, storeError)
+            results.push({ companyId: company.id, storeId: store.id, status: 'error', message: `prev: ${storeError.message}` })
           }
-        } catch (storeError) {
-          console.error(`Error processing store ${store.id} for ${prevYearMonth}:`, storeError)
-          results.push({ companyId: company.id, storeId: store.id, status: 'error', message: `prev: ${storeError.message}` })
         }
       }
     }
@@ -89,7 +124,7 @@ serve(async (req) => {
     // ========================================
     // 加重平均を計算して monthly_analytics_summary_avg に記録
     // ========================================
-    const avgTargetMonths = [yearMonth, prevYearMonth]
+    const avgTargetMonths = prevYearMonth ? [yearMonth, prevYearMonth] : [yearMonth]
     for (const targetMonth of avgTargetMonths) {
       try {
         await calculateAndUpsertAverage(supabaseAdmin, targetMonth)
@@ -455,17 +490,24 @@ async function processAnalytics(
 
   let customerTypeMap: Record<string, string> = {}
   if (submissionIds.length > 0) {
-    const { data: answerData } = await supabase
-      .from('preset_question_answer')
-      .select('review_form_submission_id, p1_q3')
-      .in('review_form_submission_id', submissionIds)
+    // PostgREST の URL 長制限 (Kong ~8KB) 回避のため 100 件ずつバッチで取得
+    // 東川口店のように 200 件超の月では単一 .in() が失敗し、リピーター/新規判定が
+    // 空になり pref_repeater_* / pref_new_* が全 0 になる不具合を修正
+    const BATCH_SIZE = 100
+    for (let i = 0; i < submissionIds.length; i += BATCH_SIZE) {
+      const batch = submissionIds.slice(i, i + BATCH_SIZE)
+      const { data: answerData } = await supabase
+        .from('preset_question_answer')
+        .select('review_form_submission_id, p1_q3')
+        .in('review_form_submission_id', batch)
 
-    if (answerData) {
-      answerData.forEach((a: any) => {
-        if (a.review_form_submission_id) {
-          customerTypeMap[a.review_form_submission_id] = a.p1_q3 || ''
-        }
-      })
+      if (answerData) {
+        answerData.forEach((a: any) => {
+          if (a.review_form_submission_id) {
+            customerTypeMap[a.review_form_submission_id] = a.p1_q3 || ''
+          }
+        })
+      }
     }
   }
 
