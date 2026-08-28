@@ -1,0 +1,8 @@
+# OS / editor artifacts at the repo root
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Note: each app under apps/ keeps its own .gitignore (node_modules, build/dist, .env, etc.)
+# unchanged from the original repositories — this file only covers root-level clutter.

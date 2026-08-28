@@ -1,0 +1,312 @@
+.header {
+  position: relative;
+  height: calc(56px + env(safe-area-inset-top));
+  min-height: 56px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding-top: env(safe-area-inset-top);
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.header-left {
+  width: 40px; /* メニューボタンと同じ幅でバランスを取る */
+}
+
+.header-logo {
+  height: 34px;
+  max-width: 200px;
+  object-fit: contain;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* ユーザーメニュー */
+.user-menu {
+  position: relative;
+}
+
+.menu-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.menu-button:hover {
+  opacity: 0.8;
+}
+
+.menu-icon {
+  width: 24px;
+  height: 24px;
+}
+
+
+/* ドロップダウンメニュー */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  overflow: hidden;
+  animation: dropdown-enter 0.2s ease;
+  z-index: 1000;
+}
+
+@keyframes dropdown-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-header {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dropdown-user-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.dropdown-user-email {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 8px 0;
+}
+
+.dropdown-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.dropdown-item:hover {
+  background: #f9fafb;
+  transform: translateX(2px);
+}
+
+.dropdown-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+}
+
+.dropdown-item:hover::before {
+  width: 3px;
+}
+
+.compact-logout-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 4px 8px 4px 8px;
+  width: calc(100% - 16px);
+  border-radius: 4px;
+}
+
+.compact-logout-button:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.compact-logout-icon {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.compact-logout-button:hover .compact-logout-icon {
+  transform: translateX(1px);
+}
+
+/* 店舗選択関連スタイル */
+.dropdown-section {
+  padding: 12px 0;
+}
+
+.dropdown-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.store-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.store-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: none;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.store-option:hover {
+  background: #f9fafb;
+}
+
+.store-option.active {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.store-option-content {
+  flex: 1;
+}
+
+.store-option-name {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.store-option-role {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.store-option.active .store-option-role {
+  color: #3b82f6;
+}
+
+.check-icon {
+  width: 14px;
+  height: 14px;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+/* 単一店舗表示 */
+.current-store {
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 6px;
+  margin: 0 12px;
+}
+
+.store-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.store-role {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* ドロップダウンサイズ調整 */
+.dropdown-menu {
+  min-width: 250px;
+  max-width: 300px;
+}
+
+/* モバイル対応 */
+@media (max-width: 480px) {
+  .menu-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .menu-icon {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .dropdown-menu {
+    min-width: 220px;
+    max-width: 280px;
+    right: -10px;
+  }
+  
+  .store-option {
+    padding: 10px 14px;
+  }
+  
+  .store-option-name {
+    font-size: 12px;
+  }
+  
+  .store-option-role {
+    font-size: 10px;
+  }
+  
+  .current-store {
+    margin: 0 8px;
+    padding: 10px 12px;
+  }
+}

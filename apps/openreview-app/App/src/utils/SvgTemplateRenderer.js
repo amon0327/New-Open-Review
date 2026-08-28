@@ -1,0 +1,526 @@
+import QRCode from 'qrcode';
+
+/**
+ * SVGテンプレートを使用して動的にデザインを生成するクラス
+ */
+export class SvgTemplateRenderer {
+  constructor() {
+    this.templateCache = new Map();
+    this.supabaseTemplateCache = new Map();
+  }
+
+  /**
+   * Supabaseから外部SVGテンプレートを取得
+   * @param {string} url - SupabaseストレージのSVG URL
+   * @returns {Promise<string>} SVGテンプレート文字列
+   */
+  async loadExternalSvgTemplate(url) {
+    if (this.supabaseTemplateCache.has(url)) {
+      return this.supabaseTemplateCache.get(url);
+    }
+
+    try {
+      console.log('外部SVGテンプレートを読み込み中:', url);
+      
+      // プロキシ経由または直接取得を試行
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Accept': 'image/svg+xml, text/plain, */*'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const svgContent = await response.text();
+      
+      // SVGの有効性をチェック
+      if (!svgContent.includes('<svg')) {
+        throw new Error('有効なSVGファイルではありません');
+      }
+
+      this.supabaseTemplateCache.set(url, svgContent);
+      console.log('外部SVGテンプレートの読み込み成功');
+      return svgContent;
+      
+    } catch (error) {
+      console.error('外部SVGテンプレートの読み込みに失敗:', error);
+      
+      // フォールバック: 指定画像に似たテンプレートを生成
+      return this.generateFormPosterTemplate();
+    }
+  }
+
+  /**
+   * 指定画像に基づいたポスターテンプレートを生成
+   * @returns {string} SVGテンプレート文字列
+   */
+  generateFormPosterTemplate() {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2149" height="1299" viewBox="0 0 2149 1299" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mainBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:{{PRIMARY_COLOR}};stop-opacity:0.9" />
+      <stop offset="50%" style="stop-color:{{SECONDARY_COLOR}};stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:{{PRIMARY_COLOR}};stop-opacity:0.85" />
+    </linearGradient>
+    
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="2149" height="1299" fill="url(#mainBg)"/>
+  
+  <!-- メインコンテンツコンテナ -->
+  <rect x="100" y="150" width="1949" height="999" rx="30" 
+        fill="rgba(255, 255, 255, 0.95)" 
+        filter="url(#shadow)"/>
+  
+  <!-- ロゴエリア（左上） -->
+  <rect x="180" y="230" width="320" height="160" rx="15" 
+        fill="rgba(255, 255, 255, 0.9)" 
+        stroke="rgba(0,0,0,0.08)" 
+        stroke-width="2"/>
+  <image x="200" y="250" width="280" height="120" 
+         href="{{LOGO_IMAGE}}" 
+         opacity="{{LOGO_OPACITY}}"/>
+  
+  <!-- メインタイトル -->
+  <text x="600" y="350" 
+        font-family="'Noto Sans JP', system-ui, sans-serif" 
+        font-size="{{TITLE_SIZE}}" 
+        font-weight="bold" 
+        fill="#1a202c">
+    {{MAIN_TITLE}}
+  </text>
+  
+  <!-- サブタイトル -->
+  <text x="600" y="450" 
+        font-family="'Noto Sans JP', system-ui, sans-serif" 
+        font-size="{{SUB_TITLE_SIZE}}" 
+        fill="#2d3748" 
+        opacity="{{SUB_TITLE_OPACITY}}">
+    {{SUB_TITLE}}
+  </text>
+  
+  <!-- QRコードエリア（右側） -->
+  <rect x="1450" y="300" width="500" height="500" rx="25" 
+        fill="#ffffff" 
+        stroke="{{PRIMARY_COLOR}}" 
+        stroke-width="6" 
+        filter="url(#shadow)"/>
+  <image x="1500" y="350" width="400" height="400" 
+         href="{{QR_CODE_DATA}}"/>
+  
+  <!-- QRコード説明 -->
+  <text x="1700" y="880" 
+        font-family="'Noto Sans JP', system-ui, sans-serif" 
+        font-size="52" 
+        font-weight="600" 
+        fill="#1a202c" 
+        text-anchor="middle">
+    {{QR_TEXT}}
+  </text>
+  
+  <!-- 説明テキスト -->
+  <text x="200" y="1000" 
+        font-family="'Noto Sans JP', system-ui, sans-serif" 
+        font-size="{{DESC_SIZE}}" 
+        fill="#4a5568" 
+        opacity="{{DESC_OPACITY}}">
+    {{DESCRIPTION}}
+  </text>
+  
+  <!-- アクセントライン -->
+  <rect x="180" y="280" width="400" height="6" rx="3" 
+        fill="{{PRIMARY_COLOR}}" opacity="0.6"/>
+        
+</svg>`;
+  }
+
+  /**
+   * SVGテンプレートを読み込む
+   * @param {string} templatePath - テンプレートファイルのパス
+   * @returns {Promise<string>} SVGテンプレート文字列
+   */
+  async loadTemplate(templatePath = 'default') {
+    if (this.templateCache.has(templatePath)) {
+      return this.templateCache.get(templatePath);
+    }
+
+    try {
+      // テンプレートタイプに基づいてパスを決定
+      let publicPath;
+      if (templatePath === 'poster' || templatePath === 'form-poster') {
+        publicPath = '/assets/templates/form-poster-template.svg';
+      } else {
+        publicPath = '/assets/templates/design-template.svg';
+      }
+      
+      const response = await fetch(publicPath);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const template = await response.text();
+      this.templateCache.set(templatePath, template);
+      return template;
+    } catch (error) {
+      console.error('SVGテンプレートの読み込みに失敗:', error);
+      // フォールバック: インラインSVGテンプレートを使用
+      return this.getFallbackTemplate(templatePath);
+    }
+  }
+
+  /**
+   * フォールバック用のインラインSVGテンプレート
+   * @param {string} templateType - テンプレートタイプ
+   * @returns {string} フォールバックSVGテンプレート
+   */
+  getFallbackTemplate(templateType = 'default') {
+    if (templateType === 'poster' || templateType === 'form-poster') {
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2149" height="1299" viewBox="0 0 2149 1299" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:{{PRIMARY_COLOR}};stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:{{SECONDARY_COLOR}};stop-opacity:0.8" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="2149" height="1299" fill="url(#bg)"/>
+  <rect x="150" y="200" width="1850" height="900" rx="40" fill="rgba(255,255,255,0.95)"/>
+  
+  <image x="250" y="300" width="300" height="150" href="{{LOGO_IMAGE}}" opacity="{{LOGO_OPACITY}}"/>
+  <text x="700" y="350" font-family="system-ui" font-size="{{TITLE_SIZE}}" font-weight="bold" fill="#2d3748">{{MAIN_TITLE}}</text>
+  <text x="700" y="450" font-family="system-ui" font-size="{{SUB_TITLE_SIZE}}" fill="#4a5568" opacity="{{SUB_TITLE_OPACITY}}">{{SUB_TITLE}}</text>
+  
+  <rect x="1410" y="360" width="480" height="480" rx="25" fill="#fff" stroke="{{PRIMARY_COLOR}}" stroke-width="4"/>
+  <image x="1450" y="400" width="400" height="400" href="{{QR_CODE_DATA}}"/>
+  <text x="1650" y="920" font-family="system-ui" font-size="48" font-weight="600" fill="#2d3748" text-anchor="middle">{{QR_TEXT}}</text>
+  
+  <text x="250" y="950" font-family="system-ui" font-size="{{DESC_SIZE}}" fill="#718096" opacity="{{DESC_OPACITY}}">{{DESCRIPTION}}</text>
+</svg>`;
+    } else {
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<svg width="2149" height="1299" viewBox="0 0 2149 1299" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:{{PRIMARY_COLOR}};stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:{{SECONDARY_COLOR}};stop-opacity:0.15" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="2149" height="1299" fill="#ffffff"/>
+  <rect width="2149" height="1299" fill="url(#bg)"/>
+  
+  <g transform="translate(150, 400)">
+    <rect x="-30" y="-30" width="460" height="460" rx="30" fill="white" stroke="{{PRIMARY_COLOR}}" stroke-width="2"/>
+    <image x="0" y="0" width="400" height="400" href="{{QR_CODE_DATA}}"/>
+  </g>
+  
+  <text x="700" y="500" font-family="system-ui" font-size="{{TEXT_SIZE}}" font-weight="bold" fill="{{TEXT_COLOR}}">{{MAIN_TEXT}}</text>
+  <text x="700" y="600" font-family="system-ui" font-size="{{SUB_TEXT_SIZE}}" fill="{{SUB_TEXT_COLOR}}" opacity="{{SUB_TEXT_OPACITY}}">{{SUB_TEXT}}</text>
+  
+  <image x="80" y="60" width="300" height="150" href="{{LOGO_IMAGE}}" opacity="{{LOGO_OPACITY}}"/>
+</svg>`;
+    }
+  }
+
+  /**
+   * QRコードをBase64データURLとして生成
+   * @param {string} text - QRコードにエンコードするテキスト
+   * @param {object} options - QRコード生成オプション
+   * @returns {Promise<string>} Base64データURL
+   */
+  async generateQRCodeDataUrl(text, options = {}) {
+    const defaultOptions = {
+      width: 910,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      },
+      errorCorrectionLevel: 'M',
+      type: 'image/png',
+      ...options
+    };
+
+    try {
+      return await QRCode.toDataURL(text, defaultOptions);
+    } catch (error) {
+      console.error('QRコード生成に失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 画像をBase64データURLに変換
+   * @param {string|File} imageSource - 画像のURLまたはFileオブジェクト
+   * @param {number} maxWidth - 最大幅
+   * @param {number} maxHeight - 最大高さ
+   * @returns {Promise<string>} Base64データURL
+   */
+  async convertImageToDataUrl(imageSource, maxWidth = 300, maxHeight = 150) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // アスペクト比を維持してリサイズ
+        const aspectRatio = img.width / img.height;
+        let newWidth = maxWidth;
+        let newHeight = maxHeight;
+        
+        if (aspectRatio > maxWidth / maxHeight) {
+          newHeight = maxWidth / aspectRatio;
+        } else {
+          newWidth = maxHeight * aspectRatio;
+        }
+        
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        
+        // 高品質設定
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      
+      img.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
+      
+      if (imageSource instanceof File) {
+        const reader = new FileReader();
+        reader.onload = (e) => img.src = e.target.result;
+        reader.readAsDataURL(imageSource);
+      } else {
+        img.src = imageSource;
+      }
+    });
+  }
+
+  /**
+   * SVGテンプレートのプレースホルダーを置換
+   * @param {string} template - SVGテンプレート文字列
+   * @param {object} variables - 置換変数オブジェクト
+   * @returns {string} 置換済みSVG文字列
+   */
+  replacePlaceholders(template, variables) {
+    let result = template;
+    
+    // デフォルト値の設定
+    const defaults = {
+      // QRコード
+      QR_CODE_DATA: '',
+      
+      // カラーテーマ
+      PRIMARY_COLOR: '#5e17eb',
+      SECONDARY_COLOR: '#764ba2',
+      
+      // ロゴ
+      LOGO_IMAGE: '',
+      LOGO_OPACITY: '0',
+      
+      // 基本テキスト（旧テンプレート用）
+      MAIN_TEXT: 'アンケートにご協力ください',
+      SUB_TEXT: '',
+      TEXT_SIZE: '120',
+      SUB_TEXT_SIZE: '80',
+      TEXT_COLOR: '#374151',
+      SUB_TEXT_COLOR: '#6b7280',
+      SUB_TEXT_OPACITY: '1',
+      
+      // ポスターテンプレート用
+      MAIN_TITLE: 'アンケートにご協力ください',
+      SUB_TITLE: 'あなたのご意見をお聞かせください',
+      TITLE_SIZE: '96',
+      SUB_TITLE_SIZE: '64',
+      SUB_TITLE_OPACITY: '1',
+      QR_TEXT: 'QRコードでアクセス',
+      DESCRIPTION: '所要時間：約5分　匿名回答可能',
+      DESC_SIZE: '48',
+      DESC_OPACITY: '1',
+      
+      // 装飾
+      DECORATION_OPACITY: '1'
+    };
+
+    const finalVariables = { ...defaults, ...variables };
+
+    // プレースホルダーを置換
+    Object.keys(finalVariables).forEach(key => {
+      const placeholder = `{{${key}}}`;
+      result = result.replace(new RegExp(placeholder, 'g'), finalVariables[key]);
+    });
+
+    return result;
+  }
+
+  /**
+   * SVGを高解像度PNGに変換
+   * @param {string} svgString - SVG文字列
+   * @param {number} scale - スケール倍率（デフォルト: 1）
+   * @returns {Promise<Blob>} PNG画像のBlob
+   */
+  async svgToPng(svgString, scale = 1) {
+    return new Promise((resolve, reject) => {
+      try {
+        const img = new Image();
+        
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // デフォルトサイズを設定
+            const width = img.naturalWidth || img.width || 2149;
+            const height = img.naturalHeight || img.height || 1299;
+            
+            canvas.width = width * scale;
+            canvas.height = height * scale;
+            
+            // 高品質設定
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
+            // 背景を白で塗りつぶし
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (scale !== 1) {
+              ctx.scale(scale, scale);
+            }
+            
+            ctx.drawImage(img, 0, 0);
+            
+            canvas.toBlob((blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Canvasからのブロブ変換に失敗しました'));
+              }
+            }, 'image/png', 1.0);
+            
+          } catch (canvasError) {
+            console.error('Canvas処理エラー:', canvasError);
+            reject(new Error(`Canvas描画に失敗: ${canvasError.message}`));
+          }
+        };
+        
+        img.onerror = (error) => {
+          console.error('SVG画像読み込みエラー:', error);
+          reject(new Error('SVG画像の読み込みに失敗しました'));
+        };
+        
+        // SVGの有効性チェック
+        if (!svgString || !svgString.includes('<svg')) {
+          throw new Error('無効なSVG文字列です');
+        }
+        
+        // Data URLとして設定
+        const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+        img.src = svgDataUrl;
+        
+        // タイムアウト設定
+        setTimeout(() => {
+          reject(new Error('SVG変換がタイムアウトしました'));
+        }, 30000);
+        
+      } catch (error) {
+        console.error('SVG変換処理エラー:', error);
+        reject(error);
+      }
+    });
+  }
+
+  /**
+   * 完全なデザイン生成とダウンロード
+   * @param {object} config - 設定オブジェクト
+   * @returns {Promise<void>}
+   */
+  async generateAndDownload(config) {
+    try {
+      // 1. SVGテンプレート読み込み
+      const templateType = config.template || 'default';
+      const template = await this.loadTemplate(templateType);
+      
+      // 2. QRコード生成
+      const qrCodeDataUrl = await this.generateQRCodeDataUrl(config.qrText || '');
+      
+      // 3. 各種画像の準備
+      const variables = {
+        QR_CODE_DATA: qrCodeDataUrl,
+        PRIMARY_COLOR: config.primaryColor || '#5e17eb',
+        SECONDARY_COLOR: config.secondaryColor || '#764ba2',
+        
+        // 基本テンプレート用
+        MAIN_TEXT: config.mainText || 'アンケートにご協力ください',
+        SUB_TEXT: config.subText || '',
+        TEXT_SIZE: config.textSize || '120',
+        SUB_TEXT_SIZE: config.subTextSize || '80',
+        TEXT_COLOR: config.textColor || '#374151',
+        SUB_TEXT_COLOR: config.subTextColor || '#6b7280',
+        SUB_TEXT_OPACITY: config.subText ? '1' : '0',
+        
+        // ポスターテンプレート用
+        MAIN_TITLE: config.mainTitle || config.mainText || 'アンケートにご協力ください',
+        SUB_TITLE: config.subTitle || config.subText || 'あなたのご意見をお聞かせください',
+        TITLE_SIZE: config.titleSize || '96',
+        SUB_TITLE_SIZE: config.subTitleSize || '64',
+        SUB_TITLE_OPACITY: config.subTitle || config.subText ? '1' : '0',
+        QR_TEXT: config.qrText || 'QRコードでアクセス',
+        DESCRIPTION: config.description || '所要時間：約5分　匿名回答可能',
+        DESC_SIZE: config.descSize || '48',
+        DESC_OPACITY: config.description ? '1' : '0',
+        
+        DECORATION_OPACITY: config.showDecorations ? '1' : '0.8'
+      };
+
+      // 4. ロゴ画像の処理
+      if (config.logoImage) {
+        const logoDataUrl = await this.convertImageToDataUrl(config.logoImage, 300, 150);
+        variables.LOGO_IMAGE = logoDataUrl;
+        variables.LOGO_OPACITY = '1';
+      }
+
+      // 5. 背景画像の処理
+      if (config.backgroundImage) {
+        const bgDataUrl = await this.convertImageToDataUrl(config.backgroundImage, 2149, 1299);
+        variables.BACKGROUND_IMAGE = bgDataUrl;
+        variables.BACKGROUND_FILL = 'url(#backgroundImage)';
+      }
+
+      // 6. SVG生成
+      const finalSvg = this.replacePlaceholders(template, variables);
+      
+      // 7. PNG変換とダウンロード
+      const pngBlob = await this.svgToPng(finalSvg, 1);
+      const url = URL.createObjectURL(pngBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${config.filename || 'design'}.png`;
+      link.click();
+      
+      URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error('デザイン生成に失敗:', error);
+      throw error;
+    }
+  }
+}
+
+// シングルトンインスタンスをエクスポート
+export const svgRenderer = new SvgTemplateRenderer();

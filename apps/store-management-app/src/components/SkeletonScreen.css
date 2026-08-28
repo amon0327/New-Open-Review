@@ -1,0 +1,518 @@
+/* スケルトンスクリーンの基本スタイル */
+.skeleton-container {
+  width: 100%;
+}
+
+/* 基本的なスケルトンライン */
+.skeleton-line {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s infinite;
+  border-radius: 6px;
+}
+
+/* 円形スケルトン */
+.skeleton-circle {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s infinite;
+  border-radius: 50%;
+}
+
+/* アニメーション */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* スコアカード用スケルトン */
+.skeleton-score-card-container {
+  margin-bottom: 16px;
+}
+
+.skeleton-score-card-item {
+  background: #ffffff;
+  border: 2px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+.skeleton-score-card-content {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.skeleton-score-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+}
+
+.skeleton-indicator {
+  width: 4px;
+  height: 48px;
+  border-radius: 2px;
+  margin-top: 4px;
+}
+
+.skeleton-score-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-score-title {
+  height: 16px;
+  width: 120px;
+}
+
+.skeleton-score-date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skeleton-score-date {
+  height: 28px;
+  width: 80px;
+}
+
+.skeleton-score-responses {
+  height: 12px;
+  width: 40px;
+}
+
+.skeleton-score-right {
+  display: flex;
+  align-items: flex-start;
+}
+
+.skeleton-score-value-area {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.skeleton-score-number {
+  height: 72px;
+  width: 96px;
+  border-radius: 4px;
+}
+
+.skeleton-score-unit {
+  height: 16px;
+  width: 20px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+
+/* Staff section skeleton */
+.skeleton-staff-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.skeleton-staff-label {
+  height: 12px;
+  width: 100px;
+  margin-bottom: 8px;
+}
+
+.skeleton-staff-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.skeleton-staff-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.skeleton-staff-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.skeleton-staff-name {
+  height: 12px;
+  width: 40px;
+}
+
+/* コメントカード用スケルトン */
+.skeleton-comment-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.skeleton-comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.skeleton-comment-date {
+  height: 16px;
+  width: 30%;
+}
+
+.skeleton-comment-rating {
+  height: 16px;
+  width: 20%;
+}
+
+.skeleton-comment-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-comment-text-1 {
+  height: 16px;
+  width: 90%;
+}
+
+.skeleton-comment-text-2 {
+  height: 16px;
+  width: 75%;
+}
+
+.skeleton-comment-text-3 {
+  height: 16px;
+  width: 60%;
+}
+
+/* アラートカード用スケルトン */
+.skeleton-alert-card {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 0;
+  padding: 20px 16px;
+  margin-bottom: 0;
+}
+
+.skeleton-alert-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton-alert-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.skeleton-alert-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeleton-alert-title {
+  height: 18px;
+  width: 60%;
+}
+
+.skeleton-alert-subtitle {
+  height: 16px;
+  width: 80%;
+}
+
+.skeleton-alert-time {
+  height: 14px;
+  width: 40%;
+}
+
+/* スタッフカード用スケルトン */
+.skeleton-staff-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.skeleton-staff-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton-staff-photo {
+  width: 48px;
+  height: 48px;
+}
+
+.skeleton-staff-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeleton-staff-name {
+  height: 18px;
+  width: 60%;
+}
+
+.skeleton-staff-time {
+  height: 14px;
+  width: 40%;
+}
+
+/* チャート用スケルトン */
+.skeleton-chart {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 20px 0 16px 0;
+  margin: 16px 0;
+}
+
+.skeleton-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.skeleton-chart-title {
+  height: 18px;
+  width: 200px;
+}
+
+.skeleton-chart-period {
+  height: 16px;
+  width: 70px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f9fafb 25%, #f1f5f9 50%, #f9fafb 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s infinite;
+}
+
+.skeleton-chart-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.skeleton-chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.skeleton-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 12px;
+  width: 60px;
+  position: relative;
+}
+
+.skeleton-legend-item::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #e5e7eb 25%, #d1d5db 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s infinite;
+  flex-shrink: 0;
+}
+
+.skeleton-chart-area {
+  height: 240px;
+  background: linear-gradient(90deg, #f8fafc 25%, #f1f5f9 50%, #f8fafc 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s infinite;
+  border-radius: 8px;
+}
+
+/* 統計情報用スケルトン */
+.skeleton-stats {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.skeleton-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.skeleton-stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeleton-stat-label {
+  height: 14px;
+  width: 60%;
+}
+
+.skeleton-stat-value {
+  height: 32px;
+  width: 40%;
+}
+
+.skeleton-stat-divider {
+  width: 1px;
+  height: 40px;
+  background: #e5e7eb;
+}
+
+/* リストアイテム用スケルトン */
+.skeleton-list-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeleton-list-title {
+  height: 18px;
+  width: 70%;
+}
+
+.skeleton-list-subtitle {
+  height: 14px;
+  width: 50%;
+}
+
+/* カレンダー用スケルトン */
+.skeleton-calendar {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.skeleton-calendar-header {
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.skeleton-calendar-title {
+  height: 20px;
+  width: 60%;
+  margin: 0 auto;
+}
+
+.skeleton-calendar-days {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.skeleton-calendar-day {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  min-width: 60px;
+}
+
+.skeleton-day-number {
+  height: 20px;
+  width: 24px;
+}
+
+.skeleton-day-label {
+  height: 14px;
+  width: 16px;
+}
+
+/* 基本カード用スケルトン */
+.skeleton-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-card-title {
+  height: 20px;
+  width: 60%;
+}
+
+.skeleton-card-content {
+  height: 40px;
+  width: 100%;
+}
+
+.skeleton-card-footer {
+  height: 16px;
+  width: 40%;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .skeleton-score-card-item {
+    padding: 16px;
+  }
+  
+  .skeleton-score-card-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .skeleton-score-right {
+    align-self: flex-end;
+  }
+  
+  .skeleton-chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .skeleton-stats-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .skeleton-stat-divider {
+    width: 100%;
+    height: 1px;
+  }
+}

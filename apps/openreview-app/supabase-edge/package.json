@@ -1,0 +1,11 @@
+{
+  "name": "openreview-supabase-edge",
+  "version": "1.0.0",
+  "description": "OpenReview Claude API with Supabase Edge Functions",
+  "scripts": {
+    "dev": "supabase functions serve claude-chat --env-file .env.local",
+    "deploy": "supabase functions deploy claude-chat"
+  },
+  "keywords": ["supabase", "edge-functions", "claude", "api"],
+  "author": "OpenReview Team"
+}

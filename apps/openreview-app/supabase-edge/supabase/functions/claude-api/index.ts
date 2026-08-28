@@ -1,0 +1,1492 @@
+// OpenReview Claude API - Production Implementation
+// セキュアな認証付きClaude API Edge Function
+
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+// 強化されたレート制限設定
+const RATE_LIMITS = {
+  ANONYMOUS: { requests: 3, windowMs: 60 * 1000 }, // 1分間に3回に縮小
+  AUTHENTICATED: { requests: 15, windowMs: 60 * 1000 }, // 1分間に15回に縮小
+  // IPベースの全体制限
+  IP_GLOBAL: { requests: 50, windowMs: 60 * 1000 }, // 1IPからの全リクエストは1分間に50回まで
+  // 急速リクエスト制限（10秒間のバースト制限）
+  BURST: { requests: 10, windowMs: 10 * 1000 } // 10秒間に10回まで
+};
+
+// 強化されたレート制限ストレージ
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const ipGlobalLimitStore = new Map<string, { count: number; resetTime: number }>();
+const burstLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+// ブラックリスト（悪意あるIPの一時ブロック）
+const blacklistedIPs = new Set<string>();
+const suspiciousIPs = new Map<string, { violations: number; lastViolation: number }>();
+
+// 監視とアラートシステム
+interface SecurityMetrics {
+  totalRequests: number;
+  blockedRequests: number;
+  suspiciousActivity: number;
+  errors: number;
+  lastAlertTime: number;
+}
+
+const securityMetrics: SecurityMetrics = {
+  totalRequests: 0,
+  blockedRequests: 0,
+  suspiciousActivity: 0,
+  errors: 0,
+  lastAlertTime: 0
+};
+
+// アラート闾値
+const ALERT_THRESHOLDS = {
+  BLOCKED_REQUESTS_PER_MINUTE: 10,
+  ERROR_RATE_PERCENT: 20,
+  ALERT_COOLDOWN_MS: 5 * 60 * 1000
+};
+
+// 改善されたメモリクリーンアップ
+setInterval(() => {
+  const now = Date.now();
+  
+  // メインレート制限ストレージのクリーンアップ
+  [rateLimitStore, ipGlobalLimitStore, burstLimitStore].forEach(store => {
+    for (const [key, value] of store.entries()) {
+      if (value.resetTime <= now) {
+        store.delete(key);
+      }
+    }
+    
+    // サイズ制限で古いエントリを削除
+    if (store.size > 1000) {
+      const entries = Array.from(store.entries())
+        .sort(([,a], [,b]) => b.resetTime - a.resetTime) // 新しい順にソート
+        .slice(0, 500);
+      store.clear();
+      entries.forEach(([key, value]) => store.set(key, value));
+    }
+  });
+  
+  // 古い疑いあるアクティビティ記録を清理（1時間以上古いもの）
+  for (const [ip, data] of suspiciousIPs.entries()) {
+    if (now - data.lastViolation > 60 * 60 * 1000) { // 1時間
+      suspiciousIPs.delete(ip);
+    }
+  }
+  
+  console.log(`Rate limit cleanup: ${rateLimitStore.size} entries, ${blacklistedIPs.size} blocked IPs, ${suspiciousIPs.size} suspicious IPs`);
+}, 60000); // 1分ごとにクリーンアップ
+
+// 本番用CORS設定（セキュア）
+function setCorsHeaders(requestOrigin?: string): Headers {
+  const headers = new Headers();
+  
+  // 許可されたオリジンのリスト
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://localhost:3000',
+    // 本番ドメインを設定してください
+    // 'https://your-production-domain.com',
+    // 'https://your-app.vercel.app'
+  ];
+  
+  // Origin検証
+  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+    headers.set('Access-Control-Allow-Origin', requestOrigin);
+  } else if (!requestOrigin) {
+    // Originヘッダーがない場合（直接APIアクセス等）
+    headers.set('Access-Control-Allow-Origin', 'null');
+  } else {
+    // 許可されていないOriginは拒否
+    console.warn(`Blocked request from unauthorized origin: ${requestOrigin}`);
+    throw new Error('Unauthorized origin');
+  }
+  
+  headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, apikey');
+  headers.set('Access-Control-Allow-Credentials', 'false');
+  headers.set('Access-Control-Max-Age', '3600'); // 1時間に短縮
+  headers.set('Content-Type', 'application/json');
+  
+  // セキュリティヘッダー
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('X-Frame-Options', 'DENY');
+  headers.set('X-XSS-Protection', '1; mode=block');
+  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  
+  return headers;
+}
+
+// エラーレスポンス作成
+function createErrorResponse(status: number, error: string, message: string, headers: Headers, debug?: any) {
+  const response: any = { error, message };
+  
+  // デバッグ情報は開発環境でのみ含める
+  if (debug && Deno.env.get('DENO_DEPLOYMENT_ID')) {
+    response.debug = debug;
+  }
+  
+  return new Response(
+    JSON.stringify(response),
+    { status, headers }
+  );
+}
+
+// 強化されたレート制限チェック
+function checkRateLimit(clientId: string, clientIp: string, isAuthenticated: boolean): { allowed: boolean; reason?: string } {
+  const now = Date.now();
+  
+  // 1. ブラックリストチェック
+  if (blacklistedIPs.has(clientIp)) {
+    return { allowed: false, reason: 'IP blocked due to abuse' };
+  }
+  
+  // 2. バースト制限チェック（10秒間の急速アクセス）
+  const burstKey = `burst_${clientIp}`;
+  const burstEntry = burstLimitStore.get(burstKey);
+  
+  if (!burstEntry || burstEntry.resetTime <= now) {
+    burstLimitStore.set(burstKey, { count: 1, resetTime: now + RATE_LIMITS.BURST.windowMs });
+  } else if (burstEntry.count >= RATE_LIMITS.BURST.requests) {
+    // 悪意あるアクセスとして記録
+    recordSuspiciousActivity(clientIp, 'burst_limit_exceeded');
+    return { allowed: false, reason: 'Burst limit exceeded (10 requests/10sec)' };
+  } else {
+    burstLimitStore.set(burstKey, { count: burstEntry.count + 1, resetTime: burstEntry.resetTime });
+  }
+  
+  // 3. IPベースの全体制限チェック
+  const ipGlobalKey = `ip_global_${clientIp}`;
+  const ipGlobalEntry = ipGlobalLimitStore.get(ipGlobalKey);
+  
+  if (!ipGlobalEntry || ipGlobalEntry.resetTime <= now) {
+    ipGlobalLimitStore.set(ipGlobalKey, { count: 1, resetTime: now + RATE_LIMITS.IP_GLOBAL.windowMs });
+  } else if (ipGlobalEntry.count >= RATE_LIMITS.IP_GLOBAL.requests) {
+    recordSuspiciousActivity(clientIp, 'ip_global_limit_exceeded');
+    return { allowed: false, reason: 'IP global limit exceeded (50 requests/min)' };
+  } else {
+    ipGlobalLimitStore.set(ipGlobalKey, { count: ipGlobalEntry.count + 1, resetTime: ipGlobalEntry.resetTime });
+  }
+  
+  // 4. ユーザーベースの制限チェック
+  const limit = isAuthenticated ? RATE_LIMITS.AUTHENTICATED : RATE_LIMITS.ANONYMOUS;
+  const entry = rateLimitStore.get(clientId);
+  
+  if (!entry || entry.resetTime <= now) {
+    rateLimitStore.set(clientId, { count: 1, resetTime: now + limit.windowMs });
+    return { allowed: true };
+  }
+  
+  if (entry.count >= limit.requests) {
+    return { allowed: false, reason: `User limit exceeded (${limit.requests} requests/min)` };
+  }
+  
+  rateLimitStore.set(clientId, { count: entry.count + 1, resetTime: entry.resetTime });
+  return { allowed: true };
+}
+
+// 悪意あるアクティビティの記録
+function recordSuspiciousActivity(ip: string, reason: string): void {
+  const now = Date.now();
+  const suspicious = suspiciousIPs.get(ip) || { violations: 0, lastViolation: 0 };
+  
+  suspicious.violations += 1;
+  suspicious.lastViolation = now;
+  suspiciousIPs.set(ip, suspicious);
+  
+  // 5回違反で一時ブロック（30分間）
+  if (suspicious.violations >= 5) {
+    blacklistedIPs.add(ip);
+    console.warn(`IP ${ip} temporarily blocked due to ${suspicious.violations} violations. Reason: ${reason}`);
+    
+    // 30分後にブロック解除
+    setTimeout(() => {
+      blacklistedIPs.delete(ip);
+      suspiciousIPs.delete(ip);
+      console.log(`IP ${ip} unblocked after 30 minutes`);
+    }, 30 * 60 * 1000);
+  }
+  
+  console.warn(`Suspicious activity from IP ${ip}: ${reason} (${suspicious.violations} violations)`);
+  
+  securityMetrics.suspiciousActivity++;
+}
+
+// セキュリティアラートチェック
+function checkSecurityAlerts(): void {
+  const now = Date.now();
+  
+  if (now - securityMetrics.lastAlertTime < ALERT_THRESHOLDS.ALERT_COOLDOWN_MS) {
+    return;
+  }
+  
+  if (securityMetrics.blockedRequests >= ALERT_THRESHOLDS.BLOCKED_REQUESTS_PER_MINUTE) {
+    console.error(`🚨 SECURITY ALERT: ${securityMetrics.blockedRequests} blocked requests`);
+    securityMetrics.lastAlertTime = now;
+  }
+  
+  const errorRate = securityMetrics.totalRequests > 0 
+    ? (securityMetrics.errors / securityMetrics.totalRequests) * 100 
+    : 0;
+    
+  if (errorRate >= ALERT_THRESHOLDS.ERROR_RATE_PERCENT && securityMetrics.totalRequests > 10) {
+    console.error(`🚨 PERFORMANCE ALERT: ${errorRate.toFixed(1)}% error rate`);
+    securityMetrics.lastAlertTime = now;
+  }
+}
+
+// 入力検証
+function validateInput(data: any): { message: string; conversationHistory: any[] } {
+  if (!data || typeof data !== 'object') {
+    throw new Error('リクエストデータが無効です');
+  }
+
+  const { message, conversationHistory = [] } = data;
+  
+  if (!message || typeof message !== 'string' || message.trim().length === 0) {
+    throw new Error('メッセージが必要です');
+  }
+  
+  if (message.length > 4000) {
+    throw new Error('メッセージが長すぎます（最大4000文字）');
+  }
+  
+  // 会話履歴のサニタイゼーション
+  const sanitizedHistory = (Array.isArray(conversationHistory) ? conversationHistory : [])
+    .slice(-10) // 最新10件のみ
+    .filter((msg: any) => msg && typeof msg === 'object' && msg.role && msg.content)
+    .map((msg: any) => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: typeof msg.content === 'string' ? msg.content.substring(0, 2000).trim() : ''
+    }))
+    .filter((msg: any) => msg.content.length > 0);
+  
+  return {
+    message: message.trim(),
+    conversationHistory: sanitizedHistory
+  };
+}
+
+// Claude API呼び出し
+async function callClaudeAPI(message: string, conversationHistory: any[], systemPrompt?: string, mcpMode: boolean = false, userToken?: string, testMode: boolean = false): Promise<any> {
+  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+  
+  if (!ANTHROPIC_API_KEY) {
+    throw new Error('API設定エラー');
+  }
+  
+  const messages = [
+    ...conversationHistory,
+    { role: 'user', content: message }
+  ];
+  
+  // MCPツールの定義（データモード時のみ）
+  const tools = mcpMode ? [
+    {
+      name: 'test_connection',
+      description: 'データベース接続をテストします',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' }
+        },
+        required: ['jwt_token']
+      }
+    },
+    {
+      name: 'get_survey_questions',
+      description: 'アンケート質問一覧を取得します',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' },
+          survey_id: { type: 'string', description: '特定のサーベイID（オプション）' },
+          limit: { type: 'number', default: 50, description: '取得件数 (1-100)' },
+          question_type: { type: 'number', description: '質問タイプでフィルター' }
+        },
+        required: ['jwt_token']
+      }
+    },
+    {
+      name: 'get_survey_responses',
+      description: '指定質問の回答データを取得します',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' },
+          question_id: { type: 'string', description: '質問ID' },
+          limit: { type: 'number', default: 500, description: '取得件数 (1-1000)' },
+          filters: {
+            type: 'object',
+            properties: {
+              gender: { type: 'string' },
+              age_group: { type: 'string' },
+              department: { type: 'string' }
+            }
+          }
+        },
+        required: ['jwt_token', 'question_id']
+      }
+    },
+    {
+      name: 'analyze_text_responses',
+      description: 'テキスト回答を分析します（キーワード抽出、感情分析、要約）',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' },
+          question_id: { type: 'string', description: '質問ID' },
+          analysis_type: { 
+            type: 'string',
+            enum: ['keyword', 'sentiment', 'summary'],
+            description: '分析タイプ'
+          },
+          limit: { type: 'number', default: 100, description: '分析対象回答数' }
+        },
+        required: ['jwt_token', 'question_id', 'analysis_type']
+      }
+    },
+    {
+      name: 'get_filtered_analytics_data',
+      description: 'フィルター条件による分析データを取得します',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' },
+          question_ids: { 
+            type: 'array',
+            items: { type: 'string' },
+            description: '質問IDの配列'
+          },
+          filters: { type: 'object', description: 'フィルター条件' },
+          group_by: { 
+            type: 'string',
+            enum: ['gender', 'age_group', 'department', 'none'],
+            default: 'none',
+            description: 'グルーピング条件'
+          }
+        },
+        required: ['jwt_token', 'question_ids']
+      }
+    },
+    {
+      name: 'execute_custom_sql',
+      description: '選択された質問とフィルターに基づいてカスタムSQLを実行し、データを分析します',
+      input_schema: {
+        type: 'object',
+        properties: {
+          jwt_token: { type: 'string', description: 'SupabaseのJWTトークン' },
+          question_ids: {
+            type: 'array',
+            items: { type: 'string' },
+            description: '選択中の質問IDの配列'
+          },
+          filters: { 
+            type: 'object', 
+            description: 'フィルター条件（任意）',
+            properties: {
+              date_range: { type: 'object' },
+              demographics: { type: 'object' },
+              other: { type: 'object' }
+            }
+          },
+          analysis_type: {
+            type: 'string',
+            enum: ['full_analysis', 'text_summary', 'statistical_summary', 'cross_analysis'],
+            default: 'full_analysis',
+            description: '分析タイプ'
+          }
+        },
+        required: ['jwt_token', 'question_ids']
+      }
+    }
+  ] : undefined;
+
+  // システムプロンプトの構築（テーブル構造情報を含む）
+  const defaultSystemPrompt = `あなたは企業レビューフォームとデータ分析の専門AIアシスタントです。
+
+## データベーススキーマ構造
+
+### ユーザー管理
+- **test_business_users**: 企業ユーザー（フォーム作成者）
+  - id, name, email, role, organizations
+- **test_users**: 一般ユーザー（回答者）
+  - id, name, email
+
+### レビューフォーム構造
+- **test_review_forms**: レビューフォーム本体
+  - id, title, business_users(作成者), is_published, published_url
+- **test_review_form_pages**: フォームページ
+  - id, review_forms_id, page_number, name
+- **test_review_questions**: 質問データ
+  - id, review_fome_id(フォームID), question_text, question_types_id, question_number, pege_number
+  - is_required, question_categories_id, question_subcategories_id
+
+### 質問オプション
+- **test_question_option_choices**: 選択肢質問のオプション
+  - id, review_questions_id, choice_number, choice_name
+- **test_question_option_linear_scale**: リニアスケール質問設定
+  - id, review_questions_id, min_text, max_text
+
+**重要: review_questionsテーブルには'title'カラムは存在しません。質問の内容は'question_text'カラムに格納されています。**
+
+### 回答データ
+- **test_review_form_submissions**: フォーム提出記録
+  - id, review_forms_id, users(回答者), created_at
+- **test_review_question_answers**: 質問回答の基本情報
+  - id, review_form_submissions_id, review_questions_id
+- **test_question_answer_texts**: テキスト回答
+  - id, review_questions_answers_id, answer_text
+- **test_question_answer_option_choices**: 選択肢回答
+  - id, review_question_answers_id, question_option_choices_id
+- **test_question_answer_option_linear_scale**: スケール回答
+  - id, review_question_answers_id, answer_number
+
+## 主な役割
+1. レビューフォームの質問設計と最適化の支援
+2. 回答データの分析と洞察の提供（テキスト分析、統計分析、トレンド分析）
+3. アンケート結果の可視化とレポート作成の支援
+4. データドリブンな意思決定のためのアドバイス
+5. フォーム設計のベストプラクティス提案
+
+**エラー処理の重要な指示:**
+- ツール実行エラーが発生した場合、技術的な詳細をそのまま表示してください
+- エラーメッセージを親切な言葉に変換しないでください
+- 具体的なテーブル名、カラム名、SQLエラーをそのまま伝えてください
+
+データ分析時は具体的な数値、パーセンテージ、傾向を明確に示し、日本語で回答してください。`;
+
+  const requestBody: any = {
+    model: 'claude-3-5-sonnet-20241022',
+    max_tokens: 4000,
+    messages: messages,
+    system: systemPrompt || defaultSystemPrompt
+  };
+
+  // ツールを追加（MCPモード時のみ）
+  if (tools && tools.length > 0) {
+    requestBody.tools = tools;
+  }
+  
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(requestBody)
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => 'Unknown error');
+    console.error('Claude API error:', response.status, errorText);
+    throw new Error(`Claude API error ${response.status}: ${errorText}`);
+  }
+  
+  const claudeResponse = await response.json();
+  
+  // 📊 Claude API からの生レスポンスをログ出力
+  console.log('📊 Claude API Raw Response:', {
+    fullResponse: claudeResponse,
+    contentArray: claudeResponse.content,
+    contentCount: claudeResponse.content?.length || 0,
+    usage: claudeResponse.usage,
+    model: claudeResponse.model,
+    responseKeys: Object.keys(claudeResponse || {}),
+    timestamp: new Date().toISOString()
+  });
+
+  // ツール呼び出しがある場合はデータベースツールを実行
+  if (claudeResponse.content && userToken) {
+    const toolUses = claudeResponse.content.filter((item: any) => item.type === 'tool_use');
+    
+    if (toolUses.length > 0) {
+      console.log('Tool uses detected, executing database tools:', toolUses.length);
+      
+      try {
+        // 全ツールの結果を収集
+        const toolResults = [];
+        
+        for (const toolUse of toolUses) {
+          try {
+            console.log(`🔧 Executing tool: ${toolUse.name}`, {
+              toolInput: toolUse.input,
+              testMode: testMode,
+              userToken: userToken ? 'provided' : 'missing',
+              timestamp: new Date().toISOString()
+            });
+            
+            // デバッグ: ツール入力パラメータの詳細ログ
+            console.log(`📋 Tool ${toolUse.name} detailed input:`, JSON.stringify(toolUse.input, null, 2));
+            
+            const toolResult = await executeDatabaseTool(toolUse.name, toolUse.input, userToken, testMode);
+            
+            console.log(`✅ Tool ${toolUse.name} executed successfully:`, {
+              success: toolResult.success,
+              dataCount: toolResult.data?.length || toolResult.count || 0,
+              message: toolResult.message
+            });
+            
+            toolResults.push({
+              type: 'tool_result',
+              tool_use_id: toolUse.id,
+              content: JSON.stringify(toolResult)
+            });
+            
+          } catch (toolError) {
+            console.error(`❌ Tool ${toolUse.name} failed:`, {
+              error: toolError.message,
+              stack: toolError.stack,
+              toolInput: toolUse.input,
+              testMode: testMode,
+              timestamp: new Date().toISOString()
+            });
+            
+            // データベースエラーの場合は直接クライアントにエラーレスポンスを返す
+            let technicalError = toolError instanceof Error ? toolError.message : '不明なエラー';
+            let errorType = 'unknown_error';
+            
+            // エラータイプの分類
+            if (technicalError.includes('column') && technicalError.includes('does not exist')) {
+              errorType = 'column_not_exists';
+              technicalError = `Database Error: ${technicalError}`;
+            } else if (technicalError.includes('relation') && technicalError.includes('does not exist')) {
+              errorType = 'table_not_exists';
+              technicalError = `Database Error: ${technicalError}`;
+            } else if (technicalError.includes('authentication') || technicalError.includes('JWT')) {
+              errorType = 'authentication_error';
+            } else if (technicalError.includes('permission') || technicalError.includes('access')) {
+              errorType = 'permission_error';
+            }
+
+            // エラーレスポンスを直接返す（Claude AIを経由しない）
+            return new Response(
+              JSON.stringify({
+                error: 'Database Tool Error',
+                message: technicalError,
+                details: {
+                  error_type: errorType,
+                  tool_name: toolUse.name,
+                  tool_input: toolUse.input,
+                  test_mode: testMode,
+                  timestamp: new Date().toISOString(),
+                  raw_error: toolError instanceof Error ? toolError.message : '不明なエラー',
+                  stack_trace: toolError instanceof Error ? toolError.stack?.split('\n').slice(0, 5).join('\n') : null
+                },
+                debug_info: {
+                  function: 'executeDatabaseTool',
+                  user_authenticated: !!userToken,
+                  environment: 'edge_function'
+                }
+              }), 
+              { 
+                status: 500, 
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Error-Source': 'database-tool',
+                  'X-Error-Type': errorType
+                }
+              }
+            );
+          }
+        }
+
+        // すべてのツール結果をClaudeに送り返す
+        const toolResultMessages = [
+          ...messages,
+          { role: 'assistant', content: claudeResponse.content },
+          {
+            role: 'user',
+            content: toolResults
+          }
+        ];
+
+        console.log('Sending tool results to Claude API');
+
+        // 最終結果を取得
+        const finalRequestBody = {
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 4000,
+          messages: toolResultMessages,
+          system: systemPrompt || "You are a helpful AI assistant for business review forms and data analysis. Please respond in Japanese when appropriate."
+        };
+
+        const finalResponse = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify(finalRequestBody)
+        });
+
+        if (finalResponse.ok) {
+          const finalResult = await finalResponse.json();
+          console.log('Final Claude response received');
+          return finalResult;
+        } else {
+          const errorText = await finalResponse.text().catch(() => 'Unknown error');
+          console.error('Final Claude API error:', finalResponse.status, errorText);
+          throw new Error(`Final Claude API error: ${finalResponse.status}`);
+        }
+
+      } catch (overallError) {
+        console.error('Overall tool execution error:', overallError);
+        
+        // 全体的なツール実行エラーの場合も直接エラーレスポンスを返す
+        return new Response(
+          JSON.stringify({
+            error: 'Tool Execution Error',
+            message: overallError instanceof Error ? overallError.message : '全体的なツール実行エラーが発生しました',
+            details: {
+              error_type: 'tool_execution_error',
+              timestamp: new Date().toISOString(),
+              test_mode: testMode,
+              tools_attempted: toolUses.map(t => t.name),
+              raw_error: overallError instanceof Error ? overallError.message : '不明なエラー'
+            },
+            debug_info: {
+              function: 'tool_execution_loop',
+              user_authenticated: !!userToken,
+              environment: 'edge_function'
+            }
+          }), 
+          { 
+            status: 500, 
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Error-Source': 'tool-execution',
+              'X-Error-Type': 'execution_error'
+            }
+          }
+        );
+      }
+    }
+  }
+
+  return claudeResponse;
+}
+
+// Supabaseデータ取得ツール（MCPサーバー代替）
+async function executeDatabaseTool(toolName: string, args: any, userToken: string, testMode: boolean = false): Promise<any> {
+  console.log(`🚀 Executing database tool: ${toolName}`, {
+    args: args,
+    testMode: testMode,
+    userToken: userToken ? 'provided' : 'missing',
+    timestamp: new Date().toISOString()
+  });
+  
+  try {
+    // 環境変数の確認
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
+      throw new Error('Supabase環境変数が設定されていません');
+    }
+    
+    console.log('✅ Environment check passed, creating Supabase clients');
+    
+    // Service Role で管理用クライアント作成（RLS回避）
+    const adminSupabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+    
+    // ユーザートークンで認証用クライアント作成
+    const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${userToken}` } },
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    // ユーザー認証確認
+    console.log('🔐 Verifying user authentication...');
+    const { data: userRes, error: authErr } = await userSupabase.auth.getUser();
+    
+    if (authErr) {
+      console.error('❌ Auth error:', {
+        error: authErr.message,
+        code: authErr.status,
+        details: authErr
+      });
+      throw new Error(`認証エラー: ${authErr.message} (Code: ${authErr.status})`);
+    }
+    
+    if (!userRes?.user) {
+      console.error('❌ No user data returned from auth');
+      throw new Error('ユーザー情報が取得できません');
+    }
+
+    const userId = userRes.user.id;
+    console.log(`👤 Tool execution for authenticated user: ${userId.substring(0, 8)}...`, {
+      userEmail: userRes.user.email,
+      userRole: userRes.user.role,
+      testMode: testMode
+    });
+
+    // 簡単な接続テスト
+    if (toolName === 'test_connection') {
+      try {
+        const tableName = testMode ? 'test_review_questions' : 'review_questions';
+        console.log(`Testing connection to table: ${tableName}`);
+        
+        const { data: testData, error: testError } = await adminSupabase
+          .from(tableName)
+          .select('id, question_text, question_types_id')
+          .limit(1);
+
+        console.log('Connection test result:', { 
+          error: testError?.message || null, 
+          dataExists: !!testData,
+          dataCount: testData?.length || 0 
+        });
+
+        return {
+          success: !testError,
+          message: testError ? `データベース接続エラー: ${testError.message}` : 'データベース接続成功',
+          test_result: {
+            table_name: tableName,
+            error: testError?.message || null,
+            data_exists: !!testData,
+            data_count: testData?.length || 0,
+            timestamp: new Date().toISOString()
+          }
+        };
+      } catch (testErr) {
+        console.error('Connection test exception:', testErr);
+        return {
+          success: false,
+          message: 'データベース接続エラー',
+          error: testErr instanceof Error ? testErr.message : '不明なエラー'
+        };
+      }
+    }
+
+    switch (toolName) {
+      case 'get_survey_questions': {
+        const { survey_id, limit = 50, question_type } = args;
+        
+        console.log('Querying review_questions with params:', { survey_id, limit, question_type, testMode });
+        
+        // テストモードに応じてテーブル名を選択
+        const tableName = testMode ? 'test_review_questions' : 'review_questions';
+        
+        console.log(`Using table: ${tableName}`);
+        
+        try {
+          // Admin権限でデータを取得（RLS回避）
+          console.log(`Constructing query for table: ${tableName}`);
+          
+          let query = adminSupabase
+            .from(tableName)
+            .select('id, question_text, question_types_id, review_fome_id, is_required, created_at, question_number, pege_number')
+            .order('created_at', { ascending: false })
+            .limit(Math.min(limit, 100));
+
+          if (survey_id) {
+            console.log(`Adding survey_id filter: ${survey_id}`);
+            query = query.eq('review_fome_id', survey_id);
+          }
+          if (question_type) {
+            console.log(`Adding question_type filter: ${question_type}`);
+            query = query.eq('question_types_id', question_type);
+          }
+
+          console.log('Executing review_questions query...');
+          console.log('Query details:', {
+            table: tableName,
+            select_columns: 'id, question_text, question_types_id, review_fome_id, is_required, created_at, question_number, pege_number',
+            filters: { survey_id, question_type }
+          });
+          
+          const { data, error } = await query;
+          
+          console.log('Raw query result:', { 
+            hasData: !!data,
+            dataLength: data?.length || 0,
+            hasError: !!error,
+            errorMessage: error?.message || null,
+            errorCode: error?.code || null,
+            errorDetails: error?.details || null
+          });
+          
+          if (error) {
+            console.error('Database query error:', error);
+            throw new Error(`質問取得エラー: ${error.message} (Code: ${error.code})`);
+          }
+          
+          // データがない場合のメッセージ
+          if (!data || data.length === 0) {
+            console.log('No data found in table:', tableName);
+            return {
+              success: true,
+              data: [],
+              count: 0,
+              message: 'データベースに質問データが見つかりませんでした。テストデータを作成することをお勧めします。',
+              debug_info: {
+                table_used: tableName,
+                test_mode: testMode,
+                filters_applied: { survey_id, question_type }
+              }
+            };
+          }
+
+          console.log(`Successfully retrieved ${data.length} questions from ${tableName}`);
+          
+          return {
+            success: true,
+            data: data,
+            count: data?.length || 0,
+            message: `${data.length}件の質問を取得しました。`,
+            debug_info: {
+              table_used: tableName,
+              test_mode: testMode
+            }
+          };
+          
+        } catch (queryError) {
+          console.error('Query execution error:', queryError);
+          throw new Error(`データベースクエリエラー: ${queryError instanceof Error ? queryError.message : '不明なエラー'}`);
+        }
+      }
+
+      case 'get_survey_responses': {
+        const { question_id, limit = 500, filters } = args;
+        
+        if (!question_id) throw new Error('question_idは必須です');
+
+        console.log('Querying review_question_answers with question_id:', question_id);
+
+        // テストモードに応じてテーブル名を選択
+        const answerTableName = testMode ? 'test_review_question_answers' : 'review_question_answers';
+        const submissionTableName = testMode ? 'test_review_form_submissions' : 'review_form_submissions';
+        const textTableName = testMode ? 'test_question_answer_texts' : 'question_answer_texts';
+        
+        // Admin権限でデータを取得
+        let query = adminSupabase
+          .from(answerTableName)
+          .select(`
+            id, 
+            created_at,
+            ${submissionTableName} (
+              id,
+              created_at
+            ),
+            ${textTableName} (
+              answer_text
+            )
+          `) as any;
+        
+        query = query.eq('review_questions_id', question_id)
+          .order('created_at', { ascending: false })
+          .limit(Math.min(limit, 1000));
+
+        console.log('Executing review_question_answers query...');
+
+        const { data, error } = await query;
+        if (error) throw new Error(`回答取得エラー: ${error.message}`);
+
+        console.log('Review question answers query result:', { 
+          dataCount: data?.length || 0, 
+          error: error?.message || null,
+          sampleData: data?.slice(0, 2) || []
+        });
+
+        // フィルター適用（現在のスキーマでは基本的な情報のみ）
+        let filteredData = data || [];
+        
+        // データがない場合のメッセージ
+        if (!data || data.length === 0) {
+          return {
+            success: true,
+            data: [],
+            count: 0,
+            total_count: 0,
+            message: 'この質問に対する回答データが見つかりませんでした。'
+          };
+        }
+
+        return {
+          success: true,
+          data: filteredData,
+          count: filteredData.length,
+          total_count: data.length,
+          message: `${filteredData.length}件の回答を取得しました。`
+        };
+      }
+
+      case 'analyze_text_responses': {
+        const { question_id, analysis_type, limit = 100 } = args;
+        
+        if (!question_id) throw new Error('question_idは必須です');
+        if (!analysis_type) throw new Error('analysis_typeは必須です');
+
+        console.log('Querying review_question_answers for text analysis with question_id:', question_id);
+        
+        // テストモードに応じてテーブル名を選択
+        const answerTableName = testMode ? 'test_review_question_answers' : 'review_question_answers';
+        
+        // テキスト回答データを取得（JOINを使用）
+        const textTableName = testMode ? 'test_question_answer_texts' : 'question_answer_texts';
+        
+        const { data, error } = await adminSupabase
+          .from(answerTableName)
+          .select(`
+            id, 
+            created_at,
+            ${textTableName} (
+              answer_text
+            )
+          `)
+          .eq('review_questions_id', question_id)
+          .order('created_at', { ascending: false })
+          .limit(Math.min(limit, 500)) as any;
+
+        if (error) throw new Error(`回答取得エラー: ${error.message}`);
+        if (!data || data.length === 0) {
+          return {
+            success: true,
+            analysis: {
+              type: analysis_type,
+              message: 'データが見つかりませんでした',
+              total_responses: 0
+            }
+          };
+        }
+
+        // データから実際のテキストを抽出
+        const textFieldName = testMode ? 'test_question_answer_texts' : 'question_answer_texts';
+        const textData = data?.filter(item => 
+          item[textFieldName] && 
+          item[textFieldName].length > 0 &&
+          item[textFieldName][0].answer_text
+        ).map(item => ({
+          id: item.id,
+          answer_text: item[textFieldName][0].answer_text,
+          created_at: item.created_at
+        })) || [];
+        
+        if (textData.length === 0) {
+          return {
+            success: true,
+            analysis: {
+              type: analysis_type,
+              message: 'テキスト回答データが見つかりませんでした',
+              total_responses: 0
+            }
+          };
+        }
+        
+        // 簡単な分析処理
+        let analysisResult: any = { type: analysis_type };
+        
+        switch (analysis_type) {
+          case 'keyword': {
+            const allText = textData.map(r => r.answer_text).join(' ');
+            const words = allText.split(/\s+/).filter(word => word.length > 2);
+            const wordCount: Record<string, number> = {};
+            
+            words.forEach(word => {
+              const cleanWord = word.toLowerCase().replace(/[.,!?;]/g, '');
+              wordCount[cleanWord] = (wordCount[cleanWord] || 0) + 1;
+            });
+            
+            const topKeywords = Object.entries(wordCount)
+              .sort(([,a], [,b]) => b - a)
+              .slice(0, 20)
+              .map(([word, count]) => ({ word, count }));
+              
+            analysisResult = {
+              ...analysisResult,
+              keywords: topKeywords,
+              total_words: words.length,
+              unique_words: Object.keys(wordCount).length
+            };
+            break;
+          }
+
+          case 'sentiment': {
+            const positiveWords = ['良い', '素晴らしい', '満足', '嬉しい', 'good', 'great', 'excellent'];
+            const negativeWords = ['悪い', '不満', '問題', '困る', 'bad', 'poor', 'terrible'];
+            
+            let positive = 0, negative = 0, neutral = 0;
+            
+            textData.forEach(response => {
+              const text = response.answer_text.toLowerCase();
+              const hasPositive = positiveWords.some(word => text.includes(word));
+              const hasNegative = negativeWords.some(word => text.includes(word));
+              
+              if (hasPositive && !hasNegative) positive++;
+              else if (hasNegative && !hasPositive) negative++;
+              else neutral++;
+            });
+            
+            analysisResult = {
+              ...analysisResult,
+              positive,
+              negative,
+              neutral,
+              total: textData.length
+            };
+            break;
+          }
+
+          case 'summary': {
+            const responseLengths = textData.map(r => r.answer_text.length);
+            const avgLength = responseLengths.reduce((a, b) => a + b, 0) / responseLengths.length;
+            
+            analysisResult = {
+              ...analysisResult,
+              total_responses: textData.length,
+              average_length: Math.round(avgLength),
+              min_length: Math.min(...responseLengths),
+              max_length: Math.max(...responseLengths),
+              recent_responses: textData.slice(0, 5).map(r => ({
+                id: r.id,
+                preview: r.answer_text.substring(0, 100) + (r.answer_text.length > 100 ? '...' : ''),
+                created_at: r.created_at
+              }))
+            };
+            break;
+          }
+        }
+
+        return {
+          success: true,
+          analysis: analysisResult
+        };
+      }
+
+      case 'get_filtered_analytics_data': {
+        const { question_ids, filters, group_by = 'none' } = args;
+        
+        if (!question_ids || !Array.isArray(question_ids)) {
+          throw new Error('question_idsは必須です（配列形式）');
+        }
+
+        console.log('Querying filtered analytics data for question_ids:', question_ids);
+        
+        // テストモードに応じてテーブル名を選択
+        const answerTableName = testMode ? 'test_review_question_answers' : 'review_question_answers';
+        const submissionTableName = testMode ? 'test_review_form_submissions' : 'review_form_submissions';
+        const questionTableName = testMode ? 'test_review_questions' : 'review_questions';
+        const textTableName = testMode ? 'test_question_answer_texts' : 'question_answer_texts';
+        const choiceTableName = testMode ? 'test_question_answer_option_choices' : 'question_answer_option_choices';
+        const scaleTableName = testMode ? 'test_question_answer_option_linear_scale' : 'question_answer_option_linear_scale';
+        
+        let query = adminSupabase
+          .from(answerTableName)
+          .select(`
+            id,
+            review_questions_id,
+            created_at,
+            ${submissionTableName} (
+              id,
+              created_at as submitted_at
+            ),
+            ${questionTableName} (
+              id,
+              question_text,
+              question_types_id
+            ),
+            ${textTableName} (
+              answer_text
+            ),
+            ${choiceTableName} (
+              question_option_choices_id
+            ),
+            ${scaleTableName} (
+              answer_number
+            )
+          `)
+          .in('review_questions_id', question_ids)
+          .order('created_at', { ascending: false });
+
+        // 日付フィルター
+        if (filters?.date_range?.start) {
+          query = query.gte('created_at', filters.date_range.start);
+        }
+        if (filters?.date_range?.end) {
+          query = query.lte('created_at', filters.date_range.end);
+        }
+
+        const { data, error } = await query;
+        if (error) throw new Error(`データ取得エラー: ${error.message}`);
+
+        console.log('Filtered analytics query result:', { 
+          dataCount: data?.length || 0, 
+          error: error?.message || null,
+          sampleData: data?.slice(0, 2) || []
+        });
+
+        // 現在のスキーマではrespondents情報がないため、基本的な処理のみ
+        let filteredData = data || [];
+
+        // グルーピング処理（現在のスキーマでは制限的）
+        let result: any = filteredData;
+        if (group_by !== 'none') {
+          // 現在のスキーマでは、質問IDごとのグルーピングのみ対応
+          if (group_by === 'question') {
+            result = filteredData.reduce((acc, response) => {
+              const groupKey = response.review_questions_id || 'unknown';
+              if (!acc[groupKey]) acc[groupKey] = [];
+              acc[groupKey].push(response);
+              return acc;
+            }, {} as Record<string, any[]>);
+          } else {
+            result = { 'all_data': filteredData };
+          }
+        }
+
+        return {
+          success: true,
+          data: result,
+          total_count: filteredData.length,
+          original_count: data?.length || 0,
+          group_by: group_by,
+          filters_applied: filters
+        };
+      }
+
+      case 'execute_custom_sql': {
+        const { question_ids, filters, analysis_type = 'full_analysis' } = args;
+        
+        if (!question_ids || !Array.isArray(question_ids)) {
+          throw new Error('question_idsは必須です（配列形式）');
+        }
+
+        console.log('Executing custom SQL analysis for question_ids:', question_ids);
+        
+        // テストモードに応じてテーブル名を選択
+        const tablePrefix = testMode ? 'test_' : '';
+        const questionTableName = `${tablePrefix}review_questions`;
+        const answerTableName = `${tablePrefix}review_question_answers`;
+        const submissionTableName = `${tablePrefix}review_form_submissions`;
+        const textTableName = `${tablePrefix}question_answer_texts`;
+        const choiceTableName = `${tablePrefix}question_answer_option_choices`;
+        const scaleTableName = `${tablePrefix}question_answer_option_linear_scale`;
+        
+        try {
+          // 1. 選択された質問の詳細情報を取得
+          const { data: questionsData, error: questionsError } = await adminSupabase
+            .from(questionTableName)
+            .select('id, question_text, question_types_id, question_number, is_required')
+            .in('id', question_ids);
+
+          if (questionsError) throw new Error(`質問情報取得エラー: ${questionsError.message}`);
+
+          // 2. 各質問の回答データを取得
+          const allResponsesData = [];
+          
+          for (const question of questionsData || []) {
+            // 回答データを取得
+            const { data: responsesData, error: responsesError } = await adminSupabase
+              .from(answerTableName)
+              .select(`
+                id,
+                created_at,
+                ${submissionTableName} (
+                  id,
+                  created_at
+                ),
+                ${textTableName} (
+                  answer_text
+                ),
+                ${choiceTableName} (
+                  question_option_choices_id
+                ),
+                ${scaleTableName} (
+                  answer_number
+                )
+              `)
+              .eq('review_questions_id', question.id)
+              .order('created_at', { ascending: false })
+              .limit(1000);
+
+            if (responsesError) {
+              console.warn(`Question ${question.id} responses error:`, responsesError.message);
+              continue;
+            }
+
+            allResponsesData.push({
+              question: question,
+              responses: responsesData || [],
+              response_count: responsesData?.length || 0
+            });
+          }
+
+          // 3. 分析結果を生成
+          const analysisResult = {
+            analysis_type: analysis_type,
+            questions_analyzed: questionsData?.length || 0,
+            total_responses: allResponsesData.reduce((sum, q) => sum + q.response_count, 0),
+            questions_summary: questionsData?.map(q => ({
+              id: q.id,
+              text: q.question_text,
+              type_id: q.question_types_id,
+              question_number: q.question_number,
+              required: q.is_required
+            })) || [],
+            detailed_data: allResponsesData,
+            filters_applied: filters || {},
+            sql_info: {
+              tables_used: [questionTableName, answerTableName, submissionTableName, textTableName, choiceTableName, scaleTableName],
+              test_mode: testMode,
+              question_ids: question_ids
+            }
+          };
+
+          // 4. フィルターを適用（日付範囲など）
+          if (filters?.date_range) {
+            const { start, end } = filters.date_range;
+            if (start || end) {
+              analysisResult.filters_applied.date_filtering = 'Applied';
+              // 実際のフィルタリングロジックはここに追加
+            }
+          }
+
+          console.log('Custom SQL analysis completed:', {
+            questions_count: analysisResult.questions_analyzed,
+            total_responses: analysisResult.total_responses,
+            analysis_type: analysis_type
+          });
+
+          return {
+            success: true,
+            analysis_result: analysisResult,
+            message: `${analysisResult.questions_analyzed}個の質問について${analysisResult.total_responses}件の回答を分析しました。`
+          };
+
+        } catch (sqlError) {
+          console.error('Custom SQL execution error:', sqlError);
+          throw new Error(`カスタムSQL実行エラー: ${sqlError instanceof Error ? sqlError.message : '不明なエラー'}`);
+        }
+      }
+
+      default:
+        throw new Error(`未対応のツール: ${toolName}`);
+    }
+  } catch (error) {
+    console.error(`Database tool error (${toolName}):`, error);
+    throw error;
+  }
+}
+
+// メインハンドラー
+serve(async (req: Request): Promise<Response> => {
+  try {
+    // Origin検証とCORSヘッダー設定
+    const requestOrigin = req.headers.get('origin');
+    let headers: Headers;
+    
+    try {
+      headers = setCorsHeaders(requestOrigin);
+    } catch (corsError) {
+      // CORSエラーの場合は拒否
+      return new Response(
+        JSON.stringify({ error: 'Forbidden', message: '許可されていないオリジンからのアクセスです' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // OPTIONSリクエスト処理
+    if (req.method === 'OPTIONS') {
+      return new Response(null, { status: 200, headers });
+    }
+
+    // POSTメソッドのみ許可
+    if (req.method !== 'POST') {
+      return createErrorResponse(405, 'Method not allowed', 'POSTリクエストのみサポートしています', headers);
+    }
+
+    // リクエスト情報を安全にログ出力
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    const safeIp = clientIp.length > 8 ? clientIp.substring(0, 6) + '***' : 'unknown';
+    const origin = req.headers.get('origin') || req.headers.get('referer') || 'direct';
+    console.log(`Request: ${safeIp} from ${origin}`);
+
+    // Supabase認証の検証
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    
+    // 認証トークンの取得
+    const authHeader = req.headers.get('authorization');
+    const apikey = req.headers.get('apikey');
+    
+    let isAuthenticated = false;
+    let userId = 'anonymous';
+    
+    // JWT認証を試行
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        if (user && !error) {
+          isAuthenticated = true;
+          userId = user.id;
+        }
+      } catch (authError) {
+        // 認証エラーは無視して匿名として処理
+      }
+    }
+    
+    // APIキー認証をフォールバック
+    if (!isAuthenticated && apikey) {
+      const expectedApikey = Deno.env.get('SUPABASE_ANON_KEY');
+      if (apikey === expectedApikey) {
+        isAuthenticated = false; // 匿名として扱う
+        userId = 'anon_' + (req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown');
+      }
+    }
+
+    // 強化されたレート制限チェック
+    const clientId = isAuthenticated ? userId : `anon_${clientIp}`;
+    
+    const rateLimitResult = checkRateLimit(clientId, clientIp, isAuthenticated);
+    
+    if (!rateLimitResult.allowed) {
+      console.warn(`Rate limit blocked: ${clientId}, IP: ${clientIp}, Reason: ${rateLimitResult.reason}`);
+      
+      return createErrorResponse(
+        429, 
+        'Rate limit exceeded', 
+        `アクセス制限に達しました。しばらくお待ちください。`, 
+        headers,
+        { 
+          retryAfter: 60,
+          limitType: rateLimitResult.reason?.includes('burst') ? 'burst' : 'standard'
+        }
+      );
+    }
+
+    // リクエストボディの解析
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (error) {
+      return createErrorResponse(400, 'Bad request', '無効なJSONデータです', headers);
+    }
+
+    // 入力検証
+    let validatedInput;
+    try {
+      validatedInput = validateInput(requestBody);
+    } catch (error) {
+      return createErrorResponse(
+        400, 
+        'Bad request', 
+        error instanceof Error ? error.message : '入力データが無効です', 
+        headers
+      );
+    }
+
+    const { message, conversationHistory } = validatedInput;
+    const { systemPrompt, mcpMode, testMode } = requestBody;
+    
+    // Claude API呼び出し
+    let claudeResponse;
+    const requestStart = Date.now();
+    
+    try {
+      console.log(`Claude API request: User=${userId}, Message length=${message.length}, History count=${conversationHistory.length}, MCP Mode=${mcpMode}`);
+      
+      // MCPモードの場合、ユーザーのJWTトークンを取得
+      let userToken = undefined;
+      if (mcpMode && authHeader?.startsWith('Bearer ')) {
+        userToken = authHeader.substring(7);
+      }
+      
+      claudeResponse = await callClaudeAPI(message, conversationHistory, systemPrompt, mcpMode, userToken, testMode);
+      
+      const responseTime = Date.now() - requestStart;
+      console.log(`Claude API success: User=${userId}, Response time=${responseTime}ms, Tokens=${claudeResponse.usage?.total_tokens || 0}`);
+      
+    } catch (error) {
+      const responseTime = Date.now() - requestStart;
+      console.error(`Claude API error: User=${userId}, Response time=${responseTime}ms, Error=${error instanceof Error ? error.message : 'Unknown'}`);
+      
+      return createErrorResponse(
+        503, 
+        'Service error', 
+        'AIサービスでエラーが発生しました。しばらく後に再試行してください。', 
+        headers
+      );
+    }
+    
+    // レスポンス検証
+    if (!claudeResponse?.content?.[0]?.text) {
+      console.error('Invalid Claude response:', claudeResponse);
+      return createErrorResponse(
+        502, 
+        'Service error', 
+        'AIサービスから無効なレスポンスを受信しました', 
+        headers
+      );
+    }
+
+    // 🔧 すべてのテキストコンテンツを結合
+    const allTextContent = claudeResponse.content
+      .filter((item: any) => item.type === 'text')
+      .map((item: any) => item.text)
+      .join('\n\n');
+    
+    console.log('🔍 Content Analysis:', {
+      totalContentItems: claudeResponse.content?.length || 0,
+      contentTypes: claudeResponse.content?.map((item: any) => item.type) || [],
+      textItems: claudeResponse.content?.filter((item: any) => item.type === 'text').length || 0,
+      toolItems: claudeResponse.content?.filter((item: any) => item.type === 'tool_use').length || 0,
+      allTextContent: allTextContent,
+      allTextLength: allTextContent.length
+    });
+
+    // 📤 最終レスポンスをログ出力
+    const finalResponse = {
+      response: allTextContent || claudeResponse.content[0]?.text || 'レスポンスが取得できませんでした',
+      usage: {
+        input_tokens: claudeResponse.usage?.input_tokens || 0,
+        output_tokens: claudeResponse.usage?.output_tokens || 0
+      },
+      metadata: {
+        timestamp: new Date().toISOString(),
+        authenticated: isAuthenticated,
+        model: 'claude-3-5-sonnet-20241022'
+      }
+    };
+    
+    console.log('📤 Final Response to Client:', {
+      responseText: finalResponse.response,
+      responseLength: finalResponse.response?.length || 0,
+      usage: finalResponse.usage,
+      metadata: finalResponse.metadata,
+      timestamp: new Date().toISOString()
+    });
+
+    // 成功レスポンス
+    return new Response(
+      JSON.stringify(finalResponse), 
+      { status: 200, headers }
+    );
+
+  } catch (error) {
+    // 最終的なエラーハンドリング
+    console.error('Unexpected error in claude-api function:', error);
+    return createErrorResponse(
+      500, 
+      'Internal server error', 
+      '予期しないエラーが発生しました', 
+      headers
+    );
+  }
+});

@@ -1,0 +1,262 @@
+# キャッシュシステム使用ガイド
+
+## 概要
+
+このアプリケーションに新しいキャッシュシステムを実装しました。セッションが切れるまでデータを保持し、30分間の更新抑制とデータ先読み機能を提供します。
+
+## 主な機能
+
+- **30分TTL（厳密）**: データは30分後に必ず期限切れになり、次回アクセス時に新しいデータを取得
+- **セッション管理**: ユーザーが変更された場合（ログアウト→ログイン等）にキャッシュを自動クリア
+- **自動先読み**: 日時ボタンを押す前に近い日時のデータを先読み
+- **メモリ効率**: 期限切れデータの自動削除（5分間隔）
+- **セッションストレージ統合**: ページリロード後もキャッシュが保持（TTL内の場合）
+- **強制リフレッシュ**: 必要に応じて特定のデータを手動で期限切れ化
+
+## 使用方法
+
+### 1. 最適化されたフック（推奨）
+
+新しいアプリケーションやコンポーネントでは、最適化されたフックを使用してください：
+
+```javascript
+import { 
+  useOptimizedNPSData,
+  useOptimizedSubmissionData,
+  useOptimizedCalendarData 
+} from '../hooks/useOptimizedData'
+
+// NPSデータ
+const { getNPSForDate, loading, error } = useOptimizedNPSData(currentWeekStart)
+
+// 特定の日のNPSを取得
+const todayNPS = getNPSForDate(new Date())
+
+// カレンダー全体のデータ
+const { calendarData, getDataForDate } = useOptimizedCalendarData(currentWeekStart)
+```
+
+### 2. 既存フックの更新
+
+既存のフックは自動的にキャッシュシステムと統合されています：
+
+```javascript
+import { useWeeklyNPSCache } from '../hooks/useWeeklyNPSCache'
+
+// 既存のAPIはそのまま使用可能
+const { getNPSForDate, loading, error } = useWeeklyNPSCache(currentWeekStart)
+```
+
+### 3. 汎用キャッシュの直接使用
+
+独自のデータフェッチングが必要な場合：
+
+```javascript
+import { getCachedData, setCachedData } from '../utils/cacheManager'
+
+// キャッシュから取得
+const cachedData = getCachedData('myDataType', {
+  date: '2024-01-15',
+  storeId: 'store123'
+})
+
+// キャッシュに保存
+setCachedData('myDataType', {
+  date: '2024-01-15',
+  storeId: 'store123'
+}, myData)
+```
+
+## データタイプ
+
+以下のデータタイプがキャッシュされます：
+
+- `nps_weekly`: 週間NPSデータ
+- `submissions_weekly`: 週間提出数データ
+- `comments_weekly`: 週間コメント数データ
+- `question_scores`: 質問別スコアデータ
+- `alert_nps`: NPSアラートデータ
+- `alert_comment`: コメントアラートデータ
+
+## 先読み機能
+
+### 週間データの先読み
+
+現在の週を中心に前後2週間のデータを自動的に先読みします：
+
+```javascript
+// 自動で以下の週のデータが先読みされます
+// - 2週間前
+// - 1週間前
+// - 現在の週
+// - 1週間後
+// - 2週間後
+```
+
+### 日次データの先読み
+
+現在の日を中心に前後7日間のデータを自動的に先読みします：
+
+```javascript
+// 自動で以下の日のデータが先読みされます
+// - 7日前 ～ 7日後の計15日間
+```
+
+## パフォーマンス最適化
+
+### ローディングの最小化
+
+```javascript
+// BAD: 毎回APIを叩く
+useEffect(() => {
+  fetchData()
+}, [date])
+
+// GOOD: キャッシュを活用
+const { data, loading } = useOptimizedNPSData(weekStart)
+```
+
+### メモリ効率
+
+- 期限切れデータは5分間隔で自動削除
+- セッション終了時にキャッシュはクリア
+- 必要に応じて手動でキャッシュをクリア可能
+
+## デバッグとモニタリング
+
+### キャッシュ統計の確認
+
+```javascript
+import { getCacheStats } from '../utils/cacheManager'
+
+const stats = getCacheStats()
+console.log('キャッシュ統計:', stats)
+// 出力例:
+// {
+//   total: 45,
+//   expired: 2,
+//   byType: {
+//     nps_weekly: 12,
+//     submissions_weekly: 8,
+//     question_scores: 25
+//   }
+// }
+```
+
+### キャッシュのクリア
+
+```javascript
+import { 
+  clearCacheType, 
+  clearAllCache, 
+  forceRefreshCache,
+  getCacheTimeToExpiry 
+} from '../utils/cacheManager'
+
+// 特定タイプのキャッシュをクリア
+clearCacheType('nps_weekly')
+
+// 全キャッシュをクリア
+clearAllCache()
+
+// 特定のデータを強制リフレッシュ（期限切れ化）
+forceRefreshCache('nps_weekly', {
+  weekStart: '2024-01-15',
+  storeId: 'store123'
+})
+
+// キャッシュの残り時間を確認（ミリ秒）
+const remainingTime = getCacheTimeToExpiry('nps_weekly', {
+  weekStart: '2024-01-15',
+  storeId: 'store123'
+})
+console.log(`残り時間: ${Math.floor(remainingTime / 1000 / 60)}分`)
+```
+
+### パフォーマンステスト
+
+開発者コンソールでテストを実行：
+
+```javascript
+// テスト関数をロード（ブラウザで直接test-cache-performance.jsを実行）
+window.cacheTests.runAllTests()
+```
+
+## トラブルシューティング
+
+### よくある問題
+
+1. **データが更新されない**
+   - **30分TTLが有効**: データは30分後に自動的に期限切れになります
+   - **手動リフレッシュ**: `forceRefreshCache()`で即座に期限切れ化可能
+   - **フックのrefetch**: 既存のrefetch()メソッドも引き続き使用可能
+
+2. **メモリ使用量が多い**
+   - 5分間隔で期限切れデータを自動削除
+   - 必要に応じて`clearCacheType()`や`clearAllCache()`を使用
+
+3. **セッションストレージエラー**
+   - ブラウザのセッションストレージ容量制限（通常5-10MB）
+   - プライベートブラウジングモードでは制限が厳しい場合があります
+   - 容量不足の場合は古いキャッシュから自動削除
+
+4. **TTLの確認方法**
+   ```javascript
+   // キャッシュの残り時間を確認
+   const remainingMs = getCacheTimeToExpiry('nps_weekly', params)
+   const remainingMinutes = Math.floor(remainingMs / 1000 / 60)
+   console.log(`${remainingMinutes}分後に期限切れ`)
+   ```
+
+### ログの確認
+
+```javascript
+// キャッシュマネージャーのデバッグログを確認
+// ブラウザの開発者ツールのコンソールタブで確認
+```
+
+## 移行ガイド
+
+### 既存コードからの移行
+
+1. **段階的移行**: 既存のフックはそのまま動作します
+2. **新機能活用**: 新しいコンポーネントでは最適化フックを使用
+3. **パフォーマンス向上**: 重要なページから優先的に移行
+
+### 移行例
+
+```javascript
+// 移行前
+const [npsData, setNpsData] = useState({})
+const [loading, setLoading] = useState(false)
+
+useEffect(() => {
+  fetchNPSData().then(setNpsData)
+}, [date])
+
+// 移行後
+const { getNPSForDate, loading } = useOptimizedNPSData(weekStart)
+const npsForToday = getNPSForDate(new Date())
+```
+
+## 設定値
+
+現在の設定値（必要に応じて調整可能）：
+
+```javascript
+const CACHE_TTL = 30 * 60 * 1000 // 30分
+const PRELOAD_RANGE = {
+  weeks: 2, // 前後2週間
+  days: 7   // 前後7日間
+}
+```
+
+## ベストプラクティス
+
+1. **適切なフックの選択**: 用途に応じて最適化フックを使用
+2. **キーの設計**: ユニークで意味のあるキャッシュキーを使用
+3. **メモリ管理**: 大量データは必要な部分のみキャッシュ
+4. **エラーハンドリング**: キャッシュエラーを適切に処理
+5. **テスト**: パフォーマンステストを定期的に実行
+
+この仕組みにより、ユーザーは日時ボタンを押したときのローディング時間を大幅に短縮でき、30分間は同じデータの再取得を避けることができます。

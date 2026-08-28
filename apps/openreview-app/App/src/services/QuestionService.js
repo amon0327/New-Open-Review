@@ -1,0 +1,1745 @@
+import { supabase } from '../supabaseClient';
+import { getDatabaseConfig, TABLE_NAMES } from '../config/databaseConfig';
+
+// 排他制御用のマップ（質問IDごとにロックを管理）
+const choiceUpdateLocks = new Map();
+
+// 排他制御ヘルパー関数
+const acquireChoiceUpdateLock = async (questionId) => {
+  while (choiceUpdateLocks.get(questionId)) {
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  choiceUpdateLocks.set(questionId, true);
+};
+
+const releaseChoiceUpdateLock = (questionId) => {
+  choiceUpdateLocks.delete(questionId);
+};
+
+// review_questionsテーブルに質問を登録する関数
+export const createReviewQuestion = async ({
+  reviewFormId,
+  questionTypesId,
+  reviewFormPagesId,
+  questionNumber
+}) => {
+  try {
+    const { data, error } = await supabase
+      .from('review_questions')
+      .insert({
+        review_fome_id: reviewFormId,
+        question_types_id: questionTypesId,
+        review_form_pages_id: reviewFormPagesId,
+        question_number: questionNumber,
+        question_text: '',
+        is_required: true
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error creating review question:', error);
+    throw error;
+  }
+};
+
+// question_option_linear_scaleテーブルにリニアスケールオプションを登録する関数
+export const createLinearScaleOption = async (reviewQuestionsId, questionTypesId = null) => {
+  try {
+    const { data, error } = await supabase
+      .from('question_option_linear_scale')
+      .insert({
+        review_questions_id: reviewQuestionsId,
+        min_text: '',
+        max_text: '',
+        loyalty_score_flags: questionTypesId === 9
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error creating linear scale option:', error);
+    throw error;
+  }
+};
+
+// テンプレート質問用のreview_questions登録関数
+export const createTemplateReviewQuestion = async ({
+  reviewFormId,
+  questionTypesId,
+  reviewFormPagesId,
+  questionNumber,
+  questionText,
+  questionCategoriesId,
+  questionSubcategoriesId,
+  templateReviewQuestionsId
+}) => {
+  try {
+    const { data, error } = await supabase
+      .from('review_questions')
+      .insert({
+        review_fome_id: reviewFormId,
+        question_types_id: questionTypesId,
+        review_form_pages_id: reviewFormPagesId,
+        question_number: questionNumber,
+        question_text: questionText,
+        question_categories_id: questionCategoriesId,
+        question_subcategories_id: questionSubcategoriesId,
+        template_review_questions_id: templateReviewQuestionsId,
+        is_required: true
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error creating template review question:', error);
+    throw error;
+  }
+};
+
+// テンプレート質問のリニアスケールオプションを取得する関数
+export const getTemplateLinearScaleOption = async (templateReviewQuestionsId) => {
+  try {
+    const { data, error } = await supabase
+      .from('template_question_option_linear_scale')
+      .select('*')
+      .eq('template_review_questions_id', templateReviewQuestionsId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // データが存在しない場合
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching template linear scale option:', error);
+    return null;
+  }
+};
+
+// テンプレート質問の選択肢オプションを取得する関数
+export const getTemplateChoiceOptions = async (templateReviewQuestionsId) => {
+  try {
+    const { data, error } = await supabase
+      .from('template_question_option_choices')
+      .select('*')
+      .eq('template_review_questions_id', templateReviewQuestionsId)
+      .order('choice_number');
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching template choice options:', error);
+    return [];
+  }
+};
+
+// テンプレート質問のリニアスケールオプションをコピーして作成する関数
+export const createLinearScaleOptionFromTemplate = async (reviewQuestionsId, templateOption, questionTypesId = null) => {
+  try {
+    const { data, error } = await supabase
+      .from('question_option_linear_scale')
+      .insert({
+        review_questions_id: reviewQuestionsId,
+        min_text: templateOption.min_text,
+        max_text: templateOption.max_text,
+        loyalty_score_flags: questionTypesId === 9
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error creating linear scale option from template:', error);
+    throw error;
+  }
+};
+
+// テンプレート質問の選択肢オプションをコピーして作成する関数
+export const createChoiceOptionsFromTemplate = async (reviewQuestionsId, templateOptions) => {
+  try {
+    const choiceInserts = templateOptions.map(option => ({
+      review_questions_id: reviewQuestionsId,
+      choice_number: option.choice_number,
+      choice_name: option.choice_name
+    }));
+
+    const { data, error } = await supabase
+      .from('question_option_choices')
+      .insert(choiceInserts)
+      .select();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error creating choice options from template:', error);
+    throw error;
+  }
+};
+
+// テンプレート質問とそのオプションを作成する統合関数
+export const createTemplateQuestionWithOptions = async ({
+  reviewFormId,
+  questionTypesId,
+  reviewFormPagesId,
+  questionNumber,
+  questionText,
+  questionCategoriesId,
+  questionSubcategoriesId,
+  templateReviewQuestionsId
+}) => {
+  try {
+    // 1. review_questionsテーブルにテンプレート質問を登録
+    const question = await createTemplateReviewQuestion({
+      reviewFormId,
+      questionTypesId,
+      reviewFormPagesId,
+      questionNumber,
+      questionText,
+      questionCategoriesId,
+      questionSubcategoriesId,
+      templateReviewQuestionsId
+    });
+
+    // 2. 質問タイプに応じてオプションをコピー
+    if (questionTypesId === 7 || questionTypesId === 9) {
+      // リニアスケールオプションを取得してコピー
+      const templateLinearOption = await getTemplateLinearScaleOption(templateReviewQuestionsId);
+      if (templateLinearOption) {
+        await createLinearScaleOptionFromTemplate(question.id, templateLinearOption, questionTypesId);
+      }
+    } else if ([3, 4, 5, 6, 8, 10].includes(questionTypesId)) {
+      // 選択肢オプションを取得してコピー
+      const templateChoiceOptions = await getTemplateChoiceOptions(templateReviewQuestionsId);
+      if (templateChoiceOptions.length > 0) {
+        await createChoiceOptionsFromTemplate(question.id, templateChoiceOptions);
+      }
+    }
+
+    return question;
+  } catch (error) {
+    console.error('Error creating template question with options:', error);
+    throw error;
+  }
+};
+
+// 質問タイプに応じて質問を作成し、必要に応じて追加オプションも作成する関数
+export const createQuestionWithOptions = async ({
+  reviewFormId,
+  questionTypesId,
+  reviewFormPagesId,
+  questionNumber
+}) => {
+  try {
+    // 1. review_questionsテーブルに質問を登録
+    const question = await createReviewQuestion({
+      reviewFormId,
+      questionTypesId,
+      reviewFormPagesId,
+      questionNumber
+    });
+
+    // 2. 質問タイプが7（線形スケール）または9（推奨度スコア）の場合、追加オプションを作成
+    if (questionTypesId === 7 || questionTypesId === 9) {
+      await createLinearScaleOption(question.id, questionTypesId);
+    }
+    // 3. 選択肢が必要な質問タイプの場合、デフォルト選択肢を作成
+    else if ([3, 4, 5, 6, 8, 10].includes(questionTypesId)) {
+      const defaultChoices = ['選択肢1'];
+      console.log(`Creating default choice for question type ${questionTypesId}:`, defaultChoices);
+      await updateChoiceOptions(question.id, defaultChoices);
+    }
+
+    return question;
+  } catch (error) {
+    console.error('Error creating question with options:', error);
+    throw error;
+  }
+};
+
+// レビューフォームの質問一覧を取得する関数
+export const getReviewQuestions = async (reviewFormId, reviewFormPagesId) => {
+  try {
+    const { data, error } = await supabase
+      .from('review_questions')
+      .select('*')
+      .eq('review_fome_id', reviewFormId)
+      .eq('review_form_pages_id', reviewFormPagesId)
+      .order('question_number');
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching review questions:', error);
+    return [];
+  }
+};
+
+// 質問のリニアスケールオプションを取得する関数
+export const getQuestionLinearScaleOption = async (reviewQuestionsId) => {
+  try {
+    const { data, error } = await supabase
+      .from('question_option_linear_scale')
+      .select('*')
+      .eq('review_questions_id', reviewQuestionsId)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('リニアスケールオプション取得エラー:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching question linear scale option:', error);
+    return null;
+  }
+};
+
+// 質問の選択肢オプションを取得する関数
+export const getQuestionChoiceOptions = async (reviewQuestionsId) => {
+  try {
+    const { data, error } = await supabase
+      .from('question_option_choices')
+      .select('*')
+      .eq('review_questions_id', reviewQuestionsId)
+      .order('choice_number');
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching question choice options:', error);
+    return [];
+  }
+};
+
+// question_screen_settingsテーブルからヘッダー画像を取得する関数
+export const getQuestionScreenSettings = async (reviewFormId) => {
+  try {
+    const { data, error } = await supabase
+      .from('question_screen_settings')
+      .select('*')
+      .eq('review_forms_id', reviewFormId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // データが存在しない場合
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching question screen settings:', error);
+    return null;
+  }
+};
+
+// review_form_settingsテーブルからロゴ画像とテーマカラーを取得する関数
+export const getReviewFormSettings = async (reviewFormId) => {
+  try {
+    const { data, error } = await supabase
+      .from('review_form_settings')
+      .select('*')
+      .eq('review_form_id', reviewFormId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // データが存在しない場合
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching review form settings:', error);
+    return null;
+  }
+};
+
+// 質問ページで必要な設定データをまとめて取得する関数
+export const getQuestionPageSettings = async (reviewFormId) => {
+  try {
+    const [questionScreenSettings, reviewFormSettings] = await Promise.all([
+      getQuestionScreenSettings(reviewFormId),
+      getReviewFormSettings(reviewFormId)
+    ]);
+
+    return {
+      questionScreenSettings,
+      reviewFormSettings
+    };
+  } catch (error) {
+    console.error('Error fetching question page settings:', error);
+    return {
+      questionScreenSettings: null,
+      reviewFormSettings: null
+    };
+  }
+};
+
+// 質問を更新する関数
+export const updateReviewQuestion = async (questionId, updates) => {
+  try {
+    const { data, error } = await supabase
+      .from('review_questions')
+      .update(updates)
+      .eq('id', questionId)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error updating review question:', error);
+    throw error;
+  }
+};
+
+// 質問を削除する関数（フォームからのリンク解除または完全削除）
+export const deleteReviewQuestion = async (questionId, formId = null, pageId = null) => {
+  try {
+    // 中間テーブルにリンクがあるか確認
+    const { data: links, error: linkError } = await supabase
+      .from('review_question_form_links')
+      .select('id, review_form_id, review_form_pages_id')
+      .eq('review_question_id', questionId);
+
+    if (linkError) {
+      console.error('Error checking links:', linkError);
+    }
+
+    // 現在のフォーム/ページへのリンクがある場合
+    if (links && links.length > 0 && formId && pageId) {
+      // 該当するリンクを探す
+      const targetLink = links.find(
+        link => link.review_form_id === formId && link.review_form_pages_id === pageId
+      );
+
+      if (targetLink) {
+        // リンクのみ削除（質問本体は残す）
+        const { error: deleteLinkError } = await supabase
+          .from('review_question_form_links')
+          .delete()
+          .eq('id', targetLink.id);
+
+        if (deleteLinkError) {
+          throw deleteLinkError;
+        }
+
+        console.log('Link deleted, question preserved for other forms');
+        return true;
+      }
+    }
+
+    // リンクがない場合、または元のフォームでの削除の場合は質問本体を削除
+    // まず、この質問への全てのリンクを削除
+    await supabase
+      .from('review_question_form_links')
+      .delete()
+      .eq('review_question_id', questionId);
+
+    // 1. 関連する選択肢オプションを削除
+    await supabase
+      .from('question_option_choices')
+      .delete()
+      .eq('review_questions_id', questionId);
+
+    // 2. 関連するリニアスケールオプションを削除
+    await supabase
+      .from('question_option_linear_scale')
+      .delete()
+      .eq('review_questions_id', questionId);
+
+    // 3. 質問本体を削除
+    const { error } = await supabase
+      .from('review_questions')
+      .delete()
+      .eq('id', questionId);
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting review question:', error);
+    throw error;
+  }
+};
+
+// 選択肢オプションを更新する関数（既存行を更新、新規行は追加、不要行は削除）
+export const updateChoiceOptions = async (reviewQuestionsId, choices) => {
+  // 排他制御でロックを取得
+  await acquireChoiceUpdateLock(reviewQuestionsId);
+  
+  try {
+    console.log(`Updating choices for question ${reviewQuestionsId}:`, choices);
+    
+    // 1. 既存の選択肢を取得
+    const existingChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+    console.log('Existing choices:', existingChoices);
+
+    // 2. 変更が必要かチェック（不要な処理を避ける）
+    const hasChanges = choices && choices.length > 0 && 
+      (existingChoices.length !== choices.length ||
+       existingChoices.some((existing, index) => 
+         existing.choice_name !== choices[index] || existing.choice_number !== (index + 1)
+       ));
+
+    if (!hasChanges && choices && choices.length > 0) {
+      console.log('No changes needed for choices');
+      return existingChoices;
+    }
+
+    // 3. choice_numberの整合性を確保（既存データの重複チェック）
+    const duplicateNumbers = existingChoices
+      .map(c => c.choice_number)
+      .filter((num, index, arr) => arr.indexOf(num) !== index);
+    
+    if (duplicateNumbers.length > 0) {
+      console.warn('Duplicate choice_numbers detected:', duplicateNumbers);
+      // 重複がある場合は一旦全削除してから再作成
+      await supabase
+        .from('question_option_choices')
+        .delete()
+        .eq('review_questions_id', reviewQuestionsId);
+      
+      // 新しい選択肢を順番に作成
+      if (choices && choices.length > 0) {
+        for (let i = 0; i < choices.length; i++) {
+          await supabase
+            .from('question_option_choices')
+            .insert({
+              review_questions_id: reviewQuestionsId,
+              choice_number: i + 1,
+              choice_name: choices[i]
+            });
+        }
+      }
+      
+      const updatedChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+      console.log('Rebuilt choices after duplicate cleanup:', updatedChoices);
+      return updatedChoices;
+    }
+
+    const operations = [];
+    
+    // 3. 新しい選択肢リストを処理
+    if (choices && choices.length > 0) {
+      for (let i = 0; i < choices.length; i++) {
+        const choiceText = choices[i];
+        const choiceNumber = i + 1;
+        const existingChoice = existingChoices.find(c => c.choice_number === choiceNumber);
+
+        if (existingChoice) {
+          // 既存の選択肢を更新
+          if (existingChoice.choice_name !== choiceText) {
+            console.log(`Updating choice ${choiceNumber}: "${existingChoice.choice_name}" → "${choiceText}"`);
+            operations.push({
+              type: 'update',
+              operation: () => supabase
+                .from('question_option_choices')
+                .update({ choice_name: choiceText })
+                .eq('id', existingChoice.id)
+            });
+          }
+        } else {
+          // 新しい選択肢を追加
+          console.log(`Adding new choice ${choiceNumber}: "${choiceText}"`);
+          operations.push({
+            type: 'insert',
+            operation: () => supabase
+              .from('question_option_choices')
+              .insert({
+                review_questions_id: reviewQuestionsId,
+                choice_number: choiceNumber,
+                choice_name: choiceText
+              })
+          });
+        }
+      }
+    }
+
+    // 4. 不要になった選択肢を削除
+    const choicesToDelete = existingChoices.filter(existing => 
+      !choices || existing.choice_number > choices.length
+    );
+    
+    for (const choiceToDelete of choicesToDelete) {
+      console.log(`Deleting choice ${choiceToDelete.choice_number}: "${choiceToDelete.choice_name}"`);
+      operations.push({
+        type: 'delete',
+        operation: () => supabase
+          .from('question_option_choices')
+          .delete()
+          .eq('id', choiceToDelete.id)
+      });
+    }
+
+    // 5. 操作をシーケンシャルに実行（競合を防ぐ）
+    if (operations.length > 0) {
+      for (let i = 0; i < operations.length; i++) {
+        const op = operations[i];
+        try {
+          const result = await op.operation();
+          if (result.error) {
+            console.error(`Choice update error - Operation ${i + 1}/${operations.length} (${op.type}):`, result.error);
+            throw new Error(`Failed to ${op.type} choice: ${result.error.message || result.error}`);
+          }
+        } catch (error) {
+          console.error(`Choice update operation failed - Operation ${i + 1}/${operations.length} (${op.type}):`, error);
+          throw new Error(`Choice ${op.type} operation failed: ${error.message}`);
+        }
+      }
+    }
+
+    // 6. 更新後の選択肢を取得して返却
+    const updatedChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+    console.log('Updated choices:', updatedChoices);
+    
+    return updatedChoices;
+  } catch (error) {
+    console.error('Error updating choice options:', error);
+    throw error;
+  } finally {
+    // 必ずロックを解除
+    releaseChoiceUpdateLock(reviewQuestionsId);
+  }
+};
+
+// リニアスケールオプションを更新する関数
+export const updateLinearScaleOption = async (reviewQuestionsId, scaleSettings) => {
+  try {
+    // 1. 質問タイプIDを取得してloyalty_score_flagsを決定
+    const { data: questionData, error: questionError } = await supabase
+      .from('review_questions')
+      .select('question_types_id')
+      .eq('id', reviewQuestionsId)
+      .single();
+    
+    if (questionError) {
+      throw questionError;
+    }
+
+    // 2. 既存のスケール設定を削除
+    await supabase
+      .from('question_option_linear_scale')
+      .delete()
+      .eq('review_questions_id', reviewQuestionsId);
+
+    // 3. 新しいスケール設定を追加
+    if (scaleSettings) {
+      const { data, error } = await supabase
+        .from('question_option_linear_scale')
+        .insert({
+          review_questions_id: reviewQuestionsId,
+          min_text: scaleSettings.minLabel || 'そう思わない',
+          max_text: scaleSettings.maxLabel || 'そう思う',
+          loyalty_score_flags: questionData.question_types_id === 9
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error updating linear scale option:', error);
+    throw error;
+  }
+};
+
+// 質問とそのオプションをまとめて更新する関数
+export const updateQuestionWithOptions = async (questionId, questionData) => {
+  try {
+    // 1. 基本の質問データを更新
+    const updatedQuestion = await updateReviewQuestion(questionId, {
+      question_text: questionData.question_text,
+      is_required: questionData.is_required,
+      question_detail_text: questionData.question_detail_text || null,
+      is_detail_enabled: questionData.is_detail_enabled || false
+    });
+
+    // 2. 質問タイプに応じてオプションを更新
+    if (questionData.question_types_id === 8) {
+      // リニアスケールオプション
+      if (questionData.scale_settings) {
+        const scaleSettings = typeof questionData.scale_settings === 'string' 
+          ? JSON.parse(questionData.scale_settings) 
+          : questionData.scale_settings;
+        await updateLinearScaleOption(questionId, scaleSettings);
+      }
+    } else if ([3, 4, 5, 6, 7, 9, 10].includes(questionData.question_types_id)) {
+      // 選択肢オプション
+      if (questionData.choices) {
+        const choices = typeof questionData.choices === 'string' 
+          ? JSON.parse(questionData.choices) 
+          : questionData.choices;
+        await updateChoiceOptions(questionId, choices);
+      }
+    }
+
+    return updatedQuestion;
+  } catch (error) {
+    console.error('Error updating question with options:', error);
+    throw error;
+  }
+};
+
+// 選択肢オプションを直接更新する関数（review_questionsテーブルを経由しない）
+export const updateChoiceOptionsDirect = async (reviewQuestionsId, choices) => {
+  // 排他制御でロックを取得
+  await acquireChoiceUpdateLock(reviewQuestionsId);
+  
+  try {
+    console.log(`Updating choices directly for question ${reviewQuestionsId}:`, choices);
+    
+    // 1. 既存の選択肢を取得
+    const existingChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+    console.log('Existing choices (direct):', existingChoices);
+
+    // 2. 変更が必要かチェック（不要な処理を避ける）
+    const hasChanges = choices && choices.length > 0 && 
+      (existingChoices.length !== choices.length ||
+       existingChoices.some((existing, index) => 
+         existing.choice_name !== choices[index] || existing.choice_number !== (index + 1)
+       ));
+
+    if (!hasChanges && choices && choices.length > 0) {
+      console.log('No changes needed for choices');
+      return existingChoices;
+    }
+
+    // 3. choice_numberの整合性を確保（既存データの重複チェック）
+    const duplicateNumbers = existingChoices
+      .map(c => c.choice_number)
+      .filter((num, index, arr) => arr.indexOf(num) !== index);
+    
+    if (duplicateNumbers.length > 0) {
+      console.warn('Duplicate choice_numbers detected (direct):', duplicateNumbers);
+      // 重複がある場合は一旦全削除してから再作成
+      await supabase
+        .from('question_option_choices')
+        .delete()
+        .eq('review_questions_id', reviewQuestionsId);
+      
+      // 新しい選択肢を順番に作成
+      if (choices && choices.length > 0) {
+        for (let i = 0; i < choices.length; i++) {
+          await supabase
+            .from('question_option_choices')
+            .insert({
+              review_questions_id: reviewQuestionsId,
+              choice_number: i + 1,
+              choice_name: choices[i]
+            });
+        }
+      }
+      
+      const updatedChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+      console.log('Rebuilt choices after duplicate cleanup (direct):', updatedChoices);
+      return updatedChoices;
+    }
+
+    // 3. 一括更新処理（シーケンシャル実行で競合を防ぐ）
+    const operations = [];
+    
+    // 新しい選択肢リストを処理
+    if (choices && choices.length > 0) {
+      for (let i = 0; i < choices.length; i++) {
+        const choiceText = choices[i];
+        const choiceNumber = i + 1;
+        const existingChoice = existingChoices.find(c => c.choice_number === choiceNumber);
+
+        if (existingChoice) {
+          // 既存の選択肢を更新
+          if (existingChoice.choice_name !== choiceText) {
+            console.log(`Updating choice ${choiceNumber} (direct): "${existingChoice.choice_name}" → "${choiceText}"`);
+            operations.push({
+              type: 'update',
+              operation: () => supabase
+                .from('question_option_choices')
+                .update({ choice_name: choiceText })
+                .eq('id', existingChoice.id)
+            });
+          }
+        } else {
+          // 新しい選択肢を追加
+          console.log(`Adding new choice ${choiceNumber} (direct): "${choiceText}"`);
+          operations.push({
+            type: 'insert',
+            operation: () => supabase
+              .from('question_option_choices')
+              .insert({
+                review_questions_id: reviewQuestionsId,
+                choice_number: choiceNumber,
+                choice_name: choiceText
+              })
+          });
+        }
+      }
+    }
+
+    // 不要になった選択肢を削除
+    const choicesToDelete = existingChoices.filter(existing => 
+      !choices || existing.choice_number > choices.length
+    );
+    
+    for (const choiceToDelete of choicesToDelete) {
+      console.log(`Deleting choice ${choiceToDelete.choice_number} (direct): "${choiceToDelete.choice_name}"`);
+      operations.push({
+        type: 'delete',
+        operation: () => supabase
+          .from('question_option_choices')
+          .delete()
+          .eq('id', choiceToDelete.id)
+      });
+    }
+
+    // 4. 操作をシーケンシャルに実行（競合を防ぐ）
+    if (operations.length > 0) {
+      for (let i = 0; i < operations.length; i++) {
+        const op = operations[i];
+        try {
+          const result = await op.operation();
+          if (result.error) {
+            console.error(`Choice update error (direct) - Operation ${i + 1}/${operations.length} (${op.type}):`, result.error);
+            throw new Error(`Failed to ${op.type} choice: ${result.error.message || result.error}`);
+          }
+        } catch (error) {
+          console.error(`Choice update operation failed (direct) - Operation ${i + 1}/${operations.length} (${op.type}):`, error);
+          throw new Error(`Choice ${op.type} operation failed: ${error.message}`);
+        }
+      }
+    }
+
+    // 5. 更新後の選択肢を取得して返却
+    const updatedChoices = await getQuestionChoiceOptions(reviewQuestionsId);
+    console.log('Updated choices (direct):', updatedChoices);
+    
+    return updatedChoices;
+  } catch (error) {
+    console.error('Error updating choice options directly:', error);
+    throw error;
+  } finally {
+    // 必ずロックを解除
+    releaseChoiceUpdateLock(reviewQuestionsId);
+  }
+};
+
+// 均等目盛りオプションを直接更新する関数（review_questionsテーブルを経由しない）
+export const updateLinearScaleOptionDirect = async (reviewQuestionsId, scaleSettings) => {
+  try {
+    // 1. 質問タイプIDを取得してloyalty_score_flagsを決定
+    const { data: questionData, error: questionError } = await supabase
+      .from('review_questions')
+      .select('question_types_id')
+      .eq('id', reviewQuestionsId)
+      .single();
+    
+    if (questionError) {
+      throw questionError;
+    }
+
+    // 2. 既存のスケール設定を削除
+    await supabase
+      .from('question_option_linear_scale')
+      .delete()
+      .eq('review_questions_id', reviewQuestionsId);
+
+    // 3. 新しいスケール設定を追加
+    if (scaleSettings) {
+      const { data, error } = await supabase
+        .from('question_option_linear_scale')
+        .insert({
+          review_questions_id: reviewQuestionsId,
+          min_text: scaleSettings.minLabel || '',
+          max_text: scaleSettings.maxLabel || '',
+          loyalty_score_flags: questionData.question_types_id === 9
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error updating linear scale option directly:', error);
+    throw error;
+  }
+};
+
+// 質問とそのオプションをまとめて取得する関数
+export const getQuestionsWithOptions = async (reviewFormId, reviewFormPagesId) => {
+  try {
+    // 1. 基本の質問データを取得
+    const questions = await getReviewQuestions(reviewFormId, reviewFormPagesId);
+    
+    // 2. 各質問のオプションデータを取得
+    const questionsWithOptions = await Promise.all(
+      questions.map(async (question) => {
+        let options = null;
+        
+        // 質問タイプに応じてオプションを取得
+        if (question.question_types_id === 7 || question.question_types_id === 9) {
+          // リニアスケール・推奨度スコアオプション
+          options = await getQuestionLinearScaleOption(question.id);
+        } else if ([3, 4, 5, 6, 8, 10].includes(question.question_types_id)) {
+          // 選択肢オプション
+          options = await getQuestionChoiceOptions(question.id);
+        }
+        
+        return {
+          ...question,
+          options: options
+        };
+      })
+    );
+
+    return questionsWithOptions;
+  } catch (error) {
+    console.error('Error fetching questions with options:', error);
+    return [];
+  }
+};
+
+// Analytics用質問一覧取得（テストモード対応）
+export const getQuestionsForAnalytics = async (userId, isTestMode = false) => {
+  try {
+    console.log('getQuestionsForAnalytics 開始:', { userId, isTestMode });
+    const config = getDatabaseConfig(isTestMode); // テストモード削除時: getDatabaseConfig()
+    console.log('使用するDB設定:', config);
+
+    let questionsQuery;
+
+    if (isTestMode) {
+      // ========= テストモード用クエリ（削除予定） =========
+      console.log('テストモード用クエリを実行:', config.REVIEW_QUESTIONS);
+      
+      // まずはシンプルなクエリでテストデータの存在確認
+      const { data: testData, error: testError } = await supabase
+        .from(config.REVIEW_QUESTIONS)
+        .select('*')
+        .limit(5);
+      
+      console.log('テストデータ確認結果:', { data: testData, error: testError });
+      
+      questionsQuery = supabase
+        .from(config.REVIEW_QUESTIONS)
+        .select(`
+          id,
+          question_text,
+          question_number,
+          is_required,
+          question_detail_text,
+          is_detail_enabled,
+          created_at,
+          question_types_id,
+          question_categories_id,
+          question_subcategories_id
+        `)
+        .order('question_number', { ascending: true });
+      // ================================================
+    } else {
+      // 本番モード用クエリ（削除不要）
+      questionsQuery = supabase
+        .from(config.REVIEW_QUESTIONS)
+        .select(`
+          id,
+          question_text,
+          question_number,
+          is_required,
+          question_detail_text,
+          is_detail_enabled,
+          created_at,
+          question_types!inner(id, japanese),
+          question_categories!inner(id, japanese_name),
+          question_subcategories(id, japanese_name),
+          review_forms!inner(id, title, business_users),
+          review_form_pages(id, name, page_number)
+        `)
+        .eq('review_forms.business_users', userId)
+        .order('question_number', { ascending: true });
+    }
+
+    const { data: questions, error } = await questionsQuery;
+    console.log('クエリ実行結果:', { questions, error });
+
+    if (error) {
+      console.error('Analytics用質問取得エラー:', error);
+      return [];
+    }
+
+    if (!questions || questions.length === 0) {
+      console.warn('取得した質問データが空です');
+      return [];
+    }
+
+    // データを統一フォーマットに変換し、選択肢データも取得
+    const formattedQuestions = await formatQuestionsForAnalyticsWithOptions(questions || [], isTestMode);
+    console.log('フォーマット後の質問データ:', formattedQuestions);
+    
+    return formattedQuestions;
+
+  } catch (error) {
+    console.error('Analytics用質問取得エラー:', error);
+    return [];
+  }
+};
+
+// Analytics用質問データのフォーマット（オプション付き・テストモード対応）
+export const formatQuestionsForAnalyticsWithOptions = async (rawQuestions, isTestMode = false) => {
+  console.log('フォーマット処理開始（オプション付き）:', rawQuestions);
+  const config = getDatabaseConfig(isTestMode);
+  
+  const formattedQuestions = await Promise.all(
+    rawQuestions.map(async (question) => {
+      console.log('フォーマット中の質問:', question);
+      
+      // 選択肢データを取得（質問タイプに応じて）
+      let options = [];
+      const questionTypeId = question.question_types?.id || question.question_types_id;
+      
+      try {
+        if ([3, 4, 5, 6, 7].includes(questionTypeId)) {
+          // 選択肢データを取得（プルダウン、単一選択、複数選択など）
+          const tablePrefix = isTestMode ? 'test_' : '';
+          const { data: choiceOptions, error: choiceError } = await supabase
+            .from(`${tablePrefix}question_option_choices`)
+            .select('choice_name, choice_number')
+            .eq('review_questions_id', question.id)
+            .order('choice_number');
+          
+          if (!choiceError && choiceOptions) {
+            options = choiceOptions.map(opt => ({
+              label: opt.choice_name,
+              value: opt.choice_name,
+              text: opt.choice_name
+            }));
+            console.log(`質問ID ${question.id} の選択肢:`, options);
+          } else if (choiceError) {
+            console.warn(`質問ID ${question.id} の選択肢取得エラー:`, choiceError);
+          }
+        } else if (questionTypeId === 8) {
+          // リニアスケール用のオプション生成
+          options = [
+            { label: '1', value: 1, text: '1' },
+            { label: '2', value: 2, text: '2' },
+            { label: '3', value: 3, text: '3' },
+            { label: '4', value: 4, text: '4' },
+            { label: '5', value: 5, text: '5' }
+          ];
+          console.log(`質問ID ${question.id} のリニアスケール選択肢:`, options);
+        }
+      } catch (error) {
+        console.error(`質問ID ${question.id} のオプション取得でエラー:`, error);
+      }
+      
+      const formatted = {
+        id: question.id,
+        title: question.question_text || '無題の質問',
+        questionNumber: question.question_number || 0,
+        category: question.question_categories?.japanese_name || 'その他',
+        subcategory: question.question_subcategories?.japanese_name || null,
+        type: question.question_types?.japanese || getQuestionTypeName(questionTypeId),
+        typeId: questionTypeId || 0,
+        isRequired: question.is_required || false,
+        detailText: question.question_detail_text || '',
+        isDetailEnabled: question.is_detail_enabled || false,
+        formTitle: question.review_forms?.title || question.test_review_forms?.title || 'テストフォーム',
+        pageInfo: question.review_form_pages || question.test_review_form_pages || null,
+        createdAt: question.created_at,
+        // Analytics表示用の追加情報
+        responses: 0, // 実際のレスポンス数は別途取得
+        avgRating: 0, // 平均評価は別途取得
+        options: options, // 取得した選択肢データ
+        data: { labels: options.map(opt => opt.label) }, // フィルター用
+        // カテゴリカラー（UI表示用）
+        categoryColor: getCategoryColor(question.question_categories?.japanese_name || 'その他')
+      };
+      
+      console.log('フォーマット後（オプション付き）:', formatted);
+      return formatted;
+    })
+  );
+  
+  return formattedQuestions;
+};
+
+// 質問タイプIDから名前を取得するヘルパー関数
+const getQuestionTypeName = (typeId) => {
+  const typeMap = {
+    1: '短文回答',
+    2: '長文回答', 
+    3: '単一選択',
+    4: '複数選択',
+    5: '単一選択(2列)',
+    6: '複数選択(2列)',
+    7: 'プルダウン',
+    8: '線形スケール'
+  };
+  return typeMap[typeId] || '不明';
+};
+
+// Analytics用質問データのフォーマット（共通処理・削除不要）
+export const formatQuestionsForAnalytics = (rawQuestions) => {
+  console.log('フォーマット処理開始:', rawQuestions);
+  
+  return rawQuestions.map(question => {
+    console.log('フォーマット中の質問:', question);
+    
+    const formatted = {
+      id: question.id,
+      title: question.question_text || '無題の質問',
+      questionNumber: question.question_number || 0,
+      category: question.question_categories?.japanese_name || 'その他',
+      subcategory: question.question_subcategories?.japanese_name || null,
+      type: question.question_types?.japanese || '不明',
+      typeId: question.question_types?.id || question.question_types_id || 0,
+      isRequired: question.is_required || false,
+      detailText: question.question_detail_text || '',
+      isDetailEnabled: question.is_detail_enabled || false,
+      formTitle: question.review_forms?.title || question.test_review_forms?.title || 'テストフォーム',
+      pageInfo: question.review_form_pages || question.test_review_form_pages || null,
+      createdAt: question.created_at,
+      // Analytics表示用の追加情報（初期値）
+      responses: 0, // 実際のレスポンス数は別途取得
+      avgRating: 0, // 平均評価は別途取得
+      // カテゴリカラー（UI表示用）
+      categoryColor: getCategoryColor(question.question_categories?.japanese_name || 'その他')
+    };
+    
+    console.log('フォーマット後:', formatted);
+    return formatted;
+  });
+};
+
+// カテゴリカラー取得（UI表示用・削除不要）
+const getCategoryColor = (categoryName) => {
+  const colorMap = {
+    '基本情報': '#3B82F6',
+    '満足度': '#10B981', 
+    'サービス評価': '#F59E0B',
+    '改善提案': '#EF4444',
+    'その他': '#6B7280',
+    // questionsDatabase.jsと同じカラー定義を追加
+    'satisfaction': '#3b82f6',
+    'product': '#10b981', 
+    'behavior': '#f59e0b',
+    'demographics': '#8b5cf6',
+    'feedback': '#ef4444'
+  };
+  return colorMap[categoryName] || colorMap['その他'];
+};
+
+// 質問統計データ取得（テストモード対応）
+export const getQuestionAnalyticsStats = async (questionId, isTestMode = false) => {
+  try {
+    const config = getDatabaseConfig(isTestMode); // テストモード削除時: getDatabaseConfig()
+
+    // 回答数取得
+    const { data: answers, error: answersError } = await supabase
+      .from(config.REVIEW_QUESTION_ANSWERS)
+      .select('id')
+      .eq('review_questions_id', questionId);
+
+    if (answersError) {
+      console.error('回答統計取得エラー:', answersError);
+      return { responses: 0, avgRating: 0 };
+    }
+
+    // リニアスケール回答の平均取得
+    const { data: linearAnswers, error: linearError } = await supabase
+      .from(config.QUESTION_ANSWER_OPTION_LINEAR_SCALE)
+      .select('answer_number')
+      .in('review_question_answers_id', answers?.map(a => a.id) || []);
+
+    if (linearError) {
+      console.error('リニアスケール統計取得エラー:', linearError);
+    }
+
+    const ratings = linearAnswers?.map(a => a.answer_number).filter(r => r !== null) || [];
+    const avgRating = ratings.length > 0 
+      ? Math.round((ratings.reduce((sum, r) => sum + r, 0) / ratings.length) * 10) / 10
+      : 0;
+
+    return {
+      responses: answers?.length || 0,
+      avgRating
+    };
+
+  } catch (error) {
+    console.error('質問統計取得エラー:', error);
+    return { responses: 0, avgRating: 0 };
+  }
+};
+
+// 企業が過去に作成した全ての質問を取得する関数（オプション付き）
+// companyIdが指定されている場合は同じcompany_idの全フォームから質問を取得
+export const getCompanyPastQuestions = async (businessUserId, companyId = null) => {
+  try {
+    let formIds = [];
+    let formMap = {};
+
+    if (companyId) {
+      // companyIdが指定されている場合: company_review_formsから同じcompanyのフォームを取得
+      const { data: companyForms, error: companyFormsError } = await supabase
+        .from('company_review_forms')
+        .select(`
+          review_form_id,
+          review_forms:review_form_id (
+            id,
+            title,
+            is_deleted
+          )
+        `)
+        .eq('company_id', companyId);
+
+      if (companyFormsError) {
+        console.error('company_review_forms取得エラー:', companyFormsError);
+        // フォールバック: 元の方法で取得
+      } else if (companyForms && companyForms.length > 0) {
+        // 削除されていないフォームのみをフィルタ
+        const validForms = companyForms
+          .filter(cf => cf.review_forms && !cf.review_forms.is_deleted)
+          .map(cf => cf.review_forms);
+
+        formIds = validForms.map(f => f.id);
+        formMap = validForms.reduce((acc, f) => {
+          acc[f.id] = f.title;
+          return acc;
+        }, {});
+      }
+    }
+
+    // companyIdが指定されていない、または取得に失敗した場合は元の方法で取得
+    if (formIds.length === 0) {
+      // 1. ユーザーが作成したフォームIDを取得
+      const { data: forms, error: formsError } = await supabase
+        .from('review_forms')
+        .select('id, title')
+        .eq('business_users', businessUserId)
+        .eq('is_deleted', false);
+
+      if (formsError) {
+        throw formsError;
+      }
+
+      if (!forms || forms.length === 0) {
+        return [];
+      }
+
+      formIds = forms.map(f => f.id);
+      formMap = forms.reduce((acc, f) => {
+        acc[f.id] = f.title;
+        return acc;
+      }, {});
+    }
+
+    if (formIds.length === 0) {
+      return [];
+    }
+
+    // 2. フォームに関連する全ての質問を取得
+    const { data: questions, error: questionsError } = await supabase
+      .from('review_questions')
+      .select(`
+        id,
+        review_fome_id,
+        question_types_id,
+        question_text,
+        question_detail_text,
+        is_required,
+        is_detail_enabled,
+        template_review_questions_id,
+        created_at
+      `)
+      .in('review_fome_id', formIds)
+      .not('question_text', 'eq', '')
+      .order('created_at', { ascending: false });
+
+    if (questionsError) {
+      throw questionsError;
+    }
+
+    if (!questions || questions.length === 0) {
+      return [];
+    }
+
+    // 3. 各質問のオプションを取得
+    const questionIds = questions.map(q => q.id);
+
+    // 選択肢を一括取得
+    const { data: allChoices, error: choicesError } = await supabase
+      .from('question_option_choices')
+      .select('*')
+      .in('review_questions_id', questionIds)
+      .order('choice_number');
+
+    if (choicesError) {
+      console.error('選択肢取得エラー:', choicesError);
+    }
+
+    // リニアスケール設定を一括取得
+    const { data: allScales, error: scalesError } = await supabase
+      .from('question_option_linear_scale')
+      .select('*')
+      .in('review_questions_id', questionIds);
+
+    if (scalesError) {
+      console.error('スケール設定取得エラー:', scalesError);
+    }
+
+    // 4. 質問データを整形
+    const formattedQuestions = questions.map(question => {
+      // 選択肢データ
+      const questionChoices = (allChoices || [])
+        .filter(c => c.review_questions_id === question.id)
+        .sort((a, b) => a.choice_number - b.choice_number)
+        .map(c => c.choice_name);
+
+      // スケール設定
+      const scaleData = (allScales || []).find(s => s.review_questions_id === question.id);
+
+      return {
+        id: question.id,
+        originalQuestionId: question.id, // 元の質問IDを保持
+        question_types_id: question.question_types_id,
+        question: question.question_text,
+        question_text: question.question_text,
+        detail: question.question_detail_text || '',
+        required: question.is_required,
+        is_detail_enabled: question.is_detail_enabled,
+        choices: questionChoices.length > 0 ? questionChoices : null,
+        scale_settings: scaleData ? {
+          minValue: scaleData.loyalty_score_flags ? 0 : 1,
+          maxValue: scaleData.loyalty_score_flags ? 10 : 5,
+          minLabel: scaleData.min_text,
+          maxLabel: scaleData.max_text
+        } : null,
+        formTitle: formMap[question.review_fome_id] || '',
+        formId: question.review_fome_id,
+        template_review_questions_id: question.template_review_questions_id,
+        isPastQuestion: true, // 過去の質問であることを示すフラグ
+        created_at: question.created_at
+      };
+    });
+
+    // 5. 重複を除去（同じ質問テキストの場合は最新のものを保持）
+    const uniqueQuestions = [];
+    const seenTexts = new Set();
+
+    for (const q of formattedQuestions) {
+      if (!seenTexts.has(q.question_text)) {
+        seenTexts.add(q.question_text);
+        uniqueQuestions.push(q);
+      }
+    }
+
+    return uniqueQuestions;
+
+  } catch (error) {
+    console.error('Error fetching company past questions:', error);
+    return [];
+  }
+};
+
+// 既存の質問を参照として新しいフォームに追加する関数（完全コピー）
+export const addExistingQuestionReference = async ({
+  originalQuestionId,
+  reviewFormId,
+  reviewFormPagesId,
+  questionNumber,
+  // フォールバック用のデータ（元の質問が取得できない場合に使用）
+  fallbackData = null
+}) => {
+  try {
+    console.log('addExistingQuestionReference開始:', { originalQuestionId, reviewFormId, reviewFormPagesId, questionNumber });
+
+    // 1. 元の質問データを取得
+    let originalQuestion = null;
+    let originalChoices = [];
+    let originalScale = null;
+
+    if (originalQuestionId) {
+      const { data: fetchedQuestion, error: fetchError } = await supabase
+        .from('review_questions')
+        .select('*')
+        .eq('id', originalQuestionId)
+        .single();
+
+      if (!fetchError && fetchedQuestion) {
+        originalQuestion = fetchedQuestion;
+        console.log('元の質問を取得:', originalQuestion);
+
+        // 選択肢を取得
+        originalChoices = await getQuestionChoiceOptions(originalQuestionId);
+        console.log('元の選択肢を取得:', originalChoices);
+
+        // リニアスケール設定を取得
+        originalScale = await getQuestionLinearScaleOption(originalQuestionId);
+        console.log('元のスケール設定を取得:', originalScale);
+      } else {
+        console.warn('元の質問が見つかりません、フォールバックデータを使用:', fetchError);
+      }
+    }
+
+    // フォールバック: 元の質問が取得できない場合はfallbackDataを使用
+    if (!originalQuestion && fallbackData) {
+      console.log('フォールバックデータを使用:', fallbackData);
+      originalQuestion = {
+        question_types_id: fallbackData.question_types_id,
+        question_text: fallbackData.question_text || fallbackData.question || '',
+        question_detail_text: fallbackData.detail || fallbackData.question_detail_text || '',
+        is_required: fallbackData.required !== undefined ? fallbackData.required : true,
+        is_detail_enabled: fallbackData.is_detail_enabled || false,
+        template_review_questions_id: fallbackData.template_review_questions_id || null
+      };
+
+      // フォールバックの選択肢
+      if (fallbackData.choices && Array.isArray(fallbackData.choices)) {
+        originalChoices = fallbackData.choices.map((choice, index) => ({
+          choice_name: typeof choice === 'string' ? choice : choice.choice_name,
+          choice_number: index + 1
+        }));
+      }
+
+      // フォールバックのスケール設定
+      if (fallbackData.scale_settings) {
+        originalScale = {
+          min_text: fallbackData.scale_settings.minLabel || '',
+          max_text: fallbackData.scale_settings.maxLabel || '',
+          loyalty_score_flags: fallbackData.question_types_id === 9
+        };
+      }
+    }
+
+    if (!originalQuestion) {
+      throw new Error('元の質問データが見つかりません');
+    }
+
+    // 2. 新しいフォームに同じ質問を作成（元のIDではなく、新しいIDで作成）
+    const { data: newQuestion, error: insertError } = await supabase
+      .from('review_questions')
+      .insert({
+        review_fome_id: reviewFormId,
+        question_types_id: originalQuestion.question_types_id,
+        review_form_pages_id: reviewFormPagesId,
+        question_number: questionNumber,
+        question_text: originalQuestion.question_text,
+        question_detail_text: originalQuestion.question_detail_text,
+        is_required: originalQuestion.is_required,
+        is_detail_enabled: originalQuestion.is_detail_enabled,
+        template_review_questions_id: originalQuestion.template_review_questions_id || null
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('質問挿入エラー:', insertError);
+      throw insertError;
+    }
+
+    console.log('新しい質問を作成:', newQuestion);
+
+    // 3. 選択肢をコピー
+    const questionTypeId = originalQuestion.question_types_id;
+
+    if ([3, 4, 5, 6, 8, 10].includes(questionTypeId) && originalChoices.length > 0) {
+      console.log('選択肢をコピー:', originalChoices);
+      await createChoiceOptionsFromTemplate(newQuestion.id, originalChoices);
+    }
+
+    // 4. リニアスケール設定をコピー
+    if ([7, 9].includes(questionTypeId) && originalScale) {
+      console.log('スケール設定をコピー:', originalScale);
+      await createLinearScaleOptionFromTemplate(newQuestion.id, originalScale, questionTypeId);
+    }
+
+    return newQuestion;
+
+  } catch (error) {
+    console.error('Error adding existing question reference:', error);
+    throw error;
+  }
+};
+
+// 質問複製関数
+export const duplicateQuestionWithOptions = async (formId, pageId, originalQuestionId) => {
+  try {
+    // 1. 元質問とオプションデータを取得
+    const originalQuestions = await getQuestionsWithOptions(formId, pageId);
+    const originalQuestion = originalQuestions.find(q => q.id === originalQuestionId);
+    
+    if (!originalQuestion) {
+      throw new Error('複製対象の質問が見つかりません');
+    }
+
+    // 2. 現在のページの質問数を取得して新しい質問番号を決定
+    const existingQuestions = await getReviewQuestions(formId, pageId);
+    const maxQuestionNumber = existingQuestions.length > 0 
+      ? Math.max(...existingQuestions.map(q => q.question_number || 0))
+      : 0;
+    const newQuestionNumber = maxQuestionNumber + 1;
+
+    // 3. 基本的な質問を作成
+    const duplicatedQuestion = await createReviewQuestion({
+      reviewFormId: formId,
+      questionTypesId: originalQuestion.question_types_id,
+      reviewFormPagesId: pageId,
+      questionNumber: newQuestionNumber
+    });
+
+    // 4. 質問テキストと設定を更新
+    const updatedQuestion = await updateReviewQuestion(duplicatedQuestion.id, {
+      question_text: `${originalQuestion.question_text} (コピー)`,
+      detail_text: originalQuestion.detail_text,
+      is_required: originalQuestion.is_required
+    });
+
+    // 5. オプションデータを複製（質問タイプに応じて）
+    const questionTypeId = originalQuestion.question_types_id;
+    
+    // 選択肢が必要な質問タイプの場合
+    if ([3, 4, 5, 6, 8, 10].includes(questionTypeId) && originalQuestion.options && Array.isArray(originalQuestion.options)) {
+      // 選択肢名の配列を作成（updateChoiceOptionsは文字列配列を期待）
+      const choiceNames = originalQuestion.options.map(option => option.choice_name);
+      await updateChoiceOptions(duplicatedQuestion.id, choiceNames);
+    }
+    
+    // リニアスケールが必要な質問タイプの場合
+    if ([7, 9].includes(questionTypeId) && originalQuestion.options && !Array.isArray(originalQuestion.options)) {
+      const scaleOption = originalQuestion.options;
+      
+      // リニアスケールオプションを作成
+      await createLinearScaleOption(duplicatedQuestion.id, questionTypeId);
+      
+      // 元の質問のmin_text、max_textがある場合は更新
+      if (scaleOption.min_text || scaleOption.max_text) {
+        await updateLinearScaleOption(duplicatedQuestion.id, {
+          min_text: scaleOption.min_text || '',
+          max_text: scaleOption.max_text || ''
+        });
+      }
+    }
+
+    // 6. 完全なデータを再取得して返す
+    const finalQuestions = await getQuestionsWithOptions(formId, pageId);
+    const finalQuestion = finalQuestions.find(q => q.id === duplicatedQuestion.id);
+
+    return finalQuestion;
+
+  } catch (error) {
+    console.error('Error duplicating question:', error);
+    throw error;
+  }
+};
+
+// ============================================================================
+// 質問リンク（review_question_form_links）関連の関数
+// 既存の質問を複数のフォーム/ページにリンクするための機能
+// ============================================================================
+
+/**
+ * 既存の質問を別のフォーム/ページにリンクする（新しいreview_questionsレコードを作成せずに）
+ * @param {Object} params - パラメータ
+ * @param {string} params.reviewQuestionId - 元の質問ID
+ * @param {string} params.reviewFormId - リンク先のフォームID
+ * @param {string} params.reviewFormPagesId - リンク先のページID
+ * @param {number} params.questionNumber - このフォーム内での質問番号
+ * @param {boolean} [params.isRequired] - このリンクでの必須設定（NULLなら元の質問設定を使用）
+ * @returns {Promise<Object>} 作成されたリンク
+ */
+export const linkQuestionToForm = async ({
+  reviewQuestionId,
+  reviewFormId,
+  reviewFormPagesId,
+  questionNumber,
+  isRequired = null
+}) => {
+  try {
+    const { data: link, error } = await supabase
+      .from('review_question_form_links')
+      .insert({
+        review_question_id: reviewQuestionId,
+        review_form_id: reviewFormId,
+        review_form_pages_id: reviewFormPagesId,
+        question_number: questionNumber,
+        is_required: isRequired
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('質問リンク作成エラー:', error);
+      throw error;
+    }
+
+    return link;
+  } catch (error) {
+    console.error('Error linking question to form:', error);
+    throw error;
+  }
+};
+
+/**
+ * フォームにリンクされた質問を取得する
+ * @param {string} reviewFormId - フォームID
+ * @param {string} [reviewFormPagesId] - ページID（指定しない場合は全ページ）
+ * @returns {Promise<Array>} リンクされた質問一覧（元の質問データを含む）
+ */
+export const getLinkedQuestions = async (reviewFormId, reviewFormPagesId = null) => {
+  try {
+    let query = supabase
+      .from('review_question_form_links')
+      .select(`
+        *,
+        review_questions (
+          id,
+          question_text,
+          question_detail_text,
+          question_types_id,
+          is_required,
+          is_detail_enabled,
+          question_option_choices (
+            id,
+            choice_name,
+            choice_number
+          ),
+          question_option_linear_scale (
+            id,
+            min_text,
+            max_text,
+            loyalty_score_flags
+          )
+        )
+      `)
+      .eq('review_form_id', reviewFormId)
+      .order('question_number', { ascending: true });
+
+    if (reviewFormPagesId) {
+      query = query.eq('review_form_pages_id', reviewFormPagesId);
+    }
+
+    const { data: links, error } = await query;
+
+    if (error) {
+      console.error('リンク質問取得エラー:', error);
+      throw error;
+    }
+
+    // データを整形（元の質問データとリンク設定をマージ）
+    return links.map(link => ({
+      linkId: link.id,
+      questionNumber: link.question_number,
+      isRequired: link.is_required ?? link.review_questions?.is_required,
+      reviewFormPagesId: link.review_form_pages_id,
+      // 元の質問データ
+      ...link.review_questions,
+      isLinked: true  // リンクされた質問であることを示すフラグ
+    }));
+
+  } catch (error) {
+    console.error('Error getting linked questions:', error);
+    throw error;
+  }
+};
+
+/**
+ * 質問リンクを削除する
+ * @param {string} linkId - リンクID
+ * @returns {Promise<void>}
+ */
+export const unlinkQuestion = async (linkId) => {
+  try {
+    const { error } = await supabase
+      .from('review_question_form_links')
+      .delete()
+      .eq('id', linkId);
+
+    if (error) {
+      console.error('質問リンク削除エラー:', error);
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error unlinking question:', error);
+    throw error;
+  }
+};
+
+/**
+ * 質問リンクの順序を更新する
+ * @param {string} linkId - リンクID
+ * @param {number} newQuestionNumber - 新しい質問番号
+ * @returns {Promise<Object>} 更新されたリンク
+ */
+export const updateQuestionLinkOrder = async (linkId, newQuestionNumber) => {
+  try {
+    const { data: link, error } = await supabase
+      .from('review_question_form_links')
+      .update({ question_number: newQuestionNumber })
+      .eq('id', linkId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('質問リンク順序更新エラー:', error);
+      throw error;
+    }
+
+    return link;
+  } catch (error) {
+    console.error('Error updating question link order:', error);
+    throw error;
+  }
+};

@@ -1,0 +1,2402 @@
+[
+  {
+    "table_schema": "auth",
+    "table_name": "audit_log_entries",
+    "columns": [
+      {
+        "column": "instance_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "payload",
+        "nullable": "YES",
+        "data_type": "json",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "ip_address",
+        "nullable": "NO",
+        "data_type": "character varying",
+        "default_value": "''::character varying"
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "flow_state",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "user_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "auth_code",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "code_challenge_method",
+        "nullable": "NO",
+        "data_type": "USER-DEFINED",
+        "default_value": null
+      },
+      {
+        "column": "code_challenge",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "provider_type",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "provider_access_token",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "provider_refresh_token",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "authentication_method",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "auth_code_issued_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "identities",
+    "columns": [
+      {
+        "column": "provider_id",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "user_id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "identity_data",
+        "nullable": "NO",
+        "data_type": "jsonb",
+        "default_value": null
+      },
+      {
+        "column": "provider",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "last_sign_in_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "email",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "instances",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "uuid",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "raw_base_config",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "mfa_amr_claims",
+    "columns": [
+      {
+        "column": "session_id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "authentication_method",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "mfa_challenges",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "factor_id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "verified_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "ip_address",
+        "nullable": "NO",
+        "data_type": "inet",
+        "default_value": null
+      },
+      {
+        "column": "otp_code",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "web_authn_session_data",
+        "nullable": "YES",
+        "data_type": "jsonb",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "mfa_factors",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "user_id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "friendly_name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "factor_type",
+        "nullable": "NO",
+        "data_type": "USER-DEFINED",
+        "default_value": null
+      },
+      {
+        "column": "status",
+        "nullable": "NO",
+        "data_type": "USER-DEFINED",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "secret",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "phone",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "last_challenged_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "web_authn_credential",
+        "nullable": "YES",
+        "data_type": "jsonb",
+        "default_value": null
+      },
+      {
+        "column": "web_authn_aaguid",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "one_time_tokens",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "user_id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "token_type",
+        "nullable": "NO",
+        "data_type": "USER-DEFINED",
+        "default_value": null
+      },
+      {
+        "column": "token_hash",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "relates_to",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp without time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "updated_at",
+        "nullable": "NO",
+        "data_type": "timestamp without time zone",
+        "default_value": "now()"
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "refresh_tokens",
+    "columns": [
+      {
+        "column": "instance_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "bigint",
+        "default_value": "nextval('auth.refresh_tokens_id_seq'::regclass)"
+      },
+      {
+        "column": "token",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "user_id",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "revoked",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "parent",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "session_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "saml_providers",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "sso_provider_id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "entity_id",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "metadata_xml",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "metadata_url",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "attribute_mapping",
+        "nullable": "YES",
+        "data_type": "jsonb",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "name_id_format",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "saml_relay_states",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "sso_provider_id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "request_id",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "for_email",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "redirect_to",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "flow_state_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "schema_migrations",
+    "columns": [
+      {
+        "column": "version",
+        "nullable": "NO",
+        "data_type": "character varying",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "sessions",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "user_id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "factor_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "aal",
+        "nullable": "YES",
+        "data_type": "USER-DEFINED",
+        "default_value": null
+      },
+      {
+        "column": "not_after",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "refreshed_at",
+        "nullable": "YES",
+        "data_type": "timestamp without time zone",
+        "default_value": null
+      },
+      {
+        "column": "user_agent",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "ip",
+        "nullable": "YES",
+        "data_type": "inet",
+        "default_value": null
+      },
+      {
+        "column": "tag",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "sso_domains",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "sso_provider_id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "domain",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "sso_providers",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "resource_id",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "auth",
+    "table_name": "users",
+    "columns": [
+      {
+        "column": "instance_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "aud",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "role",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "email",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "encrypted_password",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "email_confirmed_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "invited_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "confirmation_token",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "confirmation_sent_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "recovery_token",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "recovery_sent_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "email_change_token_new",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "email_change",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "email_change_sent_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "last_sign_in_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "raw_app_meta_data",
+        "nullable": "YES",
+        "data_type": "jsonb",
+        "default_value": null
+      },
+      {
+        "column": "raw_user_meta_data",
+        "nullable": "YES",
+        "data_type": "jsonb",
+        "default_value": null
+      },
+      {
+        "column": "is_super_admin",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "phone",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "NULL::character varying"
+      },
+      {
+        "column": "phone_confirmed_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "phone_change",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "''::character varying"
+      },
+      {
+        "column": "phone_change_token",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": "''::character varying"
+      },
+      {
+        "column": "phone_change_sent_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "confirmed_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "email_change_token_current",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": "''::character varying"
+      },
+      {
+        "column": "email_change_confirm_status",
+        "nullable": "YES",
+        "data_type": "smallint",
+        "default_value": "0"
+      },
+      {
+        "column": "banned_until",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "reauthentication_token",
+        "nullable": "YES",
+        "data_type": "character varying",
+        "default_value": "''::character varying"
+      },
+      {
+        "column": "reauthentication_sent_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "is_sso_user",
+        "nullable": "NO",
+        "data_type": "boolean",
+        "default_value": "false"
+      },
+      {
+        "column": "deleted_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": null
+      },
+      {
+        "column": "is_anonymous",
+        "nullable": "NO",
+        "data_type": "boolean",
+        "default_value": "false"
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "business_users",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "email",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "profile_image",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/profile-image/default_profile_image.png'::text"
+      },
+      {
+        "column": "company_name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "completion_screen_settings",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_forms_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "title_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'タイトルテキスト'::text"
+      },
+      {
+        "column": "detail_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'詳細テキスト'::text"
+      },
+      {
+        "column": "background_image_url",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'https://misezukuri.com/wp-content/uploads/2023/10/b86e65d61ae3fbd3b3f1ec5c67484853.jpg'::text"
+      },
+      {
+        "column": "is_button_1_enabled",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      },
+      {
+        "column": "button_text_1",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'ボタンテキスト'::text"
+      },
+      {
+        "column": "button_url_1",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'URL'::text"
+      },
+      {
+        "column": "is_button_2_enabled",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      },
+      {
+        "column": "button_text_2",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'ボタンテキスト'::text"
+      },
+      {
+        "column": "button_url_2",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'URL'::text"
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "login_screen_settings",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_forms_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "background_image_url",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'https://img.freepik.com/premium-photo/generative-ai-illustration-luxury-stores-decorated-different-colors-with-beautiful-interior-design_58460-12582.jpg'::text"
+      },
+      {
+        "column": "title_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'OpenReviewへようこそ！'::text"
+      },
+      {
+        "column": "detail_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'あなたの目的に合わせたレビュー項目を設定できます 質問項目を追加して、最適なレビューを作成しましょう'::text"
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "plan_categories",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "japanese",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "question_answer_option_choices",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_question_answers_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "question_option_choices_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "question_answer_option_linear_scale",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_question_answers_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "answer_number",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "question_answer_texts",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_questions_answers_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "answer_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "question_categories",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "japanese_name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "japanese_description",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "question_option_choices",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_questions_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "choice_number",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "choice_name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "question_option_linear_scale",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_questions_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "min_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'そう思わない'::text"
+      },
+      {
+        "column": "max_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'そう思う'::text"
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "question_screen_settings",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_forms_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "header_image_url",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'https://misezukuri.com/wp-content/uploads/2023/10/Cafebar1.png'::text"
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "question_subcategories",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "category_id",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "japanese_name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "japanese_description",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "business_category",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "is_hidden",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "question_types",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "name",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "japanese",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "description",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "image",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "review_form_pages",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_forms_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "page_number",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'レビューフォーム'::text"
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "review_form_settings",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_form_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "logo_image_url",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/logo/OpenReviewWhiteThemeLoog.png'::text"
+      },
+      {
+        "column": "is_dark_mode",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      },
+      {
+        "column": "theme_color",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'#5e17eb'::text"
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "review_form_submissions",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_forms_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "users",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "review_forms",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp without time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "business_users",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "title",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'名称未設定'::text"
+      },
+      {
+        "column": "is_published",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      },
+      {
+        "column": "published_url",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "is_deleted",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "review_question_answers",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_form_submissions_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "review_questions_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "review_questions",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "review_fome_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "question_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'質問を入力'::text"
+      },
+      {
+        "column": "is_required",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "true"
+      },
+      {
+        "column": "question_number",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "question_types_id",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "question_categories_id",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "question_subcategories_id",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "pege_number",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "review_form_pages_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "question_detail_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "is_detail_enabled",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      },
+      {
+        "column": "template_review_questions_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "template_question_option_choices",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "template_review_questions_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "choice_number",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "choice_name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "template_question_option_linear_scale",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "template_review_questions_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "min_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'そう思わない'::text"
+      },
+      {
+        "column": "max_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": "'そう思う'::text"
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "template_review_questions",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "question_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "is_required",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "true"
+      },
+      {
+        "column": "question_types_id",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "question_categories_id",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "question_subcategories_id",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "question_detail_text",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "is_detail_enabled",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      },
+      {
+        "column": "is_hidden",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      }
+    ]
+  },
+  {
+    "table_schema": "public",
+    "table_name": "users",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "email",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "realtime",
+    "table_name": "messages",
+    "columns": [
+      {
+        "column": "topic",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "extension",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "payload",
+        "nullable": "YES",
+        "data_type": "jsonb",
+        "default_value": null
+      },
+      {
+        "column": "event",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "private",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      },
+      {
+        "column": "updated_at",
+        "nullable": "NO",
+        "data_type": "timestamp without time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "inserted_at",
+        "nullable": "NO",
+        "data_type": "timestamp without time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      }
+    ]
+  },
+  {
+    "table_schema": "realtime",
+    "table_name": "schema_migrations",
+    "columns": [
+      {
+        "column": "version",
+        "nullable": "NO",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "inserted_at",
+        "nullable": "YES",
+        "data_type": "timestamp without time zone",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "realtime",
+    "table_name": "subscription",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "subscription_id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "entity",
+        "nullable": "NO",
+        "data_type": "regclass",
+        "default_value": null
+      },
+      {
+        "column": "filters",
+        "nullable": "NO",
+        "data_type": "ARRAY",
+        "default_value": "'{}'::realtime.user_defined_filter[]"
+      },
+      {
+        "column": "claims",
+        "nullable": "NO",
+        "data_type": "jsonb",
+        "default_value": null
+      },
+      {
+        "column": "claims_role",
+        "nullable": "NO",
+        "data_type": "regrole",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp without time zone",
+        "default_value": "timezone('utc'::text, now())"
+      }
+    ]
+  },
+  {
+    "table_schema": "storage",
+    "table_name": "buckets",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "name",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "owner",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "public",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      },
+      {
+        "column": "avif_autodetection",
+        "nullable": "YES",
+        "data_type": "boolean",
+        "default_value": "false"
+      },
+      {
+        "column": "file_size_limit",
+        "nullable": "YES",
+        "data_type": "bigint",
+        "default_value": null
+      },
+      {
+        "column": "allowed_mime_types",
+        "nullable": "YES",
+        "data_type": "ARRAY",
+        "default_value": null
+      },
+      {
+        "column": "owner_id",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "storage",
+    "table_name": "migrations",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "integer",
+        "default_value": null
+      },
+      {
+        "column": "name",
+        "nullable": "NO",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "hash",
+        "nullable": "NO",
+        "data_type": "character varying",
+        "default_value": null
+      },
+      {
+        "column": "executed_at",
+        "nullable": "YES",
+        "data_type": "timestamp without time zone",
+        "default_value": "CURRENT_TIMESTAMP"
+      }
+    ]
+  },
+  {
+    "table_schema": "storage",
+    "table_name": "objects",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "bucket_id",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "owner",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "updated_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "last_accessed_at",
+        "nullable": "YES",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "metadata",
+        "nullable": "YES",
+        "data_type": "jsonb",
+        "default_value": null
+      },
+      {
+        "column": "path_tokens",
+        "nullable": "YES",
+        "data_type": "ARRAY",
+        "default_value": null
+      },
+      {
+        "column": "version",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "owner_id",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "user_metadata",
+        "nullable": "YES",
+        "data_type": "jsonb",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "storage",
+    "table_name": "s3_multipart_uploads",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "in_progress_size",
+        "nullable": "NO",
+        "data_type": "bigint",
+        "default_value": "0"
+      },
+      {
+        "column": "upload_signature",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "bucket_id",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "key",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "version",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "owner_id",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      },
+      {
+        "column": "user_metadata",
+        "nullable": "YES",
+        "data_type": "jsonb",
+        "default_value": null
+      }
+    ]
+  },
+  {
+    "table_schema": "storage",
+    "table_name": "s3_multipart_uploads_parts",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "upload_id",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "size",
+        "nullable": "NO",
+        "data_type": "bigint",
+        "default_value": "0"
+      },
+      {
+        "column": "part_number",
+        "nullable": "NO",
+        "data_type": "integer",
+        "default_value": null
+      },
+      {
+        "column": "bucket_id",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "key",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "etag",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "owner_id",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "version",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "now()"
+      }
+    ]
+  },
+  {
+    "table_schema": "vault",
+    "table_name": "secrets",
+    "columns": [
+      {
+        "column": "id",
+        "nullable": "NO",
+        "data_type": "uuid",
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "column": "name",
+        "nullable": "YES",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "description",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": "''::text"
+      },
+      {
+        "column": "secret",
+        "nullable": "NO",
+        "data_type": "text",
+        "default_value": null
+      },
+      {
+        "column": "key_id",
+        "nullable": "YES",
+        "data_type": "uuid",
+        "default_value": null
+      },
+      {
+        "column": "nonce",
+        "nullable": "YES",
+        "data_type": "bytea",
+        "default_value": "vault._crypto_aead_det_noncegen()"
+      },
+      {
+        "column": "created_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "CURRENT_TIMESTAMP"
+      },
+      {
+        "column": "updated_at",
+        "nullable": "NO",
+        "data_type": "timestamp with time zone",
+        "default_value": "CURRENT_TIMESTAMP"
+      }
+    ]
+  }
+]

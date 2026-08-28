@@ -1,0 +1,439 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Container,
+  Alert,
+  CircularProgress,
+  Fade,
+  Chip
+} from '@mui/material';
+import {
+  Google,
+  PersonAdd,
+  CheckCircle,
+  Error as ErrorIcon,
+  Store,
+  AdminPanelSettings,
+  WorkOutline
+} from '@mui/icons-material';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
+
+export default function StaffInvitationLogin() {
+  const { token } = useParams();
+  const navigate = useNavigate();
+  const [invitation, setInvitation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState(null);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      // デバッグ情報を出力
+      console.log('=== スタッフ招待デバッグ情報 ===');
+      console.log('Token:', token);
+      console.log('User Agent:', navigator.userAgent);
+      console.log('URL:', window.location.href);
+      console.log('Connection Type:', navigator.connection?.effectiveType || 'unknown');
+      console.log('Online Status:', navigator.onLine);
+      console.log('=========================');
+      
+      validateInvitation();
+    } else {
+      setError('招待トークンが見つかりません');
+      setLoading(false);
+    }
+  }, [token]);
+
+  const validateInvitation = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // モバイル用の拡張タイムアウトとリトライロジック
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const timeout = isMobile ? 15000 : 10000; // モバイルは15秒
+      const maxRetries = isMobile ? 3 : 1;
+      
+      let lastError = null;
+      
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`招待情報取得試行 ${attempt}/${maxRetries} (モバイル: ${isMobile})`);
+          
+          // ネットワーク接続チェック
+          if (!navigator.onLine) {
+            throw new Error('ネットワーク接続がありません');
+          }
+          
+          // Edge Functionを使用して招待情報を検証（RLS回避）
+          const edgeFunctionPromise = supabase.functions.invoke('validate-staff-invitation', {
+            body: {
+              invitationToken: token
+            }
+          });
+
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database timeout')), timeout);
+          });
+
+          const { data, error } = await Promise.race([
+            edgeFunctionPromise,
+            timeoutPromise
+          ]);
+          
+          if (error) {
+            // ユーザーフレンドリーなエラーメッセージに変換
+            console.error('Edge Function error:', error.message);
+            throw new Error('この招待は無効になっているか、既に使用済みの可能性があります。招待元の管理者にお問い合わせください。');
+          }
+
+          if (!data.success) {
+            // サーバーからのエラーメッセージがある場合はそれを使用、なければ汎用メッセージ
+            const userFriendlyError = data.error && !data.error.includes('Edge Function')
+              ? data.error
+              : 'この招待は無効になっているか、既に使用済みの可能性があります。招待元の管理者にお問い合わせください。';
+            throw new Error(userFriendlyError);
+          }
+          
+          // Edge Functionから取得した招待データを設定
+          const invitationForState = {
+            ...data.invitation,
+            stores: {
+              ...data.invitation.store,
+              companies: data.invitation.store.company
+            }
+          };
+
+          setInvitation(invitationForState);
+
+          // 既ログインユーザーの自動誘導:
+          //   - 既にこの店舗のメンバー → ホーム (/) に遷移
+          //   - 未メンバー → complete ページへ自動遷移して新規 membership を作成
+          // (別店舗の招待 URL を踏んだ場合に複数 membership を持てるように)
+          try {
+            const { data: sessionData } = await supabase.auth.getSession()
+            if (sessionData?.session?.user) {
+              const userId = sessionData.session.user.id
+              const storeId = invitationForState.store?.id || invitationForState.stores?.id
+              if (storeId) {
+                const { data: existingMember } = await supabase
+                  .from('store_memberships')
+                  .select('id')
+                  .eq('business_user_id', userId)
+                  .eq('store_id', storeId)
+                  .maybeSingle()
+                if (existingMember) {
+                  console.log('Already a member of this store. Navigating to home.')
+                  navigate('/', { replace: true })
+                  return
+                }
+              }
+              // 既ログイン + 未メンバー → complete に自動進行
+              console.log('Logged in but not yet a member. Auto-advancing to complete.')
+              navigate(`/staff-invitation/${token}/complete`, { replace: true })
+              return
+            }
+          } catch (autoErr) {
+            console.warn('auto-advance check failed (non-fatal):', autoErr)
+          }
+
+          return; // 未ログインならログインボタン表示で終了
+          
+        } catch (err) {
+          console.error(`試行 ${attempt} でエラー:`, err);
+          lastError = err;
+          
+          if (attempt < maxRetries) {
+            // 少し待ってからリトライ
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            continue;
+          }
+        }
+      }
+      
+      // すべてのリトライが失敗した場合
+      throw lastError || new Error('接続に失敗しました');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setIsAuthenticating(true);
+      setAuthError(null);
+
+      // Googleログイン
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/staff-invitation/${token}/complete`
+        }
+      });
+
+      if (error) {
+        throw new Error(`ログインに失敗しました: ${error.message}`);
+      }
+
+    } catch (err) {
+      setAuthError(err.message);
+      setIsAuthenticating(false);
+    }
+  };
+
+  const getRoleIcon = (role) => {
+    return role === 'STORE' ? <AdminPanelSettings /> : <WorkOutline />;
+  };
+
+  const getRoleText = (role) => {
+    return role === 'STORE' ? '店舗管理者' : 'スタッフ';
+  };
+
+  const getRoleColor = (role) => {
+    return role === 'STORE' ? '#f59e0b' : '#10b981';
+  };
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        }}
+      >
+        <Card
+          sx={{
+            minWidth: 300,
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
+            borderRadius: 3,
+            textAlign: 'center'
+          }}
+        >
+          <CardContent sx={{ p: 4 }}>
+            <CircularProgress
+              size={50}
+              thickness={4}
+              sx={{ color: '#5e17eb', mb: 2 }}
+            />
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: 600,
+                background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                mb: 1
+              }}
+            >
+              読み込み中...
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box
+        sx={{
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        }}
+      >
+        <Container maxWidth="sm">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Card
+              sx={{
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                boxShadow: '0 20px 60px rgba(239, 68, 68, 0.3)',
+                borderRadius: 3,
+                textAlign: 'center'
+              }}
+            >
+              <CardContent sx={{ p: 4 }}>
+                <ErrorIcon sx={{ fontSize: 64, color: '#ef4444', mb: 2 }} />
+                <Typography
+                  variant="h5"
+                  sx={{ fontWeight: 600, color: '#ef4444', mb: 2 }}
+                >
+                  招待が無効です
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#64748b' }}>
+                  {error}
+                </Typography>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </Container>
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      sx={{
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}
+    >
+      <Container maxWidth="sm">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Card
+            sx={{
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 20px 60px rgba(94, 23, 235, 0.3)',
+              borderRadius: 3
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              {/* ヘッダー */}
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
+                <PersonAdd sx={{ fontSize: 48, color: '#5e17eb', mb: 2 }} />
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 700,
+                    background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    mb: 1
+                  }}
+                >
+                  スタッフ招待
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#64748b' }}>
+                  {invitation?.name}さん、こんにちは！
+                </Typography>
+              </Box>
+
+              {/* 招待詳細 */}
+              <Box
+                sx={{
+                  p: 2,
+                  background: '#f8fafc',
+                  borderRadius: 2,
+                  border: '1px solid #e2e8f0',
+                  mb: 3
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                  招待詳細
+                </Typography>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Store sx={{ color: '#64748b', mr: 2 }} />
+                  <Box>
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      {invitation?.stores?.name}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#64748b' }}>
+                      {invitation?.stores?.companies?.name}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Chip
+                    icon={getRoleIcon(invitation?.role)}
+                    label={getRoleText(invitation?.role)}
+                    sx={{
+                      backgroundColor: `${getRoleColor(invitation?.role)}20`,
+                      color: getRoleColor(invitation?.role),
+                      fontWeight: 500
+                    }}
+                  />
+                </Box>
+
+                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                  住所: {invitation?.stores?.address}
+                </Typography>
+              </Box>
+
+              {/* エラー表示 */}
+              {authError && (
+                <Alert severity="error" sx={{ borderRadius: 2, mb: 3 }}>
+                  {authError}
+                </Alert>
+              )}
+
+              {/* ログインボタン */}
+              <Button
+                variant="contained"
+                fullWidth
+                size="large"
+                startIcon={
+                  isAuthenticating ? (
+                    <CircularProgress size={20} color="inherit" />
+                  ) : (
+                    <Google />
+                  )
+                }
+                onClick={handleGoogleLogin}
+                disabled={isAuthenticating}
+                sx={{
+                  py: 1.5,
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  background: 'linear-gradient(45deg, #5e17eb 30%, #764ba2 90%)',
+                  boxShadow: '0 4px 15px rgba(94, 23, 235, 0.3)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 20px rgba(94, 23, 235, 0.4)',
+                  },
+                  '&:disabled': {
+                    background: '#e2e8f0',
+                    color: '#94a3b8',
+                    boxShadow: 'none',
+                    transform: 'none'
+                  }
+                }}
+              >
+                {isAuthenticating ? 'ログイン中...' : 'Googleでログインして参加'}
+              </Button>
+
+            </CardContent>
+          </Card>
+        </motion.div>
+      </Container>
+    </Box>
+  );
+}

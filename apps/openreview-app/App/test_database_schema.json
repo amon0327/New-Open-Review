@@ -1,0 +1,386 @@
+{
+  "description": "OpenReview Analytics テストモード用データベーススキーマ",
+  "last_updated": "2025-01-27",
+  "version": "1.0",
+  "tables": {
+    "test_business_users": {
+      "description": "テスト環境用のビジネスユーザー情報",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "name": {
+          "type": "text",
+          "nullable": true
+        },
+        "email": {
+          "type": "text",
+          "nullable": true
+        },
+        "profile_image": {
+          "type": "text",
+          "default": "https://otfreskkeaenahqziriz.supabase.co/storage/v1/object/public/app-assets/profile-image/default_profile_image.png"
+        },
+        "role": {
+          "type": "public.member_role",
+          "nullable": true
+        },
+        "organizations": {
+          "type": "uuid",
+          "nullable": true
+        }
+      }
+    },
+    "test_users": {
+      "description": "テスト環境用の一般ユーザー情報",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "name": {
+          "type": "text",
+          "nullable": true
+        },
+        "email": {
+          "type": "text",
+          "nullable": true
+        }
+      }
+    },
+    "test_review_forms": {
+      "description": "テスト環境用のレビューフォーム",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "updated_at": {
+          "type": "timestamp without time zone",
+          "default": "now()"
+        },
+        "business_users": {
+          "type": "uuid",
+          "foreign_key": "test_business_users(id)"
+        },
+        "title": {
+          "type": "text",
+          "default": "新規レビューフォーム"
+        },
+        "is_published": {
+          "type": "boolean",
+          "default": false
+        },
+        "published_url": {
+          "type": "text",
+          "nullable": true
+        },
+        "is_deleted": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "test_review_form_pages": {
+      "description": "テスト環境用のレビューフォームページ",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "review_forms_id": {
+          "type": "uuid",
+          "foreign_key": "test_review_forms(id)"
+        },
+        "page_number": {
+          "type": "bigint",
+          "nullable": true
+        },
+        "name": {
+          "type": "text",
+          "default": "レビューフォーム"
+        }
+      }
+    },
+    "test_review_questions": {
+      "description": "テスト環境用のレビュー質問",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "review_fome_id": {
+          "type": "uuid",
+          "foreign_key": "test_review_forms(id)"
+        },
+        "question_text": {
+          "type": "text",
+          "default": ""
+        },
+        "is_required": {
+          "type": "boolean",
+          "default": true
+        },
+        "question_number": {
+          "type": "bigint",
+          "nullable": true
+        },
+        "question_types_id": {
+          "type": "bigint",
+          "foreign_key": "question_types(id)"
+        },
+        "question_categories_id": {
+          "type": "bigint",
+          "foreign_key": "question_categories(id)"
+        },
+        "question_subcategories_id": {
+          "type": "bigint",
+          "foreign_key": "question_subcategories(id)"
+        },
+        "pege_number": {
+          "type": "bigint",
+          "nullable": true
+        },
+        "review_form_pages_id": {
+          "type": "uuid",
+          "foreign_key": "test_review_form_pages(id)"
+        },
+        "question_detail_text": {
+          "type": "text",
+          "nullable": true
+        },
+        "is_detail_enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "template_review_questions_id": {
+          "type": "uuid",
+          "foreign_key": "template_review_questions(id)"
+        }
+      }
+    },
+    "test_question_option_choices": {
+      "description": "テスト環境用の質問選択肢",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "review_questions_id": {
+          "type": "uuid",
+          "foreign_key": "test_review_questions(id)"
+        },
+        "choice_number": {
+          "type": "bigint",
+          "nullable": true
+        },
+        "choice_name": {
+          "type": "text",
+          "nullable": true
+        }
+      }
+    },
+    "test_question_option_linear_scale": {
+      "description": "テスト環境用の線形スケール質問オプション",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "review_questions_id": {
+          "type": "uuid",
+          "foreign_key": "test_review_questions(id)"
+        },
+        "min_text": {
+          "type": "text",
+          "default": ""
+        },
+        "max_text": {
+          "type": "text",
+          "default": ""
+        }
+      }
+    },
+    "test_review_form_submissions": {
+      "description": "テスト環境用のレビューフォーム提出データ",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "review_forms_id": {
+          "type": "uuid",
+          "foreign_key": "review_forms(id)",
+          "note": "本番テーブルへの参照"
+        },
+        "users": {
+          "type": "uuid",
+          "foreign_key": "users(id)",
+          "note": "本番テーブルへの参照"
+        }
+      }
+    },
+    "test_review_question_answers": {
+      "description": "テスト環境用の質問回答データ",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "review_form_submissions_id": {
+          "type": "uuid",
+          "foreign_key": "test_review_form_submissions(id)"
+        },
+        "review_questions_id": {
+          "type": "uuid",
+          "foreign_key": "test_review_questions(id)"
+        }
+      }
+    },
+    "test_question_answer_texts": {
+      "description": "テスト環境用のテキスト形式回答",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "review_questions_answers_id": {
+          "type": "uuid",
+          "foreign_key": "test_review_question_answers(id)"
+        },
+        "answer_text": {
+          "type": "text",
+          "nullable": true
+        }
+      }
+    },
+    "test_question_answer_option_choices": {
+      "description": "テスト環境用の選択肢形式回答",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "review_question_answers_id": {
+          "type": "uuid",
+          "foreign_key": "review_question_answers(id)",
+          "note": "本番テーブルへの参照"
+        },
+        "question_option_choices_id": {
+          "type": "uuid",
+          "foreign_key": "question_option_choices(id)",
+          "note": "本番テーブルへの参照"
+        }
+      }
+    },
+    "test_question_answer_option_linear_scale": {
+      "description": "テスト環境用の線形スケール形式回答",
+      "columns": {
+        "id": {
+          "type": "uuid",
+          "primary_key": true,
+          "default": "gen_random_uuid()"
+        },
+        "created_at": {
+          "type": "timestamp with time zone",
+          "default": "now()"
+        },
+        "review_question_answers_id": {
+          "type": "uuid",
+          "foreign_key": "review_question_answers(id)",
+          "note": "本番テーブルへの参照"
+        },
+        "answer_number": {
+          "type": "bigint",
+          "nullable": true
+        }
+      }
+    }
+  },
+  "relationships": {
+    "user_hierarchy": {
+      "test_business_users": ["test_review_forms"],
+      "test_users": ["test_review_form_submissions"]
+    },
+    "form_structure": {
+      "test_review_forms": ["test_review_form_pages", "test_review_questions"],
+      "test_review_form_pages": ["test_review_questions"]
+    },
+    "question_options": {
+      "test_review_questions": ["test_question_option_choices", "test_question_option_linear_scale"]
+    },
+    "answer_structure": {
+      "test_review_form_submissions": ["test_review_question_answers"],
+      "test_review_question_answers": [
+        "test_question_answer_texts",
+        "test_question_answer_option_choices", 
+        "test_question_answer_option_linear_scale"
+      ]
+    }
+  },
+  "notes": {
+    "purpose": "Analytics機能のテストモード用データベーススキーマ",
+    "usage": "テストモード切り替え時にこれらのテーブルからデータを取得する",
+    "mixed_references": "一部のテーブルは本番テーブル（review_forms, users, question_option_choices, review_question_answers）への外部キー参照を含む",
+    "typos": [
+      "test_review_questions.review_fome_id should be review_form_id",
+      "test_review_questions.pege_number should be page_number"
+    ]
+  }
+}

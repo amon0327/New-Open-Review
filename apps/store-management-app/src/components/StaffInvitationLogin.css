@@ -1,0 +1,29 @@
+/* StaffInvitationLogin 専用スタイル
+   共通スタイルは UnauthorizedPage.css を参照 */
+
+.btn-line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: #06c755;
+  color: #ffffff;
+  transition: opacity 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-line:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-line:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

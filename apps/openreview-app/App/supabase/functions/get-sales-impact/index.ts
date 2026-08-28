@@ -1,0 +1,467 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    // サービスロール用のSupabaseクライアントを作成（RLSバイパス）
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // 認証用のSupabaseクライアント（JWTトークン検証用）
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
+    )
+
+    // JWTトークンからユーザー情報を取得
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '')
+    if (!token) {
+      throw new Error('認証トークンが必要です')
+    }
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token)
+    if (userError || !user) {
+      throw new Error('認証に失敗しました')
+    }
+
+    // リクエストパラメータを取得
+    const url = new URL(req.url)
+    const companyId = url.searchParams.get('company_id')
+    const storeId = url.searchParams.get('store_id')
+
+    if (!companyId) {
+      throw new Error('company_idが必要です')
+    }
+
+    // ユーザーが企業にアクセス可能かチェック
+    // 1. 直接の企業メンバーかどうか
+    const { data: companyMembership } = await supabaseAdmin
+      .from('company_memberships')
+      .select('id')
+      .eq('business_user_id', user.id)
+      .eq('company_id', companyId)
+      .single()
+
+    // 2. パートナー経由でアクセス可能かどうか
+    const { data: userPartnerMemberships } = await supabaseAdmin
+      .from('partner_memberships')
+      .select('partner_company_id')
+      .eq('business_users_id', user.id)
+      .eq('is_active', true)
+
+    let partnerAccess = null
+    if (userPartnerMemberships && userPartnerMemberships.length > 0) {
+      const partnerCompanyIds = userPartnerMemberships.map(pm => pm.partner_company_id)
+      const { data: affiliations } = await supabaseAdmin
+        .from('partner_affiliate_companies')
+        .select('id')
+        .eq('companies_id', companyId)
+        .in('partner_company_id', partnerCompanyIds)
+      partnerAccess = affiliations
+    }
+
+    const hasAccess = companyMembership || (partnerAccess && partnerAccess.length > 0)
+
+    if (!hasAccess) {
+      throw new Error('この企業のデータにアクセスする権限がありません')
+    }
+
+    // 回答データを取得
+    let query = supabaseAdmin
+      .from('preset_question_answer')
+      .select(`
+        id,
+        created_at,
+        p1_q1,
+        p1_q2,
+        p1_q3,
+        store_id,
+        company_id
+      `)
+      .eq('company_id', companyId)
+
+    if (storeId && storeId !== 'all') {
+      query = query.eq('store_id', storeId)
+    }
+
+    const { data: answers, error: answersError } = await query
+
+    if (answersError) {
+      throw new Error(`データの取得に失敗しました: ${answersError.message}`)
+    }
+
+    const allAnswers = answers || []
+
+    // ========================================
+    // NPSタイプを判定する関数
+    // ========================================
+    const getNpsType = (score: number | null): string => {
+      if (score === null || score === undefined) return 'unknown'
+      if (score >= 9) return '推奨者'
+      if (score >= 7) return '中立者'
+      return '批判者'
+    }
+
+    // ========================================
+    // 再来店意向を判定する関数
+    // 1ヶ月以内、3ヶ月以内 → true (再来店あり)
+    // 6ヶ月以内、10ヶ月以内、1年以内、1年以上 → false (再来店なし)
+    // ========================================
+    const isRevisitYes = (revisitIntent: string | null): boolean | null => {
+      if (revisitIntent === null || revisitIntent === undefined) return null
+      if (revisitIntent === '1ヶ月以内' || revisitIntent === '3ヶ月以内') return true
+      return false
+    }
+
+    // ========================================
+    // 影響度スコアを取得する関数
+    // NPS × 再来店意向 × 経験の組み合わせで影響度を決定
+    // ========================================
+    const getImpactScore = (nps: string, revisitIntent: boolean | null, experience: string): number => {
+      // 推奨者
+      if (nps === '推奨者') {
+        if (revisitIntent === true && experience === 'リピーター') return 3  // 最も良い
+        if (revisitIntent === true && experience === '新規') return 2
+        if (revisitIntent === false && experience === 'リピーター') return 1
+        if (revisitIntent === false && experience === '新規') return 0
+      }
+      // 中立者
+      if (nps === '中立者') {
+        if (revisitIntent === true && experience === 'リピーター') return 2
+        if (revisitIntent === true && experience === '新規') return 0
+        if (revisitIntent === false && experience === 'リピーター') return -2
+        if (revisitIntent === false && experience === '新規') return 0
+      }
+      // 批判者
+      if (nps === '批判者') {
+        if (revisitIntent === true && experience === 'リピーター') return -2
+        if (revisitIntent === true && experience === '新規') return 0
+        if (revisitIntent === false && experience === 'リピーター') return -3  // 最も悪い
+        if (revisitIntent === false && experience === '新規') return -2
+      }
+      return 0
+    }
+
+    // ========================================
+    // セグメント別に集計（全体 + 月別）
+    // ========================================
+    type SegmentKey = string
+    const segmentCounts: Record<SegmentKey, number> = {}
+    const monthlySegmentCounts: Record<string, Record<SegmentKey, number>> = {}
+
+    // 現在の月と先月を取得
+    const now = new Date()
+    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const lastMonthKey = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`
+
+    allAnswers.forEach(answer => {
+      const nps = getNpsType(answer.p1_q1)
+      if (nps === 'unknown') return
+
+      const revisitIntent = isRevisitYes(answer.p1_q2)
+      const experience = answer.p1_q3 === '初めて' ? '新規' : 'リピーター'
+      const revisitLabel = revisitIntent === true ? 'あり' : revisitIntent === false ? 'なし' : 'unknown'
+
+      if (revisitLabel === 'unknown') return
+
+      const key = `${nps}|${revisitLabel}|${experience}`
+      segmentCounts[key] = (segmentCounts[key] || 0) + 1
+
+      // 月別集計
+      const date = new Date(answer.created_at)
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      if (!monthlySegmentCounts[monthKey]) {
+        monthlySegmentCounts[monthKey] = {}
+      }
+      monthlySegmentCounts[monthKey][key] = (monthlySegmentCounts[monthKey][key] || 0) + 1
+    })
+
+    // 月別の総件数を計算
+    const currentMonthTotal = Object.values(monthlySegmentCounts[currentMonthKey] || {}).reduce((sum, c) => sum + c, 0)
+    const lastMonthTotal = Object.values(monthlySegmentCounts[lastMonthKey] || {}).reduce((sum, c) => sum + c, 0)
+
+    // セグメントデータを構築（先月比を含む）
+    const segments = Object.entries(segmentCounts).map(([key, count], index) => {
+      const [nps, revisitIntent, experience] = key.split('|')
+      const impact = getImpactScore(nps, revisitIntent === 'あり', experience)
+
+      // グループ分類（A: ポジティブ影響, B: ネガティブ影響, C: その他）
+      let group = 'C'
+      if (impact >= 2) group = 'A'
+      else if (impact <= -2) group = 'B'
+
+      // 今月と先月の構成比を計算
+      const currentMonthCount = monthlySegmentCounts[currentMonthKey]?.[key] || 0
+      const lastMonthCount = monthlySegmentCounts[lastMonthKey]?.[key] || 0
+
+      const currentMonthPercentage = currentMonthTotal > 0
+        ? (currentMonthCount / currentMonthTotal) * 100
+        : 0
+      const lastMonthPercentage = lastMonthTotal > 0
+        ? (lastMonthCount / lastMonthTotal) * 100
+        : 0
+
+      // 先月比（構成比の変化、ポイント）
+      const monthOverMonth = currentMonthPercentage - lastMonthPercentage
+
+      return {
+        id: index + 1,
+        nps,
+        revisitIntent,
+        experience,
+        impact,
+        group,
+        count,
+        currentMonthCount,
+        lastMonthCount,
+        monthOverMonth: Math.round(monthOverMonth * 10) / 10 // 小数点1桁
+      }
+    })
+
+    // ========================================
+    // カテゴリー別集計
+    // ========================================
+    const categoryData = {
+      // 新規リピーター（新規 × 再来店意向あり）
+      newRepeaters: {
+        count: 0,
+        impact: 0,
+        nps: { promoters: 0, neutrals: 0, detractors: 0 }
+      },
+      // 安定リピーター（リピーター × 再来店意向あり）
+      stableRepeaters: {
+        count: 0,
+        impact: 0,
+        nps: { promoters: 0, neutrals: 0, detractors: 0 }
+      },
+      // 離脱リスク（リピーター × 再来店意向なし）
+      churnRisk: {
+        count: 0,
+        impact: 0,
+        nps: { promoters: 0, neutrals: 0, detractors: 0 }
+      },
+      // 新規離脱（新規 × 再来店意向なし）
+      newChurn: {
+        count: 0,
+        impact: 0,
+        nps: { promoters: 0, neutrals: 0, detractors: 0 }
+      }
+    }
+
+    segments.forEach(seg => {
+      const totalImpact = seg.impact * seg.count
+      const npsKey = seg.nps === '推奨者' ? 'promoters' : seg.nps === '中立者' ? 'neutrals' : 'detractors'
+
+      if (seg.experience === '新規' && seg.revisitIntent === 'あり') {
+        categoryData.newRepeaters.count += seg.count
+        categoryData.newRepeaters.impact += totalImpact
+        categoryData.newRepeaters.nps[npsKey] += seg.count
+      } else if (seg.experience === 'リピーター' && seg.revisitIntent === 'あり') {
+        categoryData.stableRepeaters.count += seg.count
+        categoryData.stableRepeaters.impact += totalImpact
+        categoryData.stableRepeaters.nps[npsKey] += seg.count
+      } else if (seg.experience === 'リピーター' && seg.revisitIntent === 'なし') {
+        categoryData.churnRisk.count += seg.count
+        categoryData.churnRisk.impact += totalImpact
+        categoryData.churnRisk.nps[npsKey] += seg.count
+      } else if (seg.experience === '新規' && seg.revisitIntent === 'なし') {
+        categoryData.newChurn.count += seg.count
+        categoryData.newChurn.impact += totalImpact
+        categoryData.newChurn.nps[npsKey] += seg.count
+      }
+    })
+
+    // ========================================
+    // 総合スコア計算
+    // ========================================
+    const totalCount = segments.reduce((sum, s) => sum + s.count, 0)
+    const totalScore = segments.reduce((sum, s) => sum + (s.impact * s.count), 0)
+    const positiveScore = segments
+      .filter(s => s.impact > 0)
+      .reduce((sum, s) => sum + (s.impact * s.count), 0)
+    const negativeScore = segments
+      .filter(s => s.impact < 0)
+      .reduce((sum, s) => sum + (Math.abs(s.impact) * s.count), 0)
+
+    // 正規化スコア（0-100）
+    const maxPossibleScore = totalCount * 3
+    const normalizedScore = maxPossibleScore > 0
+      ? Math.round(((totalScore + maxPossibleScore) / (2 * maxPossibleScore)) * 100)
+      : 50
+
+    // ========================================
+    // 月別データの計算
+    // ========================================
+    const monthlyData: Record<string, {
+      score: number
+      positive: number
+      negative: number
+      total: number
+      // 顧客構成比較用
+      newChurn: number
+      newRepeaters: number
+      stableRepeaters: number
+      churnRisk: number
+    }> = {}
+
+    allAnswers.forEach(answer => {
+      const nps = getNpsType(answer.p1_q1)
+      if (nps === 'unknown') return
+
+      const revisitIntent = isRevisitYes(answer.p1_q2)
+      if (revisitIntent === null) return
+
+      const experience = answer.p1_q3 === '初めて' ? '新規' : 'リピーター'
+      const impact = getImpactScore(nps, revisitIntent, experience)
+
+      const date = new Date(answer.created_at)
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = {
+          score: 0,
+          positive: 0,
+          negative: 0,
+          total: 0,
+          newChurn: 0,
+          newRepeaters: 0,
+          stableRepeaters: 0,
+          churnRisk: 0
+        }
+      }
+
+      monthlyData[monthKey].total++
+      if (impact > 0) {
+        monthlyData[monthKey].positive += impact
+      } else if (impact < 0) {
+        monthlyData[monthKey].negative += Math.abs(impact)
+      }
+
+      // 顧客カテゴリー別カウント
+      if (experience === '新規' && revisitIntent === false) {
+        monthlyData[monthKey].newChurn++
+      } else if (experience === '新規' && revisitIntent === true) {
+        monthlyData[monthKey].newRepeaters++
+      } else if (experience === 'リピーター' && revisitIntent === true) {
+        monthlyData[monthKey].stableRepeaters++
+      } else if (experience === 'リピーター' && revisitIntent === false) {
+        monthlyData[monthKey].churnRisk++
+      }
+    })
+
+    // 月別トレンドデータを計算
+    const sortedMonths = Object.keys(monthlyData).sort()
+    const trendData = sortedMonths.map(key => {
+      const data = monthlyData[key]
+      const monthNum = parseInt(key.split('-')[1])
+      const maxScore = data.total * 3
+      const netScore = data.positive - data.negative
+      const score = maxScore > 0
+        ? Math.round(((netScore + maxScore) / (2 * maxScore)) * 100)
+        : 50
+
+      return {
+        month: `${monthNum}月`,
+        score,
+        positive: data.positive,
+        negative: data.negative
+      }
+    }).slice(-6) // 直近6ヶ月
+
+    // 顧客構成比較データを計算
+    const compositionData = sortedMonths.map(key => {
+      const data = monthlyData[key]
+      const total = data.total || 1
+      const monthNum = parseInt(key.split('-')[1])
+
+      return {
+        month: `${monthNum}月`,
+        monthKey: key,
+        newChurn: Math.round((data.newChurn / total) * 100),
+        newRepeaters: Math.round((data.newRepeaters / total) * 100),
+        stableRepeaters: Math.round((data.stableRepeaters / total) * 100),
+        churnRisk: Math.round((data.churnRisk / total) * 100),
+        counts: {
+          newChurn: data.newChurn,
+          newRepeaters: data.newRepeaters,
+          stableRepeaters: data.stableRepeaters,
+          churnRisk: data.churnRisk,
+          total: data.total
+        }
+      }
+    }).slice(-6) // 直近6ヶ月
+
+    // 6ヶ月平均を計算
+    const avgComposition = {
+      newChurn: 0,
+      newRepeaters: 0,
+      stableRepeaters: 0,
+      churnRisk: 0
+    }
+    if (compositionData.length > 0) {
+      compositionData.forEach(d => {
+        avgComposition.newChurn += d.newChurn
+        avgComposition.newRepeaters += d.newRepeaters
+        avgComposition.stableRepeaters += d.stableRepeaters
+        avgComposition.churnRisk += d.churnRisk
+      })
+      avgComposition.newChurn = Math.round(avgComposition.newChurn / compositionData.length)
+      avgComposition.newRepeaters = Math.round(avgComposition.newRepeaters / compositionData.length)
+      avgComposition.stableRepeaters = Math.round(avgComposition.stableRepeaters / compositionData.length)
+      avgComposition.churnRisk = Math.round(avgComposition.churnRisk / compositionData.length)
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        data: {
+          segments,
+          categoryData,
+          totalCount,
+          totalScore,
+          positiveScore,
+          negativeScore,
+          normalizedScore,
+          trendData,
+          compositionData,
+          avgComposition
+        }
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    )
+
+  } catch (error) {
+    console.error('Get sales impact error:', error)
+
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message,
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      }
+    )
+  }
+})

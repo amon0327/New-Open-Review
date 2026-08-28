@@ -1,0 +1,215 @@
+/**
+ * キャッシュシステムのパフォーマンステスト
+ * ブラウザの開発者コンソールで実行してテストする
+ */
+
+// テスト用のモジュールインポート（実際のブラウザ環境では適宜調整）
+import cacheManager, { 
+  getCachedData, 
+  setCachedData, 
+  getCacheStats,
+  clearAllCache 
+} from './src/utils/cacheManager.js'
+
+// テストデータ生成
+const generateTestData = (size = 1000) => {
+  const data = {}
+  for (let i = 0; i < size; i++) {
+    const date = new Date()
+    date.setDate(date.getDate() + i - 500) // 前後500日
+    const dateKey = date.toISOString().split('T')[0]
+    data[dateKey] = Math.floor(Math.random() * 100)
+  }
+  return data
+}
+
+// パフォーマンステスト関数
+const runCachePerformanceTest = async () => {
+  console.log('🚀 キャッシュパフォーマンステスト開始')
+  
+  // テストの前にキャッシュをクリア
+  clearAllCache()
+  
+  const testData = generateTestData(100)
+  const storeId = 'test-store-123'
+  
+  // テスト1: 書き込みパフォーマンス
+  console.log('📝 テスト1: 書き込みパフォーマンス')
+  const writeStartTime = performance.now()
+  
+  Object.entries(testData).forEach(([dateKey, value], index) => {
+    const params = {
+      date: dateKey,
+      storeId: storeId,
+      testIndex: index
+    }
+    setCachedData('performance_test', params, { value, timestamp: Date.now() })
+  })
+  
+  const writeEndTime = performance.now()
+  console.log(`✅ 100件の書き込み完了: ${(writeEndTime - writeStartTime).toFixed(2)}ms`)
+  
+  // テスト2: 読み込みパフォーマンス
+  console.log('📖 テスト2: 読み込みパフォーマンス')
+  const readStartTime = performance.now()
+  let cacheHits = 0
+  
+  Object.keys(testData).forEach((dateKey, index) => {
+    const params = {
+      date: dateKey,
+      storeId: storeId,
+      testIndex: index
+    }
+    const cachedData = getCachedData('performance_test', params)
+    if (cachedData) {
+      cacheHits++
+    }
+  })
+  
+  const readEndTime = performance.now()
+  console.log(`✅ 100件の読み込み完了: ${(readEndTime - readStartTime).toFixed(2)}ms`)
+  console.log(`📊 キャッシュヒット率: ${(cacheHits / 100 * 100).toFixed(1)}%`)
+  
+  // テスト3: キャッシュ統計
+  console.log('📊 テスト3: キャッシュ統計')
+  const stats = getCacheStats()
+  console.log('キャッシュ統計:', stats)
+  
+  // テスト4: 有効期限テスト（短縮版）
+  console.log('⏰ テスト4: 有効期限テスト（モック）')
+  console.log('実際の有効期限は30分後に設定されています')
+  
+  // テスト5: セッションストレージ統合
+  console.log('💾 テスト5: セッションストレージ統合')
+  try {
+    const sessionData = sessionStorage.getItem('cache_test-user-id')
+    if (sessionData) {
+      console.log('✅ セッションストレージにデータが保存されています')
+      const parsed = JSON.parse(sessionData)
+      console.log(`📦 保存されているキーの数: ${Object.keys(parsed).length}`)
+    } else {
+      console.log('⚠️ セッションストレージにデータが見つかりません')
+    }
+  } catch (error) {
+    console.error('❌ セッションストレージアクセスエラー:', error)
+  }
+  
+  console.log('🎉 パフォーマンステスト完了')
+}
+
+// 実際のアプリでの使用例テスト
+const runRealWorldTest = async () => {
+  console.log('🌍 実世界テスト開始')
+  
+  const today = new Date()
+  const weekStart = new Date(today)
+  weekStart.setDate(today.getDate() - today.getDay() + 1) // 月曜日
+  
+  // 週間NPSデータのモック
+  const mockNPSData = {}
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(weekStart)
+    date.setDate(weekStart.getDate() + i)
+    const dateKey = date.toISOString().split('T')[0]
+    mockNPSData[dateKey] = Math.floor(Math.random() * 200) - 100 // -100から100のNPS
+  }
+  
+  // キャッシュに保存
+  const params = {
+    weekStart: weekStart.toISOString().split('T')[0],
+    storeId: 'test-store-456',
+    dataType: 'nps_weekly'
+  }
+  
+  console.log('📊 モックNPSデータをキャッシュに保存...')
+  setCachedData('nps_weekly', params, {
+    data: mockNPSData,
+    average: Object.values(mockNPSData).reduce((a, b) => a + b, 0) / 7,
+    lastWeekAverage: Math.floor(Math.random() * 200) - 100
+  })
+  
+  // キャッシュから読み込み
+  const retrievedData = getCachedData('nps_weekly', params)
+  console.log('✅ キャッシュからデータ取得:', retrievedData)
+  
+  console.log('🎉 実世界テスト完了')
+}
+
+// メモリ使用量テスト
+const runMemoryTest = () => {
+  console.log('🧠 メモリ使用量テスト開始')
+  
+  if (performance.memory) {
+    const beforeMemory = performance.memory.usedJSHeapSize
+    
+    // 大量のデータをキャッシュに保存
+    for (let i = 0; i < 1000; i++) {
+      const largeData = new Array(1000).fill(Math.random())
+      setCachedData('memory_test', { index: i }, largeData)
+    }
+    
+    const afterMemory = performance.memory.usedJSHeapSize
+    const memoryIncrease = (afterMemory - beforeMemory) / 1024 / 1024 // MB
+    
+    console.log(`📈 メモリ使用量増加: ${memoryIncrease.toFixed(2)}MB`)
+    console.log('⚠️ 本テストは開発環境でのみ実行してください')
+    
+    // クリーンアップ
+    clearAllCache()
+    console.log('🧹 テスト用データをクリーンアップしました')
+  } else {
+    console.log('⚠️ performance.memoryがサポートされていません（Chrome以外のブラウザ）')
+  }
+  
+  console.log('🎉 メモリテスト完了')
+}
+
+// 全テストの実行
+const runAllTests = async () => {
+  console.log('🔄 全テストスイート開始')
+  
+  try {
+    await runCachePerformanceTest()
+    console.log('---')
+    await runRealWorldTest()
+    console.log('---')
+    runMemoryTest()
+    
+    console.log('🎊 全テスト完了！')
+    console.log('📊 最終キャッシュ統計:', getCacheStats())
+  } catch (error) {
+    console.error('❌ テスト中にエラーが発生しました:', error)
+  }
+}
+
+// エクスポート（モジュールとして使用する場合）
+export {
+  runCachePerformanceTest,
+  runRealWorldTest,
+  runMemoryTest,
+  runAllTests
+}
+
+// 直接実行（スクリプトとして使用する場合）
+if (typeof window !== 'undefined') {
+  // ブラウザ環境での実行
+  window.cacheTests = {
+    runCachePerformanceTest,
+    runRealWorldTest,
+    runMemoryTest,
+    runAllTests
+  }
+  
+  console.log('🔧 キャッシュテスト関数がwindow.cacheTestsに登録されました')
+  console.log('💡 使用例: window.cacheTests.runAllTests()')
+}
+
+// Node.js環境での実行（デバッグ用）
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    runCachePerformanceTest,
+    runRealWorldTest,
+    runMemoryTest,
+    runAllTests
+  }
+}

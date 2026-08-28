@@ -1,0 +1,134 @@
+import React from 'react';
+import {
+  Box, Typography, Skeleton, alpha,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+} from '@mui/material';
+import { FilterAlt } from '@mui/icons-material';
+import { usePartnerTheme } from '../../../contexts/PartnerThemeContext';
+
+const NPS_STYLE = {
+  promoter: { label: '推奨者', color: '#15803d', bg: '#dcfce7', dot: '#22c55e' },
+  passive: { label: '中立者', color: '#92400e', bg: '#fef3c7', dot: '#f59e0b' },
+  detractor: { label: '批判者', color: '#991b1b', bg: '#fee2e2', dot: '#ef4444' },
+};
+
+const SoftPill = ({ children, color = '#475569', bg = '#f1f5f9' }) => (
+  <Box sx={{
+    display: 'inline-block',
+    px: 1.25, py: 0.25, borderRadius: 1,
+    backgroundColor: bg, color,
+    fontSize: '0.78rem', fontWeight: 600,
+    lineHeight: 1.4,
+    whiteSpace: 'nowrap',
+  }}>
+    {children}
+  </Box>
+);
+
+export default function LineAudienceTable({ rows, loading, emptyHint }) {
+  const theme = usePartnerTheme();
+
+  if (loading) {
+    return (
+      <Box sx={{ p: 3 }}>
+        {[...Array(6)].map((_, i) => (
+          <Skeleton key={i} variant="rectangular" height={56} sx={{ mb: 1, borderRadius: 1 }} />
+        ))}
+      </Box>
+    );
+  }
+
+  if (!rows || rows.length === 0) {
+    return (
+      <Box sx={{ p: 8, textAlign: 'center' }}>
+        <Box sx={{
+          width: 64, height: 64, mx: 'auto', mb: 2, borderRadius: '50%',
+          background: alpha(theme.primary, 0.08),
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <FilterAlt sx={{ fontSize: 32, color: theme.primary, opacity: 0.6 }} />
+        </Box>
+        <Typography sx={{ fontWeight: 600, mb: 0.5, color: '#475569' }}>該当するユーザーがいません</Typography>
+        {emptyHint && (
+          <Typography variant="caption" color="text.secondary">{emptyHint}</Typography>
+        )}
+      </Box>
+    );
+  }
+
+  return (
+    <TableContainer>
+      <Table>
+        <TableHead>
+          <TableRow sx={{ '& th': {
+            fontWeight: 700, fontSize: '0.7rem',
+            color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1.2,
+            borderBottom: `1px solid ${alpha(theme.primary, 0.15)}`,
+            backgroundColor: '#fafbfc', py: 1.5, whiteSpace: 'nowrap',
+          }}}>
+            <TableCell width={64} align="center">No.</TableCell>
+            <TableCell>推奨度</TableCell>
+            <TableCell>来店回数</TableCell>
+            <TableCell>再訪意向時期</TableCell>
+            <TableCell>性別</TableCell>
+            <TableCell>年齢層</TableCell>
+            <TableCell>同伴者</TableCell>
+            <TableCell>最終回答日</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((a, i) => {
+            const nps = NPS_STYLE[a.nps_segment] || { label: '不明', color: '#64748b', bg: '#f1f5f9', dot: '#94a3b8' };
+            const date = a.last_answered_at ? new Date(a.last_answered_at) : null;
+            return (
+              <TableRow key={a.line_user_id || i}
+                sx={{
+                  transition: 'background 0.15s',
+                  '&:nth-of-type(even)': { backgroundColor: '#fafbfc' },
+                  '&:hover': { backgroundColor: alpha(theme.primary, 0.04) },
+                  '& td': { borderBottom: '1px solid #f1f5f9', py: 1.5 },
+                }}>
+                <TableCell align="center" sx={{ color: '#cbd5e1', fontWeight: 700, fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                  {String(i + 1).padStart(3, '0')}
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: nps.dot, flexShrink: 0 }} />
+                    <SoftPill color={nps.color} bg={nps.bg}>{nps.label}</SoftPill>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  {a.visit_count ? <SoftPill>{a.visit_count}</SoftPill> : <Typography component="span" sx={{ color: '#cbd5e1', fontSize: '0.85rem' }}>—</Typography>}
+                </TableCell>
+                <TableCell>
+                  {a.revisit_period ? <SoftPill>{a.revisit_period}</SoftPill> : <Typography component="span" sx={{ color: '#cbd5e1', fontSize: '0.85rem' }}>—</Typography>}
+                </TableCell>
+                <TableCell>
+                  {a.gender ? <SoftPill>{a.gender}</SoftPill> : <Typography component="span" sx={{ color: '#cbd5e1', fontSize: '0.85rem' }}>—</Typography>}
+                </TableCell>
+                <TableCell>
+                  {a.age_group ? <SoftPill>{a.age_group}</SoftPill> : <Typography component="span" sx={{ color: '#cbd5e1', fontSize: '0.85rem' }}>—</Typography>}
+                </TableCell>
+                <TableCell>
+                  {a.companion ? <SoftPill>{a.companion}</SoftPill> : <Typography component="span" sx={{ color: '#cbd5e1', fontSize: '0.85rem' }}>—</Typography>}
+                </TableCell>
+                <TableCell sx={{ color: '#64748b', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                  {date ? (
+                    <>
+                      <Box component="span" sx={{ fontWeight: 600, color: '#334155' }}>
+                        {date.toLocaleDateString('ja-JP')}
+                      </Box>
+                      <Box component="span" sx={{ ml: 1, color: '#94a3b8', fontSize: '0.78rem' }}>
+                        {date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                      </Box>
+                    </>
+                  ) : '-'}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+}
